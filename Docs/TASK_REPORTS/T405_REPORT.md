@@ -1,6 +1,6 @@
 # T405 — PayTR: kart iadesi
 
-**Faz:** F4 | **Durum:** ⏳ Yapım bitti, doğrulama bekliyor | **Tarih:** 2026-11-11
+**Faz:** F4 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-11
 
 - **Dal:** `task/T405-paytr-kart-iadesi` (taban `main` `5a29775e`)
 - **Bağımlılık:** T404 ✓
@@ -86,7 +86,14 @@
 
 ## Doğrulama
 
-*(validator doldurur)*
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-11; dal ucu `be7accaf`; `origin/main` `5a29775e`, birleştirme gerekmedi) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 — K1 → D-1087 (`RefundOutcomeQueryRule.NextDelay` bekleyişi geçen süreden seçer; çalıştırıcı uzun süre geç kalırsa sonraki bekleyiş daha uzun aralıktan seçilir; zamanında koşuda 1, 2, 7, 22, 82 dk tutar) |
+
+**Tur 1 kanıtları (doğrulayıcı):** kriter 1–10 ve KK1–KK10 ✓ (kriter 10'un test mağazası gözlem payı OWNER_INPUT, D-1082/D-1083). Kod okundu: `PayTrRefund`, `PayTrPaymentGateway` (`RequestRefundAsync`, `QueryRefundAsync`, `PostRefund*`), `CardRefundJobHandler`, `CardRefundJobRule`, `RefundOutcomeQueryJobHandler`, `RefundOutcomeQueryRule` (takvim elle hesaplandı: 1, 2, 7, 22, 82 dk, sonra 60 dk), `PaymentModule` (`WriteCardRefundSendingAsync`, `RecordLateCardRefundSuccessAsync`, bekleyen sonuçta sorgu satırı, ayıp çözümünün kart satırı), `OrderTransitions.BeginCardRefundRequestAsync` ve geç başarı kolu, `ExternalCallRunner` (30 sn iş süresi). Bilinen iade özeti `printf '%s' '12345620267K4M9P10.00salt-sample' | openssl dgst -sha256 -hmac key-sample -binary | base64` = `f02lP+RU…ameFg=` testteki değere eşit. CI run 42906065591 `success` (9 iş). Yerel: `dotnet build -warnaserror` 0 uyarı, `dotnet format --verify-no-changes` üç projede temiz, Unit 6483 yeşil (Consistency, Architecture dahil), betik testleri 4 dosya yeşil, Integration (Postgres 18, `track_commit_timestamp=on`) 14 sınıf 517 yeşil. `12`: `VAL-E093`, `VAL-A990` → `PASS`; `12_matris_denetle.py --kapsam 1-77` Hata 0.
 
 ## Altyapı Değişiklikleri
 
@@ -100,7 +107,7 @@
 - **Branch:** `task/T405-paytr-kart-iadesi`
 - **Commit:** dal ucu PR'da
 - **PR:** #529
-- **CI:** *(yönetici izler)*
+- **CI:** run 42906065591 `success` (dal ucu `be7accaf`)
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

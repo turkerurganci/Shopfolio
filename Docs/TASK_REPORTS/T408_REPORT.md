@@ -75,10 +75,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | (doğrulayıcı doldurur) |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-10) |
+| Bulgu sayısı | 1 (S2 Kırılma, KRİTİK): `BounceQueryJobHandler` koşulsuz kaydedilir ve `IEmailGateway` ister; ağ geçidi kayıtlı olmayan uygulama (test sunucusunun varsayılanı) hizmet doğrulamasında açılmaz — CI Integration 620/3499 kırmızı (run 42818255272) |
+| Düzeltme gerekli mi | Evet — işleyici ağ geçidi yokken de kurulabilmeli (ör. `IServiceProvider` üstünden `GetService`, ya da kaydın ağ geçidine bağlanması) ve uygulamanın bütün Integration paketi yeşil olmalı |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-1045) |
 
 ## Altyapı Değişiklikleri
 

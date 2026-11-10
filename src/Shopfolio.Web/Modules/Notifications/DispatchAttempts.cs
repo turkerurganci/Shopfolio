@@ -55,6 +55,13 @@ internal sealed class DispatchAttempts
             : null;
     }
 
+    /// <summary>True while an e-mail gateway is registered; the returned-address query's row source asks here, so it does not name the gateway (T408).</summary>
+    public static bool GatewayIsRegistered(IServiceProvider services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        return services.GetService<IEmailGateway>() is not null;
+    }
+
     /// <summary>Sends <paramref name="message"/> for the row <paramref name="dispatchId"/> and writes the result.</summary>
     public async Task<DispatchAttemptResult> SendAsync(Guid dispatchId, EmailMessage message, CancellationToken ct)
     {

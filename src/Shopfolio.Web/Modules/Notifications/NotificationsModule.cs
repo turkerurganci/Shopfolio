@@ -5,6 +5,7 @@ using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.EmailComposition;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Status;
+using Shopfolio.Infrastructure.Values;
 
 using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -115,8 +116,21 @@ internal static class NotificationsModuleRegistration
         services.AddDueRecordSource<DispatchRetrySource>();
         services.AddSingleton<RecipientLimitLog>();
 
+        services.AddBounceQuery();
+
         // The e-mail channel warning is a condition of the status endpoint (05 9.4.7).
         services.AddStatusCondition<ChannelWarningCondition>();
+        return services;
+    }
+
+    /// <summary>
+    /// The returned-address query (T408; 08 2.2.3; 05 5.2.16): its handler on the job queue, and the scheduler source that keeps the type's one pending row in place. Both ask the
+    /// container for the e-mail gateway, which is optional, so the registration holds in a host with none; a test that runs the job registers the gateway and calls this.
+    /// </summary>
+    internal static IServiceCollection AddBounceQuery(this IServiceCollection services)
+    {
+        services.AddJobHandler<BounceQueryJobHandler>(JobType.BounceQuery);
+        services.AddDueRecordSource<BounceQueryRowSource>();
         return services;
     }
 }

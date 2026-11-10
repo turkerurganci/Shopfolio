@@ -44,6 +44,7 @@ public sealed partial class JobTimingsConsistencyTests
         Assert.Equal(JobTimings.DefaultRetrySchedule.Count, WordToCount(match.Groups[2].Value));
         Assert.Equal(TimeSpan.FromMinutes(Number(match.Groups[3])), JobTimings.FinalPaymentQueryInterval);
         Assert.Equal(TimeSpan.FromMinutes(Number(match.Groups[4])), JobTimings.BounceQueryInterval);
+        Assert.Equal(TimeSpan.FromHours(Number(match.Groups[5])), JobTimings.BounceQueryWindow);
     }
 
     [Fact]
@@ -76,6 +77,6 @@ public sealed partial class JobTimingsConsistencyTests
     [GeneratedRegex(@"kuyruğa bakma aralığı (\d+) saniye", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex PollRow();
 
-    [GeneratedRegex(@"varsayılan yeniden denemesi ([\d, ]+ve \d+) dakika \(en çok (\w+) kez\); yanıtsız son sorgu (\d+) dakika; geri dönen adres sorgusu (\d+) dakika", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    [GeneratedRegex(@"varsayılan yeniden denemesi ([\d, ]+ve \d+) dakika \(en çok (\w+) kez\); yanıtsız son sorgu (\d+) dakika; geri dönen adres sorgusu (\d+) dakika ve okuduğu pencere (\d+) saat", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex RetryRow();
 }

@@ -241,18 +241,22 @@ internal sealed class PaymentModule : IPaymentModule
             return settled;
         }
 
-        // A sent refund is done; a voided one never goes (06 4.33). Each subject reaches its refund through its own link.
+        // A sent refund is done; a voided one never goes (06 4.33). Each subject reaches its refund through its own link: a record's, a receipt's, the
+        // declaration's of a withdrawal whose refund is born with it (no receipt), or the refund itself that a request names (D-910).
         Guid[] ids = [.. subjectIds.Distinct()];
         List<RefundLinks> refunds = await _db.Refunds.AsNoTracking()
             .Where(r => (r.SentAt != null || r.VoidedAt != null)
-                && ((r.CancellationId != null && ids.Contains(r.CancellationId.Value))
+                && (ids.Contains(r.Id)
+                    || (r.CancellationId != null && ids.Contains(r.CancellationId.Value))
+                    || (r.ItemRemovalId != null && ids.Contains(r.ItemRemovalId.Value))
                     || (r.LateDeliveryTerminationId != null && ids.Contains(r.LateDeliveryTerminationId.Value))
-                    || (r.ReturnId != null && ids.Contains(r.ReturnId.Value))))
-            .Select(r => new RefundLinks(r.CancellationId, r.LateDeliveryTerminationId, r.ReturnId))
+                    || (r.ReturnId != null && ids.Contains(r.ReturnId.Value))
+                    || (r.WithdrawalId != null && r.ReturnId == null && ids.Contains(r.WithdrawalId.Value))))
+            .Select(r => new RefundLinks(r.Id, r.CancellationId, r.ItemRemovalId, r.LateDeliveryTerminationId, r.ReturnId == null ? r.WithdrawalId : null, r.ReturnId))
             .ToListAsync(ct);
         foreach (RefundLinks refund in refunds)
         {
-            foreach (Guid? link in new[] { refund.CancellationId, refund.LateDeliveryTerminationId, refund.ReturnId })
+            foreach (Guid? link in new Guid?[] { refund.Id, refund.CancellationId, refund.ItemRemovalId, refund.LateDeliveryTerminationId, refund.DeclaredWithdrawalId, refund.ReturnId })
             {
                 if (link is { } id && ids.Contains(id))
                 {
@@ -554,8 +558,8 @@ internal sealed class PaymentModule : IPaymentModule
             isFirmRetry);
     }
 
-    /// <summary>The three subject links of a settled refund, as <see cref="FindSettledRefundSubjectsAsync"/> reads them.</summary>
-    private sealed record RefundLinks(Guid? CancellationId, Guid? LateDeliveryTerminationId, Guid? ReturnId);
+    /// <summary>The subject links of a settled refund, as <see cref="FindSettledRefundSubjectsAsync"/> reads them; the withdrawal only when no receipt carries the refund.</summary>
+    private sealed record RefundLinks(Guid Id, Guid? CancellationId, Guid? ItemRemovalId, Guid? LateDeliveryTerminationId, Guid? DeclaredWithdrawalId, Guid? ReturnId);
 }
 
 /// <summary>

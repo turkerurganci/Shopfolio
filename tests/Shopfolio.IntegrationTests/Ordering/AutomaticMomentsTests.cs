@@ -217,6 +217,124 @@ public sealed class AutomaticMomentsTests : IAsyncLifetime
         Assert.Equal(1, await reader.DisposalRecords.CountAsync(Ct));
     }
 
+    // ---- T412 KK3 (D-910; 03 4.2.8): the deletion day counts every refund that may still be paid to the IBAN ----
+
+    [Fact]
+    public async Task DeletionDay_KeepsTheIban_ForAWithdrawalBeforeTheDelivery_AServiceWithdrawal_AndARequestsRefund_WhileTheirRefundsArePending_T412_KK3()
+    {
+        (RefundIban beforeDelivery, RefundIban service, RefundIban request) = await SeedThreeSubjectsAsync(settled: false);
+
+        await ProcessAsync(beforeDelivery.Id);
+        await ProcessAsync(service.Id);
+        await ProcessAsync(request.Id);
+
+        // Each IBAN stays for the refund that still uses it and its day is emptied: the deletion that comes with that refund is the refund line's (03 4.2.8).
+        await using AppDbContext reader = NewContext();
+        List<RefundIban> kept = await reader.RefundIbans.OrderBy(i => i.Id).ToListAsync(Ct);
+        Assert.Equal(new[] { beforeDelivery.Id, service.Id, request.Id }.Order(), kept.Select(i => i.Id));
+        Assert.All(kept, i => Assert.Null(i.ScheduledDeletionAt));
+        Assert.False(await reader.DisposalRecords.AnyAsync(Ct));
+    }
+
+    [Fact]
+    public async Task DeletionDay_DeletesTheIban_OnceTheRefundsOfThoseThreeSubjectsWereSentOrVoided_T412_KK3()
+    {
+        (RefundIban beforeDelivery, RefundIban service, RefundIban request) = await SeedThreeSubjectsAsync(settled: true);
+
+        await ProcessAsync(beforeDelivery.Id);
+        await ProcessAsync(service.Id);
+        await ProcessAsync(request.Id);
+
+        await using AppDbContext reader = NewContext();
+        Assert.False(await reader.RefundIbans.AnyAsync(Ct));
+        Assert.Equal(3, await reader.DisposalRecords.CountAsync(r => r.DisposalRecordType == DisposalRecordType.RefundIban, Ct));
+    }
+
+    /// <summary>
+    /// Three orders, each with an IBAN whose deletion day came for a withdrawal after the delivery whose goods did not arrive, and one more subject of the IBAN:
+    /// a withdrawal before the delivery (its refund is born with the declaration; settled: sent), a service withdrawal (settled: voided), and an IBAN request
+    /// fulfilled on a failed card refund that names the refund (settled: sent). Unsettled, the first has no refund row yet and the other two are not sent.
+    /// </summary>
+    private async Task<(RefundIban BeforeDelivery, RefundIban Service, RefundIban Request)> SeedThreeSubjectsAsync(bool settled)
+    {
+        Order first = await SeedOrderAsync(PaymentMethod.BankTransfer, Start.AddDays(5), orderStatus: OrderStatus.Delivered, paymentStatus: PaymentStatus.Paid);
+        RefundIban beforeDelivery = await SeedIbanWithWithdrawalAsync(first.Id, Start.AddMinutes(-3));
+        Guid undelivered = await AddItemAsync(first.Id, ProductType.Physical);
+        Guid declared = await SeedWithdrawalAsync(first.Id, undelivered, beforeDelivery.Id);
+        if (settled)
+        {
+            await SeedWithdrawalRefundAsync(first.Id, undelivered, declared, PaymentMethod.BankTransfer, sent: true, voided: false);
+        }
+
+        Order second = await SeedOrderAsync(PaymentMethod.BankTransfer, Start.AddDays(5), orderStatus: OrderStatus.Delivered, paymentStatus: PaymentStatus.Paid);
+        RefundIban service = await SeedIbanWithWithdrawalAsync(second.Id, Start.AddMinutes(-2));
+        Guid serviceItem = await AddItemAsync(second.Id, ProductType.Service);
+        Guid withdrawn = await SeedWithdrawalAsync(second.Id, serviceItem, service.Id);
+        await SeedWithdrawalRefundAsync(second.Id, serviceItem, withdrawn, PaymentMethod.Card, sent: false, voided: settled);
+
+        Order third = await SeedOrderAsync(PaymentMethod.BankTransfer, Start.AddDays(5), orderStatus: OrderStatus.Delivered, paymentStatus: PaymentStatus.Paid);
+        RefundIban request = await SeedIbanWithWithdrawalAsync(third.Id, Start.AddMinutes(-1));
+        await SeedRequestRefundAsync(third.Id, request.Id, sent: settled);
+        return (beforeDelivery, service, request);
+    }
+
+    /// <summary>A further item of the order, not delivered.</summary>
+    private async Task<Guid> AddItemAsync(Guid orderId, ProductType productType)
+    {
+        await using AppDbContext db = NewContext();
+        Order order = await db.Orders.SingleAsync(o => o.Id == orderId, Ct);
+        OrderItem item = OrderItem.Create(orderId, null, null, productType, "Ürün 2", 1, 100m, 20m, 16.67m, Start.AddSeconds(1));
+        item.FulfilmentPeriod = productType == ProductType.Service ? 7 : null;
+        db.OrderItems.Add(item);
+        await SaveWithVersionAsync(db, order);
+        return item.Id;
+    }
+
+    /// <summary>A withdrawal of one unit of the item linked to the IBAN, declared before any delivery of the item.</summary>
+    private async Task<Guid> SeedWithdrawalAsync(Guid orderId, Guid itemId, Guid ibanId)
+    {
+        await using AppDbContext db = NewContext();
+        Order order = await db.Orders.SingleAsync(o => o.Id == orderId, Ct);
+        Withdrawal withdrawal = Withdrawal.ByBuyer(itemId, 1, new DateOnly(2026, 10, 15), null, new ItemAmounts(100m, 10m, 15m), ibanId, Start.AddDays(-20));
+        db.Withdrawals.Add(withdrawal);
+        await SaveWithVersionAsync(db, order);
+        return withdrawal.Id;
+    }
+
+    /// <summary>The declaration's refund of a withdrawal (no receipt carries it), sent, voided or still waiting.</summary>
+    private async Task SeedWithdrawalRefundAsync(Guid orderId, Guid itemId, Guid withdrawalId, PaymentMethod method, bool sent, bool voided)
+    {
+        await using AppDbContext db = NewContext();
+        Order order = await db.Orders.SingleAsync(o => o.Id == orderId, Ct);
+        Refund refund = Refund.BySystem(orderId, RefundType.Withdrawal, method, 100m, Start.AddDays(-20));
+        (refund.WithdrawalId, refund.OrderItemId, refund.Quantity) = (withdrawalId, itemId, 1);
+        refund.SentAt = sent ? Start.AddDays(-1) : null;
+        refund.VoidedAt = voided ? Start.AddDays(-1) : null;
+        db.Refunds.Add(refund);
+        await SaveWithVersionAsync(db, order);
+    }
+
+    /// <summary>A failed card refund of a cancellation whose item's IBAN request was fulfilled with the IBAN: the request names the refund, sent or not.</summary>
+    private async Task SeedRequestRefundAsync(Guid orderId, Guid ibanId, bool sent)
+    {
+        await using AppDbContext db = NewContext();
+        Order order = await db.Orders.SingleAsync(o => o.Id == orderId, Ct);
+        Guid itemId = await db.OrderItems.Where(i => i.OrderId == orderId).Select(i => i.Id).FirstAsync(Ct);
+        Cancellation cancellation = Cancellation.ByBuyer(itemId, 1, new ItemAmounts(100m, 10m, 15m), null, Start.AddDays(-20));
+        db.Cancellations.Add(cancellation);
+        await SaveWithVersionAsync(db, order);
+        Refund refund = Refund.BySystem(orderId, RefundType.Cancellation, PaymentMethod.Card, 50m, Start.AddDays(-20));
+        (refund.CancellationId, refund.OrderItemId, refund.Quantity) = (cancellation.Id, itemId, 1);
+        refund.SentAt = sent ? Start.AddDays(-1) : null;
+        db.Refunds.Add(refund);
+        await SaveWithVersionAsync(db, order);
+        // The administrator who opened the request has since been removed: the link is emptied (06 7.2), the request stays.
+        RefundIbanRequest request = RefundIbanRequest.ForItem(itemId, RefundIbanRequestReason.CardRefundFailed, refund.Id, Guid.Empty, "Yönetici", Start.AddDays(-10));
+        (request.AdminId, request.FulfilledAt, request.RefundIbanId) = (null, Start.AddDays(-9), ibanId);
+        db.RefundIbanRequests.Add(request);
+        await SaveWithVersionAsync(db, order);
+    }
+
     // ---- helpers ----
 
     private async Task ReturnAsync()
@@ -286,7 +404,11 @@ public sealed class AutomaticMomentsTests : IAsyncLifetime
         iban.ScheduledDeletionAt = deletionAt;
         await using AppDbContext db = NewContext();
         Order order = await db.Orders.SingleAsync(o => o.Id == orderId, Ct);
-        Guid itemId = await db.OrderItems.Where(i => i.OrderId == orderId).Select(i => i.Id).FirstAsync(Ct);
+        OrderItem item = await db.OrderItems.Where(i => i.OrderId == orderId).OrderBy(i => i.CreatedAt).ThenBy(i => i.Id).FirstAsync(Ct);
+        Guid itemId = item.Id;
+
+        // Delivered before the declaration: the withdrawal's refund waits for the goods (Z-16), so it has no subject until a receipt (Z-38's case).
+        (item.DeliveryDate, item.DeliveryMarkedAt) = (new DateOnly(2026, 10, 10), Start.AddDays(-30));
         db.RefundIbans.Add(iban);
         await SaveWithVersionAsync(db, order);
         db.Withdrawals.Add(Withdrawal.ByBuyer(itemId, 1, new DateOnly(2026, 10, 15), null, new ItemAmounts(100m, 10m, 15m), iban.Id, Start.AddDays(-20)));

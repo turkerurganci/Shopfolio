@@ -205,5 +205,85 @@ public sealed class SignatureFailureLogTests : IDisposable
         Assert.Equal(1, Line(1).GetProperty("suppressedCount").GetInt32());
     }
 
+    // ---- The ceiling of the windows in memory (T402; D-108; K-1582; 05 4.5.2) ----
+
+    [Fact]
+    public void AtTheCeiling_ANewAddress_WritesTheOldestCountedWindowsCountAtOnce_AndDropsIt_TheCountIsNotLost()
+    {
+        IPAddress oldest = Address(0);
+        _harness.Failures.Record(oldest, SignatureFailureReason.SignatureInvalid);
+        _harness.Failures.Record(oldest, SignatureFailureReason.BodyUnreadable);
+        _harness.Failures.Record(oldest, SignatureFailureReason.BodyUnreadable);
+        _harness.Time.Advance(Tick);
+        IPAddress laterCounted = Address(1);
+        _harness.Failures.Record(laterCounted, SignatureFailureReason.SignatureInvalid);
+        _harness.Failures.Record(laterCounted, SignatureFailureReason.SignatureInvalid);
+        for (int i = 2; i < SignedEndpointLimits.FailureLogMaxAddresses; i++)
+        {
+            _harness.Failures.Record(Address(i), SignatureFailureReason.SignatureInvalid);
+        }
+
+        Assert.Equal(SignedEndpointLimits.FailureLogMaxAddresses, _harness.Failures.TrackedAddressCount);
+        int before = _harness.Lines.Count;
+
+        Assert.True(_harness.Failures.Record(Address(SignedEndpointLimits.FailureLogMaxAddresses), SignatureFailureReason.SignatureInvalid));
+
+        // Two lines: the flushed count of the oldest counted window (with its last counted reason), then the new address's own line.
+        Assert.Equal(before + 2, _harness.Lines.Count);
+        Assert.Equal(2, Line(before).GetProperty("suppressedCount").GetInt32());
+        Assert.Equal(nameof(SignatureFailureReason.BodyUnreadable), Line(before).GetProperty("reason").GetString());
+        Assert.Equal(0, Line(before + 1).GetProperty("suppressedCount").GetInt32());
+        Assert.Equal(SignedEndpointLimits.FailureLogMaxAddresses, _harness.Failures.TrackedAddressCount);
+
+        // The flushed address has no window any more: its next failure is a new address at the full ceiling - it flushes the next oldest counted window
+        // (the later one, count 1) and writes its own line with no count (its count was already written).
+        _harness.Time.Advance(Tick);
+        Assert.True(_harness.Failures.Record(oldest, SignatureFailureReason.SignatureInvalid));
+        Assert.Equal(1, Line(_harness.Lines.Count - 2).GetProperty("suppressedCount").GetInt32());
+        Assert.Equal(0, Line(_harness.Lines.Count - 1).GetProperty("suppressedCount").GetInt32());
+    }
+
+    [Fact]
+    public void AtTheCeiling_WithNoCountedWindow_TheOldestWindowIsDropped_WithoutALine()
+    {
+        for (int i = 0; i < SignedEndpointLimits.FailureLogMaxAddresses; i++)
+        {
+            _harness.Failures.Record(Address(i), SignatureFailureReason.SignatureInvalid);
+        }
+
+        Assert.True(_harness.Failures.Record(Address(SignedEndpointLimits.FailureLogMaxAddresses), SignatureFailureReason.SignatureInvalid));
+
+        Assert.Equal(SignedEndpointLimits.FailureLogMaxAddresses + 1, _harness.Lines.Count);
+        Assert.Equal(SignedEndpointLimits.FailureLogMaxAddresses, _harness.Failures.TrackedAddressCount);
+        Assert.True(_harness.Failures.Record(Address(0), SignatureFailureReason.SignatureInvalid));
+        Assert.False(_harness.Failures.Record(Address(1), SignatureFailureReason.SignatureInvalid));
+    }
+
+    [Fact]
+    public void AtTheCeiling_EndedWindowsWithoutACount_GoFirst_AndNoCountIsFlushed()
+    {
+        // Opened at +30 s, before the sweep at +61 s and still open at it; ended at +95 s, where the sweep does not run yet (34 s after the last one).
+        _harness.Time.Advance(TimeSpan.FromSeconds(30));
+        for (int i = 1; i < SignedEndpointLimits.FailureLogMaxAddresses; i++)
+        {
+            _harness.Failures.Record(Address(i), SignatureFailureReason.SignatureInvalid);
+        }
+
+        _harness.Time.SetUtcNow(SignedEndpointHarness.Now + TimeSpan.FromSeconds(61));
+        _harness.Failures.Record(Address(0), SignatureFailureReason.SignatureInvalid);
+        _harness.Failures.Record(Address(0), SignatureFailureReason.SignatureInvalid);
+        Assert.Equal(SignedEndpointLimits.FailureLogMaxAddresses, _harness.Failures.TrackedAddressCount);
+        int before = _harness.Lines.Count;
+
+        _harness.Time.SetUtcNow(SignedEndpointHarness.Now + TimeSpan.FromSeconds(95));
+        Assert.True(_harness.Failures.Record(Address(SignedEndpointLimits.FailureLogMaxAddresses), SignatureFailureReason.SignatureInvalid));
+
+        Assert.Equal(before + 1, _harness.Lines.Count);
+        Assert.Equal(2, _harness.Failures.TrackedAddressCount);
+    }
+
+    // A distinct IPv4 address per index: 10.x.y.z.
+    private static IPAddress Address(int index) => new([10, (byte)(index >> 16), (byte)(index >> 8), (byte)index]);
+
     private JsonElement Line(int index) => JsonDocument.Parse(_harness.Lines[index]).RootElement;
 }

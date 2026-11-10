@@ -34,6 +34,9 @@ internal sealed class RunnerHarness : IDisposable
     /// <summary>The application formatter's lines of everything written so far.</summary>
     public IReadOnlyList<string> Lines => [.. Sink.Events.Select(LogCapture.Line)];
 
+    /// <summary>A logger of the same in-memory sink, for a class of the layer that writes its own line (T402: the failed payment's reason).</summary>
+    public Microsoft.Extensions.Logging.ILogger<T> LoggerFor<T>() => new Microsoft.Extensions.Logging.Logger<T>(_factory);
+
     public void Dispose()
     {
         _factory.Dispose();

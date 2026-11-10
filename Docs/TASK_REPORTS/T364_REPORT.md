@@ -96,8 +96,8 @@ Eşzamanlılığın mekanizması (`RecordSave`, `OrderLocks`, `ShownVersion`, `V
 ## Commit & PR
 
 - **Branch:** `task/T364-eszamanli-islemler`
-- **Commit:** son commit PR'da
-- **PR:** *(açılınca)*
+- **Commit:** `db5995dc` — T364: Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler (+ bu rapor satırı)
+- **PR:** #511
 - **CI:** *(doğrulayıcı)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

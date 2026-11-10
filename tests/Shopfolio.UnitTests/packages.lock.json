@@ -39,8 +39,8 @@
       },
       "AWSSDK.Core": {
         "type": "Transitive",
-        "resolved": "4.0.100.9",
-        "contentHash": "OPYy41jZjXwxxcYRotaq24HDrwUnVtBB/mvg1IwB9D1ICXAtHqMa1sp2hpmlVJCZwjlcrPcTCJIejInvV1vp5g=="
+        "resolved": "4.0.102.19",
+        "contentHash": "Hb6P2ui6y0U+UNUjcC4ASFFoTLzCijhMzfOCXfoFTXq/o0YWQsO1oSH1NG2GQ9dlIT693xeeih0yAcfeL1dphg=="
       },
       "CycleDetection": {
         "type": "Transitive",
@@ -301,7 +301,7 @@
       "shopfolio.web": {
         "type": "Project",
         "dependencies": {
-          "AWSSDK.SimpleEmailV2": "[4.0.102.1, )",
+          "AWSSDK.SimpleEmailV2": "[4.0.106.10, )",
           "EFCore.NamingConventions": "[10.0.1, )",
           "HtmlSanitizer": "[10.0.1120, )",
           "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": "[10.0.14, )",
@@ -318,11 +318,11 @@
       },
       "AWSSDK.SimpleEmailV2": {
         "type": "CentralTransitive",
-        "requested": "[4.0.102.1, )",
-        "resolved": "4.0.102.1",
-        "contentHash": "SVE4UT0fXKk5SrB6X4VLKYS7EO358dHQdh0rziKDTLqvDLDowupICIyZlkFNtjcfT57diZuXTIIKSV8NBn6ubQ==",
+        "requested": "[4.0.106.10, )",
+        "resolved": "4.0.106.10",
+        "contentHash": "bxosDNbnumhpcZ4ymb0JMpM/YpROG0Tn5G0IsX2OuM5mhkLaOLXaSOqpRtMVtLGgMYRk8vVEOBPsRPmtkFn8ow==",
         "dependencies": {
-          "AWSSDK.Core": "[4.0.100.9, 5.0.0)"
+          "AWSSDK.Core": "[4.0.102.19, 5.0.0)"
         }
       },
       "EFCore.NamingConventions": {

@@ -50,7 +50,8 @@ public interface INotificationsModule
     Task<bool> OrderHasUndeliveredMarkAsync(Guid orderId, CancellationToken ct);
 
     /// <summary>
-    /// Whether a withdrawal, a late delivery termination or a defect claim shows the mark on its own row in the panel (T385; 02 9.1.6): its B-9 ends in an "undelivered" row. Any other kind gives false. A plain read.
+    /// Whether a defect claim shows the mark on its own row in the panel (T385; 02 9.1.6; 06 4.58): its B-9 ends in an "undelivered" row. A withdrawal declaration or a late delivery termination
+    /// shows the mark on the order's row only, and any other kind gives false. A plain read.
     /// </summary>
     Task<bool> ClaimHasUndeliveredMarkAsync(DispatchRelatedRecordType recordType, Guid recordId, CancellationToken ct);
 

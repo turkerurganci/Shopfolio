@@ -1,6 +1,6 @@
 # T385 — Gönderim yeniden denemesi ve "e-posta ulaşmadı" işareti: üç deneme, işaretin düşüşü, panelden yeniden gönderim, işaretsiz bildirimler
 
-**Faz:** F3 | **Durum:** ⏳ Yapım tamamlandı, doğrulama bekliyor | **Tarih:** 2026-11-10
+**Faz:** F3 | **Durum:** ⏳ Düzeltme 1 tamamlandı, doğrulama bekliyor | **Tarih:** 2026-11-10
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -12,7 +12,7 @@
 - **Zamanlayıcı kaynağı** (`DispatchRetrySource`): satırın kendi zamanı; takvim ve iş satırı yok. Kayıtlı ağ geçidi yoksa satırlar beklemede kalır (ağ geçidini yalnız `DispatchAttempts` adlandırır; `DispatchAttempts.FromServices`).
 - **Yeniden deneme kuralı** (`DispatchRetrySchedule`, T204'ten): ilk denemeden 5 dk, 30 dk, 2 saat; geç gelen deneme sonrakileri kaydırmaz; üçüncüden sonra "ulaşmadı".
 - **Gövde bağlamı** (`OrderNoticeContexts`, `OrderNoticeFactsReader`, `IOrderNoticeFacts`; D-232, D-293): sipariş numarası, erişim anahtarı, misafir/silinmiş hesap, donan IBAN, dijital kalem, B-1'in iki donan metni, B-9/B-10 il adları, firma e-postası ve telefonu, yeniden gönderim cümlesinin tarihi.
-- **İşaret** (`DispatchMarks`): grubun (ilk satır + `OriginalDispatchId` taşıyanlar) en son satırından okunur; saklanmaz, işlem izine yazılmaz; sınır reddinde ve servisin sonradan bildirdiği kalıcı geri dönmede de düşer; ayıp/cayma/fesih talebinin satırında B-9 işareti görünür; işaretli siparişler sayfa sayfa listelenir (`FindMarkedOrderIdsAsync`); çağrısız kapanan satır işaret düşürmez.
+- **İşaret** (`DispatchMarks`): grubun (ilk satır + `OriginalDispatchId` taşıyanlar) en son satırından okunur; saklanmaz, işlem izine yazılmaz; sınır reddinde ve servisin sonradan bildirdiği kalıcı geri dönmede de düşer; B-9 işareti yalnız ayıp talebinin satırında da görünür (cayma beyanı ve gecikme feshinde yalnız sipariş satırında); işaretli siparişler sayfa sayfa listelenir (`FindMarkedOrderIdsAsync`); çağrısız kapanan satır işaret düşürmez.
 - **Yeniden gönderim** (`DispatchResending`, `CustomerNoticeQueue.QueueResending`): işaretli grubun son satırı için gruba yeni "queued" satır; alıcı siparişin güncel iletişim e-postası, B-15 düzeltmeden önceki adres; ilk e-postanın anı olay değerlerinde; izine `ResendEmail` (sipariş numarasıyla, kişisel veri yok); olağan kuyruktan ve üç denemeyle gider, başarıda işaret kalkar. `NoticeResendResult` Contracts'ta enum değil değer türüdür (enum, saklanan değer sayılır).
 - **Panel işlemi**: `OrderOperations.EmailNotDelivered` artık `OrderHasUndeliveredMarkAsync`'ten okunur; `ResendEmail` işaret varken açık, yokken kapalı.
 - Bu turda (devam 2): test sınıfındaki derleme hatası ve eksik firma satırı giderildi; mimari/tarama testlerinin dört bulgusu (enum taraması, bildirim parametresi taraması, zamanlayıcı kaynağında yeniden deneme anma, ağ geçidi ve satır yazımının kuyruk dışında olması) kaynak düzeltmesiyle kapandı; üç test düzeneğine `DispatchResending` kaydı eklendi; kalan birim ve tümleşik testler yazıldı; kayıtlar (backlog, STATUS, parça dosyaları) tamamlandı.
@@ -29,7 +29,7 @@
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
 | 1 | Üç yeniden deneme 5 dk / 30 dk / 2 saat, birikmez | ✓ | `AFailingRow_IsTriedAtTheFirstAttempt_ThenFiveMinutes…`, `ALateRetry_DoesNotMoveTheNextOnes…`; birim: `DispatchRetryScheduleTests`; sabitler `OutageConsistencyTests.DispatchRetryConstants_AreTheP38Row` |
-| 2 | Üçüncü hata işareti düşürür; B-9'da talep satırında da | ✓ | `TheMark_FallsWithTheThirdRetrysFailure_ButNotBefore…`, `AClaimsB9_ShowsTheMarkOnTheClaimToo…` |
+| 2 | Üçüncü hata işareti düşürür; B-9 ayıp talebinin satırında da | ✓ | `TheMark_FallsWithTheThirdRetrysFailure_ButNotBefore…`, `ADefectClaimsB9_ShowsTheMarkOnTheClaimToo…`, `AWithdrawalsOrALateTerminationsB9_ShowsTheMarkOnTheOrdersRowOnly…` |
 | 3 | İşaret izde yok, akışı etkilemez | ✓ | aynı test: iz satırı sayısı ve sipariş parmak izi değişmez |
 | 4 | Sınır reddinde ve kalıcı geri dönmede işaret | ✓ | `ARowRefusedByTheRecipientLimit_IsMarkedWithoutAnyRetry…`, `ASentRow_TheServiceLaterReportsAsAPermanentBounce…` |
 | 5 | Hesap e-postalarından yalnız davet; firma bildirimi işaret düşürmez; işaretli sipariş satırı süzülmüş listeye götürür | ✓ | `AFirmNoticeAndAnAccountEmailThatIsNotTheInvitation_PutNoMark…`, `AFirmNotice_IsSentByTheSameSender_AndItsFailureNeverMarksTheOrder`, `TheMarkedOrdersList_HoldsOnlyTheMarkedOrders_InPagesThatContinue`; firma uyarısı T382 `PanelWarningReader` (satır tarafı D-968) |
@@ -43,7 +43,7 @@
 | Madde (kabul kriteri / KK) | Sonuç | Kanıt (dosya, test adı) |
 |---|---|---|
 | KK1 üç an ilk denemeden, sahte saatle | ✓ | `DispatchRetryAndMarkTests.AFailingRow_IsTriedAtTheFirstAttempt_…` |
-| KK2 işaret üçüncü hatayla; B-9'da talep satırında | ✓ | `TheMark_FallsWithTheThirdRetrysFailure_…`, `AClaimsB9_ShowsTheMarkOnTheClaimToo_…` |
+| KK2 işaret üçüncü hatayla; B-9 ayıp talebinin satırında (cayma/fesihte yalnız sipariş) | ✓ | `TheMark_FallsWithTheThirdRetrysFailure_…`, `ADefectClaimsB9_ShowsTheMarkOnTheClaimToo_…` (DefectClaim ✓), `AWithdrawalsOrALateTerminationsB9_…` (Withdrawal ve LateDeliveryTermination ✗, sipariş satırında ✓) |
 | KK3 izde işaret yok, akış sürer | ✓ | `TheMark_FallsWithTheThirdRetrysFailure_…` (iz sayısı ve `OrderFingerprintAsync`) |
 | KK4 sınır ve kalıcı geri dönme | ✓ | `ARowRefusedByTheRecipientLimit_…`, `ASentRow_TheServiceLaterReportsAsAPermanentBounce_…` |
 | KK5 firma bildirimi işaret düşürmez; işaretli sipariş listesi | ✓ | `AFirmNoticeAndAnAccountEmail…`, `TheMarkedOrdersList_…` |
@@ -77,6 +77,13 @@
 | Bloke-etmeyen not (K) sayısı | 3 (K1 → D-974; K2, K3 → D-975) |
 
 **Validator kanıtları (tur 1):** kriter 1 ✓ (`AFailingRow_…`, `ALateRetry_…`; 5/30/120 dk ilk denemeden, sahte saat), 3 ✓ (iz sayısı ve sipariş parmak izi değişmez), 4 ✓ (sınır reddi `AttemptCount = 1`, `RecipientError` yazar → işaret; geri dönme `08 §2.2.3`'ün sonucu ile sınandı — sorgu işi ayrı task'ta), 5 ✓ (F satırları `OrderId` taşımaz; yalnız davet `AccountEmailHasMarkAsync`), 6–9 ✓ (16 türlü kuram: gruba yeni `Queued` satır, B-15 eski adres, öteki güncel adres, iz `ResendEmail`/`Order` yalnız sipariş numarasıyla, olağan gönderici ve başarıda işaret yok; sınır muafiyeti `OriginalDispatchId`). **Kriter 2 ~ Kısmi (B1):** `DispatchMarks.ClaimHasMarkAsync` ve `INotificationsModule.ClaimHasUndeliveredMarkAsync` B-9 işaretini `Withdrawal` ve `LateDeliveryTermination` satırında da verir; `02 §9.1.6`, `03 §1.7.3.1`, `06 §4.58` ("Ayıp talebinin satırı": `DefectClaim`) ve `04` 2.5.3.1 yalnız ayıp talebini sayar (`09 §25`: ek davranış yok, belge cümlesiyle çelişki yok). `AClaimsB9_ShowsTheMarkOnTheClaimToo_…` cayma ile kurulu; ayıp talebinin talep satırı sınanmıyor. Düzeltme: tür denetimi yalnız `DefectClaim`, testte ayıp talebi ✓ ve cayma/fesih ✗. **Uyuşmazlık:** yapım raporu "ayıp/cayma/fesih talebinin satırında" diyerek genişlemeyi yazıyor ve KK2'yi ✓ sayıyor. Yerel: build 0 uyarı, format temiz, Unit 5789/5789, betik 4/4, Integration 663 + 1589 yeşil.
+
+### Düzeltme 1 (2026-11-10, doğrulama tur 1 FAIL sonrası)
+
+- **B1 (DÜŞÜK, kriter 2 / KK2) kapandı:** `DispatchMarks.ClaimHasMarkAsync` tür denetimini yalnız `DefectClaim`'e daralttı (`02 §9.1.6`, `03 §1.7.3.1`, `06 §4.58` "Ayıp talebinin satırı"); cayma beyanı ve gecikme feshinde B-9 işareti yalnız sipariş satırında görünür. `INotificationsModule.ClaimHasUndeliveredMarkAsync` belge yorumu buna göre düzeltildi; "Yapılan İşler"deki "ayıp/cayma/fesih" ifadesi düzeltildi. Yeni testler: `ADefectClaimsB9_ShowsTheMarkOnTheClaimToo_WhenItsRowIsUndelivered` (DefectClaim → talep satırında işaret), `AWithdrawalsOrALateTerminationsB9_ShowsTheMarkOnTheOrdersRowOnly_NotOnTheDeclarationsRow` (Withdrawal ve LateDeliveryTermination → talep satırında yok, sipariş satırında var).
+- **K2 / D-975 K2 payı kapandı:** `TheSchedulerSource_FindsNoDueRowWithoutAGateway_AndTheDueRowWithOne` `DispatchRetrySource.FindDueAsync`'i çağırır (ağ geçidi kayıtsızken due satır yok, kayıtlıyken due satırı). D-975'in K3 payı (imleçli sayfalama) D-968 ekranına kaldı; parça dosyasında satır güncellendi. K1 / D-974'e dokunulmadı.
+- **Öz denetim (düzeltme 1):** kriter 1–9 ve KK1–KK9 yeniden denetlendi; yukarıdaki tablolar güncel (✓ + kanıt). Kriter 2 / KK2 artık belgenin saydığı tür (`DefectClaim`) ve karşıt türlerle sınanır; öteki maddelerin kodu ve testleri bu turda değişmedi, Outages 53/53 ve Ordering 613/613 yeşil.
+- **Test (düzeltme 1):** build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` Web/Unit/Integration temiz; Unit 5789/5789; Integration Outages 53/53 (`DispatchRetryAndMarkTests` 34/34), Ordering 613/613.
 
 ## Altyapı Değişiklikleri
 

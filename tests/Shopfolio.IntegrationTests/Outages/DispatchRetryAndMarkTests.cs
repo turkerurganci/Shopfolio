@@ -176,18 +176,53 @@ public sealed class DispatchRetryAndMarkTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task AClaimsB9_ShowsTheMarkOnTheClaimToo_WhenItsRowIsUndelivered()
+    public async Task ADefectClaimsB9_ShowsTheMarkOnTheClaimToo_WhenItsRowIsUndelivered()
     {
         Guid order = await SeedOrderAsync();
         Guid claim = Guid.NewGuid();
-        CustomerNotice notice = Notice(DispatchType.B9, order, claim);
+        CustomerNotice notice = DeclarationNotice(order, DispatchRelatedRecordType.DefectClaim, claim);
         Guid row = await QueueAsync(notice, CurrentAddress);
         await MakeUndeliveredAsync(row);
 
         await using AppDbContext db = NewContext();
-        Assert.True(await DispatchMarks.ClaimHasMarkAsync(db, DispatchRelatedRecordType.Withdrawal, claim, Ct));
-        Assert.False(await DispatchMarks.ClaimHasMarkAsync(db, DispatchRelatedRecordType.Withdrawal, Guid.NewGuid(), Ct));
+        Assert.True(await DispatchMarks.ClaimHasMarkAsync(db, DispatchRelatedRecordType.DefectClaim, claim, Ct));
+        Assert.False(await DispatchMarks.ClaimHasMarkAsync(db, DispatchRelatedRecordType.DefectClaim, Guid.NewGuid(), Ct));
         Assert.True(await DispatchMarks.HasMarkAsync(db, order, Ct));
+    }
+
+    [Theory]
+    [InlineData(DispatchRelatedRecordType.Withdrawal)]
+    [InlineData(DispatchRelatedRecordType.LateDeliveryTermination)]
+    public async Task AWithdrawalsOrALateTerminationsB9_ShowsTheMarkOnTheOrdersRowOnly_NotOnTheDeclarationsRow(DispatchRelatedRecordType kind)
+    {
+        Guid order = await SeedOrderAsync();
+        Guid declaration = Guid.NewGuid();
+        Guid row = await QueueAsync(DeclarationNotice(order, kind, declaration), CurrentAddress);
+        await MakeUndeliveredAsync(row);
+
+        await using AppDbContext db = NewContext();
+        Assert.False(await DispatchMarks.ClaimHasMarkAsync(db, kind, declaration, Ct));
+        Assert.True(await DispatchMarks.HasMarkAsync(db, order, Ct));
+    }
+
+    // ---- the queue's scheduler source: nothing is due while no gateway is registered, the due row once one is ----
+
+    [Fact]
+    public async Task TheSchedulerSource_FindsNoDueRowWithoutAGateway_AndTheDueRowWithOne()
+    {
+        Guid order = await SeedOrderAsync();
+        Guid row = await QueueAsync(new PaymentConfirmedNotice(order), CurrentAddress);
+        DispatchRetrySource source = new();
+
+        await using (AsyncServiceScope without = _provider.CreateAsyncScope())
+        {
+            Assert.Empty(await source.FindDueAsync(without.ServiceProvider, Start, Ct));
+        }
+
+        await using ServiceProvider withGateway = BuildProvider(registerGateway: true);
+        await using AsyncServiceScope with = withGateway.CreateAsyncScope();
+        DueRecord due = Assert.Single(await source.FindDueAsync(with.ServiceProvider, Start, Ct));
+        Assert.Equal(row, due.Id);
     }
 
     // ---- KK4: the limit's refusal and a later permanent bounce mark ----
@@ -493,10 +528,24 @@ public sealed class DispatchRetryAndMarkTests : IAsyncLifetime
         };
     }
 
-    private ServiceProvider BuildProvider()
+    private DeclarationReceivedNotice DeclarationNotice(Guid order, DispatchRelatedRecordType kind, Guid related)
+    {
+        NoticeAddress address = new("Ali Veli", "Atatürk Bulvarı 1", "Çankaya", _province, "3121234567");
+        NoticeItem item = new("Ahşap Masa", "Meşe", "120 cm", 2);
+        DateOnly? date = kind == DispatchRelatedRecordType.DefectClaim ? null : DateOnly.FromDateTime(Start.UtcDateTime);
+        DateTimeOffset? at = kind == DispatchRelatedRecordType.DefectClaim ? Start : null;
+        return new DeclarationReceivedNotice(order, kind, related, false, date, at, [item], kind == DispatchRelatedRecordType.LateDeliveryTermination ? null : address);
+    }
+
+    private ServiceProvider BuildProvider(bool registerGateway = false)
     {
         ServiceCollection services = new();
         services.AddLogging();
+        if (registerGateway)
+        {
+            services.AddSingleton<IEmailGateway>(_gateway);
+        }
+
         services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, _collection.Dsn));
         services.AddScoped<JobEnqueueTracker>();
         services.AddSingleton<IJobSignal, JobSignal>();

@@ -85,13 +85,13 @@ internal static class DispatchMarks
     }
 
     /// <summary>
-    /// The mark of a claim's row in the panel (02 9.1.6: the mark of B-9 shows on the claim's own row too): a withdrawal, a late delivery termination or a defect claim whose notice B-9
-    /// ends in an "undelivered" row. Any other related record kind never shows it.
+    /// The mark of a claim's row in the panel (02 9.1.6; 03 1.7.3.1; 06 4.58: the mark of B-9 shows on the defect claim's own row too): a defect claim whose notice B-9
+    /// ends in an "undelivered" row. A withdrawal declaration or a late delivery termination shows it on the order's row only; any other related record kind never shows it.
     /// </summary>
     public static async Task<bool> ClaimHasMarkAsync(AppDbContext db, DispatchRelatedRecordType type, Guid relatedRecordId, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(db);
-        if (type is not (DispatchRelatedRecordType.Withdrawal or DispatchRelatedRecordType.LateDeliveryTermination or DispatchRelatedRecordType.DefectClaim))
+        if (type != DispatchRelatedRecordType.DefectClaim)
         {
             return false;
         }

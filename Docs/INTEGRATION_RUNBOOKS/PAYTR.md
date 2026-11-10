@@ -1,11 +1,11 @@
 # PayTR — Entegrasyon Runbook
 
-**Son güncelleme:** 2026-11-10 | **İlgili task:** T401 | **Spec:** [`../08_INTEGRATION_SPEC.md`](../08_INTEGRATION_SPEC.md) §2.1 (2.1.2 anahtarlar, 2.1.4 başlatma, 2.1.10 test), §4.1 (DV tablosu)
+**Son güncelleme:** 2026-11-10 | **İlgili task:** T401, T402 | **Spec:** [`../08_INTEGRATION_SPEC.md`](../08_INTEGRATION_SPEC.md) §2.1 (2.1.2 anahtarlar, 2.1.4 başlatma, 2.1.5 bildirim, 2.1.10 test), §4.1 (DV tablosu)
 
 > **Kural:** Bir dış servise **ilk kez bağlanan task**, aynı PR'da bu runbook'u da yazar.
 > "Sonra yazarız" denen kurulum bilgisi, ikinci kez lazım olduğunda kaybolmuş olur.
 
-> **Bu sürümün kapsamı (T401):** anahtarlar, ödemenin başlatılması (jeton isteği), dönüş adresi ve çerçeve. Bildirim imzası ve alan eşlemesi T402'de, son sorgu T403'te, hata tablosunun tamamı T404'te, kart iadesi T405'te bu dosyaya eklenir. Ödeme sayfası (çerçeveyi taşıyan sayfa, UC-29'un çağıranı) T510'dadır.
+> **Bu sürümün kapsamı (T401, T402):** anahtarlar, ödemenin başlatılması (jeton isteği), dönüş adresi ve çerçeve (T401); bildirim imzası, alan eşlemesi ve red nedeninin seyreltilmiş kaydı (T402). Son sorgu T403'te, hata tablosunun tamamı T404'te, kart iadesi T405'te bu dosyaya eklenir. Ödeme sayfası (çerçeveyi taşıyan sayfa, UC-29'un çağıranı) T510'dadır.
 
 ---
 
@@ -13,7 +13,7 @@
 
 1. Firma (referans kurulumda geliştiricinin kendi tüzel kişiliği — `10 §4.1` ÖK-12) PayTR ile sözleşme yapar ve mağaza hesabı açar; komisyon teklifi alınır, PayTR'nin ödeme kuruluşu lisansı TCMB'nin resmî kaydında doğrulanır (`DEPLOY_RUNBOOK` kurulum notu K-1254).
 2. Mağaza canlıya alınmadan önce **test modundadır**; bu hâlde bütün işlemler testtir ve canlıya geçmeden önce test ödemesi beklenir (`08 §2.1.10`).
-3. Mağaza panelinde bildirim adresi tanımlanır (§5) — T402 bağlanana kadar bildirim ucu "alınmadı" (500) yanıtlar; canlı satış T402 olmadan açılmaz.
+3. Mağaza panelinde bildirim adresi tanımlanır (§5). Bildirim ucu T402'den beri PayTR'nin imzasını doğrular ve bildirimi sınıflar; kart anahtarları tanımlı değilse imza hesaplanamaz ve her bildirim imzası tutmayan istek sayılır (400).
 
 ## 2. Kimlik bilgisi alma
 
@@ -56,9 +56,11 @@ Satırlardan biri eksik, boş, iki kez yazılmış ya da dosyada bu üç addan b
 ## 5. Geri çağrım / webhook kurulumu
 
 - **URL:** `https://{alan adı}/sistem/odeme-bildirimi` (UC-80; mağaza panelindeki tek bildirim adresi — test ve canlı işlemler aynı adrese gelir, `08 §2.1.10`).
-- **İmza doğrulama:** `hash` = HMAC-SHA256(`merchant_oid` + `merchant_salt` + `status` + `total_amount`, `merchant_key`), Base64 — **T402'de bağlanır**; o zamana kadar uç bildirimi kabul etmez (500, `07 §4.30.1`).
-- **Yerelde test:** T402'de yazılır.
-- **Tekrar gönderim davranışı:** T402'de yazılır (`08 §2.1.5`).
+- **İmza doğrulama (T402'de bağlandı):** `hash` = HMAC-SHA256(`merchant_oid` + `merchant_salt` + `status` + `total_amount`, `merchant_key`), Base64; gelenle sabit zamanlı karşılaştırılır (`SignatureComparison.Matches`). `hash` yoksa, imzalı dört alandan biri boşsa ya da kart anahtarları tanımlı değilse sonuç imzası tutmayan istektir: 400, gövdesiz yanıt, kayıt yok, güvenlik satırı seyreltilerek (`SignatureFailureSampled`). `payment_amount`, `payment_type`, `currency` ve `test_mode` imzasızdır; yalnız tutarlılık denetimidir.
+- **Sınıflama (`08 §2.1.5`):** imza → tekrar → eşlenmeyen sipariş → tanınmayan değer (`status` başka, `payment_type` `card` değil, `currency` `TL` değil, canlıda `test_mode` = `1`) → `failed` (tutar aranmaz) → tutmayan `success` → tutan `success`. Tutar koşulu kuruşta: `payment_amount` = `Order.Total` × 100 ve `total_amount` ≥ aynı değer (taksit farkı geçer). Yanıt kararı (`OK`, 400, 500) ucundur; bağlantı katmanı yalnız sınıfı verir.
+- **Eşleme:** `merchant_oid` tiresiz hâliyle hem sağlayıcı işlem kimliğine hem sipariş referansına yazılır; `status` → `Outcome`, `total_amount` (kuruş) → `Amount`; olay türü `Sale`. `failed_reason_code` ve `failed_reason_msg` saklanmaz; ürün genelinde 60 saniyelik pencereyle seyreltilerek kayda yazılır (`PaymentFailedReasonSampled`; referans ve tutar yazılmaz).
+- **Yerelde test:** gerçek mağaza gerekmez. `dotnet test --project tests/Shopfolio.IntegrationTests/Shopfolio.IntegrationTests.csproj --filter-class "*PaymentNotificationTests"` uygulamanın bildirim ucunu PayTR'nin bağlantı katmanıyla açar ve test anahtarlarıyla imzalanmış form gövdeleri gönderir (`PaymentNotificationTests.PayTr.cs`: yedi sıra, 4. sıranın dört kolu). Elle denemede imza `PayTrSignature.Of(merchant_key, merchant_oid + merchant_salt + status + total_amount)` ile hesaplanır ve form kodlu POST `/sistem/odeme-bildirimi`'ye gönderilir.
+- **Tekrar gönderim davranışı:** ürün yalnız kaydı kesinleştikten sonra `OK` der; kaydedemezse 500 verir ve PayTR'nin yeniden göndermesi beklenir (`08 §2.1.5`). Aynı bildirimin tekrarı yazılmaz, yine `OK` alır. PayTR'nin `OK` dönmeyen bildirimi kaç kez ve hangi aralıkla yeniden gönderdiği **gözlenmedi** (DV-1, §6.1 — OWNER_INPUT); gönderilmezse sipariş son sorguyla (T403) çözülür.
 
 ## 6. Test etme
 
@@ -67,9 +69,11 @@ Kod tarafı (sahte işleyiciyle, gerçek hesap gerekmez):
 ```
 dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --filter-class "*PayTrPaymentGatewayTests"
 dotnet test --project tests/Shopfolio.IntegrationTests/Shopfolio.IntegrationTests.csproj --filter-class "*PaymentStartTests"
+dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --filter-class "*PayTrNotificationTests"
+dotnet test --project tests/Shopfolio.IntegrationTests/Shopfolio.IntegrationTests.csproj --filter-class "*PaymentNotificationTests"
 ```
 
-**Beklenen çıktı:** bütün testler geçer; jeton isteği form kodlu tek POST, `paytr_token` bilinen örnekle eşleşir, jeton ne kayıtta ne veritabanında.
+**Beklenen çıktı:** bütün testler geçer; jeton isteği form kodlu tek POST, `paytr_token` bilinen örnekle eşleşir, jeton ne kayıtta ne veritabanında; bildirimin imzası bilinen örnekle eşleşir, yedi sıranın her biri beklenen kaydı ve yanıtı verir.
 
 Sağlayıcının test modunda gözlem (gerçek mağaza ve anahtar gerekir — aşağıdaki tablo):
 
@@ -86,6 +90,13 @@ Sağlayıcının test modunda gözlem (gerçek mağaza ve anahtar gerekir — a�
 | DV-38 | Fiziksel kalemsiz siparişte firma telefonu (`user_phone`) ve sınıra uymayan e-postanın yerine firma e-postası (`email`) kabul edilir | Yalnız dijital kalemli siparişle ve 100 karakteri aşan e-postayla jeton alınır | **Bekliyor — OWNER_INPUT** (ayrıca PayTR'den yazılı yanıt, sözleşme öncesi). Kod tarafı: `Email_OutsideTheLimit_…_KK6`, `Phone_…_KK6` | 2026-11-10 (bekliyor kaydı) | Bu tablo |
 | DV-39 | `user_ip`'te IPv6 adresi kabul edilir | IPv6 adresli istemciyle jeton alınır | **Bekliyor — OWNER_INPUT** (ayrıca PayTR'den yazılı yanıt). Kod tarafı: tam IPv6 gönderilir, `::ffff:` IPv4'e çevrilir, en çok 39 karakter — `ClientAddress_GoesAsItIs_…_KK7` | 2026-11-10 (bekliyor kaydı) | Bu tablo |
 | DV-41 | PayTR aynı firmaya ayrı test mağazası ve ayrı anahtar çifti verir mi | Kurulumu yapan PayTR'den yazılı yanıt alır | **Bekliyor — OWNER_INPUT**. Yanıt gelene kadar geliştirme ortamı **anahtarsız** kurulur: kart hattı kapalı, kod tarafı sahte işleyiciyle sınanır (§6). Yanıt "ayrı test mağazası" ise onun anahtarları, "yok" ise referans kurulumun mağazası `test_mode` = `1` ile geliştirme ortamının sır dosyasına yazılır; firmaların anahtarları hiçbir hâlde kurulum dışına çıkmaz | 2026-11-10 (bekliyor kaydı) | Bu tablo; yazılı yanıtın tarihi ve yeri buraya |
+| DV-1 | `OK` dönmeyen bildirim kaç kez, hangi aralıkla yeniden gelir | Bildirim adresi 500 dönerken test ödemesi yapılır, gelen tekrarlar sayılır | **Bekliyor — OWNER_INPUT** (D-1038). Kod tarafı: kaydedilemeyen bildirim 500, tekrar yazılmaz ve `OK` alır (`PaymentNotificationTests`) | 2026-11-10 (bekliyor kaydı, T402) | Bu tablo; referans kurulumun işaretli kaydı |
+| DV-2 | Bildirim gövdesi form kodlu mu | Gelen gerçek bildirimin `Content-Type`'ı okunur | **Bekliyor — OWNER_INPUT** (D-1038). Kod tarafı: form kodlu gövde (`PaymentNotificationTests.PayTr_*`) | 2026-11-10 (bekliyor kaydı, T402) | Bu tablo |
+| DV-4 | `merchant_fail_url` dönüşü GET mi | Başarısız test ödemesinin dönüşünün yöntemi ve alanları okunur | **Bekliyor — OWNER_INPUT** (D-1038). Bildirim katmanının kod payı yok | 2026-11-10 (bekliyor kaydı, T402) | Bu tablo |
+| DV-9 | Test kartları var, test modunda bildirim canlıdaki gibi gelir | Test kartıyla ödeme, gelen bildirimin alanları okunur | **Bekliyor — OWNER_INPUT** (D-1038). Kod tarafı: canlıda `test_mode` = `1` işaretli (`PayTr_Row4_TestModeOnTheLiveInstallation_*`) | 2026-11-10 (bekliyor kaydı, T402) | Bu tablo |
+| DV-35 | Bildirim gövdesi 64 KB'ın altında | Gerçek test bildiriminin bayt boyu okunur | **Bekliyor — OWNER_INPUT** (D-1038). Kod tarafı: tavan imzadan önce (T203) | 2026-11-10 (bekliyor kaydı, T402) | Bu tablo |
+| DV-36 | Tanınmayan bildirim işaretli kayıtta görünür | Kurulumu yapan duyuru kanalını izler; tanınmayan değer sınanır | **Bekliyor — OWNER_INPUT** (D-1038). Kod tarafı: dört kol işaretli kayıtta (`PayTr_Row4_*`) | 2026-11-10 (bekliyor kaydı, T402) | Bu tablo |
+| DV-42 | `failed` bildirimi oturumun kesin sonucunda mı, her denemede mi gelir | Aynı çerçevede önce başarısız, sonra başarılı kart; bildirimlerin sayısı ve sırası okunur | **Bekliyor — OWNER_INPUT** (D-1038; test modunda üretilemezse PayTR'den yazılı yanıt). Kod tarafı: `failed` siparişi iptal eder, red kodu seyreltilmiş kayda (`PayTr_Row5_*`) | 2026-11-10 (bekliyor kaydı, T402) | Bu tablo |
 
 ## 7. Sorun giderme
 

@@ -16,6 +16,7 @@ using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.SearchEngine;
+using Shopfolio.IntegrationTests.Ordering;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment;
@@ -136,25 +137,37 @@ public sealed partial class PaymentNotificationTests
     [Fact]
     public async Task PayTr_Row4_UnknownStatus_IsRecordedMarkedUnrecognized_KK3()
     {
-        await AssertRow4Async(reference => Signed(reference, "pending", TotalKurus));
+        Row4Seen seen = await PostRow4Async(reference => Signed(reference, "pending", TotalKurus));
+
+        Assert.Equal(Row4Expected(seen.OrderId), seen);
+        await AssertOrderAsync(seen.OrderId, OrderStatus.Placed, PaymentStatus.Pending, 1);
     }
 
     [Fact]
     public async Task PayTr_Row4_PaymentTypeThatIsNotCard_IsRecordedMarkedUnrecognized_KK3()
     {
-        await AssertRow4Async(reference => Signed(reference, "success", TotalKurus, paymentType: "eft"));
+        Row4Seen seen = await PostRow4Async(reference => Signed(reference, "success", TotalKurus, paymentType: "eft"));
+
+        Assert.Equal(Row4Expected(seen.OrderId), seen);
+        await AssertOrderAsync(seen.OrderId, OrderStatus.Placed, PaymentStatus.Pending, 1);
     }
 
     [Fact]
     public async Task PayTr_Row4_CurrencyThatIsNotTl_IsRecordedMarkedUnrecognized_KK3()
     {
-        await AssertRow4Async(reference => Signed(reference, "success", TotalKurus, currency: "USD"));
+        Row4Seen seen = await PostRow4Async(reference => Signed(reference, "success", TotalKurus, currency: "USD"));
+
+        Assert.Equal(Row4Expected(seen.OrderId), seen);
+        await AssertOrderAsync(seen.OrderId, OrderStatus.Placed, PaymentStatus.Pending, 1);
     }
 
     [Fact]
     public async Task PayTr_Row4_TestModeOnTheLiveInstallation_IsRecordedMarkedUnrecognized_KK3()
     {
-        await AssertRow4Async(reference => Signed(reference, "success", TotalKurus, testMode: "1"));
+        Row4Seen seen = await PostRow4Async(reference => Signed(reference, "success", TotalKurus, testMode: "1"));
+
+        Assert.Equal(Row4Expected(seen.OrderId), seen);
+        await AssertOrderAsync(seen.OrderId, OrderStatus.Placed, PaymentStatus.Pending, 1);
     }
 
     // ---- Row 5 (KK6): a failed payment - no amount looked at, processed; its reason goes to the log thinned and nowhere else ----
@@ -201,19 +214,22 @@ public sealed partial class PaymentNotificationTests
         await AssertOrderAsync(order.Id, OrderStatus.Placed, PaymentStatus.Pending, 1);
     }
 
-    private async Task AssertRow4Async(Func<string, Dictionary<string, string>> fields)
+    // Row 4 as it must be seen: received with "OK", the record marked unrecognized and tied to the order, no job row.
+    private static Row4Seen Row4Expected(Guid orderId) =>
+        new(orderId, HttpStatusCode.OK, "OK", UnprocessedNotificationReason.UnrecognizedNotification, orderId, 0L);
+
+    private async Task<Row4Seen> PostRow4Async(Func<string, Dictionary<string, string>> fields)
     {
         (Order order, string reference) = await SeedPayTrOrderAsync();
 
         using HttpResponseMessage response = await PostPayTrAsync(fields(reference));
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal("OK", await response.Content.ReadAsStringAsync(Ct));
+        string body = await response.Content.ReadAsStringAsync(Ct);
         InboundNotificationRecord record = await SingleRecordAsync();
-        Assert.Equal(((UnprocessedNotificationReason?)UnprocessedNotificationReason.UnrecognizedNotification, (Guid?)order.Id), (record.UnprocessedReason, record.OrderId));
-        Assert.Equal(0L, await CountAsync("jobs"));
-        await AssertOrderAsync(order.Id, OrderStatus.Placed, PaymentStatus.Pending, 1);
+        return new Row4Seen(order.Id, response.StatusCode, body, record.UnprocessedReason, record.OrderId, await CountAsync("jobs"));
     }
+
+    private readonly record struct Row4Seen(Guid OrderId, HttpStatusCode Status, string Body, UnprocessedNotificationReason? Reason, Guid? RecordOrderId, long Jobs);
 
     // A form as the provider sends it: the seven fields always there, signed over merchant_oid + merchant_salt + status + total_amount with the test keys.
     private static Dictionary<string, string> Signed(

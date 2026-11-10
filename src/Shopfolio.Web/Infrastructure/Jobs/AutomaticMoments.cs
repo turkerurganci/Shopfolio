@@ -47,6 +47,8 @@ internal static class AutomaticMoments
         ]),
         new("4.2.7", "Automatic card refund", [
             "Shopfolio.Modules.Payment.CardRefundJobRule.Decide",
+            "Shopfolio.Modules.Payment.CardRefundJobHandler.HandleAsync",
+            "Shopfolio.Modules.Payment.RefundOutcomeQueryJobHandler.HandleAsync",
             "Shopfolio.Modules.Ordering.OrderTransitions.ApplyCardRefundOutcomeAsync",
         ]),
         new("4.2.8", "Refund IBAN deletion on a withdrawal whose goods did not come back", [

@@ -187,6 +187,9 @@ public interface IOrderingModule
     /// </summary>
     Task<CardPaymentQueryTarget?> GetCardPaymentQueryTargetAsync(Guid orderId, DateTimeOffset now, CancellationToken ct);
 
+    /// <summary>The order's number, the card refund's query asks by it (T405; 08 2.1.9); null when there is no such order. A plain read.</summary>
+    Task<string?> GetOrderNumberAsync(Guid orderId, CancellationToken ct);
+
     /// <summary>
     /// What the installer's <c>apply-payment-result</c> command needs (T387; 05 8.5.12): the order with exactly that number, its paid total (06 4.17 <c>Total</c>), whether it is a card
     /// order and whether it carries the "payment outcome unknown" mark at <paramref name="now"/> (the rule of the final query's handler and the panel - <c>PaymentWindowRules</c>); null

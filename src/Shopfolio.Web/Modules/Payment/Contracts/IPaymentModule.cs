@@ -30,7 +30,8 @@ public interface IPaymentModule
 
     /// <summary>
     /// Starts the firm's refund of a defect claim's remedy (02 7.5.3; 06 4.33): the rescission's refund with its units and shares, or the price reduction's amount-based
-    /// refund of the item. The refund is started, not sent: the firm processes it on its line (03 1.11.31). Writes through the caller's change tracker under the
+    /// refund of the item. On the card way the system sends it - its card refund job row is written with it (T405; D-878); on the transfer way the firm processes it
+    /// on its line (03 1.11.31). Writes through the caller's change tracker under the
     /// order's row lock and saves nothing; returns the refund's id. The amount is the caller's (the rescission's split, or the firm's amount within its ceiling).
     /// </summary>
     Task<Guid> StartDefectRemedyRefundAsync(DefectRemedyRefundStart start, CancellationToken ct);
@@ -54,6 +55,20 @@ public interface IPaymentModule
     /// record must be the order's card refund's and still open (sending or outcome pending); otherwise nothing is written and the result is null.
     /// </summary>
     Task<RefundFacts?> WriteCardRefundOutcomeAsync(Guid orderId, Guid refundRecordId, RefundRecordState outcome, CancellationToken ct);
+
+    /// <summary>
+    /// Writes the refund record in the "sending" state before the card request of <paramref name="refundId"/> goes (T405; 05 4.6.1, 4.3.3; MK-40; D-518, D-908): only
+    /// while the refund is the order's, still on the card way, neither sent nor voided, has no open or successful request and no record written at or after
+    /// <paramref name="jobCreatedAt"/> (the job row came back). Writes through the caller's change tracker under the order's row lock and saves nothing; otherwise
+    /// nothing is written and the result is null - no request goes.
+    /// </summary>
+    Task<CardRefundSending?> WriteCardRefundSendingAsync(Guid orderId, Guid refundId, DateTimeOffset jobCreatedAt, CancellationToken ct);
+
+    /// <summary>
+    /// Keeps a success that came for a card request the firm had marked failed (T405; 05 4.6.2; 06 4.34 <c>LateSuccessAt</c>): the moment is written on the marked
+    /// record once; the order is not changed by it. False when the record is not the order's marked record or the moment is written already.
+    /// </summary>
+    Task<bool> RecordLateCardRefundSuccessAsync(Guid orderId, Guid refundRecordId, CancellationToken ct);
 
     /// <summary>
     /// Marks the order's bank transfer refund as sent: the administrator processed it (02 5.5; 03 1.3 Ö3-Ö5). The refund must be the order's, on the

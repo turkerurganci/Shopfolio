@@ -44,6 +44,12 @@ public interface IOrderTransitions
     /// </summary>
     Task<PaymentTransitionResult> ApplyCardRefundOutcomeAsync(CardRefundOutcome outcome, CancellationToken ct);
 
+    /// <summary>
+    /// Starts one card refund request (T405; 05 4.6.1; MK-40): under the order's lock, against the refund as it is now, the refund record is written in the "sending"
+    /// state; the caller commits it and only then sends. Nothing is written when no request may go (<see cref="CardRefundRequestStart.NotStarted"/>).
+    /// </summary>
+    Task<CardRefundRequestStart> BeginCardRefundRequestAsync(CardRefundRequestBegin begin, CancellationToken ct);
+
     /// <summary>The administrator processes a bank transfer refund: the refund is sent, Ö3, Ö4 or Ö5 by the administrator, and B-8.</summary>
     Task<PaymentTransitionResult> ProcessTransferRefundAsync(TransferRefundProcessing processing, CancellationToken ct);
 

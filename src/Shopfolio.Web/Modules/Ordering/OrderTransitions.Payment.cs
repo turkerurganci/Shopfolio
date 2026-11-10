@@ -133,6 +133,15 @@ internal sealed partial class OrderTransitions
         }
 
         RefundFacts? refund = await _payment.WriteCardRefundOutcomeAsync(order.Id, outcome.RefundRecordId, outcome.Outcome, ct);
+        if (refund is null && outcome.Outcome == RefundRecordState.Succeeded && await _payment.RecordLateCardRefundSuccessAsync(order.Id, outcome.RefundRecordId, ct))
+        {
+            // The firm marked the request failed while its query waited (05 4.6.2; 06 4.34 LateSuccessAt): the success stays on the marked record and is not applied -
+            // the axis does not move, no notice goes; the system's transition is refused with its one log line, and the record's write raises the version (06 4.17).
+            _automaticLog.Refused(order.Id, TransitionRejection.ConditionNotMet);
+            RaiseVersionOnce(order);
+            return new PaymentTransitionResult([], isLateRefundSuccess: true);
+        }
+
         if (refund is null)
         {
             // The outcome comes for a record that is no longer open - the firm marked it, or the outcome was applied already (05 4.6.2): the system's
@@ -155,6 +164,27 @@ internal sealed partial class OrderTransitions
         // The card refund went: an open IBAN request of its transfer path closes unfulfilled (T370; 02 7.2.8).
         await _afterSales.CloseRefundIbanRequestsOfRefundAsync(refund.RefundId, ct);
         return await ApplyRefundSentAsync(order, refund, actor, ct);
+    }
+
+    public async Task<CardRefundRequestStart> BeginCardRefundRequestAsync(CardRefundRequestBegin begin, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(begin);
+        Order? order = await LockAndLoadAsync(begin.OrderId, ct);
+        if (order is null)
+        {
+            return CardRefundRequestStart.NotStarted;
+        }
+
+        // The record is written against the refund as it is now, under the lock the IBAN entry and the correction take too (MK-40; D-518, D-908).
+        CardRefundSending? sending = await _payment.WriteCardRefundSendingAsync(order.Id, begin.RefundId, begin.JobCreatedAt, ct);
+        if (sending is null)
+        {
+            return CardRefundRequestStart.NotStarted;
+        }
+
+        // The record carries no version of its own; its write raises the order's (06 4.17, 4.34).
+        RaiseVersionOnce(order);
+        return CardRefundRequestStart.Started(order.OrderNumber, sending.Amount, sending.RecordId);
     }
 
     public async Task<PaymentTransitionResult> ProcessTransferRefundAsync(TransferRefundProcessing processing, CancellationToken ct)

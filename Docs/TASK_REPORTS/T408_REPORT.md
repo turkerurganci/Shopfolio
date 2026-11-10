@@ -90,8 +90,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T408-ses-geri-donen`
-- **Commit:** (PR'da)
-- **PR:** #PRNO
+- **Commit:** `02245cba` — T408: SES: geri dönen adreslerin öğrenilmesi
+- **PR:** #518
 - **CI:** (yönetici izler)
 - **Post-merge run'lar:** *(validator doldurur)*
 

@@ -99,7 +99,7 @@
 
 - **Branch:** `task/T405-paytr-kart-iadesi`
 - **Commit:** dal ucu PR'da
-- **PR:** (açılınca yazılır)
+- **PR:** #529
 - **CI:** *(yönetici izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

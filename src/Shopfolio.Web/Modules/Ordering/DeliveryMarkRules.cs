@@ -11,10 +11,11 @@ namespace Shopfolio.Modules.Ordering;
 internal static class DeliveryMarkRules
 {
     /// <summary>
-    /// Whether the payment lets the "completed" mark of a service item be set (02 3.20.9, 5.6.1; K-536, K-671): it does unless the payment is Pending or Failed. A partial refund
-    /// (<see cref="PaymentStatus.PartiallyRefunded"/>) does not close the mark - the refund of some of the items leaves the rest to be completed.
+    /// Whether the payment lets the "completed" mark of a service item be set (02 3.20.9 "ancak ödeme onaylanmışken", 5.6.1; K-536, K-671): it does when the payment is in the
+    /// "payment approved" set, whose one home is <see cref="PaymentApproval"/> (T412 KK9). A partial refund (<see cref="PaymentStatus.PartiallyRefunded"/>) is in the set and does not
+    /// close the mark - the refund of some of the items leaves the rest to be completed.
     /// </summary>
-    public static bool IsPaymentOpenToMark(PaymentStatus payment) => payment is not (PaymentStatus.Pending or PaymentStatus.Failed);
+    public static bool IsPaymentOpenToMark(PaymentStatus payment) => PaymentApproval.IsApproved(payment);
 
     /// <summary>
     /// Whether the panel offers the "completed" mark of a service item (03 8.2.9, 3.5.2.14): the item is a service item, it has an open quantity, it carries no mark and the payment is

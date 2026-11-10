@@ -201,6 +201,9 @@ public sealed partial class MembershipTests : IAsyncLifetime
     [InlineData("ali@exa_mple.com", ErrorCode.InvalidEmail)]
     [InlineData("ali@-example.com", ErrorCode.InvalidEmail)]
     [InlineData("\"a b\"@example.com", ErrorCode.InvalidEmail)]
+    [InlineData("a..b@example.com", ErrorCode.InvalidEmail)]
+    [InlineData(".ali@example.com", ErrorCode.InvalidEmail)]
+    [InlineData("ali.@example.com", ErrorCode.InvalidEmail)]
     public async Task Register_WithAWrongAddress_IsRefusedAndNamed(string email, ErrorCode expected)
     {
         RegistrationResult result = await RegisterAsync("Ali", email);
@@ -213,7 +216,8 @@ public sealed partial class MembershipTests : IAsyncLifetime
     public async Task Register_TakesTheAddressTheProjectsOneEmailRuleAccepts()
     {
         // 04 7.3.2.1 accepts this address (the guest order form does too); a second, stricter rule here would keep its guest orders from ever binding.
-        const string address = "a..b@example.com";
+        // The local part's dots are the one rule's own (D-379); the refusals are in Register_WithAWrongAddress_IsRefusedAndNamed.
+        const string address = "a.b+etiket@example.com";
         Assert.Null(new InvalidEmailAttribute().GetValidationResult(address, new ValidationContext(address)));
 
         RegistrationResult result = await RegisterAsync("Ali", address);

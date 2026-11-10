@@ -4618,7 +4618,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 
 | # | Alan türü | Kural | Hata mesajı | Kullanıldığı formlar |
 |---|---|---|---|---|
-| 7.3.2.1 | E-posta | Tek adres; yerel kısım, "@" ve alan adı; baştaki ve sondaki boşluk yok sayılır (K-825). Hesabın tekilliği kendi hesap türü içindedir (`02 §10.2.5`) | Alan mesajı | 7.1.3, 7.1.5, 7.1.6, 7.1.11–7.1.13, 7.1.15, 7.2.1, 7.2.3, 7.2.14, 7.2.19, 7.2.23, 7.2.24 |
+| 7.3.2.1 | E-posta | Tek adres; yerel kısım, "@" ve alan adı; yerel kısım noktayla başlamaz, noktayla bitmez ve art arda iki nokta içermez (D-379; gönderim tarafının adres denetimiyle aynı küme); baştaki ve sondaki boşluk yok sayılır (K-825). Hesabın tekilliği kendi hesap türü içindedir (`02 §10.2.5`) | Alan mesajı | 7.1.3, 7.1.5, 7.1.6, 7.1.11–7.1.13, 7.1.15, 7.2.1, 7.2.3, 7.2.14, 7.2.19, 7.2.23, 7.2.24 |
 | 7.3.2.2 | Şifre | Asgari uzunluk P-17; çok yaygın şifreler listesi ürünle gelir; büyük harf, rakam ve sembol dayatılmaz (`02 §3.13.15`, §10.2.4) | Alan mesajı (`03 §3.4.6`) | 7.1.11, 7.1.13, 7.1.15, 7.2.1, 7.2.2, 7.2.24 |
 | 7.3.2.3 | Ad — hesabın ya da gönderenin adı | Boş olamaz (`02 §3.13.21`, §3.32.2; K-736) | Alan mesajı | 7.1.3, 7.1.11, 7.1.15, 7.2.2, 7.2.24 |
 | 7.3.2.4 | Telefon | Türkiye numarası: alan koduyla on hane; başta "0" ya da "+90" kabul edilir; boşluk, tire ve parantez yok sayılır (K-825; `10 §4.2` SK-8) | Alan mesajı | 7.1.3, 7.1.5, 7.1.16, 7.2.14, 7.2.16, 7.2.17, 7.2.19, 7.2.21 |

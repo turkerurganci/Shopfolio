@@ -192,19 +192,29 @@ public sealed partial class ItemRecordsTests
         Assert.Equal(item.Quantity, await UnavailableAsync(item.Id));
     }
 
+    // D-905 (T412 KK4; 02 7.1.6): an item whose units are all rescinded is no open item - the returned shipment is not sent again with it (S8) and the firm's S9 on it is the
+    // reasonless closure, not a cancellation with a reason; no item record and no B-7 are written.
     [Fact]
-    public async Task TheFirmsWholeOrderCancellation_OfAReturnedShipmentWhoseUnitsAreAllRescinded_WritesNoItemRecord_KK8_B1()
+    public async Task AReturnedShipmentWhoseUnitsAreAllRescinded_IsNotResent_AndItsS9IsTheClosure_NotACancellation_T412_KK4()
     {
         (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.Card, claimUnits: 3, returned: true);
         Assert.Null((await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 2, 3), t))).Refusal);
 
-        OrderTransitionResult result = await RunAsync((u, t) =>
+        OrderTransitionResult resent = await RunAsync((u, t) => u.ResendOrderAsync(new ShipOrderRequest(order.Id, AdminCaller, 3, true, new ShipmentInfo("YurticiKargo", null, "TR-1001", false)), t));
+        OrderTransitionResult cancelled = await RunAsync((u, t) =>
             u.CancelOrderAsync(CancelOrderRequest.ByAdministrator(order.Id, AdminCaller, 3, true, CancellationReason.UndeliveredBuyerCaused), t));
+        Assert.Equal((TransitionRefusal?)TransitionRefusal.ConditionNotMet, resent.Refusal);
+        Assert.Equal((TransitionRefusal?)TransitionRefusal.ConditionNotMet, cancelled.Refusal);
 
-        Assert.False(result.IsRejected);
+        OrderTransitionResult closed = await RunAsync((u, t) => u.CloseReturnedOrderAsync(new AdminOrderRequest(order.Id, AdminCaller, 3), t));
+
+        Assert.False(closed.IsRejected);
         Assert.Equal(0, await CountAsync(c => c.Cancellations.Where(x => x.OrderItemId == item.Id)));
         await using AppDbContext reader = NewContext();
+        TransitionRecord s9 = await reader.TransitionRecords.SingleAsync(t => t.Id == Assert.Single(closed.TransitionRecordIds), Ct);
+        Assert.Equal((TransitionCode.S9, (TransitionReason?)TransitionReason.Closure, (CancellationReason?)null), (s9.TransitionCode, s9.TransitionReason, s9.CancellationReason));
         Assert.Equal(OrderStatus.Cancelled, (await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct)).OrderStatus);
+        Assert.Equal(0, await reader.DispatchRecords.CountAsync(d => d.OrderId == order.Id && d.DispatchType == DispatchType.B7, Ct));
     }
 
     [Fact]

@@ -48,6 +48,10 @@ internal sealed class RefundIbanDeletionDay : IDueRecordSource
 
                 await locks.LockAsync([before.OrderId], cancel);
 
+                // The records' roots are loaded under the lock: the IBAN's deletion empties the links of the records the read tracks (09 10.2 item 3; D-95).
+                Order order = await db.Orders.SingleAsync(o => o.Id == before.OrderId, cancel);
+                await db.OrderItems.Where(i => i.OrderId == order.Id).LoadAsync(cancel);
+
                 // Read again under the lock: a refund, a receipt or the closure may have come in between.
                 RefundIbanUse? use = await afterSales.FindRefundIbanUseAsync(recordId, cancel);
                 if (use?.DeletionAt is not { } day || day > time.GetUtcNow())
@@ -57,7 +61,6 @@ internal sealed class RefundIbanDeletionDay : IDueRecordSource
 
                 IReadOnlySet<Guid> settled = await payment.FindSettledRefundSubjectsAsync(use.SubjectIds, cancel);
                 await afterSales.ApplyRefundIbanDeletionDayAsync(recordId, RefundIbanDeletionRule.ShouldDelete(use, settled), cancel);
-                Order order = await db.Orders.SingleAsync(o => o.Id == use.OrderId, cancel);
                 OrderTransitions.RaiseVersionOnce(db, order);
                 return new SchedulerStepResult();
             },
@@ -66,9 +69,9 @@ internal sealed class RefundIbanDeletionDay : IDueRecordSource
 }
 
 /// <summary>
-/// The rule of the deletion day (03 4.1.47, 4.2.8; K-1127): the IBAN goes when no refund still uses it - every subject linked to it (a cancellation, a late
-/// delivery termination, a withdrawal's goods' receipt) has a refund that was sent or voided. A withdrawal whose goods did not arrive has no subject, so
-/// alone it never keeps the IBAN.
+/// The rule of the deletion day (03 4.1.47, 4.2.8; K-1127; D-910): the IBAN goes when no refund still uses it - every subject that may be paid to it (see
+/// <see cref="RefundIbanUse"/>: a record, a withdrawal's goods' receipt or its declaration before the delivery, a request's refund, a pending transfer
+/// refund) has a refund that was sent or voided. A withdrawal after the delivery whose goods did not arrive has no subject, so alone it never keeps the IBAN.
 /// </summary>
 internal static class RefundIbanDeletionRule
 {

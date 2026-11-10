@@ -238,6 +238,24 @@ public sealed partial class OrderCorrectionTests
     }
 
     [Fact]
+    public async Task TheCarrierCorrection_TakesTheCaps_AndRefusesOneCharacterMore_T412_KK6()
+    {
+        Order order = await SeedAsync(OrderStatus.Shipped, PaymentStatus.Paid, ProductType.Physical);
+        string trackingAtCap = new('T', ShipmentLimits.TrackingNumberMaxLength);
+        string nameAtCap = new('N', ShipmentLimits.OtherCarrierNameMaxLength);
+
+        OrderCorrectionResult numberOver = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, "Yeni Kargo", trackingAtCap + "1", false), order.Version), Ct));
+        OrderCorrectionResult nameOver = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, nameAtCap + "x", "YENI-1", false), order.Version), Ct));
+        OrderCorrectionResult atCaps = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, nameAtCap, trackingAtCap, false), order.Version), Ct));
+
+        Assert.Equal(TransitionRefusal.InvalidInput, numberOver.Refusal);
+        Assert.Equal(TransitionRefusal.InvalidInput, nameOver.Refusal);
+        Assert.Null(atCaps.Refusal);
+        Order saved = await ReloadAsync(order.Id);
+        Assert.Equal((nameAtCap, trackingAtCap, order.Version + 1), (saved.OtherCarrierName, saved.TrackingNumber, saved.Version));
+    }
+
+    [Fact]
     public async Task TheCarrierCorrection_IsClosedBeforeTheShipment_KK6()
     {
         Order order = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical);

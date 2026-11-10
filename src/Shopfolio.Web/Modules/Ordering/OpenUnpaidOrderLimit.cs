@@ -45,11 +45,10 @@ internal sealed class OpenUnpaidOrderLimit
         return await OrderAxes.OfIp(Open(), address).CountAsync(ct);
     }
 
-    /// <summary>The open unpaid orders of the e-mail axis: the orders a signed-in member placed with that (normalized) address; a guest order is not counted.</summary>
-    public async Task<int> CountByEmailAsync(string email, CancellationToken ct)
+    /// <summary>The open unpaid orders of the e-mail axis: the orders the signed-in member placed, read by the member's id (D-808); a guest order is not counted.</summary>
+    public async Task<int> CountByMemberAsync(Guid customerId, CancellationToken ct)
     {
-        ArgumentNullException.ThrowIfNull(email);
-        return await OrderAxes.OfMemberEmail(Open(), email).CountAsync(ct);
+        return await OrderAxes.OfMember(Open(), customerId).CountAsync(ct);
     }
 
     /// <summary>
@@ -68,5 +67,5 @@ internal sealed class OpenUnpaidOrderLimit
     public async Task<bool> IsFullByIpAsync(IPAddress? address, CancellationToken ct) => await CountByIpAsync(address, ct) >= Ceiling;
 
     /// <summary>True when the e-mail axis holds as many open orders as the ceiling allows.</summary>
-    public async Task<bool> IsFullByEmailAsync(string email, CancellationToken ct) => await CountByEmailAsync(email, ct) >= Ceiling;
+    public async Task<bool> IsFullByMemberAsync(Guid customerId, CancellationToken ct) => await CountByMemberAsync(customerId, ct) >= Ceiling;
 }

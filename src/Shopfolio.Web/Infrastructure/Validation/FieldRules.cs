@@ -17,7 +17,10 @@ public sealed class FieldRequiredAttribute : FieldRuleAttribute
     };
 }
 
-/// <summary>An e-mail address (04 7.3.2.1): one address - a local part, one "@" and a domain with a dot; no white space.</summary>
+/// <summary>
+/// An e-mail address (04 7.3.2.1): one address - a local part, one "@" and a domain with a dot; no white space; the local part neither starts nor ends with a
+/// dot and holds no two dots in a row (D-379).
+/// </summary>
 public sealed class InvalidEmailAttribute : FieldRuleAttribute
 {
     private const int MaxLength = 254;
@@ -39,6 +42,13 @@ public sealed class InvalidEmailAttribute : FieldRuleAttribute
 
         int at = address.IndexOf('@', StringComparison.Ordinal);
         if (at < 1 || at != address.LastIndexOf('@') || at > MaxLocalLength)
+        {
+            return false;
+        }
+
+        // The local part's dots (04 7.3.2.1; D-379): not first, not last, never two in a row.
+        string local = address[..at];
+        if (local[0] == '.' || local[^1] == '.' || local.Contains("..", StringComparison.Ordinal))
         {
             return false;
         }

@@ -81,25 +81,37 @@ internal sealed class OrderVersionGuard : SaveChangesInterceptor
 
         foreach ((EntityEntry entry, Guid? found) in Scope.Writes(context))
         {
-            // A record whose order the tracked records do not tell (its item or refund was not loaded) belongs to the one locked order;
-            // with several locked orders the operation must load the record's parent.
-            Guid orderId = found ?? (locked.Count == 1
-                ? locked.First()
-                : throw new InvalidOperationException(
-                    $"The order of the {entry.Metadata.ClrType.Name} record cannot be told: load its parent record under the order lock (06 2.6.4)."));
-            if (Scope.IsRaised(context, orderId))
+            // D-95 (T412 KK1; K-1581; 09 10.2 item 3): a record whose order the tracked records do not tell (its item or refund was not loaded) is refused whatever the number of
+            // locked orders - it is not taken for the one locked order, which may not be its own; the operation loads the record's root under the lock.
+            if (found is not { } orderId)
+            {
+                throw new InvalidOperationException(
+                    $"The order of the {entry.Metadata.ClrType.Name} record cannot be told: load its root record under the order lock (06 2.6.4; 09 10.2 item 3).");
+            }
+
+            // A new order needs neither the lock nor the raise: no other transaction sees it before the commit.
+            if (IsNew(context, orderId))
             {
                 continue;
             }
 
+            // The lock is asked before the raise: an order written without its row lock is refused with the lock message whether or not its version was raised (D-95).
             if (!locked.Contains(orderId))
             {
                 throw new InvalidOperationException(
                     $"A {entry.Metadata.ClrType.Name} record of order {orderId} is written without that order's row lock (05 7.3.2).");
             }
 
+            if (Scope.IsRaised(context, orderId))
+            {
+                continue;
+            }
+
             throw new InvalidOperationException(
                 $"A {entry.Metadata.ClrType.Name} record of order {orderId} is written and the order's version is not raised by one: call BumpVersion (06 2.6.4; 09 10.2 item 3).");
         }
     }
+
+    private static bool IsNew(DbContext context, Guid orderId) =>
+        context.ChangeTracker.Entries<Order>().Any(e => e.State == EntityState.Added && e.Entity.Id == orderId);
 }

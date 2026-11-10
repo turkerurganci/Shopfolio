@@ -11,6 +11,7 @@ using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
@@ -33,6 +34,7 @@ public sealed class OpenUnpaidOrderLimitTests : IAsyncLifetime
 
     private readonly CollectionDatabaseFixture _collection;
     private int _counter;
+    private Guid _ali;
 
     public OpenUnpaidOrderLimitTests(CollectionDatabaseFixture collection)
     {
@@ -45,7 +47,8 @@ public sealed class OpenUnpaidOrderLimitTests : IAsyncLifetime
     {
         await ExecuteAsync(
             "TRUNCATE stock_reservations, dispatch_records, jobs, payment_records, cancellations, internal_notes, transition_records, order_items, orders, "
-            + "coupons, variants, products, heartbeat_records, outage_records, legal_text_versions, provinces CASCADE");
+            + "coupons, variants, products, heartbeat_records, outage_records, legal_text_versions, provinces, customers CASCADE");
+        _ali = await SeedMemberAsync("ali@example.com");
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -60,12 +63,12 @@ public sealed class OpenUnpaidOrderLimitTests : IAsyncLifetime
         }
 
         Assert.False(await IsFullByIpAsync("203.0.113.5"));
-        Assert.False(await IsFullByEmailAsync(Email));
+        Assert.False(await IsFullByEmailAsync(_ali));
 
         await SeedAsync(isGuest: false, ip: "203.0.113.5");
 
         Assert.True(await IsFullByIpAsync("203.0.113.5"));
-        Assert.True(await IsFullByEmailAsync(Email));
+        Assert.True(await IsFullByEmailAsync(_ali));
     }
 
     [Fact]
@@ -75,17 +78,17 @@ public sealed class OpenUnpaidOrderLimitTests : IAsyncLifetime
         Guid cancelled = (await SeedAsync(isGuest: false, ip: "203.0.113.5")).Id;
         await SeedAsync(isGuest: false, ip: "203.0.113.5");
         Assert.Equal(3, await CountByIpAsync("203.0.113.5"));
-        Assert.Equal(3, await CountByEmailAsync(Email));
+        Assert.Equal(3, await CountByEmailAsync(_ali));
 
         await ExecuteAsync($"UPDATE orders SET payment_status = '{PaymentStatus.Paid}' WHERE id = '{paid}'");
         Assert.Equal(2, await CountByIpAsync("203.0.113.5"));
-        Assert.Equal(2, await CountByEmailAsync(Email));
+        Assert.Equal(2, await CountByEmailAsync(_ali));
         Assert.False(await IsFullByIpAsync("203.0.113.5"));
 
         // The unpaid cancellation (S3 with Ö2) leaves the payment Failed; the order is no longer open.
         await ExecuteAsync($"UPDATE orders SET order_status = '{OrderStatus.Cancelled}', payment_status = '{PaymentStatus.Failed}' WHERE id = '{cancelled}'");
         Assert.Equal(1, await CountByIpAsync("203.0.113.5"));
-        Assert.Equal(1, await CountByEmailAsync(Email));
+        Assert.Equal(1, await CountByEmailAsync(_ali));
     }
 
     [Fact]
@@ -94,19 +97,34 @@ public sealed class OpenUnpaidOrderLimitTests : IAsyncLifetime
         await SeedAsync(isGuest: false, ip: "203.0.113.5", createdAt: Start.AddDays(-400));
 
         Assert.Equal(1, await CountByIpAsync("203.0.113.5"));
-        Assert.Equal(1, await CountByEmailAsync(Email));
+        Assert.Equal(1, await CountByEmailAsync(_ali));
     }
 
     [Fact]
-    public async Task TheEmailAxis_CountsOnlyAMembersOrders_AndOneAddressWhateverItsCase_KK8()
+    public async Task TheEmailAxis_CountsOnlyAMembersOrders_ReadByTheMembersId_KK8()
     {
+        Guid veli = await SeedMemberAsync("veli@example.com");
         await SeedAsync(isGuest: false, ip: "203.0.113.5", email: "ali@example.com");
         await SeedAsync(isGuest: true, ip: "203.0.113.6", email: "ali@example.com");
-        await SeedAsync(isGuest: false, ip: "203.0.113.7", email: "veli@example.com");
+        await SeedAsync(isGuest: false, ip: "203.0.113.7", email: "veli@example.com", member: veli);
 
-        Assert.Equal(1, await CountByEmailAsync("ALI@EXAMPLE.COM"));
-        Assert.Equal(1, await CountByEmailAsync("veli@example.com"));
-        Assert.Equal(0, await CountByEmailAsync("yok@example.com"));
+        Assert.Equal(1, await CountByEmailAsync(_ali));
+        Assert.Equal(1, await CountByEmailAsync(veli));
+        Assert.Equal(0, await CountByEmailAsync(Guid.NewGuid()));
+    }
+
+    // D-808 (T412 KK2; 02 8.2.2 "the account's e-mail"; 09 15.4 item 5): the axis is the member's account, not the contact e-mail the order carries - a member who types another
+    // contact e-mail stays on the axis of the account, another member who types the account's address does not join it, and a guest order linked to the account later is not on it.
+    [Fact]
+    public async Task TheEmailAxis_IsTheAccount_NotTheContactEmailTheOrderCarries_T412_KK2()
+    {
+        Guid veli = await SeedMemberAsync("veli@example.com");
+        await SeedAsync(isGuest: false, ip: "203.0.113.5", email: "baska@example.com");
+        await SeedAsync(isGuest: false, ip: "203.0.113.6", email: "ali@example.com", member: veli);
+        await SeedAsync(isGuest: true, ip: "203.0.113.7", email: "ali@example.com", member: _ali);
+
+        Assert.Equal(1, await CountByEmailAsync(_ali));
+        Assert.Equal(1, await CountByEmailAsync(veli));
     }
 
     [Fact]
@@ -152,10 +170,10 @@ public sealed class OpenUnpaidOrderLimitTests : IAsyncLifetime
         return await new OpenUnpaidOrderLimit(db).CountByIpAsync(IPAddress.Parse(address), Ct);
     }
 
-    private async Task<int> CountByEmailAsync(string email)
+    private async Task<int> CountByEmailAsync(Guid member)
     {
         await using AppDbContext db = NewContext();
-        return await new OpenUnpaidOrderLimit(db).CountByEmailAsync(email, Ct);
+        return await new OpenUnpaidOrderLimit(db).CountByMemberAsync(member, Ct);
     }
 
     private async Task<bool> IsFullByIpAsync(string address)
@@ -164,13 +182,23 @@ public sealed class OpenUnpaidOrderLimitTests : IAsyncLifetime
         return await new OpenUnpaidOrderLimit(db).IsFullByIpAsync(IPAddress.Parse(address), Ct);
     }
 
-    private async Task<bool> IsFullByEmailAsync(string email)
+    private async Task<bool> IsFullByEmailAsync(Guid member)
     {
         await using AppDbContext db = NewContext();
-        return await new OpenUnpaidOrderLimit(db).IsFullByEmailAsync(email, Ct);
+        return await new OpenUnpaidOrderLimit(db).IsFullByMemberAsync(member, Ct);
     }
 
-    private async Task<Order> SeedAsync(bool isGuest, string? ip, string email = Email, DateTimeOffset? createdAt = null)
+    private async Task<Guid> SeedMemberAsync(string email)
+    {
+        Customer customer = Customer.Create("Üye", email, "digest-placeholder", Start, null, Start);
+        await using AppDbContext db = NewContext();
+        db.Customers.Add(customer);
+        await db.SaveChangesAsync(Ct);
+        return customer.Id;
+    }
+
+    // A member order (not a guest's) is the member's - Ali's unless another member is given; a guest order holds a customer id only when member is given (linked later).
+    private async Task<Order> SeedAsync(bool isGuest, string? ip, string email = Email, DateTimeOffset? createdAt = null, Guid? member = null)
     {
         int n = Interlocked.Increment(ref _counter);
         Province province = Province.Create($"{n:D2}", $"İl {n}", Start);
@@ -180,6 +208,7 @@ public sealed class OpenUnpaidOrderLimitTests : IAsyncLifetime
         Order order = Order.Create(
             $"2026-{n + 376000:D6}", $"access-placeholder-{n}", $"confirm-placeholder-{n}", PaymentMethod.BankTransfer, isGuest, email, 120m, 0m, Start.AddDays(2), createdAt ?? Start.AddDays(-1));
         order.IpAddress = ip is null ? null : IPAddress.Parse(ip);
+        order.CustomerId = isGuest ? member : member ?? _ali;
         order.CartId = EntityIds.New();
         order.BankTransferIban = "TR330006100519786457841326";
         order.BillingRecipientName = "Ali Veli";

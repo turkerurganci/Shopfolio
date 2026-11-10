@@ -13,7 +13,7 @@ namespace Shopfolio.Modules.Ordering;
 /// </summary>
 internal sealed class SalesPeriodReader
 {
-    private static readonly PaymentStatus[] Approved = [PaymentStatus.Paid, PaymentStatus.PartiallyRefunded, PaymentStatus.Refunded];
+
     private static readonly TransitionCode[] PromiseMarks = [TransitionCode.S5, TransitionCode.S3, TransitionCode.S4];
 
     private readonly AppDbContext _db;
@@ -27,7 +27,7 @@ internal sealed class SalesPeriodReader
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(to, from);
         IQueryable<Order> born = _db.Orders.AsNoTracking().Where(o => o.CreatedAt >= from && o.CreatedAt < to);
-        IQueryable<Order> paid = born.Where(o => Approved.Contains(o.PaymentStatus));
+        IQueryable<Order> paid = born.Where(o => PaymentApproval.Statuses.Contains(o.PaymentStatus));
 
         int orderCount = await paid.CountAsync(ct);
         decimal revenue = await paid.SumAsync(o => o.Total, ct);
@@ -85,7 +85,7 @@ internal sealed class SalesPeriodReader
 
         return await _db.OrderItems.AsNoTracking()
             .Where(i => ids.Contains(i.Id))
-            .Join(_db.Orders.AsNoTracking().Where(o => Approved.Contains(o.PaymentStatus)), i => i.OrderId, o => o.Id, (i, o) => new OrderOfItem(i.Id, o.Id))
+            .Join(_db.Orders.AsNoTracking().Where(o => PaymentApproval.Statuses.Contains(o.PaymentStatus)), i => i.OrderId, o => o.Id, (i, o) => new OrderOfItem(i.Id, o.Id))
             .ToListAsync(ct);
     }
 

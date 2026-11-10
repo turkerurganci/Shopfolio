@@ -117,9 +117,16 @@ internal sealed partial class AfterSalesModule
         RequireLocked(orderId);
         List<RefundIban> ibans = await _db.RefundIbans.Where(i => i.OrderId == orderId).ToListAsync(ct);
         List<Guid> deleted = [];
+        if (ibans.Count == 0)
+        {
+            return deleted;
+        }
+
+        // The order's records, requests and refunds are read once; each IBAN is decided in memory (D-903; 09 20 items 2-4).
+        RefundIbanUses uses = await LoadRefundIbanUsesAsync(orderId, [.. ibans.Select(i => i.Id)], ct);
         foreach (RefundIban iban in ibans)
         {
-            if (!await IsRefundIbanInUseAsync(iban.Id, orderId, ct))
+            if (!uses.IsInUse(iban.Id))
             {
                 DeleteIban(iban);
                 deleted.Add(iban.Id);
@@ -164,173 +171,6 @@ internal sealed partial class AfterSalesModule
             new RefundIbanRequestEntry(failure.OrderItemId, failure.RefundId, RefundIbanRequestReason.TransferFailed, failure.AdminId, failure.AdminName, failure.At),
             ct);
     }
-
-    /// <summary>
-    /// Whether a pending refund still uses the IBAN (02 7.4.5; K-1110, K-1127): the one definition the refund line deletes by.
-    /// <list type="bullet">
-    /// <item>a cancellation or a late delivery termination linked to it whose refund is not settled - on the transfer line the refund is born with the firm's
-    /// step, so a record without a refund is pending;</item>
-    /// <item>a withdrawal linked to it with units neither paid back by a settled refund nor closed by a rejection or a "goods did not come back" closure -
-    /// the receipt-by-receipt refunds of a later receipt (02 7.1.7);</item>
-    /// <item>a request fulfilled with it: on a refund (the transfer path of a failed card refund, the late payment), until that refund settles; on an item,
-    /// while the item has a record without an IBAN of its own whose refund is not settled, or until an item refund settles after the IBAN came;</item>
-    /// <item>a refund of the order pending on the transfer way, whatever its source, that would be paid to it (<see cref="IsUsedByAPendingTransferRefundAsync"/>).</item>
-    /// </list>
-    /// </summary>
-    private async Task<bool> IsRefundIbanInUseAsync(Guid refundIbanId, Guid orderId, CancellationToken ct)
-    {
-        if (await IsUsedByAPendingTransferRefundAsync(refundIbanId, orderId, ct))
-        {
-            return true;
-        }
-
-        // A cancellation undone by the correction of the firm's wrong cancellation needs no refund any more (06 4.22; K-1056, K-1131).
-        Guid[] linkedItems = [.. await _db.Cancellations.Where(c => c.RefundIbanId == refundIbanId).Select(c => c.OrderItemId).Distinct().ToListAsync(ct)];
-        List<Guid> cancellations = [.. (await StandingCancellationsAsync(linkedItems, ct)).Where(c => c.RefundIbanId == refundIbanId).Select(c => c.Id)];
-        List<Guid> terminations = await _db.LateDeliveryTerminations.Where(t => t.RefundIbanId == refundIbanId).Select(t => t.Id).ToListAsync(ct);
-        List<WithdrawalRef> withdrawals = await _db.Withdrawals.Where(w => w.RefundIbanId == refundIbanId).Select(w => new WithdrawalRef(w.Id, w.OrderItemId, w.Quantity)).ToListAsync(ct);
-        List<RequestRef> requests = await _db.RefundIbanRequests.Where(r => r.RefundIbanId == refundIbanId)
-            .Select(r => new RequestRef(r.OrderItemId, r.RefundId, r.FulfilledAt))
-            .ToListAsync(ct);
-        Guid[] requestItems = [.. requests.Where(r => r.RefundId == null).Select(r => r.OrderItemId).OfType<Guid>().Distinct()];
-
-        // The item requests' own users: the item's records that carry no IBAN of their own.
-        List<ItemRecordRef> unlinked =
-        [
-            .. (await StandingCancellationsAsync(requestItems, ct)).Where(c => c.RefundIbanId == null).Select(c => new ItemRecordRef(c.Id, c.OrderItemId)),
-            .. await _db.ItemRemovals.Where(r => requestItems.Contains(r.OrderItemId)).Select(r => new ItemRecordRef(r.Id, r.OrderItemId)).ToListAsync(ct),
-            .. await _db.LateDeliveryTerminations.Where(t => requestItems.Contains(t.OrderItemId) && t.RefundIbanId == null)
-                .Select(t => new ItemRecordRef(t.Id, t.OrderItemId)).ToListAsync(ct),
-        ];
-        List<WithdrawalRef> unlinkedWithdrawals = await _db.Withdrawals.Where(w => requestItems.Contains(w.OrderItemId) && w.RefundIbanId == null)
-            .Select(w => new WithdrawalRef(w.Id, w.OrderItemId, w.Quantity))
-            .ToListAsync(ct);
-
-        Guid[] allWithdrawals = [.. withdrawals.Select(w => w.Id), .. unlinkedWithdrawals.Select(w => w.Id)];
-        List<Guid> asked = [.. cancellations, .. terminations, .. allWithdrawals, .. unlinked.Select(u => u.Id), .. requestItems];
-        asked.AddRange(requests.Select(r => r.RefundId).OfType<Guid>());
-        IReadOnlyList<RefundOfRecord> refunds = await _payment.FindRefundsOfRecordsAsync(asked, ct);
-        Dictionary<Guid, int> closedByOutcome = await ClosedWithdrawalUnitsAsync(allWithdrawals, ct);
-
-        bool Settled(Func<RefundOfRecord, bool> of) => refunds.Any(r => r.IsSettled && of(r));
-        bool WithdrawalPending(Guid id, int quantity) =>
-            refunds.Where(r => r.IsSettled && r.WithdrawalId == id).Sum(r => r.Quantity ?? 0) + closedByOutcome.GetValueOrDefault(id) < quantity;
-        bool RecordPending(Guid id) => !Settled(r => r.CancellationId == id || r.ItemRemovalId == id || r.LateDeliveryTerminationId == id);
-
-        if (cancellations.Any(RecordPending) || terminations.Any(RecordPending) || withdrawals.Any(w => WithdrawalPending(w.Id, w.Quantity)))
-        {
-            return true;
-        }
-
-        foreach (RequestRef request in requests)
-        {
-            if (request.RefundId is { } refundId)
-            {
-                if (!Settled(r => r.RefundId == refundId))
-                {
-                    return true;
-                }
-
-                continue;
-            }
-
-            if (request.OrderItemId is not { } itemId)
-            {
-                continue;
-            }
-
-            // An item whose records were all undone by a status correction owes nothing any more (D-517): the request no longer holds the IBAN.
-            if (!unlinked.Any(u => u.OrderItemId == itemId) && !unlinkedWithdrawals.Any(w => w.OrderItemId == itemId))
-            {
-                continue;
-            }
-
-            bool itemRecordPending = unlinked.Any(u => u.OrderItemId == itemId && RecordPending(u.Id))
-                || unlinkedWithdrawals.Any(w => w.OrderItemId == itemId && WithdrawalPending(w.Id, w.Quantity));
-            bool settledAfter = refunds.Any(r => r.OrderItemId == itemId && r.SettledAt >= request.FulfilledAt);
-            if (itemRecordPending || !settledAfter)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Whether a refund of the order still pending on the transfer way - neither sent nor voided, whatever its source: a record's, a defect remedy's rescission or price
-    /// reduction (T374), the late payment's - would be paid to the IBAN (02 7.4.5: the IBAN goes once the last pending refund that uses it is processed). The refund is
-    /// paid to its record's IBAN; without one, to the IBANs fulfilled on its own requests, then on its item's requests; without any, to the IBAN on the order's file - so
-    /// it holds every IBAN of the order.
-    /// </summary>
-    private async Task<bool> IsUsedByAPendingTransferRefundAsync(Guid refundIbanId, Guid orderId, CancellationToken ct)
-    {
-        IReadOnlyList<RefundOfRecord> pending = await _payment.FindPendingTransferRefundsAsync(orderId, ct);
-        if (pending.Count == 0)
-        {
-            return false;
-        }
-
-        Guid[] cancellationIds = [.. pending.Select(r => r.CancellationId).OfType<Guid>()];
-        Guid[] terminationIds = [.. pending.Select(r => r.LateDeliveryTerminationId).OfType<Guid>()];
-        Guid[] withdrawalIds = [.. pending.Select(r => r.WithdrawalId).OfType<Guid>()];
-        Dictionary<Guid, Guid> recordIbans = new(
-        [
-            .. await _db.Cancellations.Where(c => cancellationIds.Contains(c.Id) && c.RefundIbanId != null)
-                .Select(c => new KeyValuePair<Guid, Guid>(c.Id, c.RefundIbanId!.Value)).ToListAsync(ct),
-            .. await _db.LateDeliveryTerminations.Where(t => terminationIds.Contains(t.Id) && t.RefundIbanId != null)
-                .Select(t => new KeyValuePair<Guid, Guid>(t.Id, t.RefundIbanId!.Value)).ToListAsync(ct),
-            .. await _db.Withdrawals.Where(w => withdrawalIds.Contains(w.Id) && w.RefundIbanId != null)
-                .Select(w => new KeyValuePair<Guid, Guid>(w.Id, w.RefundIbanId!.Value)).ToListAsync(ct),
-        ]);
-
-        Guid[] refundIds = [.. pending.Select(r => r.RefundId)];
-        Guid[] itemIds = [.. pending.Select(r => r.OrderItemId).OfType<Guid>().Distinct()];
-        List<RequestIban> fulfilled = await _db.RefundIbanRequests
-            .Where(r => r.RefundIbanId != null
-                && ((r.RefundId != null && refundIds.Contains(r.RefundId.Value)) || (r.RefundId == null && r.OrderItemId != null && itemIds.Contains(r.OrderItemId.Value))))
-            .Select(r => new RequestIban(r.OrderItemId, r.RefundId, r.RefundIbanId!.Value))
-            .ToListAsync(ct);
-
-        foreach (RefundOfRecord refund in pending)
-        {
-            Guid? recordId = refund.CancellationId ?? refund.LateDeliveryTerminationId ?? refund.WithdrawalId;
-            if (recordId is { } record && recordIbans.TryGetValue(record, out Guid recordIban))
-            {
-                if (recordIban == refundIbanId)
-                {
-                    return true;
-                }
-
-                continue;
-            }
-
-            List<Guid> own = [.. fulfilled.Where(r => r.RefundId == refund.RefundId).Select(r => r.RefundIbanId)];
-            if (own.Count == 0 && refund.OrderItemId is { } itemId)
-            {
-                own = [.. fulfilled.Where(r => r.RefundId == null && r.OrderItemId == itemId).Select(r => r.RefundIbanId)];
-            }
-
-            if (own.Count == 0 || own.Contains(refundIbanId))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>A request fulfilled with an IBAN: its item or refund and the IBAN.</summary>
-    private sealed record RequestIban(Guid? OrderItemId, Guid? RefundId, Guid RefundIbanId);
-
-    /// <summary>An item record's id and item, as the IBAN's use reads it.</summary>
-    private sealed record ItemRecordRef(Guid Id, Guid OrderItemId);
-
-    /// <summary>A withdrawal's id, item and units, as the IBAN's use reads it.</summary>
-    private sealed record WithdrawalRef(Guid Id, Guid OrderItemId, int Quantity);
-
-    /// <summary>A request fulfilled with the IBAN: its item or refund and the moment the IBAN came.</summary>
-    private sealed record RequestRef(Guid? OrderItemId, Guid? RefundId, DateTimeOffset? FulfilledAt);
 
     /// <summary>Units of a withdrawal closed without a refund.</summary>
     private sealed record ClosedPart(Guid WithdrawalId, int Quantity);

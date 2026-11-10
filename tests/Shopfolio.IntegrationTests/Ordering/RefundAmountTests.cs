@@ -313,6 +313,9 @@ public sealed class RefundAmountTests : IAsyncLifetime
             {
                 await locks.LockAsync([orderId], token);
                 Order order = await db.Orders.SingleAsync(o => o.Id == orderId, token);
+
+                // The transition unit loads the items under the lock before it writes their records (D-95; 09 10.2 item 3).
+                await db.OrderItems.Where(i => i.OrderId == orderId).LoadAsync(token);
                 ItemRecordWriteResult result = await work(module, token);
                 if (!result.IsRejected)
                 {

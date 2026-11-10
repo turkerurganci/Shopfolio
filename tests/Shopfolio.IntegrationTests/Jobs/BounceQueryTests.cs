@@ -113,7 +113,7 @@ public sealed class BounceQueryTests : JobQueueTestBase
     public async Task TheMatch_FoldsTheTurkishDottedLetters_LikeTheOneIdentityNormalization_KK3()
     {
         FakeEmailGateway gateway = new();
-        gateway.EnqueueBounceQuery(new BounceQueryResult.List(["ali.isik@example.com", "  BİLGİ@Example.com "]));
+        gateway.EnqueueBounceQuery(new BounceQueryResult.List(["ali.işik@example.com", "  BİLGİ@Example.com "]));
         Guid dottedUpper = await SeedAsync("ALİ.IŞIK@example.com", DispatchState.Sent, Now.AddHours(-2));
         Guid dottedLower = await SeedAsync("bilgi@example.com", DispatchState.Sent, Now.AddHours(-2));
         await using JobQueueHarness harness = NewBounceHarness(gateway);
@@ -192,11 +192,14 @@ public sealed class BounceQueryTests : JobQueueTestBase
 
         Job row = Assert.Single(await harness.RowsAsync());
         Assert.Equal((JobType.BounceQuery, (Guid?)null, JobState.Pending), (row.JobType, row.RelatedRecordId, row.JobState));
-        Assert.Empty(await FindDueAsync(harness, source));
+
+        // The source does not read the job table: it is due at every wake-up and the queue's insert leaves the pending row as it is.
+        Assert.Single(await FindDueAsync(harness, source));
+        await ProcessAsync(harness, source, Guid.Empty);
+        Assert.Equal(1, await ScalarAsync<long>("SELECT count(*) FROM jobs"));
 
         // The installer closed it (05 4.3.4): the scheduler brings the row back.
         await ExecuteAsync("UPDATE jobs SET job_state = 'Completed', completed_at = now()");
-        Assert.Single(await FindDueAsync(harness, source));
         await ProcessAsync(harness, source, Guid.Empty);
         Assert.Equal(1, await ScalarAsync<long>("SELECT count(*) FROM jobs WHERE job_state = 'Pending' AND job_type = 'BounceQuery'"));
     }

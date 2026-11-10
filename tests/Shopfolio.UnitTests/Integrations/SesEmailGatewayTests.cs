@@ -401,6 +401,7 @@ public sealed class SesEmailGatewayTests
     // ---- T408 KK2: the bounce query's request and its pages ----
 
     private static readonly DateTimeOffset Since = RunnerHarness.Now.AddHours(-24);
+    private static readonly string[] ExpectedAddresses = ["Bir@Example.COM", "iki@example.com", "Üç@example.com", "dort@example.com"];
 
     private static Func<WireRequest, WireAnswer> ListScript(params WireAnswer[] pages)
     {
@@ -415,12 +416,12 @@ public sealed class SesEmailGatewayTests
 
         BounceQueryResult result = await rig.Gateway.QueryBouncesAsync(Since, Ct);
 
-        Assert.Equal(new BounceQueryResult.List([]), result);
+        Assert.Empty(Assert.IsType<BounceQueryResult.List>(result).Addresses);
         WireRequest request = Assert.Single(rig.Wire.Requests);
         Assert.True(request.IsList);
         Assert.Equal("email.eu-central-1.amazonaws.com", request.Uri.Host);
         Assert.Equal(["BOUNCE"], request.QueryString["Reason"]);
-        Assert.Equal(Since.ToUnixTimeSeconds(), long.Parse(Assert.Single(request.QueryString["StartDate"]), System.Globalization.CultureInfo.InvariantCulture));
+        Assert.Equal(Since, DateTimeOffset.Parse(Assert.Single(request.QueryString["StartDate"]), System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal));
         Assert.Equal([SesEmailGateway.QueryPageSize.ToString(System.Globalization.CultureInfo.InvariantCulture)], request.QueryString["PageSize"]);
         Assert.Empty(request.QueryString["NextToken"]);
         Assert.Empty(request.QueryString["EndDate"]);
@@ -437,7 +438,7 @@ public sealed class SesEmailGatewayTests
 
         BounceQueryResult result = await rig.Gateway.QueryBouncesAsync(Since, Ct);
 
-        Assert.Equal(new[] { "Bir@Example.COM", "iki@example.com", "Üç@example.com", "dort@example.com" }, Assert.IsType<BounceQueryResult.List>(result).Addresses);
+        Assert.Equal(ExpectedAddresses, Assert.IsType<BounceQueryResult.List>(result).Addresses);
         IReadOnlyList<WireRequest> requests = rig.Wire.Requests;
         Assert.Equal(3, requests.Count);
         Assert.Equal(string.Empty, requests[0].QueryString["NextToken"].SingleOrDefault() ?? string.Empty);

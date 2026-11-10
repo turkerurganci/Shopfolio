@@ -51,9 +51,9 @@ public sealed class ShownVersionSourceScanTests
         // The comparison skipped on a missing version (T364 B1): each null-test shape goes red; ShownVersion.Check, a null test that refuses and a
         // null-conditional with no comparison do not.
         Assert.Equal(
-            [30, 31, 32, 34, 35, 36, 37, 38, 39],
+            [30, 31, 32, 34, 35, 36, 37, 38, 39, 43],
             findings.Where(f => f.Rule == ShownVersionSourceScan.SkippedComparison).Select(f => f.Line));
-        Assert.Equal(25, findings.Count);
+        Assert.Equal(26, findings.Count);
     }
 
     [Theory]

@@ -1,6 +1,6 @@
 # T364 — Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler
 
-**Faz:** F3 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-10
+**Faz:** F3 | **Durum:** Düzeltme 1 tamam — doğrulama tur 2 bekliyor | **Tarih:** 2026-11-10
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -21,6 +21,15 @@ Eşzamanlılığın mekanizması (`RecordSave`, `OrderLocks`, `ShownVersion`, `V
 - **Çakışma testleri (gerçek PostgreSQL):** iki yönetici aynı anda havale "ödendi" işareti, aynı havale geri ödemesi ve aynı kalem çıkarma → yalnız biri uygulanır, öteki `VersionConflict`; tek geçiş/ödeme/geri ödeme/kalem çıkarma satırı, tek bildirim. Yöneticinin işaretinden sonra sistem ve müşteri iptali reddedilir, yalnız sistemin reddi kayda yazılır, bildirim yok, sipariş kilitli kalmaz (`FOR UPDATE NOWAIT`). Süre dolumu ödenmiş siparişte tek satır yazar.
 - Modül kaydı: `AddOrderingModule` `services.AddLogging()` (TryAdd; host'un kaydını bozmaz) + `AddSingleton<AutomaticTransitionLog>()`.
 
+### Düzeltme 1 (tur 1 B1, KK4)
+
+- **Yöneticinin siparişe yönelik her isteğinde gösterilen sürüm zorunlu (`02 §3.31.2`; `09 §10.2 m.3`; D-291 (b); sahip yerine karar).** Ne yapılacağı tek yerde: `ShownVersion.Check(order, shown, byAdministrator)` (`Infrastructure/Forms/RecordSave.cs`) → `Current` / `Missing` / `Changed`. Yöneticinin sürümsüz isteği `Missing` → `TransitionRefusal.InvalidInput` (geçiş biriminde `TransitionRejection.InvalidInput`; `CancelOrderAsync` emsali), eski sürüm `VersionConflict`; ikisi de bir şey yazmaz.
+  - `OrderCorrections.LockAsync` (adres, e-posta, kargo, teslim tarihi, iade varış tarihi) ve `OrderTransitions.LockItemAsync` (kalem çıkarma ve öteki yönetici kalem işlemleri) boş sürümde karşılaştırmayı artık atlamaz. Müşterinin kalem işlemleri ayrı `LockItemForCustomerAsync`'ten geçer (sürüm yok, koşul güncel hâle karşı); kusur bildirimini yeniden açma aktöre göre ikisinden birini seçer.
+  - Geçiş biriminin gövdesi (`ApplyChosenCoreAsync`) ve geç teslim feshi de aynı `Check`'i kullanır: yönetici aktörlü sürümsüz geçiş reddedilir. Geri ödemenin eksen adımı (`ApplyRefundSentAsync`) aynı kilit altında siparişin kendi sürümünü taşır.
+  - `IOrderCorrections` sözleşme açıklaması: sürüm zorunlu, alanın boş olabilmesi yalnız formun onsuz gelebilmesinden.
+- **Tarama boş sürümde atlamayı da yakalar:** `ShownVersionSourceScan` yeni kural `SkippedComparison` — `ShownVersion.Matches`'e bağlanmış boş denetimi (`is { } x &&`, `is int x &&`, `is not null &&`, `!= null &&`, `.HasValue &&`, `is null ||`, `== null ||`, `!x.HasValue ||`), koşullu ifade, iç içe `if`, `?.` ardından karşılaştırma ve argümanda `??` yedeği. İhlal örneğine 10 kırmızı + 3 temiz satır eklendi. Bilinen sınır: boş sürümde erken dönüş (`if (expected is null) return ok;`) metinde redden ayırt edilemez; Integration testleri altı müdahaleyi sürümsüz gönderip reddi bekler.
+- **Testler:** `OrderCorrectionTests.AnIntervention_WithoutTheShownVersion_IsRefused_WithAnOlderOne_KeepsTheCurrentState_WithTheCurrentOne_IsApplied_T364_KK4` (altı müdahale × sürümsüz → `InvalidInput`, sürüm ve iz değişmez; başka değişiklikten sonra eski sürüm → `VersionConflict`, sipariş o değişikliğin bıraktığı sürümde; güncel sürüm → uygulanır, sürüm bir artar, iz satırı yazılır); `OrderTransitionsTests.Apply_ByAnAdministratorWithoutTheShownVersion_IsRefused_AndWritesNothing_T364_KK4`; `ShownVersionSourceScanTests.Scan_ReportsTheComparisonSkippedOnAMissingVersion` (4 biçim), `Scan_LeavesTheCheckAndARefusingNullTestAlone` (4 biçim). Var olan testlerin yönetici çağrıları sürüm gönderecek biçimde güncellendi (`OrderCorrectionTests` yardımcıları veritabanındaki güncel sürümü okur; `OrderTransitionsTests` yönetici geçişleri siparişin sürümünü taşır).
+
 ## Etkilenen Modüller / Dosyalar
 
 - `src/Shopfolio.Web/Infrastructure/Logging/LogEvents.cs`
@@ -28,6 +37,7 @@ Eşzamanlılığın mekanizması (`RecordSave`, `OrderLocks`, `ShownVersion`, `V
 - `tests/Shopfolio.UnitTests/Architecture/ShownVersionSourceScan.cs`, `ShownVersionSourceScanTests.cs`, `ViolationSamples/Concurrency/ShownVersionComparisons.cs` (yeni)
 - `tests/Shopfolio.IntegrationTests/Ordering/PaymentTransitionsTests.Concurrency.cs` (yeni), `PaymentTransitionsTests.cs` (partial), `PaymentWindowTests.cs`, `OrderCorrectionTests.Interventions.cs`, `OrderingTestServices.cs`
 - `Docs/09_CODING_GUIDELINES.md` (§10.2 m.3, §18.2 m.3)
+- Düzeltme 1: `src/Shopfolio.Web/Infrastructure/Forms/RecordSave.cs` (`ShownVersion.Check`, `ShownVersionCheck`), `Modules/Ordering/Contracts/IOrderCorrections.cs`, `OrderCorrections.cs`, `OrderTransitions.cs`, `OrderTransitions.ItemRecords.cs`, `OrderTransitions.LateDeliveryTermination.cs`, `OrderTransitions.Payment.cs`, `OrderTransitions.CustomerCancellation.cs`, `OrderTransitions.Withdrawal.cs`; `tests/Shopfolio.IntegrationTests/Ordering/OrderCorrectionTests.ShownVersion.cs` (yeni), `OrderCorrectionTests.cs`, `OrderCorrectionTests.Interventions.cs`, `OrderTransitionsTests.cs`; `tests/Shopfolio.UnitTests/Architecture/ShownVersionSourceScan.cs`, `ShownVersionSourceScanTests.cs`, `ViolationSamples/Concurrency/ShownVersionComparisons.cs`
 
 ## Kabul Kriterleri Kontrolü
 
@@ -36,20 +46,20 @@ Eşzamanlılığın mekanizması (`RecordSave`, `OrderLocks`, `ShownVersion`, `V
 | 1 | Sessiz üzerine yazma yok; ikinci kaydeden uyarılır | ✓ | `ConcurrencyTests.RecordSave_IsOneConditionalUpdate_AndOfTwoSavesOfTheSameVersionOneFails_KK1`, `RecordUpdate_WithAStaleVersion_AffectsNoRow_KK1`; sayfa: `VersionedFormPageTests.RecordPost_WithAnOldVersion_Is409_WritesNothing_ShowsTheSentValuesTheCurrentVersionAndOneButton_KK4`, `TwoSavesOfTheSameVersion_ThatArriveTogether_OneSavesAndTheOtherIsRefused_KK4` |
 | 2 | Kural içerik, ürün ve ayarda aynı | ✓ | İçerik `ContentAuthoringTests.TheAboutPageEdit_RaisesTheVersion_AndAStaleFormIsAConflict_KK3`; ürün `ProductTransitionsTests.AScreenOfAnOlderVersion_IsRefused_AndNothingIsWritten`, `CompanyIdentityTests.Save_WithAnOldVersion_IsAVersionConflict_AndWritesNothing`; ayar `FirmSettingsTests.AStaleVersion_IsAConflict_AndWritesNeitherTheValuesNorATrailRow`, `BrandingTests.AStaleVersion_IsAConflict_AndWritesNeitherTheValuesNorATrailRow` — hepsi tek `RecordSave.SaveAsync` yolu |
 | 3 | Siparişte işlem güncel hâle karşı; önce tamamlanan uygulanır | ✓ | `PaymentTransitionsTests.TwoAdministrators_MarkTheSameTransferPaidAtOnce_…_T364_KK3_KK5`, `TwoAdministrators_ProcessTheSameTransferRefundAtOnce_…_T364_KK3_KK5`, `OrderCorrectionTests.TwoAdministrators_RemoveTheSameItemAtOnce_…_T364_KK3_KK5`; `ConcurrencyTests.AdministratorOperation_ThatSawAnOlderVersion_IsNotApplied_EvenWhenItWaitedForTheLock_KK4` |
-| 4 | Gördüğü hâlden sonra değiştiyse uygulanmaz; panel söyler, güncel hâli gösterir | ✓ | `VersionedFormPageTests.OrderPost_ByTheAdministrator_WithAnOldVersion_IsNotApplied_Is409_ShowsTheCurrentOrder_AndHasNoWayToOverwrite_KK6`, `OrderPost_ByTheAdministrator_SentTwice_TheSecondIs409_KK8`; karşılaştırma tek yerde: `ShownVersionSourceScanTests` |
+| 4 | Gördüğü hâlden sonra değiştiyse uygulanmaz; panel söyler, güncel hâli gösterir | ✓ | `VersionedFormPageTests.OrderPost_ByTheAdministrator_WithAnOldVersion_IsNotApplied_Is409_ShowsTheCurrentOrder_AndHasNoWayToOverwrite_KK6`, `OrderPost_ByTheAdministrator_SentTwice_TheSecondIs409_KK8`; düzeltme 1: altı müdahale sürümsüz → `InvalidInput`, eski sürüm → `VersionConflict` + sipariş güncel hâlde, güncel sürüm → uygulanır (`OrderCorrectionTests.AnIntervention_WithoutTheShownVersion_…_T364_KK4` ×6), geçiş birimi `OrderTransitionsTests.Apply_ByAnAdministratorWithoutTheShownVersion_…_T364_KK4`; karar tek yerde `ShownVersion.Check`; tarama biçimi ve boş sürümde atlamayı yakalar (`ShownVersionSourceScanTests`) |
 | 5 | Aynı geçiş, geri ödeme kaydı, kalem çıkarma iki kez işlenmez | ✓ | KK3 satırındaki üç eşzamanlı test (tek O1 + tek ödeme kaydı; tek geri ödeme; tek `ItemRemoval` + tek geri ödeme + tek iz + tek B-11) |
 | 6 | Müşteri ve sistem çakışmasında sonraki uygulanır ya da sebebi söylenerek reddedilir; kilit yok | ✓ | `PaymentTransitionsTests.SystemAndCustomerCancellation_AfterTheAdministratorsPaidMark_AreRefused_OnlyTheSystemsIsLogged_NoNotice_NoLockRemains_T364_KK6`, `ProviderResults_ThatNoLongerFitTheOrder_AreRefused_WithOneLogLineEach_AndNoNotice_T364_KK6`; `PaymentWindowTests` (ödenmiş siparişte süre dolumu tek satır); müşteri: `VersionedFormPageTests.OrderPost_ByTheCustomer_WithAChangedOpenQuantity_IsNotProcessed_AndWithTheShownOneIsProcessed_KK2` |
 
 ### Öz denetim (bitiş kapısı 2)
 
-> Önceki işçinin yaptıkları dahil bütün maddeler bu turda yeniden denetlendi.
+> Önceki işçinin yaptıkları dahil bütün maddeler bu turda yeniden denetlendi. **Düzeltme 1:** bütün kriterler ve KK1–KK6 yeniden denetlendi; KK4 satırı ve sayılar güncellendi, öteki satırların kanıtı düzeltmeden sonra da yeşil (Ordering + Concurrency 638/638, Administration 69/69, Unit 5786/5786).
 
 | Madde (kabul kriteri / KK) | Sonuç | Kanıt (dosya:satır, test adı) |
 |---|---|---|
 | KK1: eski sürümle kayıt uyarı verir, sessiz yazmaz | ✓ | `ConcurrencyTests` KK1 iki test; `VersionedFormPageTests` 409 + "Yine de kaydet" testleri |
 | KK2: içerik, ürün ve ayarda aynı davranış | ✓ | Kriter 2 satırındaki beş test; hepsi `RecordSave.SaveAsync` |
 | KK3: iki yönetici aynı işlemde yalnız biri uygulanır | ✓ | Üç `Task.WhenAll` testi (ödendi işareti, havale geri ödemesi, kalem çıkarma) |
-| KK4: değişmiş siparişte ret ve güncel hâl | ✓ | `VersionedFormPageTests.OrderPost_…_KK6`, `…SentTwice_…_KK8`; `ShownVersion.Matches` her yerde + tarama |
+| KK4: değişmiş siparişte ret ve güncel hâl | ✓ | `VersionedFormPageTests.OrderPost_…_KK6`, `…SentTwice_…_KK8`; düzeltme 1: sürümsüz yönetici isteği hiçbir yolda karşılaştırmayı atlamaz — `ShownVersion.Check` (`RecordSave.cs`), `OrderCorrections.LockAsync`, `OrderTransitions.LockItemCoreAsync`, `ApplyChosenCoreAsync`, geç teslim feshi; altı müdahale × (sürümsüz / eski / güncel) testi; tarama `SkippedComparison` kuralı + ihlal örneği |
 | KK5: çift geçiş, çift geri ödeme kaydı, çift kalem çıkarma yok | ✓ | Üç eşzamanlı test; satır sayımları (TransitionRecords, PaymentRecords, Refunds, ItemRemovals, AuditLogs, DispatchRecords) |
 | KK6: müşteri ve sistem çakışmasında sebep söylenir, kilit yok | ✓ | İki T364_KK6 testi; `PaymentWindowTests`; `FOR UPDATE NOWAIT` kanıtı |
 | `09 §25` doküman uyumu: yeni ad belgeden | ✓ | `AutomaticTransitionRefused` `09 §18.2 m.3` listesinde; davranış `02 §3.31.2` (K-1559) ve `05 §9.1.3` ile aynı — belge kuralı değişmedi, karar kaydı gerekmedi |
@@ -66,6 +76,9 @@ Eşzamanlılığın mekanizması (`RecordSave`, `OrderLocks`, `ShownVersion`, `V
 | sik-fail (4) aynı şeyi anan öteki yerler | ✓ | Olay listesi tek yerde (`09 §18.2 m.3`) ve `LogEvents`; tarama cümlesi `09 §10.2 m.3` |
 | sik-fail "Integration TAM" (modül kaydına bağımlılık) | ✓ | `AddLogging` + yeni kurucu bağımlılığı: Integration ad alanı ad alanı TAM koşuldu (aşağıda) |
 | sik-fail "format koşulmadan temiz" | ✓ | `dotnet format --verify-no-changes` değişen bütün dosyalarda çıkış 0 |
+| sik-fail "eşzamanlılık denetimi isteğe bağlı alanla atlanabiliyor" (T364 r1) | ✓ (düzeltme 1) | `grep -rn "int? ExpectedVersion\|ExpectedVersion is null\|ExpectedVersion == null" src`: altı müdahale `Check` ile reddeder; `ReopenDefectClaimRequest`, `CancelOrderRequest`, `TerminateForLateDeliveryRequest` yönetici yolunda boş sürümü zaten reddediyordu (`ActorNotAllowed` / `InvalidInput`), kilitten sonra da `Check`; `TransitionRequest` (iç) yönetici aktörde `Check` |
+| sik-fail "kaynak taraması bir biçimi kaçırıyor" / "tarama istisnası geniş" (düzeltme 1) | ✓ | Yeni kural izinli dosya taşımaz; çok satırlı (`.HasValue` + satır kırılımı), iç içe `if`, koşullu ifade, `?.`, `??` biçimleri örnekte; reddeden boş denetimi (`is null \|\| request.Confirmed`) ve `Check` temiz kalır |
+| sik-fail "Integration TAM" (düzeltme 1) | ✓ | Geçiş biriminin gövdesi değişti: Ordering + Concurrency, Administration, Payment ad alanları koşuldu; geçiş birimini doğrudan çağıran testler yalnız `Ordering` altında (`grep "new TransitionRequest(" tests`) |
 
 ## Test Sonuçları
 
@@ -76,6 +89,10 @@ Eşzamanlılığın mekanizması (`RecordSave`, `OrderLocks`, `ShownVersion`, `V
 | Derleme | ✓ | `dotnet build Shopfolio.slnx -c Release -warnaserror` | 0 uyarı, 0 hata |
 | Biçim | ✓ | `dotnet format Shopfolio.slnx --verify-no-changes --include <değişen dosyalar>` | çıkış 0 |
 | Contract | uygulanamaz | — | Sözleşme değişmedi |
+| Düzeltme 1 — derleme | ✓ | `dotnet restore Shopfolio.slnx --locked-mode`; `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı, 0 hata |
+| Düzeltme 1 — biçim | ✓ | `dotnet format <proje> --verify-no-changes --no-restore` ×3 | çıkış 0 |
+| Düzeltme 1 — Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build` (Architecture, Consistency dahil) | 5786/5786 |
+| Düzeltme 1 — Integration | ✓ | `--filter-namespace` Ordering + Concurrency; Administration; Payment (Postgres 18, `track_commit_timestamp=on`, `Host=127.0.0.1`) | 638/638; 69/69; 14/14 (Payment) |
 
 ## Doğrulama
 
@@ -152,8 +169,12 @@ Dış varsayım: yok.
   3. Zamanlayıcının vadesi geçmemiş bulduğu sipariş ve sağlayıcı sonucunun artık uymadığı kayıt `ConditionNotMet` koduyla yazılır (geçiş biriminin var olan kodu; yeni kod açılmadı).
   4. Sağlayıcının aynı ödemeyi yeniden bildirmesi (`isAlreadyApplied`) ret değil, tekrar korumasıdır (K-970); satır yazmaz.
   5. Tarama yerel değişkene kopyalanıp karşılaştırılan sürümü göremez (metin taramasının sınırı); sürümü okumak serbesttir, kopya tek başına bulgu sayılmadı.
+  6. (Düzeltme 1) Sürümsüz yönetici isteğinin kodu `InvalidInput` (raporun önerdiği, `CancelOrderAsync` emsali); sözleşme alanı `int?` kaldı ki "sürümsüz istek → ret" sınanabilsin ve form alanı eksik gelebilsin.
+  7. (Düzeltme 1) Geçiş biriminin gövdesi de yönetici aktörde sürüm ister (savunma derinliği; panelin bütün girişleri zaten `int` ya da ret). Geri ödemenin eksen adımı aynı kilit altında siparişin kendi sürümünü taşır: havale geri ödemesinde ekranın sürümü az önce karşılaştırıldı, kart sonucunun ekranı yoktur.
+  8. (Düzeltme 1) `OrderTransitionsTests.Race_TheConditionOfTheSecondTransition_…_KK5`: ikinci yönetici geçişi ilkinin bıraktığı sürümü taşır; testin sınadığı koşulun güncel hâle karşı okunması değişmedi.
 - **Working tree (Adım -1):** temiz.
 - **Ana dal CI startup (Adım 0):** önceki işçi: 42712574041, 42712573916 success.
 - **Main birleştirmesi:** `origin/main` `206f918c` (T390) dala birleştirildi (merge, rebase değil); çakışma yok.
 - **Repo memory (bitiş kapısı 9):** parça dosyası kuralı gereği MEMORY'ye dokunulmadı.
 - **Devam:** yapım iki işçide yapıldı (ilki bağlam sınırında bölündü, devir notuyla sürdü).
+- **Düzeltme 1:** dal `origin/task/T364-eszamanli-islemler` (`797cbaa8`) üzerinde; doğrulayıcının yarım kalan changelog girişi ayrı commit (`174283a7`); `origin/main` yeni commit getirmedi (`git merge origin/main` → güncel). K1 / D-961'e dokunulmadı.

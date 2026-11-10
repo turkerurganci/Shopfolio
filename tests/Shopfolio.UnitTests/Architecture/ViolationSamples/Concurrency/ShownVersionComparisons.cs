@@ -40,6 +40,7 @@ internal sealed class ShownVersionComparisons
         ShownVersionCheck af = ShownVersion.Check(order, request.ExpectedVersion, byAdministrator: true);
         bool ag = request.ExpectedVersion is null || request.Confirmed;
         bool ah = request.Admin?.AdminName is null;
+        if (request.ExpectedVersion is { } nested) { if (!ShownVersion.Matches(order, nested)) { return false; } }
         return a && b && c && d && e && f && g && h && i && j && k > 0 && l && m && n && o && p && q && r && s && t > 0;
     }
 }

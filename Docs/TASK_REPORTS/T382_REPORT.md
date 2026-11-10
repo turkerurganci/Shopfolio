@@ -99,8 +99,8 @@ Devam 3 işçisi önceki işçilerin yaptıkları dahil bütün maddeleri diff't
 ## Commit & PR
 
 - **Branch:** `task/T382-panel-ana-sayfa`
-- **Commit:** son commit PR gövdesinde
-- **PR:** PR_NUMARASI
+- **Commit:** `c7359e7c` — T382: Panel ana sayfası verisi (rapor, kayıtlar, mal bekleniyor kümesi sayfalı okunur)
+- **PR:** #510
 - **CI:** yapım işçisi izlemez (yönetici izler)
 - **Post-merge run'lar:** *(validator doldurur)*
 

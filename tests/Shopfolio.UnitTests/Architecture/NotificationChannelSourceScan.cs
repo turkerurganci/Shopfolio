@@ -8,7 +8,7 @@ namespace Shopfolio.UnitTests.Architecture;
 /// (1) <see cref="UnknownChannel"/> - no SMS, push notification, in-app notification centre or messaging-app channel: e-mail is the only channel;
 /// (2) <see cref="MarketingMessage"/> - no marketing message, newsletter, İYS link, opt-in or opt-out, unsubscribe, abandoned-cart reminder or back-in-stock notice;
 /// (3) <see cref="TransactionSwitch"/> - nothing that turns a transaction notice off or lets the user choose which ones to get (a notification preference or setting);
-/// (4) <see cref="GatewayOutsideTheSender"/> - the e-mail gateway is named only by its own files and by the dispatch attempts, so no e-mail leaves except through a dispatch row;
+/// (4) <see cref="GatewayOutsideTheSender"/> - the e-mail gateway is named only by its own files, by the dispatch attempts and by the returned-address query's handler (which only reads the service's list; a test keeps it from calling the send), so no e-mail leaves except through a dispatch row;
 /// (5) <see cref="DispatchRowOutsideTheQueues"/> - a dispatch row is made and added only by the three queues (and its own type), each of which asks the notification map first.
 /// Rules 1-3 read the words of every identifier, JSON key and string (a name is split at its capitals, underscores and hyphens, so <c>ISmsGateway</c>, <c>sms_gateway</c> and
 /// <c>sms-gateway</c> are all found); comments are blanked first and keep their lines, so a comment that says "no SMS" is not a finding. Rules 4 and 5 name their allowed files
@@ -31,6 +31,7 @@ internal static partial class NotificationChannelSourceScan
         "src/Shopfolio.Web/Infrastructure/Integrations/SesRegistration.cs",
         "src/Shopfolio.Web/Infrastructure/Integrations/SmtpCaptureEmailGateway.cs",
         "src/Shopfolio.Web/Modules/Notifications/DispatchAttempts.cs",
+        "src/Shopfolio.Web/Modules/Notifications/BounceQueryJobHandler.cs",
     ];
 
     /// <summary>The files that may make and add a dispatch row: the three queues and the row's own type.</summary>

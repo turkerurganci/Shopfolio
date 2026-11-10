@@ -1678,6 +1678,7 @@
 | K-1602 | 2026-11-10 | F3 kapısı — L-7/L-8 eşiğinin okunuşu (yönetici kararı, sahip yetkisiyle) | Eşik izin verilen sayıdır; sayı eşiğe ulaşınca (`>=`) sonraki onay reddedilir (`09 §15.4` m.5; D-809). |
 | K-1603 | 2026-11-10 | F3 kapısı — eşzamanlı onaylarda L-8 tavanı (yönetici kararı, sahip yetkisiyle) | Eksen kilidi eklenmez; eşzamanlı onayların tavanı birkaç sipariş aşması kalan risktir, yolu firma iptalidir (`02 §8.2.3`; D-826). |
 | K-1604 | 2026-11-10 | F3 kapısı — tutarı sıfır olan ayıp dönmesi (yönetici kararı, sahip yetkisiyle) | Ret kalır; kalemin geri ödenecek bedeli yoksa dönme kaydı açılmaz, talep çözüldü olarak kapatılır (`02 §7.5.3`; D-881). |
+| K-1606 | 2026-11-10 | T409 — `09 §11.3` m.2: bilinmeyen `kid` aynı çağrıda yenilenir (yardımcı kararı) | Bilinmeyen `kid`'li belirteçte anahtar kümesi aynı çağrıda yenilenir; kapalıyken yenileme arkada kalır ve tek kullanımlık yetki kodu boşa harcanır. `Switch.Microsoft.IdentityModel.UpdateConfigAsBlocking` `Directory.Build.props` içinde açıktır (`08 §2.3`, DV-31; `09 §11.3` m.2). |
 
 ---
 

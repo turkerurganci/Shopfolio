@@ -126,7 +126,7 @@
 **Bulgu 1 (ORTA, S1, kriter 5 / KK5) giderildi.** Sahip yerine karar (yardımcı): belgeye uyuldu — çatının `Switch.Microsoft.IdentityModel.UpdateConfigAsBlocking` anahtarı açıldı. İlk deneme (kayıtta `AppContext.SetSwitch`) yetmedi: çatı anahtarı türlerine ilk dokunuşta bir kez okuyor, test düzeneği kayıttan önce belirteç ürettiği için anahtar geç kalıyordu (gözlendi). Bu yüzden anahtar `Directory.Build.props` içinde `RuntimeHostConfigurationOption` olarak süreç başından açık (web sunucusu ve bütün test sunucuları).
 
 - Kod: `Directory.Build.props` (yalnız bu); testler: `TokenWithAnUnknownKeyId_FetchesTheKeySetAgainInTheSameCall_AndHoldsOnTheFirstCall` (yeni), `TokenWithAKeyIdThatIsStillUnknownAfterTheRefresh_…` (bekleme yardımcısı kalktı), `TheHostConfiguration_TurnsTheLibrarysSameCallRefreshSwitchOn_FromTheStartOfTheProcess`, `TheBuildProps_DeclareTheSwitchAsARuntimeHostOption` (yeni).
-- Belgeler: `09 §11.3` m.2 notu (kural metni değil, çatı ayarının notu: "varsayılanlarına dayanılır" cümlesi bilinmeyen `kid` için daraltıldı; karar kaydı satırı eklenemedi — karar kayıtları repoda değil, ⚠ olarak sahibe), `08` DV-31 hücresi, `GOOGLE.md` sorun giderme satırı, D-1031 ✅.
+- Belgeler: `09 §11.3` m.2 notu (kural metni değil, çatı ayarının notu: "varsayılanlarına dayanılır" cümlesi bilinmeyen `kid` için daraltıldı; karar kaydı satırı düzeltme 2'de eklendi: K-1606, `Docs/PRODUCT_DISCOVERY_STATUS.md`), `08` DV-31 hücresi, `GOOGLE.md` sorun giderme satırı, D-1031 ✅.
 - Öz denetim: yukarıdaki kriter ve KK5 satırları yeniden denetlendi; öteki kriter ve KK'lerin kodu/testi değişmedi, testleri yeniden koşuldu (aşağı).
 
 | Tür (düzeltme 1) | Sonuç | Çıktı özeti |
@@ -134,3 +134,9 @@
 | Restore, build `-warnaserror`, `dotnet format --verify-no-changes` | ✓ | 0 uyarı, 0 hata, format temiz |
 | Unit (Architecture, Consistency dahil) | ✓ | 6216/6216 (Google sınıfları 110) |
 | Integration TAM (PG18, `track_commit_timestamp=on`) | ✓ | Web ad alanı 599/599; geri kalan 2894/2894 |
+
+## Düzeltme 2 (2026-11-10)
+
+- main birleştirildi (T408 girdi); `Docs/IMPLEMENTATION_STATUS.md` satır çakışması: iki taraf korundu (T408 main sürümü, T409 dalın satırı). Kod çakışması yok, davranış değişmedi.
+- Karar kaydı: K-1606 eklendi (`Docs/PRODUCT_DISCOVERY_STATUS.md`); `09 §11.3` m.2 sonuna `(K-1606)` atfı; düzeltme 1 notundaki "karar kayıtları repoda yok" ⚠ maddesi düzeltildi.
+- Öz denetim: kabul kriterleri ve KK1-KK8 tablosu yerinde; ✓ + kanıt tablosunun atıfları birleşik dalda doğrulandı.

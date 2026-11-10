@@ -1,6 +1,6 @@
 # T382 — Panel ana sayfası verisi: altı bekleyen iş sayacı, kanal ve firma bildirimi uyarıları, kurulum kontrol listesi
 
-**Faz:** F3 | **Durum:** Düzeltme 1 tamam (tur 1 FAIL: B1, B2) — doğrulama tur 2 bekliyor | **Tarih:** 2026-11-10
+**Faz:** F3 | **Durum:** ✗ FAIL (tur 2: B3) — düzeltme 1 sonrası doğrulama | **Tarih:** 2026-11-10
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -89,6 +89,25 @@ Devam 3 işçisi önceki işçilerin yaptıkları dahil bütün maddeleri diff't
 | Format | ✓ | `dotnet format <proje> --verify-no-changes` (üç proje) | çıkış 0 |
 
 ## Doğrulama
+
+### Tur 2 (2026-11-10; head `be29b223`)
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✗ FAIL (tur 2; head `be29b223`; dal CI 42733212125 doğrulama anında koşuyordu — Lint, Build, Unit, Contract, Migration, Paketleme geçti, Integration sürüyordu) |
+| Bulgu sayısı | 1 — B3 (kriter 4 / KK4, `VAL-A261`, S1, ORTA). B1 ve B2 düzeldi (testler ve kod okuması) |
+| Düzeltme gerekli mi | Evet (ikinci iterasyon FAIL: `12 §8.5` sınırı — eskalasyon yardımcının kararı) |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+**B3:** ayıp çözümünün havale iadesi (havale siparişi, dosyada IBAN yok) "IBAN bekleniyor"dadır (`02 §10.6.1`: "firma IBAN'ı olmayan bir geri ödeme için IBAN istemiş (K-686)", "ayıp talebinin çözümünde … süre sayacı yoktur"), ama sayaçta sayılır. `OrderTransitions.StartRemedyRefundAsync` iade satırını doğurur ve `RequestDefectRemedyIbanAsync` kalemin IBAN isteğini `RefundId = null` ile açar (`OpenRefundIbanRequestAsync(new RefundIbanRequestEntry(subject.OrderItemId, null, AdminRequest, …))`); `FindRefundsAwaitingIbanAsync` yalnız `RefundId`'ye bakar, kalemin (`OrderItemId`) açık isteğini görmez; `ListOpenRefundWorkAsync` gönderilmemiş havale satırını sayar. Sondaj (geçici test, geri alındı): havale iadesi `OrderItemId` dolu + kalemin açık `AdminRequest` isteği (`RefundId` null) → beklenen 0, gelen 1. Aynı kök: başarısız kart iadesinin havale yolu açılırken kalemin açık isteği zaten varsa (ör. `NoticeWithoutIban`) istek yeniden kullanılır, `RefundId` yazılmaz, iade sayılmaya devam eder. Düzeltme yönü: açık istek iade kimliğiyle ya da iade kalemiyle (`RefundId == null && OrderItemId == refund.OrderItemId`) eşlensin; test bu iki yolu sınasın. Tur 1 düzeltmesi (B2) bu durumu doğurdu: tur 1'de havale satırı hiç sayılmıyordu.
+
+**Validator kabul kriterleri tablosu (tur 2):** 1, 2, 3, 5, 6, 7, 8, 9 ✓ (düzeltme bu kriterlerin koduna dokunmadı; Integration `PanelHomeTests` + `SalesSummaryTests` 28/28 yeşil); 4 ✗ (B3). Task satırları değişmedi: hepsi `BEKLEMEDE` (uç ve ekran T521). `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**Birleştirme notu:** `git merge origin/main` (`0aa3716e`, T386 #509) `src/Shopfolio.Web/Modules/AfterSales/Contracts/IAfterSalesModule.cs`'te kod çakışması verdi; `git merge --abort`, doğrulama dalın ucunda yapıldı, kayıt commit'i birleştirmesiz.
+
+**Yapım raporu karşılaştırması (tur 2):** kriter 4 / KK4'te yapım ✓, validator ✗ (B3). Yapım testi `RefundAndReturn_CountsTheDefectRemedyTransferRefundUntilItIsSent_KK4` ayıp havale iadesini IBAN isteği olmadan sınıyor; dosyada IBAN yokken açılan kalem isteği kapsanmıyor. Öz denetim tablosu var, kanıtlı.
+
+### Tur 1
 
 | Alan | Sonuç |
 |---|---|

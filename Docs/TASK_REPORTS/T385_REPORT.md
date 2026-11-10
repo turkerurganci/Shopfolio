@@ -71,10 +71,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-10, head `3de1e988`) |
+| Bulgu sayısı | 1 (B1 DÜŞÜK S1) |
+| Düzeltme gerekli mi | Evet — B1 |
+| Bloke-etmeyen not (K) sayısı | 3 (K1 → D-974; K2, K3 → D-975) |
+
+**Validator kanıtları (tur 1):** kriter 1 ✓ (`AFailingRow_…`, `ALateRetry_…`; 5/30/120 dk ilk denemeden, sahte saat), 3 ✓ (iz sayısı ve sipariş parmak izi değişmez), 4 ✓ (sınır reddi `AttemptCount = 1`, `RecipientError` yazar → işaret; geri dönme `08 §2.2.3`'ün sonucu ile sınandı — sorgu işi ayrı task'ta), 5 ✓ (F satırları `OrderId` taşımaz; yalnız davet `AccountEmailHasMarkAsync`), 6–9 ✓ (16 türlü kuram: gruba yeni `Queued` satır, B-15 eski adres, öteki güncel adres, iz `ResendEmail`/`Order` yalnız sipariş numarasıyla, olağan gönderici ve başarıda işaret yok; sınır muafiyeti `OriginalDispatchId`). **Kriter 2 ~ Kısmi (B1):** `DispatchMarks.ClaimHasMarkAsync` ve `INotificationsModule.ClaimHasUndeliveredMarkAsync` B-9 işaretini `Withdrawal` ve `LateDeliveryTermination` satırında da verir; `02 §9.1.6`, `03 §1.7.3.1`, `06 §4.58` ("Ayıp talebinin satırı": `DefectClaim`) ve `04` 2.5.3.1 yalnız ayıp talebini sayar (`09 §25`: ek davranış yok, belge cümlesiyle çelişki yok). `AClaimsB9_ShowsTheMarkOnTheClaimToo_…` cayma ile kurulu; ayıp talebinin talep satırı sınanmıyor. Düzeltme: tür denetimi yalnız `DefectClaim`, testte ayıp talebi ✓ ve cayma/fesih ✗. **Uyuşmazlık:** yapım raporu "ayıp/cayma/fesih talebinin satırında" diyerek genişlemeyi yazıyor ve KK2'yi ✓ sayıyor. Yerel: build 0 uyarı, format temiz, Unit 5789/5789, betik 4/4, Integration 663 + 1589 yeşil.
 
 ## Altyapı Değişiklikleri
 

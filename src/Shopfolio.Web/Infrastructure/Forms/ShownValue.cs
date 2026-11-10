@@ -45,10 +45,14 @@ internal static class ShownValue
     /// True when the posted shown text equals the text the record holds now. A browser sends a line break as CR LF whatever the stored text uses, so the
     /// comparison is made on LF; a missing field is the empty text. The case and the spaces are the text's own and are not folded.
     /// </summary>
-    public static bool Matches(string? posted, string? current) => string.Equals(Normalize(posted), Normalize(current), StringComparison.Ordinal);
+    public static bool Matches(string? posted, string? current) => string.Equals(NormalizeText(posted), NormalizeText(current), StringComparison.Ordinal);
 
     /// <summary>True when the posted shown switch (<c>true</c> or <c>false</c>) is the switch as it is now; anything else is not a shown value.</summary>
     public static bool Matches(string? posted, bool current) => bool.TryParse(posted, out bool shown) && shown == current;
 
-    private static string Normalize(string? text) => (text ?? string.Empty).Replace("\r\n", "\n", StringComparison.Ordinal);
+    /// <summary>
+    /// The text in the form the comparison uses: a missing text is the empty text and a CR LF line break is LF. A text whose shown value is compared by
+    /// the database's own conditional update (the internal note, 09 10.9) is stored in this form, and the shown text is brought to it before the update.
+    /// </summary>
+    public static string NormalizeText(string? text) => (text ?? string.Empty).Replace("\r\n", "\n", StringComparison.Ordinal);
 }

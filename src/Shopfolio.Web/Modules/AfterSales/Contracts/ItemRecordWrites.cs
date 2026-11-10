@@ -97,10 +97,26 @@ public sealed record LateDeliveryTerminationEntry(
     DateTimeOffset At);
 
 /// <summary>
-/// A cancellation or a late delivery termination as the panel's legal interest warning reads it (02 7.2.3): the record, its item, whether it is a late delivery
-/// termination (<paramref name="IsTermination"/>) or a cancellation, its moment and the quantity it closed.
+/// The firm's removal of a paid item's units from the panel, or the reduction of its quantity (06 4.23; 02 10.4.3; T386): a correction with the administrator and no reason.
+/// The amounts are worked out as on the cancellation (<see cref="CustomerCancellationEntry"/>; 02 7.1.7): the removed units are cancelled units on the shipping line.
 /// </summary>
-public sealed record ClosingRecordMoment(Guid RecordId, Guid OrderItemId, bool IsTermination, DateTimeOffset At, int Quantity);
+public sealed record ItemRemovalEntry(ItemRecordSubject Subject, int Quantity, ItemFrozenAmounts Frozen, ItemRecordAdmin Admin, DateTimeOffset At);
+
+/// <summary>
+/// A cancellation, a removal or a late delivery termination with its moment (02 7.2.3; 09 10.10 item 5): the record, its item, whether it is a late delivery
+/// termination (<paramref name="IsTermination"/>), whether it is the firm's removal (<paramref name="IsRemoval"/>; 02 10.4.3 - a correction, not a cancellation, so the legal
+/// interest warning does not read it), its moment and the quantity it closed.
+/// </summary>
+public sealed record ClosingRecordMoment(Guid RecordId, Guid OrderItemId, bool IsTermination, DateTimeOffset At, int Quantity, bool IsRemoval = false);
+
+/// <summary>
+/// The arrival records of returned goods on the given items as the delivery date's correction reads them (02 10.4.5; K-1474): the receipt or the rejection, its item and
+/// its arrival date.
+/// </summary>
+public sealed record ArrivalRecordDate(Guid RecordId, Guid OrderItemId, DateOnly ArrivalDate);
+
+/// <summary>A withdrawal declaration's day on one of the given items (02 7.4.1; K-608): the corrected delivery date that falls on it asks the panel which came first.</summary>
+public sealed record WithdrawalDeclarationDay(Guid WithdrawalId, Guid OrderItemId, DateOnly DeclarationDate);
 
 /// <summary>An order item, its own quantity and the moment its open quantity is asked at (T383; 02 10.6.3: the end of the order's shipping promise).</summary>
 public sealed record ItemQuantityAt(Guid OrderItemId, int Quantity, DateTimeOffset At);

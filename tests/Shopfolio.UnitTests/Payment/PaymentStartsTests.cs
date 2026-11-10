@@ -49,6 +49,8 @@ public sealed class PaymentStartsTests
         return await _starts.StartAsync(Request(), Ct);
     }
 
+    private TimeSpan MaxAge => TimeSpan.FromMinutes(_thresholds.PaymentStartFailureAgeMinutes);
+
     private bool SeriesOpen() => StatusRules.PaymentStartSeriesOpen(_series.Snapshot().Count, _series.Snapshot().FirstAt, _time.GetUtcNow(), _thresholds);
 
     private PaymentMethods Methods() => new(new FixedCard(true), new FixedTransfer(true), _unavailability);
@@ -93,7 +95,7 @@ public sealed class PaymentStartsTests
         PaymentMethods methods = Methods();
         await StartAsync(Failed);
 
-        Assert.Equal(TimeSpan.FromMinutes(2), CardUnavailability.Duration);
+        // The two minutes are 09 3.5's row (CardUnavailabilityConsistencyTests); the test reads the constant.
         Assert.True(await methods.IsCardUnavailableNowAsync(Ct));
         Assert.Equal([PaymentMethod.BankTransfer], await methods.ListOpenAsync(Ct));
 
@@ -145,9 +147,9 @@ public sealed class PaymentStartsTests
             await StartAsync(Failed);
         }
 
-        _time.Advance(TimeSpan.FromMinutes(_thresholds.PaymentStartFailureAgeMinutes));
+        _time.Advance(MaxAge);
 
-        Assert.Equal(4, _series.Snapshot().Count);
+        Assert.Equal(_thresholds.PaymentStartFailureCount - 1, _series.Snapshot().Count);
         Assert.False(SeriesOpen());
     }
 
@@ -155,17 +157,18 @@ public sealed class PaymentStartsTests
     public async Task FiveErrors_OpenTheCondition_OnlyWhenTheFirstIsFifteenMinutesOld_T404_KK7()
     {
         await StartAsync(Failed);
-        _time.Advance(TimeSpan.FromMinutes(10));
+        TimeSpan half = MaxAge / 2;
+        _time.Advance(half);
         for (int i = 1; i < _thresholds.PaymentStartFailureCount; i++)
         {
             await StartAsync(Failed);
         }
 
-        _time.Advance(TimeSpan.FromMinutes(5) - TimeSpan.FromSeconds(1));
+        _time.Advance(MaxAge - half - TimeSpan.FromSeconds(1));
         Assert.False(SeriesOpen());
 
         _time.Advance(TimeSpan.FromSeconds(1));
-        Assert.Equal((5, (DateTimeOffset?)Now), _series.Snapshot());
+        Assert.Equal((_thresholds.PaymentStartFailureCount, (DateTimeOffset?)Now), _series.Snapshot());
         Assert.True(SeriesOpen());
     }
 
@@ -177,7 +180,7 @@ public sealed class PaymentStartsTests
             await StartAsync(Failed);
         }
 
-        _time.Advance(TimeSpan.FromMinutes(15));
+        _time.Advance(MaxAge);
         Assert.True(SeriesOpen());
 
         await StartAsync(Started);
@@ -195,12 +198,12 @@ public sealed class PaymentStartsTests
             await StartAsync(Refused);
         }
 
-        _time.Advance(TimeSpan.FromMinutes(15));
-        Assert.Equal(4, _series.Snapshot().Count);
+        _time.Advance(MaxAge);
+        Assert.Equal(_thresholds.PaymentStartFailureCount - 1, _series.Snapshot().Count);
         Assert.False(SeriesOpen());
 
         await StartAsync(Failed);
-        Assert.Equal((5, (DateTimeOffset?)Now), _series.Snapshot());
+        Assert.Equal((_thresholds.PaymentStartFailureCount, (DateTimeOffset?)Now), _series.Snapshot());
         Assert.True(SeriesOpen());
     }
 

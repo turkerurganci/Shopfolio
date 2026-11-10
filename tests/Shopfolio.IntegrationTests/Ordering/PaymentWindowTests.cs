@@ -38,7 +38,7 @@ namespace Shopfolio.IntegrationTests.Ordering;
 /// outcome unknown" mark and is asked again - and the window's end read from the firm's setting and from the product constant.
 /// </summary>
 [Collection(OrderTransitionsDefinition.Name)]
-public sealed class PaymentWindowTests : IAsyncLifetime
+public sealed partial class PaymentWindowTests : IAsyncLifetime
 {
     private const string ContactEmail = "Ali@Example.com";
 
@@ -560,6 +560,7 @@ public sealed class PaymentWindowTests : IAsyncLifetime
         services.AddLogging(builder => builder
             .SetMinimumLevel(LogLevel.None)
             .AddFilter(typeof(AutomaticTransitionLog).FullName, LogLevel.Information)
+            .AddFilter(typeof(FinalPaymentQueryJobHandler).FullName, LogLevel.Warning)
             .AddProvider(_logs));
         services.AddCatalogModule();
         services.AddAfterSalesModule();

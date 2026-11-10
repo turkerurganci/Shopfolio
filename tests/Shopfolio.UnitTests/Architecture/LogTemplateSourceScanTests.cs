@@ -26,6 +26,23 @@ public sealed class LogTemplateSourceScanTests
     }
 
     [Fact]
+    public void ApplicationSource_HoldsEveryCallFormTheScanReads_SoTheScanIsNotBlindToOne()
+    {
+        string root = RepositoryRoot.Find();
+        List<LogCallKind> kinds = [];
+        foreach (string file in Directory.EnumerateFiles(Path.Combine(root, "src"), "*.cs", SearchOption.AllDirectories)
+            .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)))
+        {
+            kinds.AddRange(LogSourceText.Parse(File.ReadAllText(file)).CallSites().Select(s => s.Kind));
+        }
+
+        // The scope forms and Define are not used today (the rule keeps them out); the three that carry the application's templates must be seen.
+        Assert.Contains(LogCallKind.Log, kinds);
+        Assert.Contains(LogCallKind.LoggerMessage, kinds);
+        Assert.Contains(LogCallKind.Audit, kinds);
+    }
+
+    [Fact]
     public void ApplicationSource_NeverSwitchesOnValuesInExceptionMessages()
     {
         (List<string> scanned, List<string> findings) = ScanSource(null, LogTemplateSourceScan.ScanExceptionMessageSwitches);
@@ -76,11 +93,206 @@ public sealed class LogTemplateSourceScanTests
         }
     }
 
-    [Fact]
-    public void ScanTemplates_ANameThatOnlyContainsAForbiddenWord_IsNotReported()
+    [Theory]
+    [MemberData(nameof(ForbiddenNames))]
+    public void ScanTemplates_AForbiddenWordInTheMiddleOrAtTheEndOfAName_IsReported(string name)
     {
-        // The rule is the formatter's own: a name that ends with a forbidden one. MissingKeys ends with "Keys" and is used by the start-up line.
-        Assert.Empty(LogTemplateSourceScan.ScanTemplates("_logger.LogWarning(\"{Event} {MissingKeys} {KeyCount}\", a, b, c);"));
+        // T411 criterion 2 (D-89): the rule is "contains", not "ends with": {PhoneNumber}, {CardNumber}, {PasswordHash}, {TokenValue} are findings.
+        foreach (string placeholder in new[] { "{" + name + "Number}", "{My" + name + "Hash}", "{" + name.ToLowerInvariant() + "s}" })
+        {
+            string source = "_logger.LogWarning(\"" + placeholder + "\", value);";
+
+            Assert.Equal([(LogTemplateSourceScan.ForbiddenTemplateName, 1)], LogTemplateSourceScan.ScanTemplates(source));
+        }
+    }
+
+    [Fact]
+    public void ScanTemplates_EveryNameOfTheAllowList_IsNotReported_AndOnlyTheWholeNameIs()
+    {
+        // The allow list is open (ApplicationLogFormatter.AllowedPropertyNames) and exact: the names are spared, a longer name that contains one is not.
+        Assert.NotEmpty(ApplicationLogFormatter.AllowedPropertyNames);
+        foreach (string allowed in ApplicationLogFormatter.AllowedPropertyNames)
+        {
+            Assert.Empty(LogTemplateSourceScan.ScanTemplates("_logger.LogWarning(\"{Event} {" + allowed + "}\", a, b);"));
+            Assert.Equal([(LogTemplateSourceScan.ForbiddenTemplateName, 1)], LogTemplateSourceScan.ScanTemplates("_logger.LogWarning(\"{Event} {" + allowed + "List}\", a, b);"));
+        }
+    }
+
+    [Fact]
+    public void AllowList_HoldsOnlyNamesThatContainAForbiddenWord_SoNoEntryIsDead()
+    {
+        Assert.All(
+            ApplicationLogFormatter.AllowedPropertyNames,
+            allowed => Assert.Contains(ApplicationLogFormatter.ForbiddenPropertyNames, forbidden => allowed.Contains(forbidden, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    [Fact]
+    public void ScanTemplates_AnIntentionalNameOfTheAllowList_IsUsedByTheApplication()
+    {
+        // Every allowed name is in the source: a name that nothing writes any more leaves the list.
+        string root = RepositoryRoot.Find();
+        string all = string.Join('\n', Directory.EnumerateFiles(Path.Combine(root, "src"), "*.cs", SearchOption.AllDirectories)
+            .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            .Select(File.ReadAllText));
+
+        Assert.All(ApplicationLogFormatter.AllowedPropertyNames, allowed => Assert.Contains("{" + allowed, all, StringComparison.Ordinal));
+    }
+
+    // --- T411 criterion 1 (KK1): the string forms and the comment forms, over a sample and one by one ---
+
+    [Fact]
+    public void ScanTemplates_OnTheFormsSample_ReportsEveryStringFormAndNotTheCleanLines()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = LogTemplateSourceScan.ScanTemplates(Sample("TemplateForms.cs"));
+
+        Assert.Equal(
+            [
+                (LogTemplateSourceScan.ForbiddenTemplateName, 9),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 10),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 11),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 12),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 13),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 14),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 15),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 16),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 17),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 22),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 25),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 28),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 36),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 40),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 42),
+            ],
+            findings);
+    }
+
+    [Theory]
+    [InlineData("_logger.LogWarning(\"see https://x {Email}\", id);")]
+    [InlineData("_logger.LogWarning(\"a // b\" + \" {Email}\", id);")]
+    [InlineData("_logger.LogWarning($\"see {{Email}} {id}\", id);")]
+    [InlineData("_logger.LogWarning($@\"see {{Email}} \"\"{id}\"\"\", id);")]
+    [InlineData("_logger.LogWarning(@\"a \"\"quoted\"\" {Email}\", id);")]
+    [InlineData("_logger.LogWarning(\"\"\"{Email}\"\"\", id);")]
+    [InlineData("_logger.LogWarning(\"\"\"\"{Email} \"\"\" inside\"\"\"\", id);")]
+    [InlineData("_logger.LogWarning($$\"\"\"{Email} {{id}}\"\"\", id);")]
+    [InlineData("_logger.LogWarning(\"\\\" {Email}\", id);")]
+    [InlineData("_logger.LogWarning(exception: GetEx(), message: \"{Email}\");")]
+    [InlineData("_logger.LogWarning(GetEx(Describe(1)), \"{Email}\", id);")]
+    [InlineData("LoggerMessage.DefineScope<string>(\"{Email}\");")]
+    [InlineData("[LoggerMessageAttribute(LogLevel.Warning, \"{Email}\")]")]
+    [InlineData("[global::Microsoft.Extensions.Logging.LoggerMessage(EventId = 1, Level = LogLevel.Warning, Message = \"{Email}\")]")]
+    [InlineData("private const string T = \"{Event} {Email}\";")]
+    public void ScanTemplates_EachStringForm_IsReportedOnItsLine(string source)
+    {
+        Assert.Equal([(LogTemplateSourceScan.ForbiddenTemplateName, 1)], LogTemplateSourceScan.ScanTemplates(source));
+    }
+
+    [Theory]
+    [InlineData("// _logger.LogWarning(\"{Email}\", id);")]
+    [InlineData("/* _logger.LogWarning(\"{Email}\", id); */")]
+    [InlineData("_logger.LogWarning(\"{Event}\", id); // \"{Email}\"")]
+    [InlineData("_logger.LogWarning($\"{order.Email}\", id);")]
+    [InlineData("_logger.LogWarning(\"{Event} {OrderId}\", id); /* \" */ var x = \"{Email}\";")]
+    [InlineData("var quote = '\"'; _logger.LogWarning(\"{Event}\", id);")]
+    public void ScanTemplates_ACommentOrAHoleOrAStringOutsideALogCall_IsNotReported(string source)
+    {
+        Assert.Empty(LogTemplateSourceScan.ScanTemplates(source));
+    }
+
+    [Fact]
+    public void ScanTemplates_ACommentMarkerInsideAString_HidesNothingAfterIt()
+    {
+        // The old comment remover cut the line at the first "//", also the one in the string: the Email after it was never read.
+        const string source = "_logger.LogWarning(\"see https://example.test and {Email}\", id);";
+
+        Assert.Equal([(LogTemplateSourceScan.ForbiddenTemplateName, 1)], LogTemplateSourceScan.ScanTemplates(source));
+    }
+
+    // --- T411 criterion 3 (KK3): the four new call forms ---
+
+    [Fact]
+    public void ScanTemplates_OnTheScopeSample_ReportsABeginScopeAForContextAPushPropertyAndAWithPropertyAndNotTheCleanOnes()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = LogTemplateSourceScan.ScanTemplates(Sample("ScopeForms.cs"));
+
+        Assert.Equal(
+            [
+                (LogTemplateSourceScan.ForbiddenTemplateName, 9),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 10),
+                (LogTemplateSourceScan.RequestFieldInATemplate, 11),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 12),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 13),
+            ],
+            findings);
+    }
+
+    [Theory]
+    [InlineData("Log.ForContext(\"Email\", value)")]
+    [InlineData("Log.ForContext(propertyName: \"Email\", value: value)")]
+    [InlineData("LogContext.PushProperty(\"PhoneNumber\", value)")]
+    [InlineData("logger.BeginScope(\"{CardNumber}\", value)")]
+    [InlineData("logger.BeginScope(new Dictionary<string, object> { [\"Token\"] = value })")]
+    [InlineData("logger.BeginScope(new[] { KeyValuePair.Create(\"Secret\", value) })")]
+    [InlineData("configuration.Enrich.WithProperty(\"Iban\", value)")]
+    public void ScanTemplates_AScopeOrEnricherForm_NamingAForbiddenProperty_IsReported(string source)
+    {
+        Assert.Equal([(LogTemplateSourceScan.ForbiddenTemplateName, 1)], LogTemplateSourceScan.ScanTemplates(source));
+    }
+
+    [Theory]
+    [InlineData("Log.ForContext(\"Path\", rawPath)")]
+    [InlineData("logger.BeginScope(new Dictionary<string, object> { [\"method\"] = value })")]
+    public void ScanTemplates_AScopeOrEnricherForm_NamingARequestField_IsReported(string source)
+    {
+        Assert.Equal([(LogTemplateSourceScan.RequestFieldInATemplate, 1)], LogTemplateSourceScan.ScanTemplates(source));
+    }
+
+    [Fact]
+    public void ScanTemplates_APositionalLoggerMessage_IsReadLikeANamedOne()
+    {
+        const string positional = "[LoggerMessage(LogLevel.Warning, \"{Event} {Email}\")]";
+        const string named = "[LoggerMessage(Level = LogLevel.Warning, Message = \"{Event} {Email}\")]";
+
+        Assert.Equal(LogTemplateSourceScan.ScanTemplates(named), LogTemplateSourceScan.ScanTemplates(positional));
+        Assert.Single(LogTemplateSourceScan.ScanTemplates(positional));
+    }
+
+    // --- T411 criterion 4 (KK4): an exception as a template argument ---
+
+    [Fact]
+    public void ScanTemplates_OnTheExceptionSample_ReportsTheExceptionAsAnArgumentInEveryFormAndNotTheSlot()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = LogTemplateSourceScan.ScanTemplates(Sample("ExceptionArguments.cs"));
+
+        Assert.Equal(
+            [
+                (LogTemplateSourceScan.ExceptionAsArgument, 16),
+                (LogTemplateSourceScan.ExceptionAsArgument, 17),
+                (LogTemplateSourceScan.ExceptionAsArgument, 18),
+                (LogTemplateSourceScan.ExceptionAsArgument, 19),
+                (LogTemplateSourceScan.ExceptionAsArgument, 26),
+            ],
+            findings);
+    }
+
+    [Theory]
+    [InlineData("catch (Exception ex) { _logger.LogWarning(\"{Event} {Detail}\", e, ex); }")]
+    [InlineData("catch (SqlException failure) { _logger.Warning(\"{Event} {Detail}\", e, failure.Message); }")]
+    [InlineData("_logger.LogError(\"{Event} {Detail}\", e, ex.ToString());")]
+    [InlineData("_logger.LogError(\"{Event} {Detail}\", e, result.InnerException);")]
+    public void ScanTemplates_AnExceptionAfterTheTemplate_IsReported(string source)
+    {
+        Assert.Equal([(LogTemplateSourceScan.ExceptionAsArgument, 1)], LogTemplateSourceScan.ScanTemplates(source));
+    }
+
+    [Theory]
+    [InlineData("catch (Exception ex) { _logger.LogWarning(ex, \"{Event} {JobId}\", e, id); }")]
+    [InlineData("catch (Exception ex) { _logger.Warning(ex, \"{Event}\", e); }")]
+    [InlineData("catch (Exception ex) { _logger.LogWarning(\"{Event}\", e); }")]
+    [InlineData("_logger.LogWarning(\"{Event} {JobId}\", e, exampleId);")]
+    public void ScanTemplates_TheExceptionInItsSlotOrNoException_IsNotReported(string source)
+    {
+        Assert.Empty(LogTemplateSourceScan.ScanTemplates(source));
     }
 
     [Fact]

@@ -15,10 +15,10 @@ public sealed class RejectionLineSourceScanTests
         string root = RepositoryRoot.Find();
         List<string> scanned = [];
         List<string> findings = [];
-        foreach (string file in Directory.EnumerateFiles(Path.Combine(root, "src"), "*.cs", SearchOption.AllDirectories))
+        foreach (string file in Directory.EnumerateFiles(Path.Combine(root, "src"), "*", SearchOption.AllDirectories))
         {
             string relative = Path.GetRelativePath(root, file);
-            if (!RejectionLineSourceScan.AppliesTo(relative))
+            if (!RejectionLineSourceScan.AppliesTo(relative) || relative.Replace('\\', '/').Contains("/obj/", StringComparison.Ordinal) || relative.Replace('\\', '/').Contains("/bin/", StringComparison.Ordinal))
             {
                 continue;
             }
@@ -104,11 +104,91 @@ public sealed class RejectionLineSourceScanTests
         Assert.Single(RejectionLineSourceScan.Scan(path, "log.LogWarning(\"{Event} {FIELDS}\", e, c);"));
     }
 
+    // --- T411 criterion 5 (KK5): the same widening as the template scan ---
+
+    [Fact]
+    public void OnTheWiderFormsSample_EachFormIsReported_AndTheNearNamesTheHoleAndTheCommentAreNot()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = RejectionLineSourceScan.Scan("src/Shopfolio.Web/Infrastructure/Forms/Sample.cs", Sample("RejectionLineForms.cs"));
+
+        Assert.Equal(
+            [
+                (RejectionLineSourceScan.CodeFieldOutsideTheTwoWriters, 6),
+                (RejectionLineSourceScan.CodeFieldOutsideTheTwoWriters, 12),
+                (RejectionLineSourceScan.ErrorCodeArgument, 13),
+                (RejectionLineSourceScan.ErrorCodeArgument, 14),
+                (RejectionLineSourceScan.CodeFieldOutsideTheTwoWriters, 15),
+                (RejectionLineSourceScan.ScopeProperty, 16),
+                (RejectionLineSourceScan.EventOutsideTheWriter, 17),
+            ],
+            findings);
+    }
+
+    [Fact]
+    public void OnTheViewSample_EachFormIsReportedLineByLine_AndTheTextOfTheViewIsNot()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = RejectionLineSourceScan.Scan("src/Shopfolio.Web/Pages/Sample.cshtml", Sample("RejectionLineView.cshtml"));
+
+        Assert.Equal(
+            [
+                (RejectionLineSourceScan.CodeFieldOutsideTheTwoWriters, 4),
+                (RejectionLineSourceScan.ErrorCodeArgument, 5),
+                (RejectionLineSourceScan.EventOutsideTheWriter, 6),
+                (RejectionLineSourceScan.ScopeProperty, 7),
+            ],
+            findings);
+    }
+
+    [Theory]
+    [InlineData("log.LogWarning(\"see https://x {Event} {Code}\", e, c);")]
+    [InlineData("log.LogWarning($\"x {{Code}} {y}\", e, c);")]
+    [InlineData("log.LogWarning(@\"a \"\"b\"\" {Fields}\", e, c);")]
+    [InlineData("log.LogWarning(\"\"\"{Code}\"\"\", e, c);")]
+    [InlineData("log.LogWarning(\"\"\"\n  {Event}\n  {ErrorCode}\n  \"\"\", e, c);")]
+    [InlineData("log.LogWarning(\"{Event} {ErrorCode}\", e, c);")]
+    [InlineData("log.LogWarning(\"{Event} {RejectionCode}\", e, c);")]
+    [InlineData("const string T = \"{Event} {Code}\";")]
+    [InlineData("[LoggerMessage(LogLevel.Warning, \"{Event} {Code}\")]")]
+    [InlineData("[LoggerMessageAttribute(Level = LogLevel.Warning, Message = \"{Event} {Fields}\")]")]
+    [InlineData("log.LogWarning(\"{Event} {Reason}\", e, ErrorCode.NotFound);")]
+    [InlineData("log.LogWarning(message: \"{Event} {Reason}\", args: [e, ErrorCode.NotFound]);")]
+    public void EachForm_OutsideTheTwoWriters_IsReported(string source)
+    {
+        Assert.NotEmpty(RejectionLineSourceScan.Scan("src/Shopfolio.Web/Infrastructure/Forms/Sample.cs", source));
+    }
+
+    [Theory]
+    [InlineData("// log.LogWarning(\"{Event} {Code}\", e, ErrorCode.NotFound);")]
+    [InlineData("/* {Code} {Fields} ValidationRejected */")]
+    [InlineData("log.LogWarning(\"{Event} {CodePoint} {Fieldset} {StatusCode}\", e, 1, 2, 3);")]
+    [InlineData("log.LogWarning($\"{code} {fields}\", e);")]
+    [InlineData("var code = ErrorCode.NotFound;")]
+    public void ACommentTheHoleOfAString_AndTheNearNames_AreNotReported(string source)
+    {
+        Assert.Empty(RejectionLineSourceScan.Scan("src/Shopfolio.Web/Infrastructure/Forms/Sample.cs", source));
+    }
+
+    [Theory]
+    [InlineData("Code", true)]
+    [InlineData("FIELDS", true)]
+    [InlineData("ErrorCode", true)]
+    [InlineData("LastRejectionCode", true)]
+    [InlineData("CodePoint", false)]
+    [InlineData("Fieldset", false)]
+    [InlineData("StatusCode", false)]
+    public void IsCodeOrFieldsName_IsTheRuleOfTheNames(string name, bool expected)
+    {
+        Assert.Equal(expected, RejectionLineSourceScan.IsCodeOrFieldsName(name));
+    }
+
     [Fact]
     public void Scan_AppliesToTheApplicationSourceOnly()
     {
         Assert.True(RejectionLineSourceScan.AppliesTo("src/Shopfolio.Web/Infrastructure/Errors/RejectionLog.cs"));
         Assert.True(RejectionLineSourceScan.AppliesTo(@"src\Shopfolio.Web\Pages\Cart.cshtml.cs"));
+        Assert.True(RejectionLineSourceScan.AppliesTo("src/Shopfolio.Web/Pages/Cart.cshtml"));
+        Assert.True(RejectionLineSourceScan.AppliesTo("src/Shopfolio.Web/Pages/Cart.razor"));
+        Assert.False(RejectionLineSourceScan.AppliesTo("src/Shopfolio.Web/Pages/site.css"));
         Assert.False(RejectionLineSourceScan.AppliesTo("tests/Shopfolio.IntegrationTests/Logging/SystemLogsTests.cs"));
     }
 

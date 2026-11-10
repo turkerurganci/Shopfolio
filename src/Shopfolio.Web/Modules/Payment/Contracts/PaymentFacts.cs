@@ -59,6 +59,12 @@ public sealed record RecordRefundStarted(Guid? SystemRefundId, PaymentMethod Way
 public sealed record CardRefundLine(Guid RefundId, Guid OrderId, Guid? OrderItemId, PaymentMethod Way, bool IsSent, bool IsVoided, RefundRecordState? LatestState);
 
 /// <summary>
+/// The refund record written in the "sending" state before a card refund request goes (T405; 05 4.6.1; MK-40): the record's id - the request's reference - and the
+/// refund's amount, the amount the request sends.
+/// </summary>
+public sealed record CardRefundSending(Guid RecordId, decimal Amount);
+
+/// <summary>
 /// A refund that touches one of the asked records (T370; 06 4.33): its item, its links to the cancellation, removal, termination, withdrawal and receipt, its
 /// units and the moment it settled - sent, or voided and so never to go; null while it is pending.
 /// </summary>

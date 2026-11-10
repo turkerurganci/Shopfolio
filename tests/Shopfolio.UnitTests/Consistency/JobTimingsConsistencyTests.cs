@@ -58,6 +58,20 @@ public sealed partial class JobTimingsConsistencyTests
         Assert.NotEqual(minutes.Select(m => TimeSpan.FromMinutes(m + 1)), JobTimings.DefaultRetrySchedule);
     }
 
+    [Fact]
+    public void RefundOutcomeQueryRow_EqualsTheFirstDelayTheFourIntervalsAndTheHourlyRepeat_T405()
+    {
+        string row = TableRow("| Sonucu bilinmeyen kart iadesinin sorgusu");
+
+        Match match = RefundQueryRow().Match(row);
+
+        Assert.True(match.Success, "The refund query row of the 09 3.5 table has changed shape; update this check with it.");
+        Assert.Equal(TimeSpan.FromMinutes(Number(match.Groups[1])), JobTimings.RefundOutcomeQueryFirstDelay);
+        int[] minutes = [.. match.Groups[2].Value.Split([',', ' '], StringSplitOptions.RemoveEmptyEntries).Where(part => part != "ve").Select(part => int.Parse(part, CultureInfo.InvariantCulture))];
+        Assert.Equal(minutes.Select(m => TimeSpan.FromMinutes(m)), JobTimings.RefundOutcomeQueryIntervals);
+        Assert.Equal(TimeSpan.FromHours(1), JobTimings.RefundOutcomeQueryHourly);
+    }
+
     private static int Number(Group group) => int.Parse(group.Value, CultureInfo.InvariantCulture);
 
     private static int WordToCount(string word)
@@ -79,4 +93,7 @@ public sealed partial class JobTimingsConsistencyTests
 
     [GeneratedRegex(@"varsayılan yeniden denemesi ([\d, ]+ve \d+) dakika \(en çok (\w+) kez\); yanıtsız son sorgu (\d+) dakika; geri dönen adres sorgusu (\d+) dakika ve okuduğu pencere (\d+) saat", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex RetryRow();
+
+    [GeneratedRegex(@"zaman aşımından (\d+) dakika sonra, sonra her biri bir öncekinden ([\d, ]+ve \d+) dakika sonra, sonra saatte bir \(üst sınırı yok\)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex RefundQueryRow();
 }

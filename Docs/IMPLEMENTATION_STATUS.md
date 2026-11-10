@@ -242,7 +242,7 @@
 | T402 | PayTR: bildirim imzası ve alan eşlemesi | ✓ | ✓ PASS (tur 1) | `1b7b3127` | #520 |
 | T403 | PayTR: son sorgu ve tek tahsilat | ✓ | ✓ PASS (tur 1) | `c08172ff` | #526 |
 | T404 | PayTR: bağlantı hatası ve ayrım | ✓ | ✓ PASS (tur 1) | `91d8ad6d` | #528 |
-| T405 | PayTR: kart iadesi | ⬚ | — | — | — |
+| T405 | PayTR: kart iadesi | ✓ | ✓ PASS (tur 1) | `be7accaf` | #529 |
 | T406 | PayTR: 3D Secure kurulum şartı, test kanıtı ve canlı kanıtın satırları | ⬚ | — | — | — |
 | T407 | SES: gönderim ve sonuç sınıfları | ✓ | ✓ PASS (tur 1) | `ed0866f` | #515 |
 | T408 | SES: geri dönen adreslerin öğrenilmesi | ✓ | ✓ PASS (tur 2) | — | #518 |

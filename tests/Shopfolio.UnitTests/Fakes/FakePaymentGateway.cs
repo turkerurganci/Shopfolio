@@ -78,16 +78,32 @@ internal sealed class FakePaymentGateway : IPaymentGateway
         return Task.FromResult(NextCall(nameof(QueryPaymentAsync), orderNumber, _queries, DefaultQuery));
     }
 
-    public Task<RefundRequestResult> RequestRefundAsync(CardRefund refund, CancellationToken ct)
+    /// <summary>Runs when a refund request comes, before it is answered: a test reads what was committed at the moment the request goes (T405 KK4).</summary>
+    public Func<CardRefund, Task>? BeforeRefund { get; set; }
+
+    public async Task<RefundRequestResult> RequestRefundAsync(CardRefund refund, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        return Task.FromResult(NextCall(nameof(RequestRefundAsync), refund, _refunds, DefaultRefund));
+        if (BeforeRefund is { } before)
+        {
+            await before(refund);
+        }
+
+        return NextCall(nameof(RequestRefundAsync), refund, _refunds, DefaultRefund);
     }
 
-    public Task<RefundQueryResult> QueryRefundAsync(CardRefund refund, CancellationToken ct)
+    /// <summary>Runs when a refund query comes, before it is answered: a test changes the database while the query waits (T405 KK8, the firm's mark in flight).</summary>
+    public Func<CardRefund, Task>? BeforeRefundQuery { get; set; }
+
+    public async Task<RefundQueryResult> QueryRefundAsync(CardRefund refund, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        return Task.FromResult(NextCall(nameof(QueryRefundAsync), refund, _refundQueries, DefaultRefundQuery));
+        if (BeforeRefundQuery is { } before)
+        {
+            await before(refund);
+        }
+
+        return NextCall(nameof(QueryRefundAsync), refund, _refundQueries, DefaultRefundQuery);
     }
 
     public NotificationVerification VerifyNotification(IReadOnlyDictionary<string, string> formFields)

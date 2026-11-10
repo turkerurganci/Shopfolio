@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Modules.Payment.Contracts;
 
 namespace Shopfolio.Modules.Payment;
@@ -23,7 +24,7 @@ internal enum CardRefundStep
 /// The runner delivers a row at least once and retries a failed handler by the default rule; the handler of the card refund therefore decides
 /// from the refund record, which is written before the request goes. The record of this row is one written at or after the row was created
 /// (the firm's retry writes a new row, and the older record of the earlier row is not this row's, 06 4.34). The handler that sends and applies
-/// the result is the payment provider task's (T405) and calls this rule first.
+/// the result, <see cref="CardRefundJobHandler"/> (T405), calls this rule first.
 /// </summary>
 internal static class CardRefundJobRule
 {
@@ -42,12 +43,41 @@ internal static class CardRefundJobRule
     /// <summary>The state of the latest refund record of <paramref name="refundId"/> written at or after <paramref name="jobCreatedAt"/>, or <c>null</c>.</summary>
     public static async Task<RefundRecordState?> ReadLatestStateAsync(AppDbContext db, Guid refundId, DateTimeOffset jobCreatedAt, CancellationToken ct)
     {
+        return (await ReadLatestRecordAsync(db, refundId, jobCreatedAt, ct))?.State;
+    }
+
+    /// <summary>The latest refund record of <paramref name="refundId"/> written at or after <paramref name="jobCreatedAt"/> - its id and state -, or <c>null</c>.</summary>
+    public static async Task<RowRecord?> ReadLatestRecordAsync(AppDbContext db, Guid refundId, DateTimeOffset jobCreatedAt, CancellationToken ct)
+    {
         ArgumentNullException.ThrowIfNull(db);
         return await db.RefundRecords
             .AsNoTracking()
             .Where(r => r.RefundId == refundId && r.CreatedAt >= jobCreatedAt)
             .OrderByDescending(r => r.CreatedAt)
-            .Select(r => (RefundRecordState?)r.State)
+            .ThenByDescending(r => r.Id)
+            .Select(r => new RowRecord(r.Id, r.State))
             .FirstOrDefaultAsync(ct);
     }
+
+    /// <summary>
+    /// The refund record's outcome of the provider's answer (08 2.1.9; 05 4.6.2): accepted - succeeded, the money went; refused or not sent - failed; unknown - the
+    /// outcome is pending and is asked, the request is never sent again.
+    /// </summary>
+    public static RefundRecordState OutcomeOf(RefundRequestResult answer)
+    {
+        ArgumentNullException.ThrowIfNull(answer);
+        return answer switch
+        {
+            RefundRequestResult.Accepted => RefundRecordState.Succeeded,
+            RefundRequestResult.NotCompleted => RefundRecordState.Failed,
+            RefundRequestResult.Unknown => RefundRecordState.OutcomePending,
+            _ => throw new ArgumentOutOfRangeException(nameof(answer), answer, "Unknown refund request result."),
+        };
+    }
+
+    /// <summary>A code error of a refund job (no gateway in the host): no record is written, the runner retries the row by the default rule (05 4.3.4).</summary>
+    public static InvalidOperationException CodeError(string reasonCode) => new("The card refund job cannot run: " + reasonCode);
+
+    /// <summary>A refund record as the job reads it: its id and its state.</summary>
+    internal sealed record RowRecord(Guid Id, RefundRecordState State);
 }

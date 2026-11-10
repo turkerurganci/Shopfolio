@@ -23,6 +23,42 @@ public sealed record TransferPaidMark(Guid OrderId, Guid AdminId, string AdminNa
 public sealed record CardRefundOutcome(Guid OrderId, Guid RefundRecordId, RefundRecordState Outcome);
 
 /// <summary>
+/// The card refund job's start of one request (T405; 05 4.6.1, 4.3.3; MK-40): the refund record is written in the "sending" state under the order's lock and committed
+/// before the request goes. <paramref name="JobCreatedAt"/> is the job row's creation: a record written at or after it is this row's.
+/// </summary>
+public sealed record CardRefundRequestBegin(Guid OrderId, Guid RefundId, DateTimeOffset JobCreatedAt);
+
+/// <summary>
+/// The result of <see cref="IOrderTransitions.BeginCardRefundRequestAsync"/>: what the request sends - the order's number, the refund's amount and the record's id, its
+/// reference - or <see cref="NotStarted"/> when no request may go (the refund is voided, turned to the transfer, sent, or has an open request). Never a refusal: when
+/// nothing may go nothing was written, and the job row completes.
+/// </summary>
+public sealed class CardRefundRequestStart : IOperationResult
+{
+    private CardRefundRequestStart(string? orderNumber, decimal amount, Guid recordId)
+    {
+        OrderNumber = orderNumber;
+        Amount = amount;
+        RecordId = recordId;
+    }
+
+    public static CardRefundRequestStart NotStarted { get; } = new(null, 0m, Guid.Empty);
+
+    /// <summary>The order's number; null when no request goes.</summary>
+    public string? OrderNumber { get; }
+
+    public decimal Amount { get; }
+
+    public Guid RecordId { get; }
+
+    public bool IsStarted => OrderNumber is not null;
+
+    public bool IsRejected => false;
+
+    internal static CardRefundRequestStart Started(string orderNumber, decimal amount, Guid recordId) => new(orderNumber, amount, recordId);
+}
+
+/// <summary>
 /// The administrator processes a bank transfer refund (03 1.3 Ö3-Ö5; 02 5.5, 5.9): the money went to the customer's IBAN. Irreversible, so it is
 /// applied only with the confirmation; <paramref name="ExpectedVersion"/> is the version the screen showed.
 /// </summary>
@@ -42,8 +78,10 @@ public sealed class PaymentTransitionResult : IOperationResult
         bool isVersionConflict = false,
         bool isConfirmationRequired = false,
         bool isAlreadyApplied = false,
-        Guid? latePaymentRefundId = null)
+        Guid? latePaymentRefundId = null,
+        bool isLateRefundSuccess = false)
     {
+        IsLateRefundSuccess = isLateRefundSuccess;
         Applied = applied;
         IsOrderNotFound = isOrderNotFound;
         IsNotOpen = isNotOpen;
@@ -70,6 +108,12 @@ public sealed class PaymentTransitionResult : IOperationResult
     public bool IsAlreadyApplied { get; }
 
     public Guid? LatePaymentRefundId { get; }
+
+    /// <summary>
+    /// A card refund's success came for a request the firm had marked failed (T405; 05 4.6.2): it is kept on the record and not applied to the order. Not a refusal -
+    /// the record's moment is committed.
+    /// </summary>
+    public bool IsLateRefundSuccess { get; }
 
     public bool IsRejected => IsOrderNotFound || IsNotOpen || IsVersionConflict || IsConfirmationRequired;
 }

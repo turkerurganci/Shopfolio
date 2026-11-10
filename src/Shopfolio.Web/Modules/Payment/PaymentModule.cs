@@ -96,6 +96,7 @@ internal sealed class PaymentModule : IPaymentModule
         }
 
         DateTimeOffset now = _time.GetUtcNow();
+        bool becomesPending = record.State == RefundRecordState.Sending && outcome == RefundRecordState.OutcomePending;
         record.State = outcome;
         if (outcome is RefundRecordState.Succeeded or RefundRecordState.Failed)
         {
@@ -107,9 +108,61 @@ internal sealed class PaymentModule : IPaymentModule
             refund.SentAt = now;
         }
 
+        if (becomesPending)
+        {
+            // The unknown outcome is asked (08 2.1.9; K-1238 (3)): the query's row is written with the state, in the same transaction, once; its first query is a minute
+            // after the timeout and its schedule is RefundOutcomeQueryRule's. The firm's mark writes no row, so after it no query is asked.
+            await _jobs.EnqueueAsync(JobType.RefundOutcomeQuery, record.Id, now + JobTimings.RefundOutcomeQueryFirstDelay, ct);
+        }
+
         // A success after a failed request of the same refund is the firm's retry (02 7.2.8; 03 7.1.18).
         bool isFirmRetry = await _db.RefundRecords.AnyAsync(r => r.RefundId == refund.Id && r.Id != record.Id && r.State == RefundRecordState.Failed, ct);
         return Facts(refund, isFirmRetry);
+    }
+
+    public async Task<CardRefundSending?> WriteCardRefundSendingAsync(Guid orderId, Guid refundId, DateTimeOffset jobCreatedAt, CancellationToken ct)
+    {
+        Refund? refund = await _db.Refunds.SingleOrDefaultAsync(r => r.Id == refundId, ct);
+
+        // The refund as it is now, under the order's lock (MK-40; D-518, D-908): a voided refund, one turned to the transfer or one already sent gets no request.
+        if (refund is null || refund.OrderId != orderId || refund.PaymentMethod != PaymentMethod.Card || refund.SentAt is not null || refund.VoidedAt is not null)
+        {
+            return null;
+        }
+
+        // At most one open and one successful request (06 4.34): an open or successful record stops it, and so does any record this row wrote already - the row came
+        // back after its request (05 4.3.3; CardRefundJobRule). A failed record of an earlier row is the firm's retry's reason, not an obstacle.
+        bool blocked = await _db.RefundRecords.AnyAsync(
+            r => r.RefundId == refundId && (r.State != RefundRecordState.Failed || r.CreatedAt >= jobCreatedAt),
+            ct);
+        if (blocked)
+        {
+            return null;
+        }
+
+        RefundRecord record = RefundRecord.Sending(refund.Id, _time.GetUtcNow());
+        _db.RefundRecords.Add(record);
+        return new CardRefundSending(record.Id, refund.Amount);
+    }
+
+    public async Task<bool> RecordLateCardRefundSuccessAsync(Guid orderId, Guid refundRecordId, CancellationToken ct)
+    {
+        RefundRecord? record = await _db.RefundRecords.SingleOrDefaultAsync(r => r.Id == refundRecordId, ct);
+        if (record is null || !record.IsMarkedFailedByAdmin || record.LateSuccessAt is not null)
+        {
+            return false;
+        }
+
+        // The refund is loaded, not only asked: the record's root tells the order whose version the write raises (06 2.6.4; OrderVersionGuard).
+        Refund? refund = await _db.Refunds.SingleOrDefaultAsync(r => r.Id == record.RefundId, ct);
+        if (refund is null || refund.OrderId != orderId)
+        {
+            return false;
+        }
+
+        // The success stays on the marked record and is not applied (05 4.6.2): the panel's warning reads it - the same money may have gone twice.
+        record.LateSuccessAt = _time.GetUtcNow();
+        return true;
     }
 
     public async Task<RefundFacts?> MarkTransferRefundSentAsync(Guid orderId, Guid refundId, CancellationToken ct)
@@ -124,7 +177,7 @@ internal sealed class PaymentModule : IPaymentModule
         return Facts(refund, isFirmRetry: false);
     }
 
-    public Task<Guid> StartDefectRemedyRefundAsync(DefectRemedyRefundStart start, CancellationToken ct)
+    public async Task<Guid> StartDefectRemedyRefundAsync(DefectRemedyRefundStart start, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(start);
         if (_db.Database.CurrentTransaction is null)
@@ -144,7 +197,13 @@ internal sealed class PaymentModule : IPaymentModule
         }
 
         _db.Refunds.Add(refund);
-        return Task.FromResult(refund.Id);
+        if (refund.PaymentMethod == PaymentMethod.Card)
+        {
+            // The card way's refund is sent by the system (D-878): its job row is written in the same transaction (05 4.3.1, 4.6.1).
+            await _jobs.EnqueueAsync(JobType.CardRefund, refund.Id, null, ct);
+        }
+
+        return refund.Id;
     }
 
     public async Task<decimal> CommittedRefundTotalAsync(Guid orderId, CancellationToken ct)
@@ -592,6 +651,10 @@ internal static class PaymentModuleRegistration
         // The final query's handler (T324, T403; D-449): the rows the card window's end writes. It takes the payment gateway as an optional service, so the
         // registration holds in a host without the link layer (the command process, the test hosts of other modules).
         services.AddJobHandler<FinalPaymentQueryJobHandler>(JobType.FinalPaymentQuery);
+
+        // The card refund and the query of its unknown outcome (T405; 08 2.1.9; D-97): the same optional gateway, so a host without the link layer still builds.
+        services.AddJobHandler<CardRefundJobHandler>(JobType.CardRefund);
+        services.AddJobHandler<RefundOutcomeQueryJobHandler>(JobType.RefundOutcomeQuery);
         return services;
     }
 

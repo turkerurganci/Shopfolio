@@ -332,6 +332,11 @@ internal sealed class OrderingModule : IOrderingModule
         return order is null ? null : new CardPaymentQueryTarget(order.OrderNumber, PaymentWindowRules.IsPaymentOutcomeUnknown(order, now), order.Total);
     }
 
+    public async Task<string?> GetOrderNumberAsync(Guid orderId, CancellationToken ct)
+    {
+        return await _db.Orders.AsNoTracking().Where(o => o.Id == orderId).Select(o => o.OrderNumber).SingleOrDefaultAsync(ct);
+    }
+
     public async Task<InstallerPaymentTarget?> FindInstallerPaymentTargetAsync(string orderNumber, DateTimeOffset now, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(orderNumber);

@@ -240,7 +240,7 @@
 |---|---|---|---|---|---|
 | T401 | PayTR: anahtarlar, ödemenin başlatılması, dönüş ve çerçeve | ✓ | ✓ PASS (tur 1) | `d7062c8` | #516 |
 | T402 | PayTR: bildirim imzası ve alan eşlemesi | ✓ | ✓ PASS (tur 1) | `1b7b3127` | #520 |
-| T403 | PayTR: son sorgu ve tek tahsilat | ⬚ | — | — | — |
+| T403 | PayTR: son sorgu ve tek tahsilat | ⏳ | — | — | — |
 | T404 | PayTR: bağlantı hatası ve ayrım | ⬚ | — | — | — |
 | T405 | PayTR: kart iadesi | ⬚ | — | — | — |
 | T406 | PayTR: 3D Secure kurulum şartı, test kanıtı ve canlı kanıtın satırları | ⬚ | — | — | — |

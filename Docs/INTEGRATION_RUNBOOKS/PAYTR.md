@@ -5,7 +5,7 @@
 > **Kural:** Bir dış servise **ilk kez bağlanan task**, aynı PR'da bu runbook'u da yazar.
 > "Sonra yazarız" denen kurulum bilgisi, ikinci kez lazım olduğunda kaybolmuş olur.
 
-> **Bu sürümün kapsamı (T401, T402):** anahtarlar, ödemenin başlatılması (jeton isteği), dönüş adresi ve çerçeve (T401); bildirim imzası, alan eşlemesi ve red nedeninin seyreltilmiş kaydı (T402). Son sorgu T403'te, hata tablosunun tamamı T404'te, kart iadesi T405'te bu dosyaya eklenir. Ödeme sayfası (çerçeveyi taşıyan sayfa, UC-29'un çağıranı) T510'dadır.
+> **Bu sürümün kapsamı (T401, T402, T403):** anahtarlar, ödemenin başlatılması (jeton isteği), dönüş adresi ve çerçeve (T401); bildirim imzası, alan eşlemesi ve red nedeninin seyreltilmiş kaydı (T402); son sorgu (`durum-sorgu`), yanıt tablosu, tutar metni ve başarının beş koşulu (T403). Hata tablosunun tamamı T404'te, kart iadesi T405'te bu dosyaya eklenir. Ödeme sayfası (çerçeveyi taşıyan sayfa, UC-29'un çağıranı) T510'dadır.
 
 ---
 
@@ -71,9 +71,11 @@ dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --fil
 dotnet test --project tests/Shopfolio.IntegrationTests/Shopfolio.IntegrationTests.csproj --filter-class "*PaymentStartTests"
 dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --filter-class "*PayTrNotificationTests"
 dotnet test --project tests/Shopfolio.IntegrationTests/Shopfolio.IntegrationTests.csproj --filter-class "*PaymentNotificationTests"
+dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --filter-class "*PaymentAmountsQueryTests" --filter-class "*FinalPaymentQueryRuleTests"
+dotnet test --project tests/Shopfolio.IntegrationTests/Shopfolio.IntegrationTests.csproj --filter-class "*PaymentWindowTests"
 ```
 
-**Beklenen çıktı:** bütün testler geçer; jeton isteği form kodlu tek POST, `paytr_token` bilinen örnekle eşleşir, jeton ne kayıtta ne veritabanında; bildirimin imzası bilinen örnekle eşleşir, yedi sıranın her biri beklenen kaydı ve yanıtı verir.
+**Beklenen çıktı:** bütün testler geçer; jeton isteği form kodlu tek POST, `paytr_token` bilinen örnekle eşleşir, jeton ne kayıtta ne veritabanında; bildirimin imzası bilinen örnekle eşleşir, yedi sıranın her biri beklenen kaydı ve yanıtı verir; son sorgu form kodlu tek POST, `paytr_token` bilinen örnekle eşleşir, `004` siparişi iptal eder, altı yanıtsız girdi siparişi değiştirmez, beş koşuldan biri tutmayan başarı uygulanmaz ve `FinalPaymentQueryNotApplied` satırı yazılır.
 
 Sağlayıcının test modunda gözlem (gerçek mağaza ve anahtar gerekir — aşağıdaki tablo):
 
@@ -97,6 +99,7 @@ Sağlayıcının test modunda gözlem (gerçek mağaza ve anahtar gerekir — a�
 | DV-35 | Bildirim gövdesi 64 KB'ın altında | Gerçek test bildiriminin bayt boyu okunur | **Bekliyor — OWNER_INPUT** (D-1038). Kod tarafı: tavan imzadan önce (T203) | 2026-11-10 (bekliyor kaydı, T402) | Bu tablo |
 | DV-36 | Tanınmayan bildirim işaretli kayıtta görünür | Kurulumu yapan duyuru kanalını izler; tanınmayan değer sınanır | **Bekliyor — OWNER_INPUT** (D-1038). Kod tarafı: dört kol işaretli kayıtta (`PayTr_Row4_*`) | 2026-11-10 (bekliyor kaydı, T402) | Bu tablo |
 | DV-42 | `failed` bildirimi oturumun kesin sonucunda mı, her denemede mi gelir | Aynı çerçevede önce başarısız, sonra başarılı kart; bildirimlerin sayısı ve sırası okunur | **Bekliyor — OWNER_INPUT** (D-1038; test modunda üretilemezse PayTR'den yazılı yanıt). Kod tarafı: `failed` siparişi iptal eder, red kodu seyreltilmiş kayda (`PayTr_Row5_*`) | 2026-11-10 (bekliyor kaydı, T402) | Bu tablo |
+| DV-12 | Son sorgu tutarlarının (`payment_amount`, `payment_total`) ondalık ve binlik ayracı, `currency` yazımı (`TL` mi `TRY` mi), tabloda olmayan yanıtlar ve HTTP kodları | Başarılı test ödemesinden sonra aynı `merchant_oid` sorgulanır; yanıt gövdesinin kart alanları çıkarılmış kopyası okunur; bilinmeyen `merchant_oid` ile `004` denenir | **Bekliyor — OWNER_INPUT** (D-1065). Kod tarafı: tek ayraçlı en çok iki ondalık ya da ayraçsız metin okunur, başkası `NoResponse` (`PaymentAmountsQueryTests`, `PaymentWindowTests.PayTr_SuccessWithAnUnrecognizedAmountText_*`); `TL` ve `TRY` kabul (`PayTrPaymentGatewayTests.Query`) | 2026-11-10 (bekliyor kaydı, T403) | Bu tablo; sonuç `08 §2.1.6` ve §4.1 DV-12'ye |
 
 ## 7. Sorun giderme
 
@@ -110,10 +113,17 @@ Başlatmanın sonucu kayda yalnız kısa kodla yazılır (`ExternalCallFailed Pa
 | Kayıtta `failed` | PayTR jeton isteğini reddetti (alan, imza ya da mağaza durumu) | Mağaza panelinde işlemi ve anahtarları denetle; `reason` metni kayda yazılmaz — test modunda denemeyle okunur |
 | Kayıtta `http:<kod>` ya da `body` | PayTR 2xx dışı yanıt verdi ya da gövde beklenen JSON değil | Geçici ise kendiliğinden düzelir; sürerse PayTR destek |
 | Kayıtta `TimedOut` | 15 sn içinde yanıt yok | PayTR'nin durumunu denetle; müşteri "ödeme yöntemi kullanılamıyor" görür |
+| Kayıtta `ExternalCallFailed PaymentQuery ... err:001` / `err:003` | Son sorguda geçersiz istek, mağaza aktif değil ya da `paytr_token` tutmuyor (anahtarlar) | §2'deki anahtarları denetle; satır kod hatası kuralıyla yinelenir (1, 5, 15, 60, 240 dk), "başarısız" olursa düzeltmeden sonra iş satırı komutuyla yeniden kuyruğa al (`05 §8.5.9`); sipariş bu arada Bekliyor'da kalır |
+| Kayıtta `ExternalCallFailed PaymentQuery ... err:002` | Geçersiz `merchant_oid` (kod hatası) | Aynı; sürerse hata kaydı açılır |
+| Kayıtta `ExternalCallFailed PaymentQuery ... amount-text` | Son sorgunun tutar metni DV-12'nin kuralına uymadı | Ödemeyi mağaza panelinden oku, siparişi panelden elle kapat (`05 §8.5.12`); gövdenin biçimini D-1065'e yaz |
+| Kayıtta `FinalPaymentQueryNotApplied <reason> <orderId>` | Son sorguda başarı var ama `amount`, `payment-type`, `currency` ya da `test-mode` koşulu tutmuyor | Ödemeyi mağaza panelinden oku; tutar tutmuyorsa komut uygulamaz, firma siparişi iptal eder (`08 §2.1.6`; K-1283) |
+| Son sorgu kayıtta `TimedOut`, `connection:*`, `http:<kod>` ya da `body` | PayTR'ye 30 sn içinde ulaşılamadı ya da yanıt tabloda yok | Kendiliğinden beş dakikada bir yeniden sorulur; sipariş iptal edilmez, "ödeme sonucu alınamadı" işaretiyle bekler |
 
 ## 8. Kesinti davranışı
 
 PayTR'ye ulaşılamazsa (zaman aşımı, bağlantı hatası, 2xx dışı yanıt, tanınmayan gövde) başlatma bağlantı hatasıdır: yeniden denenmez, UC-29 "ödeme yöntemi kullanılamıyor" sonucunu verir ve satış havaleyle sürebilir (`05 §10.1.1`; `08 §2.1.8`, §3.3). İkinci jeton reddi (DV-11) bağlantı hatası sayılmaz; ayırt eden `reason` metni test modunda gözlenince T404 tablosuna yazılır.
+
+Son sorguda kesinti siparişi iptal ettirmez: zaman aşımı, bağlantı hatası ve tabloda olmayan yanıt beş dakikada bir yinelenir; ödeme süresi işlemeye devam eder, yalnız iptal bekler (`08 §2.1.6`, §3.3; T403).
 
 ## 9. Prod farkları
 

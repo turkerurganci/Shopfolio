@@ -1,6 +1,8 @@
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 using Shopfolio.Infrastructure.Integrations;
+using Shopfolio.UnitTests.Support;
 
 namespace Shopfolio.UnitTests.Integrations;
 
@@ -37,6 +39,43 @@ public sealed partial class PayTrPaymentGatewayTests
 
         Assert.Contains(PayTrNotification.PaymentTypeField, values);
         Assert.DoesNotContain(values, Names3D);
+    }
+
+    // The reflection above sees the layer's constants only; this sees every string in the application's source, wherever it is written (an indexer, a
+    // verbatim or raw literal, an interpolated string), so a 3D field read inline in any type is found too.
+    [Fact]
+    public void TheApplicationsSource_HasNoStringNamingA3DField_T406_KK1()
+    {
+        string source = Path.Combine(RepositoryRoot.Find(), "src");
+
+        List<string> found = [.. Directory.EnumerateFiles(source, "*.cs", SearchOption.AllDirectories)
+            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            .Where(path => FieldLiteral3D().IsMatch(File.ReadAllText(path)))
+            .Select(path => Path.GetRelativePath(source, path))];
+
+        Assert.Empty(found);
+    }
+
+    [Theory]
+    [InlineData("fields[\"non_3d\"]")]
+    [InlineData("public const string Mark = \"3D_SECURE\";")]
+    [InlineData("Text(root, @\"threeds_status\")")]
+    [InlineData("string raw = \"\"\"3ds\"\"\";")]
+    [InlineData("fields.TryGetValue(\"three_d\" + \"\", out _) || fields.ContainsKey(\"Is3D\")")]
+    [InlineData("$\"{prefix}_3d\"")]
+    public void SourceScan_OnViolationSample_FindsTheString(string sample)
+    {
+        Assert.Matches(FieldLiteral3D(), sample);
+    }
+
+    [Theory]
+    [InlineData("// non_3d is the Direct API's field, the iFrame API has none")]
+    [InlineData("string text = \"3D Secure doğrulaması tamamlanmadı\";")]
+    [InlineData("const string Color = \"#3d4f5a\";")]
+    [InlineData("int threeDays = 3;")]
+    public void SourceScan_OnCleanSample_FindsNothing(string sample)
+    {
+        Assert.DoesNotMatch(FieldLiteral3D(), sample);
     }
 
     [Theory]
@@ -93,6 +132,15 @@ public sealed partial class PayTrPaymentGatewayTests
     // A 3D field name: "3d" anywhere, whatever the case (non_3d, 3d_secure, 3D), or the "threeds"/"3ds" spelling.
     private static bool Names3D(string name) =>
         name.Contains("3d", StringComparison.OrdinalIgnoreCase) || name.Contains("threeds", StringComparison.OrdinalIgnoreCase);
+
+    // A string that is one field-like token (no space) naming 3D: "3d"/"3ds" not inside a hex run, "three_d", "threeds", whatever the case. A sentence ("3D Secure
+    // ...") is text, not a field name; a colour ("#3d4f5a") is not a token of this kind.
+    [GeneratedRegex(
+        """
+        "[{}$A-Za-z0-9_.\-]*(?:(?<![0-9a-f])3ds?(?![0-9a-f])|three_?ds?)[{}A-Za-z0-9_.\-]*"
+        """,
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex FieldLiteral3D();
 
     private static Dictionary<string, string> Notice(string status, string total) =>
         new(StringComparer.Ordinal)

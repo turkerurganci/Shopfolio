@@ -102,6 +102,7 @@
 | Yedek ayarları, kova kuralı, anahtar yetkisi ve kurtarma provası | §J |
 | Yerel referans kuruluma ilk iniş (T09): sunucu, güvenlik duvarı, canlılık, denemeler, prova kaydı; gerçek sunucu T603 | §K |
 | Sistem kayıtları: yerleri, günlük bölme, saklama, istek kimliği, kurulumda denetim | §L |
+| Kart ödemesi: 3D Secure kurulum şartı (anahtardan önce) ve canlı kanıtın satırları | §N ⚠ |
 
 ---
 
@@ -141,7 +142,7 @@
 | 9 | `db_backup_cipher_key` | Kurulumu yapan üretir — kriptografik üreteçle, kurulumda; ikinci kopya firmada durur (`05 §7.6.5`) | `database` | Uygulama, komutlar, göç, dosya yedeği aracı, ters vekil | Döndürülmez — döndürmek eski yedekleri açılamaz kılar; sızıntıda veritabanı yedeği için yeni depo ve yeni anahtar kurulur; eski yedekler otuz günde düşer (`05 §6.x.12`) | Dosya 999:999 0400 |
 | 10 | `file_backup_storage_key` | Nesne depolama hesabının yönetim girişinden firma ya da kurulumu yapan; yalnız dosya yedeğinin önekine yazar | `backup` | Uygulama, komutlar, göç, veritabanı, ters vekil | Yılda bir ve olay üzerine; `backup` yeniden başlar — kısa kesinti; eski anahtar yeni bağlantılar için anında geçersiz | Dosya 10001:10001 0400 |
 | 11 | `file_backup_cipher_key` | Kurulumu yapan üretir — kriptografik üreteçle, kurulumda; ikinci kopya firmada durur | `backup` | Uygulama, komutlar, göç, veritabanı, ters vekil | Döndürülmez — döndürmek eski yedekleri açılamaz kılar; sızıntıda dosya yedeği için yeni depo ve yeni anahtar kurulur; eski yedekler otuz günde düşer (`05 §6.x.12`) | Dosya 10001:10001 0400 |
-| 12 | `payment_provider_keys` | Ödeme sağlayıcısının panelinden firma ya da kurulumu yapan; bildirim doğrulaması da bunlarla yapılır (`08 §2.1.2`); içerik üç `ad=değer` satırı — `merchant_id`, `merchant_key`, `merchant_salt`, biri eksikse ayar tanımlı sayılmaz ([`INTEGRATION_RUNBOOKS/PAYTR.md`](INTEGRATION_RUNBOOKS/PAYTR.md) §2; T401) | `app` | Göç, iki komut, veritabanı, yedek aracı, ters vekil | Olay üzerine; `app` yeniden başlar, kuyruktaki e-postalar bekler; eski anahtarın sağlayıcıda ne kadar geçerli kaldığı sağlayıcının kuralıdır (`05 §6.x.11`) | Dosya 1654:1654 0400 |
+| 12 | `payment_provider_keys` | Ödeme sağlayıcısının panelinden firma ya da kurulumu yapan; bildirim doğrulaması da bunlarla yapılır (`08 §2.1.2`); içerik üç `ad=değer` satırı — `merchant_id`, `merchant_key`, `merchant_salt`, biri eksikse ayar tanımlı sayılmaz ([`INTEGRATION_RUNBOOKS/PAYTR.md`](INTEGRATION_RUNBOOKS/PAYTR.md) §2; T401); **§N.1'in üç satırı ✓ olmadan yazılmaz** (3D Secure teyidi, DV-3; T406) | `app` | Göç, iki komut, veritabanı, yedek aracı, ters vekil | Olay üzerine; `app` yeniden başlar, kuyruktaki e-postalar bekler; eski anahtarın sağlayıcıda ne kadar geçerli kaldığı sağlayıcının kuralıdır (`05 §6.x.11`) | Dosya 1654:1654 0400 |
 | 13 | `email_credential` | E-posta sağlayıcısının panelinden firma ya da kurulumu yapan | `app` | Göç, iki komut, veritabanı, yedek aracı, ters vekil | Olay üzerine; `app` yeniden başlar, kuyruktaki e-postalar bekler (`05 §6.x.11`) | Dosya 1654:1654 0400. İçerik iki satırdır (J.2); başka biçimde uygulama açılmaz ve açılış hatası ayarı adıyla söyler, değeri söylemez. Geliştirme makinesinde (`EmailCapture:Host` dolu) dosya hiç okunur sayılmaz: uydurma, boş olmayan her metin açar, gerçek kimlik oraya geçmez (`05 §8.1.2`); boş dosya "yok" sayılır ve zorunlu ayar eksik kalır |
 | 14 | `google_client_secret` | Google uygulamasının yönetim ekranından firma ya da kurulumu yapan | `app` | Göç, iki komut, veritabanı, yedek aracı, ters vekil | Olay üzerine; `app` yeniden başlar (`05 §6.x.11`) | Dosya 1654:1654 0400 |
 | 15 | `link_derivation_secret` | Kurulumu yapan üretir — kriptografik üreteçle (MK-50), kurulumda; en az 32 bayt, Base64 (`09 §3.5`) | `app` | Göç, iki komut (bildirim üretmez, iş kuyruğunu çalıştırmaz), veritabanı, yedek aracı, ters vekil | Olay üzerine; `app` yeniden başlar ve açılışta kuyruktaki geri alma e-postalarının bağlantı kaydını yeni sırla yeniden yazar (`05 §6.x.20`) | Dosya 1654:1654 0400. Eski sırrı bilen, döndürmeden önce gönderilmiş geri alma bağlantısını ömrü boyunca türetebilir (kalan risk — `05 §6.x.20`) |
@@ -572,3 +573,42 @@ Yalnız "ödeme sonucu alınamadı" işaretli kart siparişinde çalışır; ba�
 2. Başarılı ödeme varsa: `$COMPOSE run --rm command admin apply-payment-result --order-number <numara> --result paid --amount <paneldeki tutar>` — tutar taksit farkı hariç, noktalı ondalık (`1250.50`). Tutar siparişin toplamına eşit değilse 3 döner ve hiçbir şey yazılmaz; eşitse sipariş "Ödendi" olur.
 3. Ödeme yoksa ya da başarısızsa: `--result none` (`--amount` verilmez); sipariş iptal edilir.
 4. Geçiş kaydı ve müşteriye giden e-posta çalışan uygulamanın iş kuyruğundan gider; komut bittiğinde uygulama ayakta olmalıdır.
+
+## N. Kart ödemesi: 3D Secure kurulum şartı ve canlı kanıt (T406; `08 §2.1.3`, §2.1.10, §4.1 DV-3; `12 §12.1`)
+
+Ürün bildirimde 3D Secure'un geçildiğini denetleyemez: bildirimde 3D işareti yoktur ve kod 3D alanı aramaz. Güvence iki parçadır — bu bölümdeki kurulum şartı (N.1) ve canlı kanıtta 3D'nin gözle geçilmesi (N.3, `VAL-F003`). Kod payı: `status` = `success` ve `payment_type` = `card` olmayan bildirim başarı sayılmaz; `failed` (kod `1`, `2`, `10` dahil) siparişi iptal eder, ödeme gerçekleşmez (`08 §2.1.5`; `PaymentNotificationTests.PayTrThreeDSecure`). Anahtarsız kurulumda kart hattı kapalıdır (§C satır 1).
+
+### N.1 Kurulum şartı — kayıt (DV-3; K-13; ÖK-4)
+
+Üç satırın üçü ✓ olmadan `payment_provider_keys` sır dosyası (§B satır 12) **yazılmaz**. Biri yanlış çıkarsa (3D kapatılabiliyor, Non3D yetkisi açık ya da test modunda 3D'siz işlem tamamlanıyor) kart anahtarları tanımlanmaz, satış havaleyle sürer ve durum `08 §4.1` DV-3'e yazılır.
+
+| # | Şart | Nasıl alınır | Sonuç | Tarih | Kanıt yeri |
+|---|---|---|---|---|---|
+| 1 | PayTR'den yazılı teyit: mağazanın her kart ödemesi 3D Secure'dan geçer | Kurulumu yapan PayTR'ye yazar (sözleşmeden sonra, canlıya almadan önce) | **Bekliyor — OWNER_INPUT** (D-1089) | 2026-11-11 (bekliyor kaydı) | Yazılı yanıtın tarihi ve saklandığı yer (yanıt metni kart verisi ve anahtar taşımaz) |
+| 2 | Aynı teyitte: mağazada "Non3D yetkisi" kapalıdır | Satır 1'le aynı yazışma | **Bekliyor — OWNER_INPUT** (D-1089) | 2026-11-11 (bekliyor kaydı) | Satır 1'le aynı |
+| 3 | Test modunda 3D'siz işlem tamamlanmaz | `INTEGRATION_RUNBOOKS/PAYTR.md` §6.2 satır 3 | **Bekliyor — OWNER_INPUT** (D-1089) | 2026-11-11 (bekliyor kaydı) | `PAYTR.md` §6.2 |
+
+### N.2 Test modu kanıtı (sandbox)
+
+Başlatma, 3D, bildirim, sorgu ve iadenin test modundaki uçtan uca denemesi `INTEGRATION_RUNBOOKS/PAYTR.md` §6.2'nin tablosundadır (K-1411; D-1090). Test kanıtı canlı kanıtın yerini tutmaz (`08 §2.1.10`; `VAL-F001`).
+
+### N.3 Canlı kanıtın satırları (`12 §12.1` `VAL-F001`…`VAL-F012`; yürütme F6, T601)
+
+Zincir tek siparişte, sırayla, referans kurulumda, canlı modda (`test_mode` = `0`), geliştiricinin kendi sözleşmesi, hesabı ve gerçek kartıyla, küçük tutarla yürür (K-23). **Taksit sunuluyorsa** kanıtın siparişi taksitli ödenir (DV-10; `VAL-F010`); sunulmuyorsa `VAL-F010` satırına "taksit sunulmuyor" ve ayarın kaydı yazılır. Satırlara kart numarası, CVV, anahtar ya da başka sır **yazılmaz**; yalnız sipariş numarası, tutar, işlem anı ve kanıtın türü (`12 §7.3`, §7.5).
+
+| Satır | Halka | Sipariş no | Tutar | Taksit | İşlem anı | Kanıt türü | Sonuç |
+|---|---|---|---|---|---|---|---|
+| VAL-F001 | Ortam: gerçek yapılandırma, canlı mod, gerçek kart; zincirde `test_mode` = `1` yok | — | — | — | — | Dış sistem kaydı + Runbook kaydı | Bekliyor — F6, T601 |
+| VAL-F002 | Sipariş (Alındı + Bekliyor) | | | | | Veri kaydı + İş kaydı + Dış sistem kaydı | Bekliyor — F6, T601 |
+| VAL-F003 | 3D Secure geçilir, dönüş üst pencerede sipariş sayfası | | | | | Tarayıcı gözlemi + Dış sistem kaydı | Bekliyor — F6, T601 |
+| VAL-F004 | Ödeme bildirimi: Ödendi, Hazırlanıyor | | | | | Veri kaydı + Dış sistem kaydı + İş kaydı | Bekliyor — F6, T601 |
+| VAL-F005 | Kargoya verme | | | | | Veri kaydı + İş kaydı + Tarayıcı gözlemi | Bekliyor — F6, T601 |
+| VAL-F006 | Teslim işareti | | | | | Veri kaydı + Uç yanıtı | Bekliyor — F6, T601 |
+| VAL-F007 | Cayma beyanı ve iade malının teslim alınması | | | | | Veri kaydı + İş kaydı + Tarayıcı gözlemi | Bekliyor — F6, T601 |
+| VAL-F008 | Kart iadesi: Geri ödendi | | | | | Veri kaydı + Dış sistem kaydı + İş kaydı | Bekliyor — F6, T601 |
+| VAL-F009 | Tutar eşitliği (sipariş = `payment_amount` = iade) | | | | | Veri kaydı + Dış sistem kaydı | Bekliyor — F6, T601 |
+| VAL-F010 | Taksit (sunuluyorsa taksitli; farkın iadede dönüşü — DV-10) | | | | | Dış sistem kaydı + Runbook kaydı | Bekliyor — F6, T601 |
+| VAL-F011 | Kapanış: Teslim edildi + Geri ödendi, işaret yok | | | | | Veri kaydı + Tarayıcı gözlemi | Bekliyor — F6, T601 |
+| VAL-F012 | Bu tablo dolu; kart verisi ve sır yok | | | | | Runbook kaydı + Uygulama kaydı | Bekliyor — F6, T601 |
+
+DV-3'ün canlı payı `VAL-F003` satırıyla kapanır; kurulum şartı (N.1) kapanmadan zincire başlanmaz.

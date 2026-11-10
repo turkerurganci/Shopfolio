@@ -66,6 +66,9 @@ public sealed partial class PaymentKeysScanTests
     [InlineData("MERCHANT_SALT: abc")]
     [InlineData("printf '\"merchant_key\"=%s' x")]
     [InlineData("echo 'merchant_salt = s' > keys")]
+    [InlineData("{ \"Payment\": { \"ProviderKeys\":\n      \"merchant_id=1\" } }")]
+    [InlineData("      Payment__ProviderKeys:\n        merchant_id=1")]
+    [InlineData("merchant_salt =\n\tabc")]
     public void KeyValueScan_OnViolationSample_ReportsTheRuleOnItsLine(string sample)
     {
         Assert.Equal([(PaymentKeysScan.KeyValue, 2)], PaymentKeysScan.ScanForKeyValues("first line\n" + sample + "\nlast line"));
@@ -77,6 +80,8 @@ public sealed partial class PaymentKeysScanTests
     [InlineData("{ \"Payment\": { \"ProviderKeys\": \"\" } }")]
     [InlineData("# merchant_key and merchant_salt are in the secret file")]
     [InlineData("printf 'made-up:%s' \"$(gen)\" | put payment_provider_keys 1654")]
+    [InlineData("MERCHANT_KEY=\nOTHER=1")]
+    [InlineData("Payment__ProviderKeys:\n  # set in the secret file")]
     public void KeyValueScan_OnCleanSample_ReportsNothing(string sample)
     {
         Assert.Empty(PaymentKeysScan.ScanForKeyValues(sample));

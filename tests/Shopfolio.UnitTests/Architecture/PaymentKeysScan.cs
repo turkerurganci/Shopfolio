@@ -23,25 +23,21 @@ internal static partial class PaymentKeysScan
     /// <summary>Findings of the CI rule: the rule and the 1-based line.</summary>
     public static IReadOnlyList<(string Rule, int Line)> ScanCiFile(string text) => Scan(text, CiMentionPattern(), CiMention);
 
+    // The pattern runs over the whole text, not line by line, so a value written on the line after its name (a JSON value after a line break, a YAML plain
+    // scalar on an indented next line) is found too; the finding's line is the name's line.
     private static List<(string Rule, int Line)> Scan(string text, Regex pattern, string rule)
     {
-        string[] lines = text.ReplaceLineEndings("\n").Split('\n');
-        List<(string Rule, int Line)> findings = [];
-        for (int i = 0; i < lines.Length; i++)
-        {
-            if (pattern.IsMatch(lines[i]))
-            {
-                findings.Add((rule, i + 1));
-            }
-        }
-
-        return findings;
+        string normalized = text.ReplaceLineEndings("\n");
+        return [.. pattern.Matches(normalized)
+            .Select(match => (rule, normalized.AsSpan(0, match.Index).Count('\n') + 1))
+            .Distinct()];
     }
 
-    // A value after the name: "=" or ":" and then anything but the end of the line - both spellings of the setting's key and the two secret lines of the file's
-    // content (08 2.1.2), a quoted name ("merchant_key"=...) too - or a JSON "ProviderKeys" with a non-empty string. Whatever the case.
+    // A value after the name - both spellings of the setting's key and the two secret lines of the file's content (08 2.1.2), a quoted name ("merchant_key"=...)
+    // too: "=" or ":" and then a character on the same line, or a line break and an indented non-comment character (a YAML value on the next line). Or a JSON
+    // "ProviderKeys" with a non-empty string, line breaks allowed between. An empty "NAME=" line followed by an unindented line is not a value. Whatever the case.
     [GeneratedRegex(
-        """(?:\bPayment(?::|__)ProviderKeys|\bmerchant_(?:key|salt))["']?\s*[=:]\s*\S|"ProviderKeys"\s*:\s*"[^"]""",
+        """(?:\bPayment(?::|__)ProviderKeys|\bmerchant_(?:key|salt))["']?[ \t]*[=:](?:[ \t]*[^\s]|[ \t]*\n[ \t]+[^\s#])|"ProviderKeys"\s*:\s*"[^"]""",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex KeyValuePattern();
 

@@ -60,7 +60,7 @@ Bir task okunurken yalnız şunlar okunur: kendi bloğu, aday tablo ve §7.2 sat
 | Y7 | §5 F6, §6.1, §6.2 | `T601`–`T602` (2) | `IP5-12`, `IP6-01`, `IP6-02` | ✓ |
 | Y8 | §8 son hali, §9, §1, §2 (sayımlar kesin); yazım turunun kapanışı | — | `IP8-01`, `IP9-01`, `IP1-01`, `IP2-01` | ✓ |
 
-Task toplamı 30 + 33 + 90 + 10 + 49 + 3 = 215 (aday tablo; sayım `11_task_blok_denetle.py` çıktısındadır). Yedi faz bitti; `11_task_blok_denetle.py --tam` sorunsuz koşar (Y8: sorun 0).
+Task toplamı 30 + 33 + 90 + 12 + 49 + 4 = 218 (aday tablo; sayım `11_task_blok_denetle.py` çıktısındadır). Yedi faz bitti; `11_task_blok_denetle.py --tam` sorunsuz koşar (Y8: sorun 0).
 
 ---
 
@@ -68,7 +68,7 @@ Task toplamı 30 + 33 + 90 + 10 + 49 + 3 = 215 (aday tablo; sayım `11_task_blok
 
 > **Ne yazılır:** Tüm işi küçük, bağımsız, sıralı task'lara bölmek. Her task'ın ne olduğu, neye bağımlı olduğu, hangi dokümanlarla yapılacağı ve nasıl kabul edileceği.
 
-**Amaç.** Bu doküman, `02`–`10`'un tarif ettiği ürünü yedi fazda **215 task**'a böler (§3, §5): her task tek PR, tek bağlam ve tek bağımsız doğrulamayla biter (K-1409) ve bloğunda bağımlılığını, okunacak dokümanlarını, kabul kriterlerini, test beklentisini ve doğrulama kontrol listesini taşır (§5 "Task yapısı"). Task'ı yapan `task` skill'i, doğrulayan `validate` skill'i ve faz sonunu denetleyen `gate-check` skill'i işi buradan okur; `12` için "kabul kriterleri ve kontrol listesi `11`'de tanımlı olmadan doğrulama başlamaz" ilkesi bu bloklarla karşılanır.
+**Amaç.** Bu doküman, `02`–`10`'un tarif ettiği ürünü yedi fazda **218 task**'a böler (§3, §5): her task tek PR, tek bağlam ve tek bağımsız doğrulamayla biter (K-1409) ve bloğunda bağımlılığını, okunacak dokümanlarını, kabul kriterlerini, test beklentisini ve doğrulama kontrol listesini taşır (§5 "Task yapısı"). Task'ı yapan `task` skill'i, doğrulayan `validate` skill'i ve faz sonunu denetleyen `gate-check` skill'i işi buradan okur; `12` için "kabul kriterleri ve kontrol listesi `11`'de tanımlı olmadan doğrulama başlamaz" ilkesi bu bloklarla karşılanır.
 
 **Kapsam.** Planın kapsamı `10 §2`'nin 77 kapsam satırıdır (`KP-1`…`KP-77`); MVP'nin çıtası ve kabulleri `10 §1`'dedir ve bu doküman onları yeniden tanımlamaz. `10 §3`'ün 64 kapsam dışı satırı (`KD-1`…`KD-64`) task üretmez; matriste negatif denetim olarak yer alır — her satırın "yok" kararını koruyan task'ı vardır (§7.1.5, `10` grubu). MVP'ye girmeyen işler §9'a işaret edilir, burada ayrıntılanmaz. Plan yalnız yapım işini bölüştürür; zaman çizelgesi ya da süre tahmini yazmaz.
 
@@ -2440,11 +2440,11 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   1. Kurulum tek firmaya hizmet eder; firma ekleme, seçme ve geçiş yoktur ve firma kimlik kaydı silinemez, yalnız düzenlenir; pazar (Türkiye), dil (Türkçe) ve para birimi (TRY) tektir, seçilemez (`02 §3.1.1`, §12.1.1).
   2. Firma kimliği panelden, altyapısı kurulumdan gelir; alanları ayrıdır (`02 §3.1.2`).
   3. Firma tipi Esnaf, Gerçek kişi tacir ve Tüzel kişi değerlerinden biridir; zorunlu kimlik alanları tipe göre değişir (`02 §3.1.3`).
-  4. Üç tipte de adres, telefon, e-posta, KEP adresi, meslek odası ve meslekle ilgili davranış kuralları zorunludur; boş zorunlu alan kaydı engellemez, satış kapısını kapalı tutar (T331); dolu zorunlu alan boşaltılamaz ve tip değişikliği reddedilmez. Firma bildirimleri (F-1…F-4) bu iletişim e-postasına gider; panelde ayrı bir "bildirim adresi" alanı yoktur (`02 §3.1.2`, §3.1.3, §6.9.1, §9.3.1).
-  5. Meslek odası ve davranış kuralları tipten bağımsız zorunludur ve yasal kimlikle görünür; işletme adı ya da tescilli marka isteğe bağlıdır, doluysa görünür (`02 §3.1.3`; K-1568).
+  4. Üç tipte de adres, telefon, e-posta, KEP adresi, meslek odası ve meslekle ilgili davranış kuralları zorunludur; boş zorunlu alan kaydı engellemez, satış kapısını kapalı tutar (T331); dolu zorunlu alan boşaltılamaz ve tip değişikliği reddedilmez. Firma bildirimleri (F-1…F-4) bu e-postaya gider; ayrı "bildirim adresi" alanı yoktur (`02 §6.9.1`, §9.3.1).
+  5. Meslek odası ve davranış kuralları tipten bağımsız zorunludur ve yasal kimlikle görünür; işletme adı ya da tescilli marka isteğe bağlıdır, doluysa görünür (K-1568).
   6. Yasal kimlik bilgileri ana sayfadan İletişim başlığı altında sürekli erişilebilir (`02 §3.1.4`).
-  7. ETBİS kaydı yapılmaz; kayıt bilgisi isteğe bağlı alandır, satış kapısını tutmaz ve doluysa doğrulama bandı gösterilir (`02 §3.1.4`, §12.5).
-  8. İade adresi zorunlu ayrı bir firma ayarıdır; beyanla birlikte beyan kaydına yazılır ve sonradan değişirse yapılmış beyanın adresi değişmez (`02 §3.1.7`).
+  7. ETBİS kaydı yapılmaz; kayıt bilgisi isteğe bağlı alandır, satış kapısını tutmaz ve doluysa doğrulama bandı gösterilir (`02 §12.5`).
+  8. İade adresi zorunlu ayrı bir firma ayarıdır; beyan kaydına yazılır ve sonradan değişirse yapılmış beyanın adresi değişmez (`02 §3.1.7`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: ikinci firma kaydı, firma silme, dil ve para birimi seçimi yok.
@@ -3967,7 +3967,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 ### F4 — Entegrasyonlar
 
-**Yürütme sırası:** T401 → T402 → T403 → T404 → T405 → T406 → T407 → T408 → T409 → T410
+**Yürütme sırası:** T412 → T411 → T401 → T402 → T403 → T404 → T405 → T406 → T407 → T408 → T409 → T410
 
 #### T401: PayTR: anahtarlar, ödemenin başlatılması, dönüş ve çerçeve
 - **Bağımlılık:** —
@@ -4219,6 +4219,54 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK7: satır 15 DV-10 sonucuyla eşit; `02` yalnız fark dönmüyorsa, karar kaydıyla değişir.
   - KK8: DV-5 satırı T510'a bağlı.
   - KK9: sır taraması temiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T411: Kayıt maskeleme taramasının dizge farkında yeniden yazımı
+- **Bağımlılık:** —
+- **Dokümanlar:** çekirdek; `09` §18; `05 §9.1`
+- **Kabul kriterleri:**
+  1. `LogTemplateSourceScan` dizge ve yorum farkındadır: dizge içindeki `//` yorum sayılmaz; K1 biçimlerinin (ara değerli, ham ve sözcük dizgesi) hepsi taranır (D-89; K-1579).
+  2. Ad kuralı "içerir"dir, sonek değil; kasıtlı istisnalar açık izin listesindedir.
+  3. `BeginScope`, `ForContext`, `PushProperty` ve konumlu `[LoggerMessage]` şablonları da taranır.
+  4. Kayıt çağrısında istisna bağımsız değişkeni yasağı taramayla uygulanır (`09 §18.1`).
+  5. `RejectionLineSourceScan` aynı genişlemeyle tarar.
+  6. Bastırılan olaylar üçtür (`SaveChangesFailed` eklenir); `09 §18.1` m.4 ve m.8 buna eşitlenir (D-90 K3).
+  7. Her kuralın ihlal örneği taramada kırmızı, düzeltilmişi yeşildir.
+- **Test beklentisi:** Unit
+- **Doğrulama kontrol listesi:**
+  - KK1: dizge içi `//` ve üç dizge biçimi örnekli.
+  - KK2: "içerir" kuralı ve izin listesi.
+  - KK3: dört yeni çağrı biçimi taranır.
+  - KK4: istisna bağımsız değişkeni örneği kırmızı.
+  - KK5: red satırı taraması genişledi.
+  - KK6: süzgeçte üç olay; `09 §18.1` eşit.
+  - KK7: ihlal örnekleri `ViolationSamples` altında.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T412: F3 kapanış düzeltmeleri: sipariş bekçisi, satış sonrası kapanış ve IBAN kullanımı
+- **Bağımlılık:** —
+- **Dokümanlar:** çekirdek; `09` §3, §10, §15; `02 §7.1.6`; `03 §4.2.8`; `04` 7.3.2.1; `06 §4.26`
+- **Kabul kriterleri:**
+  1. Kilitsiz siparişe yazım her durumda kilit iletisi verir, kökü bilinmeyen kayıt her durumda reddedilir; kökünü yüklemeyen işlem kökü yükler; `09 §10.2` m.3 buna göre yazılır (D-95; K-1581).
+  2. Satış sonrası e-posta ekseni üyenin `CustomerId`'siyle okunur; `09 §15.4` m.5 eşitlenir (D-808).
+  3. `FindRefundIbanUseAsync` kargodan önceki caymayı, hizmet caymasını ve istek bağlantılı geri ödemeyi sayar; kayıt ve geri ödeme kümesi sipariş başına bir kez sayılır (`03 §4.2.8`; D-903, D-910).
+  4. Bütün adetleri dönülmüş kalem S8'den ve teslim işaretinden çıkar; S9 kapanışı buna göre açılır (`02 §7.1.6`; D-905).
+  5. Ret de "mal dönmedi" kapanışını açar (`06 §4.26`; D-915).
+  6. `TrackingNumber` en çok 64, `OtherCarrierName` en çok 100 karakterdir; sınırlar `09 §3.5` sabitlerindedir, aşım `InvalidInput`'tur (D-309; K-1586).
+  7. E-posta yerel kısmı noktayla başlamaz, bitmez, ardışık nokta içermez; `04` 7.3.2.1 eşitlenir (D-379).
+  8. Git kancasının ve paket betiğinin sır taraması `-e "` önekli satırı atlamaz (D-80).
+  9. Ödemesi tamamlanmış sipariş kümesi tek yerde tanımlıdır, okuyan her yer onu kullanır (D-847, D-896).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: bekçinin iki yolu ve kök yükleme testli; `09 §10.2` m.3 kodla eşit.
+  - KK2: e-posta ekseni `CustomerId`.
+  - KK3: üç konu sayılır, sipariş başına tek sayım; Integration testi.
+  - KK4: tam dönülmüş kalem S8'e girmez; S9 açılır.
+  - KK5: ret sonrası kapanış.
+  - KK6: iki sınırın iki yanı testli; `06` sütun notu.
+  - KK7: üç geçersiz biçim reddedilir.
+  - KK8: kanca testinde önekli sır yakalanır.
+  - KK9: kümenin tek tanımı.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 ### F5 — Kullanıcı arayüzü
@@ -4882,11 +4930,11 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   1. `GET /panel/urunler` ürünleri en yeni önce verir; arama taslak ve arşivi de bulur; fiyat aralığı ve stok durumu sunucunun hesabıdır (`07 UC-87`).
   2. `GET /panel/urunler/yeni` ve `/{iç anahtar}` formu verir; var olan form `Version`, gösterilen stok, ayrılmış adet ve yayın kapısı eksiklerini taşır (`07 UC-88`; K-653).
   3. `SaveProduct` ürünü, varyantları, galeriyi, dosyayı ve indirimi tek işlemde yazar; yeni ürün ve varyant Taslak doğar; açıklama kapalı biçim setiyle süzülür (`07 UC-114`).
-  4. Stok ya da kontenjan gösterilen değere karşı koşullu yazılır; fiyat değişikliği fiyat geçmişine girer; ikisi de ize girmez (`07 UC-114`; K-980).
-  5. UC-114 422: alan kuralı, yayın kapısını bozan kayıt, indirim sınırları, ayrılmış adedin altı, stok kodu çakışması, silinmiş görsel, dosya ya da kategori, yarım yükleme (`07 UC-114`; K-1171 (4)).
-  6. UC-114 409: sürüm ya da gösterilen stok farklı; ret yazmaz; sıra 404, alan 422, 409, ayrılmış 422 (`07 UC-114`; K-800).
+  4. Stok ya da kontenjan gösterilen değere karşı koşullu yazılır; fiyat değişikliği fiyat geçmişine girer; ikisi de ize girmez; P-6, P-9, P-44 eski ve yeni değerle ize girer (K-980; D-164).
+  5. UC-114 422: alan kuralı, yayın kapısını bozan kayıt, indirim sınırları, ayrılmış adedin altı, stok kodu çakışması, silinmiş görsel, dosya ya da kategori, yarım yükleme (K-1171 (4)).
+  6. UC-114 409: sürüm ya da gösterilen stok farklı; ret yazmaz; sıra 404, alan 422, 409, ayrılmış 422 (K-800).
   7. `ChangeProductPublishStatus` ve `ChangeVariantPublishStatus` hedef durumu mutlak yazar; ilk yayın adresi sabitler, vitrinden kalkan kalemi sepetten çıkarır, iz yazar (`07 UC-115`).
-  8. UC-115 422: yayın kapısı eksik, son Yayında varyant, yayındaki üründe dosyasız ya da fiyatı sıfır varyantı yayına alma (`07 UC-115`).
+  8. UC-115 422: yayın kapısı eksik, son Yayında varyant, yayındaki üründe dosyasız ya da fiyatı sıfır varyantı yayına alma.
   9. `DeleteProduct` ve `DeleteVariant` onaysızda açık sipariş sayısıyla 200 verir; onaylıda siler; yayındaki ürünün son Yayında varyantı 422'dir (`07 UC-116`; K-674).
   10. `UploadImage` kaydı yazmadan formu yeni görselle 200 döner; P-22…P-24 aşımı, dolu tek görsel alanı 422, gövde tavanı 413 (`07 UC-117`).
 - **Test beklentisi:** Unit, Integration
@@ -5549,7 +5597,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 ### F6 — Uçtan uca doğrulama
 
-**Yürütme sırası:** T603 → T601 → T602
+**Yürütme sırası:** T603 → T601 → T601b → T602
 
 #### T601: `DEPLOY_RUNBOOK` provası, canlı kanıt, dış sistemde kayıtlı adresler ve yansıyan tablolar
 - **Bağımlılık:** T603
@@ -5565,8 +5613,6 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   8. Canlı kanıt: gerçek kartla küçük tutarlı sipariş, 3D geçilir, panelden uçtan uca işletilir, bedel geri ödenir; taksit sunuluyorsa taksitli; satırlar runbook'a yazılır (`08 §2.1.10`; K-1411).
   9. Kurulum tarafı satırları runbook'tadır: gönderen adresinden deneme iletisi, erişim kaybında yeni yönetici ve isteyenin doğrulanması, ÖK-1…ÖK-12 (`02 §9.1.5`, §10.2.7; `10 §4.1`).
   10. Kanıtlar `12` §12.1 `VAL-F001`…`VAL-F012` satırlarına bağlanır.
-  11. Yük senaryosu k6 betiği `scripts/load/` altında yazılır ve `12` §12.12'nin kurulumuyla koşulur; koşunun çıktı özeti ve sınır ayarları `VAL-F013`, `VAL-F014` satırlarına bağlanır (`05 §11.1`).
-  12. DV-32: dört şirketin (`YurticiKargo`, `ArasKargo`, `SuratKargo`, `Ups`) takip kalıbı gerçek takip numarasıyla tarayıcıda denenir; tutmayan şirket listeden çıkar ve "Diğer" olur; sonuç `08 §4.1` DV-32 satırına ve `12` `VAL-E033`'e tarihle yazılır (K-1576).
 - **Test beklentisi:** E2E
 - **Doğrulama kontrol listesi:**
   - KK1: gerçek yapılandırmayla açılış.
@@ -5579,8 +5625,18 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK8: canlı kanıt satırları; taksit.
   - KK9: kurulum tarafı satırları.
   - KK10: `12` bağlanışı.
-  - KK11: yük betiği depoda; kurulum maddeleri; çıktı özeti `VAL-F013`, `VAL-F014`'e bağlı.
-  - KK12: DV-32 satırı ve `VAL-E033` tarihli ve sonuçlu; listede yalnız denemede gönderiyi açan şirket var.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T601b: Yük senaryosu ve kargo takip kalıplarının gerçek numarayla denemesi
+- **Bağımlılık:** T601
+- **Dokümanlar:** çekirdek; `05 §11.1`; `08 §4.1`; `12 §12.12`
+- **Kabul kriterleri:**
+  1. Yük senaryosu k6 betiği `scripts/load/` altında yazılır ve `12` §12.12'nin kurulumuyla koşulur; koşunun çıktı özeti ve sınır ayarları `VAL-F013`, `VAL-F014` satırlarına bağlanır (`05 §11.1`).
+  2. DV-32: dört şirketin (`YurticiKargo`, `ArasKargo`, `SuratKargo`, `Ups`) takip kalıbı gerçek takip numarasıyla tarayıcıda denenir; tutmayan şirket listeden çıkar ve "Diğer" olur; sonuç `08 §4.1` DV-32 satırına ve `12` `VAL-E033`'e tarihle yazılır (K-1576; T601'den bölündü, K-1579).
+- **Test beklentisi:** E2E
+- **Doğrulama kontrol listesi:**
+  - KK1: yük betiği depoda; kurulum maddeleri; çıktı özeti `VAL-F013`, `VAL-F014`'e bağlı.
+  - KK2: DV-32 satırı ve `VAL-E033` tarihli ve sonuçlu; listede yalnız denemede gönderiyi açan şirket var.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T602: Güncelleme komutu: referanstan başlayıp sırayla, geride kalmış kurulumun ara sürümlerden geçişi, geri alma ve yedekten dönüş koşulu
@@ -5887,6 +5943,8 @@ Kaynak (O5 2/2): `09` (25: `## n.` bölümü), `10` (143: KP satırı 77 · KD s
 | T408 | F4 | SES: geri dönen adreslerin öğrenilmesi | Bildirim | `08 §2.2.3` |
 | T409 | F4 | Google: giriş, kayıt ve yeniden doğrulama bağlayıcısı | Üyelik | `08 §2.3` |
 | T410 | F4 | Dış olgu varsayımlarının doğrulama kanıtları (DV) | Ortak | `08 §4.1`, §5.2 |
+| T411 | F4 | Kayıt maskeleme taramasının dizge farkında yeniden yazımı | Ortak altyapı | `09 §18` · D-89 · K-1579 |
+| T412 | F4 | F3 kapanış düzeltmeleri: sipariş bekçisi, satış sonrası kapanış ve IBAN kullanımı | Sepet ve sipariş | `09 §10.2`, `03 §4.2.8` · K-1579 |
 | T501 | F5 | Yerli üretim logosu varlığı ve gösterimi | Katalog | `08 §4.3` |
 | T502 | F5 | Vitrin: ana sayfa ve kategori sayfası (E-01, E-02) | Katalog | `07` UC-01, UC-02 (2) |
 | T503 | F5 | Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04; arşivdeki E-05 T549'da) | Katalog | `07` UC-03…UC-05 (3) |
@@ -5942,6 +6000,7 @@ Kaynak (O5 2/2): `09` (25: `## n.` bölümü), `10` (143: KP satırı 77 · KD s
 | T389 | F3 | Hesap ve durum yönetim komutları: oturumları sonlandırma, şifreyi geçersiz kılma, durum | Yönetim ve işlem izi | `05 §8.5` (8.5.3, 8.5.4, 8.5.6); `09 §13.2` (MK-72; K-1441) |
 | T390 | F3 | Uçtan uca dal akış testleri (servis düzeyi): karışık sipariş, kargoda cayma, IBAN'sız iade, e-posta düzeltme | Sepet ve sipariş | `03 §2.10.2`–§2.10.5 (K-1410, K-1419; K-1441) |
 | T601 | F6 | `DEPLOY_RUNBOOK` provası, canlı kanıt, dış sistemde kayıtlı adresler ve yansıyan tablolar | Ortak | `06 §8.5`, `08 §4.2` |
+| T601b | F6 | Yük senaryosu ve kargo takip kalıplarının gerçek numarayla denemesi | Ortak | `05 §11.1`, `08 §4.1` (DV-32) · K-1579 |
 | T602 | F6 | Güncelleme komutu: referans kurulumdan başlayıp sırayla, geride kalmış kurulumun ara sürümlerden geçişi, geri alma ve yedekten dönüş koşulu | Ortak | `05 §8.6`, §8.7 (MK-73, MK-74) |
 | T603 | F6 | Gerçek sunucuya ilk iniş: ilk sürüm etiketi, açık imajlar, gerçek alan adı ve bulut deposu | Ortak altyapı | `05 §8.1`, §8.2 (MK-68) · K-1407 (4); plan düzeltmesi (T09) |
 
@@ -6339,7 +6398,7 @@ python -I scripts/doc-scans/11_geri_yon.py . --denetle                       # 7
 | 08:§3.1 Bağlantı katmanının ortak yüzü | T202 | ✓ T202 | T202 KK1, KK3: tek bağlantı katmanı; 15/30 sn süre, kendiliğinden deneme yok — `IntegrationSourceScanTests`, `IntegrationTimeoutsConsistencyTests` · T202 #396 |
 | 08:§3.2 İmzalı makine uçlarının ortak ilkesi | T203 | ✓ T203 | T203 KK1: imza işleyiciden önce — `SignedEndpointHandlerTests` · T203 #397 |
 | 08:§3.3 Bir dış servis çökerse | T204 | ✓ T204 | T204 KK4–KK5: 5/30/120 dk deneme anları; ulaşmadı hâli — `DispatchRetryScheduleTests`, `EmailOutageTests` · T204 #398 |
-| 08:§4.1 Dış olgu varsayımları | T410 | | |
+| 08:§4.1 Dış olgu varsayımları | T410, T601b | | |
 | 08:§4.2 Dış sistemde kayıtlı adresler | T601 | | |
 | 08:§4.3 Ürünle gelen dış kaynaklı varlık — yerli üretim logosu | T501 | | |
 | 08:§5.1 `07`'ye geri yansıyan uçlar | — | | |
@@ -6480,7 +6539,7 @@ Kaynak: `04` (102: ekran 53 `04:E-nn` · ortak bileşen 20 `04:OB-nn` · alt bö
 | 03:§3.4 Üyelik (akış 4) | T514, T515, T516, T517, T519, T533 | | |
 | 03:§3.5 Firma tarafı | T520, T522, T525, T526, T527, T528, T529, T530, T531, T534, T535, T536 | | |
 | 03:§4.1 Süre envanterinden zaman aşımı akışları | T201, T301, T302, T324, T325, T326, T340, T368, T527 | ✓ F2 payı (T201); F3 payı (T301, T302, T324, T325, T326, T340, T368); kalan T527 | T201 KK1: gece 03:00 imha işi — `DisposalTests` · T201 #395; T301 (matris eşlemesi; kriterlerin bütünü) — `OrderDisposalTests`, `OrderRetentionTests` · T301 #431; T302 (Dokümanlar satırı; kriterlerin bütünü) — `RecordDisposalTests`, `OrderDisposalTests` · T302 #446; T324 KK1–KK7 — `LinkLifetimeTests`, `PendingRecordDisposalTests`, `MembershipTests` · T324 #454; T325 KK1–KK9 — `DeliveryPeriodTests`, `PeriodTimerScanTests`, `DeliveryPeriodRulesTests` · T325 #464; T326 KK1–KK8 — `DiscountAndReferenceTests`, `DiscountRulesTests`, `ExpiryTimerScanTests` · T326 #471; T340 KK5 — `AddressTests`, `MembershipTests` · T340 #462; T368 (Dokümanlar satırı; kriterlerin bütünü) — `StatusCorrectionTests`, `FirmReasonRulesTests` · T368 #498 |
-| 03:§4.2 Kendiliğinden işleyen anlar | T327 | ✓ T327 | T327 KK1–KK6 — `AutomaticMomentsTests`, `CatalogCoreTablesTests` · T327 #480 |
+| 03:§4.2 Kendiliğinden işleyen anlar | T327, T412 | ✓ T327; kalan T412 | T327 KK1–KK6 — `AutomaticMomentsTests`, `CatalogCoreTablesTests` · T327 #480 |
 | 03:§5.1 Üç yol ve itirazın yeri | T511, T512, T513, T506 | | |
 | 03:§5.2 Ürünün dışında çözülen anlaşmazlıklar | T506, T512, T528, T529, T530 | | |
 | 03:§5.3 İade reddi ve değer kaybı | T320, T512, T528, T529 | ✓ F3 payı (T320); kalan T512, T528, T529 | T320 (Dokümanlar satırı; kriterlerin bütünü) — `ItemRecordsTests`, `DefectClaimHistoryPayloadTests` · T320 #466 |
@@ -6925,7 +6984,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 02:§7.1.3 İptal ve iade kalem düzeyinde ve adetle işler | T369, T367 | ✓ T369, T367 | T369 KK1 — `RefundAmountTests`, `RefundAmountRulesTests` · T369 #501; T367 KK3 — `ItemSharesTests`, `CustomerCancellationTests` · T367 #494 |
 | 02:§7.1.4 Üç yol da sipariş sayfasından kullanılır; | T367, T372, T374, T306, T307, T511 | ✓ F3 payı (T367, T372, T374, T306, T307); kalan T511 | T367 KK8 — `ItemSharesTests`, `CustomerCancellationTests` · T367 #494; T372 KK1 — `WithdrawalDeclarationTests`, `ItemSharesTests` · T372 #492; T374 KK10 — `DefectClaimRulesTests`, `ItemRecordsTests` · T374 #504; T306 KK6 — `CustomerNoticeQueueTests`, `DispatchAndChannelStateTablesTests` · T306 #427; T307 (Dokümanlar satırı; kriterlerin bütünü) — `CustomerNoticeAfterOrderTemplateTests`, `CustomerNoticeAfterOrderQueueTests` · T307 #435 |
 | 02:§7.1.5 İtirazın sistemdeki yeri | T365, T366 | ✓ T365, T366 | T365 (Dokümanlar satırı; kriterlerin bütünü) — `RecordDisposalTests`, `BrandingTests` · T365 #496; T366 (Dokümanlar satırı; kriterlerin bütünü) — `LegalTextTests`, `LegalTextTemplateTests` · T366 #428 |
-| 02:§7.1.6 Kalemin işlem birimi adettir; kalem parça parça kapanabilir (K-787, K-790) | T369, T367, T372 | ✓ T369, T367, T372 | T369 KK1, KK2 — `RefundAmountTests`, `RefundAmountRulesTests` · T369 #501; T367 (Dokümanlar satırı; kriterlerin bütünü) — `ItemSharesTests`, `CustomerCancellationTests` · T367 #494; T372 KK4 — `ItemSharesTests`, `MoneyTests` · T372 #492 |
+| 02:§7.1.6 Kalemin işlem birimi adettir; kalem parça parça kapanabilir (K-787, K-790) | T369, T367, T372, T412 | ✓ T369, T367, T372; kalan T412 | T369 KK1, KK2 — `RefundAmountTests`, `RefundAmountRulesTests` · T369 #501; T367 (Dokümanlar satırı; kriterlerin bütünü) — `ItemSharesTests`, `CustomerCancellationTests` · T367 #494; T372 KK4 — `ItemSharesTests`, `MoneyTests` · T372 #492 |
 | 02:§7.1.7 İşleme giren adetlerin tutarı kalemin donmuş değerlerinden ayrılır (K-788) | T369, T386 | ✓ T369, T386 | T369 KK3–KK5 — `MoneyTests` · T369 #501; T386 KK3 — `OrderCorrectionTests`, `DataExportTests` · T386 #509 |
 | 02:§7.2 İptal | T306, T307, T316, T325, T334, T338, T340, T349, T350, T351, T353, T367, T368, T369, T370, T386 | ✓ T306, T307, T316, T325, T334, T338, T340, T349, T350, T351, T353, T367, T368, T369, T370, T386 | T306 KK9 — `CustomerNoticeQueueTests`, `DispatchAndChannelStateTablesTests` · T306 #427; T307 (Dokümanlar satırı; kriterlerin bütünü) — `CustomerNoticeAfterOrderTemplateTests`, `CustomerNoticeAfterOrderQueueTests` · T307 #435; T316 KK2, KK5 — `ShipmentTransitionsTests`, `OrderTransitionsTests` · T316 #437; T325 KK3 — `DeliveryPeriodRulesTests`, `DeliveryPeriodTests` · T325 #464; T334 KK6 — `StockRulesTests`, `StockAndCapacityTests` · T334 #443; T338 KK8 — `CouponTests`, `CouponRulesTests` · T338 #458; T340 (Dokümanlar satırı; kriterlerin bütünü) — `AddressTests`, `MembershipTests` · T340 #462; T349 KK9 — `OrderTransitionsTests` · T349 #476; T350 (Dokümanlar satırı; kriterlerin bütünü) — `ShipmentTransitionsTests`, `ShippingPromiseTests` · T350 #460; T351 KK1 — `DeliveryMarksTests` · T351 #478; T353 KK7 — `PaymentWindowTests`, `AutomaticMomentsTests` · T353 #500; T367 KK1–KK7 — `CustomerCancellationTests`, `ItemSharesTests`, `MoneyTests` · T367 #494; T368 KK1–KK9 — `DeliveryPeriodRulesTests`, `FirmReasonRulesTests`, `IrreversibleConfirmationTests` · T368 #498; T369 KK6, KK7 — `RefundAmountTests`, `RefundAmountRulesTests` · T369 #501; T370 KK2, KK6, KK8, KK9 — `StatusCorrectionTests`, `ItemRecordsTests` · T370 #506; T386 KK2, KK3 — `OrderCorrectionTests`, `DataExportTests` · T386 #509 |
 | 02:§7.2.1 Müşteri fiziksel kalemi, sipariş "Kargoya verildi"ye geçene kadar kendi iptal eder | T367, T316 | ✓ T367, T316 | T367 KK1, KK2 — `CustomerCancellationTests` · T367 #494; T316 KK3 — `ShipmentTransitionsTests`, `OrderTransitionsTests` · T316 #437 |
@@ -7318,14 +7377,14 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:§8.7 Göçler ve geri alma | T602, T04, T388 | ✓ F0 payı (T04); F3 payı (T388); kalan T602 | T04 KK5, KK7: dry-run, geri alma sınaması, yama denetimi · T04 #339; T388 KK5, KK9 — `RestoreCommandsTests`, `SessionLinkAttemptLoginTablesTests` · T388 #483 |
 | 05:§8.8 Güvenlik güncellemeleri | T601 | | |
 | 05:§8.9 Sunucuya bakım erişimi | T601, T05 | ✓ F0 payı (T05); kalan T601 | T05 KK3: dışarıya yalnız 80/443 · T05 #348 |
-| 05:§9.1 Sistem kayıtları — kaynaklar, içerik ve maskeleme | T225, T230, T231 | ✓ T225, T230, T231 | T225 KK3: yasaklı değerler yazılmaz; T230 KK1–KK2: Serilog, LoggingSetup; üç yazıcı üç dosya; T231 KK1, KK3: yazım katmanı; PathMasker — `SystemLogsTests`, `LoggingSourceScanTests`, `LoggingFilesTests`, `LogTemplateSourceScanTests`, `PathMaskerTests` · T225 #389, T230 #386, T231 #387 |
+| 05:§9.1 Sistem kayıtları — kaynaklar, içerik ve maskeleme | T225, T230, T231, T411 | ✓ T225, T230, T231; kalan T411 | T225 KK3: yasaklı değerler yazılmaz; T230 KK1–KK2: Serilog, LoggingSetup; üç yazıcı üç dosya; T231 KK1, KK3: yazım katmanı; PathMasker — `SystemLogsTests`, `LoggingSourceScanTests`, `LoggingFilesTests`, `LogTemplateSourceScanTests`, `PathMaskerTests` · T225 #389, T230 #386, T231 #387 |
 | 05:§9.2 Kayıtların saklanması ve korunması | T07, T201, T225 | ✓ F0 payı (T07); F2 payı (T201, T225) | T07 KK3: sistem kayıtları dosya yedeğinde · T07 #351 · T225 KK5: P-45 saklama; T201 KK9: eski kayıt dosyası imhası — `SystemLogsDeployConsistencyTests`, `DisposalTests` · T225 #389, T201 #395 |
 | 05:§9.3 Kayıtların okuma yolu | T387 | ✓ T387 | T387 KK4–KK6 — `AccountAndStatusCommandTests`, `RestoreCommandsTests` · T387 #487 |
 | 05:§9.4 İzleme ve uyarı | T01, T07, T314 | ✓ T01, T07, T314 | T01 canlılık ucu; T07 KK4 yedek durum dosyası · T01 #338, T07 #351; T314 KK3–KK10 — `StatusEndpointTests`, `UnexpectedErrorLayerTests` · T314 #418 |
 | 05:§10.1 Dış bağımlılıklar — "çökerse ne olur" | T204, T202 | ✓ T204, T202 | T204 KK1, KK7: sahte hata türleri; süreler kesintiden bağımsız; T202 KK5: aşım sonucu bilinmeyen — `GatewayFakesTests`, `OutageIndependenceSourceScanTests`, `ExternalCallRunnerTests` · T204 #398, T202 #396 |
 | 05:§10.2 E-posta kanalının ve firma bildirimlerinin uyarısı | T204, T314, T382, T385 | ✓ T204, T314, T382, T385 | T204 KK4–KK5: 5/30/120 dk deneme anları; ulaşmadı hâli — `DispatchRetryScheduleTests`, `EmailOutageTests` · T204 #398; T314 KK6 — `StatusEndpointTests`, `UnexpectedErrorLayerTests` · T314 #418; T382 KK7 — `PanelHomeTests`, `PanelHomeRulesTests` · T382 #510; T385 KK5 — `DispatchRetryAndMarkTests`, `OrderOperationsTests` · T385 #512 |
 | 05:§10.3 Beklenmeyen hata | T212 | ✓ T212 | T212 KK7: tek yakalama katmanı — `UnexpectedErrorLayerTests` · T212 #407 |
-| 05:§11.1 Tasarım değerleri | T226 | ✓ T226 | T226 KK2, KK6: tasarım değerleri; SK-5 değerleri uygulanmaz — `SettingLayersConsistencyTests` · T226 #383 |
+| 05:§11.1 Tasarım değerleri | T226, T601b | ✓ T226; kalan T601b | T226 KK2, KK6: tasarım değerleri; SK-5 değerleri uygulanmaz — `SettingLayersConsistencyTests` · T226 #383 |
 | 05:§11.2 Bilinçli tekil bırakılanlar | — | | |
 | 05:§11.3 Büyüme yolu | — | | |
 
@@ -7342,7 +7401,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 09:§7 Zaman ve biçim standartları | T211, T216, T227, T378 | ✓ T211, T216, T227, T378 | T211 KK6: alan adı 06 §4 adı; T216 KK2, KK4: tarih Türkiye günü; tutar virgüllü, tr-TR; T227 KK1, KK6: UTC damga, Türkiye saati; kuruşa yuvarlama — `ModelBindingRuleTests`, `RequestFormatTests`, `TurkeyTimeTests`, `MoneyTests` · T211 #402, T216 #411, T227 #382; T378 KK9 — `SingleTimeZoneTests`, `TimeAndMoneyRulesTests` · T378 #416 |
 | 09:§8 Hata yönetimi | T205, T212, T213, T214 | ✓ T205, T212, T213, T214 | T205 KK4: eksik kayıt adıyla yazılır; T212 KK7: tek yakalama katmanı; T213 KK1: kod adı biçimi, kilit dosyası; T214 KK1: kapalı notice listesi — `StartupDatabaseCheckTests`, `UnexpectedErrorLayerTests`, `ErrorCodeConsistencyTests`, `NoticeParameterTests` · T205 #385, T212 #407, T213 #408, T214 #410 |
 | 09:§9 Domain kuralları | T106, T201, T218, T219, T228, T301, T315, T333, T348, T355, T356, T363, T380 | ✓ T106, T201, T218, T219, T228, T301, T315, T333, T348, T355, T356, T363, T380 | T106 KK4 (§9.2 madde 6–8: imha fonksiyonu) — `AdminAndAuditTablesTests` · T106 #363 · T201 KK3: süre değerleri tek evde; T218 KK4: başka modül tablosuna erişim yok; T219 KK1: adres addan sunucuda üretilir; T228 KK1, KK5: tek koşullu güncelleme; ayırma koşullu güncelleme — `DisposalTimingsConsistencyTests`, `ModuleBoundaryTests`, `SlugTests`, `ConcurrencyTests` · T201 #395, T218 #380, T219 #413, T228 #391; T301 (Dokümanlar satırı; kriterlerin bütünü) — `OrderDisposalTests`, `OrderRetentionTests` · T301 #431; T315 (raporda kaynağa adıyla bağlı satır) — `OrderTransitionsTests` · T315 #434; T333 (raporda kaynağa adıyla bağlı satır) — `CategoryLevelWriterTests` · T333 #442; T348 (Dokümanlar satırı; kriterlerin bütünü) — `PaymentWindowTests`, `SummaryComparisonTests` · T348 #489; T355 (Dokümanlar satırı; kriterlerin bütünü) — `FrozenValuesTests`, `OrderFreezeTests` · T355 #484; T356 (Dokümanlar satırı; kriterlerin bütünü) — `ConfirmationStepTests`, `EmailRenderingSourceScanTests` · T356 #486; T363 (Dokümanlar satırı; kriterlerin bütünü) — `PageAddressTests`, `AddressSourceScanTests` · T363 #482; T380 (raporda kaynağa adıyla bağlı satır) — `AuditEntryRulesTests`, `AuditTrailTests` · T380 #419 |
-| 09:§10 Veri erişimi | T01, T04, T10, T101, T118, T119, T208, T210, T228, T229, T233, T333, T384, T386 | ✓ T01, T04, T10, T101, T118, T119, T208, T210, T228, T229, T233, T333, T384, T386 | T01 KK5 (§10.7), T04 KK5 (§10.6), T10 KK1–KK8 (§10.8) — `DatabaseUsersTests` · T01 #338, T04 #339, T10 #350; F1: T101 KK1, KK8; T118 KK7; T119 KK1, KK5 · T101 #358, T118 #376, T119 #377 · T208 KK4; T210 KK4; T228 KK1; T229 KK1; T233 KK1–KK2 — `VersionedFormPageTests`, `ListPagingTests`, `ConcurrencyTests`, `AppCacheTests`, `DatabaseTimeoutsConsistencyTests`, `DatabaseConnectionTests` · T208 #404, T210 #406, T228 #391, T229 #414, T233 #384; T333 (raporda kaynağa adıyla bağlı satır) — `CategoryTreeAndListsTests`, `ListPagingTests` · T333 #442; T384 (raporda kaynağa adıyla bağlı satır) — `CsvExportWriterTests`, `ExportSurfaceTests`, `DataExportTests` · T384 #502; T386 (raporda kaynağa adıyla bağlı satır) — `OrderCorrectionTests`, `DataExportTests`, `LateDeliveryAndFirmCancellationTests` · T386 #509 |
+| 09:§10 Veri erişimi | T01, T04, T10, T101, T118, T119, T208, T210, T228, T229, T233, T333, T384, T386, T412 | ✓ T01, T04, T10, T101, T118, T119, T208, T210, T228, T229, T233, T333, T384, T386; kalan T412 | T01 KK5 (§10.7), T04 KK5 (§10.6), T10 KK1–KK8 (§10.8) — `DatabaseUsersTests` · T01 #338, T04 #339, T10 #350; F1: T101 KK1, KK8; T118 KK7; T119 KK1, KK5 · T101 #358, T118 #376, T119 #377 · T208 KK4; T210 KK4; T228 KK1; T229 KK1; T233 KK1–KK2 — `VersionedFormPageTests`, `ListPagingTests`, `ConcurrencyTests`, `AppCacheTests`, `DatabaseTimeoutsConsistencyTests`, `DatabaseConnectionTests` · T208 #404, T210 #406, T228 #391, T229 #414, T233 #384; T333 (raporda kaynağa adıyla bağlı satır) — `CategoryTreeAndListsTests`, `ListPagingTests` · T333 #442; T384 (raporda kaynağa adıyla bağlı satır) — `CsvExportWriterTests`, `ExportSurfaceTests`, `DataExportTests` · T384 #502; T386 (raporda kaynağa adıyla bağlı satır) — `OrderCorrectionTests`, `DataExportTests`, `LateDeliveryAndFirmCancellationTests` · T386 #509 |
 | 09:§11 Entegrasyon kuralları | T202, T203, T305, T366, T401, T407, T409, T501 | ✓ F2 payı (T202, T203); F3 payı (T305, T366); kalan T401, T407, T409, T501 | T202 KK1–KK2: tek bağlantı katmanı; adlarda sağlayıcı yok; T203 KK1–KK2: imza işleyiciden önce; sabit zamanlı karşılaştırma — `IntegrationSourceScanTests`, `PaymentGatewayImplementationTests`, `SignedEndpointHandlerTests`, `SignatureComparisonTests` · T202 #396, T203 #397; T305 (Dokümanlar satırı; kriterlerin bütünü) — `EmailRenderingSourceScanTests`, `EmailCompositionTests` · T305 #422; T366 (matris eşlemesi; kriterlerin bütünü) — `LegalTextTests`, `LegalTextTemplateTests` · T366 #428 |
 | 09:§12 Sözleşme ve olay sürümleme | T102, T203, T220, T311, T538 | ✓ F1 payı (T102); F2 payı (T203, T220); F3 payı (T311); kalan T538 | T102 KK2, KK4–KK5: metin saklama, tek dönüşüm, kilit dosyaları — `EnumConversionTests`, `EnumLockTests` · T102 #359 · T220: `JobType`, `JobState` metin ve kısıtla, kilit dosyasında (`UnitTests/Locks/`); T203 KK1: imzalı uçta sürüm alanı yok — `EnumLockTests`, `SignedEndpointHandlerTests` · T220 #393, T203 #397; T311 (Dokümanlar satırı; kriterlerin bütünü) — `PaymentNotificationTests`, `RequestLimitsTests` · T311 #456 |
 | 09:§13 Arka plan iş kuralları | T220, T221, T303, T387, T388, T389 | ✓ T220, T221, T303, T387, T388, T389 | T220 KK1, KK3, KK5: tek arka plan döngüsü; en az bir kere teslim; yeniden deneme kuralı; T221 KK4: oturum kapsamlı kilit — `JobRunnerTests`, `JobRetryPolicyTests`, `SchedulerNightlyTests` · T220 #393, T221 #394; T303 KK1–KK4, KK6, KK7 — `CommandStructureTests`, `CommandDispatcherTests`, `CreateAdminCommandTests` · T303 #469; T387 KK2, KK3, KK8, KK9 — `AccountAndStatusCommandTests`, `RestoreCommandsTests` · T387 #487; T388 KK2 — `RestoreCommandsTests`, `SessionLinkAttemptLoginTablesTests` · T388 #483; T389 KK3, KK4, KK8 — `AccountAndStatusCommandTests`, `AccountCommandsTests` · T389 #472 |
@@ -7350,7 +7409,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 09:§15 Güvenlik kuralları | T207, T209, T09, T215, T219, T222, T223, T224, T232, T312, T339, T342, T354, T376, T603 | ✓ F0 payı (T09); F2 payı (T207, T209, T215, T219, T222, T223, T224, T232); F3 payı (T312, T339, T342, T354, T376); kalan T603 | T09 KK7: istemci adresi (§15.1 m8); T05 KK8 (§15.2) · T09 #354 · T207 KK3; T209 KK4, KK9; T215 KK3; T219 KK1; T222 KK1–KK2; T223 KK3; T224 KK1–KK2; T232 KK2, KK4 — `SessionAccessTests`, `ForgeryProtectionTests`, `SecurityHeadersTests`, `TimeDrivenSlidingWindowLimiterTests`, `SlugTests`, `SecretKeyTests`, `LinkKeysTests`, `ImageProcessorTests`, `CookieRulesTests`, `ProtectedValuesTests` · T207 #403, T209 #405, T215 #409, T219 #413, T222 #392, T223 #399, T224 #400, T232 #388; T312 (Dokümanlar satırı; kriterlerin bütünü) — `UploadEndpointsTests`, `FormVersionSourceScanTests` · T312 #426; T339 (Dokümanlar satırı; kriterlerin bütünü) — `ProductGalleryTests`, `VersionedFormPageTests` · T339 #445; T342 (raporda kaynağa adıyla bağlı satır) — `MembershipPasswordLockOrderTests` · T342 #453; T354 KK1 — `AddressTests`, `MembershipTests` · T354 #470; T376 (Dokümanlar satırı; kriterlerin bütünü) — `AttemptLimitInventoryTests`, `MembershipSessionTests` · T376 #493 |
 | 09:§16 İstemci tarafı kurallar | T525, T539, T540, T543, T544, T548 | | |
 | 09:§17 Yardımcı servis / sidecar standartları (varsa) | T06, T07, T08, T10 | ✓ T06, T07, T08, T10 | T06 KK2–KK6, T07 KK2–KK5, T08, T10 KK1 — betik testleri, `BackupLayoutConsistencyTests` · T06 #347, T07 #351, T08 #349, T10 #350 |
-| 09:§18 Loglama ve gözlemlenebilirlik | T225, T230, T231, T314, T203, T213 | ✓ T225, T230, T231, T314, T203, T213 | T225 KK3: yasaklı değerler yazılmaz; T230 KK1, KK6: Serilog, LoggingSetup; tek JSON satırı, biçimleyici; T231 KK3: PathMasker; T203 KK1: imza işleyiciden önce; T213 KK1: kod adı biçimi, kilit dosyası — `SystemLogsTests`, `LoggingSourceScanTests`, `ApplicationLogFormatterTests`, `PathMaskerTests`, `SignedEndpointHandlerTests`, `ErrorCodeConsistencyTests` · T225 #389, T230 #386, T231 #387, T203 #397, T213 #408; T314 (Dokümanlar satırı; kriterlerin bütünü) — `StatusEndpointTests`, `UnexpectedErrorLayerTests` · T314 #418 |
+| 09:§18 Loglama ve gözlemlenebilirlik | T225, T230, T231, T314, T203, T213, T411 | ✓ T225, T230, T231, T314, T203, T213; kalan T411 | T225 KK3: yasaklı değerler yazılmaz; T230 KK1, KK6: Serilog, LoggingSetup; tek JSON satırı, biçimleyici; T231 KK3: PathMasker; T203 KK1: imza işleyiciden önce; T213 KK1: kod adı biçimi, kilit dosyası — `SystemLogsTests`, `LoggingSourceScanTests`, `ApplicationLogFormatterTests`, `PathMaskerTests`, `SignedEndpointHandlerTests`, `ErrorCodeConsistencyTests` · T225 #389, T230 #386, T231 #387, T203 #397, T213 #408; T314 (Dokümanlar satırı; kriterlerin bütünü) — `StatusEndpointTests`, `UnexpectedErrorLayerTests` · T314 #418 |
 | 09:§19 Test kuralları | T03, T04, T120, T202, T329, T538, T546, T547 | ✓ F0 payı (T03, T04); F1 payı (T120); F2 payı (T202); F3 payı (T329); kalan T538, T546, T547 | T03 KK1–KK9, T04 KK2 — Unit 68, Integration 62, `ForbiddenTestPatternScanTests` · T03 #337, T04 #339; F1: T120 KK8: `Consistency` özellikli, yalnız Lint'te — `TestIsolationScanTests` · T120 #378 · T202 KK9: sahteler UnitTests/Fakes — `GatewayFakesTests` · T202 #396; T329 (Dokümanlar satırı; kriterlerin bütünü) — `MainFlowTests`, `LivenessEndpointTests` · T329 #499 |
 | 09:§20 Performans kuralları | T210, T220, T223, T229 | ✓ T210, T220, T223, T229 | T210 KK2: page birden başlar; T220 KK9: dış çağrı kilit dışında; T223 KK4: yeniden kodlama, 2560 px; T229 KK1: bellek içi önbellek — `ListPatternPageTests`, `JobRunnerTests`, `ImageProcessorTests`, `AppCacheTests` · T210 #406, T220 #393, T223 #399, T229 #414 |
 | 09:§21 Git ve CI/CD kuralları | T03, T04, T06, T09, T603 | ✓ F0 payı (T03, T04, T06, T09); kalan T603 | T03, T04, T06, T09 KK3, KK5: CI ve Publish yeşil, `SETUP_COMPLETE=true` · T03 #337, T04 #339, T06 #347, T09 #354 |
@@ -7701,6 +7760,8 @@ Her task → hangi kaynak öğeden besleniyor?
 | T408 | `08` §2.2.3; `05` §5.2 | ✓ gerekçeli (alt bölüm) — K-1414 |
 | T409 | `08` §2.3; `03` §9.1, §10.1; `02` §3.13.6, §3.13.7, §11.2, P-13, §12.2, §12.2.8; `05` MK-46, §6.1; `09` §11; `10` KP-26, KD-11, §4.1 | ✓ 15 kaynak (özgün 8, alt bölüm 7, devir 0) |
 | T410 | `08` §4.1, §5.2; `10` §4.1 | ✓ gerekçeli (alt bölüm) — K-1413, K-1414 |
+| T411 | `05` §9.1; `09` §18 | ✓ gerekçeli (alt bölüm) — K-1579 |
+| T412 | `03` §4.2; `02` §7.1.6; `09` §10 | ✓ 3 kaynak (özgün 1, alt bölüm 2, devir 0) |
 | T501 | `08` §4.3; `04` E-04; `02` §3.8.5, §12.1, §12.1.5; `09` §11; `10` KP-5 | ✓ 7 kaynak (özgün 4, alt bölüm 3, devir 0) |
 | T502 | `07` UC-01, UC-02; `04` E-01, E-02; `03` §2.1; `02` §3.4.2, §3.4.3, §3.5.2, §3.5.3, §3.9.2, §3.27.14, §3.28.1, §3.28.2, §3.28.3; `10` KP-1, KP-31, KD-40 | ✓ 17 kaynak (özgün 16, alt bölüm 1, devir 0) |
 | T503 | `07` UC-03, UC-04, UC-05; `04` E-03, E-04; `03` §2.1, §8.1; `02` §3.1.5, §3.2.1, §3.3.1, §3.3.3, §3.3.6, §3.5.1, §3.5.2, §3.5.3, §3.6.3, §3.6.4, §3.6.5, §3.7.5, §3.7.6, §3.8.5, §3.9.2, §3.16.8, §3.16.9, §3.20.4, §3.30.7, §11.1, P-5, P-9, §12.1, §12.1.5; `10` KP-2, KP-3, KP-4, KP-5, KP-6, KP-7, KD-6, KD-8, KD-9, KD-33, KD-34 | ✓ 42 kaynak (özgün 38, alt bölüm 4, devir 0) |
@@ -7751,6 +7812,7 @@ Her task → hangi kaynak öğeden besleniyor?
 | T548 | `09` §16; `devir` K-1354, K-1391, P8.5 | ✓ gerekçeli (alt bölüm + devir) — K-1435 |
 | T549 | `04` E-05; `02` §3.7.6; `10` KP-7 | ✓ 3 kaynak (özgün 3, alt bölüm 0, devir 0) |
 | T601 | `06` §8.5; `08` §4.2; `02` §9.1, §9.1.5, §10.1, §10.1.3, §10.2, §10.2.7, §12.2, §12.2.1, §12.2.8, §12.3, §12.3.1, §12.3.2, §12.3.3, §12.5; `05` MK-07, MK-25, MK-27, MK-75, MK-76, §6.3, §6.9, §7.6, §8.8, §8.9; `10` §4.1 | ✓ 27 kaynak (özgün 13, alt bölüm 14, devir 0) |
+| T601b | `08` §4.1; `05` §11.1 | ✓ gerekçeli (alt bölüm) — K-1579 |
 | T602 | `05` MK-73, MK-74, §8.6, §8.7 | ✓ 4 kaynak (özgün 2, alt bölüm 2, devir 0) |
 | T603 | `05` MK-68, §3.2, §6.3, §8.1, §8.2; `09` §15, §21; `10` §4.1; `devir` K-1358, P8.3, D-01 | ✓ 11 kaynak (özgün 1, alt bölüm 7, devir 3) |
 

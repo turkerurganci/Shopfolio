@@ -33,10 +33,10 @@
 | F0 | Proje iskeleti | `T01`–`T10` (10) | ✓ PASS | `phase/F0-pass` | [GATE_CHECK_F0](CHECKPOINT_REPORTS/GATE_CHECK_F0.md) |
 | F1 | Veri katmanı | `T101`–`T120` (20) | ✓ PASS | `phase/F1-pass` | [GATE_CHECK_F1](CHECKPOINT_REPORTS/GATE_CHECK_F1.md) |
 | F2 | Çekirdek servisler | `T201`–`T233` (33) | ✓ PASS | `phase/F2-pass` | [GATE_CHECK_F2](CHECKPOINT_REPORTS/GATE_CHECK_F2.md) |
-| F3 | İş mantığı | `T301`–`T390` (90) | ⬚ | — | |
-| F4 | Entegrasyonlar | `T401`–`T410` (10) | ⬚ | — | |
+| F3 | İş mantığı | `T301`–`T390` (90) | ✓ PASS | `phase/F3-pass` | [GATE_CHECK_F3](CHECKPOINT_REPORTS/GATE_CHECK_F3.md) |
+| F4 | Entegrasyonlar | `T401`–`T412` (12) | ⬚ | — | |
 | F5 | Kullanıcı arayüzü | `T501`–`T549` (49) | ⬚ | — | |
-| F6 | Uçtan uca doğrulama | `T601`–`T603` (3) | ⬚ | — | |
+| F6 | Uçtan uca doğrulama | `T601`–`T603`, `T601b` (4) | ⬚ | — | |
 
 ---
 
@@ -248,6 +248,8 @@
 | T408 | SES: geri dönen adreslerin öğrenilmesi | ⬚ | — | — | — |
 | T409 | Google: giriş, kayıt ve yeniden doğrulama bağlayıcısı | ⬚ | — | — | — |
 | T410 | Dış olgu varsayımlarının doğrulama kanıtları (DV) | ⬚ | — | — | — |
+| T411 | Kayıt maskeleme taramasının dizge farkında yeniden yazımı | ⬚ | — | — | — |
+| T412 | F3 kapanış düzeltmeleri: sipariş bekçisi, satış sonrası kapanış ve IBAN kullanımı | ⬚ | — | — | — |
 
 ---
 
@@ -312,6 +314,7 @@
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
 | T601 | `DEPLOY_RUNBOOK` provası, canlı kanıt, dış sistemde kayıtlı adresler ve yansıyan tablolar | ⬚ | — | — | — |
+| T601b | Yük senaryosu ve kargo takip kalıplarının gerçek numarayla denemesi | ⬚ | — | — | — |
 | T602 | Güncelleme komutu: referanstan başlayıp sırayla, geride kalmış kurulumun ara sürümlerden geçişi, geri alma ve yedekten dönüş koşulu | ⬚ | — | — | — |
 | T603 | Gerçek sunucuya ilk iniş: ilk sürüm etiketi, açık imajlar, gerçek alan adı ve bulut deposu | ⬚ | — | — | — |
 

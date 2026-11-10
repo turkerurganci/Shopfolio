@@ -1,6 +1,6 @@
 # T404 — PayTR: bağlantı hatası ve ayrım
 
-**Faz:** F4 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-10
+**Faz:** F4 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-10
 
 - **Dal:** `task/T404-paytr-baglanti-hatasi` (taban `main` `06f704a7`)
 - **Bağımlılık:** T403 ✓
@@ -83,10 +83,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulayıcı doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-10; dal ucu `91d8ad6d`, `origin/main` `83938803` ile birleştirildi) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 — K1 → D-1080 (`VAL-E061`, `E089`, `E094`, `A970` sayfa kanıtı ister, `BEKLEMEDE` kaldı; hiçbir task bloğunda ve backlogda izi yoktu) |
+
+**Tur 1 kanıtları (doğrulayıcı):** kriter 1–8 ve KK1–KK8 ✓ (kriter 2 ve 8'in test mağazası gözlem payı OWNER_INPUT, D-1075/D-1076). Kod okundu: `PayTrPaymentGateway` (`ReadAnswer`, `WithoutFieldValues`, `SecondTokenReasonTexts`), `PaymentStarts`/`CardUnavailability`, `PaymentStartRule`, `PaymentMethods`, `PaymentModule` kaydı, `ExternalCallRunner`, `IntegrationHttpClients`, `StatusRegistration` (dizi tek örnek: iki taraf da `TryAddSingleton`), `OrderConfirmation` (onay `ListOpenAsync`'e bakar; `PaymentMethodUnavailable` → 422, `ErrorStatuses`). Kriter 5'in iade sorgusu payı T405 k4–k5'tedir (bugün iade işleri `NotSupportedException`, istek gitmez). Yerel: restore, `build -warnaserror` 0 uyarı, `dotnet format` üç projede temiz, Unit 6161 + Consistency 294, betik testleri 4 dosya, Integration `Payment` + `Ordering` ad alanları 668 ve `StatusEndpointTests` dahil 71 yeşil (Postgres 18, `track_commit_timestamp=on`); `restore --locked-mode` 0. CI run 42889751461 (head `91d8ad6d`) dokuz adım `success`. `12` satırları: `VAL-E061`, `E089`, `E094`, `A970` (mock) ve `E013` (sandbox) `BEKLEMEDE` kaldı — ilk dördü UC-22/UC-29 sayfasının tarayıcı ve uç kanıtını ister (T509/T510; D-1080), `E013` DV-12 gözlemidir (D-1076).
 
 ## Altyapı Değişiklikleri
 
@@ -100,7 +102,7 @@
 - **Branch:** `task/T404-paytr-baglanti-hatasi`
 - **Commit:** dal ucu PR'da
 - **PR:** #528
-- **CI:** *(yardımcı izler)*
+- **CI:** run 42889751461 (head `91d8ad6d`) `success` — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

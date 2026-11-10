@@ -5,6 +5,7 @@ using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.EmailComposition;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Status;
+using Shopfolio.Infrastructure.Values;
 
 using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -114,6 +115,10 @@ internal static class NotificationsModuleRegistration
         // The e-mail queue is a scheduler source (T385; 05 5.1.1): the rows are sent, retried and given up on by their own time; it sends nothing while no gateway is registered (T407).
         services.AddDueRecordSource<DispatchRetrySource>();
         services.AddSingleton<RecipientLimitLog>();
+
+        // The returned-address query (T408; 08 2.2.3; 05 5.2.16): its handler on the job queue, and the scheduler source that keeps the type's one pending row in place.
+        services.AddJobHandler<BounceQueryJobHandler>(JobType.BounceQuery);
+        services.AddDueRecordSource<BounceQueryRowSource>();
 
         // The e-mail channel warning is a condition of the status endpoint (05 9.4.7).
         services.AddStatusCondition<ChannelWarningCondition>();

@@ -18,7 +18,7 @@ namespace Shopfolio.Infrastructure.Integrations;
 /// the message goes, and any other answer - the throttling, a credential or permission error, the timeout - does not stop the send and is not written to the
 /// channel state (it is written to the application log only). The answer of the send is mapped by <see cref="SesErrorMapping"/>. Both calls run through
 /// <see cref="ExternalCallRunner"/> with their own job limit; neither is retried (the dispatch row's next attempt is the retry, 05 4.4.3). The service's
-/// <c>MessageId</c> is not read or kept. Bounce learning (08 2.2.3) is T408's.
+/// <c>MessageId</c> is not read or kept. The bounce query (08 2.2.3; T408) is one ListSuppressedDestinations read of the account-level list, with no deletion call.
 /// </summary>
 internal sealed class SesEmailGateway : IEmailGateway
 {
@@ -31,8 +31,8 @@ internal sealed class SesEmailGateway : IEmailGateway
     /// <summary>The prefix of the reason code of a failed pre-query, so the log tells it from the send's failure.</summary>
     public const string QueryReasonPrefix = "suppression-query:";
 
-    /// <summary>The reason code of the bounce query while it is not built (T408).</summary>
-    public const string BounceQueryNotBuiltReason = "not-built";
+    /// <summary>The page size of the bounce query: the service's largest (1000), so a window is read in as few calls as the service allows.</summary>
+    public const int QueryPageSize = 1000;
 
     private readonly IAmazonSimpleEmailServiceV2 _client;
     private readonly ExternalCallRunner _runner;
@@ -60,11 +60,58 @@ internal sealed class SesEmailGateway : IEmailGateway
         return await _runner.RunAsync(IntegrationOperation.EmailSend, token => SendCoreAsync(request, token), ct);
     }
 
-    /// <summary>T408 builds the query; until then it answers a query error, never an empty list that would say "nothing bounced".</summary>
-    public Task<BounceQueryResult> QueryBouncesAsync(DateTimeOffset since, CancellationToken ct)
+    /// <summary>
+    /// The permanently bounced addresses the service's account-level list took in since <paramref name="since"/> (08 2.2.3): one ListSuppressedDestinations request with
+    /// <c>StartDate</c> and the reason <c>BOUNCE</c>, repeated with the page token until the service gives none. The whole read is one job of the layer (one limit, no retry);
+    /// any page that fails ends it with a query error and nothing of the earlier pages is given - a half list is never the answer. A summary whose reason is not
+    /// <c>BOUNCE</c> is not read, whatever the request asked. The addresses are returned as the list holds them.
+    /// </summary>
+    public Task<BounceQueryResult> QueryBouncesAsync(DateTimeOffset since, CancellationToken ct) =>
+        _runner.RunAsync(IntegrationOperation.BounceQuery, token => ListBouncesAsync(since, token), ct);
+
+    private async Task<BounceQueryResult> ListBouncesAsync(DateTimeOffset since, CancellationToken token)
     {
-        ct.ThrowIfCancellationRequested();
-        return Task.FromResult<BounceQueryResult>(new BounceQueryResult.QueryFailed(BounceQueryNotBuiltReason));
+        try
+        {
+            List<string> addresses = [];
+            string? nextPage = null;
+            do
+            {
+                ListSuppressedDestinationsResponse page = await _client.ListSuppressedDestinationsAsync(
+                    new ListSuppressedDestinationsRequest
+                    {
+                        StartDate = since.UtcDateTime,
+                        Reasons = [SuppressionListReason.BOUNCE],
+                        PageSize = QueryPageSize,
+                        NextToken = nextPage,
+                    },
+                    token);
+                foreach (SuppressedDestinationSummary summary in page.SuppressedDestinationSummaries ?? [])
+                {
+                    if (summary.Reason == SuppressionListReason.BOUNCE && !string.IsNullOrWhiteSpace(summary.EmailAddress))
+                    {
+                        addresses.Add(summary.EmailAddress);
+                    }
+                }
+
+                nextPage = string.IsNullOrEmpty(page.NextToken) ? null : page.NextToken;
+            }
+            while (nextPage is not null);
+
+            return new BounceQueryResult.List(addresses);
+        }
+        catch (OperationCanceledException) when (!token.IsCancellationRequested)
+        {
+            return _runner.Failed<BounceQueryResult>(IntegrationOperation.BounceQuery, ExternalCallFailure.TimedOut());
+        }
+        catch (AmazonServiceException exception)
+        {
+            return _runner.Failed<BounceQueryResult>(IntegrationOperation.BounceQuery, SesErrorMapping.FailureOf(exception));
+        }
+        catch (AmazonClientException exception)
+        {
+            return _runner.Failed<BounceQueryResult>(IntegrationOperation.BounceQuery, SesErrorMapping.FailureOf(exception));
+        }
     }
 
     /// <summary>

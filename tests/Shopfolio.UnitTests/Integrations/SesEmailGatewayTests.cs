@@ -398,16 +398,121 @@ public sealed class SesEmailGatewayTests
         }
     }
 
-    // ---- the bounce query is T408's ----
+    // ---- T408 KK2: the bounce query's request and its pages ----
+
+    private static readonly DateTimeOffset Since = RunnerHarness.Now.AddHours(-24);
+
+    private static Func<WireRequest, WireAnswer> ListScript(params WireAnswer[] pages)
+    {
+        int next = 0;
+        return request => request.IsList ? pages[Math.Min(next++, pages.Length - 1)] : WireAnswer.Sent();
+    }
 
     [Fact]
-    public async Task QueryBouncesAsync_WhileTheQueryIsNotBuilt_IsAQueryError_NeverAnEmptyList_AndMakesNoCall()
+    public async Task QueryBouncesAsync_AsksTheListFromTheGivenMoment_ForTheBounceReasonOnly_WithAPageSize()
     {
-        using Rig rig = new(Script(WireAnswer.NotListed(), WireAnswer.Sent()));
+        using Rig rig = new(ListScript(WireAnswer.ListPage([])));
 
-        BounceQueryResult result = await rig.Gateway.QueryBouncesAsync(RunnerHarness.Now, Ct);
+        BounceQueryResult result = await rig.Gateway.QueryBouncesAsync(Since, Ct);
 
-        Assert.Equal(new BounceQueryResult.QueryFailed(SesEmailGateway.BounceQueryNotBuiltReason), result);
-        Assert.Empty(rig.Wire.Requests);
+        Assert.Equal(new BounceQueryResult.List([]), result);
+        WireRequest request = Assert.Single(rig.Wire.Requests);
+        Assert.True(request.IsList);
+        Assert.Equal("email.eu-central-1.amazonaws.com", request.Uri.Host);
+        Assert.Equal(["BOUNCE"], request.QueryString["Reason"]);
+        Assert.Equal(Since.ToUnixTimeSeconds(), long.Parse(Assert.Single(request.QueryString["StartDate"]), System.Globalization.CultureInfo.InvariantCulture));
+        Assert.Equal([SesEmailGateway.QueryPageSize.ToString(System.Globalization.CultureInfo.InvariantCulture)], request.QueryString["PageSize"]);
+        Assert.Empty(request.QueryString["NextToken"]);
+        Assert.Empty(request.QueryString["EndDate"]);
+        Assert.Equal(string.Empty, request.Body);
+    }
+
+    [Fact]
+    public async Task QueryBouncesAsync_ReadsEveryPage_ThroughTheNextToken_AndKeepsTheAddressesAsTheListHoldsThem()
+    {
+        using Rig rig = new(ListScript(
+            WireAnswer.ListPage([("Bir@Example.COM", "BOUNCE"), ("iki@example.com", "BOUNCE")], "tok-2"),
+            WireAnswer.ListPage([("Üç@example.com", "BOUNCE")], "tok-3"),
+            WireAnswer.ListPage([("dort@example.com", "BOUNCE")])));
+
+        BounceQueryResult result = await rig.Gateway.QueryBouncesAsync(Since, Ct);
+
+        Assert.Equal(new[] { "Bir@Example.COM", "iki@example.com", "Üç@example.com", "dort@example.com" }, Assert.IsType<BounceQueryResult.List>(result).Addresses);
+        IReadOnlyList<WireRequest> requests = rig.Wire.Requests;
+        Assert.Equal(3, requests.Count);
+        Assert.Equal(string.Empty, requests[0].QueryString["NextToken"].SingleOrDefault() ?? string.Empty);
+        Assert.Equal(["tok-2"], requests[1].QueryString["NextToken"]);
+        Assert.Equal(["tok-3"], requests[2].QueryString["NextToken"]);
+        Assert.All(requests, r => Assert.Equal(["BOUNCE"], r.QueryString["Reason"]));
+    }
+
+    [Fact]
+    public async Task QueryBouncesAsync_AComplaintSummary_IsNotRead_WhateverTheRequestAsked()
+    {
+        using Rig rig = new(ListScript(WireAnswer.ListPage([("sikayet@example.com", "COMPLAINT"), ("geri@example.com", "BOUNCE")])));
+
+        BounceQueryResult result = await rig.Gateway.QueryBouncesAsync(Since, Ct);
+
+        Assert.Equal(["geri@example.com"], Assert.IsType<BounceQueryResult.List>(result).Addresses);
+    }
+
+    // ---- T408 KK5: a failed round is a query error, with the reason code in the log and nothing else ----
+
+    [Fact]
+    public async Task QueryBouncesAsync_ThrottledOnTheFirstPage_IsAQueryError_OneCall_AndTheLineHasTheCodeOnly()
+    {
+        using Rig rig = new(request => request.IsList
+            ? WireAnswer.Error(HttpStatusCode.TooManyRequests, "TooManyRequestsException", "slow down " + Recipient + " " + SesTestSetup.AccessKeyId)
+            : WireAnswer.Sent());
+
+        BounceQueryResult result = await rig.Gateway.QueryBouncesAsync(Since, Ct);
+
+        Assert.Equal(new BounceQueryResult.QueryFailed("TooManyRequestsException"), result);
+        Assert.Single(rig.Wire.Requests);
+        string line = Assert.Single(rig.Harness.Lines);
+        using JsonDocument document = JsonDocument.Parse(line);
+        Assert.Equal(LogEvents.ExternalCallFailed, document.RootElement.GetProperty("event").GetString());
+        Assert.Equal(nameof(IntegrationOperation.BounceQuery), document.RootElement.GetProperty("operation").GetString());
+        Assert.Equal("TooManyRequestsException", document.RootElement.GetProperty("reason").GetString());
+        AssertNoValueInTheLine(line);
+    }
+
+    [Fact]
+    public async Task QueryBouncesAsync_AFailureOnALaterPage_GivesNoHalfList()
+    {
+        int call = 0;
+        using Rig rig = new(request => request.IsList
+            ? (call++ == 0 ? WireAnswer.ListPage([("geri@example.com", "BOUNCE")], "tok-2") : WireAnswer.Error(HttpStatusCode.Forbidden, "AccessDeniedException", "no"))
+            : WireAnswer.Sent());
+
+        BounceQueryResult result = await rig.Gateway.QueryBouncesAsync(Since, Ct);
+
+        Assert.Equal(new BounceQueryResult.QueryFailed("AccessDeniedException"), result);
+        Assert.Equal(2, rig.Wire.Requests.Count);
+    }
+
+    [Fact]
+    public async Task QueryBouncesAsync_TheServiceThatHangs_EndsAtTheJobLimit_AsAQueryError_AndIsAskedOnce()
+    {
+        using Rig rig = new(request => request.IsList ? new WireAnswer.Hang() : WireAnswer.Sent());
+
+        Task<BounceQueryResult> call = rig.Gateway.QueryBouncesAsync(Since, Ct);
+        await rig.Wire.NextRequestAsync(Ct);
+        rig.Harness.Time.Advance(ExternalCallTimeouts.Job);
+        BounceQueryResult result = await call;
+
+        Assert.Equal(new BounceQueryResult.QueryFailed(ExternalCallFailure.TimeoutReason), result);
+        Assert.Single(rig.Wire.Requests);
+    }
+
+    [Fact]
+    public async Task QueryBouncesAsync_AnUnreachableService_IsAQueryError_AndIsAskedOnce()
+    {
+        using Rig rig = new(request => request.IsList ? new WireAnswer.Refuse() : WireAnswer.Sent());
+
+        BounceQueryResult result = await rig.Gateway.QueryBouncesAsync(Since, Ct);
+
+        Assert.IsType<BounceQueryResult.QueryFailed>(result);
+        Assert.Single(rig.Wire.Requests);
     }
 }

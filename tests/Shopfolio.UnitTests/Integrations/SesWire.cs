@@ -18,6 +18,15 @@ internal sealed record WireRequest(string Method, Uri Uri, string Body, IReadOnl
 
     public bool IsQuery => Method == "GET" && Uri.AbsolutePath.StartsWith("/v2/email/suppression/addresses/", StringComparison.Ordinal);
 
+    /// <summary>The list call (ListSuppressedDestinations): the collection address with no address after it.</summary>
+    public bool IsList => Method == "GET" && Uri.AbsolutePath == "/v2/email/suppression/addresses";
+
+    /// <summary>The query string as name and values (a name may repeat).</summary>
+    public ILookup<string, string> QueryString => Uri.Query.TrimStart('?')
+        .Split('&', StringSplitOptions.RemoveEmptyEntries)
+        .Select(pair => pair.Split('=', 2))
+        .ToLookup(p => Uri.UnescapeDataString(p[0]), p => p.Length > 1 ? Uri.UnescapeDataString(p[1]) : string.Empty, StringComparer.Ordinal);
+
     public JsonDocument Json() => JsonDocument.Parse(Body);
 }
 
@@ -41,6 +50,14 @@ internal abstract record WireAnswer
 
     public static WireAnswer Listed(string address, string reason = "BOUNCE") =>
         new Reply(HttpStatusCode.OK, "{\"SuppressedDestination\":{\"EmailAddress\":" + JsonSerializer.Serialize(address) + ",\"Reason\":\"" + reason + "\",\"LastUpdateTime\":1.7E9}}");
+
+    /// <summary>One page of the account list: the summaries as (address, reason) and the token of the next page, if any.</summary>
+    public static WireAnswer ListPage(IEnumerable<(string Address, string Reason)> summaries, string? nextToken = null)
+    {
+        string items = string.Join(",", summaries.Select(s => "{\"EmailAddress\":" + JsonSerializer.Serialize(s.Address) + ",\"Reason\":\"" + s.Reason + "\",\"LastUpdateTime\":1.7E9}"));
+        string continuation = nextToken is null ? string.Empty : ",\"NextToken\":" + JsonSerializer.Serialize(nextToken);
+        return new Reply(HttpStatusCode.OK, "{\"SuppressedDestinationSummaries\":[" + items + "]" + continuation + "}");
+    }
 
     public static WireAnswer NotListed() => Error(HttpStatusCode.NotFound, "NotFoundException", "Not found");
 

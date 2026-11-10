@@ -53,6 +53,18 @@ public sealed class NotificationChannelSourceScanTests
     }
 
     [Fact]
+    public void TheReturnedAddressHandler_ReadsTheServicesList_AndNeverSends()
+    {
+        // The handler is on the exact list only because it asks the bounce list (T408; 08 2.2.3); a send call there would be an e-mail that leaves with no dispatch row.
+        const string handler = "src/Shopfolio.Web/Modules/Notifications/BounceQueryJobHandler.cs";
+        string text = File.ReadAllText(Path.Combine(RepositoryRoot.Find(), handler));
+
+        Assert.Contains("QueryBouncesAsync", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("SendAsync", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("EmailMessage", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Scan_OnTheViolationSample_ReportsEveryShapeOfEveryRule()
     {
         IReadOnlyList<(string Rule, int Line)> findings = NotificationChannelSourceScan.Scan(AnyModuleFile, SampleText());

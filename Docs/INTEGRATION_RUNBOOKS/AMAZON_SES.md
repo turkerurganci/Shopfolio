@@ -1,10 +1,10 @@
 # Amazon SES (e-posta gönderimi) — Entegrasyon Runbook
 
-**Son güncelleme:** 2026-11-10 | **İlgili task:** T407 (geri dönen adreslerin öğrenilmesi: T408) | **Spec:** [`../08_INTEGRATION_SPEC.md`](../08_INTEGRATION_SPEC.md) §2.2, §2.2.2, §2.2.3, §4.1
+**Son güncelleme:** 2026-11-10 | **İlgili task:** T407, T408 (geri dönen adreslerin öğrenilmesi: §10) | **Spec:** [`../08_INTEGRATION_SPEC.md`](../08_INTEGRATION_SPEC.md) §2.2, §2.2.2, §2.2.3, §4.1
 
-> **Kural:** Bir dış servise ilk kez bağlanan task, aynı PR'da bu runbook'u da yazar. Bu runbook SES'e ilk bağlanan T407'nin işidir; geri dönen adres sorgusu (T408) kendi bölümlerini buraya ekler.
+> **Kural:** Bir dış servise ilk kez bağlanan task, aynı PR'da bu runbook'u da yazar. Bu runbook SES'e ilk bağlanan T407'nin işidir; geri dönen adres sorgusu (T408) kendi bölümünü (§10) buraya ekledi.
 
-Ürün SES'in API v2'sini kullanır (`AWSSDK.SimpleEmailV2`). Üç çağrı vardır: ileti gönderme (SendEmail), tek adresin askıda olup olmadığını sorma (GetSuppressedDestination; her gönderimden hemen önce) ve askıdaki adresleri listeleme (ListSuppressedDestinations; T408). **Gelen istek yoktur**: SES'ten ürüne web kancası, SNS aboneliği ya da olay yayını kurulmaz.
+Ürün SES'in API v2'sini kullanır (`AWSSDK.SimpleEmailV2`). Üç çağrı vardır: ileti gönderme (SendEmail), tek adresin askıda olup olmadığını sorma (GetSuppressedDestination; her gönderimden hemen önce) ve askıdaki adresleri listeleme (ListSuppressedDestinations; §10). **Gelen istek yoktur**: SES'ten ürüne web kancası, SNS aboneliği ya da olay yayını kurulmaz.
 
 ---
 
@@ -17,7 +17,7 @@ Hesap firmanındır (firmanın kendi AWS hesabı, kredi kartıyla). Sırayla:
 3. **Alan adı kimliği oluştur:** SES konsolu → "Configuration: Identities" → "Create identity" → "Domain" → gönderen adresinin alan adı. "Easy DKIM" (RSA 2048) seçili kalır; SES üç CNAME kaydı üretir, bunları alan adının DNS'ine gir. Kimlik durumu "Verified" olana kadar bekle. Gönderen adresi bu alan adındadır (ör. `info@firma.example`).
 4. **DNS (kurulum önerisi):** isteğe bağlı özel MAIL FROM alt alan adı (MX ve SPF TXT kaydı) ve `_dmarc` TXT kaydı (`rua` rapor adresiyle, geçiş hâli olarak `p=none`). Raporlar alan adının bütün gönderenlerinin hizalandığını gösterince politika en az `p=quarantine`'e sıkılaştırılır; sıkılaştırmanın günü kurulumun kaydına yazılır (`DEPLOY_RUNBOOK`, `08 §2.2` DNS kayıtları).
 5. **Üretim erişimi iste:** yeni hesap sandbox'tadır (yalnız doğrulanmış alıcıya, günde 200 ileti, saniyede 1). Konsol → "Account dashboard" → "Request production access": mail türü **Transactional**, web sitesi adresi ve kullanım açıklaması. İlk yanıt 96 saat içindedir. Onaydan sonra `GetAccount` → `SendQuota` ile günlük kotanın **350'nin üstünde** olduğunu ve `MaxSendRate` değerini oku; ikisini kurulumun kaydına yaz (DV-18). Kota yetmezse kota artışı istenir (en az 1.000).
-6. **Askıdaki adres listesi (hesap düzeyi):** konsol → "Configuration: Suppression list" → "Edit account-level settings" → yalnız **Bounces** açık, Complaints kapalı. Ürün listeye adres eklemez ve listeden adres silmez; liste adresi geldiği yazılışla tutar (T408; `08 §2.2.3`).
+6. **Askıdaki adres listesi (hesap düzeyi):** konsol → "Configuration: Suppression list" → "Edit account-level settings" → yalnız **Bounces** açık, Complaints kapalı. Ürün listeye adres eklemez ve listeden adres silmez; liste adresi geldiği yazılışla tutar (§10; `08 §2.2.3`).
 7. **Veri işleme eki ve yurt dışı aktarım:** AWS veri işleme ekinin hesapta kabulü ve Kurul standart sözleşmesinin imzalanıp beş iş günü içinde Kurum'a bildirilmesi kurulum denetimidir (`10 §4.1` ÖK-2; DV-24).
 8. **İtibar alarmı:** CloudWatch'ta `Reputation.BounceRate` (≥ 0,05) ve `Reputation.ComplaintRate` (≥ 0,001) için alarm kur; bildirim firmanın izlediği adrese gider.
 
@@ -103,7 +103,7 @@ Gönderen adresi değişirse politikadaki `ses:FromAddress` değeri de değişir
 
 ## 5. Geri çağrım / webhook kurulumu
 
-**Yoktur.** SES'ten ürüne bildirim, web kancası, SNS aboneliği, yapılandırma kümesi ya da olay yayını kurulmaz; istekte yapılandırma kümesi adı gönderilmez ve açılma ya da tıklama izlemesi yoktur (DV-19). Kalıcı geri dönme sorguyla öğrenilir (T408; her on beş dakikada hesap listesi). `07`'ye uç, güvenlik duvarına gelen kural eklenmez.
+**Yoktur.** SES'ten ürüne bildirim, web kancası, SNS aboneliği, yapılandırma kümesi ya da olay yayını kurulmaz; istekte yapılandırma kümesi adı gönderilmez ve açılma ya da tıklama izlemesi yoktur (DV-19). Kalıcı geri dönme sorguyla öğrenilir (§10; her on beş dakikada hesap listesi). `07`'ye uç, güvenlik duvarına gelen kural eklenmez.
 
 ## 6. Test etme
 
@@ -144,3 +144,13 @@ E-posta gönderim kaydında bekler; sipariş, ödeme ve durum geçişleri etkile
 | Askıdaki liste | Listeye ekleme ve toplu işlem kapalı; simülatör adresi listeye girmez | Konsoldan eklenen adresle DV-22 gözlenir |
 | Geliştirme makinesi | `EmailCapture:Host` doluysa ileti yakalama aracına gider, kimlik dosyası okunmaz | SES kullanılır |
 | Uç adresi | `https://email.{bölge}.amazonaws.com/v2/email/...` (bölge ayardan) | Aynı |
+
+## 10. Geri dönen adresler
+
+Kalıcı geri dönme sorguyla öğrenilir (T408; `08 §2.2.3`). Her on beş dakikada bir iş, hesap düzeyindeki askıdaki adres listesinden son 24 saatte eklenen `BOUNCE` adreslerini okur (`ListSuppressedDestinations`; `StartDate`, `Reason` = `BOUNCE`, sayfa boyu ve `NextToken`); `COMPLAINT` nedeni işlenmez. Son 24 saatte `Sent` olan ve alıcısı o adres olan (harf ayrımsız) bütün satırlar `Undelivered` ve `RecipientError` olur; satırın `SentAt`'i kalır, kanal hâli kaydına dokunulmaz.
+
+1. **Kurulum şartı:** hesap düzeyi liste yalnız **Bounces** açıktır (§1 adım 6). Listeleme izni IAM politikasındadır (§4); başka izin yoktur.
+2. **Silme:** ürün listeden adres silmez. Koda silme ya da liste yazma çağrısı konmaz; IAM kullanıcısı silme izni almaz. Listeden çıkarma firmanın elle yaptığı iştir: e-postası gelmediğini başka kanaldan bildiren kullanıcının adresinin artık çalıştığını kullanıcıyla teyit et, sonra konsol → "Configuration: Suppression list" → adresi seç → "Remove". Liste adresi geldiği yazılışla tutar; konsolda adres aynı yazılışla aranır.
+3. **Hata davranışı:** sorgu başarısızsa (429, kimlik ya da izin hatası, zaman aşımı) tur boş geçer, satır ve kanal hâli değişmez, hata uygulama kaydına yazılır; sonraki tur yine 24 saat öncesinden sorar. Süresiz süren bir sorgu hatasının uyarısı yoktur — kalan risktir (`08 §2.2.3`); uygulama kaydında sorgu hatalarını ara.
+4. **Pencere sınırı:** gönderimden 24 saatten sonra listeye giren geri dönme hiçbir satırla eşleşmez; o ileti "gönderildi" kalır (kalan risk).
+5. **Gözlem (DV-22):** üretim erişimli hesapta konsoldan listeye bir deneme adresi ekle ve aynı adrese giden `Sent` satırın bir sonraki turda `Undelivered` olduğunu panelden gör. Sandbox'ta listeye ekleme kapalıdır; bu gözlem gerçek hesapla yapılana kadar açıktır (OWNER_INPUT).

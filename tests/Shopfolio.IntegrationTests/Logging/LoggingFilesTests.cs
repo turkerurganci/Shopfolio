@@ -173,9 +173,10 @@ public sealed partial class LoggingFilesTests
         Assert.DoesNotContain(lines, l => Category(l).StartsWith("Microsoft.", StringComparison.Ordinal) && Level(l) is "Information" or "Debug" or "Trace" or "Verbose");
     }
 
-    // The two data access failure events are not written; the other lines of the same categories stay at warning (05 9.1.6; 09 18.1 item 4).
+    // The three data access failure events (connection, query iteration, save) are not written; the other lines of the same categories stay at warning
+    // (05 9.1.6; 09 18.1 item 4; D-90 K3).
     [Fact]
-    public async Task NormalWriter_DoesNotWriteTheTwoDataAccessFailureEvents_ButWritesAWarningOfTheSameCategory()
+    public async Task NormalWriter_DoesNotWriteTheThreeDataAccessFailureEvents_ButWritesAWarningOfTheSameCategory()
     {
         await using ShopfolioWebApplicationFactory factory = new(_database.Dsn);
         using HttpClient client = factory.CreateClient();

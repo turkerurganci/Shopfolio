@@ -29,6 +29,13 @@ internal sealed class ApplicationLogFormatter : ITextFormatter
     public static readonly IReadOnlyList<string> ForbiddenPropertyNames =
         ["Email", "Phone", "Address", "Password", "Token", "Key", "Secret", "Iban", "Card"];
 
+    /// <summary>
+    /// The names that contain a word of <see cref="ForbiddenPropertyNames"/> on purpose and carry no personal data (09 18.2 item 2a; D-89): the
+    /// start-up refusal names the missing keys of the settings and counts them. The list is exact (whole name, any case) and short; a new entry needs
+    /// a reason next to it.
+    /// </summary>
+    public static readonly IReadOnlyList<string> AllowedPropertyNames = ["MissingKeys"];
+
     /// <summary>The fields the formatter owns; no property writes under these names.</summary>
     public static readonly IReadOnlyList<string> OwnedFieldNames =
         ["time", "level", "category", "event", "message", "exceptionType", "innerExceptionTypes", "sqlState", "stackTrace", "dataKeys"];
@@ -94,9 +101,18 @@ internal sealed class ApplicationLogFormatter : ITextFormatter
         return propertyName == SourceContextProperty
             || propertyName == EventProperty
             || FrameworkScopeNames.Contains(propertyName, StringComparer.Ordinal)
-            || ForbiddenPropertyNames.Any(forbidden => propertyName.EndsWith(forbidden, StringComparison.OrdinalIgnoreCase))
+            || IsForbiddenName(propertyName)
             || OwnedFieldNames.Contains(FieldName(propertyName), StringComparer.Ordinal);
     }
+
+    /// <summary>
+    /// The one rule of the personal data names (09 18.2 item 2a, 2c; D-89): a name is forbidden when it <em>contains</em> a word of
+    /// <see cref="ForbiddenPropertyNames"/> in any case (<c>PhoneNumber</c>, <c>CardNumber</c>, <c>PasswordHash</c>, <c>TokenValue</c> as well as
+    /// <c>CustomerEmail</c>), unless the whole name is in <see cref="AllowedPropertyNames"/>. The source scan of the templates uses this same method.
+    /// </summary>
+    public static bool IsForbiddenName(string propertyName) =>
+        ForbiddenPropertyNames.Any(forbidden => propertyName.Contains(forbidden, StringComparison.OrdinalIgnoreCase))
+        && !AllowedPropertyNames.Contains(propertyName, StringComparer.OrdinalIgnoreCase);
 
     private static List<KeyValuePair<string, LogEventPropertyValue>> WrittenProperties(LogEvent logEvent) =>
         [.. logEvent.Properties.Where(property => !IsLeftOut(property.Key))];

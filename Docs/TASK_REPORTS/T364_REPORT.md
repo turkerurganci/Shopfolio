@@ -1,6 +1,6 @@
 # T364 — Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım tamam, doğrulama bekliyor) | **Tarih:** 2026-11-10
+**Faz:** F3 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-10
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -81,10 +81,39 @@ Eşzamanlılığın mekanizması (`RecordSave`, `OrderLocks`, `ShownVersion`, `V
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulayıcı doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-10; head `b5c6c4e4`; dal CI 42739621625 yeşil) |
+| Bulgu sayısı | 1 — B1 (kriter 4 / KK4, S1, KRİTİK) |
+| Düzeltme gerekli mi | Evet |
+| Bloke-etmeyen not (K) sayısı | 1 — K1 → D-961 (`DEFERRED_BACKLOG.d/T364.md`) |
+
+**Validator kabul kriterleri tablosu (tur 1):**
+
+| # | Sonuç | Validator kanıtı |
+|---|---|---|
+| 1 | ✓ | Tek yol `RecordSave.SaveAsync` (erken karşılaştırma + `IsConcurrencyToken` koşullu güncelleme, `DbUpdateConcurrencyException` → `VersionConflict`); `ConcurrencyTests` KK1, `VersionedFormPageTests` 409 + "Yine de kaydet" testleri yerelde yeşil |
+| 2 | ✓ | İçerik (`ContentPublishing`, `ContentAuthoring`, `BrandingSettings`), ürün (`ProductTransitions`, `ProductRemoval`), ayar (`CompanyIdentities`, `LegalTexts`; bölümlü `CompanySettingsWriter`) aynı `RecordSave`/bölüm sürümü kalıbında; `ContentAuthoringTests`, `ContentStatusTests`, `ProductPublishGateTests`, `FirmSettingsTests`, `CompanyIdentityTests`, `BrandingTests` eski sürüm testleri yerelde yeşil (ürün formunun kendisi T525) |
+| 3 | ✓ | Kilit → yükleme → `ShownVersion.Matches`; üç yeni `Task.WhenAll` testi (havale "ödendi", havale geri ödemesi, kalem çıkarma) ve `ConcurrencyTests` yeşil |
+| 4 | ~ | Sürüm taşıyan yönetici isteğinde ret ve güncel hâl var (`VersionedFormPageTests` KK6/KK8, `OperationPatternTests` KK3; tarama yeşil). **B1:** T386'nın altı yönetici müdahalesi (`RemoveItemRequest`, `CorrectShipmentRequest`, `CorrectDeliveryDateRequest`, `CorrectReturnArrivalDateRequest`, `CorrectAddressRequest`, `CorrectGuestEmailRequest`) `int? ExpectedVersion` alır; `OrderCorrections.LockAsync` (`OrderCorrections.cs:250`) ve `OrderTransitions.LockItemAsync` (`OrderTransitions.ItemRecords.cs:165`) sürüm boşsa karşılaştırmayı atlar ve işlem sipariş değişmiş olsa da uygulanır. Validator sondajı (geçici Integration testi, geri alındı): sipariş sürümü artırıldıktan sonra eski sürümlü kalem çıkarma `VersionConflict`, sürümsüz olan uygulandı (1 `ItemRemoval`) |
+| 5 | ✓ | Eşzamanlı testlerde tek O1 + tek ödeme kaydı + tek B-4; tek geri ödeme + tek B-8; tek `ItemRemoval` + tek geri ödeme + tek iz + tek B-11; aynı kart iadesi sonucu ikinci kez `IsNotOpen` |
+| 6 | ✓ | Sistemin reddi tek yazıcıdan (`AutomaticTransitionLog`, kod + iç kimlik, bildirim yok): sistem aktörlü geçiş reddi, kart hattında olmayan siparişe ödeme, açık olmayan kayda iade sonucu, ödenmiş siparişte süre dolumu; müşterinin reddi `Refusal` kodu taşır, kayda yazılmaz; `FOR UPDATE NOWAIT` kilit kalmadığını gösterir — dört T364_KK6 testi yeşil |
+
+**Bulgular (`12 §8.2`):**
+
+| # | Madde | Severity | Sınıf | Beklenen ↔ gerçekleşen | Etkilenen komşu | Karar | Dosya |
+|---|---|---|---|---|---|---|---|
+| B1 | Kriter 4 / KK4 (VAL-C076 ilgili) | KRİTİK | S1 | Beklenen: yöneticinin her sipariş işlemi ekranın sürümüyle karşılaştırılır, sürümsüz yönetici isteği uygulanmaz (`07 §2.4.2`; `09 §10.2` m.3; `05 §7.3.2`; D-291 (b): "yönetici yöntemleri sürümü her zaman geçirir ve bunu sınar ya da sürümsüz isteği reddeder" — `CancelOrderAsync` sürümsüz yöneticiye `InvalidInput` verir). Gerçekleşen: altı müdahalede sürüm boşsa karşılaştırma yapılmaz, işlem güncel hâle karşı uygulanır | VAL-C077 (yönetici sonra kalırsa), KK3 | Bu PR'da düzeltilir: altı isteğin sürümü zorunlu (`int`) ya da sürümsüz yönetici isteği `InvalidInput`; her biri için sürümsüz + eski sürüm testi; tarama ya da test, yönetici yolunda sürümün boş geçemediğini sınar | `Ordering/Contracts/IOrderCorrections.cs:73-111`, `Ordering/OrderCorrections.cs:241-250`, `Ordering/OrderCorrections.Interventions.cs:62,112,189`, `Ordering/OrderTransitions.Removal.cs:35` |
+
+**Task satırları (`12 §7.5`):** `grep -nE 'KP-76([^0-9]|$)'` beş satır: VAL-A371, A372 (Tarayıcı gözlemi / Uç yanıtı + Veri kaydı), VAL-C076, C077 (Uç yanıtı + Veri kaydı), VAL-C078 (Uç yanıtı + Veri kaydı + Uygulama kaydı). Hepsi panel ve sipariş sayfası uçlarını ister (T542 ve F5 ekranları) → `BEKLEMEDE` kalır (T370, T386 emsali); `12` değişmedi, `12_matris_denetle.py --kapsam 1-77` Hata 0. T364'ün servis payının kanıtı yukarıdaki kriter tablosundadır; B1 kapanmadan C076'nın servis tarafı tam değildir.
+
+**Doğrulama kontrol listesi (tur 1):** KK1 ✓ · KK2 ✓ · KK3 ✓ · KK4 ✗ (B1) · KK5 ✓ · KK6 ✓ · `09 §25` ✓ (yeni ad `09 §18.2` m.3'te, tek yazıcı, kişisel veri yok, göç yok, kilit sırası korunur; yalnız "eşzamanlılık doğru mu" sorusu B1 yüzünden eksik) · güvenlik ✓.
+
+**Test ve derleme (validator, `b5c6c4e4`):** `dotnet restore` ✓; `dotnet build Shopfolio.slnx --no-restore -warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes --no-restore` üç projede çıkış 0; Unit 5762/5762 (Architecture + Consistency dahil); betik testleri 4/4 dosya; Integration (`postgres:18`, `track_commit_timestamp=on`): değişen üç sınıf 106/106, Ordering + Concurrency 631/631, kalan ad alanları 2788/2789 (K1: `UploadEndpointsTests` tek başına 36/36), `Files` + `Web` yeniden 695/696 ve 696/696 (K1). `origin/main` (`ed1ee67c`, T382) birleştirmesi çakışmasız; birleşik ağaçta derleme 0/0 ve Unit 5778/5778.
+
+**Güvenlik:** sır yok; yeni uç, POST, sayfa yok; yetki etkisi yok (B1 bir sürüm karşılaştırması açığıdır, yetki değil); kayıt satırı yalnız olay, red kodu ve iç kimlik taşır; yeni dış bağımlılık yok.
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks`; ana dal CI son 3: 42735260509 success, 42735260521 success, 42733291791 success.
+
+**Yapım raporu karşılaştırması:** 1 uyuşmazlık — rapor kriter 4 / KK4'ü "`ShownVersion.Matches` her yerde + tarama" ile ✓ sayar; tarama karşılaştırmanın biçimini sınar, sürümün boş geçip karşılaştırmanın hiç yapılmamasını görmez (B1). Öz denetim tablosu var, her maddede kanıt yazılı.
 
 ## Altyapı Değişiklikleri
 
@@ -98,7 +127,7 @@ Eşzamanlılığın mekanizması (`RecordSave`, `OrderLocks`, `ShownVersion`, `V
 - **Branch:** `task/T364-eszamanli-islemler`
 - **Commit:** `db5995dc` — T364: Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler (+ bu rapor satırı)
 - **PR:** #511
-- **CI:** *(doğrulayıcı)*
+- **CI:** 42739621625 (head `b5c6c4e4`) — Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E, CI Gate yeşil
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

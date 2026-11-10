@@ -230,7 +230,7 @@
 | T387 | Kurulum tarafı yönetim komutları: iş satırını yeniden kuyruğa alma ya da kapatma, anahtar yenilemesi sonrası ödeme sonucunun uygulanması, kayıt okuma komutu | ✓ | ✓ PASS (tur 2) | — | #487 |
 | T388 | Dönüş denetimi komutu ve dönüşten sonra silmelerin yeniden uygulanması | ✓ | ✓ PASS (tur 2) | — | #483 |
 | T389 | Hesap ve durum yönetim komutları: oturumları sonlandırma, şifreyi geçersiz kılma, durum | ✓ | ✓ PASS (tur 3) | — | #472 |
-| T390 | Uçtan uca dal akış testleri (servis düzeyi): karışık sipariş, kargoda cayma, IBAN'sız iade, e-posta düzeltme | ⏳ | ✗ FAIL (tur 1) | — | #508 |
+| T390 | Uçtan uca dal akış testleri (servis düzeyi): karışık sipariş, kargoda cayma, IBAN'sız iade, e-posta düzeltme | ⏳ | ✗ FAIL (tur 1) → düzeltme 1 tamam, tur 2 bekliyor | — | #508 |
 
 ---
 

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering;
@@ -32,12 +33,27 @@ public sealed partial class BranchFlowTests
         await AssertAxesAsync(order.Id, OrderStatus.Preparing, PaymentStatus.Paid);
         Assert.Contains(await DispatchesAsync(order.Id), d => IsSent(d, DispatchType.B4, ContactEmail));
 
-        // What the correction must not touch: the states, the periods, the items, the IBAN and the trail.
+        // The customer's IBAN (02 10.4.11 "Ne değişmez"): she cancels one of the two units on the order page with her IBAN (02 7.2.8); the other unit keeps the order Preparing.
+        _clock.Advance(TimeSpan.FromHours(1));
+        OrderTransitionResult cancelled = await RunAsync(sp => sp.GetRequiredService<IOrderTransitions>().CancelItemAsync(
+            new CancelItemRequest(order.Id, items[0].Id, 1, RefundIbanText), Ct));
+        Assert.False(cancelled.IsRejected);
+        Assert.Null(cancelled.ClosureCode);
+        await AssertAxesAsync(order.Id, OrderStatus.Preparing, PaymentStatus.Paid);
+
+        // What the correction must not touch: the states, the periods, the items, the IBAN and the trail - each present before the correction, so the comparison measures.
         Order before = await ReadOrderAsync(order.Id);
         List<OrderItem> itemsBefore = await ReadItemsAsync(order.Id);
         OrderShippingView shippingBefore = (await ReadAsync(sp => sp.GetRequiredService<IOrderingModule>().GetShippingViewAsync(order.Id, Ct)))!;
         List<TransitionCode> trailBefore = await CodesAsync(order.Id);
-        long ibansBefore = await CountAsync($"refund_ibans WHERE order_id = '{order.Id}'");
+        List<RefundIban> ibansBefore = await ReadIbansAsync(order.Id);
+        RefundIban enteredIban = Assert.Single(ibansBefore);
+        Assert.Equal(RefundIbanText, enteredIban.Iban);
+        Assert.Equal(1L, await CountAsync($"cancellations WHERE refund_iban_id = '{enteredIban.Id}'"));
+        Assert.NotNull(shippingBefore.PaymentConfirmedAt);
+        Assert.NotNull(shippingBefore.PromiseEndsAt);
+        Assert.NotEmpty(trailBefore);
+        Assert.NotEmpty(itemsBefore);
         string oldKey = before.OrderAccessKey!;
 
         // ---- 3-4. Confirmation and correction (steps 3-4): the identity is confirmed by the order's data; a new key, B-1 to the new address, B-15 to the old ----
@@ -77,9 +93,18 @@ public sealed partial class BranchFlowTests
         Assert.Equal(
             itemsBefore.Select(i => (i.Id, i.Quantity, i.UnitPrice, i.CouponShare, i.DeliveryDate, i.DeliveryMarkedAt)),
             (await ReadItemsAsync(order.Id)).Select(i => (i.Id, i.Quantity, i.UnitPrice, i.CouponShare, i.DeliveryDate, i.DeliveryMarkedAt)));
-        Assert.Equal(ibansBefore, await CountAsync($"refund_ibans WHERE order_id = '{order.Id}'"));
+        Assert.Equal(
+            ibansBefore.Select(i => (i.Id, i.Iban, i.EnteredAt, i.ScheduledDeletionAt)),
+            (await ReadIbansAsync(order.Id)).Select(i => (i.Id, i.Iban, i.EnteredAt, i.ScheduledDeletionAt)));
+        Assert.Equal(1L, await CountAsync($"cancellations WHERE refund_iban_id = '{enteredIban.Id}'"));
         Assert.Equal(trailBefore, await CodesAsync(order.Id));
         Assert.Equal(items.Count, (await ReadItemsAsync(order.Id)).Count);
+    }
+
+    private async Task<List<RefundIban>> ReadIbansAsync(Guid orderId)
+    {
+        await using AppDbContext reader = NewContext();
+        return await reader.RefundIbans.AsNoTracking().Where(i => i.OrderId == orderId).OrderBy(i => i.Id).ToListAsync(Ct);
     }
 
     // The recipient is stored in its normalized form (02 3.13): the address is compared without case.

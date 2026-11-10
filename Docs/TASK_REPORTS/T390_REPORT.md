@@ -36,12 +36,12 @@ Bütün maddeler (önceki işçinin yaptıkları dahil) diff'te yeniden denetlen
 | 6 / KK6 | "Teslim edilemedi" B-6; kapanışta iptal kaydı yok, ikinci geri ödeme yok, B-7 yok; teslim alma alt sınırsız, süreyi başlatmaz | ✓ | Withdrawals adım 2–3: B-6 = 1; S9, `cancellations` 0, `refunds` 0, B-7 0; beyandan 30 gün önceki ulaşma tarihi kabul; başlangıç günü yine beyan günü; stoğa ekleme +1 |
 | 7 / KK7 | IBAN'a kargo ücretiyle geri ödeme; Ö4, B-8 | ✓ | Withdrawals adım 4: tutar = fiyat + kargo = sipariş toplamı, `O4`, Geri ödendi, B-8 = 1, IBAN silindi; iz `S5,S7,S9,O4` |
 | 8 / KK8 | IBAN'sız iade: sistem kapatmaz; IBAN Z-42 sonrası "mal dönmedi" ya da Z-38 ile gider; ulaşan mal yeniden açar, B-14, süre durmaz | ✓ | Withdrawals Theory: firmanın kapanışı `ReturnShipmentPeriodDays + 1` gün sonra / `RefundIbanDeletionDay` `ScheduledDeletionAt` sonrası; iki kolda IBAN 0, bildirim yok, eksenler sabit; teslim alma kapanışı açar (`ReopenedAt`), `RefundIbanRequest` (`ReturnAfterIbanDeleted`), B-14 = 1; 5 gün sonra kalan gün 5 azalır; IBAN girilince geri ödeme `O4` |
-| 9 / KK9 | E-posta düzeltmesi: yeni anahtar, yeni adrese B-1, eskiye B-15; durum/süre/kalem/IBAN sabit | ✓ | EmailCorrection: anahtar değişti, eski anahtar ve eski adresle bulunmaz; B-1 yeni, B-15 eski adrese tek; eksenler, ödeme penceresi, söz süresi, kalemler, IBAN sayısı, iz önceki gibi |
+| 9 / KK9 | E-posta düzeltmesi: yeni anahtar, yeni adrese B-1, eskiye B-15; durum/süre/kalem/IBAN sabit | ✓ | EmailCorrection: anahtar değişti, eski anahtar ve eski adresle bulunmaz; B-1 yeni, B-15 eski adrese tek; eksenler, ödeme penceresi, söz süresi, kalemler, iz önceki gibi. **IBAN (düzeltme 1):** düzeltmeden önce müşteri iki adetli kalemin birini IBAN'ıyla iptal eder (`CancelItemAsync`); düzenekte IBAN satırı tek (`Assert.Single`), metni `RefundIbanText`, iptale bağlı; düzeltmeden sonra satırın `Id`, `Iban`, `EnteredAt`, `ScheduledDeletionAt` değerleri aynı ve iptale bağlılığı sürer. Korunan değerlerin düzenekte dolu olduğu da iddia edilir (`PaymentConfirmedAt`, `PromiseEndsAt` dolu; iz ve kalemler boş değil) |
 | 10 / KK10 | Her adımda iki eksen | ✓ | Her adım sonunda `AssertAxesAsync` (sipariş satırından); ana akış T329'da (`MainFlowTests`) |
 | `09 §25` ilgili satırlar | Test yalıtımı, saat, tek kural evi | ✓ | Kendi koleksiyonu ve şablondan kopya veritabanı; gerçek saat yok (`ManualTimeProvider`); tutarlar sabitlerden ve kural evlerinden (`IAfterSalesModule.RefundAmountAsync`, `IsShippingFeeIncludedAsync`, `AfterSalesPeriodRules`) türetilir; sunucu kurulumu tek yerde (D-828) |
 | Güvenlik taraması | — | ✓ | Üretim kodu değişmedi; ham SQL yalnız test tohumlamasında, sabit değerlerle; yeni uç yok |
 | Devredilen backlog | D-828 (hedef T390) | ✓ | `PaymentNotificationHost` + üç sınıf; `DEFERRED_BACKLOG.d/T329.md`'de yerinde ✅ |
-| sik-fail-nedenleri.md | okundu | ✓ | Integration TAM koşuldu (aşağıda); `dotnet format` test projesinde koşuldu; kopya kural/kurulum yok; main ilerlemedi (dal tabanı `29d3ce6f` = `origin/main`) |
+| sik-fail-nedenleri.md | okundu | ✓ | Integration TAM koşuldu (aşağıda); `dotnet format` test projesinde koşuldu; kopya kural/kurulum yok; main ilerlemedi (dal tabanı `29d3ce6f` = `origin/main`). Düzeltme 1: "boş kümeyi karşılaştıran iddia" (T390 r1) için bütün anlatıların "değişmez/olmaz" iddiaları tarandı (aşağıda "Düzeltme 1") |
 
 ## Test Sonuçları
 
@@ -56,6 +56,10 @@ Bütün maddeler (önceki işçinin yaptıkları dahil) diff'te yeniden denetlen
 | Unit (Consistency dahil) | 5739 / 5739 ✓ |
 | `dotnet build -warnaserror` (Integration projesi) | 0 uyarı / 0 hata |
 | `dotnet format` (değişen test dosyaları) | değişiklik yok |
+| **Düzeltme 1:** `dotnet build -warnaserror` (çözüm) | 0 uyarı / 0 hata |
+| **Düzeltme 1:** `dotnet format --verify-no-changes` (Web, Unit, Integration ayrı ayrı) | değişiklik yok |
+| **Düzeltme 1:** `BranchFlowTests` + `MainFlowTests` + `PaymentNotificationTests` (Postgres 18, `track_commit_timestamp=on`) | 20 / 20 ✓ |
+| **Düzeltme 1:** Unit (parçalı: Architecture, Consistency, geri kalan) | 1216 + 291 + 4232 = 5739 / 5739 ✓ |
 
 ## Doğrulama
 
@@ -84,6 +88,12 @@ Bütün maddeler (önceki işçinin yaptıkları dahil) diff'te yeniden denetlen
 
 - Kart iadesi işleyicisi T405'in; testte işleyicinin yaptığı (`CardRefundJobRule.Decide` → `RefundRecord.Sending` → sahte `RequestRefundAsync` → `ApplyCardRefundOutcomeAsync`) adım adım taklit edilir.
 - Havale cayma geri ödemesini yazan panel adımı sonraki task'ın; test satırı kural evlerinin verdiği tutarla yazar, işlemeyi `ProcessTransferRefundAsync` yapar.
+
+## Düzeltme 1
+
+- **B1 (DÜŞÜK, kriter 9 / KK9):** `BranchFlowTests.EmailCorrection.cs` — müşteri, ödemeden sonra iki adetli kalemin bir adedini sipariş sayfasından IBAN'ıyla iptal eder (`IOrderTransitions.CancelItemAsync`, uygulamanın kendi yolu; kapanış yok, eksenler Hazırlanıyor + Ödendi). "Önce" anında IBAN satırı tek ve girilen metindir, iptal kaydı ona bağlıdır; düzeltmeden sonra satırın kimliği, metni, giriş anı ve silinme anı aynıdır, iptale bağlılık sürer. Düzeltme IBAN'ı silse ya da değiştirse test artık kırılır.
+- **Öteki anlatıların taraması:** "değişmez/olmaz" iddialarının korunan değeri düzenekte var: kupon `used_count` 1 (önceden iddia edilmiş), Kargoya verildi/Teslim edildi eksenleri, IBAN silinmesinden önce satır vardır (`SingleAsync` / sayı 1), bildirim sayısı eşitliği eklenmeyi ölçer, kalem açık (`AwaitingReturnGoods` true). "Yok" iddiaları (iptal kaydı, ikinci geri ödeme, B-7) işlem çalıştıktan sonra sayılır. E-posta düzeltmesinde süre ve iz karşılaştırmalarına doluluk iddiaları eklendi (`PaymentConfirmedAt`, `PromiseEndsAt`, iz, kalemler).
+- Üretim kodu değişmedi; yeni backlog kalemi yok.
 
 ## Notlar
 

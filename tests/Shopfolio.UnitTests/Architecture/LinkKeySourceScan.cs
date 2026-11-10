@@ -24,15 +24,9 @@ internal static partial class LinkKeySourceScan
     /// The closed list of other files that may name the generator or a digest function, each with its reason (09 15.1 item 1: the order number,
     /// the content digests of 15.6 item 5, 11.4 item 5 and 15.7 item 2). A file is added by the task that owns it, one path, with its reason:
     /// <c>Modules/Catalog/ImageUploads.cs</c> - the content digest that names the source copy (09 15.6 item 5; T223);
-    /// <c>Modules/Settings/LegalTextTemplates.cs</c> - the content digest that is the version id of a legal text template (09 11.4 item 5; T366);
-    /// <c>Infrastructure/Integrations/PayTrSignature.cs</c> - the payment provider's request and notification signature, HMAC-SHA256 with the merchant key (08 2.1; T401).
+    /// <c>Modules/Settings/LegalTextTemplates.cs</c> - the content digest that is the version id of a legal text template (09 11.4 item 5; T366).
     /// </summary>
-    public static readonly string[] GeneratorExceptions =
-    [
-        "src/Shopfolio.Web/Modules/Catalog/ImageUploads.cs",
-        "src/Shopfolio.Web/Modules/Settings/LegalTextTemplates.cs",
-        "src/Shopfolio.Web/Infrastructure/Integrations/PayTrSignature.cs",
-    ];
+    public static readonly string[] GeneratorExceptions = ["src/Shopfolio.Web/Modules/Catalog/ImageUploads.cs", "src/Shopfolio.Web/Modules/Settings/LegalTextTemplates.cs"];
 
     /// <summary>The folder where a link key may be derived.</summary>
     public const string DeriveFolder = "src/Shopfolio.Web/Modules/Notifications/";

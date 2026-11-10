@@ -85,6 +85,28 @@ public sealed partial class OrderCorrectionTests
         Assert.Equal(0, await CountAsync(c => c.ItemRemovals));
     }
 
+    // ---- T364 KK3, KK5: two administrators remove the same item from the same screen at once (02 3.31.2) ----
+
+    [Fact]
+    public async Task TwoAdministrators_RemoveTheSameItemAtOnce_OnlyTheFirstCompletedIsApplied_OneRemoval_OneRefund_OneNotice_T364_KK3_KK5()
+    {
+        Order order = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical);
+        Guid item = await ItemIdAsync(order.Id, ProductType.Physical);
+
+        OrderTransitionResult[] results = await Task.WhenAll(
+            RunAsync(c => c.RemoveItemAsync(Removal(order, item, 1), Ct)),
+            RunAsync(c => c.RemoveItemAsync(Removal(order, item, 1), Ct)));
+
+        Assert.Single(results, r => r.Refusal is null);
+        Assert.Single(results, r => r.Refusal == TransitionRefusal.VersionConflict);
+        Assert.Equal(1, await CountAsync(c => c.ItemRemovals.Where(r => r.OrderItemId == item)));
+        Assert.Equal(1, await CountAsync(c => c.Refunds.Where(r => r.OrderId == order.Id)));
+        Assert.Equal(1, await CountAsync(c => c.AuditLogs.Where(a => a.TargetRecordId == order.Id)));
+        Assert.Equal(1, (await DispatchesAsync(order.Id)).Count(d => d.Type == DispatchType.B11));
+        Assert.Equal(1, await CountAsync(c => c.ItemRemovals.Where(r => r.OrderItemId == item && r.Quantity == 1)));
+        Assert.Equal(OrderStatus.Preparing, (await ReloadAsync(order.Id)).OrderStatus);
+    }
+
     // ---- KK3, KK4: the amount from the frozen values, the line and the shipping fee ----
 
     [Fact]

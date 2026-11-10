@@ -31,6 +31,9 @@ internal sealed partial class OrderTransitions
 
         if (order.PaymentMethod != PaymentMethod.Card)
         {
+            // The provider's payment no longer fits the order as it is now (the line moved to the transfer): the system's transition is refused with
+            // one application log line, no notice (02 3.31.2; K-1559).
+            _automaticLog.Refused(order.Id, TransitionRejection.ConditionNotMet);
             return new PaymentTransitionResult([], isNotOpen: true);
         }
 
@@ -132,6 +135,9 @@ internal sealed partial class OrderTransitions
         RefundFacts? refund = await _payment.WriteCardRefundOutcomeAsync(order.Id, outcome.RefundRecordId, outcome.Outcome, ct);
         if (refund is null)
         {
+            // The outcome comes for a record that is no longer open - the firm marked it, or the outcome was applied already (05 4.6.2): the system's
+            // transition is refused with one application log line, no notice (02 3.31.2; K-1559).
+            _automaticLog.Refused(order.Id, TransitionRejection.ConditionNotMet);
             return new PaymentTransitionResult([], isNotOpen: true);
         }
 

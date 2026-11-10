@@ -8,11 +8,14 @@ namespace Shopfolio.UnitTests.Architecture;
 /// "the order changed since the screen" means. Over the order-side modules (<c>Modules/Ordering</c>, <c>Modules/AfterSales</c>,
 /// <c>Modules/Payment</c>), with comment lines blanked and the whole text read, a comparison written by hand is a finding:
 /// <list type="bullet">
-/// <item>an equality operator next to a property named exactly <c>Version</c>, on either side (<c>order.Version != shown</c>, <c>shown == order.Version</c>,
-/// <c>request.ExpectedVersion != order.Version</c>), also over a line break;</item>
-/// <item>a pattern test of it (<c>order.Version is not 3</c>);</item>
-/// <item>an <c>Equals</c> call on it or with it among the arguments (<c>order.Version.Equals(shown)</c>, <c>Equals(order.Version, shown)</c>, <c>shown.Equals(order.Version)</c>).</item>
+/// <item>an equality or relational operator next to a property named exactly <c>Version</c>, on either side (<c>order.Version != shown</c>, <c>shown == order.Version</c>,
+/// <c>request.ExpectedVersion != order.Version</c>, <c>(order.Version) != shown</c>, <c>order.Version &lt; shown</c>), also over a line break;</item>
+/// <item>a pattern test of it (<c>order.Version is not 3</c>) and a property pattern on it (<c>order is { Version: 3 }</c>, <c>case { Version: 3 }</c>);</item>
+/// <item>an <c>Equals</c>, <c>CompareTo</c> or <c>Compare</c> call on it or with it among the arguments (<c>order.Version.Equals(shown)</c>, <c>Equals(order.Version, shown)</c>,
+/// <c>shown.Equals(order.Version)</c>, <c>EqualityComparer&lt;int&gt;.Default.Equals(order.Version, shown)</c>, <c>order.Version.CompareTo(shown)</c>).</item>
 /// </list>
+/// Copying the version into a local first (<c>int current = order.Version;</c>) and comparing the local is a known limit of a text scan: reading the
+/// version (to show it, to return it) is allowed, so the copy alone is not a finding.
 /// Other names that end in "Version" (a legal text's <c>TemplateVersion</c>, a settings section's version) are not the order's and are not matched. There
 /// is no allowed file in the scanned folders: <c>ShownVersion</c> lives in <c>Infrastructure/Forms/RecordSave.cs</c>, outside them. The test projects are not
 /// scanned: they write violations to prove the rule.
@@ -45,7 +48,7 @@ internal static partial class ShownVersionSourceScan
 
         string clean = BlankCommentLines(text.ReplaceLineEndings("\n"));
         List<(string Rule, int Line)> findings = [];
-        foreach (Regex pattern in new[] { VersionThenOperator(), OperatorThenVersion(), EqualsOnVersion(), EqualsWithVersion() })
+        foreach (Regex pattern in new[] { VersionThenOperator(), OperatorThenVersion(), EqualsOnVersion(), EqualsWithVersion(), PropertyPatternOnVersion() })
         {
             foreach (Match match in pattern.Matches(clean))
             {
@@ -70,19 +73,27 @@ internal static partial class ShownVersionSourceScan
         return string.Join('\n', lines);
     }
 
-    // order.Version != shown, order.Version == shown, order!.Version is not 3 - the operator after the property (whitespace and line breaks between).
-    [GeneratedRegex(@"\.Version\b\s*(?:!=|==|\bis\b)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    // order.Version != shown, (order.Version) == shown, order!.Version is not 3, order.Version < shown - the operator after the property (whitespace,
+    // closing parentheses and line breaks between). The lambda arrow (=>) is not an operator here.
+    [GeneratedRegex(@"\.Version\b[\s)]*(?:!=|==|<=|>=|<|>|\bis\b)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex VersionThenOperator();
 
-    // shown != order.Version, request.ExpectedVersion == order!.Version, x != (order).Version - the operator before the property.
-    [GeneratedRegex(@"(?:!=|==)\s*[\w.!?()\[\]]*\.Version\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    // shown != order.Version, request.ExpectedVersion == order!.Version, x != (order).Version, shown > order.Version - the operator before the property;
+    // the '>' of a lambda arrow (o => o.Version) is not one.
+    [GeneratedRegex(@"(?:!=|==|<=|>=|<|(?<![=\-])>)\s*[\w.!?()\[\]]*\.Version\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex OperatorThenVersion();
 
-    // order.Version.Equals(shown).
-    [GeneratedRegex(@"\.Version\s*\.\s*Equals\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    // order.Version.Equals(shown), order.Version.CompareTo(shown).
+    [GeneratedRegex(@"\.Version\s*\.\s*(?:Equals|CompareTo)\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex EqualsOnVersion();
 
-    // Equals(order.Version, shown), object.Equals(shown, order.Version), shown.Equals(order.Version) - the property among the call's arguments.
-    [GeneratedRegex(@"\bEquals\s*\([^;)]*\.Version\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    // Equals(order.Version, shown), object.Equals(Shown(form), order.Version), shown.Equals(order.Version), EqualityComparer<int>.Default.Equals(...),
+    // Comparer<int>.Default.Compare(...), shown.CompareTo(order.Version) - the property among the call's arguments (one level of nested call allowed).
+    [GeneratedRegex(@"\b(?:Equals|CompareTo|Compare)\s*\((?:[^;()]|\([^;()]*\))*\.Version\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex EqualsWithVersion();
+
+    // order is { Version: 3 }, order is not { Version: var v } and v != shown, case { Version: 3 }, a switch arm { Version: 3 } => - a property pattern
+    // on Version. A conditional's ':' (flag ? order.Version : 0) is not one: the pattern starts after 'is', 'case', 'and', 'or', 'not' or right after '{'.
+    [GeneratedRegex(@"(?:\b(?:is|case|and|or|not)\s+\{[^{};]*\bVersion|\{\s*Version)\s*:", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex PropertyPatternOnVersion();
 }

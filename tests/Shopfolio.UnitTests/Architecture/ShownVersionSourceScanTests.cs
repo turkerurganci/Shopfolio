@@ -44,7 +44,7 @@ public sealed class ShownVersionSourceScanTests
 
         IReadOnlyList<(string Rule, int Line)> findings = ShownVersionSourceScan.Scan("src/Shopfolio.Web/Modules/Ordering/Sample.cs", sample);
 
-        Assert.Equal([6, 7, 8, 9, 11, 12, 13, 14], findings.Select(f => f.Line));
+        Assert.Equal([6, 7, 8, 9, 11, 12, 13, 14, 19, 20, 21, 22, 23, 24, 25, 26], findings.Select(f => f.Line));
         Assert.All(findings, f => Assert.Equal(ShownVersionSourceScan.HandWrittenComparison, f.Rule));
     }
 

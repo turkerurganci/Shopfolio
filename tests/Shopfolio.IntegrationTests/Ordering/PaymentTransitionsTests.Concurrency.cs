@@ -96,6 +96,36 @@ public sealed partial class PaymentTransitionsTests
         Assert.Equal(order.Id, await command.ExecuteScalarAsync(Ct));
     }
 
+    [Fact]
+    public async Task ProviderResults_ThatNoLongerFitTheOrder_AreRefused_WithOneLogLineEach_AndNoNotice_T364_KK6()
+    {
+        // A card payment that comes for an order whose line is now the transfer, and a card refund outcome that comes again for a record already
+        // closed: both are the system's transitions refused against the order as it is now (02 3.31.2; K-1559).
+        (Order transfer, _) = await SeedOrderAsync(OrderStatus.Placed, PaymentStatus.Pending, PaymentMethod.BankTransfer);
+        (Order refunded, OrderItem item) = await SeedOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid);
+        (_, Guid recordId) = await SeedCardRefundAsync(refunded, item, 40m, byAdmin: false);
+        PaymentTransitionResult first = await RunAsync((unit, token) => unit.ApplyCardRefundOutcomeAsync(new CardRefundOutcome(refunded.Id, recordId, RefundRecordState.Succeeded), token));
+        Assert.False(first.IsRejected);
+        int noticesBefore;
+        await using (AppDbContext before = NewContext())
+        {
+            noticesBefore = await before.DispatchRecords.CountAsync(d => d.OrderId == refunded.Id, Ct);
+        }
+
+        CollectingLoggerProvider logs = new();
+        PaymentTransitionResult payment = await RunAsync((unit, token) => unit.ApplyCardPaymentAsync(new CardPaymentSucceeded(transfer.Id, "trx-t364-late"), token), logs);
+        PaymentTransitionResult again = await RunAsync((unit, token) => unit.ApplyCardRefundOutcomeAsync(new CardRefundOutcome(refunded.Id, recordId, RefundRecordState.Succeeded), token), logs);
+
+        Assert.True(payment.IsNotOpen);
+        Assert.True(again.IsNotOpen);
+        await AssertStateAsync(transfer.Id, OrderStatus.Placed, PaymentStatus.Pending, 1);
+        string prefix = $"{typeof(AutomaticTransitionLog).FullName}|{LogLevel.Information}|{LogEvents.AutomaticTransitionRefused} {TransitionRejection.ConditionNotMet} ";
+        Assert.Equal([$"{prefix}{transfer.Id}", $"{prefix}{refunded.Id}"], logs.Lines.Where(l => l.Contains(LogEvents.AutomaticTransitionRefused, StringComparison.Ordinal)));
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(0, await reader.DispatchRecords.CountAsync(d => d.OrderId == transfer.Id, Ct));
+        Assert.Equal(noticesBefore, await reader.DispatchRecords.CountAsync(d => d.OrderId == refunded.Id, Ct));
+    }
+
     private async Task<T> RunAsync<T>(Func<IOrderTransitions, CancellationToken, Task<T>> work, CollectingLoggerProvider logs)
         where T : IOperationResult
     {

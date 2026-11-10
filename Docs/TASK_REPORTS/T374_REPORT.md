@@ -111,7 +111,7 @@ Koşulmayanlar (yapım turu, süre bütçesi): Unit tam koşu, Integration'ın d
 - **Commit:** `cd044e6d` (ara kayıt), `43ac6994` (devam), PR no commit'i; düzeltme 1 (dal başı, `origin/main` birleştirmesiyle)
 - **PR:** #504
 - **CI:** tur 1 42659236737 yeşil (head `bbe9c7de`); tur 2 42671989182 ✗ altyapı (head `4edde518`, iş başlamadı) — kayıt commit'inin koşusu merge kapısıdır
-- **Post-merge run'lar:**
+- **Post-merge run'lar:** squash `8914f1c` (#504) — CI 42677418962 success, Publish 42677418964 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

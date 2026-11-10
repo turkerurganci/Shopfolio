@@ -1,6 +1,6 @@
 # T379 — Yönetici hesapları: ilk yönetici ve davet, kaldırma kuralları, tek rol, ayrı hesap türü, davetin geri çekilmesi, erişim kaybında kurtarma sınırı
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL — düzeltme bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-08
 
 ---
 
@@ -120,6 +120,8 @@
 
 - **Branch:** `task/T379-yonetici-hesaplari`
 - **Commit / PR / CI:** PR açıldığında doldurulur (CI izlemeyi yönetici yapar)
+- **PR:** #473
+- **Post-merge run'lar:** squash `02feaca` (#473) — CI 42512134573 success, Publish 42512134557 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

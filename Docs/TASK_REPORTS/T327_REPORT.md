@@ -110,7 +110,7 @@ Test: Unit 5065/5065, Integration 284/284 (`AutomaticMomentsTests`, `PaymentWind
 - **Commit:** son commit PR'da
 - **PR:** #480
 - **CI:** dal CI'ı PR'da
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `d0c97cf` (#480) — CI 42532103776 success, Publish 42532103711 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

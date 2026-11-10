@@ -113,7 +113,7 @@
 - **Branch:** `task/T376-deneme-limitleri`
 - **PR:** #493
 - **CI:** ✓ run `42586923780` (head `81bdbd1e`) bütün işler yeşil
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `2e55a22` (#493) — CI 42593651827 success, Publish 42593651762 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

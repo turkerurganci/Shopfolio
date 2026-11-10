@@ -125,6 +125,7 @@ Main sonrası düzeltme (2026-11-08): T336'nın üretim yeri kuralıyla `Payment
 - **Commit:** PR başlığında; head SHA PR'da
 - **PR:** #454
 - **CI:** doğrulayıcı izler
+- **Post-merge run'lar:** squash `e7f6ba0` (#454) — CI 42452259999 success, Publish 42452259880 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

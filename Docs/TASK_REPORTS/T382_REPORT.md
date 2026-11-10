@@ -190,7 +190,7 @@ Devam 3 işçisi önceki işçilerin yaptıkları dahil bütün maddeleri diff't
 - **Commit:** `c7359e7c` — T382: Panel ana sayfası verisi (rapor, kayıtlar, mal bekleniyor kümesi sayfalı okunur)
 - **PR:** #510
 - **CI:** yapım işçisi izlemez (yönetici izler)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `ed1ee67` (#510) — CI 42743049274 success, Publish 42743049275 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

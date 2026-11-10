@@ -1,6 +1,6 @@
 # T338 — Kupon: tanım, kalem payı, sınırlar, kullanım hakkının ayrılması
 
-**Faz:** F3 | **Durum:** ✓ Doğrulama PASS (tur 1; merge yardımcıda) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -115,7 +115,7 @@ Yerel notlar: Model parçasının ilk koşusu makine yüklüyken (7 dk 38 sn) 4 
 - **Commit:** `85bdd9e` — kod ve testler (1. işçi); rapor/kayıt commit'i bu dalda
 - **PR:** #458
 - **CI:** run 42456195767 (head `564c86f`) — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, CI Gate yeşil
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
+- **Post-merge run'lar:** squash `4ad40fa` (#458) — CI 42466502303 success, Publish 42466502346 failure (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

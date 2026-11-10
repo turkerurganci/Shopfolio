@@ -127,7 +127,7 @@ Yapım raporu karşılaştırması: davranışta tam uyum; öz denetim tablosu k
 - **Commit:** `bffe1c80` — T347 rapor ve kayıtlar (yapım kodu `451b6a9b`)
 - **PR:** #475
 - **CI:** işçi yoklamaz; yöneticinin izlemesindedir
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `8789b22` (#475) — CI 42510559202 success, Publish 42510559169 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

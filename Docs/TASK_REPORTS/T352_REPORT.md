@@ -139,7 +139,7 @@ Tam uyumlu; öz denetim tablosu var ve kanıtlı. Farklar: K1 yapım raporunda y
 - **Commit:** `1f8220c4` — T352: kod ve testler
 - **PR:** #491
 - **CI:** run 42582347076 (head `10da8ed7`) success
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `30d43ba` (#491) — CI 42586725547 success, Publish 42586725445 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

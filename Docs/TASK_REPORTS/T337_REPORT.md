@@ -131,7 +131,7 @@
 - **Commit:** PR'ın head'i
 - **PR:** #457
 - **CI:** run 42453730158 (`7006bcc`) doğrulama anında Integration koşuyordu, öteki işler pass; doğrulama commit'inin CI'ını yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
+- **Post-merge run'lar:** squash `05705ee` (#457) — CI 42457733416 success, Publish 42457733364 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

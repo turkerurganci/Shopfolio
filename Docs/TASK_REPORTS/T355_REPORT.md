@@ -116,7 +116,7 @@
 - **Commit:** son commit PR'da
 - **PR:** #484
 - **CI:** dal run 42533334898 (head `e958219b`) success
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
+- **Post-merge run'lar:** squash `8772edb` (#484) — CI 42537382843 success, Publish 42537382825 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

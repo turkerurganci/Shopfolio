@@ -142,7 +142,7 @@
 - **Commit:** `fd127e3` ve öncesi (kod), `6698b83` (kayıtlar, rapor, `!` temizliği)
 - **PR:** #465
 - **CI:** `42474311101` (head `cf6ed041`) success
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `02a79bd` (#465) — CI 42479203341 success, Publish 42479203249 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

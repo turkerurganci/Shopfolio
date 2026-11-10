@@ -80,6 +80,11 @@ Devam işçisi bütün maddeleri (önceki işçinin yaptıkları dahil) diff'te 
 | Lint | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` (3 proje) | temiz |
 | Build | ✓ | `dotnet build <proje> -warnaserror --no-restore` | 0 uyarı, 0 hata |
 
+## Commit & PR
+
+- **PR:** #505
+- **Post-merge run'lar:** squash `d3ff0f8` (#505) — CI 42667039743 success, Publish 42667039895 success (F3 gate'te dolduruldu)
+
 ## Doğrulama
 
 | Alan | Sonuç |

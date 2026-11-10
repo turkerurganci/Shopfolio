@@ -101,6 +101,7 @@
 - **Branch:** `task/T372-cayma-beyani`
 - **PR:** #492
 - **CI:** 42583106374 success (head `79ce2083`); 42589139528 success (head `62454adc`); doğrulama tur 2 kayıt commit'i yeni run'ı tetikler
+- **Post-merge run'lar:** squash `d5676e7` (#492) — CI 42627783852 success, Publish 42627783617 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

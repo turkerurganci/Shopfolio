@@ -103,7 +103,7 @@
 - **Commit:** `task/T362-marka-kimligi` head (dönüş metninde)
 - **PR:** #448
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `b7358b7` (#448) — CI 42460749391 success, Publish 42460749345 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

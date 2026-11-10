@@ -86,6 +86,11 @@ Devam işçisi bütün maddeleri (önceki işçinin yaptıkları dahil) diff'te 
 - **K1:** D-884'e T386 payı yazıldı (`DEFERRED_BACKLOG.d/T375.md`).
 - **K2:** KK9 testi geri ödeme süresi başlangıcının düzeltilmiş tarih olduğunu iddia eder.
 
+## Commit & PR
+
+- **PR:** #509
+- **Post-merge run'lar:** squash `0aa3716` (#509) — CI 42733291669 success, Publish 42733291791 success (F3 gate'te dolduruldu)
+
 ## Doğrulama
 
 | Alan | Sonuç |

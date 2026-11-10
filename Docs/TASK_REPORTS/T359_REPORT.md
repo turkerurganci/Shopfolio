@@ -1,6 +1,6 @@
 # T359 — Kurumsal içerik: ürün bağı, elle sıralama, zorunlu alanlar, alan tavanları, kapsam dışı yetenekler
 
-**Faz:** F3 | **Durum:** ✓ Doğrulama tur 3 PASS | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 3 PASS) | **Tarih:** 2026-11-08
 
 > Taslağı yapım işçisi doldurur; doğrulama finalize eder.
 
@@ -132,6 +132,7 @@ B2 düzeltildi: `ContentProductLinks.SaveAsync` var olmayan (silinmiş) ürünü
 - **Branch:** `task/T359-kurumsal-icerik`
 - **PR:** #479
 - **CI:** — (yardımcı izler)
+- **Post-merge run'lar:** squash `241f866` (#479) — CI 42540074711 success, Publish 42540074716 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

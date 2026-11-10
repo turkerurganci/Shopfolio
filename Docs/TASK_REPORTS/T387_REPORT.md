@@ -1,6 +1,6 @@
 # T387 — Kurulum tarafı yönetim komutları: iş satırını yeniden kuyruğa alma ya da kapatma, anahtar yenilemesi sonrası ödeme sonucunun uygulanması, kayıt okuma komutu
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor — yapım bitti, doğrulama bekliyor | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-09
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -148,7 +148,7 @@
 - **Commit:** *(PR head)* — T387: Kurulum tarafı yönetim komutları
 - **PR:** #487
 - **CI:** *(yardımcı izler)*
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
+- **Post-merge run'lar:** squash `b90fa93` (#487) — CI 42564337720 success, Publish 42564337700 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

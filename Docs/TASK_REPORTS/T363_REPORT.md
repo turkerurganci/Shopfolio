@@ -94,9 +94,9 @@
 
 - **Branch:** `task/T363-sayfa-adresleri-seo`
 - **Commit:** PR başlığındaki son commit
-- **PR:** açıldığında yönetici kaydeder
+- **PR:** #482
 - **CI:** yönetici izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `b19308d` (#482) — CI 42546628949 success, Publish 42546628955 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

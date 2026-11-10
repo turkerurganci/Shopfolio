@@ -192,7 +192,7 @@ K1 (→ D-322): `PaymentModule.ReadRefundMarksAsync` "geri ödeme gerçekleşmed
 - **Düzeltme turu 3:** `T317: düzeltme turu 3 — ödenmemiş iptalin tek yolu CancelOrderAsync (B1), Ö1'in tek yolu ödeme ekseni (D-389)` + `origin/main` birleştirmesi (dalın başı)
 - **PR:** #441
 - **CI:** 42421489591 success (head `24be2b5`; validator tur 3) · 42414305022 success (head `66bcf16`; validator tur 2) · 42396093293 success (head `0926ba7`; validator tur 1)
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında)*
+- **Post-merge run'lar:** squash `7097c01` (#441) — CI 42430286061 success, Publish 42430286045 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

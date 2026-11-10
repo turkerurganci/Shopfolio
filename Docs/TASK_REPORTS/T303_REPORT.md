@@ -89,7 +89,7 @@
 - **Commit:** son commit PR'ın head'idir
 - **PR:** #469
 - **CI:** yapım işçisi izlemez (yönetici yürütür)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `f160376` (#469) — CI 42487801055 success, Publish 42487801064 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

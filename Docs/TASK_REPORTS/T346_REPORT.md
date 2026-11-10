@@ -1,6 +1,6 @@
 # T346 — Sepet: sahiplik, giriş anında birleşme, canlı kalem, siparişe girmeyen kalemler
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım tamam, doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurdu; doğrulama chat'i finalize eder.
 
@@ -155,9 +155,9 @@ Bulgu 1: `OrderingModule`'ü elle kuran üç düzenek (`DisposalHarness`, `Addre
 ## Commit & PR
 
 - **Branch:** `task/T346-sepet-sahiplik`
-- **PR:** başlıkta ve STATUS satırında
+- **PR:** #467
 - **CI:** yönetici izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `a71c6f0` (#467) — CI 42493884474 success, Publish 42493884421 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

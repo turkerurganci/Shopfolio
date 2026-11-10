@@ -101,7 +101,7 @@
 - **Commit:** kod başı `258819a3`; rapor commit `d71ada77`
 - **PR:** #478
 - **CI:** run 42516860761 (head `7adf3e66`) tüm işler pass (doğrulayıcı)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `03007b9` (#478) — CI 42528715181 success, Publish 42528715144 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

@@ -121,7 +121,7 @@
 - **Commit:** `577f6159` — kurallar ve süre göstergesi; `e34bd542` — Integration testi; `e1118849` — `origin/main` birleştirmesi; kayıt commit'i PR'da
 - **PR:** #464
 - **CI:** dal CI 42474305471 (`908b740a`) bütün işler yeşil; doğrulama kayıt commit'inin (`origin/main` birleştirmesiyle) CI'ını yardımcı izler
-- **Post-merge run'lar:** *(merge'ü yapan yardımcı doldurur — sonraki kayıt PR'ında)*
+- **Post-merge run'lar:** squash `0a66996` (#464) — CI 42480365166 success, Publish 42480365007 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

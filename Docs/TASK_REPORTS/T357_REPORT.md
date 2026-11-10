@@ -108,7 +108,7 @@
 - **Commit:** `ff95888c` — T357: Fatura verisi ve dışa aktarmada donmuş kimlik
 - **PR:** #485
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `0203297` (#485) — CI 42548005029 success, Publish 42548005043 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

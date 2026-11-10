@@ -1,6 +1,6 @@
 # T388 — Dönüş denetimi komutu ve dönüşten sonra silmelerin yeniden uygulanması
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -119,9 +119,9 @@
 
 - **Branch:** `task/T388-donus-denetimi`
 - **Commit:** son head PR açıklamasında
-- **PR:** PR açıklamasında
+- **PR:** #483
 - **CI:** yoklanmadı (yönetici izler)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `e958c59` (#483) — CI 42542560342 success, Publish 42542560429 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

@@ -1,6 +1,6 @@
 # T380 — İşlem izi: sekiz alan, kim-ne zaman-ne değişti, değiştirilemez ve silinemez, sistem olayları ize girmez, düz liste, on yıl
 
-**Faz:** F3 | **Durum:** ✓ PASS (doğrulama tur 2) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -185,7 +185,7 @@ Tur 2'nin tam sonucu raporun sonundaki "Doğrulama Sonucu — T380 İşlem izi �
 ## Commit & PR
 
 - **Branch:** `task/T380-islem-izi`
-- **PR:** açıldığında PR gövdesinde
+- **PR:** #419
 - **CI:** yapım işçisi izlemez
 - **Post-merge run'lar:** squash `7f8d6c3` (#419) — CI 42356915419 success, Publish 42356915467 success (T331 yapımında dolduruldu)
 

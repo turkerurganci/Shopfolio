@@ -84,6 +84,8 @@ Bütün maddeler (önceki işçinin yaptıkları dahil) diff'te yeniden denetlen
 ## Commit & PR
 
 - Dal `task/T390-uctan-uca-akislar`; PR base `main`. PR: #508
+- **PR:** #508
+- **Post-merge run'lar:** squash `206f918` (#508) — CI 42735260521 success, Publish 42735260509 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

@@ -157,6 +157,7 @@ Yok.
 - **Branch:** `task/T343-google-giris`
 - **PR:** #468
 - **CI:** (yönetici izler)
+- **Post-merge run'lar:** squash `169c3cd` (#468) — CI 42489399534 success, Publish 42489399568 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

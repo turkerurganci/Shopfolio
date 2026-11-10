@@ -278,7 +278,7 @@ Doğrulama PASS sonrası main'e giren T381 (ayar katmanları, parametre envanter
 - **Branch:** `task/T341-uyelik`
 - **PR:** #433
 - **CI:** yapım işçisi izlemez
-- **Post-merge run'lar:** *(doğrulayıcı doldurur — merge sonrası; sonraki task dalında)*
+- **Post-merge run'lar:** squash `e2e9dbc` (#433) — CI 42426248097 cancelled (sonraki push iptal etti; ana dalın sonraki CI koşuları yeşil), Publish 42426248059 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

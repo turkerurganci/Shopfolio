@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 
+using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Integrations;
 

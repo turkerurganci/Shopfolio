@@ -79,7 +79,7 @@ public sealed class SesClientAndMappingTests
     public async Task Client_SignsWithTheSettingsKey_AndGoesToTheSettingsRegionsEndpoint_EvenWhenTheEnvironmentHoldsAnotherIdentity()
     {
         string?[] names = ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "AWS_REGION", "AWS_DEFAULT_REGION", "AWS_ENDPOINT_URL", "AWS_PROFILE"];
-        string?[] before = [.. names.Select(Environment.GetEnvironmentVariable)];
+        string?[] before = [.. names.Select(n => Environment.GetEnvironmentVariable(n!))];
         try
         {
             Environment.SetEnvironmentVariable("AWS_ACCESS_KEY_ID", "AKIAENVIRONMENTKEY99");
@@ -164,7 +164,7 @@ public sealed class SesClientAndMappingTests
         { new AmazonServiceException("boom") { StatusCode = HttpStatusCode.BadGateway }, SesErrorMapping.StatusReasonPrefix + "502" },
         { new AmazonServiceException("code with a value alice@example.com") { ErrorCode = "code with a value alice@example.com", StatusCode = HttpStatusCode.BadRequest }, SesErrorMapping.StatusReasonPrefix + "400" },
         { new AmazonClientException("no route"), SesErrorMapping.ClientReason },
-        { new HttpRequestException("refused", null, HttpRequestError.ConnectionError), "connection:ConnectionError" },
+        { new HttpRequestException(HttpRequestError.ConnectionError, "refused"), "connection:ConnectionError" },
         { new TimeoutException("slow"), ExternalCallFailure.TimeoutReason },
         { new OperationCanceledException(), ExternalCallFailure.TimeoutReason },
         { new InvalidOperationException("not the library's"), SesErrorMapping.UnexpectedReasonPrefix + "InvalidOperationException" },
@@ -196,7 +196,7 @@ public sealed class SesClientAndMappingTests
         { new TimeoutException("x"), ExternalCallFailureKind.TimedOut },
         { new OperationCanceledException(), ExternalCallFailureKind.TimedOut },
         { new AmazonClientException("x"), ExternalCallFailureKind.Unreachable },
-        { new HttpRequestException("x", null, HttpRequestError.ConnectionError), ExternalCallFailureKind.Unreachable },
+        { new HttpRequestException(HttpRequestError.ConnectionError, "x"), ExternalCallFailureKind.Unreachable },
         { new MessageRejectedException("x"), ExternalCallFailureKind.Unrecognized },
         { new InvalidOperationException("x"), ExternalCallFailureKind.Unrecognized },
     };

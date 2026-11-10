@@ -160,7 +160,7 @@ public sealed class SesEmailGatewayTests
     [InlineData("\\\"", "\"\\\\\\\"\" <a@b.example>")]
     [InlineData("Satır\r\nSonu", "\"Satır  Sonu\" <a@b.example>")]
     [InlineData("Sekme\tve\u0007zil\u0085nel", "\"Sekme ve zil nel\" <a@b.example>")]
-    [InlineData("Ayraç  sonu", "\"Ayraç  sonu\" <a@b.example>")]
+    [InlineData("Ay\u00e7\u2028\u2029sonu", "\"Ay\u00e7  sonu\" <a@b.example>")]
     public void SenderText_EscapesTheQuoteAndTheBackslash_AndTurnsLineBreaksAndControlCharactersIntoBlanks(string name, string expected)
     {
         Assert.Equal(expected, SesEmailGateway.SenderText(name, "a@b.example", Domain));

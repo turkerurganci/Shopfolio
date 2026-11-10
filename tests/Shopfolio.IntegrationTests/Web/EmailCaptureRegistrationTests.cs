@@ -83,10 +83,12 @@ public sealed class EmailCaptureRegistrationTests
                 [EmailCaptureOptions.HostKey] = "mailpit",
                 [EmailCaptureOptions.PortKey] = "1025",
                 [EmailOptions.CredentialKey] = "any-non-empty-development-text",
-            });
+            },
+            keepEmailGateway: true);
 
         using HttpClient client = factory.CreateClient();
 
+        Assert.IsType<SmtpCaptureEmailGateway>(factory.Services.GetRequiredService<IEmailGateway>());
         Assert.NotNull(client);
     }
 }

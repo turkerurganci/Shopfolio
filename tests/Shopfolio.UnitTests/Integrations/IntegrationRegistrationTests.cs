@@ -38,11 +38,13 @@ public sealed class IntegrationRegistrationTests
     }
 
     [Fact]
-    public void WithoutACaptureHost_NoEmailGatewayIsRegistered_AndTheSettingIsNotChecked()
+    public void WithoutACaptureHost_TheEmailGatewayIsTheServicesGateway_AndTheCaptureSettingIsNotChecked()
     {
         using ServiceProvider provider = Provider([], out ServiceCollection services);
 
-        Assert.DoesNotContain(services, d => d.ServiceType == typeof(IEmailGateway) || d.ServiceType == typeof(ISmtpTransport));
+        ServiceDescriptor descriptor = Assert.Single(services, d => d.ServiceType == typeof(IEmailGateway));
+        Assert.Equal(typeof(SesEmailGateway), descriptor.ImplementationType);
+        Assert.DoesNotContain(services, d => d.ServiceType == typeof(ISmtpTransport));
         Assert.Equal(string.Empty, provider.GetRequiredService<IOptions<EmailCaptureOptions>>().Value.Host);
     }
 

@@ -1,6 +1,6 @@
 # T412 — F3 kapanış düzeltmeleri: sipariş bekçisi, satış sonrası kapanış ve IBAN kullanımı
 
-**Faz:** F4 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-10
+**Faz:** F4 | **Durum:** 🔧 Düzeltme 1 bitti — doğrulama tur 2 bekliyor (tur 1 ✗ FAIL) | **Tarih:** 2026-11-10
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -17,10 +17,12 @@
 - **KK7 — e-posta yerel kısmı (D-379):** `InvalidEmailAttribute` yerel kısmı noktayla başlayan, biten ya da ardışık nokta içeren adresi reddeder; `04` 7.3.2.1 hücresi eşitlendi. Eski davranışı sınayan kayıt testi (`MembershipTests.Register_TakesTheAddressTheProjectsOneEmailRuleAccepts`, `a..b@`) yeni kurala göre değişti; ret teorisine üç biçim eklendi.
 - **KK8 — sır bekçisi (D-80):** `scripts/git-hooks/pre-commit` satırın başındaki `-e`/`--env` önekini (`-e "K=v"`, `-e K=v`, `--env "K=v"`, `--env=K=v`) soyar, anahtar biçimi denetimi anahtarı görür; `test-pre-commit.sh` dört yakalanan, iki geçen satır. Paket betiğinin 1/7 taraması (`package-build.sh`, `(^|[^A-Za-z0-9_])NAME=`) `-e "` önekli satırı zaten atlamıyor — öndeki `"` karakter sınıfına uyar; kod değişmedi.
 - **KK9 — ödeme kümesi (D-847, D-896):** `Ordering/Contracts/PaymentApproval` (`IsApproved`, sorgu dizisi `Statuses`) tek tanım; `SalesPeriodReader`, `SalesSummaryRules`, `OrderExport.IsPaymentCompleted` (devreder), `OrderOperationFacts.PaymentApproved`, `AfterSalesModule.PendingWork` onu çağırır.
+- **Düzeltme 1 (tur 1 B1, KK9):** kümeyi tümleyeniyle ("Pending ve Failed değil") yazan iki yer de tek eve bağlandı: `DeliveryMarkRules.IsPaymentOpenToMark` → `PaymentApproval.IsApproved`; `PendingWorkReader` `ServiceUnmarked` sorgusu → `PaymentApproval.Statuses` (sorgu dizisi, `Contains` ile çevrilir). `OrderTransitions` S9 teslim kapanışındaki yasak çift denetimi (`03 §1.4.1`, Teslim edildi + Pending/Failed) kendi kopyası yerine çift tablosunu okur: `TransitionTable.IsPairAllowed(OrderStatus.Delivered, …)` — istisnaya gerek kalmadı. `PaymentApprovalTests` taraması tümleyeni beş biçimde, her sırada, boşlukta ve satır kırılımında yakalar: `… or …` deseni (`is not (…)`, `is …`, switch kolu), `not … and not …`, `!= … && != …` zinciri, `== … || == …` zinciri, `[Pending, Failed]` listesi; tek istisna yine `TransitionTable.cs` izinli çift satırı. Davranış aynı (`DeliveryMarkRulesTests` durum başına beklenen değerler değişmeden yeşil).
 - **Backlog:** D-80, D-95, D-309, D-379, D-808, D-847, D-896, D-903, D-905, D-910, D-915 yerinde ✅. Yeni kalem yok.
 
 ## Etkilenen Modüller / Dosyalar
 
+- Ordering (düzeltme 1): `DeliveryMarkRules.cs`, `PendingWorkReader.cs`, `OrderTransitions.cs`, `Contracts/PaymentApproval.cs` (yorum); Unit `Ordering/PaymentApprovalTests.cs`
 - Ordering: `OrderVersionGuard.cs`, `OrderAxes.cs`, `OpenUnpaidOrderLimit.cs`, `UnpaidCancellationLimit.cs`, `OrderPlacementLimits.cs`, `OrderConfirmation.cs`, `OrderTransitions.Shipment.cs`, `OrderTransitions.RefundLine.cs`, `RefundIbanDeletionDay.cs`, `OrderExport.cs`, `OrderOperationFacts.cs`, `SalesPeriodReader.cs`, `Contracts/PaymentApproval.cs` (yeni), `Contracts/ShipmentTransitionRequests.cs`
 - AfterSales: `AfterSalesModule.RefundIbanUses.cs` (yeni), `AfterSalesModule.RefundIbans.cs`, `AfterSalesModule.RefundLine.cs`, `AfterSalesModule.ItemRecords.cs`, `AfterSalesModule.PendingWork.cs`, `Contracts/RefundIbanUse.cs`
 - Payment: `PaymentModule.cs`, `Contracts/IPaymentModule.cs`; Administration: `SalesSummaryRules.cs`; Infrastructure: `Validation/FieldRules.cs`
@@ -40,7 +42,7 @@
 | 6 | `TrackingNumber` ≤ 64, `OtherCarrierName` ≤ 100; `09 §3.5` sabitleri; aşım `InvalidInput` | ✓ | `ShipmentLimits`; `ShipmentTransitionsTests.S5_TakesTheTrackingNumberAndTheCompanyName_AtTheirCaps_AndRefusesOneCharacterMore_T412_KK6`, `OrderCorrectionTests.TheCarrierCorrection_TakesTheCaps_AndRefusesOneCharacterMore_T412_KK6` (sınırın iki yanı, beklenen değer sabitten); `09 §3.5`, `06 §4.17` |
 | 7 | Yerel kısım noktayla başlamaz, bitmez, ardışık nokta yok; `04` 7.3.2.1 | ✓ | `InvalidEmailAttribute`; `FieldRuleTests` (`.ad@`, `ad.@`, `a..b@`), `MembershipTests.Register_WithAWrongAddress_IsRefusedAndNamed` (üç biçim); `04` 7.3.2.1 |
 | 8 | Kanca ve paket betiğinin taraması `-e "` önekli satırı atlamaz | ✓ | `pre-commit` önek soyma; `test-pre-commit.sh` `sh -e quoted/bare`, `sh --env quoted`, `sh --env= form` (yakalanır), `sh -e placeholder`, `sh -e _FILE short path` (geçer); `package-build.sh` 1/7 deseni önekli satırı zaten görür |
-| 9 | Ödeme kümesi tek yerde; okuyan her yer onu kullanır | ~ (validator tur 1: `DeliveryMarkRules.IsPaymentOpenToMark` ve `PendingWorkReader` `ServiceUnmarked` kümeyi tümleyeniyle yazar — B1) | `PaymentApproval`; `PaymentApprovalTests` (küme sabit + kaynak taraması ikinci tanımı yakalar, tek istisna `TransitionTable.cs` izinli çift satırı) |
+| 9 | Ödeme kümesi tek yerde; okuyan her yer onu kullanır | ✓ (düzeltme 1; tur 1 ~ B1) | `PaymentApproval`; yedi tüketici çağırır (`SalesPeriodReader`, `SalesSummaryRules`, `OrderExport`, `OrderOperationFacts`, `AfterSalesModule.PendingWork`, `DeliveryMarkRules.IsPaymentOpenToMark`, `PendingWorkReader` `ServiceUnmarked`). `PaymentApprovalTests.NoSourceFile_WritesTheSetAgain_OutsideItsOneHome_KK9` üç durumlu kopyayı ve tümleyeni arar; eski üç satır geçici kopya olarak `src` altına konunca tarama üçünü de buldu (`DeliveryMarkRules.cs:17`, `PendingWorkReader.cs:48`, `OrderTransitions.cs:361`), kopya silindi. `git grep -nE "PaymentStatus\.(Pending\|Failed)" src/`: kalanlar tek durum okumaları (ödeme penceresi, Ö2, iptal sınırı), çift tablosu ve DB çift kuralı — küme değil |
 
 ### Öz denetim (bitiş kapısı 2)
 
@@ -54,12 +56,13 @@
 | KK6: iki sınırın iki yanı testli; `06` sütun notu | ✓ | İki `..._T412_KK6` testi (64/65, 100/101); `06 §4.17` `OtherCarrierName`, `TrackingNumber` |
 | KK7: üç geçersiz biçim reddedilir | ✓ | `FieldRuleTests` ve `MembershipTests` ret teorisi |
 | KK8: kanca testinde önekli sır yakalanır | ✓ | `test-pre-commit.sh` dört `check 1` satırı |
-| KK9: kümenin tek tanımı | ✓ | `PaymentApproval`; kaynak taraması `PaymentApprovalTests` |
+| KK9: kümenin tek tanımı | ✓ (düzeltme 1) | `PaymentApproval`; tümleyen yazan iki yer ona bağlandı, yasak çift denetimi `TransitionTable.IsPairAllowed`; tarama ve beş yeni ihlal örneği teorisi: `TheScan_CatchesTheComplementAsAnOrPattern_KK9` (5), `…AsAnAndNotPattern_KK9` (2), `…AsANotEqualChain_KK9` (5, çok satırlı dahil), `…AsAnEqualChain_KK9` (3), `…AsAPairList_KK9` (2); dar kalma: `TheScan_LeavesASingleStatusAndOtherRules_KK9` (7: tek durum, Ö2 tablo satırı, `IsTerminal`, deyim/blok sınırı, `\|\|` ile bağlı `!=`) |
 | `09 §25` ilgili satırlar | ✓ | Yeni tavan §3.5 tablosunda (`ShipmentLimits`); aynı işi yapan tek işlev (`PaymentApproval`, `InvalidEmailAttribute`, `RefundIbanUses`) çağrılıyor; modül sınırı korunuyor (`ShipmentLimits`, `PaymentApproval` `Contracts`'ta; mimari testler yeşil); eşzamanlılık: bekçi sırası ve kök yükleme kilit altında; göç yok, yeni paket yok, yeni ayar yok |
 | Güvenlik taraması | ✓ | Sır yok (yeni test satırlarındaki değerler uydurma, betik testinin kendi örnekleri); yeni dış bağımlılık yok; girdi doğrulaması sıkılaştı (kargo tavanı, e-posta nokta kuralı); sır bekçisi kaçağı kapandı; yetki etkisi yok |
 | `12 §6.1` | ✓ | KK'lerin hepsi ✓, kısmi yok; `12`'de T412'ye bağlı satır yok (`grep T412` boş); mini güvenlik kontrolü üstte |
 | Sık FAIL (1) bekçi/tarama istisnası geniş | ✓ | Önek soyma yalnız satır başındaki `-e`/`--env` ve ardından boşluk ya da `=`; değer denetimi değişmedi; `PaymentApprovalTests` taramasının istisnası tek dosya ve dar desen |
-| Sık FAIL (2) tarama çağrı biçimini kaçırıyor | ✓ | Önek dört biçimde (`-e "`, `-e `, `--env "`, `--env=`) sınandı; küme taraması her sıra ve biçimi arar |
+| Sık FAIL (2) tarama çağrı biçimini kaçırıyor | ✓ | Önek dört biçimde (`-e "`, `-e `, `--env "`, `--env=`) sınandı; küme taraması her sıra ve biçimi arar; düzeltme 1: tümleyen biçimi (beş kalıp, sıra/boşluk/satır kırılımı) her kalıp için ayrı ihlal örneğiyle |
+| Sık FAIL (tek kural evi) kümeyi kendi yazan yer | ✓ | Düzeltme 1: `git grep -nE "PaymentStatus\.(Pending\|Failed)" src/` tek tek okundu; küme ya da tümleyeni kalan yer yok (tarama yeşil) |
 | Sık FAIL (3) DB default / FK dizini | ✓ | Göç yok; `CustomerId` dizini zaten var, `06` İndeksler satırı yeni kullanımı anar |
 | Sık FAIL (4) aynı kuralı anan öteki yerler | ✓ | E-posta kuralı: `04` 7.3.2.1 + kayıt testi; eksen: `09 §15.4`, `06 §4.17` iki yer; tavan: `09 §3.5`, `06 §4.17`; `IsRefundIbanInUseAsync` ve `OfMemberEmail` adı `src`, `tests` ve L1–L3 belgelerinde kalmadı (`grep`; tarihçe kayıtları hariç) |
 | Sık FAIL (5) belge kuralını değiştiren 09 metni karar kaydısız | ✓ | `09 §10.2` m.3 → K-1581; §3.5 → K-1586; §15.4 m.5, `02 §7.1.6`, `04` 7.3.2.1, `06 §4.26` → F3 kapısı kararları (D-808 (a), D-905 (a), D-379 (a), D-915 (a); `GATE_CHECK_F3`) |
@@ -70,7 +73,9 @@
 |---|---|---|---|
 | Unit | ✓ 6018/6018 | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | `origin/main` `0b0d1828` birleştirilmiş ağaçta, 31 sn |
 | Integration | ✓ 3502 (parçalı, tamamı) | `dotnet test --project tests/Shopfolio.IntegrationTests --no-build --filter-class …` (Model `--max-threads 3`) | PostgreSQL 18 `track_commit_timestamp=on`. Bu tur, birleşik ağaçta: Web ikinci yarısı 376 (+ T407'nin değiştirdiği `EmailCaptureRegistrationTests`, `SecretFilesTests`), Model 1407. Önceki turlarda: SignedEndpoints+Payment+FileSecrets+Concurrency+Logging+Security+Database+Outages 230; Disposal+Administration+Commands+Jobs 277; Catalog+Files+CorporateContent 369; Ordering 595; Web ilk yarısı 248 |
-| Betik | ✓ (parçalı) | `scripts/git-hooks/test-pre-commit.sh` | Yeni altı satır yerelde koşuldu; tam betik Windows'ta > 400 sn, CI'da tam koşar |
+| Betik | ✓ (parçalı) | `scripts/git-hooks/test-pre-commit.sh` | Yeni altı satır yerelde koşuldu; tam betik Windows'ta > 400 sn sürer. CI bu betiği koşmaz (`.github/` içinde çağıran adım yok; tur 1 notuyla düzeltildi); validator tur 1'de tam betiği yerelde koştu: 216/0 |
+| Unit (düzeltme 1) | ✓ 6142/6142 | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | `origin/main` `06eb0362` birleşik ağaçta (Architecture, Consistency, Ordering dahil) |
+| Integration (düzeltme 1) | ✓ 620 + 69 | `--filter-namespace` Ordering; Administration (PanelHome dahil) | PostgreSQL 18 `track_commit_timestamp=on`, konteyner `shopfolio-t412-fix1-pg` |
 | Contract | — | — | Bu task'ta yok |
 
 `dotnet format --verify-no-changes --include` (değişen src ve test dosyaları): temiz. Derleme 0 uyarı.
@@ -115,6 +120,8 @@
 
 - **Working tree:** temiz; `core.hooksPath` = `scripts/git-hooks`. Dal üç işçi turunda yazıldı (bağlam/süre bölünmesi); `origin/main` iki kez birleştirildi (`8e1e6215`, `0b0d1828`), çakışma yok.
 - **Repo memory:** MEMORY.md'ye dokunulmadı.
+- **Düzeltme 1 (2026-11-10):** tur 1 B1 kapandı (yukarıda "Düzeltme 1"). Kriter 1–9 ve KK1–KK9 yeniden denetlendi: KK1–KK8'in kodu bu turda değişmedi, testleri birleşik ağaçta yeşil (Integration Ordering 620, Administration 69; Unit 6142); KK9 ✓. `origin/main` (`06eb0362`, T401) dalda, çakışma yok. Derleme `-warnaserror` 0 uyarı, `dotnet format --verify-no-changes` üç proje temiz. Yeni backlog kalemi yok.
+  - ⚠ (g) Talimat `OrderTransitions` yasak çift denetimini taramanın gerekçeli istisnası olarak bırakmaya izin veriyordu; istisna yerine denetim çift tablosunun kendisini okur (`TransitionTable.IsPairAllowed(OrderStatus.Delivered, …)`; Teslim edildi satırı Paid, PartiallyRefunded, Refunded → reddedilen yine Pending ve Failed). Davranış aynı, tarama istisnası `TransitionTable.cs` izinli çift satırında kaldı.
 - **⚠ Kolay kararlar (kurala en uygun seçenekle):**
   - (a) Firma kalem iptalinin kendiliğinden kapanışı (`FirmCancellation.cs`, "açık adet kalmadı") ve `EvaluateClosureAsync` kapanan adedi (`ClosedQuantitiesAsync`) okumayı sürdürür — `02 §7.1.6` dönülen adedin kalemi kapatmadığını söyler (K-1077; `ItemRecordsTests.TheFirmsItemCancellation_OfTheUnitsLeftBesideARescindedOne_DoesNotCloseTheOrder_KK8_B1` korunur); KK4 yalnız S5/S8, teslim işareti ve S9'un açık kalem okumasını değiştirir.
   - (b) Z-38'de "teslimden önce" ayrımı kalemin teslim tarihi ve `IsDeliveredBeforeDeclaration` ile yapılır (`AfterSalesPeriodRules.IsAfterDelivery`, beyanın silme günü koyan kuralıyla aynı). Kalem isteğinin kayıtları için geri ödeme hattındaki "IBAN geldikten sonra kapanan kalemin geri ödemesi" inceliği konu listesinde yok: her kaydın geri ödemesi tamamlanmalı (daha korumacı — IBAN gereğinden erken silinmez).

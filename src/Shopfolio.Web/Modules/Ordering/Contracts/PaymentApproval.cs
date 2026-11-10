@@ -2,8 +2,9 @@ namespace Shopfolio.Modules.Ordering.Contracts;
 
 /// <summary>
 /// The one definition of the "payment completed" set (02 10.6.2; 03 1.11.2-1.11.3 "ödeme onaylandıktan sonra"; D-847, D-896): the payment was confirmed at some
-/// moment, so Paid and the refunded statuses after it. Every reader of the set calls this type - the sales summary, the order file, the operation facts and the
-/// panel's pending work - so the set cannot drift between them.
+/// moment, so Paid and the refunded statuses after it. Every reader of the set calls this type - the sales summary, the order file, the operation facts, the
+/// panel's pending work and the service item's "completed" mark (02 3.20.9) - so the set cannot drift between them; none writes it again, not even as its
+/// complement "not Pending and not Failed" (<c>PaymentApprovalTests</c>).
 /// </summary>
 public static class PaymentApproval
 {

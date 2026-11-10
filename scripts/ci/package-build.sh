@@ -197,9 +197,12 @@ done
 printf '%s\n%s\n' "placeholder-access-id" "placeholder-access-value" >"$SETUP_FILES_DIR/db_backup_storage_key"
 printf '%s' "placeholder-cipher-value" >"$SETUP_FILES_DIR/db_backup_cipher_key"
 chmod 0444 "$SETUP_FILES_DIR"/*
+# Git Bash (local runs on Windows): MSYS_NO_PATHCONV keeps /tmp/... as is, which the Docker daemon cannot mount; give it the Windows path.
+SETUP_FILES_MOUNT="$SETUP_FILES_DIR"
+if command -v cygpath >/dev/null 2>&1; then SETUP_FILES_MOUNT="$(cygpath -m "$SETUP_FILES_DIR")"; fi
 docker run -d --name "$DB_CONTAINER" --network none \
   -e POSTGRES_DB=shopfolio -e POSTGRES_PASSWORD_FILE=/run/secrets/db_superuser_password \
-  -v "$SETUP_FILES_DIR:/run/secrets:ro" \
+  -v "$SETUP_FILES_MOUNT:/run/secrets:ro" \
   -e BACKUP_S3_ENDPOINT=storage.invalid -e BACKUP_S3_BUCKET=ci-placeholder -e BACKUP_S3_REGION=ci-placeholder \
   -e BACKUP_RUN_TIME=01:30 -e BACKUP_TIME_ZONE=Europe/Istanbul \
   "shopfolio-database:$TAG" postgres -c config_file=/etc/postgresql/postgresql.conf -c log_statement=all >/dev/null

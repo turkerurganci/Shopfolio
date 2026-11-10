@@ -95,7 +95,7 @@
 
 - **Branch:** `task/T412-f3-kapanis-duzeltmeleri`
 - **Commit:** son commit — T412: F3 kapanış düzeltmeleri: sipariş bekçisi, satış sonrası kapanış ve IBAN kullanımı
-- **PR:** *(PR açılınca)*
+- **PR:** #517
 - **CI:** yönetici izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

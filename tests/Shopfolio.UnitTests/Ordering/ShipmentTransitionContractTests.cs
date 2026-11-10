@@ -35,12 +35,17 @@ public sealed class ShipmentTransitionContractTests
         MethodInfo[] methods = typeof(IOrderTransitions).GetMethods();
 
         Assert.NotEmpty(methods);
-        // The shipment axis returns OrderTransitionResult, the payment axis (T317) PaymentTransitionResult, the withdrawal (T372) WithdrawalResult.
+        // The shipment axis returns OrderTransitionResult, the payment axis (T317) PaymentTransitionResult, the withdrawal (T372) WithdrawalResult, the card refund's
+        // start of a request (T405) CardRefundRequestStart.
         Assert.All(methods, m =>
         {
             Assert.Contains(
                 m.ReturnType,
-                new[] { typeof(Task<OrderTransitionResult>), typeof(Task<PaymentTransitionResult>), typeof(Task<ItemRecordResult>), typeof(Task<WithdrawalResult>) });
+                new[]
+                {
+                    typeof(Task<OrderTransitionResult>), typeof(Task<PaymentTransitionResult>), typeof(Task<ItemRecordResult>), typeof(Task<WithdrawalResult>),
+                    typeof(Task<CardRefundRequestStart>),
+                });
             Assert.Equal(typeof(CancellationToken), m.GetParameters()[^1].ParameterType);
         });
     }

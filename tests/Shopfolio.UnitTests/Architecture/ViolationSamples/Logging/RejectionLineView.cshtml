@@ -1,0 +1,10 @@
+@* Deliberate violation sample of the rejection line scan over a view (T411 criterion 5, D-89 K3): a view is not C#, so the scan reads it line by line. Line numbers are part of the test. *@
+@inject ILogger<RejectionLineView> Logger
+@{
+    Logger.LogWarning("{Event} {Code}", "Anything", reason);
+    Logger.LogWarning("{Event} {Reason}", "Anything", ErrorCode.InvalidInput);
+    Logger.LogWarning(LogEvents.ValidationRejected);
+    using var scope = Logger.BeginScope(new Dictionary<string, object> { ["Code"] = reason });
+    Logger.LogWarning("{Event} {Count}", "Anything", 3);
+}
+<p>Don't write a quote of the view's text into the scan: it's not code.</p>

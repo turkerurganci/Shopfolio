@@ -198,7 +198,7 @@ public sealed class SystemLogsTests
         {
             Assert.DoesNotContain(
                 line.EnumerateObject().Select(p => p.Name),
-                name => ApplicationLogFormatter.ForbiddenPropertyNames.Any(forbidden => name.EndsWith(forbidden, StringComparison.OrdinalIgnoreCase)));
+                name => ApplicationLogFormatter.IsForbiddenName(name));
         }
     }
 

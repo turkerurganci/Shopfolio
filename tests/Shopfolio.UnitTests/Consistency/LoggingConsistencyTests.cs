@@ -1,5 +1,8 @@
 using System.Text.RegularExpressions;
 
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging;
+
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.UnitTests.Support;
 
@@ -53,6 +56,33 @@ public sealed partial class LoggingConsistencyTests
     }
 
     [Fact]
+    public void SuppressedDataAccessFailures_EqualTheEventsOfTheGuidelinesAndTheirCount()
+    {
+        // T411 criterion 6 (D-90 K3): 09 18.1 item 4 names the suppressed events (RelationalEventId.X, CoreEventId.Y) and item 8 says how many.
+        string guidelines = File.ReadAllText(Path.Combine(RepositoryRoot.Find(), "Docs", "09_CODING_GUIDELINES.md")).ReplaceLineEndings("\n");
+        string section = guidelines[guidelines.IndexOf("### 18.1 ", StringComparison.Ordinal)..guidelines.IndexOf("### 18.2 ", StringComparison.Ordinal)];
+        string[] lines = section.Split('\n');
+        string item4 = lines.First(line => line.StartsWith("4. **Düzey.**", StringComparison.Ordinal));
+        string item8 = lines.First(line => line.StartsWith("8. **Test.**", StringComparison.Ordinal));
+
+        int[] documented =
+        [
+            .. EventIdName().Matches(item4).Select(m =>
+            {
+                Type owner = m.Groups["type"].Value == nameof(CoreEventId) ? typeof(CoreEventId) : typeof(RelationalEventId);
+                return ((EventId)owner.GetField(m.Groups["name"].Value)!.GetValue(null)!).Id;
+            }),
+        ];
+
+        Assert.NotEmpty(documented);
+        Assert.Equal(documented.Distinct().Order(), LoggingSetup.SuppressedDataAccessFailures.Select(f => f.EventId).Order());
+        // The number in words ("üç") is the count of the list; item 4 and item 8 both say it.
+        string[] words = ["", "bir", "iki", "üç", "dört"];
+        Assert.Contains("**Yalnız " + words[LoggingSetup.SuppressedDataAccessFailures.Count] + " hata olayı yazılmaz**", item4, StringComparison.Ordinal);
+        Assert.Contains("yalnız " + words[LoggingSetup.SuppressedDataAccessFailures.Count] + " olayı eler", item8, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void CommonLogFields_EqualTheFirstColumnOfTheFieldTable()
     {
         string guidelines = File.ReadAllText(Path.Combine(RepositoryRoot.Find(), "Docs", "09_CODING_GUIDELINES.md")).ReplaceLineEndings("\n");
@@ -92,6 +122,10 @@ public sealed partial class LoggingConsistencyTests
 
     [GeneratedRegex("`([A-Z][A-Za-z]+)`", RegexOptions.CultureInvariant)]
     private static partial Regex BacktickedWords();
+
+    // `RelationalEventId.ConnectionError`, `CoreEventId.SaveChangesFailed`
+    [GeneratedRegex(@"`(?<type>RelationalEventId|CoreEventId)\.(?<name>[A-Za-z]+)`", RegexOptions.CultureInvariant)]
+    private static partial Regex EventIdName();
 
     [GeneratedRegex("`([a-z][A-Za-z]+)`", RegexOptions.CultureInvariant)]
     private static partial Regex BacktickedNames();

@@ -84,8 +84,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T406-paytr-3d-secure`
-- **Commit:** ara `37a9b731`; son commit PR'da
-- **PR:** *(PR açılınca)*
+- **Commit:** ara `37a9b731`; `49d17155` — T406: PayTR: 3D Secure kurulum şartı, test kanıtı ve canlı kanıtın satırları
+- **PR:** #530
 - **CI:** *(doğrulayıcı)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

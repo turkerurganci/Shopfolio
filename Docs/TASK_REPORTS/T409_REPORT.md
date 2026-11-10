@@ -68,10 +68,14 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | (validator doldurur) |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-10) |
+| Bulgu sayısı | 1 (ORTA, S1) |
+| Düzeltme gerekli mi | Evet — kriter 5 / KK5 |
+| Bloke-etmeyen not (K) sayısı | 1 |
+
+**Bulgu 1 (ORTA, S1) — kriter 5 / KK5, `08 §2.3`:** bilinmeyen `kid`'li belirteç, yenilenen kümede anahtar olsa da o çağrıda tutmuyor (`Failed`, `token:` önekli); yenileme arkada koşuyor, ancak sonraki çağrı yeni kümeyi görüyor. `08 §2.3` "küme yeniden çekilir, yine yoksa imza tutmaz" ve "en kötü durumda art arda üç çağrı" der; kriter 5 "yenileme getirir, yine yoksa imza tutmaz". D-1031'in "çatı davranışı, kaçınılmaz" gerekçesi tutmuyor: 8.23.0 çatının kendi anahtarı `Switch.Microsoft.IdentityModel.UpdateConfigAsBlocking` (`AppContext`) açıkken aynı senaryoda ilk çağrı `Succeeded` döndü — anahtar okuması 2, kod değişimi 1 (doğrulayıcının geçici sınaması, `TokenWithAnUnknownKeyId_…` kurgusu; dosya silindi). Elle yeniden deneme gerekmiyor. Düzeltme: çatının eşzamanlı yenilemesi (ya da `08`/kriter 5'i değiştiren karar kaydı), test ilk çağrının `Succeeded` olduğunu sınar, DV-31 hücresi ve D-1031 buna göre güncellenir.
+
+**K1:** `09 §11.3` m.3 (`ValidIssuers` iki biçim) ile `08 §2.3`/DV-31 (yalnız keşif belgesinin `issuer`'ı) çelişkisi — kod `08`'i izliyor; D-1030'a forward edilmiş, yeterli.
 
 ## Altyapı Değişiklikleri
 

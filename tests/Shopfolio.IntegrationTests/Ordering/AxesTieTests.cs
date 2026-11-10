@@ -458,6 +458,9 @@ public sealed class AxesTieTests : IAsyncLifetime
             {
                 await locks.LockAsync([orderId], token);
                 Order locked = await db.Orders.SingleAsync(o => o.Id == orderId, token);
+
+                // The record's task loads the items under the lock: a record whose root is not tracked is refused (D-95; 09 10.2 item 3).
+                await db.OrderItems.Where(i => i.OrderId == orderId).LoadAsync(token);
                 record(db);
                 locked.BumpVersion();
                 closure = await core.EvaluateClosureAsync(locked, TransitionActor.Buyer, token);

@@ -322,6 +322,7 @@ public sealed class ConcurrencyTests : IAsyncLifetime
             AppDbContext db = services.GetRequiredService<AppDbContext>();
             await services.GetRequiredService<OrderLocks>().LockAsync([order.Id], token);
             await db.Orders.SingleAsync(o => o.Id == order.Id, token);
+            await db.OrderItems.SingleAsync(i => i.Id == item.Id, token);
             db.Cancellations.Add(Cancellation.ByBuyer(item.Id, 1, Amounts, null, Now));
             return Outcome.Done;
         }));
@@ -332,6 +333,7 @@ public sealed class ConcurrencyTests : IAsyncLifetime
             AppDbContext db = services.GetRequiredService<AppDbContext>();
             await services.GetRequiredService<OrderLocks>().LockAsync([order.Id], token);
             Order locked = await db.Orders.SingleAsync(o => o.Id == order.Id, token);
+            await db.OrderItems.SingleAsync(i => i.Id == item.Id, token);
             db.Cancellations.Add(Cancellation.ByBuyer(item.Id, 1, Amounts, null, Now));
             locked.BumpVersion();
             return Outcome.Done;
@@ -340,6 +342,61 @@ public sealed class ConcurrencyTests : IAsyncLifetime
         await using AppDbContext reader = NewContext();
         Assert.Equal(2, (await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct)).Version);
         Assert.Equal(1, await reader.Cancellations.CountAsync(c => c.OrderItemId == item.Id, Ct));
+    }
+
+    // D-95 (T412 KK1; K-1581; 09 10.2 item 3): a record whose root the tracked records do not tell is refused even when one order is locked - it is not taken for that order.
+    [Fact]
+    public async Task ARecordWhoseRootIsNotLoaded_IsRefused_EvenWithOneLockedOrder_AndItsOwnRaisedOrder_T412_KK1()
+    {
+        (Order order, OrderItem item) = await SeedOrderAsync();
+
+        InvalidOperationException error = await Assert.ThrowsAsync<InvalidOperationException>(() => RunAsync(async (services, token) =>
+        {
+            AppDbContext db = services.GetRequiredService<AppDbContext>();
+            await services.GetRequiredService<OrderLocks>().LockAsync([order.Id], token);
+            Order locked = await db.Orders.SingleAsync(o => o.Id == order.Id, token);
+            db.Cancellations.Add(Cancellation.ByBuyer(item.Id, 1, Amounts, null, Now));
+            locked.BumpVersion();
+            return Outcome.Done;
+        }));
+
+        Assert.Contains("cannot be told", error.Message, StringComparison.Ordinal);
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(0, await reader.Cancellations.CountAsync(c => c.OrderItemId == item.Id, Ct));
+    }
+
+    // A record of another order, written while one order is locked: the root is known, the order is not locked - the lock message, though that order's version was raised (D-95).
+    [Fact]
+    public async Task AWriteToAnUnlockedOrder_GetsTheLockMessage_EvenWhenItsVersionIsRaised_T412_KK1()
+    {
+        (Order locked, _) = await SeedOrderAsync();
+        (Order other, OrderItem otherItem) = await SeedOrderAsync();
+
+        InvalidOperationException raised = await Assert.ThrowsAsync<InvalidOperationException>(() => RunAsync(async (services, token) =>
+        {
+            AppDbContext db = services.GetRequiredService<AppDbContext>();
+            await services.GetRequiredService<OrderLocks>().LockAsync([locked.Id], token);
+            await db.Orders.SingleAsync(o => o.Id == locked.Id, token);
+            Order unlocked = await db.Orders.SingleAsync(o => o.Id == other.Id, token);
+            await db.OrderItems.SingleAsync(i => i.Id == otherItem.Id, token);
+            db.Cancellations.Add(Cancellation.ByBuyer(otherItem.Id, 1, Amounts, null, Now));
+            unlocked.BumpVersion();
+            return Outcome.Done;
+        }));
+        Assert.Contains("without that order's row lock", raised.Message, StringComparison.Ordinal);
+
+        InvalidOperationException notRaised = await Assert.ThrowsAsync<InvalidOperationException>(() => RunAsync(async (services, token) =>
+        {
+            AppDbContext db = services.GetRequiredService<AppDbContext>();
+            await services.GetRequiredService<OrderLocks>().LockAsync([locked.Id], token);
+            Order unlocked = await db.Orders.SingleAsync(o => o.Id == other.Id, token);
+            unlocked.BillingDistrict = "Kızılay";
+            return Outcome.Done;
+        }));
+        Assert.Contains("without that order's row lock", notRaised.Message, StringComparison.Ordinal);
+
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(1, (await reader.Orders.SingleAsync(o => o.Id == other.Id, Ct)).Version);
     }
 
     [Fact]

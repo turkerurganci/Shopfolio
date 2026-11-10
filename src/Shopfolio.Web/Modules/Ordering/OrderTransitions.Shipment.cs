@@ -276,7 +276,11 @@ internal sealed partial class OrderTransitions
             && (await OpenItemsAsync(order, physicalOnly: false, ct)).Count == 0;
     }
 
-    /// <summary>The order's items with an open quantity (02 5.8; 06 2.7.2): the quantity minus what the item records - the caller's unsaved ones included - closed.</summary>
+    /// <summary>
+    /// The order's items with units open to an operation (02 5.8, 7.1.6; 06 2.7.2): the quantity minus what the item records - the caller's unsaved ones included - closed and
+    /// minus the units rescinded on a defect claim (K-1077). An item whose units are all closed or rescinded is not open: S5/S8 do not send it, the delivery mark does not take it,
+    /// and an order on a returned shipment left with only such items has no open item - the firm's S9 is the closure, not a cancellation with a reason (D-905; 02 7.1.6).
+    /// </summary>
     private async Task<List<OrderItem>> OpenItemsAsync(Order order, bool physicalOnly, CancellationToken ct)
     {
         List<OrderItem> items = await _db.OrderItems
@@ -287,8 +291,8 @@ internal sealed partial class OrderTransitions
             return [];
         }
 
-        IReadOnlyDictionary<Guid, int> closed = await _afterSales.ClosedQuantitiesAsync([.. items.Select(i => i.Id)], ct);
-        return [.. items.Where(i => i.Quantity - closed.GetValueOrDefault(i.Id) > 0)];
+        IReadOnlyDictionary<Guid, int> unavailable = await _afterSales.UnavailableQuantitiesAsync([.. items.Select(i => i.Id)], ct);
+        return [.. items.Where(i => i.Quantity - unavailable.GetValueOrDefault(i.Id) > 0)];
     }
 
     /// <summary>The actor and the reasons of a cancellation request (03 1.2; 06 4.19), checked before anything is read: the customer's has neither, the firm's both, the system's the kind.</summary>

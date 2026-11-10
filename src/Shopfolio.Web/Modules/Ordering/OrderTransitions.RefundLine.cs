@@ -140,8 +140,9 @@ internal sealed partial class OrderTransitions
             return Refused(refusal ?? TransitionRefusal.OrderNotFound);
         }
 
+        // The item (or the refund, read tracked) is loaded under the lock: the request opened on it is a record whose root the version guard must tell (D-95; 09 10.2 item 3).
         if (order.PaymentMethod != PaymentMethod.BankTransfer
-            || (request.OrderItemId is { } itemId && !await _db.OrderItems.AnyAsync(i => i.Id == itemId && i.OrderId == order.Id, ct))
+            || (request.OrderItemId is { } itemId && await _db.OrderItems.SingleOrDefaultAsync(i => i.Id == itemId && i.OrderId == order.Id, ct) is null)
             || (request.RefundId is { } refundId && await _payment.ReadRefundLineAsync(order.Id, refundId, ct) is null))
         {
             return Refused(TransitionRefusal.ConditionNotMet);

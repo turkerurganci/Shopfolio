@@ -11,6 +11,7 @@ using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
@@ -38,6 +39,9 @@ public sealed class OrderPlacementLimitTests : IAsyncLifetime
     private readonly ManualTimeProvider _clock = new(Start);
     private int _counter;
 
+    // The members of a test by the account e-mail (lower case): a member order is the order of the account holding its contact e-mail, and the gate is asked with that account's id.
+    private readonly Dictionary<string, Guid> _members = [];
+
     public OrderPlacementLimitTests(CollectionDatabaseFixture collection)
     {
         _collection = collection;
@@ -49,7 +53,7 @@ public sealed class OrderPlacementLimitTests : IAsyncLifetime
     {
         await ExecuteAsync(
             "TRUNCATE stock_reservations, dispatch_records, jobs, payment_records, cancellations, internal_notes, transition_records, order_items, orders, "
-            + "coupons, variants, products, heartbeat_records, outage_records, legal_text_versions, provinces CASCADE");
+            + "coupons, variants, products, heartbeat_records, outage_records, legal_text_versions, provinces, customers CASCADE");
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -257,7 +261,7 @@ public sealed class OrderPlacementLimitTests : IAsyncLifetime
         System.Reflection.MethodInfo method = typeof(OrderPlacementLimits).GetMethod(nameof(OrderPlacementLimits.FindExceededAsync))!;
 
         Assert.Equal(
-            [typeof(PaymentMethod), typeof(IPAddress), typeof(string), typeof(CancellationToken)],
+            [typeof(PaymentMethod), typeof(IPAddress), typeof(Guid?), typeof(CancellationToken)],
             method.GetParameters().Select(p => p.ParameterType));
         Assert.Equal(UnpaidCancellationLimit.Max, AttemptLimits.OrderCountedOf(AttemptLimit.L7).Max);
         Assert.Equal(OpenUnpaidOrderLimit.Ceiling, AttemptLimits.OrderCountedOf(AttemptLimit.L8).Max);
@@ -275,15 +279,34 @@ public sealed class OrderPlacementLimitTests : IAsyncLifetime
 
     private async Task<int> CountByEmailAsync(string email)
     {
+        Guid member = await MemberAsync(email);
         await using AppDbContext db = NewContext();
-        return await new UnpaidCancellationLimit(db, _clock).CountByEmailAsync(email, Ct);
+        return await new UnpaidCancellationLimit(db, _clock).CountByMemberAsync(member, Ct);
     }
 
+    // The gate asked for the member whose account e-mail is memberEmail (D-808: the axis is read by the member's id), or for a guest when it is null.
     private async Task<AttemptLimit?> ExceededAsync(PaymentMethod method, string address, string? memberEmail)
     {
+        Guid? member = memberEmail is null ? null : await MemberAsync(memberEmail);
         await using AppDbContext db = NewContext();
         OrderPlacementLimits limits = new(new UnpaidCancellationLimit(db, _clock), new OpenUnpaidOrderLimit(db));
-        return await limits.FindExceededAsync(method, IPAddress.Parse(address), memberEmail, Ct);
+        return await limits.FindExceededAsync(method, IPAddress.Parse(address), member, Ct);
+    }
+
+    private async Task<Guid> MemberAsync(string email)
+    {
+        string key = email.ToLowerInvariant();
+        if (_members.TryGetValue(key, out Guid known))
+        {
+            return known;
+        }
+
+        Customer customer = Customer.Create("Üye", key, "digest-placeholder", Start, null, Start);
+        await using AppDbContext db = NewContext();
+        db.Customers.Add(customer);
+        await db.SaveChangesAsync(Ct);
+        _members[key] = customer.Id;
+        return customer.Id;
     }
 
     // The system's (or the customer's, or the firm's) cancellation of an unpaid order: the order's payment fails and the transition record names who and why.
@@ -306,6 +329,7 @@ public sealed class OrderPlacementLimitTests : IAsyncLifetime
         Order order = Order.Create(
             $"2026-{n + 377000:D6}", $"access-placeholder-{n}", $"confirm-placeholder-{n}", method, isGuest, email, 120m, 0m, Start.AddDays(2), Start.AddDays(-1));
         order.IpAddress = ip is null ? null : IPAddress.Parse(ip);
+        order.CustomerId = isGuest ? null : await MemberAsync(email);
         order.CartId = EntityIds.New();
         order.BankTransferIban = method == PaymentMethod.BankTransfer ? "TR330006100519786457841326" : null;
         order.BillingRecipientName = "Ali Veli";

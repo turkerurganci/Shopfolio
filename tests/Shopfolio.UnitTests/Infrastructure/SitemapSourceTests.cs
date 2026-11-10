@@ -238,5 +238,7 @@ public sealed class SitemapSourceTests
         public Task<ContactFormResult> SendContactRequestAsync(ContactFormInput input, System.Net.IPAddress? ipAddress, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<int> CountSummaryContactRequestsAsync(DateTimeOffset periodStart, DateTimeOffset periodEnd, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<int> CountOpenContactRequestsAsync(CancellationToken ct) => throw new NotSupportedException();
     }
 }

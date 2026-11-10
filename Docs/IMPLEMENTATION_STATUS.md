@@ -222,7 +222,7 @@
 | T379 | Yönetici hesapları: ilk yönetici ve davet, kaldırma kuralları, tek rol, ayrı hesap türü, davetin geri çekilmesi, erişim kaybında kurtarma sınırı | ✓ | ✓ PASS (tur 2) | — | #473 |
 | T380 | İşlem izi: sekiz alan, kim-ne zaman-ne değişti, değiştirilemez ve silinemez, sistem olayları ize girmez, düz liste, on yıl | ✓ | ✓ PASS (tur 2) | `7f8d6c3` | #419 |
 | T381 | Ayar katmanları ve parametre envanteri: firma ayarı, kurulum ayarı, ürün sabiti, varsayılan ve çit, değişikliğin ize yazılması | ✓ | ✓ PASS (tur 2) | `ac7d43e` | #430 |
-| T382 | Panel ana sayfası verisi: altı bekleyen iş sayacı, kanal ve firma bildirimi uyarıları, kurulum kontrol listesi | ⬚ | — | — | — |
+| T382 | Panel ana sayfası verisi: altı bekleyen iş sayacı, kanal ve firma bildirimi uyarıları, kurulum kontrol listesi | ✓ | ✓ PASS (tur 3) | — | #510 |
 | T383 | Satış özeti ve ölçüler: dönem seçimi, ciro, sayılar, dört mağaza ölçüsü, sıfır payda, tepe gün sayısı | ✓ | ✓ PASS (tur 2) | — | #503 |
 | T384 | Dışa aktarma: sipariş CSV (fatura verisi), üye ve iletişim talebi listesi, işlem izine yazım, imha edilmiş siparişin boş sütunları | ✓ | ✓ PASS (tur 2) | — | #502 |
 | T385 | Gönderim yeniden denemesi ve "e-posta ulaşmadı" işareti: üç deneme, işaretin düşüşü, panelden yeniden gönderim, işaretsiz bildirimler | ⬚ | — | — | — |

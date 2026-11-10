@@ -58,6 +58,8 @@ internal sealed class CorporateContentModule : ICorporateContentModule
 
     public Task<int> CountSummaryContactRequestsAsync(DateTimeOffset periodStart, DateTimeOffset periodEnd, CancellationToken ct) => _requests.CountForSummaryAsync(periodStart, periodEnd, ct);
 
+    public Task<int> CountOpenContactRequestsAsync(CancellationToken ct) => _requests.CountOpenAsync(ct);
+
     public Task<int> WriteContactRequestExportAsync(Stream destination, long maxBytes, CancellationToken ct) => _contactRequestExport.WriteAsync(destination, maxBytes, ct);
 }
 

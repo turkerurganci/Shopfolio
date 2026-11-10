@@ -57,7 +57,7 @@ public sealed class PaymentNotificationDefinition : ICollectionFixture<Collectio
 /// the order changes only when the runner processes the notification's job row.
 /// </summary>
 [Collection(PaymentNotificationDefinition.Name)]
-public sealed class PaymentNotificationTests : IAsyncLifetime
+public sealed partial class PaymentNotificationTests : IAsyncLifetime
 {
     private const string ContactEmail = "Ali@Example.com";
     private const decimal Total = 120m;
@@ -100,6 +100,7 @@ public sealed class PaymentNotificationTests : IAsyncLifetime
             await _app.DisposeAsync();
         }
 
+        await DisposePayTrAsync();
         _logs.Dispose();
     }
 
@@ -365,15 +366,17 @@ public sealed class PaymentNotificationTests : IAsyncLifetime
     private static PaymentNotice Notice(Order order, string outcome, decimal? total = Total, decimal? started = Total) =>
         new(order.OrderNumber.Replace("-", string.Empty, StringComparison.Ordinal), order.OrderNumber, FakePaymentGateway.PaymentEventType, outcome, total, started, true, true, false);
 
-    private async Task<bool> RunNextJobAsync()
+    private async Task<bool> RunNextJobAsync(WebApplication? app = null)
     {
+        // The job runs on the host that received the notification (T402: the host with the provider's own gateway reads the record with it).
+        WebApplication host = app ?? _app!;
         await using NpgsqlDataSource dataSource = NpgsqlDataSource.Create(_collection.Dsn);
         JobRunnerService runner = new(
             dataSource,
-            _app!.Services.GetRequiredService<IServiceScopeFactory>(),
-            _app.Services.GetRequiredService<JobHandlerRegistry>(),
+            host.Services.GetRequiredService<IServiceScopeFactory>(),
+            host.Services.GetRequiredService<JobHandlerRegistry>(),
             [],
-            _app.Services.GetRequiredService<IJobSignal>(),
+            host.Services.GetRequiredService<IJobSignal>(),
             TimeProvider.System,
             NullLogger<JobRunnerService>.Instance);
         return await runner.RunOneAsync(Ct);
@@ -393,7 +396,7 @@ public sealed class PaymentNotificationTests : IAsyncLifetime
             Ct);
     }
 
-    private async Task<Order> SeedOrderAsync(OrderStatus orderStatus, PaymentStatus paymentStatus)
+    private async Task<Order> SeedOrderAsync(OrderStatus orderStatus, PaymentStatus paymentStatus, string? orderNumber = null)
     {
         int n = Interlocked.Increment(ref _counter);
         Province province = Province.Create($"{n:D2}", $"İl {n}", Now);
@@ -401,7 +404,7 @@ public sealed class PaymentNotificationTests : IAsyncLifetime
         LegalTextVersion contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, n, Now, "metin", Now);
         LegalTextVersion notice = LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, n, Now, "metin", Now).WithHosting();
         Order order = Order.Create(
-            $"2026-{n:D6}", $"access-placeholder-{n}", $"confirm-placeholder-{n}", PaymentMethod.Card, true, ContactEmail, Total, 0m, Now.AddHours(1), Now);
+            orderNumber ?? $"2026-{n:D6}", $"access-placeholder-{n}", $"confirm-placeholder-{n}", PaymentMethod.Card, true, ContactEmail, Total, 0m, Now.AddHours(1), Now);
         order.IpAddress = IPAddress.Parse("203.0.113.5");
         order.CartId = EntityIds.New();
         order.BillingRecipientName = "Ali Veli";

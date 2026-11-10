@@ -10,6 +10,7 @@ internal static class PayTrRegistration
     public static IServiceCollection AddPaymentProvider(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
+        services.AddSingleton<PaymentFailureReasonLog>();
         services.AddSingleton<IPaymentGateway, PayTrPaymentGateway>();
         return services;
     }

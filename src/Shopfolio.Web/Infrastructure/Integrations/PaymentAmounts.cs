@@ -5,8 +5,8 @@ namespace Shopfolio.Infrastructure.Integrations;
 /// <summary>
 /// The conversions of an amount to the form spoken with the payment provider (09 14.2; 08 2.1.4-2.1.9; K-1257, K-1258, K-1351): every conversion goes through this class and none
 /// rounds - a rounding need is already an error of the calculation (09 14.1). T387 brings the first function, <see cref="ToKurus"/>, for the installer's payment result (05 8.5.12: the
-/// panel's amount is compared with <c>Order.Total</c> in whole kuruş); T401 brings <see cref="ToPlainText"/> for the start's basket price; the other functions of 09 14.2 item 1 and
-/// the comparison of item 3 come with the provider tasks that read them (T402, T403).
+/// panel's amount is compared with <c>Order.Total</c> in whole kuruş); T401 brings <see cref="ToPlainText"/> for the start's basket price; T402 brings <see cref="FromKurus"/> and
+/// the comparison of item 3, <see cref="NotificationMatches"/>, for the notification; the last function of item 1 and the final query's comparison come with T403.
 /// </summary>
 internal static class PaymentAmounts
 {
@@ -34,5 +34,19 @@ internal static class PaymentAmounts
         }
 
         return checked((long)kurus);
+    }
+
+    /// <summary>Whole kuruş as an amount (09 14.2 item 1): <c>kurus / 100m</c>, nothing rounded (3456 → 34.56).</summary>
+    public static decimal FromKurus(long kurus) => kurus / 100m;
+
+    /// <summary>
+    /// The amount condition of a successful payment's notification (09 14.2 item 3; 08 2.1.5 "Tutar karşılaştırması"; K-1255 (4)): the started amount equals the order's
+    /// total and the collected total is at least the same, both in whole kuruş - the difference is the instalment difference. The order's total goes through
+    /// <see cref="ToKurus"/>; nothing is compared as a decimal.
+    /// </summary>
+    public static bool NotificationMatches(long paymentAmountKurus, long totalAmountKurus, decimal orderTotal)
+    {
+        long expected = ToKurus(orderTotal);
+        return paymentAmountKurus == expected && totalAmountKurus >= expected;
     }
 }

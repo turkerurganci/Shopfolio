@@ -14,7 +14,11 @@ namespace Shopfolio.Infrastructure.SignedEndpoints;
 /// reason and the count only - no body, no field, no signature, no key. The count is written only on its own address's line, never on the line
 /// of another address's request (that line carries the other request's id). The windows are kept in memory, as the rate limit's counters are,
 /// and are lost at a restart (05 11.2.9). An ended window without a count is dropped at the next sweep, as nothing is lost with it; an ended
-/// window with a count stays until its address comes back and its line carries the count.
+/// window with a count stays until its address comes back and its line carries the count - or until the ceiling of
+/// <see cref="SignedEndpointLimits.FailureLogMaxAddresses"/> windows is full (D-108; K-1582): then a new address first drops the ended windows without a count,
+/// and if the ceiling is still full the oldest window with a count writes its count at once in its own line and is dropped (the count is not lost, only
+/// written before its address comes back; that line carries the reason of its address's last counted request); with no window with a count, the oldest
+/// window is dropped, which loses nothing.
 /// </summary>
 internal sealed partial class SignatureFailureLog
 {
@@ -49,21 +53,69 @@ internal sealed partial class SignatureFailureLog
         string key = ClientAddress.Axis(address);
         DateTimeOffset now = _time.GetUtcNow();
         int counted;
+        Window? flushed = null;
         lock (_gate)
         {
             Sweep(now);
             if (_windows.TryGetValue(key, out Window? window) && now - window.OpenedAt < SignedEndpointLimits.FailureLogWindow)
             {
-                window.Count();
+                window.Count(reason);
                 return false;
             }
 
             counted = window?.Counted ?? 0;
+            if (window is null && _windows.Count >= SignedEndpointLimits.FailureLogMaxAddresses)
+            {
+                flushed = MakeRoom(now);
+            }
+
             _windows[key] = new Window(now);
+        }
+
+        if (flushed is { Counted: > 0, LastReason: { } flushedReason })
+        {
+            LogSampled(_logger, LogEvents.SignatureFailureSampled, flushedReason, flushed.Counted);
         }
 
         LogSampled(_logger, LogEvents.SignatureFailureSampled, reason, counted);
         return true;
+    }
+
+    // The ceiling is full and a new address comes (D-108; K-1582): the ended windows without a count go first - they lose nothing; if that is not enough, the
+    // oldest window with a count is taken out and returned, so its count is written at once; with none, the oldest window goes. Runs only at the ceiling.
+    private Window? MakeRoom(DateTimeOffset now)
+    {
+        foreach (KeyValuePair<string, Window> entry in _windows.ToArray())
+        {
+            if (entry.Value.Counted == 0 && now - entry.Value.OpenedAt >= SignedEndpointLimits.FailureLogWindow)
+            {
+                _windows.Remove(entry.Key);
+            }
+        }
+
+        if (_windows.Count < SignedEndpointLimits.FailureLogMaxAddresses)
+        {
+            return null;
+        }
+
+        KeyValuePair<string, Window>? oldest = null;
+        KeyValuePair<string, Window>? oldestCounted = null;
+        foreach (KeyValuePair<string, Window> entry in _windows)
+        {
+            if (oldest is null || entry.Value.OpenedAt < oldest.Value.Value.OpenedAt)
+            {
+                oldest = entry;
+            }
+
+            if (entry.Value.Counted > 0 && (oldestCounted is null || entry.Value.OpenedAt < oldestCounted.Value.Value.OpenedAt))
+            {
+                oldestCounted = entry;
+            }
+        }
+
+        KeyValuePair<string, Window> taken = oldestCounted ?? oldest!.Value;
+        _windows.Remove(taken.Key);
+        return taken.Value;
     }
 
     // Once a window long: drops every ended window without a count - its address's next line would carry a count of zero, as with no window.
@@ -99,6 +151,13 @@ internal sealed partial class SignatureFailureLog
 
         public int Counted { get; private set; }
 
-        public void Count() => Counted++;
+        /// <summary>The reason of the last counted request: the line of a window flushed at the ceiling carries it.</summary>
+        public SignatureFailureReason? LastReason { get; private set; }
+
+        public void Count(SignatureFailureReason reason)
+        {
+            Counted++;
+            LastReason = reason;
+        }
     }
 }

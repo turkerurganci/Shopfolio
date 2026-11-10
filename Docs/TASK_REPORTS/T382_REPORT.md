@@ -1,6 +1,6 @@
 # T382 — Panel ana sayfası verisi: altı bekleyen iş sayacı, kanal ve firma bildirimi uyarıları, kurulum kontrol listesi
 
-**Faz:** F3 | **Durum:** ⏳ Yapım tamam — doğrulama bekliyor | **Tarih:** 2026-11-10
+**Faz:** F3 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-10
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -84,10 +84,28 @@ Devam 3 işçisi önceki işçilerin yaptıkları dahil bütün maddeleri diff't
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⏳ bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-10; head `595d5d5f`; dal CI 42728221524 yeşil) |
+| Bulgu sayısı | 2 — B1, B2 (ikisi de kriter 4 / KK4, S1, ORTA) |
+| Düzeltme gerekli mi | Evet |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+**Validator kabul kriterleri tablosu (tur 1):**
+
+| # | Sonuç | Validator kanıtı |
+|---|---|---|
+| 1 | ✓ | `PanelHomeRules.CounterKinds` altı eleman; `Counters` her türü bir kez verir; birim ve Integration KK1 yeşil |
+| 2 | ✓ | ödeme onayı `PaymentWindowRules.Awaiting(BankTransfer)`; teslim işareti Kargoda + açık fiziksel adet; hizmet: iptal edilmemiş, ödemesi Pending/Failed olmayan, işaretsiz hizmet kalemi; açık talep = açık iletişim + açık ayıp; Integration KK2 testleri yeşil |
+| 3 | ✓ | Teslim edilemedi koşulsuz + Hazırlanıyor'da açık adedi olan fiziksel kalem (`ClosedQuantitiesAsync`); Integration KK3 yeşil |
+| 4 | ✗ | **B1:** kart iadesi gerçekleşmeyip firma havale yolunu açtığında ("IBAN bekleniyor") sipariş sayaçta kalır (`PaymentModule.ListOrdersWithOpenRefundWorkAsync` IBAN isteğine bakmaz). **B2:** satırı doğmuş ama gönderilmemiş havale iadesi (karttan havaleye dönmüş iade, ayıp çözümünün havale iadesi) IBAN girildikten sonra sayılmaz (`ListOrdersAwaitingRefundProcessingAsync` satırı olanı "işlenmiş" sayar, Payment okuması yalnız kartı okur). Validator sondajı (geçici Integration testi, geri alındı): B1 beklenen 0 gelen 1; B2 beklenen 1 gelen 0 |
+| 5 | ✓ | `ListOrdersAwaitingReturnGoodsAsync`: beyan − teslim − ret − açık "mal dönmedi" kapanışı; yeniden açılan geri gelir; Integration KK5 yeşil |
+| 6 | ✓ | `PanelHomeRules.ListOf` her sayaca ayrı hedef; birim KK6 yeşil |
+| 7 | ✓ | `ChannelWarningCondition` 5 hata / 15 dk; firma uyarısı F1–F4'ün kesinleşmiş son satırı + güncel e-posta; ikisi de her çağrıda okunur; Integration KK7 yeşil |
+| 8 | ✓ | kontrol listesi satış kapısının (`GetSalesGateAsync`) karşılanmayan koşullarından, kimlikte eksik alan adlarıyla; Integration KK8 yeşil |
+| 9 | ✓ | sıra yok, `IsDone` işareti, hepsi tamamsa `null`; birim ve Integration KK9 yeşil |
+
+**Task satırları (tur 1):** `VAL-A257`…`A264`, `VAL-A316`, `VAL-D043` kanıt olarak uç yanıtı / tarayıcı gözlemi ister — uç ve ekran T521'de (`07 UC-86`) → `BEKLEMEDE` (T383, T384 emsali). `VAL-A261`'in beklenen sonucunu B1 ve B2 bozar; düzeltme T382'de. `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**Yapım raporu karşılaştırması:** kriter 4 / KK4'te yapım ✓, validator ✗ (B1, B2). D-927 "satırı doğmuş havale iadesi AfterSales okumasında zaten görünür" der; görünmez — o okuma satırı olan kaydı "işlenmiş" sayıp düşürür (sondaj B2). Öz denetim tablosu var, her maddede kanıt yazılı.
 
 ## Altyapı Değişiklikleri
 

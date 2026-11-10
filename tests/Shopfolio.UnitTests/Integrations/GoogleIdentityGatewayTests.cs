@@ -419,7 +419,7 @@ public sealed class GoogleIdentityGatewayTests
         string line = Assert.Single(rig.Harness.Lines);
         Assert.Contains("IdentityVerify", line, StringComparison.Ordinal);
         Assert.Contains("token:audience", line, StringComparison.Ordinal);
-        foreach (string secret in new[] { GoogleTestSetup.ClientSecret, GoogleTestSetup.Exchange.AuthorizationCode, GoogleTestSetup.Exchange.CodeVerifier, token, GoogleTestSetup.SubjectValue, "ayse@example.com" })
+        foreach (string secret in new[] { GoogleTestSetup.ClientSecret, GoogleTestSetup.Exchange.AuthorizationCode, GoogleTestSetup.Exchange.CodeVerifier, jwtText, GoogleTestSetup.SubjectValue, "ayse@example.com" })
         {
             Assert.DoesNotContain(secret, line, StringComparison.Ordinal);
         }

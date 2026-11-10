@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Integrations;
@@ -36,6 +37,22 @@ internal sealed class DispatchAttempts
         _transactions = transactions;
         _gateway = gateway;
         _time = time;
+    }
+
+    /// <summary>
+    /// The attempts writer on the gateway the container holds, or null while none is registered (the service's gateway is T407's): the scheduler's source asks here, so the gateway is named
+    /// by this file alone (03 7.1).
+    /// </summary>
+    public static DispatchAttempts? FromServices(IServiceProvider services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        return services.GetService<IEmailGateway>() is { } gateway
+            ? new DispatchAttempts(
+                services.GetRequiredService<AppDbContext>(),
+                services.GetRequiredService<ITransactionRunner>(),
+                gateway,
+                services.GetRequiredService<TimeProvider>())
+            : null;
     }
 
     /// <summary>Sends <paramref name="message"/> for the row <paramref name="dispatchId"/> and writes the result.</summary>

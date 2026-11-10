@@ -475,6 +475,7 @@ public sealed class FirmSettingsTests : IAsyncLifetime
         services.AddScoped<IAdminNotices, AdminNotices>();
         services.AddScoped<INotificationsModule, NotificationsModule>();
         services.AddScoped<CustomerNoticeQueue>();
+        services.AddScoped<DispatchResending>();
         services.AddScoped<CompanyNoticeQueue>();
         services.AddScoped<AccountEmailQueue>();
         services.AddScoped<ICompanyContactEmail>(_ => new FixedContactEmail());

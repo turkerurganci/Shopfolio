@@ -9,7 +9,7 @@ namespace Shopfolio.UnitTests.Outages;
 /// The retry rule of the dispatch record's row (T204 criteria 4 and 5, KK4, KK5; 08 2.2 "Retry stratejisi", 2.2.2 "(sonuç)"; 05 4.4.3; P-38):
 /// the three retries are counted from the first attempt, a late queue does not move them, a recipient error is retried like a channel error and
 /// the attempt after the last retry makes the row "undelivered". The distances are read from the rule (which reads <c>ProductConstants</c>),
-/// never written here; <c>DispatchRetryConsistencyTests</c> keeps the constants equal to P-38.
+/// never written here; <c>OutageConsistencyTests.DispatchRetryConstants_AreTheP38Row</c> keeps the constants equal to P-38.
 /// </summary>
 public sealed class DispatchRetryScheduleTests
 {

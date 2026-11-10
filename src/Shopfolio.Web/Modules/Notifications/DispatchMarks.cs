@@ -23,7 +23,7 @@ internal static class DispatchMarks
             .Any(group =>
             {
                 Row latest = group.Aggregate((a, b) => UuidOrder.IsBefore(a.CreatedAt, a.Id, b.CreatedAt, b.Id) ? b : a);
-                return latest.State == DispatchState.Undelivered;
+                return latest.State == DispatchState.Undelivered && !latest.ClosedUnsent;
             });
     }
 
@@ -33,7 +33,7 @@ internal static class DispatchMarks
         ArgumentNullException.ThrowIfNull(db);
         List<Row> rows = await db.DispatchRecords.AsNoTracking()
             .Where(d => d.OrderId == orderId)
-            .Select(d => new Row(d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState))
+            .Select(d => new Row(d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState, d.AttemptCount == 0 && d.LastOutcome == null))
             .ToListAsync(ct);
         return HasMark(rows);
     }
@@ -54,11 +54,116 @@ internal static class DispatchMarks
 
         List<Row> rows = await db.DispatchRecords.AsNoTracking()
             .Where(d => d.DispatchType == DispatchType.AdminInvitation && d.RelatedRecordType == DispatchRelatedRecordType.AdminInvitation && d.RelatedRecordId == relatedRecordId)
-            .Select(d => new Row(d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState))
+            .Select(d => new Row(d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState, d.AttemptCount == 0 && d.LastOutcome == null))
             .ToListAsync(ct);
         return HasMark(rows);
     }
 
+    /// <summary>
+    /// The groups of customer notices whose latest row is "undelivered" - the notices the mark stands for and a re-sending can name (02 9.1.6; 05 4.4.3). A group's first row is the one
+    /// whose <c>OriginalDispatchId</c> is empty; when that row is gone by its own period the rows left stand under the id they carry.
+    /// </summary>
+    public static IReadOnlyList<UndeliveredNotice> UndeliveredGroups(IEnumerable<NoticeRow> rowsOfTheOrder)
+    {
+        ArgumentNullException.ThrowIfNull(rowsOfTheOrder);
+        return [.. rowsOfTheOrder
+            .GroupBy(r => r.OriginalDispatchId ?? r.Id)
+            .Select(group => (GroupId: group.Key, Latest: group.Aggregate((a, b) => UuidOrder.IsBefore(a.CreatedAt, a.Id, b.CreatedAt, b.Id) ? b : a)))
+            .Where(g => g.Latest.State == DispatchState.Undelivered && !g.Latest.ClosedUnsent)
+            .OrderBy(g => g.Latest.CreatedAt).ThenBy(g => g.Latest.Id)
+            .Select(g => new UndeliveredNotice(g.GroupId, g.Latest.Id, g.Latest.Type, g.Latest.RelatedRecordType, g.Latest.RelatedRecordId))];
+    }
+
+    /// <summary>The customer notices of an order, B-1…B-16, as the groups read them; a firm notice or an account e-mail has no order link and is never among them.</summary>
+    public static async Task<List<NoticeRow>> ReadNoticeRowsAsync(AppDbContext db, Guid orderId, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(db);
+        return await db.DispatchRecords.AsNoTracking()
+            .Where(d => d.OrderId == orderId)
+            .Select(d => new NoticeRow(d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState, d.DispatchType, d.RelatedRecordType, d.RelatedRecordId, d.AttemptCount == 0 && d.LastOutcome == null))
+            .ToListAsync(ct);
+    }
+
+    /// <summary>
+    /// The mark of a claim's row in the panel (02 9.1.6; 03 1.7.3.1; 06 4.58: the mark of B-9 shows on the defect claim's own row too): a defect claim whose notice B-9
+    /// ends in an "undelivered" row. A withdrawal declaration or a late delivery termination shows it on the order's row only; any other related record kind never shows it.
+    /// </summary>
+    public static async Task<bool> ClaimHasMarkAsync(AppDbContext db, DispatchRelatedRecordType type, Guid relatedRecordId, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(db);
+        if (type != DispatchRelatedRecordType.DefectClaim)
+        {
+            return false;
+        }
+
+        List<Row> rows = await db.DispatchRecords.AsNoTracking()
+            .Where(d => d.DispatchType == DispatchType.B9 && d.RelatedRecordType == type && d.RelatedRecordId == relatedRecordId)
+            .Select(d => new Row(d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState, d.AttemptCount == 0 && d.LastOutcome == null))
+            .ToListAsync(ct);
+        return HasMark(rows);
+    }
+
+    /// <summary>
+    /// One page of the orders that carry the mark, by order id after <paramref name="afterOrderId"/> (null starts at the first): the filtered list the home page's row leads to (02 10.6.1;
+    /// K-761) - the set is read, not counted, and never taken whole (09 20 item 2). The candidates are the orders with an "undelivered" customer notice row; each candidate's groups
+    /// decide, because a later row of the group may have sent it.
+    /// </summary>
+    public static async Task<IReadOnlyList<Guid>> MarkedOrderIdsAsync(AppDbContext db, Guid? afterOrderId, int max, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(db);
+        ArgumentOutOfRangeException.ThrowIfLessThan(max, 1);
+        const int batch = 200;
+        List<Guid> marked = [];
+        Guid? cursor = afterOrderId;
+        while (marked.Count < max)
+        {
+            Guid? from = cursor;
+            List<Guid> candidates = await db.DispatchRecords.AsNoTracking()
+                .Where(d => d.OrderId != null && d.DispatchState == DispatchState.Undelivered && (from == null || d.OrderId > from))
+                .Select(d => d.OrderId!.Value)
+                .Distinct()
+                .OrderBy(id => id)
+                .Take(batch)
+                .ToListAsync(ct);
+            if (candidates.Count == 0)
+            {
+                break;
+            }
+
+            var rows = await db.DispatchRecords.AsNoTracking()
+                .Where(d => d.OrderId != null && candidates.Contains(d.OrderId.Value))
+                .Select(d => new { OrderId = d.OrderId!.Value, Row = new Row(d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState, d.AttemptCount == 0 && d.LastOutcome == null) })
+                .ToListAsync(ct);
+            ILookup<Guid, Row> byOrder = rows.ToLookup(r => r.OrderId, r => r.Row);
+            foreach (Guid candidate in candidates)
+            {
+                if (marked.Count < max && HasMark(byOrder[candidate]))
+                {
+                    marked.Add(candidate);
+                }
+            }
+
+            cursor = candidates[^1];
+            if (candidates.Count < batch)
+            {
+                break;
+            }
+        }
+
+        return marked;
+    }
+
+    /// <summary>A customer notice row as the re-sending reads it.</summary>
+    internal readonly record struct NoticeRow(
+        Guid Id,
+        Guid? OriginalDispatchId,
+        DateTimeOffset CreatedAt,
+        DispatchState State,
+        DispatchType Type,
+        DispatchRelatedRecordType? RelatedRecordType,
+        Guid? RelatedRecordId,
+        bool ClosedUnsent = false);
+
     /// <summary>A row as the mark reads it.</summary>
-    internal readonly record struct Row(Guid Id, Guid? OriginalDispatchId, DateTimeOffset CreatedAt, DispatchState State);
+    internal readonly record struct Row(Guid Id, Guid? OriginalDispatchId, DateTimeOffset CreatedAt, DispatchState State, bool ClosedUnsent = false);
 }

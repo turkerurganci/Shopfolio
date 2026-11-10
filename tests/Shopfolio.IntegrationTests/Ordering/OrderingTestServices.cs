@@ -59,7 +59,7 @@ internal static class OrderingTestServices
         services.AddSingleton<ImageProcessor>();
         services.AddCatalogModule();
         services.AddAfterSalesModule();
-        services.AddSettingsDependencies();
+        services.AddNoticeDependencies();
         services.AddOrderingModule();
         services.AddPaymentModule();
 

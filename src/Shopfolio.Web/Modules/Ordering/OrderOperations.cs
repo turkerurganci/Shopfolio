@@ -4,6 +4,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
 
@@ -20,13 +21,15 @@ internal sealed class OrderOperations : IOrderOperations
     private readonly AppDbContext _db;
     private readonly IAfterSalesModule _afterSales;
     private readonly IPaymentModule _payment;
+    private readonly INotificationsModule _notifications;
     private readonly TimeProvider _time;
 
-    public OrderOperations(AppDbContext db, IAfterSalesModule afterSales, IPaymentModule payment, TimeProvider time)
+    public OrderOperations(AppDbContext db, IAfterSalesModule afterSales, IPaymentModule payment, INotificationsModule notifications, TimeProvider time)
     {
         _db = db;
         _afterSales = afterSales;
         _payment = payment;
+        _notifications = notifications;
         _time = time;
     }
 
@@ -156,7 +159,7 @@ internal sealed class OrderOperations : IOrderOperations
             order.IsGuestOrder,
             order.ContactEmail is null,
             order.BankTransferIban is not null,
-            EmailNotDelivered: false,
+            EmailNotDelivered: await _notifications.OrderHasUndeliveredMarkAsync(order.Id, ct),
             iban.HasIban,
             iban.HasOpenRequest,
             marks.IsNotRealized,

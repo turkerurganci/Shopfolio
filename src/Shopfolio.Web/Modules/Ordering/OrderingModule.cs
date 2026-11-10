@@ -406,6 +406,9 @@ internal static class OrderingModuleRegistration
         services.AddOutageEffect<TransferWindowDeferral>();
         services.AddScoped<IOrderingModule, OrderingModule>();
 
+        // The read of an order for a customer notice's body (T385; D-232): the Notifications module's sender asks it when it makes the body.
+        services.AddScoped<IOrderNoticeFacts, OrderNoticeFactsReader>();
+
         // The confirmation step and the order's documents (T356; 02 3.24; 09 9.3): the step reads the Settings module only; the documents are written by T348's confirmation and read by four callers.
         services.AddScoped<IConfirmationStep, ConfirmationStep>();
         services.AddScoped<IOrderDocuments, Documents.OrderDocuments>();

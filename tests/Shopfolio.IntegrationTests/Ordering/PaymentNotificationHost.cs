@@ -86,6 +86,7 @@ internal static class PaymentNotificationHost
         services.AddScoped<INotificationsModule, NotificationsModule>();
         services.AddScoped<IOrderContactNotices, OrderContactNotices>();
         services.AddScoped<CustomerNoticeQueue>();
+        services.AddScoped<DispatchResending>();
         services.AddScoped<CompanyNoticeQueue>();
         services.AddScoped<AccountEmailQueue>();
         services.AddScoped<ICompanyContactEmail, FixedCompanyContactEmail>();

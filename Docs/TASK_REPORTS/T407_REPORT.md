@@ -1,6 +1,6 @@
 # T407 — SES: gönderim ve sonuç sınıfları
 
-**Faz:** F4 | **Durum:** ⏳ Devam ediyor (yapım tamam; doğrulama bekliyor; kriter 9 kısmen — OWNER_INPUT) | **Tarih:** 2026-11-10
+**Faz:** F4 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS; kriter 9'un gerçek hesap payı OWNER_INPUT — D-1015) | **Tarih:** 2026-11-10
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -71,10 +71,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-10; head `ed0866f`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 → D-1022 (ön sorgunun aşım ve bağlantı hatası kayıt satırı `suppression-query:` önekini taşımaz); K2 → mevcut D-442/D-966 (kalan pay logo; T407'ye düşen yok) |
+
+**Tur 1 kanıtları (doğrulayıcı):** kriter 1–8 ve KK1–KK8 ✓ (kod okundu: `SesEmailGateway`, `SesErrorMapping`, `SesClientFactory`, `SesRegistration`, `EmailCredential`, `SettingsAudit`; testler kendi koşumumda geçti). Kriter 9 ✓ depo payı: `AMAZON_SES.md` 9 bölümle açıldı, DV-16/17/19/21/23 "Kısmen gözlendi (2026-11-10, T407; çevrimdışı)" tarihli; gerçek hesap gözlemi OWNER_INPUT (AWS hesabı yok) — iz D-1015, `VAL-E017`/`E018`/`E020`/`E022`/`E024` `BEKLEMEDE` kalır (KK9 "DV satırlarında tarih" ✓). KP-66 satırları (`VAL-A317`…`A325`) bildirim akışlarıdır, sahte altyapıyla kanıtlanır ve T407'nin kriterlerine bağlı değildir: `BEKLEMEDE` değişmedi. Ana dal CI son 3: 42796731944, 42796731464, 42787134973 success. Dal CI 42797568953 success (head `ed0866f`). Yerel: restore, `build -warnaserror` 0 uyarı; `format --verify-no-changes` üç proje temiz; Unit 5924/5924 (main birleştirmesinden sonra 6006/6006); betik testleri 4/4; Integration (PostgreSQL 18, `track_commit_timestamp=on`) `EmailCaptureRegistrationTests`, `SecretFilesTests`, `LoggingFilesTests`, `DispatchRetryAndMarkTests`, `StartupSettingsCheckTests`, `RevertLinkDigestRewriteStartupTests` 97/97. Güvenlik: sır değeri kayıtta, istisna metninde ve `ToString`'de yok; test değerleri uydurma; auth/girdi yüzeyi yok; yeni bağımlılık `AWSSDK.SimpleEmailV2` (Apache-2.0, `09` tablosunda). Yapım raporuyla uyum: tam (raporun kriter 9 "~" işareti gerçek hesap payıdır; doğrulayıcı depo payını ✓, gerçek payı `BEKLEMEDE` olarak ayırdı).
 
 ## Altyapı Değişiklikleri
 

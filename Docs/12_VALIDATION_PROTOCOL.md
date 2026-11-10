@@ -1,6 +1,6 @@
 # Shopfolio — Validation Protocol
 
-**Versiyon: v0.34** | **Bağımlılıklar:** `02`–`11` | **Son güncelleme:** 2026-11-02
+**Versiyon: v0.35** | **Bağımlılıklar:** `02`–`11` | **Son güncelleme:** 2026-11-10
 
 > **Aşama:** 10 — Doğrulama Protokolü · **Rol:** QA / Verification Lead
 > **Bu bir test case deposu değildir.** Cevapladığı soru: **"Bu ürün bir sonraki aşamaya geçilebilecek olgunlukta mı?"**
@@ -2637,4 +2637,4 @@ Kaynak: Karar kaydı K-1514 (senaryo biçimi: birim, sıra denetimi, hâller, se
 
 ---
 
-*Shopfolio — Validation Protocol v0.34 — ✓ Tamamlandı (v0.34 Doğrulama Protokolü aşamasının kapanışının arşiv işaretidir — kapanış sürümü; yalnız başlık notunun durum cümlesi ve bu dipnot değişti, gövdeye dokunulmadı; yedi uyarılı karar gözden geçirildi, itiraz yok — K-1574; K-437'nin altı adımı tamam)*
+*Shopfolio — Validation Protocol v0.35 — ✓ Tamamlandı (v0.35 F3 faz kapısı belge hizalaması (D-159): F3 task'larının biriken koda hizalama düzeltmeleri — K-1579, K-1580…K-1604; ✓ korunur · v0.34 Doğrulama Protokolü aşamasının kapanışının arşiv işaretidir — kapanış sürümü; yalnız başlık notunun durum cümlesi ve bu dipnot değişti, gövdeye dokunulmadı; yedi uyarılı karar gözden geçirildi, itiraz yok — K-1574; K-437'nin altı adımı tamam)*

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.63** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-02
+**Versiyon: v0.64** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-10
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -7853,4 +7853,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.59 — ✓ Tamamlandı (v0.59 Implementation Planı aşamasının kapanışının arşiv işaretidir — kapanış sürümü; yalnız başlık notunun yazım durumu paragrafı ve bu dipnot değişti, gövdeye dokunulmadı; uyarılı üç karar gözden geçirildi, itiraz yok — K-1503; K-437'nin altı adımı tamam)*
+*Shopfolio — Implementation Plan v0.64 — ✓ Tamamlandı (v0.64 F3 faz kapısı: yeni F4 task'ları T411 ve T412, T601'in bölünmesi (T601b), T330 ve T525 bloklarının sınıra indirilmesi, §7.1 F3 hücreleri — K-1579; ✓ korunur · v0.59 Implementation Planı aşamasının kapanışının arşiv işaretidir — kapanış sürümü; yalnız başlık notunun yazım durumu paragrafı ve bu dipnot değişti, gövdeye dokunulmadı; uyarılı üç karar gözden geçirildi, itiraz yok — K-1503; K-437'nin altı adımı tamam)*

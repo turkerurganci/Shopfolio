@@ -1,1 +1,0 @@
-## 2026-11-08 — chore: Backlog parça dosyaları kuralı (`Docs/DEFERRED_BACKLOG.d/<TXXX>.md`; yeni kalemler parçaya yazılır, tabloya satır eklenmez; faz kapısı kayıt PR'ı ve chore/kayıt PR'ı D sırasıyla aktarıp parçaları siler; kalem araması iki yere bakar; `DEFERRED_BACKLOG.md`, task/validate/gate-check skill'leri, INSTRUCTIONS ve PR şablonu güncellendi)

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -30,6 +31,9 @@ internal sealed partial class OrderTransitions
 
         if (order.PaymentMethod != PaymentMethod.Card)
         {
+            // The provider's payment no longer fits the order as it is now (the line moved to the transfer): the system's transition is refused with
+            // one application log line, no notice (02 3.31.2; K-1559).
+            _automaticLog.Refused(order.Id, TransitionRejection.ConditionNotMet);
             return new PaymentTransitionResult([], isNotOpen: true);
         }
 
@@ -77,7 +81,7 @@ internal sealed partial class OrderTransitions
             return new PaymentTransitionResult([], isOrderNotFound: true);
         }
 
-        if (order.Version != mark.ExpectedVersion)
+        if (!ShownVersion.Matches(order, mark.ExpectedVersion))
         {
             return new PaymentTransitionResult([], isVersionConflict: true);
         }
@@ -131,6 +135,9 @@ internal sealed partial class OrderTransitions
         RefundFacts? refund = await _payment.WriteCardRefundOutcomeAsync(order.Id, outcome.RefundRecordId, outcome.Outcome, ct);
         if (refund is null)
         {
+            // The outcome comes for a record that is no longer open - the firm marked it, or the outcome was applied already (05 4.6.2): the system's
+            // transition is refused with one application log line, no notice (02 3.31.2; K-1559).
+            _automaticLog.Refused(order.Id, TransitionRejection.ConditionNotMet);
             return new PaymentTransitionResult([], isNotOpen: true);
         }
 
@@ -164,7 +171,7 @@ internal sealed partial class OrderTransitions
             return new PaymentTransitionResult([], isOrderNotFound: true);
         }
 
-        if (order.Version != processing.ExpectedVersion)
+        if (!ShownVersion.Matches(order, processing.ExpectedVersion))
         {
             return new PaymentTransitionResult([], isVersionConflict: true);
         }
@@ -201,7 +208,9 @@ internal sealed partial class OrderTransitions
             PaymentTransition? row = TransitionTable.FindPayment(order.PaymentStatus, target);
             if (row is not null)
             {
-                TransitionOutcome outcome = await ApplyAsync(new TransitionRequest(order.Id, row.Code, actor), null, ct);
+                // The axis step runs under the lock this transaction already holds, on the order it loaded: the administrator's transfer refund compared the
+                // screen's version before the money went, the card's result reaches the order with no screen at all. The step carries the order's own version.
+                TransitionOutcome outcome = await ApplyAsync(new TransitionRequest(order.Id, row.Code, actor, expectedVersion: order.Version), null, ct);
                 if (outcome.IsRejected)
                 {
                     return PaymentRefused(outcome);

@@ -8,6 +8,9 @@ namespace Shopfolio.Modules.Ordering.Contracts;
 /// (forward records that touch no amount, no item, no status and no period), the removal of an item or the reduction of its quantity (the cancellation's regime), the carrier, the
 /// delivery date and a return's arrival date, and the internal note. Each runs in the caller's transaction, after the order's row lock (the note after its shared form, 09 10.9),
 /// and - all but the note - raises the order's version once (09 9.1). Each writes a trail row. The panel calls them; the customer has no way to (02 8.3.6, 8.3.7). A refusal writes nothing.
+/// Every request but the note's carries the version the panel showed (<c>ExpectedVersion</c>) and it is required (T364 KK4; 02 3.31.2; 09 10.2 item 3): a request without
+/// it is refused with <see cref="TransitionRefusal.InvalidInput"/>, an older one with <see cref="TransitionRefusal.VersionConflict"/> - neither applies anything. The field
+/// is nullable only because the form may arrive without it.
 /// </summary>
 public interface IOrderCorrections
 {

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Files;
@@ -32,9 +33,17 @@ internal static class OrderingTestServices
     /// The same services on the given clock (T348: the confirmation's window, coupon dates and moments read a fixed time). The card line is open unless
     /// <paramref name="cardLineOpen"/> is false (T352: the provider's keys missing at installation); the transfer line is the real one (T353), read from the seeded settings row.
     /// </summary>
-    public static ServiceProvider Build(string dsn, TimeProvider time, bool cardLineOpen = true)
+    public static ServiceProvider Build(string dsn, TimeProvider time, bool cardLineOpen = true) => Build(dsn, time, cardLineOpen, logs: null);
+
+    /// <summary>The same services with <paramref name="logs"/> collecting the application's information lines (T364: the refusal line of the system's transition).</summary>
+    public static ServiceProvider Build(string dsn, TimeProvider time, bool cardLineOpen, ILoggerProvider? logs)
     {
         ServiceCollection services = new();
+        if (logs is not null)
+        {
+            services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.None).AddFilter("Shopfolio", LogLevel.Information).AddProvider(logs));
+        }
+
         services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, dsn));
         services.AddScoped<JobEnqueueTracker>();
         services.AddSingleton<IJobSignal, JobSignal>();

@@ -30,7 +30,7 @@ internal sealed partial class OrderTransitions
             return Refused(TransitionRefusal.InvalidInput);
         }
 
-        (Order? order, OrderItem? item, TransitionRefusal? refusal) = await LockItemAsync(request.OrderId, request.OrderItemId, null, ct);
+        (Order? order, OrderItem? item, TransitionRefusal? refusal) = await LockItemForCustomerAsync(request.OrderId, request.OrderItemId, ct);
         if (refusal is not null || order is null || item is null)
         {
             return Refused(refusal ?? TransitionRefusal.OrderNotFound);

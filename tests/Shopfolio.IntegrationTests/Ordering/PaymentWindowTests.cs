@@ -11,9 +11,11 @@ using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.Imaging;
 using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Jobs;
+using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
+using Shopfolio.IntegrationTests.Web;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
@@ -44,6 +46,9 @@ public sealed class PaymentWindowTests : IAsyncLifetime
 
     private readonly CollectionDatabaseFixture _collection;
     private readonly ManualTimeProvider _clock = new(Start);
+
+    // The refusal lines of the system's own transition (T364; K-1559); every other category stays silent.
+    private readonly CollectingLoggerProvider _logs = new();
     private ServiceProvider _provider = null!;
     private int _counter;
 
@@ -92,6 +97,29 @@ public sealed class PaymentWindowTests : IAsyncLifetime
         Assert.Equal((5, 0), (variant.StockQuantity!.Value, variant.ReservedQuantity));
         Coupon coupon = await reader.Coupons.SingleAsync(c => c.Id == couponId, Ct);
         Assert.Equal((0, 0), (coupon.ReservedCount, coupon.UsedCount));
+    }
+
+    [Fact]
+    public async Task TransferWindowEnd_OfAnOrderPaidInBetween_IsRefused_WithOneLogLineOfTheCodeAndTheOrder_NoNotice_T364_KK6()
+    {
+        Order order = await SeedOrderAsync(PaymentMethod.BankTransfer, Start.AddMinutes(-1));
+        Assert.Equal([order.Id], (await FindDueAsync<TransferPaymentExpiry>()).Select(d => d.Id));
+
+        // The administrator's "paid" mark lands between the scan and the processing: the first completed operation wins (02 3.31.2), the system's
+        // cancellation is refused against the order as it is now and only the application log says so (K-1559). The reminder is a notice, not a
+        // transition: no longer due, it writes no line.
+        await ExecuteAsync($"UPDATE orders SET order_status = 'Preparing', payment_status = 'Paid', version = 2 WHERE id = '{order.Id}'");
+        await ProcessAsync<TransferPaymentExpiry>(order.Id);
+        await ProcessAsync<TransferPaymentReminder>(order.Id);
+
+        await using AppDbContext reader = NewContext();
+        Order after = await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct);
+        Assert.Equal((OrderStatus.Preparing, PaymentStatus.Paid, 2), (after.OrderStatus, after.PaymentStatus, after.Version));
+        Assert.False(await reader.TransitionRecords.AnyAsync(t => t.OrderId == order.Id, Ct));
+        Assert.False(await reader.DispatchRecords.AnyAsync(d => d.OrderId == order.Id, Ct));
+        Assert.Equal(
+            [$"{typeof(AutomaticTransitionLog).FullName}|{LogLevel.Information}|{LogEvents.AutomaticTransitionRefused} {nameof(TransitionRejection.ConditionNotMet)} {order.Id}"],
+            _logs.Lines);
     }
 
     [Fact]
@@ -529,7 +557,10 @@ public sealed class PaymentWindowTests : IAsyncLifetime
         services.AddSingleton<Shopfolio.Infrastructure.Status.IDiskUsageReader, Shopfolio.Infrastructure.Status.DriveDiskUsageReader>();
         services.AddSingleton<Shopfolio.Infrastructure.Status.DiskUsageGuard>();
         services.AddSingleton<ImageProcessor>();
-        services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.None));
+        services.AddLogging(builder => builder
+            .SetMinimumLevel(LogLevel.None)
+            .AddFilter(typeof(AutomaticTransitionLog).FullName, LogLevel.Information)
+            .AddProvider(_logs));
         services.AddCatalogModule();
         services.AddAfterSalesModule();
         services.AddNoticeDependencies();

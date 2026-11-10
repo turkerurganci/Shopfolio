@@ -26,6 +26,12 @@ internal static class LogEvents
     /// <summary>A payment notification whose signature holds was recorded marked and is not processed; the line carries the reason and the record's id only (05 4.5.5).</summary>
     public const string InboundNotificationUnprocessed = "InboundNotificationUnprocessed";
 
+    /// <summary>
+    /// The system's own transition on an order - the end of the payment window, a provider notification, the final query - was refused against the
+    /// order as it is now; the line carries the refusal's code and the order's internal id only, and no notice goes (02 3.31.2; 05 9.1.3; K-1559).
+    /// </summary>
+    public const string AutomaticTransitionRefused = "AutomaticTransitionRefused";
+
     /// <summary>A request was rejected by validation; the line carries a single code or the <c>fields</c> array (09 18.2 item 4).</summary>
     public const string ValidationRejected = "ValidationRejected";
 

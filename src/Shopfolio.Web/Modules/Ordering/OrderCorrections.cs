@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Administration.Contracts;
@@ -246,7 +247,13 @@ internal sealed partial class OrderCorrections : IOrderCorrections
             return (null, TransitionRefusal.OrderNotFound);
         }
 
-        return expectedVersion is { } shown && shown != order.Version ? (null, TransitionRefusal.VersionConflict) : (order, null);
+        // Every correction is the administrator's: the request without the screen's version applies nothing (T364 KK4; 09 10.2 item 3).
+        return ShownVersion.Check(order, expectedVersion, byAdministrator: true) switch
+        {
+            ShownVersionCheck.Missing => (null, TransitionRefusal.InvalidInput),
+            ShownVersionCheck.Changed => (null, TransitionRefusal.VersionConflict),
+            _ => (order, null),
+        };
     }
 
     private static bool IsAdmin(TransitionAdmin? admin) => admin is not null && admin.AdminId != Guid.Empty && !string.IsNullOrWhiteSpace(admin.AdminName);

@@ -32,7 +32,7 @@ namespace Shopfolio.IntegrationTests.Ordering;
 /// whose outcome failed or is unknown, and the payment that comes to a cancelled order. The expected transitions are read from <see cref="TransitionTable"/>.
 /// </summary>
 [Collection(OrderTransitionsDefinition.Name)]
-public sealed class PaymentTransitionsTests : IAsyncLifetime
+public sealed partial class PaymentTransitionsTests : IAsyncLifetime
 {
     private const string ContactEmail = "Ali@Example.com";
 

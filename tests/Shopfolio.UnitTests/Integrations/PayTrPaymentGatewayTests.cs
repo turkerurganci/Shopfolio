@@ -90,7 +90,8 @@ public sealed class PayTrPaymentGatewayTests
             Options.Create(new PaymentOptions { ProviderKeys = keys }),
             new SiteAddress(Options.Create(new SiteOptions { Domain = Domain })),
             harness.Time,
-            new Environment(live ? Environments.Production : Environments.Development));
+            new Environment(live ? Environments.Production : Environments.Development),
+            new PaymentFailureReasonLog(harness.Time, harness.LoggerFor<PaymentFailureReasonLog>()));
         return (gateway, handler);
     }
 
@@ -513,7 +514,7 @@ public sealed class PayTrPaymentGatewayTests
         }
     }
 
-    private sealed class OneClientFactory(HttpMessageHandler handler) : IHttpClientFactory
+    internal sealed class OneClientFactory(HttpMessageHandler handler) : IHttpClientFactory
     {
         public HttpClient CreateClient(string name)
         {
@@ -522,7 +523,7 @@ public sealed class PayTrPaymentGatewayTests
         }
     }
 
-    private sealed class Environment(string name) : IHostEnvironment
+    internal sealed class Environment(string name) : IHostEnvironment
     {
         public string EnvironmentName { get; set; } = name;
 

@@ -13,6 +13,16 @@ public sealed record TransitionAdmin(Guid AdminId, string AdminName);
 /// </summary>
 public sealed record ShipmentInfo(string? Carrier, string? OtherCarrierName, string? TrackingNumber, bool IsOwnVehicleDelivery);
 
+/// <summary>The length caps of the carrier data (09 3.5; K-1586): checked on the trimmed value before the operation; a longer value is <c>InvalidInput</c>.</summary>
+public static class ShipmentLimits
+{
+    /// <summary>The tracking number's character cap (06 4.17 <c>Order.TrackingNumber</c>).</summary>
+    public const int TrackingNumberMaxLength = 64;
+
+    /// <summary>The unlisted company's name's character cap (06 4.17 <c>Order.OtherCarrierName</c>).</summary>
+    public const int OtherCarrierNameMaxLength = 100;
+}
+
 /// <summary>
 /// An administrator's operation on one order that takes no more than the screen's version (the panel's marking of a returned shipment, the reasonless closing
 /// of a returned order). <paramref name="ExpectedVersion"/> is the version the screen showed (05 7.3.2): an older one is refused.

@@ -145,7 +145,7 @@ internal sealed class OrderExport
     }
 
     /// <summary>Whether the order's payment was completed: the payment was confirmed at some moment, so the paid statuses and the refunded ones after them (02 10.6.2).</summary>
-    public static bool IsPaymentCompleted(PaymentStatus status) => status is PaymentStatus.Paid or PaymentStatus.PartiallyRefunded or PaymentStatus.Refunded;
+    public static bool IsPaymentCompleted(PaymentStatus status) => PaymentApproval.IsApproved(status);
 
     /// <summary>Writes the file's lines to <paramref name="destination"/> and returns the number of lines.</summary>
     public async Task<int> WriteAsync(DateOnly startDay, DateOnly endDay, Stream destination, long maxBytes, CancellationToken ct)

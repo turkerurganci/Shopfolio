@@ -189,6 +189,30 @@ public sealed partial class ItemRecordsTests
         Assert.False((await MarksAsync(item)).AwaitingReturnGoods);
     }
 
+    [Fact]
+    public async Task Rejection_AfterTheClosure_RejectsTheClosedUnits_AndReopensTheClosure_T412_KK5()
+    {
+        (Order order, OrderItem item) = await SeedTransferDeliveredAsync(2, WithdrawalExemptionReason.HygieneSensitive);
+        Guid withdrawalId = (await WriteAsync(order.Id, (m, t) => m.AddWithdrawalAsync(TransferDeclaration(order, item, 2), t))).RecordId!.Value;
+        _clock.SetUtcNow(TurkeyTime.StartOf(DeliveryDay.AddDays(AfterSalesPeriodRules.ReturnShipmentPeriodDays + 2)).AddHours(12));
+        Assert.Null((await RunAsync((u, t) => u.CloseAsNotReturnedAsync(new CloseAsNotReturnedRequest(order.Id, item.Id, withdrawalId, AdminCaller, 2, 2), t))).Refusal);
+
+        // The goods of the closed units arrive with their protective packaging opened: the rejection takes them (06 4.26 "ret de"; D-915).
+        ItemRecordResult tooMany = await RunAsync((u, t) => u.RejectReturnAsync(Rejection(order.Id, item.Id, withdrawalId, 3, 3), t));
+        ItemRecordResult rejected = await RunAsync((u, t) => u.RejectReturnAsync(Rejection(order.Id, item.Id, withdrawalId, 3, 1), t));
+
+        Assert.NotNull(tooMany.Refusal);
+        Assert.Null(rejected.Refusal);
+        await using AppDbContext reader = NewContext();
+        Assert.NotNull((await reader.NotReturnedClosures.SingleAsync(n => n.WithdrawalId == withdrawalId, Ct)).ReopenedAt);
+        Assert.Equal(1, await reader.ReturnRejections.CountAsync(r => r.WithdrawalId == withdrawalId, Ct));
+
+        // The reopened closure's other unit awaits its receipt again and may be closed by a new row (06 4.28), as after a receipt.
+        Assert.True((await MarksAsync(item)).AwaitingReturnGoods);
+        Assert.Null((await RunAsync((u, t) => u.CloseAsNotReturnedAsync(new CloseAsNotReturnedRequest(order.Id, item.Id, withdrawalId, AdminCaller, 4, 1), t))).Refusal);
+        Assert.Equal(2, await CountAsync(c => c.NotReturnedClosures.Where(n => n.WithdrawalId == withdrawalId)));
+    }
+
     // ---- KK10, 06 4.14: the coupon right goes back once with the receipt that brings the order's last unit, a reopened closure included ----
 
     [Fact]

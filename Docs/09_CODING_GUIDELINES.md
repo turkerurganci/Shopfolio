@@ -354,6 +354,7 @@ Parametrenin üç katmanı (`02 §10.1.3`, `05 §8.4`; K-412) kodda üç ayrı e
 | İmzalı makine ucunun (ödeme sağlayıcısının bildirimi) gövde tavanı 64 KB — gövde okunmadan ve imzadan önce uygulanır, aşan istek 413; imzası tutmayan isteğin seyreltilmiş kayıt satırının penceresi 60 saniye (genel sınırın kayan penceresi) | Kodda sabit (`SignedEndpointLimits`) | K-1169, K-1570, `07 §2.8.1`, §2.8.2, `08 §3.2` (T203) |
 | Disk doluluğu eşiği %85 — durum ucunun disk eşiğidir; yüklemenin kabul denetimi aynı değeri okur (`StatusThresholdOptions.DiskUsageFraction`) | Kurulum ayarı (varsayılanı kodda; §3.5 madde 3) | K-1353, K-1392, `05 §9.4.2`, `§9.4.3`, `§8.4.5`, `§7.7.1` |
 | Yükleme betiğinin ağ hatasında sürdürme denemesi en çok 3; beklemeler 1, 2 ve 4 saniye | Kodda sabit (betikte) | K-1354 |
+| Kargo bilgisinin karakter tavanı: takip numarası en çok 64, listede olmayan kargo şirketinin adı en çok 100 (kırpılmış değer; S5, S8 ve kargo bilgisi düzeltmesinde aynı kural, aşan değer işlemden önce `InvalidInput`) | Kodda sabit (`ShipmentLimits`) | K-1586, `06 §4.17` |
 
 Çelişki taraması (K-1328 (6); göç hizmeti ve yönetim komutları kolu K-1362 (1)): 15 saniyelik kullanıcı çağrısı 20 saniyelik komut aşımından kısadır; göç hizmeti ve yönetim komutlarında 10 dakikalık sorgu süresi 10 dakika 5 saniyelik komut aşımından kısadır; 120 saniyelik üretim tavanı 15 saniyelik sayfa sorgularının toplamından uzundur; 150 saniyelik ters vekil süresi 120 saniyelik tavanı taşır.
 

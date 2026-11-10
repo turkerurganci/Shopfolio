@@ -60,6 +60,13 @@ check 1 "ts string literal"          "src/a.ts"            "const apiKey = 'abcd
 check 1 "py string literal"          "src/a.py"            'API_KEY = "abcd1234efgh5678"'
 check 1 "cs @ prefix"                "src/v1.cs"           'var Password = @"abc12345xyz";'
 check 1 "cs $ prefix"                "src/v2.cs"           'var Password = $"abc12345xyz";'
+# Shell environment option forms (D-80): the -e / --env prefix does not hide the key.
+check 1 "sh -e quoted"               "scripts/e1.sh"       '  -e "LinkKey__DerivationSecret=ZGV2LW9ubHktbWFkZS11cC1saW5r" \'
+check 1 "sh -e bare"                 "scripts/e2.sh"       '  -e API_KEY=sk_live_9f3a1b2c3d4e \'
+check 1 "sh --env quoted"            "scripts/e3.sh"       '  --env "DB_PASSWORD=abc12345xyz" \'
+check 1 "sh --env= form"             "scripts/e4.sh"       '  --env=DB_PASSWORD=abc12345xyz \'
+check 0 "sh -e placeholder"          "scripts/e5.sh"       '  -e "API_KEY=<YOUR_KEY_HERE>"'
+check 0 "sh -e _FILE short path"     "scripts/e6.sh"       '  -e POSTGRES_DB=shopfolio'
 check 1 "cs $@ prefix"               "src/v3.cs"           'var Password = $@"abc12345xyz";'
 check 1 "cs @$ prefix"               "src/v4.cs"           'var Password = @$"abc12345xyz";'
 check 1 "cs raw literal"             "src/v5.cs"           'var Password = """abc12345xyz""";'

@@ -525,6 +525,32 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
     };
 
     [Fact]
+    public async Task S5_TakesTheTrackingNumberAndTheCompanyName_AtTheirCaps_AndRefusesOneCharacterMore_T412_KK6()
+    {
+        string trackingAtCap = new('T', ShipmentLimits.TrackingNumberMaxLength);
+        string nameAtCap = new('N', ShipmentLimits.OtherCarrierNameMaxLength);
+        (Order longNumber, _) = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, Physical(1));
+        (Order longName, _) = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, Physical(1));
+        (Order atCaps, _) = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, Physical(1));
+
+        OrderTransitionResult numberOver = await RunAsync((unit, token) => unit.ShipOrderAsync(
+            new ShipOrderRequest(longNumber.Id, AdminCaller, 1, true, new ShipmentInfo("YurticiKargo", null, trackingAtCap + "1", false)), token));
+        OrderTransitionResult nameOver = await RunAsync((unit, token) => unit.ShipOrderAsync(
+            new ShipOrderRequest(longName.Id, AdminCaller, 1, true, new ShipmentInfo(null, nameAtCap + "x", "K-9", false)), token));
+        OrderTransitionResult bothAtCap = await RunAsync((unit, token) => unit.ShipOrderAsync(
+            new ShipOrderRequest(atCaps.Id, AdminCaller, 1, true, new ShipmentInfo(null, "  " + nameAtCap + "  ", " " + trackingAtCap + " ", false)), token));
+
+        Assert.Equal(TransitionRefusal.InvalidInput, numberOver.Refusal);
+        Assert.Equal(TransitionRefusal.InvalidInput, nameOver.Refusal);
+        await AssertNothingWrittenAsync(longNumber.Id, OrderStatus.Preparing, PaymentStatus.Paid);
+        await AssertNothingWrittenAsync(longName.Id, OrderStatus.Preparing, PaymentStatus.Paid);
+        Assert.False(bothAtCap.IsRejected);
+        await using AppDbContext reader = NewContext();
+        Order saved = await reader.Orders.SingleAsync(o => o.Id == atCaps.Id, Ct);
+        Assert.Equal((nameAtCap, trackingAtCap), (saved.OtherCarrierName, saved.TrackingNumber));
+    }
+
+    [Fact]
     public async Task S5_WithAnAdministratorWhoseDataIsMissing_OrAnOlderScreenVersion_IsRefused_KK7()
     {
         (Order order, _) = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, Physical(1));

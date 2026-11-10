@@ -15,8 +15,6 @@ internal sealed partial class AfterSalesModule
 {
     private const int AwaitedPageSize = 500;
 
-    private static readonly PaymentStatus[] PaymentTaken = [PaymentStatus.Paid, PaymentStatus.PartiallyRefunded, PaymentStatus.Refunded];
-
     public Task<int> CountOpenDefectClaimsAsync(CancellationToken ct) =>
         _db.DefectClaims.AsNoTracking().CountAsync(c => c.DefectClaimStatus == DefectClaimStatus.Open, ct);
 
@@ -93,7 +91,7 @@ internal sealed partial class AfterSalesModule
         List<Subject> owed = [.. subjects.Where(s =>
             !awaitingIban.Contains(s.OrderItemId)
             && facts.TryGetValue(s.OrderItemId, out RefundWorkItemFacts? f)
-            && PaymentTaken.Contains(f.PaymentStatus)
+            && PaymentApproval.IsApproved(f.PaymentStatus)
             && (s.TransitionRecordId is not { } closedBy || !corrected.Contains(closedBy))
             && (s.Kind != OwedKind.Withdrawal || !AfterSalesPeriodRules.IsAfterDelivery(f.ProductType, f.DeliveryDate, s.DeclarationDate, s.IsDeliveredBeforeDeclaration)))];
 

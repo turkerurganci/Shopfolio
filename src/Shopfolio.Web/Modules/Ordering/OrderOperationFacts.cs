@@ -45,7 +45,7 @@ internal sealed record OrderOperationFacts(
     IReadOnlyList<OperationItemFacts> Items)
 {
     /// <summary>The payment was confirmed at some moment (03 1.11.2-1.11.3: "ödeme onaylandıktan sonra"): Paid and the refunded statuses after it.</summary>
-    public bool PaymentApproved => PaymentStatus is PaymentStatus.Paid or PaymentStatus.PartiallyRefunded or PaymentStatus.Refunded;
+    public bool PaymentApproved => PaymentApproval.IsApproved(PaymentStatus);
 
     /// <summary>The order has passed to "Kargoya verildi" (03 1.11.5): Shipped, DeliveryFailed or Delivered.</summary>
     public bool HasShipped => OrderStatus is OrderStatus.Shipped or OrderStatus.DeliveryFailed or OrderStatus.Delivered;

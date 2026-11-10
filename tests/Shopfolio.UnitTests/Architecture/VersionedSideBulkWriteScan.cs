@@ -54,7 +54,7 @@ internal static partial class VersionedSideBulkWriteScan
         "src/Shopfolio.Web/Modules/Ordering/", "src/Shopfolio.Web/Modules/AfterSales/", "src/Shopfolio.Web/Modules/Payment/", "src/Shopfolio.Web/Modules/Catalog/",
     ];
 
-    /// <summary>The places inside those modules that have a bulk write: the counters' one writer, the download counter's one writer (T340), the guest cart's disposal (a cart is no order), the image derivative job and the disposal of unlinked images (an image row with no link left is no product row), the disposal of unlinked and incomplete digital files (the same), the inbound notification record's disposal and its one insert (the record is no order-side row).</summary>
+    /// <summary>The places inside those modules that have a bulk write: the counters' one writer, the download counter's one writer (T340), the guest cart's disposal (a cart is no order), the image derivative job and the disposal of unlinked images (an image row with no link left is no product row), the disposal of unlinked and incomplete digital files (the same), the inbound notification record's disposal and its one insert (the record is no order-side row), the internal note's two conditional statements (the note is outside the order's version; T386, 09 10.9).</summary>
     public static readonly IReadOnlyList<string> AllowedPlaces =
     [
         "src/Shopfolio.Web/Modules/Catalog/StockCounters.cs",
@@ -67,7 +67,11 @@ internal static partial class VersionedSideBulkWriteScan
         GalleryMainMarkPlace,
         InboundNotificationInsertPlace,
         CartStatementsPlace,
+        InternalNotePlace,
     ];
+
+    /// <summary>The internal note's two conditional statements (T386; 09 10.9 item 3): an update and a delete of <c>InternalNotes</c> on the shown text and nothing else - the note is not an order-side record (06 4.20, K-1014 (3)); a unit test holds the file to those two.</summary>
+    public const string InternalNotePlace = "src/Shopfolio.Web/Modules/Ordering/SaveInternalNote.cs";
 
     /// <summary>The cart's conditional statements (T346): raw INSERT ... ON CONFLICT on <c>carts</c> and <c>cart_items</c> only - a cart is no order and no product form; T347 adds the one DELETE of the paid order's items from their own cart; a unit test holds the file to those two tables and five statements.</summary>
     public const string CartStatementsPlace = "src/Shopfolio.Web/Modules/Ordering/CartStatements.cs";

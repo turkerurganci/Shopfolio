@@ -117,7 +117,9 @@ internal sealed class OrderPeriods
         IReadOnlyList<ClosingRecordMoment> records = await _afterSales.ClosingRecordMomentsAsync(items.Keys, ct);
         DateTimeOffset? approvedAt = await PaymentApprovedAtAsync(orderId, ct);
         DateTimeOffset? firstShippedAt = await FirstShippedAtAsync(orderId, ct);
+        // A removal is the firm's correction, not a cancellation (02 10.4.3): it carries no legal interest warning.
         return records
+            .Where(r => !r.IsRemoval)
             .Where(r => r.IsTermination
                 || DeliveryPeriodRules.IsLegalInterestWarningDue(
                     items[r.OrderItemId].ProductType, approvedAt, order.ShippingPeriod, items[r.OrderItemId].FulfilmentPeriod, r.At, firstShippedAt))

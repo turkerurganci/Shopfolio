@@ -378,7 +378,7 @@ internal sealed partial class OrderTransitions
     /// The carrier data of 02 5.4 S5 / 02 6.7.4: the own-vehicle declaration alone, or exactly one of a listed company's code and an unlisted company's name,
     /// with the tracking number. A listed code is one of the catalog's active companies (08 2.4); the values are trimmed.
     /// </summary>
-    private static bool TryNormalizeShipment(ShipmentInfo info, out ShipmentInfo? normalized)
+    internal static bool TryNormalizeShipment(ShipmentInfo info, out ShipmentInfo? normalized)
     {
         normalized = null;
         string? carrier = Trimmed(info.Carrier);

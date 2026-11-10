@@ -4,6 +4,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Membership.Contracts;
 using Shopfolio.Modules.Membership.Contracts.Results;
@@ -19,7 +20,7 @@ namespace Shopfolio.Modules.Ordering;
 /// buyer has no way in: no method here is reached from the order page (02 8.3.6, 8.3.7). The product does not check the firm's confirmation; it asks that it was given (the proof is the
 /// firm's, 02 12.5). No amount, quantity or price is read or written anywhere in this file, and nothing here adds an item (02 7.6.6).
 /// </summary>
-internal sealed class OrderCorrections : IOrderCorrections
+internal sealed partial class OrderCorrections : IOrderCorrections
 {
     private static readonly InvalidEmailAttribute EmailRule = new();
 
@@ -31,6 +32,8 @@ internal sealed class OrderCorrections : IOrderCorrections
     private readonly IOrderContactNotices _contactNotices;
     private readonly IAuditTrail _trail;
     private readonly TimeProvider _time;
+    private readonly OrderTransitions _transitions;
+    private readonly IAfterSalesModule _afterSales;
 
     public OrderCorrections(
         AppDbContext db,
@@ -40,7 +43,9 @@ internal sealed class OrderCorrections : IOrderCorrections
         INotificationsModule notifications,
         IOrderContactNotices contactNotices,
         IAuditTrail trail,
-        TimeProvider time)
+        TimeProvider time,
+        OrderTransitions transitions,
+        IAfterSalesModule afterSales)
     {
         _db = db;
         _locks = locks;
@@ -50,6 +55,8 @@ internal sealed class OrderCorrections : IOrderCorrections
         _contactNotices = contactNotices;
         _trail = trail;
         _time = time;
+        _transitions = transitions;
+        _afterSales = afterSales;
     }
 
     public async Task<OrderCorrectionResult> CorrectAddressAsync(CorrectAddressRequest request, CancellationToken ct)

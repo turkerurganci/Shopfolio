@@ -122,8 +122,9 @@ public interface IAfterSalesModule
     Task<ItemRecordWriteResult> AddLateDeliveryTerminationAsync(LateDeliveryTerminationEntry entry, CancellationToken ct);
 
     /// <summary>
-    /// The cancellations and late delivery terminations of the given items with their moments, for the panel's legal interest warning (02 7.2.3): a cancellation undone by the
-    /// correction of its closing transition is left out, like its closed units (<see cref="ClosedQuantitiesAsync"/>). A plain read.
+    /// The cancellations, removals (marked, T386; D-848) and late delivery terminations of the given items with their moments, for the panel's legal interest warning (02 7.2.3)
+    /// and the export's "closed before the shipment" (09 10.10 item 5): a cancellation undone by the correction of its closing transition is left out, like its closed units
+    /// (<see cref="ClosedQuantitiesAsync"/>). A plain read.
     /// </summary>
     Task<IReadOnlyList<ClosingRecordMoment>> ClosingRecordMomentsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
 
@@ -311,6 +312,32 @@ public interface IAfterSalesModule
     /// transfer path opened after a failed card refund, or an itemless request). Such a refund is the customer's to move, not the firm's. A plain read.
     /// </summary>
     Task<IReadOnlySet<Guid>> FindRefundsAwaitingIbanAsync(IReadOnlyCollection<Guid> refundIds, CancellationToken ct);
+
+    /// <summary>
+    /// The firm's removal record (06 4.23; 02 10.4.3; T386): the unit rule of the cancellation (at most the units open to an operation), then one row with the administrator
+    /// and no reason; the amounts set aside as on the cancellation (02 7.1.7). Whether the operation is open is the order module's decision (03 1.11.22); the writer joins the
+    /// caller's transaction under the order's row lock and saves nothing.
+    /// </summary>
+    Task<ItemRecordWriteResult> AddItemRemovalAsync(ItemRemovalEntry entry, CancellationToken ct);
+
+    /// <summary>The receipts and rejections of returned goods on the given items, with their arrival dates (02 10.4.5; K-1474, K-712). A plain read.</summary>
+    Task<IReadOnlyList<ArrivalRecordDate>> ArrivalRecordDatesAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>The withdrawal declarations of the given items with their days (02 7.4.1; K-608). A plain read.</summary>
+    Task<IReadOnlyList<WithdrawalDeclarationDay>> WithdrawalDeclarationDaysAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
+    /// The firm's answer, on the corrected delivery date, to whether the delivery came before the declaration of the given withdrawals (02 10.4.5, 7.4.1; K-608): written
+    /// on each declaration whose day is the corrected date. The declaration itself stays (02 7.6.7). Joins the caller's transaction under the order's row lock and saves nothing.
+    /// </summary>
+    Task SetDeliveryOrderAsync(IReadOnlyCollection<Guid> withdrawalIds, bool deliveredBeforeDeclaration, CancellationToken ct);
+
+    /// <summary>
+    /// The correction of a receipt's or a rejection's arrival date in place (02 10.4.5; K-712): the record must be one of the item's, and the date not before the item's
+    /// delivery date (<see cref="ItemRecordRefusal.ArrivalDateOutOfRange"/>, the receipt's rule); a future date is the caller's refusal. Returns the old date on success; the
+    /// refund's fourteen days run from the new date because they are read from it. Joins the caller's transaction under the order's row lock and saves nothing.
+    /// </summary>
+    Task<(ItemRecordRefusal? Refusal, DateOnly? OldDate)> CorrectArrivalDateAsync(ItemRecordSubject subject, Guid recordId, DateOnly arrivalDate, CancellationToken ct);
 }
 
 /// <summary>One cancellation record as the order module needs it: the record, the item and the units it closed.</summary>

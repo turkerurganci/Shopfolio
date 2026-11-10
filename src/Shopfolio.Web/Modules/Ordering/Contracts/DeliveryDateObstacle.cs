@@ -12,4 +12,7 @@ public enum DeliveryDateObstacle
 
     /// <summary>The date is before the day the order was shipped: the goods can not arrive before they left.</summary>
     BeforeShipment,
+
+    /// <summary>The corrected date is after a recorded arrival date of the order's returned goods: the goods can not come back before they were delivered (02 10.4.5; K-1474).</summary>
+    AfterReturnArrival,
 }

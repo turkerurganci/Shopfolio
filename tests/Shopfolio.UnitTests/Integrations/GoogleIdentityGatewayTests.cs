@@ -9,6 +9,8 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Integrations;
 
+using ValidationRules = Microsoft.IdentityModel.Tokens.TokenValidationParameters;
+
 namespace Shopfolio.UnitTests.Integrations;
 
 /// <summary>
@@ -444,7 +446,7 @@ public sealed class GoogleIdentityGatewayTests
         using GoogleRig rig = new(GoogleTestSetup.Script("unused"));
         GoogleIdentityGateway gateway = Assert.IsType<GoogleIdentityGateway>(rig.Gateway);
 
-        var parameters = gateway.ValidationParameters(GoogleTestSetup.ClientId);
+        ValidationRules parameters = gateway.ValidationParameters(GoogleTestSetup.ClientId);
 
         Assert.Equal(["RS256"], parameters.ValidAlgorithms);
         Assert.True(parameters.RequireSignedTokens);

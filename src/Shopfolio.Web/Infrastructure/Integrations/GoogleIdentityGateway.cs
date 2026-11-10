@@ -6,6 +6,9 @@ using Microsoft.IdentityModel.Tokens;
 
 using Shopfolio.Infrastructure.InstallationSettings;
 
+using ValidationOutcome = Microsoft.IdentityModel.Tokens.TokenValidationResult;
+using VerifiedJwt = Microsoft.IdentityModel.JsonWebTokens.JsonWebToken;
+
 namespace Shopfolio.Infrastructure.Integrations;
 
 /// <summary>
@@ -70,7 +73,7 @@ internal sealed class GoogleIdentityGateway : IGoogleIdentityGateway
             return validationEnded.Result;
         }
 
-        var verified = ((Step<JsonWebToken>.Done)validated).Value;
+        VerifiedJwt verified = ((Step<JsonWebToken>.Done)validated).Value;
         return Reported(GoogleIdentityMapping.ReadIdentity(Base64UrlEncoder.DecodeBytes(verified.EncodedPayload)));
     }
 
@@ -154,7 +157,7 @@ internal sealed class GoogleIdentityGateway : IGoogleIdentityGateway
     private async Task<Step<JsonWebToken>> ValidateAsync(string identityJwt, string clientId, CancellationToken token)
     {
         // The handler's key refresh (an unknown kid) reaches the network with no token of ours: the wait is bounded here, so the user's wait is.
-        var result = await _handler.ValidateTokenAsync(identityJwt, ValidationParameters(clientId)).WaitAsync(token);
+        ValidationOutcome result = await _handler.ValidateTokenAsync(identityJwt, ValidationParameters(clientId)).WaitAsync(token);
         if (result.IsValid && result.SecurityToken is JsonWebToken verified)
         {
             return new Step<JsonWebToken>.Done(verified);

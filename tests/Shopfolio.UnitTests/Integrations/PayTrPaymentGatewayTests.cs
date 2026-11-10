@@ -453,13 +453,12 @@ public sealed partial class PayTrPaymentGatewayTests
     }
 
     [Theory]
-    [InlineData(200, "{\"status\":\"failed\",\"reason\":\"Zorunlu alan değeri geçersiz: merchant_id\"}", PayTrPaymentGateway.FailedReason)]
     [InlineData(200, "{\"status\":\"success\"}", PayTrPaymentGateway.UnrecognizedBodyReason)]
     [InlineData(200, "{\"status\":\"success\",\"token\":\"\"}", PayTrPaymentGateway.UnrecognizedBodyReason)]
     [InlineData(200, "not json", PayTrPaymentGateway.UnrecognizedBodyReason)]
     [InlineData(200, "[]", PayTrPaymentGateway.UnrecognizedBodyReason)]
     [InlineData(500, "{\"status\":\"success\",\"token\":\"x\"}", "http:500")]
-    public async Task Answer_WithoutAToken_IsAConnectionError_WritingOnlyTheReasonCode_KK8(int status, string body, string reason)
+    public async Task Answer_WithoutAToken_IsAConnectionError_WritingTheReasonCode_KK8(int status, string body, string reason)
     {
         using RunnerHarness harness = new();
         (PayTrPaymentGateway gateway, CapturingHandler handler) = Gateway(harness, KeysContent(), answer: body);

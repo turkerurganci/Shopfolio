@@ -83,10 +83,11 @@ public sealed class PaymentStartTests
     }
 
     [Fact]
-    public async Task Start_WithAFailedAnswer_WritesOnlyTheReasonCode_NotTheProvidersReasonText_KK8()
+    public async Task Start_WithAFailedAnswer_WritesTheProvidersReason_ButNoValueOfTheRequest_KK8_T404_KK1()
     {
         string reasonText = "gerekce" + Guid.NewGuid().ToString("N");
-        AnsweringHandler handler = new("{\"status\":\"failed\",\"reason\":\"" + reasonText + "\"}");
+        AnsweringHandler handler = new("{\"status\":\"failed\",\"reason\":\"" + reasonText + " email musteri@example.com siparis 20267K4M9P\"}");
+        string written = PayTrPaymentGateway.FailedReason + ":" + reasonText + " email " + PayTrPaymentGateway.FieldValueMask + " siparis " + PayTrPaymentGateway.FieldValueMask;
         CollectingLoggerProvider logs = new();
         await using ShopfolioWebApplicationFactory factory = new(
             _database.Dsn, new Dictionary<string, string> { [PaymentOptions.ProviderKeysKey] = Keys() }, logs);
@@ -94,12 +95,13 @@ public sealed class PaymentStartTests
 
         PaymentStartResult result = await host.Gateway.StartAsync(Request(), Ct);
 
-        Assert.Equal(new PaymentStartResult.ConnectionFailed(PayTrPaymentGateway.FailedReason), result);
+        // 08 2.1.8 (T404 criterion 1; D-1035): the provider's reason is written, the values the request carried are not - in the host's lines and in its log files.
+        Assert.Equal(new PaymentStartResult.ConnectionFailed(written), result);
         Assert.Single(handler.Sent);
         Assert.Contains(logs.Lines, l => l.Contains(nameof(IntegrationOperation.PaymentStart), StringComparison.Ordinal)
-            && l.Contains(" " + PayTrPaymentGateway.FailedReason, StringComparison.Ordinal));
-        Assert.DoesNotContain(logs.Lines, l => l.Contains(reasonText, StringComparison.Ordinal));
-        Assert.DoesNotContain(LogFileTexts(factory.LogDirectory), text => text.Contains(reasonText, StringComparison.Ordinal));
+            && l.Contains(written, StringComparison.Ordinal));
+        Assert.DoesNotContain(logs.Lines, l => l.Contains("musteri@example.com", StringComparison.Ordinal) || l.Contains("20267K4M9P", StringComparison.Ordinal));
+        Assert.DoesNotContain(LogFileTexts(factory.LogDirectory), text => text.Contains("musteri@example.com", StringComparison.Ordinal) || text.Contains("20267K4M9P", StringComparison.Ordinal));
         Assert.Equal(0, await RowsContainingAsync(reasonText));
     }
 

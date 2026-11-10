@@ -8,7 +8,8 @@ namespace Shopfolio.Infrastructure.Status;
 /// The in-memory record of the payment start's failure series (05 9.4.18, 9.4.10; 07 UC-82): consecutive token requests that came back as a
 /// connection failure, and the moment of the first. The memory is the process's: a restart empties it (05 11.2.9). This task builds the record;
 /// the task that makes the token request (T404, F4) calls <see cref="RecordFailure"/> for a connection-failure result and <see cref="RecordSuccess"/>
-/// for the first successful token - a result of any other class (a refusal, a bad request) is neither and is not passed here.
+/// for the first successful token (<c>Modules.Payment.PaymentStarts</c>): the connection-failure class holds the table's unreachable provider, its 15 second limit and
+/// server errors, its <c>failed</c> answer and its unlisted answer (08 2.1.8); the second token refusal is neither and is not passed here.
 /// </summary>
 internal sealed class PaymentStartFailureSeries
 {

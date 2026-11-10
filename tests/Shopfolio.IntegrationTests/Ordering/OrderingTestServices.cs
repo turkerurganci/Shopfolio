@@ -35,8 +35,11 @@ internal static class OrderingTestServices
     /// </summary>
     public static ServiceProvider Build(string dsn, TimeProvider time, bool cardLineOpen = true) => Build(dsn, time, cardLineOpen, logs: null);
 
-    /// <summary>The same services with <paramref name="logs"/> collecting the application's information lines (T364: the refusal line of the system's transition).</summary>
-    public static ServiceProvider Build(string dsn, TimeProvider time, bool cardLineOpen, ILoggerProvider? logs)
+    /// <summary>
+    /// The same services with <paramref name="logs"/> collecting the application's information lines (T364: the refusal line of the system's transition); <paramref name="extra"/>
+    /// adds services last (T404: the payment gateway and the singletons of the process's memory a test shares across requests).
+    /// </summary>
+    public static ServiceProvider Build(string dsn, TimeProvider time, bool cardLineOpen, ILoggerProvider? logs, Action<IServiceCollection>? extra = null)
     {
         ServiceCollection services = new();
         if (logs is not null)
@@ -80,6 +83,7 @@ internal static class OrderingTestServices
         // The payment method lines (T352): the card line as the installation's keys say; the transfer line is the Settings module's own binding (T353: BankTransferCondition, D-787).
         services.AddSingleton<IReadOnlyList<ConditionalLine>>(
             [new ConditionalLine(ConditionalLine.CardPayment, cardLineOpen ? [] : [PaymentOptions.ProviderKeysKey])]);
+        extra?.Invoke(services);
         return services.BuildServiceProvider();
     }
 

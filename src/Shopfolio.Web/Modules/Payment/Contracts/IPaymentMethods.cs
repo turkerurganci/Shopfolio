@@ -9,5 +9,12 @@ namespace Shopfolio.Modules.Payment.Contracts;
 public interface IPaymentMethods
 {
     /// <summary>The open methods in the fixed order card, bank transfer; empty when neither is open (the sales gate is then closed - 02 3.1.5, 6.9.4).</summary>
+    /// <remarks>The card whose provider could not be reached in the last two minutes is not among them (08 2.1.8): the confirmation refuses it without a token request.</remarks>
     Task<IReadOnlyList<PaymentMethod>> ListOpenAsync(CancellationToken ct);
+
+    /// <summary>
+    /// True when the card's line is open but a token request found the provider unreachable within the last two minutes (08 2.1.8; 03 10.1.1.1): the payment step shows
+    /// the card as "şu an kullanılamıyor" and does not let it be chosen. The sales gate does not read it.
+    /// </summary>
+    Task<bool> IsCardUnavailableNowAsync(CancellationToken ct);
 }

@@ -29,7 +29,7 @@
 | 2 | İstemci kimliği ve sırrı ayar; biri eksikse çağrı yok | ✓ | `WithAClientSettingMissing_NoCallIsMade_AndTheResultIsAFailure` (Theory); Integration `GoogleRegistrationTests.GatewayWithNoGoogleApplication_MakesNoCall_AndAnswersWithAFailure` |
 | 3 | Adresler sabit; `openid email profile`, `state`, `nonce`, S256; yeniden doğrulamada `claims` ile `auth_time`; `prompt` yok; `max_age` yalnız DV-26 doğruysa | ✓ | `GoogleAuthorizationRequestTests` (`TheAddress_…`, `EveryFlow_CarriesTheEightParameters_…`, `Reauthentication_AsksAuthTimeUnderIdToken_…`, `NoFlow_CarriesAForbiddenParameter`, `MaxAge_IsNotCarriedByTheDefaultRequest_…`, `CodeChallenge_IsTheS256OfTheVerifier_RfcVector`); `TheAddressesAreFixed_AndTheDocumentReaderRequiresHttps` |
 | 4 | Yalnız `RS256`, imza, `iss`, `aud`, `exp`; `email` yoksa tutmaz; `nonce`, `auth_time` sonuçta | ✓ | `ValidationParameters_AcceptOnlyRs256_…`; `TokenWithADifferentAlgorithm_…`, `UnsignedToken_…`, `TokenSignedByAnotherKey…`, `TokenWithAnotherIssuer_…`, `TokenForAnotherAudience_…`, `ExpiredToken_…`, `TokenWithoutAnExpiry_…`, `TokenWithoutAnEmail_OrAnEmptyOne_…`; `ValidToken_GivesTheMappedFields_AndTheNonce_…`; `GoogleIdentityMappingTests.AuthTime_…` |
-| 5 | Keşif belgesi ve anahtar kümesi önbellekli; bilinmeyen `kid` yenileme getirir, yine yoksa imza tutmaz | ✓ | `TheKeySet_IsCached_…`, `TokenWithAnUnknownKeyId_AsksTheManagersRefresh_OnceAndTheNextCallSeesTheNewSet`, `TokenWithAKeyIdThatIsStillUnknownAfterTheRefresh_Fails_AndFurtherCallsDoNotFetchAgain` (iki test yarışsız yeniden kuruldu: `WarmedConfigurationAsync`) |
+| 5 | Keşif belgesi ve anahtar kümesi önbellekli; bilinmeyen `kid` yenileme getirir, yine yoksa imza tutmaz | ✓ | `TheKeySet_IsCached_…`; `TokenWithAnUnknownKeyId_FetchesTheKeySetAgainInTheSameCall_AndHoldsOnTheFirstCall` (yeni kümede anahtar → ilk çağrı `Succeeded`, anahtar okuması 2, kod değişimi 1); `TokenWithAKeyIdThatIsStillUnknownAfterTheRefresh_Fails_AndFurtherCallsDoNotFetchAgain` (`Failed`, 3 çağrıda anahtar okuması 2); `TheHostConfiguration_TurnsTheLibrarysSameCallRefreshSwitchOn_…`, `TheBuildProps_DeclareTheSwitchAsARuntimeHostOption` (düzeltme 1) |
 | 6 | Sonuç yalnız e-posta, doğrulama bayrağı, ad, `hd`, `auth_time`, `nonce`; `sub` alınmaz, kayda yazılmaz | ✓ | `GoogleIdentityMappingTests.Identity_CarriesOnlyTheSixFields_AndNoSubject` (tür özelliklerinde `Sub` yok); `AFailureLine_CarriesTheJobTheKindAndTheReason_AndNoSecretCodeVerifierOrToken` |
 | 7 | Vazgeçme/doğrulama hatası `Failed`; bağlanamama, 15 sn aşımı, Google hata yanıtı `Unavailable`; yeniden deneme yok | ✓ | `ExchangeAnswerOfAnError_IsUnavailable_AfterOneCall_AndNoRetry`, `ExchangeThatCannotConnect_…`, `ExchangeThatHangs_EndsAtTheUserWaitingLimit_AsUnavailable_AndGoesOnce`, `KeySetThatHangs_…`, `DiscoveryDocumentThatCannotBeGot_IsUnavailable_AndTheSpentCodeIsNotSentAgain`, `ExchangeAnswerOutsideTheTable_IsAFailure_NotAnOutage`, `GoogleIdentityMappingTests.ExchangeAnswer_*`; vazgeçme dönüşünde kod yoktur, çağrı yapılmaz (sayfa/çekirdek işi, T515/T343) |
 | 8 | `GOOGLE.md` aynı PR'da; DV-25/26/27/28/31/37/43 gerçek uygulamayla gözlenir | ~ | Runbook ✓ (`GoogleVerificationRowsTests.TheRunbook_HasTheTemplatesNineSections`); yedi satır çevrimdışı gözlemle tarihli (`TheSevenRows_CarryAVerificationDate_…`); gerçek uygulama (yayında+doğrulanmış) yok: OWNER_INPUT, D-1029. Task'ın yönergesi gereği durdurma sebebi değildir (T407 kriter 9 ile aynı) |
@@ -42,7 +42,7 @@
 | KK2 ayarsız çağrı yok | ✓ | kriter 2 testleri (Unit + Integration) |
 | KK3 adresler, parametreler, `claims`, `max_age` | ✓ | kriter 3 testleri |
 | KK4 yedi belirteç durumu | ✓ | kriter 4: algoritma, imza yok, imza yanlış, `iss`, `aud`, `exp`, `email` (+ `exp` yok, `nonce` yok) |
-| KK5 önbellek, `kid` yenilemesi, elle yeniden deneme yok | ✓ | kriter 5 testleri (anahtar isteği sayısı 2, kod değişimi sayısı çağrı başına 1) |
+| KK5 önbellek, `kid` yenilemesi, elle yeniden deneme yok | ✓ | kriter 5 testleri (aynı çağrıda yenileme; kod değişimi çağrı başına 1; elle yeniden deneme yok) |
 | KK6 `sub` yok, `nonce` var | ✓ | kriter 6 testleri |
 | KK7 iki sonuç sınıfı, çağrı sayısı bir | ✓ | kriter 7 testleri; `WarmCache_MakesOneCall_TheExchange` |
 | KK8 DV satırlarında tarih | ✓ | `GoogleVerificationRowsTests` |
@@ -68,7 +68,7 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-10) |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-10); düzeltme 1 tamam, yeniden doğrulama bekliyor |
 | Bulgu sayısı | 1 (ORTA, S1) |
 | Düzeltme gerekli mi | Evet — kriter 5 / KK5 |
 | Bloke-etmeyen not (K) sayısı | 1 |
@@ -98,7 +98,7 @@
 |---|---|---|---|
 | 1 | Keşif belgesi `issuer`, uç adresler, `jwks_uri`, `code_challenge_methods_supported`, imza algoritması | `curl https://accounts.google.com/.well-known/openid-configuration`, 2026-11-10: issuer `https://accounts.google.com`; authorization/token endpoint sabitlerle aynı; `jwks_uri` `https://www.googleapis.com/oauth2/v3/certs`; `plain`,`S256`; `RS256` | ✓ (DV-27, DV-31 çevrimdışı payı) |
 | 2 | `claims_supported` `auth_time` içermez (alan koşullu verilir) | aynı belge | ✓ (DV-25 çevrimdışı payı) |
-| 3 | Çatının bilinmeyen `kid` davranışı (8.23.0) | sahte uçla gözlem: ilk çağrı başarısız, yenileme arkada, sonraki çağrı yeni küme | ✓ (DV-31), D-1031 |
+| 3 | Çatının bilinmeyen `kid` davranışı (8.23.0) | sahte uçla gözlem: `UpdateConfigAsBlocking` açıkken ilk çağrı tutar (anahtar okuması 2, kod değişimi 1); çatı anahtarı ilk dokunuşta bir kez okur (kayıtta `SetSwitch` geç kalıyordu — gözlendi) | ✓ (DV-31), D-1031 ✅ |
 | 4 | Çatı keşif/anahtar okumasında iptal belirtecini geçirmez | gözlem; kendi 15 sn sınırı testli | ✓, D-1033 |
 | 5 | Yayında+doğrulanmış Google uygulaması: `auth_time`, `max_age`, 303 zinciri, test kullanıcısız giriş, `hd` | yok | ? Doğrulanamadı — OWNER_INPUT, D-1029 |
 
@@ -108,7 +108,7 @@
 |---|---|---|---|
 | 1 | Yedi DV satırının gerçek uygulama gözlemi | D-1029 | Google uygulaması yok (OWNER_INPUT) |
 | 2 | `iss` biçimi `08` ↔ `09` | D-1030 | belge kuralı değişimi karar kaydı ister |
-| 3 | Bilinmeyen `kid`'de ilk çağrı başarısız | D-1031 | çatı davranışı; elle yeniden deneme yasak |
+| 3 | Bilinmeyen `kid`'de ilk çağrı başarısız | D-1031 | ✅ düzeltme 1'de çözüldü (çatı anahtarı) |
 | 4 | `TimeProvider` yok | D-1032 | kütüphane sınırı |
 | 5 | İptal belirteci yok sayılıyor | D-1033 | kütüphane sınırı |
 | 6 | Sayfalar (giriş, kayıt, yeniden doğrulama) | D-109 → T515 | T409 yalnız bağlayıcı |
@@ -120,3 +120,17 @@
 - **⚠ kararları:** (a) `iss`: kod `08`'i izledi (`ValidIssuer` boş, yayıncı keşif belgesinden), `09` değişmedi, D-1030. (b) `TimeProvider` yok: `exp` sınaması gerçek saatle, süre sınırları göreli, D-1032. (c) `max_age`: `SendsMaxAge` kapalı (DV-26 gözlenmedi). (d) Kütüphane iptali yok sayıyor: `GoogleDocumentRetriever` 15 sn kendi sınırı, D-1033. (e) PKCE S256 özeti `GoogleAuthorizationRequest.cs`'te: `LinkKeySourceScan.GeneratorExceptions` listesine tek dosya, nedeniyle eklendi (bekçi/`pre-commit` kuralı değişmedi). (f) D-109 hedefi T343;T515'e alındı.
 - **Repo memory (bitiş kapısı 9):** güncellenmedi — kural gereği MEMORY "Güncel Durum", STATUS "Son güncelleme", backlog sayacı bu task'ta değişmez.
 - **Docker:** `t409-pg` (port 55380) kaldırıldı; `bin`/`obj` temizlendi.
+
+## Düzeltme 1 (2026-11-10)
+
+**Bulgu 1 (ORTA, S1, kriter 5 / KK5) giderildi.** Sahip yerine karar (yardımcı): belgeye uyuldu — çatının `Switch.Microsoft.IdentityModel.UpdateConfigAsBlocking` anahtarı açıldı. İlk deneme (kayıtta `AppContext.SetSwitch`) yetmedi: çatı anahtarı türlerine ilk dokunuşta bir kez okuyor, test düzeneği kayıttan önce belirteç ürettiği için anahtar geç kalıyordu (gözlendi). Bu yüzden anahtar `Directory.Build.props` içinde `RuntimeHostConfigurationOption` olarak süreç başından açık (web sunucusu ve bütün test sunucuları).
+
+- Kod: `Directory.Build.props` (yalnız bu); testler: `TokenWithAnUnknownKeyId_FetchesTheKeySetAgainInTheSameCall_AndHoldsOnTheFirstCall` (yeni), `TokenWithAKeyIdThatIsStillUnknownAfterTheRefresh_…` (bekleme yardımcısı kalktı), `TheHostConfiguration_TurnsTheLibrarysSameCallRefreshSwitchOn_FromTheStartOfTheProcess`, `TheBuildProps_DeclareTheSwitchAsARuntimeHostOption` (yeni).
+- Belgeler: `09 §11.3` m.2 notu (kural metni değil, çatı ayarının notu: "varsayılanlarına dayanılır" cümlesi bilinmeyen `kid` için daraltıldı; karar kaydı satırı eklenemedi — karar kayıtları repoda değil, ⚠ olarak sahibe), `08` DV-31 hücresi, `GOOGLE.md` sorun giderme satırı, D-1031 ✅.
+- Öz denetim: yukarıdaki kriter ve KK5 satırları yeniden denetlendi; öteki kriter ve KK'lerin kodu/testi değişmedi, testleri yeniden koşuldu (aşağı).
+
+| Tür (düzeltme 1) | Sonuç | Çıktı özeti |
+|---|---|---|
+| Restore, build `-warnaserror`, `dotnet format --verify-no-changes` | ✓ | 0 uyarı, 0 hata, format temiz |
+| Unit (Architecture, Consistency dahil) | ✓ | 6216/6216 (Google sınıfları 110) |
+| Integration TAM (PG18, `track_commit_timestamp=on`) | ✓ | Web ad alanı 599/599; geri kalan 2894/2894 |

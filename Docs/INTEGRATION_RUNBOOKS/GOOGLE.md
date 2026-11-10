@@ -83,7 +83,7 @@ Gerçek uygulamayla elle sınama (OWNER_INPUT, DV-25/26/27/28/31/37/43):
 | "Google ile giriş" düğmesi yok | `Google:ClientId` ya da `google_client_secret` boş; hat kapalı | Açılış kaydındaki eksik anahtar adına bak, değeri doldur, `app`'i yeniden başlat |
 | Google'da `redirect_uri_mismatch` | Konsoldaki dönüş adresi `https://{alan adı}/giris/google` ile birebir değil | Konsolda adresi (şema, alan adı, yol) düzelt |
 | Kayıtta `exchange:no-id-token` ya da `google-error:invalid_grant` | Kod kullanılmış/süresi dolmuş ya da sır yanlış | Akışı yeniden başlat; sırrı kontrol et |
-| Kayıtta `token:signature` / `token:key-not-found` | Anahtar kümesi eski ya da yanıt başka bir yayıncıdan; bilinmeyen `kid`'de yenileme arkada çalışır | Sonraki giriş yeni kümeyi görür; sürerse keşif belgesi ve `jwks_uri` adresine ulaşımı denetle |
+| Kayıtta `token:signature` / `token:key-not-found` | Anahtar kümesi eski ya da yanıt başka bir yayıncıdan; bilinmeyen `kid`'de anahtar kümesi aynı çağrıda yeniden çekilir, yeni kümede de yoksa imza tutmaz | Keşif belgesi ve `jwks_uri` adresine ulaşımı denetle; ulaşım varsa belirteç Google'ın yayımladığı bir anahtarla imzalı değildir |
 | Kayıtta `token:issuer` | Kimlik belirtecinin `iss`'i keşif belgesindeki `issuer` biçiminde değil | `iss` biçimini yaz ve DV-31 / backlog kalemine bildir |
 | Kayıtta `token:audience` | İstemci kimliği başka uygulamaya ait | `Google:ClientId`'yi konsoldakiyle eşitle |
 | Yeniden doğrulama hep `SocialReauthenticationFailed` | `auth_time` gelmiyor: uygulama yayında/doğrulanmış değil ya da "Session age claims" kapalı | §1 adım 5–6 |

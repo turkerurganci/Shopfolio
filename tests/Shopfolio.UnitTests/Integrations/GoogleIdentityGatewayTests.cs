@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Integrations;
+using Shopfolio.UnitTests.Support;
 
 using ValidationRules = Microsoft.IdentityModel.Tokens.TokenValidationParameters;
 
@@ -147,7 +148,7 @@ public sealed class GoogleIdentityGatewayTests
     }
 
     [Fact]
-    public async Task TokenWithAnUnknownKeyId_AsksTheManagersRefresh_OnceAndTheNextCallSeesTheNewSet()
+    public async Task TokenWithAnUnknownKeyId_FetchesTheKeySetAgainInTheSameCall_AndHoldsOnTheFirstCall()
     {
         using GoogleTestKey original = new("k1");
         using GoogleTestKey rotated = new("k2");
@@ -161,17 +162,14 @@ public sealed class GoogleIdentityGatewayTests
             _ => new GoogleAnswer.Reply(HttpStatusCode.NotFound, "{}"),
         });
 
-        OpenIdConnectConfiguration warmed = await WarmedConfigurationAsync(rig);
+        await WarmedConfigurationAsync(rig);
         GoogleIdentityResult first = await rig.VerifyAsync(Ct);
-        await NextConfigurationAfterAsync(rig, warmed);
-        GoogleIdentityResult second = await rig.VerifyAsync(Ct);
 
-        // Observed with the library of 09 3 (8.23.0; DV-31): a key id missing from the cached set is the manager's refresh request, and the refresh runs behind the call - the call
-        // that found the key missing fails, the next one sees the new set. No retry is written here: the exchange (the spent code) goes once per call.
-        Assert.StartsWith("token:", Assert.IsType<GoogleIdentityResult.Failed>(first).ReasonCode, StringComparison.Ordinal);
-        Assert.IsType<GoogleIdentityResult.Succeeded>(second);
+        // 08 2.3, DV-31: a key id missing from the cached set is the manager's refresh, taken inside the call (the library's own switch, on from the host configuration); the key is in the
+        // new set, so the first call holds. No retry is written here: the exchange (the spent code) goes once.
+        Assert.IsType<GoogleIdentityResult.Succeeded>(first);
         Assert.Equal(2, rig.Wire.Requests.Count(r => r.IsKeys));
-        Assert.Equal(2, rig.Wire.Requests.Count(r => r.IsExchange));
+        Assert.Equal(1, rig.Wire.Requests.Count(r => r.IsExchange));
     }
 
     /// <summary>Loads the discovery document and the key set into the manager's cache before the call, so the configuration the call starts from is known before any refresh can be asked for.</summary>
@@ -181,19 +179,6 @@ public sealed class GoogleIdentityGatewayTests
         return await manager.GetConfigurationAsync(Ct);
     }
 
-    /// <summary>Waits, with no clock, until the manager holds a configuration other than the one it held: the refresh that a missing key id asked for has been applied (a fuse ends the wait on a failure).</summary>
-    private static async Task NextConfigurationAfterAsync(GoogleRig rig, OpenIdConnectConfiguration before)
-    {
-        ConfigurationManager<OpenIdConnectConfiguration> manager = rig.Services.GetRequiredService<ConfigurationManager<OpenIdConnectConfiguration>>();
-        using var fuse = CancellationTokenSource.CreateLinkedTokenSource(Ct);
-        fuse.CancelAfter(TimeSpan.FromSeconds(10));
-        while (ReferenceEquals(await manager.GetConfigurationAsync(fuse.Token), before))
-        {
-            fuse.Token.ThrowIfCancellationRequested();
-            await Task.Yield();
-        }
-    }
-
     [Fact]
     public async Task TokenWithAKeyIdThatIsStillUnknownAfterTheRefresh_Fails_AndFurtherCallsDoNotFetchAgain()
     {
@@ -201,15 +186,29 @@ public sealed class GoogleIdentityGatewayTests
         using GoogleTestKey stranger = new("k9");
         using GoogleRig rig = new(GoogleTestSetup.Script(GoogleTestSetup.Token(stranger), published));
 
-        OpenIdConnectConfiguration warmed = await WarmedConfigurationAsync(rig);
+        await WarmedConfigurationAsync(rig);
         GoogleIdentityResult first = await rig.VerifyAsync(Ct);
-        await NextConfigurationAfterAsync(rig, warmed);
         GoogleIdentityResult second = await rig.VerifyAsync(Ct);
         GoogleIdentityResult third = await rig.VerifyAsync(Ct);
 
         Assert.All([first, second, third], r => Assert.StartsWith("token:", Assert.IsType<GoogleIdentityResult.Failed>(r).ReasonCode, StringComparison.Ordinal));
         Assert.Equal(2, rig.Wire.Requests.Count(r => r.IsKeys));
         Assert.Equal(3, rig.Wire.Requests.Count(r => r.IsExchange));
+    }
+
+    [Fact]
+    public void TheHostConfiguration_TurnsTheLibrarysSameCallRefreshSwitchOn_FromTheStartOfTheProcess()
+    {
+        // Directory.Build.props puts the switch into the runtime configuration of every host, the web host and the test hosts alike; the library reads it once, on first touch.
+        Assert.True(AppContext.TryGetSwitch("Switch.Microsoft.IdentityModel.UpdateConfigAsBlocking", out bool on) && on);
+    }
+
+    [Fact]
+    public void TheBuildProps_DeclareTheSwitchAsARuntimeHostOption()
+    {
+        string props = File.ReadAllText(Path.Combine(RepositoryRoot.Find(), "Directory.Build.props"));
+
+        Assert.Contains("<RuntimeHostConfigurationOption Include=\"Switch.Microsoft.IdentityModel.UpdateConfigAsBlocking\" Value=\"true\" />", props, StringComparison.Ordinal);
     }
 
     [Theory]

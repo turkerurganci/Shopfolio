@@ -6,4 +6,13 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+  <ItemGroup>
+    <!--
+      Google's key set (08 2.3, DV-31; 09 11.3 item 2): the identity library (8.23.0) reads this switch once, when its types are first touched, so it has to be on from the start of
+      the process - a runtime host option reaches runtimeconfig.json of the web host and of every test host (a call in the registration would come too late for a process that
+      touched the library before). On: a key id missing from the cached key set makes the manager fetch the set again inside the same call, and a token whose key is in the new set
+      holds on the first call; off: the refresh runs behind the call and that call fails, spending the single-use authorization code.
+    -->
+    <RuntimeHostConfigurationOption Include="Switch.Microsoft.IdentityModel.UpdateConfigAsBlocking" Value="true" />
+  </ItemGroup>
 </Project>

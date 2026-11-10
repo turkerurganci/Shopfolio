@@ -137,4 +137,7 @@ public sealed record OrderTransitionResult(
 
     /// <summary>The late delivery termination records the operation wrote, one per terminated item (06 4.24); empty for every other operation and on a refusal.</summary>
     public IReadOnlyList<Guid> ItemRecordIds { get; init; } = [];
+
+    /// <summary>On the firm's removal (T386; 02 10.4.3): true when the item has no unit left - the item was removed, not its quantity reduced; false for every other operation.</summary>
+    public bool ItemFullyRemoved { get; init; }
 }

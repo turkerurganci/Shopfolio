@@ -107,6 +107,27 @@ public sealed class VersionedSideBulkWriteScanTests
     }
 
     [Fact]
+    public void TheInternalNotePlace_HoldsOneUpdateAndOneDelete_BothOnlyOnTheNoteAndOnTheShownText_AndTheNotesWriterHoldsNone()
+    {
+        string root = RepositoryRoot.Find();
+        string place = File.ReadAllText(Path.Combine(root, VersionedSideBulkWriteScan.InternalNotePlace));
+        System.Text.RegularExpressions.RegexOptions options = System.Text.RegularExpressions.RegexOptions.CultureInvariant;
+        TimeSpan timeout = TimeSpan.FromSeconds(5);
+
+        // 09 10.9 item 3: the update and the delete are conditional on the shown text; the order's row is never touched (the note raises no version).
+        Assert.Equal(1, System.Text.RegularExpressions.Regex.Count(place, @"\.ExecuteUpdateAsync\(", options, timeout));
+        Assert.Equal(1, System.Text.RegularExpressions.Regex.Count(place, @"\.ExecuteDeleteAsync\(", options, timeout));
+        Assert.Equal(2, System.Text.RegularExpressions.Regex.Count(place, @"db\.InternalNotes\s*\.Where\(n => n\.OrderId == orderId && n\.Text == shownText\)", options, timeout));
+        Assert.Equal(0, System.Text.RegularExpressions.Regex.Count(place, @"\bOrders\b|ExecuteSql|SqlQuery|SaveChanges|\bUPDATE\b|\bDELETE\b|\bINSERT\b", options, timeout));
+        Assert.Empty(VersionedSideBulkWriteScan.Scan(OtherModule, place));
+
+        // The note's unit is no place: a bulk write there would be a finding.
+        const string writer = "src/Shopfolio.Web/Modules/Ordering/OrderCorrections.Interventions.cs";
+        Assert.DoesNotContain(writer, VersionedSideBulkWriteScan.AllowedPlaces);
+        Assert.Empty(VersionedSideBulkWriteScan.Scan(writer, File.ReadAllText(Path.Combine(root, writer))));
+    }
+
+    [Fact]
     public void TheGalleryMainMarkPlace_HoldsExactlyOneBulkStatement_OnlyOnTheProductImages_AndTheRestOfTheGalleryHoldsNone()
     {
         string root = RepositoryRoot.Find();

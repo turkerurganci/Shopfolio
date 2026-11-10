@@ -159,8 +159,13 @@ public sealed partial class IrreversibleConfirmationTests
         Assert.DoesNotContain(methods, m => UndoWord().IsMatch(m.Name));
 
         // The correction is one method of the transition unit; it takes a transition record, so a withdrawal - not a transition - is never corrected (03 1.6.2; K-688).
-        // The contact-data corrections of T375 (the address, the guest e-mail) are the other "Correct" methods and touch no transition (IOrderCorrections).
-        MethodInfo correction = Assert.Single(methods, m => m.Name.StartsWith("Correct", StringComparison.Ordinal) && m.DeclaringType != typeof(IOrderCorrections));
+        // The contact-data corrections of T375 (the address, the guest e-mail) and the interventions of T386 (the carrier, the delivery and arrival dates) are the other
+        // "Correct" methods and touch no transition (IOrderCorrections); the AfterSales writer of T386's arrival date correction moves a date in place (02 10.4.5).
+        MethodInfo correction = Assert.Single(
+            methods,
+            m => m.Name.StartsWith("Correct", StringComparison.Ordinal)
+                && m.DeclaringType != typeof(IOrderCorrections)
+                && !(m.DeclaringType == typeof(Shopfolio.Modules.AfterSales.Contracts.IAfterSalesModule) && m.Name == nameof(Shopfolio.Modules.AfterSales.Contracts.IAfterSalesModule.CorrectArrivalDateAsync)));
         Assert.Equal((typeof(IOrderTransitions), nameof(IOrderTransitions.CorrectTransitionAsync)), (correction.DeclaringType, correction.Name));
         Assert.DoesNotContain(methods, m => m.Name.Contains("Withdrawal", StringComparison.Ordinal) && m.Name.Contains("Correct", StringComparison.Ordinal));
         Assert.Contains(typeof(CorrectTransitionRequest).GetProperties(), p => p.Name == nameof(CorrectTransitionRequest.TransitionRecordId));

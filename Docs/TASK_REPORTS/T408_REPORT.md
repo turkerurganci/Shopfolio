@@ -59,6 +59,7 @@
 | Sık FAIL 5: belge kuralını değiştiren 09 metni karar kaydısız | ✓ | 09 §3.5 satırına yalnız 08 §2.2.3'teki 24 saat eklendi (kural değişmedi) |
 | Sık FAIL: hedefi bu task olan backlog kaydı | ✓ | D-1017 kapandı, D-97 payı kapandı, D-1022 T410'a ileri atıldı |
 | Sık FAIL: yeni süre sabiti 09 §3.5'te yok | ✓ | `BounceQueryWindow` 09 §3.5 satırında ve testle bağlı |
+| Sık FAIL: koşullu ağ geçidine bağlı işleyici koşulsuz kayıtlı (düzeltme 1) | ✓ | işleyici `GetService` ile ister; ağ geçidisiz host testi; Integration TAM |
 
 **09 §25 ve güvenlik.** Gateway çağrısı yalnız `QueryBouncesAsync`; `ListSuppressedDestinationsAsync` tek dosyada; silme/yazma çağrısı yok. Handler çağrıyı işlem dışında yapar, adres kayda yazılmaz (hata kaydı yalnız kod ve sınıf). `TimeProvider` kullanıldı, kural `JobTimings`'te. Geniş `catch` yok (yalnız özel AWS/iptal yakalamaları). Modül sınırı: kaynak ve handler Notifications içinde, iş tablosuna yalnız `IJobQueue` ile dokunur.
 
@@ -67,7 +68,8 @@
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
 | Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 6018/6018 |
-| Integration | ✓ (ilgili sınıflar) | `--filter-class "*BounceQueryTests"`; `--filter-namespace` Jobs, Outages, Commands, Concurrency | BounceQuery 8/8; Jobs 85/85; Outages+Commands+Concurrency 149/149 |
+| Integration | ✓ (TAM, düzeltme 1; parçalı: Jobs, Web, Model, CorporateContent, kalan ad alanları) | `dotnet test tests/Shopfolio.IntegrationTests --no-build --filter-namespace …` (pg18, `track_commit_timestamp=on`) | Jobs 85/85; Web 598/598; Model 1404/1404; CorporateContent 185/185; kalan ad alanları yeşil. Yük altında tek geçişte bir zaman aşımı/geçici dizin yarışı görüldü (Npgsql okuma zaman aşımı; `Export:TempDirectory` probe erişimi), ilgili ad alanları/sınıf tek başına yeniden koşulunca 0 hata |
+| Unit (düzeltme 1) | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 6118/6118 |
 | Biçim | ✓ | `dotnet format Shopfolio.slnx --no-restore --verify-no-changes` | temiz |
 | Derleme | ✓ | `dotnet build` (Unit, Integration) | 0 uyarı, 0 hata |
 
@@ -78,7 +80,14 @@
 | Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-10) |
 | Bulgu sayısı | 1 (S2 Kırılma, KRİTİK): `BounceQueryJobHandler` koşulsuz kaydedilir ve `IEmailGateway` ister; ağ geçidi kayıtlı olmayan uygulama (test sunucusunun varsayılanı) hizmet doğrulamasında açılmaz — CI Integration 620/3499 kırmızı (run 42818255272) |
 | Düzeltme gerekli mi | Evet — işleyici ağ geçidi yokken de kurulabilmeli (ör. `IServiceProvider` üstünden `GetService`, ya da kaydın ağ geçidine bağlanması) ve uygulamanın bütün Integration paketi yeşil olmalı |
-| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-1045) |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-1045; düzeltme 1'de kapandı) |
+
+### Düzeltme 1 (2026-11-10)
+
+- **Bulgu 1:** `BounceQueryJobHandler` yapıcısı `IEmailGateway` yerine `IServiceProvider` alır; ağ geçidini her turda `GetService` ile ister (`DispatchAttempts.FromServices` kalıbı). Ağ geçidi yoksa tur yalnız `RescheduleAfter(15 dk)` döner, hiçbir şey yazmaz; satır kaynağı zaten ağ geçidi yokken satır yazmaz. Kayıt `NotificationsModuleRegistration.AddBounceQuery()` içinde toplandı; `BounceQueryTests` onu kullanır (işleyiciyi elle kaydetmez).
+- **Yeni test:** `EmailCaptureRegistrationTests.Application_WithNoGateway_Opens_AndTheReturnedAddressQueryRunsWithoutOne` (`ShopfolioWebApplicationFactory` varsayılanıyla uygulama açılır, işleyici uygulamanın kaydından çözülür, tur yeniden zamanlar).
+- **K1 / D-1045:** `JobTimings.BounceQueryWindow` yorumu düzeltildi, D-1045 ✅ kapatıldı.
+- **Öz denetim:** kabul kriterleri 1–8 ve KK1–KK8 yeniden denetlendi (yukarıdaki tablolar geçerli; kanıt testleri yeniden koşuldu); Integration paketi bu turda TAM koşuldu (aşağıdaki Test Sonuçları).
 
 ## Altyapı Değişiklikleri
 

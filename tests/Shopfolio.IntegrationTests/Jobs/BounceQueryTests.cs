@@ -47,8 +47,8 @@ public sealed class BounceQueryTests : JobQueueTestBase
                     services.AddSingleton<IEmailGateway>(gateway);
                 }
 
-                services.AddJobHandler<BounceQueryJobHandler>(JobType.BounceQuery);
-                services.AddDueRecordSource<BounceQueryRowSource>();
+                // The application's own registration of the query, not a copy of it (T408 correction 1).
+                services.AddBounceQuery();
             });
 
     // ---- KK1: every fifteen minutes, from 24 hours before the round ----

@@ -23,14 +23,16 @@ namespace Shopfolio.Modules.Notifications;
 /// </summary>
 internal sealed class BounceQueryJobHandler : IJobHandler
 {
-    private readonly IEmailGateway _gateway;
+    private readonly IServiceProvider _services;
     private readonly AppDbContext _db;
     private readonly ITransactionRunner _runner;
     private readonly TimeProvider _time;
 
-    public BounceQueryJobHandler(IEmailGateway gateway, AppDbContext db, ITransactionRunner runner, TimeProvider time)
+    // The gateway is optional (it is T407's and a host may run without one, 09 4.3): it is asked of the container at each round, not taken by the constructor, so the
+    // application opens without a gateway; the row source keeps no row while none is registered, and a round that finds none only leaves the row to be taken again.
+    public BounceQueryJobHandler(IServiceProvider services, AppDbContext db, ITransactionRunner runner, TimeProvider time)
     {
-        _gateway = gateway;
+        _services = services;
         _db = db;
         _runner = runner;
         _time = time;
@@ -39,8 +41,13 @@ internal sealed class BounceQueryJobHandler : IJobHandler
     public async Task<JobOutcome> HandleAsync(JobWork job, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(job);
+        if (_services.GetService<IEmailGateway>() is not { } gateway)
+        {
+            return JobOutcome.RescheduleAfter(JobTimings.BounceQueryInterval);
+        }
+
         DateTimeOffset windowStart = _time.GetUtcNow() - JobTimings.BounceQueryWindow;
-        BounceQueryResult answer = await _gateway.QueryBouncesAsync(windowStart, ct);
+        BounceQueryResult answer = await gateway.QueryBouncesAsync(windowStart, ct);
         if (answer is BounceQueryResult.List list && list.Addresses.Count > 0)
         {
             HashSet<string> bounced = [.. list.Addresses.Select(TextNormalizer.NormalizeIdentity)];

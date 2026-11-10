@@ -28,7 +28,7 @@ internal static class JobTimings
 
     /// <summary>
     /// The window of the returned-address query: the service's list is read from 24 hours ago, and a "sent" row is marked only when its sending moment is inside the same window
-    /// (08 2.2.3 table, "Pencerenin sınırı"; K-1241). It is a product rule of the integration document, not a row of the 09 3.5 table.
+    /// (08 2.2.3 table, "Pencerenin sınırı"; K-1241). The 24 hours is a row of the 09 3.5 table (and of 08 2.2.3).
     /// </summary>
     public static readonly TimeSpan BounceQueryWindow = TimeSpan.FromHours(24);
 

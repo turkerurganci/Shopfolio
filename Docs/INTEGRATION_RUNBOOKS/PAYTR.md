@@ -1,11 +1,11 @@
 # PayTR — Entegrasyon Runbook
 
-**Son güncelleme:** 2026-11-10 | **İlgili task:** T401, T402 | **Spec:** [`../08_INTEGRATION_SPEC.md`](../08_INTEGRATION_SPEC.md) §2.1 (2.1.2 anahtarlar, 2.1.4 başlatma, 2.1.5 bildirim, 2.1.10 test), §4.1 (DV tablosu)
+**Son güncelleme:** 2026-11-11 | **İlgili task:** T401, T402, T403, T404, T405, T406 | **Spec:** [`../08_INTEGRATION_SPEC.md`](../08_INTEGRATION_SPEC.md) §2.1 (2.1.2 anahtarlar, 2.1.3 3D Secure, 2.1.4 başlatma, 2.1.5 bildirim, 2.1.10 test), §4.1 (DV tablosu)
 
 > **Kural:** Bir dış servise **ilk kez bağlanan task**, aynı PR'da bu runbook'u da yazar.
 > "Sonra yazarız" denen kurulum bilgisi, ikinci kez lazım olduğunda kaybolmuş olur.
 
-> **Bu sürümün kapsamı (T401–T405):** anahtarlar, ödemenin başlatılması (jeton isteği), dönüş adresi ve çerçeve (T401); bildirim imzası, alan eşlemesi ve red nedeninin seyreltilmiş kaydı (T402); son sorgu (`durum-sorgu`), yanıt tablosu, tutar metni ve başarının beş koşulu (T403); başlatmanın hata tablosu (T404); kart iadesi (`odeme/iade`), sonucu bilinmeyen iadenin sorgusu ve takvimi (T405; §6.1 DV-6/DV-10, §7). Ödeme sayfası (çerçeveyi taşıyan sayfa, UC-29'un çağıranı) T510'dadır.
+> **Bu sürümün kapsamı (T401–T406):** anahtarlar, ödemenin başlatılması (jeton isteği), dönüş adresi ve çerçeve (T401); bildirim imzası, alan eşlemesi ve red nedeninin seyreltilmiş kaydı (T402); son sorgu (`durum-sorgu`), yanıt tablosu, tutar metni ve başarının beş koşulu (T403); başlatmanın hata tablosu (T404); kart iadesi (`odeme/iade`), sonucu bilinmeyen iadenin sorgusu ve takvimi (T405; §6.1 DV-6/DV-10, §7); 3D Secure kurulum şartı, test modunun uçtan uca tablosu ve kart anahtarlarının 3D teyidine bağlanması (T406; §6.1 DV-3, §6.2, §9; `DEPLOY_RUNBOOK §N`). Ödeme sayfası (çerçeveyi taşıyan sayfa, UC-29'un çağıranı) T510'dadır.
 
 ---
 
@@ -73,6 +73,7 @@ dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --fil
 dotnet test --project tests/Shopfolio.IntegrationTests/Shopfolio.IntegrationTests.csproj --filter-class "*PaymentNotificationTests"
 dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --filter-class "*PaymentAmountsQueryTests" --filter-class "*FinalPaymentQueryRuleTests"
 dotnet test --project tests/Shopfolio.IntegrationTests/Shopfolio.IntegrationTests.csproj --filter-class "*PaymentWindowTests"
+dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --filter-class "*PaymentKeysScanTests"
 ```
 
 **Beklenen çıktı:** bütün testler geçer; jeton isteği form kodlu tek POST, `paytr_token` bilinen örnekle eşleşir, jeton ne kayıtta ne veritabanında; bildirimin imzası bilinen örnekle eşleşir, yedi sıranın her biri beklenen kaydı ve yanıtı verir; son sorgu form kodlu tek POST, `paytr_token` bilinen örnekle eşleşir, `004` siparişi iptal eder, altı yanıtsız girdi siparişi değiştirmez, beş koşuldan biri tutmayan başarı uygulanmaz ve `FinalPaymentQueryNotApplied` satırı yazılır.
@@ -102,6 +103,20 @@ Sağlayıcının test modunda gözlem (gerçek mağaza ve anahtar gerekir — a�
 | DV-12 | Son sorgu tutarlarının (`payment_amount`, `payment_total`) ondalık ve binlik ayracı, `currency` yazımı (`TL` mi `TRY` mi), tabloda olmayan yanıtlar ve HTTP kodları | Başarılı test ödemesinden sonra aynı `merchant_oid` sorgulanır; yanıt gövdesinin kart alanları çıkarılmış kopyası okunur; bilinmeyen `merchant_oid` ile `004` denenir | **Bekliyor — OWNER_INPUT** (D-1065). Kod tarafı: tek ayraçlı en çok iki ondalık ya da ayraçsız metin okunur, başkası `NoResponse` (`PaymentAmountsQueryTests`, `PaymentWindowTests.PayTr_SuccessWithAnUnrecognizedAmountText_*`); `TL` ve `TRY` kabul (`PayTrPaymentGatewayTests.Query`). Başlatmanın HTTP kodları ve tablosuz yanıtları da (T404, D-1076): 2xx dışı her kod `http:<kod>`, tanınmayan gövde `body` (`PayTrPaymentGatewayTests.Row6_*`) | 2026-11-10 (bekliyor kaydı, T403, T404) | Bu tablo; sonuç `08 §2.1.6` ve §4.1 DV-12'ye |
 | DV-6 | Durum sorgusunun `returns` öğesi iadenin `reference_no`'sunu ve tutarını hangi adlarla taşır | Test modunda küçük tutarlı iade, ardından aynı `merchant_oid` için durum sorgusu; `returns` öğesinin alan adları ve tutar biçimi okunur (yapılamıyorsa canlı kanıtın iadesinden sonra) | **Bekliyor — OWNER_INPUT** (D-1082). Kod tarafı (T405): öğe pazaryeri örneğinin adlarıyla okunur (`reference_no`, `return_amount`; `PayTrRefund`); kimliği ve tutarı eşit öğe `Completed`, başkası `NoResult` (`PayTrPaymentGatewayTests.RefundQuery_*`); ad uymazsa geri ödeme "sonucu bekleniyor"da kalır, firma işaretler | 2026-11-10 (bekliyor kaydı, T405) | Bu tablo; sonuç `08 §2.1.9` ve §4.1 DV-6'ya |
 | DV-10 | Taksitli ödemede `total_amount` > `payment_amount`, iade tavanı `payment_amount` ve tam iadede taksit farkının müşteriye dönüşü | Taksitli test işleminin tam iadesi; yapılamıyorsa PayTR'den yazılı teyit, sonra taksitli canlı kanıtın ekstresi (`08 §2.1.10`) | **Bekliyor — OWNER_INPUT** (D-1083). Kod tarafı (T405): iade `Refund.Amount` ile istenir, `009` reddi "gerçekleşmedi" (`PayTrPaymentGatewayTests.Refund_FailedOrError_*`); sonucun `02`'ye dönüşü T410'da | 2026-11-10 (bekliyor kaydı, T405) | Bu tablo; sonuç `08 §4.1` DV-10 ve §5.2 satır 15'e |
+| DV-3 | Her kart ödemesi 3D Secure'dan geçer ve kapatılamaz; mağazada Non3D yetkisi kapalıdır | Kurulumu yapan PayTR'den yazılı teyit alır (`DEPLOY_RUNBOOK §N.1` satır 1–2); test modunda 3D adımı tamamlanmadan işlem denenir (§6.2 satır 3) | **Bekliyor — OWNER_INPUT** (D-1089; PayTR test mağazası ve yazılı teyit yok). Kod tarafı (T406): bildirimde 3D alanı aranmaz, 3D'ye benzeyen alan (`non_3d`, `3d_secure`, `threeds_status`) sonucu değiştirmez; `failed` + kod `1`, `2`, `10` siparişi iptal eder, ödeme kaydı doğmaz; `payment_type` `card` değilse işaretli kayıt (`PaymentNotificationTests.PayTrThreeDSecure`, `PayTrPaymentGatewayTests.ThreeDSecure`). Teyit gelmeden kart anahtarları tanımlanmaz (`DEPLOY_RUNBOOK §B` satır 12) | 2026-11-11 (bekliyor kaydı, T406) | `DEPLOY_RUNBOOK §N.1`; sonuç `08 §4.1` DV-3'e |
+
+### 6.2 Test modunda uçtan uca deneme (sandbox kanıtı; `08 §2.1.10`; K-1411)
+
+Referans kurulumun mağazasıyla (canlı anahtarlar), geliştirme ortamından `test_mode` = `1` ile yapılır (§6 adım 1; DV-41 ayrı test mağazası verirse onun anahtarlarıyla). Test bildirimi mağaza panelindeki tek adrese, yani referans kuruluma gider ve orada işaretli kaydedilir; bildirimin gözlemi o kayıttan okunur, geliştirme ortamındaki sipariş son sorguyla çözülür (`08 §2.1.10`). Kart verisi, jeton ve anahtar bu tabloya yazılmaz; yalnız sipariş numarası, tutar, an ve kanıtın yeri. Test kanıtı canlı kanıtın yerini tutmaz (`DEPLOY_RUNBOOK §N.3`).
+
+| # | Adım | Beklenen | Sonuç | Tarih | Kanıt yeri |
+|---|---|---|---|---|---|
+| 1 | Başlatma: kart siparişi için jeton isteği | `status` = `success`, `token` döner; ödeme çerçevesi açılır | **Bekliyor — OWNER_INPUT** (D-1090) | 2026-11-11 (bekliyor kaydı) | Bu tablo |
+| 2 | 3D Secure: test kartıyla 3D doğrulaması geçilir | Bankanın (ya da PayTR'nin test) doğrulama adımı açılır, tamamlanınca dönüş başarı adresine | **Bekliyor — OWNER_INPUT** (D-1090) | 2026-11-11 (bekliyor kaydı) | Bu tablo |
+| 3 | 3D'siz işlem: doğrulama adımı tamamlanmadan bırakılır ya da yanlış kodla geçilir | İşlem tamamlanmaz; referans kurulumun işaretli kaydında bildirim `failed` (kod `1`, `2` ya da `10`), başarı bildirimi yok; PayTR panelinde işlem başarısız (DV-3) | **Bekliyor — OWNER_INPUT** (D-1089) | 2026-11-11 (bekliyor kaydı) | Bu tablo; sonuç `DEPLOY_RUNBOOK §N.1` satır 3'e |
+| 4 | Bildirim: satır 2'nin bildirimi | İmza tutar, `test_mode` = `1`; referans kurulumda işaretli kayıt (`UnrecognizedNotification`), ödeme uygulanmaz | **Bekliyor — OWNER_INPUT** (D-1090) | 2026-11-11 (bekliyor kaydı) | Referans kurulumun işaretli kaydı |
+| 5 | Sorgu: aynı `merchant_oid` için durum sorgusu | Başarı, `test_mode` = `1`; geliştirme ortamı canlı kurulum olmadığından sonuç uygulanır (sipariş Ödendi); canlı kurulumda aynı sonuç uygulanmaz, `FinalPaymentQueryNotApplied test-mode` (`PaymentWindowTests.PayTr`) | **Bekliyor — OWNER_INPUT** (D-1090) | 2026-11-11 (bekliyor kaydı) | Uygulama kaydı |
+| 6 | İade: aynı işlemin küçük tutarlı iadesi | `status` = `success`, `is_test` = `1`; durum sorgusunun `returns` öğesi (DV-6) | **Bekliyor — OWNER_INPUT** (D-1090) | 2026-11-11 (bekliyor kaydı) | Bu tablo |
 
 ## 7. Sorun giderme
 
@@ -139,3 +154,4 @@ Son sorguda kesinti siparişi iptal ettirmez: zaman aşımı, bağlantı hatası
 - Ayrı test adresi yoktur; canlı ve test aynı adrese gider, farkı istekteki `test_mode`'dur (canlı kurulumda `0`).
 - Ayrı test anahtarı yoktur (DV-41 yanıtı bekleniyor); bir kurulumun `merchant_key` ve `merchant_salt`'ı yalnız o kurulumun sunucusunda durur (`05` 6.x.1).
 - Kart anahtarları canlıda DV-11 sonuçlanana kadar tanımlanmaz (`08 §4.1` DV-11; ÖK-4).
+- Kart anahtarları PayTR'nin 3D Secure yazılı teyidi (Non3D yetkisi kapalı dahil) ve test modunda 3D'siz işlemin tamamlanmadığı gözlenmeden tanımlanmaz (`08 §4.1` DV-3; `DEPLOY_RUNBOOK §N.1`; K-13).

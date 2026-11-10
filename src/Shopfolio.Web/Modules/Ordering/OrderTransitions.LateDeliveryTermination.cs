@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
@@ -64,9 +65,12 @@ internal sealed partial class OrderTransitions
             return Refused(TransitionRefusal.OrderNotFound);
         }
 
-        if (request.ExpectedVersion is { } shown && shown != order.Version)
+        switch (ShownVersion.Check(order, request.ExpectedVersion, byAdministrator: request.Admin is not null))
         {
-            return Refused(TransitionRefusal.VersionConflict);
+            case ShownVersionCheck.Missing:
+                return Refused(TransitionRefusal.InvalidInput);
+            case ShownVersionCheck.Changed:
+                return Refused(TransitionRefusal.VersionConflict);
         }
 
         DateOnly declarationDate = request.NoticeArrivalDate ?? today;

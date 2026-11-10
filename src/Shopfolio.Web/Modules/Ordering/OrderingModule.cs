@@ -386,6 +386,11 @@ internal static class OrderingModuleRegistration
     public static IServiceCollection AddOrderingModule(this IServiceCollection services)
     {
         services.AddScoped<OrderLocks>();
+
+        // The refusal line of the system's own transition (02 3.31.2; 05 9.1.3; K-1559). Logging is the host's; AddLogging adds only what is
+        // missing (TryAdd), so a service set without a host - a command, a test - resolves the writer too.
+        services.AddLogging();
+        services.AddSingleton<AutomaticTransitionLog>();
         services.AddScoped<OrderPaymentArms>();
         services.AddScoped<OpenUnpaidOrderLimit>();
         services.AddScoped<UnpaidCancellationLimit>();

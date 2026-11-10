@@ -44,7 +44,7 @@ internal sealed partial class OrderTransitions
             enteredIban = RequestFormat.CompactIban(request.Iban);
         }
 
-        (Order? order, OrderItem? item, TransitionRefusal? locked) = await LockItemAsync(request.OrderId, request.OrderItemId, null, ct);
+        (Order? order, OrderItem? item, TransitionRefusal? locked) = await LockItemForCustomerAsync(request.OrderId, request.OrderItemId, ct);
         if (locked is { } lockRefusal)
         {
             return WithdrawalRefused(lockRefusal);

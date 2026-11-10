@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
 
@@ -68,7 +69,7 @@ internal sealed class DownloadCounters
         // The order is locked first and read after the lock (05 7.3.2; 09 9.1 item 5); the item is read again under it.
         await _locks.LockAsync([id], ct);
         Order order = await _db.Orders.SingleAsync(o => o.Id == id, ct);
-        if (order.Version != expectedVersion)
+        if (!ShownVersion.Matches(order, expectedVersion))
         {
             return DownloadRenewalResult.VersionConflict;
         }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
+using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Notifications.Contracts;
@@ -241,7 +242,7 @@ internal sealed partial class OrderTransitions
             return (null, TransitionRefusal.OrderNotFound);
         }
 
-        return order.Version != expectedVersion ? (null, TransitionRefusal.VersionConflict) : (order, null);
+        return !ShownVersion.Matches(order, expectedVersion) ? (null, TransitionRefusal.VersionConflict) : (order, null);
     }
 
     private CardRefundActions ActionsOf(CardRefundLine line, bool ibanEntered) => _payment.RefundActionsOf(line, ibanEntered);

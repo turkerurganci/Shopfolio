@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.DataModel;
+using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Notifications.Contracts;
@@ -35,6 +36,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
     private readonly OrderOperations _operations;
     private readonly PaymentWindows _paymentWindows;
     private readonly TimeProvider _time;
+    private readonly AutomaticTransitionLog _automaticLog;
 
     public OrderTransitions(
         AppDbContext db,
@@ -46,7 +48,8 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         PaymentWindows paymentWindows,
         TimeProvider time,
         CartStatements cartStatements,
-        OrderOperations operations)
+        OrderOperations operations,
+        AutomaticTransitionLog automaticLog)
     {
         _db = db;
         _locks = locks;
@@ -58,6 +61,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         _time = time;
         _cartStatements = cartStatements;
         _operations = operations;
+        _automaticLog = automaticLog;
     }
 
     /// <summary>
@@ -95,7 +99,27 @@ internal sealed partial class OrderTransitions : IOrderTransitions
     {
         ArgumentNullException.ThrowIfNull(actor);
         ArgumentNullException.ThrowIfNull(choose);
+        TransitionOutcome outcome = await ApplyChosenCoreAsync(orderId, actor, requestedReasons, expectedVersion, choose, condition, ct);
 
+        // The system's own transition refused against the order as it is now (02 3.31.2; K-1559): no notice, one application log line - the code
+        // and the order's internal id. The customer's refusal is told by the order page, the administrator's by the panel.
+        if (outcome.Rejection is { } rejection && actor.Kind == ActorKind.System)
+        {
+            _automaticLog.Refused(orderId, rejection);
+        }
+
+        return outcome;
+    }
+
+    private async Task<TransitionOutcome> ApplyChosenCoreAsync(
+        Guid orderId,
+        TransitionActor actor,
+        TransitionReasons? requestedReasons,
+        int? expectedVersion,
+        Func<Order, ChosenTransitions> choose,
+        Func<Order, CancellationToken, Task<bool>>? condition,
+        CancellationToken ct)
+    {
         // 1. The lock; the order is loaded after it (an order loaded before the lock may be stale).
         await _locks.LockAsync([orderId], ct);
         Order? order = await _db.Orders.SingleOrDefaultAsync(o => o.Id == orderId, ct);
@@ -104,9 +128,13 @@ internal sealed partial class OrderTransitions : IOrderTransitions
             return TransitionOutcome.Rejected(TransitionRejection.OrderNotFound);
         }
 
-        if (expectedVersion is { } shown && shown != order.Version)
+        // The administrator's transition carries the screen's version - without it nothing applies; the customer's and the system's carry none (T364 KK4; 09 10.2 item 3).
+        switch (ShownVersion.Check(order, expectedVersion, byAdministrator: actor.Kind == ActorKind.Admin))
         {
-            return TransitionOutcome.Rejected(TransitionRejection.VersionConflict);
+            case ShownVersionCheck.Missing:
+                return TransitionOutcome.Rejected(TransitionRejection.InvalidInput);
+            case ShownVersionCheck.Changed:
+                return TransitionOutcome.Rejected(TransitionRejection.VersionConflict);
         }
 
         ChosenTransitions chosen = choose(order);
@@ -195,7 +223,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
             return TransitionOutcome.Rejected(TransitionRejection.OrderNotFound);
         }
 
-        if (request.ExpectedVersion != order.Version)
+        if (!ShownVersion.Matches(order, request.ExpectedVersion))
         {
             return TransitionOutcome.Rejected(TransitionRejection.VersionConflict);
         }

@@ -27,6 +27,14 @@ internal abstract class ScheduledOrderTransition : IDueRecordSource
     /// <summary>Makes the change on the locked, current order; the version is raised after it returns.</summary>
     protected abstract Task Apply(IServiceProvider services, Order order, DateTimeOffset now, CancellationToken ct);
 
+    /// <summary>
+    /// Whether the change is a transition of the order's status (the cancellation at the end of the payment window), not a notice. When such a source
+    /// finds the order no longer due under its lock - an administrator marked it paid, the customer cancelled it in between -, the system's transition
+    /// is refused and the refusal is written to the application log with the order's internal id and its code (02 3.31.2; K-1559); a notice that is
+    /// no longer due is not a transition and writes nothing.
+    /// </summary>
+    protected virtual bool IsStatusTransition => false;
+
     public async Task ProcessAsync(IServiceProvider services, Guid recordId, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -44,6 +52,10 @@ internal abstract class ScheduledOrderTransition : IDueRecordSource
                 {
                     await Apply(services, order, now, cancel);
                     OrderTransitions.RaiseVersionOnce(db, order);
+                }
+                else if (order is not null && IsStatusTransition)
+                {
+                    services.GetRequiredService<AutomaticTransitionLog>().Refused(order.Id, TransitionRejection.ConditionNotMet);
                 }
 
                 return new SchedulerStepResult();

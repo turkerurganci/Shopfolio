@@ -85,6 +85,28 @@ public sealed partial class OrderCorrectionTests
         Assert.Equal(0, await CountAsync(c => c.ItemRemovals));
     }
 
+    // ---- T364 KK3, KK5: two administrators remove the same item from the same screen at once (02 3.31.2) ----
+
+    [Fact]
+    public async Task TwoAdministrators_RemoveTheSameItemAtOnce_OnlyTheFirstCompletedIsApplied_OneRemoval_OneRefund_OneNotice_T364_KK3_KK5()
+    {
+        Order order = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical);
+        Guid item = await ItemIdAsync(order.Id, ProductType.Physical);
+
+        OrderTransitionResult[] results = await Task.WhenAll(
+            RunAsync(c => c.RemoveItemAsync(Removal(order, item, 1), Ct)),
+            RunAsync(c => c.RemoveItemAsync(Removal(order, item, 1), Ct)));
+
+        Assert.Single(results, r => r.Refusal is null);
+        Assert.Single(results, r => r.Refusal == TransitionRefusal.VersionConflict);
+        Assert.Equal(1, await CountAsync(c => c.ItemRemovals.Where(r => r.OrderItemId == item)));
+        Assert.Equal(1, await CountAsync(c => c.Refunds.Where(r => r.OrderId == order.Id)));
+        Assert.Equal(1, await CountAsync(c => c.AuditLogs.Where(a => a.TargetRecordId == order.Id)));
+        Assert.Equal(1, (await DispatchesAsync(order.Id)).Count(d => d.Type == DispatchType.B11));
+        Assert.Equal(1, await CountAsync(c => c.ItemRemovals.Where(r => r.OrderItemId == item && r.Quantity == 1)));
+        Assert.Equal(OrderStatus.Preparing, (await ReloadAsync(order.Id)).OrderStatus);
+    }
+
     // ---- KK3, KK4: the amount from the frozen values, the line and the shipping fee ----
 
     [Fact]
@@ -199,8 +221,8 @@ public sealed partial class OrderCorrectionTests
         await ExecuteAsync($"UPDATE orders SET other_carrier_name = 'Eski Kargo', tracking_number = 'ESKI-1' WHERE id = '{order.Id}'");
         order = await ReloadAsync(order.Id);
 
-        OrderCorrectionResult same = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, "Eski Kargo", "ESKI-1", false), null), Ct));
-        OrderCorrectionResult wrong = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, "Yeni Kargo", null, false), null), Ct));
+        OrderCorrectionResult same = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, "Eski Kargo", "ESKI-1", false), order.Version), Ct));
+        OrderCorrectionResult wrong = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, "Yeni Kargo", null, false), order.Version), Ct));
         OrderCorrectionResult result = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, "Yeni Kargo", "YENI-77", false), order.Version), Ct));
 
         Assert.Equal(TransitionRefusal.InvalidInput, same.Refusal);
@@ -220,7 +242,7 @@ public sealed partial class OrderCorrectionTests
     {
         Order order = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical);
 
-        OrderCorrectionResult result = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, null, null, true), null), Ct));
+        OrderCorrectionResult result = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, null, null, true), order.Version), Ct));
 
         Assert.Equal(TransitionRefusal.ConditionNotMet, result.Refusal);
     }
@@ -388,9 +410,9 @@ public sealed partial class OrderCorrectionTests
 
     private RemoveItemRequest Removal(Order order, Guid item, int quantity) => new(order.Id, item, AdminCaller, order.Version, quantity, true);
 
-    private CorrectDeliveryDateRequest DateRequest(Order order, DateOnly date) => new(order.Id, AdminCaller, date, null, null);
+    private CorrectDeliveryDateRequest DateRequest(Order order, DateOnly date) => new(order.Id, AdminCaller, date, null, ShownVersionOf(order.Id));
 
-    private CorrectReturnArrivalDateRequest ArrivalRequest(Order order, Guid item, Guid record, DateOnly date) => new(order.Id, item, record, AdminCaller, date, null);
+    private CorrectReturnArrivalDateRequest ArrivalRequest(Order order, Guid item, Guid record, DateOnly date) => new(order.Id, item, record, AdminCaller, date, ShownVersionOf(order.Id));
 
     private async Task<Guid> ItemIdAsync(Guid orderId, ProductType type)
     {

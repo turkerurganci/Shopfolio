@@ -19,6 +19,8 @@ internal sealed class TransferPaymentExpiry : ScheduledOrderTransition
 
     public override bool WaitsForFreshHeartbeat => true;
 
+    protected override bool IsStatusTransition => true;
+
     public override async Task<IReadOnlyList<DueRecord>> FindDueAsync(IServiceProvider services, DateTimeOffset now, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(services);

@@ -143,7 +143,7 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
     {
         (Order order, _) = await SeedOrderAsync(orderStatus, paymentStatus);
 
-        TransitionOutcome outcome = await RunAsync((unit, token) => unit.ApplyAsync(new TransitionRequest(order.Id, code, AdminActor), null, token));
+        TransitionOutcome outcome = await RunAsync((unit, token) => unit.ApplyAsync(new TransitionRequest(order.Id, code, AdminActor, expectedVersion: order.Version), null, token));
 
         Assert.Equal(TransitionRejection.NotInTheTable, outcome.Rejection);
         await AssertUntouchedAsync(order.Id, orderStatus, paymentStatus);
@@ -153,7 +153,7 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
     public async Task Apply_ForAnOrderThatDoesNotExist_IsRefused()
     {
         TransitionOutcome outcome = await RunAsync((unit, token) => unit.ApplyAsync(
-            new TransitionRequest(EntityIds.New(), TransitionCode.S3, AdminActor), null, token));
+            new TransitionRequest(EntityIds.New(), TransitionCode.S3, AdminActor, expectedVersion: 1), null, token));
 
         Assert.Equal(TransitionRejection.OrderNotFound, outcome.Rejection);
     }
@@ -162,7 +162,7 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
     public async Task Correction_FromTheBuyerOrTheSystem_IsRefused_AndOnlyTheAdministratorsCallWorks_KK3()
     {
         (Order order, _) = await SeedOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid);
-        Guid recordId = (await RunAsync((unit, token) => unit.ApplyAsync(new TransitionRequest(order.Id, TransitionCode.S5, AdminActor), null, token))).TransitionRecordIds.Single();
+        Guid recordId = (await RunAsync((unit, token) => unit.ApplyAsync(new TransitionRequest(order.Id, TransitionCode.S5, AdminActor, expectedVersion: order.Version), null, token))).TransitionRecordIds.Single();
 
         foreach (TransitionActor actor in new[] { TransitionActor.Buyer, TransitionActor.System })
         {
@@ -195,7 +195,7 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
     {
         (Order order, _) = await SeedOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid);
         (Order other, _) = await SeedOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid);
-        Guid recordId = (await RunAsync((unit, token) => unit.ApplyAsync(new TransitionRequest(order.Id, TransitionCode.S5, AdminActor), null, token))).TransitionRecordIds.Single();
+        Guid recordId = (await RunAsync((unit, token) => unit.ApplyAsync(new TransitionRequest(order.Id, TransitionCode.S5, AdminActor, expectedVersion: order.Version), null, token))).TransitionRecordIds.Single();
         Assert.False((await RunAsync((unit, token) => unit.CorrectAsync(new CorrectionRequest(order.Id, recordId, CorrectionReason.WrongOrder, null, AdminActor, 2), null, token))).IsRejected);
 
         TransitionOutcome again = await RunAsync((unit, token) => unit.CorrectAsync(new CorrectionRequest(order.Id, recordId, CorrectionReason.WrongOrder, null, AdminActor, 3), null, token));
@@ -218,7 +218,7 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
         (Order order, _) = await SeedOrderAsync(orderStatus, paymentStatus);
         TransitionActor actor = kind == ActorKind.Admin ? AdminActor : kind == ActorKind.Buyer ? TransitionActor.Buyer : TransitionActor.System;
 
-        TransitionOutcome outcome = await RunAsync((unit, token) => unit.ApplyAsync(new TransitionRequest(order.Id, code, actor), null, token));
+        TransitionOutcome outcome = await RunAsync((unit, token) => unit.ApplyAsync(new TransitionRequest(order.Id, code, actor, expectedVersion: kind == ActorKind.Admin ? order.Version : null), null, token));
 
         Assert.Equal(TransitionRejection.ActorNotAllowed, outcome.Rejection);
         await AssertUntouchedAsync(order.Id, orderStatus, paymentStatus);
@@ -230,9 +230,20 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
         (Order order, _) = await SeedOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid);
 
         TransitionOutcome outcome = await RunAsync((unit, token) => unit.ApplyAsync(
-            new TransitionRequest(order.Id, TransitionCode.S5, new TransitionActor(ActorKind.Admin, null, null)), null, token));
+            new TransitionRequest(order.Id, TransitionCode.S5, new TransitionActor(ActorKind.Admin, null, null), expectedVersion: order.Version), null, token));
 
         Assert.Equal(TransitionRejection.ActorNotAllowed, outcome.Rejection);
+    }
+
+    [Fact]
+    public async Task Apply_ByAnAdministratorWithoutTheShownVersion_IsRefused_AndWritesNothing_T364_KK4()
+    {
+        (Order order, _) = await SeedOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid);
+
+        TransitionOutcome outcome = await RunAsync((unit, token) => unit.ApplyAsync(new TransitionRequest(order.Id, TransitionCode.S5, AdminActor), null, token));
+
+        Assert.Equal(TransitionRejection.InvalidInput, outcome.Rejection);
+        await AssertUntouchedAsync(order.Id, OrderStatus.Preparing, PaymentStatus.Paid);
     }
 
     [Fact]
@@ -241,9 +252,9 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
         (Order order, _) = await SeedOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid);
 
         TransitionOutcome onShip = await RunAsync((unit, token) => unit.ApplyAsync(
-            new TransitionRequest(order.Id, TransitionCode.S5, AdminActor, TransitionReasons.OfFirm(CancellationReason.Other, "not")), null, token));
+            new TransitionRequest(order.Id, TransitionCode.S5, AdminActor, TransitionReasons.OfFirm(CancellationReason.Other, "not"), order.Version), null, token));
         TransitionOutcome two = await RunAsync((unit, token) => unit.ApplyAsync(
-            new TransitionRequest(order.Id, TransitionCode.S4, AdminActor, new TransitionReasons(TransitionReason.Closure, CancellationReason.Other, null)), null, token));
+            new TransitionRequest(order.Id, TransitionCode.S4, AdminActor, new TransitionReasons(TransitionReason.Closure, CancellationReason.Other, null), order.Version), null, token));
 
         Assert.Equal(TransitionRejection.ReasonNotAllowed, onShip.Rejection);
         Assert.Equal(TransitionRejection.ReasonNotAllowed, two.Rejection);
@@ -259,7 +270,7 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
 
         (TransitionOutcome first, TransitionOutcome second) = await RaceAsync(
             order.Id,
-            (unit, token) => unit.ApplyAsync(new TransitionRequest(order.Id, TransitionCode.S5, AdminActor), null, token),
+            (unit, token) => unit.ApplyAsync(new TransitionRequest(order.Id, TransitionCode.S5, AdminActor, expectedVersion: order.Version), null, token),
             (unit, token) => unit.ApplyAsync(new TransitionRequest(order.Id, TransitionCode.S4, TransitionActor.Buyer), null, token));
 
         Assert.False(first.IsRejected);
@@ -278,9 +289,10 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
 
         (TransitionOutcome first, TransitionOutcome second) = await RaceAsync(
             order.Id,
-            (unit, token) => unit.ApplyAsync(new TransitionRequest(order.Id, TransitionCode.O3, AdminActor), null, token),
+            (unit, token) => unit.ApplyAsync(new TransitionRequest(order.Id, TransitionCode.O3, AdminActor, expectedVersion: order.Version), null, token),
+            // The second screen already shows the first's version (T364 KK4: the administrator's transition always carries one); its condition is still read on the order as it is.
             (unit, token) => unit.ApplyAsync(
-                new TransitionRequest(order.Id, TransitionCode.S5, AdminActor),
+                new TransitionRequest(order.Id, TransitionCode.S5, AdminActor, expectedVersion: order.Version + 1),
                 (current, _) =>
                 {
                     seen = current.PaymentStatus;
@@ -366,7 +378,7 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
     public async Task TransitionRecord_CannotBeChanged_ButItsAdministratorLinkMayBeEmptied_KK6()
     {
         (Order order, _) = await SeedOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid);
-        Assert.False((await RunAsync((unit, token) => unit.ApplyAsync(new TransitionRequest(order.Id, TransitionCode.S5, AdminActor), null, token))).IsRejected);
+        Assert.False((await RunAsync((unit, token) => unit.ApplyAsync(new TransitionRequest(order.Id, TransitionCode.S5, AdminActor, expectedVersion: order.Version), null, token))).IsRejected);
 
         await using AppDbContext editing = NewContext();
         TransitionRecord record = await editing.TransitionRecords.SingleAsync(t => t.OrderId == order.Id, Ct);
@@ -493,7 +505,7 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
 
         TransitionOutcome outcome = await RunAsync(async (unit, token) =>
         {
-            TransitionOutcome applied = await unit.ApplyAsync(new TransitionRequest(order.Id, TransitionCode.S5, AdminActor), null, token);
+            TransitionOutcome applied = await unit.ApplyAsync(new TransitionRequest(order.Id, TransitionCode.S5, AdminActor, expectedVersion: order.Version), null, token);
             Assert.False(applied.IsRejected);
             return TransitionOutcome.Rejected(TransitionRejection.ConditionNotMet);
         });

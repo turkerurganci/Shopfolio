@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -25,7 +26,7 @@ internal sealed partial class OrderTransitions
             return ItemRefused(TransitionRefusal.InvalidInput);
         }
 
-        (Order? order, OrderItem? item, TransitionRefusal? refusal) = await LockItemAsync(request.OrderId, request.OrderItemId, null, ct);
+        (Order? order, OrderItem? item, TransitionRefusal? refusal) = await LockItemForCustomerAsync(request.OrderId, request.OrderItemId, ct);
         if (refusal is { } locked)
         {
             return ItemRefused(locked);
@@ -82,7 +83,9 @@ internal sealed partial class OrderTransitions
                 return ItemRefused(TransitionRefusal.ActorNotAllowed);
         }
 
-        (Order? order, OrderItem? item, TransitionRefusal? refusal) = await LockItemAsync(request.OrderId, request.OrderItemId, request.ExpectedVersion, ct);
+        (Order? order, OrderItem? item, TransitionRefusal? refusal) = request.Actor == ActorKind.Admin
+            ? await LockItemAsync(request.OrderId, request.OrderItemId, request.ExpectedVersion, ct)
+            : await LockItemForCustomerAsync(request.OrderId, request.OrderItemId, ct);
         if (refusal is { } locked)
         {
             return ItemRefused(locked);
@@ -151,8 +154,23 @@ internal sealed partial class OrderTransitions
         return new ItemRecordResult(null, written.RecordId);
     }
 
-    /// <summary>The order's row lock, the order, the screen's version and the order's item - in that order (05 7.3.2; 09 9.1 item 4).</summary>
-    private async Task<(Order? Order, OrderItem? Item, TransitionRefusal? Refusal)> LockItemAsync(Guid orderId, Guid orderItemId, int? expectedVersion, CancellationToken ct)
+    /// <summary>
+    /// The administrator's item operation: the order's row lock, the order, the screen's version and the order's item - in that order (05 7.3.2; 09 9.1 item 4).
+    /// The version is required: a request without it applies nothing (<see cref="TransitionRefusal.InvalidInput"/>; T364 KK4; 09 10.2 item 3).
+    /// </summary>
+    private Task<(Order? Order, OrderItem? Item, TransitionRefusal? Refusal)> LockItemAsync(Guid orderId, Guid orderItemId, int? expectedVersion, CancellationToken ct) =>
+        LockItemCoreAsync(orderId, orderItemId, expectedVersion, byAdministrator: true, ct);
+
+    /// <summary>The customer's item operation: the order's row lock, the order and the item - no version; the condition is checked on the order as it is now (07 2.4.2).</summary>
+    private Task<(Order? Order, OrderItem? Item, TransitionRefusal? Refusal)> LockItemForCustomerAsync(Guid orderId, Guid orderItemId, CancellationToken ct) =>
+        LockItemCoreAsync(orderId, orderItemId, null, byAdministrator: false, ct);
+
+    private async Task<(Order? Order, OrderItem? Item, TransitionRefusal? Refusal)> LockItemCoreAsync(
+        Guid orderId,
+        Guid orderItemId,
+        int? expectedVersion,
+        bool byAdministrator,
+        CancellationToken ct)
     {
         await _locks.LockAsync([orderId], ct);
         Order? order = await _db.Orders.SingleOrDefaultAsync(o => o.Id == orderId, ct);
@@ -161,9 +179,12 @@ internal sealed partial class OrderTransitions
             return (null, null, TransitionRefusal.OrderNotFound);
         }
 
-        if (expectedVersion is { } shown && shown != order.Version)
+        switch (ShownVersion.Check(order, expectedVersion, byAdministrator))
         {
-            return (null, null, TransitionRefusal.VersionConflict);
+            case ShownVersionCheck.Missing:
+                return (null, null, TransitionRefusal.InvalidInput);
+            case ShownVersionCheck.Changed:
+                return (null, null, TransitionRefusal.VersionConflict);
         }
 
         OrderItem? item = await _db.OrderItems.SingleOrDefaultAsync(i => i.Id == orderItemId && i.OrderId == orderId, ct);

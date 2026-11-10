@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -8,6 +9,7 @@ using Serilog.Core;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.InstallationSettings;
+using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Logging;
 
@@ -27,7 +29,7 @@ public sealed class ShopfolioWebApplicationFactory : WebApplicationFactory<Progr
         [SiteOptions.DomainKey] = "localhost",
         [EmailOptions.SenderAddressKey] = "test@example.com",
         [EmailOptions.RegionKey] = "eu-central-1",
-        [EmailOptions.CredentialKey] = "test-only-made-up-email-credential",
+        [EmailOptions.CredentialKey] = "test-only-made-up-key-id\ntest-only-made-up-secret-key",
     };
 
     private static string MadeUpBase64(int bytes) => Convert.ToBase64String(new byte[bytes]);
@@ -37,14 +39,17 @@ public sealed class ShopfolioWebApplicationFactory : WebApplicationFactory<Progr
     private readonly ILoggerProvider? _loggerProvider;
     private readonly bool _withJobRunner;
     private readonly bool _withScheduler;
+    private readonly bool _keepEmailGateway;
 
     public ShopfolioWebApplicationFactory(
         string connectionString,
         IReadOnlyDictionary<string, string>? settings = null,
         ILoggerProvider? loggerProvider = null,
         bool withJobRunner = true,
-        bool withScheduler = false)
+        bool withScheduler = false,
+        bool keepEmailGateway = false)
     {
+        _keepEmailGateway = keepEmailGateway;
         _withScheduler = withScheduler;
         _connectionString = connectionString;
         _settings = settings ?? new Dictionary<string, string>();
@@ -99,6 +104,13 @@ public sealed class ShopfolioWebApplicationFactory : WebApplicationFactory<Progr
                 ServiceDescriptor runner = services.Single(d => d.ServiceType == typeof(IHostedService) && d.ImplementationType == typeof(JobRunnerService));
                 services.Remove(runner);
             });
+        }
+
+        if (!_keepEmailGateway)
+        {
+            // The application registers the e-mail service's gateway (T407); a test host never reaches the service, so with the job runner on, a queued
+            // row waits as it did before the gateway existed. A test about the registration asks to keep it.
+            builder.ConfigureServices(services => services.RemoveAll<IEmailGateway>());
         }
 
         if (!_withScheduler)

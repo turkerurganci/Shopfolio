@@ -152,7 +152,7 @@ public sealed class SecretFilesTests : IDisposable
     public void SettingsAudit_WithTheSecretsFromTheirFilesAndTheRestFromTheSettings_Succeeds()
     {
         File.WriteAllText(Path.Combine(_directory, SecretNames.DatabaseAppConnection), "Host=database;Database=shopfolio;Username=shopfolio_app;Password=made-up\n");
-        File.WriteAllText(Path.Combine(_directory, SecretNames.EmailCredential), "made-up-mail-credential\n");
+        File.WriteAllText(Path.Combine(_directory, SecretNames.EmailCredential), "made-up-mail-key-id\nmade-up-mail-secret-key\n");
         File.WriteAllText(Path.Combine(_directory, SecretNames.LinkDerivationSecret), Convert.ToBase64String(new byte[32]) + "\n");
 
         IConfigurationRoot configuration = Configure(RequiredSettingsWithoutSecrets());

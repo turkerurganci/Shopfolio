@@ -27,7 +27,7 @@ services:
       # The two required secret settings (Email:Credential, LinkKey:DerivationSecret) are NOT here: a secret is never a line of an
       # environment or a settings file (05 8.4.3). They come from the secret files email_credential and link_derivation_secret of the
       # development directory (SHOPFOLIO_SECRETS_DIR, above), which hold made-up content: any non-empty text for the e-mail credential
-      # (the development gateway does not use it) and 32 random bytes in Base64 for the link secret.
+      # (the development gateway does not use it and the start-up check does not read its shape while EmailCapture__Host is set; in an installation it has two lines) and 32 random bytes in Base64 for the link secret.
       Site__Domain: localhost
       Email__SenderAddress: dev@example.com
       Email__Region: eu-central-1

@@ -357,8 +357,8 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         TransitionReasons? reasons = null;
         if (items.Any(i => i.DeliveryMarkedAt is not null))
         {
-            // The delivered end needs a confirmed payment: Delivered with Pending or Failed is a forbidden pair (02 5.6.1).
-            if (order.PaymentStatus is PaymentStatus.Pending or PaymentStatus.Failed)
+            // The delivered end needs a confirmed payment: Delivered with Pending or Failed is a forbidden pair (02 5.6.1; 03 1.4.1) - the combination table says which.
+            if (!TransitionTable.IsPairAllowed(OrderStatus.Delivered, order.PaymentStatus))
             {
                 return ClosureResult.None;
             }

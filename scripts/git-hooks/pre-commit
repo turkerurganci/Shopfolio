@@ -127,6 +127,11 @@ while IFS= read -r path; do
   [ -n "$candidates" ] || continue
 
   while IFS= read -r body; do
+    # A shell option that passes an environment variable (-e "KEY=value",
+    # -e KEY=value, --env "KEY=value", --env=KEY=value) is an assignment too:
+    # strip the option so the key-shape check below sees the key (D-80; the
+    # package build script carries its made-up CI values in this form).
+    body="$(printf '%s' "$body" | sed -E 's/^([[:space:]]*)(-e|--env)([[:space:]]+|=)/\1/')"
     # The key name must sit on the LEFT of the first = or : — that is what an
     # assignment looks like (API_KEY=..., "token": ..., password: ...). Prose
     # that merely mentions the word after a label ("Sorun: ... token ...")

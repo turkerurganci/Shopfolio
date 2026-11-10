@@ -28,18 +28,18 @@ internal sealed class OrderPlacementLimits
     }
 
     /// <summary>
-    /// The limit that stops a new order, or null when none does. <paramref name="memberEmail"/> is the account's e-mail of a signed-in member and null for a guest, who is counted
-    /// on the IP axis only (02 8.2.2). L-7 is asked first - it stops every method; L-8 only when the method is the bank transfer.
+    /// The limit that stops a new order, or null when none does. <paramref name="memberId"/> is the customer id of a signed-in member - the e-mail axis of the account, read by
+    /// the id (D-808) - and null for a guest, who is counted on the IP axis only (02 8.2.2). L-7 is asked first - it stops every method; L-8 only when the method is the bank transfer.
     /// </summary>
-    public async Task<AttemptLimit?> FindExceededAsync(PaymentMethod method, IPAddress? address, string? memberEmail, CancellationToken ct)
+    public async Task<AttemptLimit?> FindExceededAsync(PaymentMethod method, IPAddress? address, Guid? memberId, CancellationToken ct)
     {
-        if (await _cancellations.IsFullByIpAsync(address, ct) || (memberEmail is not null && await _cancellations.IsFullByEmailAsync(memberEmail, ct)))
+        if (await _cancellations.IsFullByIpAsync(address, ct) || (memberId is { } cancelling && await _cancellations.IsFullByMemberAsync(cancelling, ct)))
         {
             return AttemptLimit.L7;
         }
 
         if (method == PaymentMethod.BankTransfer
-            && (await _open.IsFullByIpAsync(address, ct) || (memberEmail is not null && await _open.IsFullByEmailAsync(memberEmail, ct))))
+            && (await _open.IsFullByIpAsync(address, ct) || (memberId is { } member && await _open.IsFullByMemberAsync(member, ct))))
         {
             return AttemptLimit.L8;
         }

@@ -35,6 +35,7 @@ internal sealed class PendingWorkReader
         ArgumentOutOfRangeException.ThrowIfLessThan(maxOrders, 1);
         IQueryable<OrderItem> items = _db.OrderItems.AsNoTracking();
         IQueryable<Order> orders = _db.Orders.AsNoTracking();
+        PaymentStatus[] approved = PaymentApproval.Statuses;
         IQueryable<OrderItem> inSet = workSet switch
         {
             PendingWorkSet.PreparingPhysical => items.Where(i => i.ProductType == ProductType.Physical
@@ -45,8 +46,7 @@ internal sealed class PendingWorkReader
                 && i.DeliveryMarkedAt == null
                 && orders.Any(o => o.Id == i.OrderId
                     && o.OrderStatus != OrderStatus.Cancelled
-                    && o.PaymentStatus != PaymentStatus.Pending
-                    && o.PaymentStatus != PaymentStatus.Failed)),
+                    && approved.Contains(o.PaymentStatus))),
             _ => throw new ArgumentOutOfRangeException(nameof(workSet), workSet, "Not a pending work set."),
         };
 

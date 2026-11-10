@@ -145,5 +145,5 @@ internal static class SalesSummaryRules
         }
     }
 
-    private static bool IsApproved(PaymentStatus status) => status is PaymentStatus.Paid or PaymentStatus.PartiallyRefunded or PaymentStatus.Refunded;
+    private static bool IsApproved(PaymentStatus status) => PaymentApproval.IsApproved(status);
 }

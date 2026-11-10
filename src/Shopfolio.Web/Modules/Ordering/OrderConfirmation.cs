@@ -176,7 +176,7 @@ internal sealed class OrderConfirmation
         // 02 8.2.2, 8.2.3, 8.2.4 (T377): the two limits counted from the orders. They are asked after the cart's earlier unpaid order was cancelled above - that order is not one of the
         // open orders the ceiling counts any more and its cancellation is not L-7's (the same-cart reason) - and a refusal rolls that cancellation back with the rest. A guest is
         // counted on the IP axis only; a signed-in member on both; there is no exemption for any account (02 8.2.4).
-        if (await _limits.FindExceededAsync(method, request.IpAddress, request.Owner.CustomerId is null ? null : request.ContactEmail, ct) is { } exceeded)
+        if (await _limits.FindExceededAsync(method, request.IpAddress, request.Owner.CustomerId, ct) is { } exceeded)
         {
             return OrderConfirmationResult.LimitExceeded(exceeded);
         }

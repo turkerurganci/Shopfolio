@@ -31,22 +31,11 @@ internal sealed partial class AfterSalesModule
             return null;
         }
 
-        List<Guid> subjects = [];
-        subjects.AddRange(await _db.Cancellations.AsNoTracking()
-            .Where(c => c.RefundIbanId == refundIbanId)
-            .Select(c => c.Id)
-            .ToListAsync(ct));
-        subjects.AddRange(await _db.LateDeliveryTerminations.AsNoTracking()
-            .Where(t => t.RefundIbanId == refundIbanId)
-            .Select(t => t.Id)
-            .ToListAsync(ct));
-
-        // A withdrawal's refund is born with its goods' receipt: a withdrawal whose goods did not arrive has no subject (Z-38's case).
-        subjects.AddRange(await _db.Returns.AsNoTracking()
-            .Where(r => r.WithdrawalId != null && _db.Withdrawals.Any(w => w.Id == r.WithdrawalId && w.RefundIbanId == refundIbanId))
-            .Select(r => r.Id)
-            .ToListAsync(ct));
-        return new RefundIbanUse(iban.Id, iban.OrderId, iban.ScheduledDeletionAt, subjects);
+        // The same users the refund line deletes by (D-910): a withdrawal after the delivery waits for its goods - no receipt, no subject (Z-38's case) - while one
+        // before the delivery and a service withdrawal owe their refund from the declaration; a request fulfilled with the IBAN brings its refund or its item's records.
+        RefundIbanUses uses = await LoadRefundIbanUsesAsync(iban.OrderId, [iban.Id], ct);
+        IReadOnlySet<Guid> awaitingGoods = await WithdrawalsAwaitingGoodsAsync(uses.Withdrawals, ct);
+        return new RefundIbanUse(iban.Id, iban.OrderId, iban.ScheduledDeletionAt, uses.SubjectsOf(iban.Id, awaitingGoods));
     }
 
     public async Task ApplyRefundIbanDeletionDayAsync(Guid refundIbanId, bool deleteIban, CancellationToken ct)

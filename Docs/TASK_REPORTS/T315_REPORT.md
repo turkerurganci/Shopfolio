@@ -99,7 +99,7 @@ Validator kanıtları (bağımsız): sekiz kriter ve KK1–KK8 kodda ve testte �
 
 - **Branch:** `task/T315-durum-makinesi-cekirdegi`
 - **Commit:** son baş SHA PR açıklamasında
-- **PR:** PR açıklamasında
+- **PR:** #434
 - **CI:** doğrulayıcı izler
 - **Post-merge run'lar:** squash `8caf0f0` (#434) — CI 42389626405 success, Publish 42389626428 success (T334 yapımında dolduruldu)
 

@@ -14,15 +14,14 @@ public sealed class NotificationMapConsistencyTests
 {
     /// <summary>
     /// The only flow rows whose notice cell does not carry the code of a notice that a 7.1 row ties to it, each with its reason; a row that stops being needed fails the test (<see cref="TheExceptions_AreStillNeeded"/>).
-    /// 7.1.6 cites 4.2.11, whose cell names the reminder as "the job's own notice" without its code.
+    /// Empty - D-295 is closed; a new exception comes in with its reason.
     /// </summary>
-    private static readonly (string TriggerRow, string FlowRow)[] FlowRowsWithoutTheCode = [("7.1.6", "4.2.11")];
+    private static readonly (string TriggerRow, string FlowRow)[] FlowRowsWithoutTheCode = [];
 
     /// <summary>
-    /// The only flow rows that name a notice no 7.1 row ties to them: 8.3.3.4 names the B-8 of the refund that turns out to have gone through (the notices of 7.1.16…7.1.18 cite
-    /// 8.3.3.1 and 8.3.3.5) and 10.1.2.6 repeats the re-send sentence of 8.9.2 (7.1.37 cites 8.9.2 only). Both are gaps of the "Akış" column, kept as D-295.
+    /// The only flow rows that name a notice no 7.1 row ties to them, each with its reason. Empty - D-295 is closed; a new exception comes in with its reason.
     /// </summary>
-    private static readonly (string FlowRow, DispatchType Notice)[] NoticesNoTriggerRowCites = [("8.3.3.4", DispatchType.B8), ("10.1.2.6", DispatchType.B15)];
+    private static readonly (string FlowRow, DispatchType Notice)[] NoticesNoTriggerRowCites = [];
 
     /// <summary>The sections of 03 whose flow rows the map's "Akış" column cites; their notice cells are compared row by row. §1 (the record tables) and §3 (the error rows, which the map ties to the main flow's row) are compared by notice only.</summary>
     private static readonly string[] SectionsOfTheMapsFlow = ["2", "4", "5", "6", "8", "9", "10"];

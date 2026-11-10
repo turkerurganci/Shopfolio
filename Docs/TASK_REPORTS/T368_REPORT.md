@@ -159,7 +159,7 @@ Tam uyumlu; öz denetim tablosu var ve kanıtlı. Farklar: K1 (yapım D-819'u ya
 - **Commit:** son commit — "T368: Gecikme feshi ve firma iptali: iki fesih yolu, kanuni faiz uyarısı, kapalı sebep listesi, ifanın imkânsızlaşması bildirimi"
 - **PR:** #498
 - **CI:** run 42604944280 (head `246071f7`) success
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `5e9f715` (#498) — CI 42613944248 success, Publish 42613944083 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

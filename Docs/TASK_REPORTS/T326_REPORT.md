@@ -111,7 +111,7 @@ Test: Unit 4811/4811 (birleştirme sonrası), Integration 55/55 (`CouponTests`, 
 - **Commit:** `c710fad7` (kural, testler, rapor, kayıt); PR numarası commit'i ayrı
 - **PR:** #471
 - **CI:** *(yardımcı izler)*
-- **Post-merge run'lar:** *(merge'ü yapan yardımcı doldurur)*
+- **Post-merge run'lar:** squash `8319aa5` (#471) — CI 42490732324 success, Publish 42490732319 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

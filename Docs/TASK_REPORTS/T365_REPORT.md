@@ -77,9 +77,9 @@
 ## Commit & PR
 
 - **Branch:** `task/T365-iletisim-talebi`
-- **PR:** yönetici bilgisine dönüş mesajında
+- **PR:** #496
 - **CI:** yönetici izler
-- **Post-merge run'lar:** validator doldurur
+- **Post-merge run'lar:** squash `824662a` (#496) — CI 42611407473 success, Publish 42611407627 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

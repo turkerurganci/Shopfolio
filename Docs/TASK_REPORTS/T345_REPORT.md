@@ -140,7 +140,7 @@ Birleşik ağaçta: build `-warnaserror` 0 uyarı; Unit 5008/5008; Integration `
 - **Branch:** `task/T345-hesap-silme-kvkk`
 - **PR:** #477
 - **CI:** run 42517577979 (head `1a100354`) yeşil
-- **Post-merge run'lar:** doğrulayıcı doldurur
+- **Post-merge run'lar:** squash `7ee29b2` (#477) — CI 42522613130 success, Publish 42522612870 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

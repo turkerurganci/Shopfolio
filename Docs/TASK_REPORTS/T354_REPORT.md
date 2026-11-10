@@ -144,7 +144,7 @@ B1 giderildi: `DisposalHarness`, `Model/AddressTests`, `Model/MembershipTests` d
 - **Commit:** (PR'da)
 - **PR:** #470
 - **CI:** (yönetici yardımcı izler)
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası)*
+- **Post-merge run'lar:** squash `e3b34b7` (#470) — CI 42514888368 success, Publish 42514888426 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

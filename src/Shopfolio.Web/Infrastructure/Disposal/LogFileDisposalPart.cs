@@ -28,8 +28,12 @@ internal static partial class LogFileRetention
     [GeneratedRegex(@"^access\.log-[0-9]{8}$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex AccessFileName();
 
-    /// <summary>The moment before which a record is expired at <paramref name="now"/>: six calendar months back in Turkey time.</summary>
-    public static DateTimeOffset Cutoff(DateTimeOffset now) => now.ToOffset(TurkeyTime.Offset).AddMonths(-ProductConstants.SystemLogRetentionMonths);
+    /// <summary>
+    /// The moment before which a record is expired at <paramref name="now"/>: six calendar months back in Turkey time, returned in UTC so a database
+    /// query can take it as it is (Npgsql writes no +03:00 offset; D-377).
+    /// </summary>
+    public static DateTimeOffset Cutoff(DateTimeOffset now) =>
+        now.ToOffset(TurkeyTime.Offset).AddMonths(-ProductConstants.SystemLogRetentionMonths).ToUniversalTime();
 
     /// <summary>
     /// The newest Turkey day all of whose records are expired at <paramref name="now"/>: the day before the day the cutoff falls on. The server's

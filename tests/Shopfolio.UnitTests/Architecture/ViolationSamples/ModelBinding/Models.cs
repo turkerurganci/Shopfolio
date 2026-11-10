@@ -231,6 +231,16 @@ namespace Shopfolio.Pages.Samples
         public float? Weight { get; set; }
     }
 
+    // OtherNumberBound and TimeBound: a short and a TimeSpan in a query model (D-152).
+    public sealed class OtherNumberQuery : IQueryModel
+    {
+        [SpecAssignedName]
+        public short Count { get; set; }
+
+        [SpecAssignedName]
+        public TimeSpan Span { get; set; }
+    }
+
     // DecimalWithoutRule: a decimal without its amount or percentage rule - none at all, inside a row, and a rule that owns the conversion failure but
     // checks no precision (the date rule).
     public sealed class UnruledAmountInput : IFormInput

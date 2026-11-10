@@ -42,6 +42,10 @@ public sealed class BindingFormModel : PageModel
         return Page();
     }
 
+    /// <summary>A header value and a query value bound to plain texts (D-126): the header keeps the framework's binder, the query text is trimmed.</summary>
+    public IActionResult OnGetProbe([FromHeader(Name = "X-Probe")] string? probe, [FromQuery] string? term) =>
+        Content($"[{probe}]|[{term}]");
+
     public Task<IActionResult> OnPostContactAsync(ContactInput input)
     {
         // A rule the handler decides itself (09 3.4 item 2): the address is taken. The code goes through the same filter after the handler returns.

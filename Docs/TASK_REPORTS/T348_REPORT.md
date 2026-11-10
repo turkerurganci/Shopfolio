@@ -110,7 +110,7 @@
 - **Commit:** `d7bee8a9` — sipariş onayı işlemi, özet karşılaştırması, görünürlük kuralı; `f84d3c30` — onay testleri ve 4.2.1 kaydı; rapor/kayıt commit'i
 - **PR:** #489
 - **CI:** *(PR CI'ı — yardımcı izler)*
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `5f9b4c4` (#489) — CI 42578567859 success, Publish 42578567856 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

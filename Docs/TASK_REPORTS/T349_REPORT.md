@@ -157,7 +157,7 @@ Yapım raporu karşılaştırması: öz denetimin "`09 §25` — veri ve göç �
 - **Commit:** PR'daki son commit
 - **PR:** #476
 - **CI:** run 42517753555 (head `0451c5d5`) — 9 iş yeşil (doğrulama tur 2); run 42509314185 (head `302cb1bf`) — yeşil (doğrulama tur 1)
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
+- **Post-merge run'lar:** squash `a504ff8` (#476) — CI 42524245383 success, Publish 42524245424 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

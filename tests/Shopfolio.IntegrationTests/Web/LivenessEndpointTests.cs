@@ -16,9 +16,13 @@ using DsnBuilder = Npgsql.NpgsqlConnectionStringBuilder;
 namespace Shopfolio.IntegrationTests.Web;
 
 /// <summary>UC-81, the liveness endpoint (07 4.33.1; 09 10.7 item 6, 19.2 item 4).</summary>
-[Collection(DatabaseInfrastructureDefinition.Name)]
+[Collection(LivenessTimingDefinition.Name)]
 public sealed partial class LivenessEndpointTests
 {
+    // The stalled open's own limit: above the 3 s bound so the liveness limit (1 s) still decides, short so the host's shutdown - which waits for the
+    // stalled open to end - does not hold the class for 15 s per test (D-391; #490).
+    private const int StalledOpenTimeoutSeconds = 5;
+
     private static readonly Uri _livenessUri = new(LivenessEndpoint.Path, UriKind.Relative);
 
     private readonly CollectionDatabaseFixture _database;
@@ -120,7 +124,7 @@ public sealed partial class LivenessEndpointTests
         CancellationToken ct = TestContext.Current.CancellationToken;
         DsnBuilder real = new(_database.Dsn);
         await using StallingTcpProxy proxy = new(UpstreamHost(real), real.Port, stalled: true);
-        DsnBuilder slow = new(_database.Dsn) { Host = "127.0.0.1", Port = proxy.Port, Pooling = false };
+        DsnBuilder slow = new(_database.Dsn) { Host = "127.0.0.1", Port = proxy.Port, Pooling = false, Timeout = StalledOpenTimeoutSeconds };
 
         CollectingLoggerProvider logs = await AssertAnswers503WithinTheLimitAsync(slow.ConnectionString, warmPool: false, stallAfterWarmUp: null, ct);
         Assert.Single(logs.Lines, l => l.Contains("DbTimeout", StringComparison.Ordinal));
@@ -144,7 +148,7 @@ public sealed partial class LivenessEndpointTests
     {
         // 192.0.2.1 (TEST-NET-1) is never routed: the connect attempt hangs or fails; either way the limit holds.
         CancellationToken ct = TestContext.Current.CancellationToken;
-        DsnBuilder unreachable = new(_database.Dsn) { Host = "192.0.2.1", Pooling = false };
+        DsnBuilder unreachable = new(_database.Dsn) { Host = "192.0.2.1", Pooling = false, Timeout = StalledOpenTimeoutSeconds };
 
         CollectingLoggerProvider logs = await AssertAnswers503WithinTheLimitAsync(unreachable.ConnectionString, warmPool: false, stallAfterWarmUp: null, ct);
         Assert.DoesNotContain(logs.Lines, l => l.Contains("192.0.2.1", StringComparison.Ordinal));
@@ -198,7 +202,7 @@ public sealed partial class LivenessEndpointTests
     {
         await WarmUpAsync(ct);
 
-        // Limit 1 s; the margin allows for a slow CI host. The connection string's own Timeout (15 s) must not decide.
+        // Limit 1 s; the margin allows for a slow CI host. The connection string's own Timeout (5 s for a stalled open, 15 s otherwise) must not decide.
         CollectingLoggerProvider logs = new();
         Dictionary<string, string> settings = new() { [DatabaseOptions.LivenessTimeoutKey] = "1" };
         await using ShopfolioWebApplicationFactory factory = new(connectionString, settings, logs, withJobRunner: false);

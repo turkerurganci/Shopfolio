@@ -100,7 +100,7 @@ Kabul kriterleri 1–7 ✓, KK1–KK7 ✓, `09 §25` ve güvenlik taraması temi
 - **Commit:** `8611eaa6` — T329: İlk uçtan uca akış testi — sekiz adım tek Integration testinde, sahte ödemeyle
 - **PR:** #499
 - **CI:** 42609814871 (`288f56d2`) — `4. Integration test` yalnız `LivenessEndpointTests` zamanlama testinde kırmızı (D-841), öteki işler yeşil; kayıt commit'inin CI'ı merge koşulu
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `357f5ba` (#499) — CI 42616087565 success, Publish 42616087470 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

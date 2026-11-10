@@ -1,6 +1,6 @@
 # T389 — Hesap ve durum yönetim komutları: oturumları sonlandırma, şifreyi geçersiz kılma, durum
 
-**Faz:** F3 | **Durum:** ⏳ Düzeltme 1 tamam — doğrulama tur 2 bekliyor | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 3 PASS) | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -180,7 +180,7 @@ Kabul kriterleri 1–9 ve KK1–KK9 validator kanıtıyla ✓ (birleşik ağaçt
 - **Commit:** son commit PR'ın head'idir
 - **PR:** #472
 - **CI:** yapım işçisi izlemez (yönetici yürütür)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `a646423` (#472) — CI 42535966531 success, Publish 42535966562 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

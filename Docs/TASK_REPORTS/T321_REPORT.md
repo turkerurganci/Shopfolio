@@ -1,6 +1,6 @@
 # T321 — Ürün yayın durumları
 
-**Faz:** F3 | **Durum:** ⏳ Düzeltme 2 yapıldı (tur 2 FAIL sonrası; doğrulama tur 3 bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 3 PASS) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -416,7 +416,7 @@ Konteyner `shopfolio-t321-val3-pg` (postgres:18, 127.0.0.1:55821) koşudan sonra
 
 - **Branch:** `task/T321-urun-yayin-durumlari`
 - **Commit:** PR açılırken son head SHA PR gövdesinde
-- **PR:** PR açıldığında bildirilir
+- **PR:** #439
 - **CI:** yoklanmadı (yapım işçisi izlemez)
 - **Post-merge run'lar:** squash `a89710b` (#439) — CI 42419095662 success, Publish 42419095630 success (T335 dalında dolduruldu)
 

@@ -126,7 +126,7 @@ internal static class ErrorStatuses
         [ErrorCode.UploadRejected] = [422],
         [ErrorCode.UploadNotFound] = [404],
         [ErrorCode.DownloadLinkInvalid] = [404],
-        [ErrorCode.OutcomeUncertain] = [StatusCodes.Status303SeeOther],
+        [ErrorCode.OutcomeUncertain] = [303],
     }.ToFrozenDictionary();
 
     /// <summary>The members of the table, to compare with the members of the enum.</summary>

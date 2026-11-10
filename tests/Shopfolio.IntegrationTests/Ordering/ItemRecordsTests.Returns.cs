@@ -240,7 +240,7 @@ public sealed partial class ItemRecordsTests
     /// <summary>A coupon the order used, and another order too: <c>used_count</c> 2, so a second return of the order's right would show as 0.</summary>
     private async Task<Guid> SeedUsedCouponAsync(Guid orderId)
     {
-        string key = EntityIds.New().ToString("N")[..10].ToUpperInvariant();
+        string key = EntityIds.New().ToString("N")[^10..].ToUpperInvariant(); // the random tail: a UUIDv7's head is its time (D-942)
         Coupon coupon = Coupon.CreateAmount($"IADE{key}", 10m, 100m, DeliveryDay.AddDays(-30), DeliveryDay.AddDays(365), 5, Start);
         await SaveAsync(c => c.Coupons.Add(coupon));
         await ExecuteAsync($"UPDATE coupons SET used_count = 2 WHERE id = '{coupon.Id}'");
@@ -270,7 +270,7 @@ public sealed partial class ItemRecordsTests
 
     private async Task<Guid> SeedReturnVariantAsync(Guid itemId, int stock)
     {
-        string key = EntityIds.New().ToString("N")[..12];
+        string key = EntityIds.New().ToString("N")[^12..];
         Product product = Product.Create("Kaynak", $"iade-{key}", ProductType.Physical, 20m, Start);
         product.WithSeededOrigin();
         Variant variant = Variant.Create(product.Id, $"IAD-{key}", 300m, Start, stock);

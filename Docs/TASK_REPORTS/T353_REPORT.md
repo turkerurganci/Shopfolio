@@ -205,7 +205,7 @@ Tam uyumlu; öz denetim tablosu var ve her madde kanıtlı. Farklar: K1 ve K2 ya
 - **Commit:** dal head'i PR'da
 - **PR:** #500
 - **CI:** run 42616258907 (head `9204f00d`) success
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `c5cd790` (#500) — CI 42640152318 success, Publish 42640152244 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

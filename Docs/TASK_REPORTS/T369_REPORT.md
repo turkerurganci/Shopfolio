@@ -97,7 +97,7 @@ Devam işçisi bütün maddeleri (önceki işçinin yaptıkları dahil) diff'te 
 - **Commit:** `4ffde5ac` (ara kayıt), `2dcbeb28` (devam), rapor commit'i
 - **PR:** #501
 - **CI:** dal 42627605629 ✓ (head `a604985d`)
-- **Post-merge run'lar:**
+- **Post-merge run'lar:** squash `8cd6652` (#501) — CI 42643385305 success, Publish 42643385147 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

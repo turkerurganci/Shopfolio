@@ -100,7 +100,7 @@
 - **Commit:** dal head'i (PR #461 sayfasında)
 - **PR:** #461
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `26fd3a9` (#461) — CI 42483789437 success, Publish 42483789393 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

@@ -461,6 +461,10 @@ public sealed class StatusEndpointTests
             }
 
             await _baseFactory.DisposeAsync();
+
+            // The collection database is shared: a scenario that truncates a single-row table (heartbeat) would leave the next class's
+            // application unable to start, so the healthy rows are put back on the way out.
+            await SeedHealthyAsync();
         }
 
         private AppDbContext NewContext()

@@ -149,7 +149,7 @@
 - **Commit:** PR açıklamasında head SHA
 - **PR:** #442
 - **CI:** dal CI 42425396677 (head `f6412bf`) success — doğrulama tur 4
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
+- **Post-merge run'lar:** squash `cfe924e` (#442) — CI 42434282725 success, Publish 42434282714 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

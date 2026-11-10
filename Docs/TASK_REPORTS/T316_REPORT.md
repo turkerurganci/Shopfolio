@@ -1,6 +1,6 @@
 # T316 — Sipariş durumu geçişleri: sevkiyat ekseni
 
-**Faz:** F3 | **Durum:** ✓ Doğrulama tur 2 PASS | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).

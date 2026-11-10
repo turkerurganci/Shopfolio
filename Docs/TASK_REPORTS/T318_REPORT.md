@@ -142,7 +142,7 @@ Bütün maddeler (ilk işçinin yaptıkları dahil) bu turda diff'te `grep -n` i
 - **Commit:** `f33d781` (backlog kayıtları; üstünde yalnız PR numarası commit'i)
 - **PR:** #455
 - **CI:** *(yardımcı izler)*
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
+- **Post-merge run'lar:** squash `6cce816` (#455) — CI 42463181214 success, Publish 42463181128 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

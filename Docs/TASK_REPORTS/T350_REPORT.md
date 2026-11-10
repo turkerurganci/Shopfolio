@@ -77,6 +77,11 @@ Yok.
 - `GetShippingViewAsync` `ShippingViewReader`'ı `OrderingModule` içinde `new` ile kurar (DI kaydı yok).
 - D-309: T350 sınır koymadı, hedef T386; D-221: hedef T349.
 
+## Commit & PR
+
+- **PR:** #460
+- **Post-merge run'lar:** squash `0226a90` (#460) — CI 42500141831 success, Publish 42500144509 success (F3 gate'te dolduruldu)
+
 ## Doğrulama
 
 | Alan | Sonuç |

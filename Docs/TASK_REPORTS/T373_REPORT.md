@@ -102,6 +102,8 @@ Bütün maddeler (önceki işçinin yaptıkları dahil) diff'te yeniden denetlen
   - **B1:** "mal dönmedi" kapanışını geç gelen malın teslim alması açınca kupon hakkı siparişin son adediyle bir kez döner. `UnitFactsAsync(includeUnsaved: true)` kapanışı bağlamdan okur (aynı işlemde yazılan `ReopenedAt` görülür); `IsCouponReturnDueAsync` "önce" hâlini kayıpla bitmiş sayar (`ReturnsRight(after) && !ReturnsRight(before)`). Kopya kural yazılmadı; `IsCouponReturnedAsync` aynı `ReturnsRight`'ı okur.
   - **K1 → D-915:** belge açık; koda dokunulmadı, F3 gate.
   - Öz denetim: kriter 1–10 ve KK1–KK10 düzeltilmiş diff'te yeniden denetlendi; değişiklik yalnız kupon hakkı kararını (kriter 10 / KK10, `06 §4.14`) etkiler, öteki satırların kanıtı değişmedi. `sik-fail-nedenleri.md` okundu: tek kural evi (kopya yok), kapanışın yeniden açılması sonuçları, ikinci yazma yolu (stoğa ekleme sonrası çift dönüş yok) testli.
+- **PR:** #507
+- **Post-merge run'lar:** squash `29d3ce6` (#507) — CI 42712574041 success, Publish 42712573916 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

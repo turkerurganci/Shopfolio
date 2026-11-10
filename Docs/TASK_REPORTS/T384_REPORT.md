@@ -1,6 +1,6 @@
 # T384 — Dışa aktarma: sipariş CSV (fatura verisi), üye ve iletişim talebi listesi, işlem izine yazım, imha edilmiş siparişin boş sütunları
 
-**Faz:** F3 | **Durum:** ✓ Doğrulama tur 2 PASS | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-09
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -115,8 +115,9 @@ Ordering (`OrderExport.cs`, `OrderingModule.cs`), Payment (`ListLatePaymentsAsyn
 ## Commit & PR
 
 - **Branch:** `task/T384-disa-aktarma`
-- **PR:** *(PR açılınca)*
+- **PR:** #502
 - **CI:** *(yönetici izler)*
+- **Post-merge run'lar:** squash `5352fad` (#502) — CI 42659142242 success, Publish 42659142166 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

@@ -94,7 +94,7 @@ public sealed class CacheSourceScanTests
 
     // 09 20 item 9: "a static dictionary" - a static field whose declared type is a mutable collection can gather values at run time, so it is a
     // cache with no invalidation rule. A new static lookup table is declared read-only (IReadOnlyDictionary, FrozenDictionary, FrozenSet). The fields
-    // that stand before this rule are named one by one, each a full name: the lookup tables are filled once from constants in their initializer and
+    // that stand before this rule are named one by one, each a full name: the lookup tables are filled once - in their initializer or static constructor, from constants or by reflection (FieldMessageCatalog adds a row in its static constructor, ProductConstantNameGuard reads names by reflection) - and
     // never written after, and LockSequence's table holds the lock state of a live context, not a value read from the database. A field that is not
     // in this list goes red, and so does a listed one that is gone (the list does not outlive its field).
     private static readonly string[] StaticCollectionsBeforeTheRule =
@@ -307,6 +307,24 @@ public sealed class CacheSourceScanTests
                 "Shopfolio.Modules.Catalog.ForbiddenStaticCaches._weak",
             ],
             fields);
+    }
+
+    // 09 20 item 9 (D-158 (b)): a static field that is not read-only can hold a value set at run time (static Foo? _cached; _cached ??= ...),
+    // whatever its type. Every static field of the application is a constant or read-only; compiler-generated and generated-code types are not looked at.
+    [Fact]
+    public void EveryStaticFieldOfTheApplication_IsReadOnly()
+    {
+        List<string> writable = typeof(Program).Assembly.GetTypes()
+            .Where(t => !t.IsDefined(typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute), inherit: false)
+                && !t.IsDefined(typeof(System.CodeDom.Compiler.GeneratedCodeAttribute), inherit: false))
+            .SelectMany(t => t.GetFields(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public
+                    | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.DeclaredOnly)
+                .Where(f => !f.IsLiteral && !f.IsInitOnly)
+                .Select(f => $"{t.FullName}.{f.Name}"))
+            .Order(StringComparer.Ordinal)
+            .ToList();
+
+        Assert.Empty(writable);
     }
 
     private static readonly System.Type[] MutableCollections =

@@ -1,6 +1,6 @@
 # T339 — Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL; düzeltme 1 yapıldı — doğrulama tur 2 bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-07
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -125,7 +125,7 @@
 - **Commit:** `e950c0c` — T339: Ürün görseli ve metni: rapor, K-1577, backlog D-357..D-361, durum kayıtları (PR kaydı sonrası commit ile ilerler)
 - **PR:** #445
 - **CI:** *(yönetici izler)*
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `9bb46eb` (#445) — CI 42423723835 success, Publish 42423723933 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

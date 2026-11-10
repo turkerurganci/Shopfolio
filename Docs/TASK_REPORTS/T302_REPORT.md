@@ -117,7 +117,7 @@
 - **Commit:** PR başlığında; head SHA PR'da
 - **PR:** #446
 - **CI:** doğrulayıcı izler
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası)*
+- **Post-merge run'lar:** squash `bcb856d` (#446) — CI 42436765868 success, Publish 42436765863 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

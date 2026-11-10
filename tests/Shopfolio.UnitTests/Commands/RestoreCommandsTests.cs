@@ -30,7 +30,7 @@ public sealed partial class RestoreCommandsTests : IDisposable
         "custom_pages", "customers", "data_protection_keys", "digital_files", "discounts", "disposal_records", "faq_item_images", "faq_items", "heartbeat_records", "images", "jobs",
         "link_records", "login_records", "offering_images", "offering_products", "offerings", "option_values", "options", "outage_records", "pending_email_changes",
         "portfolio_item_images", "portfolio_item_products", "portfolio_items", "price_histories", "product_categories", "product_images", "products", "provinces",
-        "recognized_browser_marks", "refund_iban_requests", "refund_ibans", "sessions", "social_links", "stock_reservations", "variants",
+        "recognized_browser_marks", "sessions", "social_links", "stock_reservations", "variants",
     ];
 
     private readonly string _directory = Path.Combine(Path.GetTempPath(), "shopfolio-t388-" + Guid.NewGuid().ToString("N"));
@@ -201,11 +201,13 @@ public sealed partial class RestoreCommandsTests : IDisposable
         File.AppendAllText(path, "not json at all\n");
         File.AppendAllText(path, "{\"event\":\"InstantDeletion\",\"time\":\"2026-11-05T12:00:00.000Z\",\"kind\":\"CustomerAccount\"}\n");
         File.AppendAllText(path, "[1,2]\n");
+        File.AppendAllText(path, "{\"event\":\"InstantDeletion\",\"time\":123,\"kind\":\"CustomerAccount\",\"recordId\":\"" + Guid.NewGuid() + "\"}\n");
+        File.AppendAllText(path, "{\"event\":\"InstantDeletion\",\"time\":\"2026-11-05T12:00:00.000Z\",\"kind\":\"CustomerAccount\",\"recordId\":5}\n");
 
         InstantDeletionReading reading = InstantDeletionLog.Read(_directory, RestorePoint, RestorePoint.AddHours(3));
 
         Assert.Equal(kept, Assert.Single(reading.Entries).RecordId);
-        Assert.Equal(3, reading.UnreadableLines);
+        Assert.Equal(5, reading.UnreadableLines);
     }
 
     [Fact]

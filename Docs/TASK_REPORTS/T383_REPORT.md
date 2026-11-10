@@ -1,6 +1,6 @@
 # T383 — Satış özeti ve ölçüler: dönem seçimi, ciro, sayılar, dört mağaza ölçüsü, sıfır payda, tepe gün sayısı
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (düzeltme 1 yapıldı, doğrulama tur 2 bekliyor) | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -145,7 +145,7 @@
 - **Commit:** `8aabbf28` — T383: Satış özeti ve ölçüler (rapor güncellemesi bir sonraki commit)
 - **PR:** #503
 - **CI:** doğrulayıcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `64d0e44` (#503) — CI 42680032675 success, Publish 42680031920 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

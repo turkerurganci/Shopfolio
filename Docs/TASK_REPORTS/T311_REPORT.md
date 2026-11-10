@@ -183,7 +183,7 @@ KP-15'in öteki satırları (B008–B012, C001, C002, A053, D003, D004) ve D081,
 - **Commit:** dalın son commit'i (PR head)
 - **PR:** #456
 - **CI:** *(yardımcı izler)*
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `4c04922` (#456) — CI 42506023800 success, Publish 42506023683 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

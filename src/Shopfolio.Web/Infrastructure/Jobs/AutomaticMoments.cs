@@ -36,8 +36,8 @@ internal static class AutomaticMoments
             "Shopfolio.Modules.Ordering.OrderTransitions.EvaluateClosureAsync",
         ]),
         new("4.2.5", "Return", [
-            "Shopfolio.Modules.AfterSales.Return.ForWithdrawal",
-            "Shopfolio.Modules.AfterSales.Return.StockAddedAt",
+            "Shopfolio.Modules.Ordering.OrderTransitions.AddReturnedStockAsync",
+            "Shopfolio.Modules.Ordering.OrderCounters.ReturnAsync",
         ]),
         new("4.2.6", "Partial cancellation and return", [
             "Shopfolio.Modules.AfterSales.AfterSalesModule.IsShippingFeeIncludedAsync",

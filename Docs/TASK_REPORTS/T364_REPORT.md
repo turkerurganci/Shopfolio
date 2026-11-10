@@ -1,6 +1,6 @@
 # T364 — Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler
 
-**Faz:** F3 | **Durum:** ✓ PASS (doğrulama tur 2) | **Tarih:** 2026-11-10
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-10
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -173,7 +173,7 @@ Eşzamanlılığın mekanizması (`RecordSave`, `OrderLocks`, `ShownVersion`, `V
 - **Commit:** `db5995dc` — T364: Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler (+ bu rapor satırı)
 - **PR:** #511
 - **CI:** 42739621625 (head `b5c6c4e4`) — Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E, CI Gate yeşil
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `98c2406` (#511) — CI 42752063845 success, Publish 42752063690 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

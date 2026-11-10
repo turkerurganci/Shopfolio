@@ -132,7 +132,7 @@ Not: `StoredPhone` taşıması son testlerden sonra yapıldı (davranış aynı,
 - **Commit:** (PR açılışında head SHA: yardımcıya dönüş mesajında)
 - **PR:** #449
 - **CI:** yardımcı yürütür (işçi CI yoklamaz)
-- **Post-merge run'lar:** *(merge sonrası yardımcı; bu commit'e giremez)*
+- **Post-merge run'lar:** squash `b345583` (#449) — CI 42445081132 success, Publish 42445081110 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

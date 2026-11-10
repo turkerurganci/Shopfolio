@@ -86,6 +86,8 @@ Not: `CheckAsync` yazıcının işlem içinde, sipariş satır kilidinden sonra 
 
 - **Branch:** `task/T323-durum-rol-islem`
 - **Main CI:** son 3 koşu başarılı (`gh run list --branch main --limit 3`, head `a71c6f02`)
+- **PR:** #474
+- **Post-merge run'lar:** squash `48dadb9` (#474) — CI 42518519754 success, Publish 42518519762 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

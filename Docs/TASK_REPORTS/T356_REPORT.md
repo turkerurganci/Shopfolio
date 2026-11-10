@@ -121,9 +121,9 @@
 
 - **Branch:** `task/T356-onay-adimi`
 - **Commit:** son head PR'da
-- **PR:** açıldı (bu PR)
+- **PR:** #486
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `2cc3824` (#486) — CI 42558302344 success, Publish 42558302378 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

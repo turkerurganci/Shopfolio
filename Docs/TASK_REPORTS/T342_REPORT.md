@@ -1,6 +1,6 @@
 # T342 — Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri
 
-**Faz:** F3 | **Durum:** ✗ doğrulama tur 2 FAIL (tur 1 Bulgu 1 kapandı; tur 2 Bulgu 1–2 açık) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 3 PASS) | **Tarih:** 2026-11-08
 
 ---
 
@@ -173,7 +173,7 @@ KK2 ve `09 §25` eşzamanlılık satırı ✗; KK1, KK3–KK9, tek işlev, kayna
 - **Commit:** son head PR açıklamasında
 - **PR:** #453
 - **CI:** yönetici izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `02ec535` (#453) — CI 42475025461 success, Publish 42475025470 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

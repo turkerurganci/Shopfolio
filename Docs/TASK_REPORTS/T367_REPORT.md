@@ -103,7 +103,7 @@
 - **Commit:** son commit — "T367: Müşteri iptali: kalem ve adet düzeyi, kargoya verilene kadar, dijital ve hizmet sınırı, sayaçların dönmesi, kısmi iptalde kupon"
 - **PR:** #494
 - **CI:** run 42588669661 (head `5e076701`) — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate yeşil
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `c5d3a58` (#494) — CI 42596386862 success, Publish 42596386708 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

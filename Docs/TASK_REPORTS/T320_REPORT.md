@@ -127,7 +127,7 @@ Sayılar `origin/main` `02ec5357` (T342) birleştirmesinden sonraki ağaçtır.
 - **Commit:** `5ddba78c` (tümleşik testler), `3f8f123b` (test düzenleri), `7fedd066` (backlog, STATUS), `e559b60e` (yük örneği testi); main birleştirmesi, saat sahtesi/ihlal örneği ve rapor/kayıt commit'leri bu dalda
 - **PR:** #466
 - **CI:** *(yönetici izler)*
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
+- **Post-merge run'lar:** squash `643bb0d` (#466) — CI 42492032713 success, Publish 42492032672 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

@@ -23,8 +23,8 @@ internal sealed record RollbackCount(bool CommitMomentsRecorded, IReadOnlyList<R
 /// </summary>
 internal sealed class RollbackAudit
 {
-    // The tables of 02 3.34.8 (the 06 map row of that rule) with the rows that hang on them: the order and its items, the item-level records, the payments and refunds and the transition
-    // record, the contact requests, the frozen legal text versions, the checkbox acceptances, the order's histories and internal notes, the sent record of the order's notices, the
+    // The tables of 02 3.34.8 (the 06 map row of that rule) with the rows that hang on them: the order and its items, the item-level records and the refund IBANs with their requests
+    // (05 8.5.11: the IBAN's deletion is an order-side deletion, and the links it empties count), the payments and refunds and the transition record, the contact requests, the frozen legal text versions, the checkbox acceptances, the order's histories and internal notes, the sent record of the order's notices, the
     // operation trail and the inbound notification record. Never a table of the catalog, the content, the settings or the accounts: those writes go back with the restore (05 8.7.4).
     // The sent record counts only rows that belong to an order (Z-43; K-983): the account e-mails' rows are not the order side.
     private static readonly (string Table, string Filter)[] _tables =
@@ -39,6 +39,8 @@ internal sealed class RollbackAudit
         ("return_rejections", string.Empty),
         ("not_returned_closures", string.Empty),
         ("defect_claims", string.Empty),
+        ("refund_iban_requests", string.Empty),
+        ("refund_ibans", string.Empty),
         ("payment_records", string.Empty),
         ("refunds", string.Empty),
         ("refund_records", string.Empty),

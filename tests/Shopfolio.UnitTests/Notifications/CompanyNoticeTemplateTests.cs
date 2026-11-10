@@ -455,7 +455,6 @@ public sealed class CompanyNoticeTemplateTests
             Assert.Equal(DispatchState.Undelivered, row.DispatchState);
             Assert.Null(row.OrderId);
             Assert.False(RecipientSendLimit.TakesPart(row.DispatchType, row.OrderId));
-            Assert.False(DispatchMarks.HasMark([]));
         }
     }
 

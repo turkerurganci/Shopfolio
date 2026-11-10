@@ -221,7 +221,7 @@ Yok. (Dosya silme ile ürünü yayına alma arasındaki kilitsiz yarış yapımd
 - **Commit:** son head SHA PR gövdesinde
 - **PR:** #447
 - **CI:** yöneticide (yapım işçisi CI izlemez)
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
+- **Post-merge run'lar:** squash `637885c` (#447) — CI 42464077701 success, Publish 42464077677 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

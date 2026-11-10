@@ -138,7 +138,7 @@ Birleşik ağaç (bu dal + `origin/main` `64d0e44a`, düzeltmeden sonra):
 - **Commit:** önceki işçilerin ara kayıtları, `51ae72f3` (gecikme feshi testleri), `origin/main` birleştirmesi, rapor commit'i
 - **PR:** #506
 - **CI:** head `6a9ed6b1` run 42672074277 işsiz `failure` (altyapı; ayrıntı Doğrulama'da); kayıt commit'inin run'ı merge'den önce okunur
-- **Post-merge run'lar:**
+- **Post-merge run'lar:** squash `338279e` (#506) — CI 42691939512 success, Publish 42691939453 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

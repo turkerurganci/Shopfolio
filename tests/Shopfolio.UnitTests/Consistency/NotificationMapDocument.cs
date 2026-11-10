@@ -12,6 +12,8 @@ internal sealed record DocumentRow(string Id, IReadOnlyList<string> Cells);
 /// <summary>
 /// Reads the notification map out of 03 (T328; 03 7.1, 7.2, 7.3) and the notice cells of the flow tables (03 1, 2, 3, 4, 5, 6, 8, 9, 10): the document side of the
 /// two-way comparison with <see cref="NotificationMap"/> (09 21.4 item 1). Reads <c>Docs/03_USER_FLOWS.md</c> only; nothing is written.
+/// The 7.3 rows and the flow cells carry no account e-mail code today, so the "Bildirim" column of 7.3 is not compared with its "Satırlar"; the change that writes
+/// such a code into 7.3 or a flow cell adds that subset check here (D-296).
 /// </summary>
 internal static partial class NotificationMapDocument
 {

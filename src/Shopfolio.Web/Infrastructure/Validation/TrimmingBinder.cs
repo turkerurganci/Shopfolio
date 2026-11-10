@@ -63,6 +63,15 @@ internal sealed class TrimmingBinderProvider : IModelBinderProvider
             return null;
         }
 
+        // Only a value read from the value providers (form, query, route) is trimmed; a header, a body or a service keeps the framework's own
+        // binder, which would otherwise be replaced and bind nothing (D-126).
+        BindingSource? source = context.BindingInfo.BindingSource;
+        if (source is not null && source != BindingSource.Form && source != BindingSource.Query && source != BindingSource.Path
+            && source != BindingSource.ModelBinding)
+        {
+            return null;
+        }
+
         return new TrimmingBinder(!IsKeptAsTyped(context.Metadata));
     }
 

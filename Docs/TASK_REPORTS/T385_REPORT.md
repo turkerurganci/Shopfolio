@@ -97,7 +97,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T385-gonderim-yeniden-deneme`
-- **PR:** yapım sonrası açıldı (no dönüş mesajında)
+- **PR:** #512
+- **Post-merge run'lar:** squash `ad7b10e` (#512) — CI 42760836314 success, Publish 42760836228 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

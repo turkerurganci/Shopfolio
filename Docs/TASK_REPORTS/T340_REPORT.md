@@ -147,7 +147,7 @@ Bloke eden bulgu yok.
 - **Commit:** `ce0707b` — T340: Dijital ürün: indirme hakkı, hak yenileme, yeniden satın alma kontrolü, testler ve kayıtlar
 - **PR:** #462
 - **CI:** yönetici izler
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
+- **Post-merge run'lar:** squash `f789886` (#462) — CI 42477763780 success, Publish 42477763792 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

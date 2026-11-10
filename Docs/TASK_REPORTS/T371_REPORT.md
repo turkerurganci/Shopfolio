@@ -100,7 +100,7 @@
 - **Commit:** `d070a34c` — T371: Cayma hakkı: pencere, dijital ve hizmet istisnası, ürün istisna işareti, tek rejim
 - **PR:** #488
 - **CI:** run 42562463736 (`d1a42218`) tüm işler pass
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
+- **Post-merge run'lar:** squash `f7d2feb` (#488) — CI 42567222932 success, Publish 42567222878 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

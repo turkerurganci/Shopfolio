@@ -75,6 +75,8 @@ public sealed class ModelBindingRuleTests
             "TimeBound:TimedInput.Rows.Days:DateTime",
             "FloatBound:FloatQuery.Rate:Double",
             "FloatBound:FloatQuery.Weight:Single",
+            "OtherNumberBound:OtherNumberQuery.Count:Int16",
+            "TimeBound:OtherNumberQuery.Span:TimeSpan",
             "DecimalWithoutRule:UnruledAmountInput.Deposit:Decimal",
             "DecimalWithoutRule:UnruledAmountInput.Portion:Decimal",
             "DecimalWithoutRule:UnruledAmountInput.Rows.Fee:Decimal",

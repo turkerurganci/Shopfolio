@@ -161,7 +161,7 @@ Bulgu yok.
 - **Branch:** `task/T344-adres`
 - **PR:** #451
 - **CI:** doğrulayıcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `4ff04bc` (#451) — CI 42456150062 success, Publish 42456150065 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

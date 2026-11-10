@@ -75,7 +75,9 @@ internal static class RequestFormat
     public static bool TryParseWholeNumber(string? value, out long result)
     {
         result = 0;
-        return !string.IsNullOrEmpty(value) && long.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out result);
+        // The framework's parser ignores trailing NUL characters ("12\0" reads 12): every character must be an ASCII digit (D-150).
+        return !string.IsNullOrEmpty(value) && value.All(char.IsAsciiDigit)
+            && long.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out result);
     }
 
     /// <summary>The text a form field shows for an amount or a decimal number (04 8.2.3): no group separator, the comma as the decimal separator.</summary>

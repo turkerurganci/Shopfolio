@@ -1,6 +1,6 @@
 using Shopfolio.Infrastructure.StartupDatabase;
 
-namespace Shopfolio.UnitTests.InstallationSettings;
+namespace Shopfolio.UnitTests.StartupDatabase;
 
 /// <summary>
 /// The database side of the start-up check as a pure function (T205; 06 8.2.1): what it reports for what the context found. The records are

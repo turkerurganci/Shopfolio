@@ -17,7 +17,6 @@ using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.LogRead;
-using Shopfolio.Infrastructure.SearchEngine;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Status;
 using Shopfolio.Modules.Administration;

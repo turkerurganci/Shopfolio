@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — chore: "Son güncelleme" satırını yalnız birleştiren taraf (faz kapısı kayıt PR'ı, chore/kayıt PR'ı) günceller; task, düzeltme ve doğrulama commit'leri bu satıra dokunmaz, olayı `STATUS_CHANGELOG.md`'nin en üstüne ve task'ın tablo satırına yazar; main birleştirmesinde bu satır çakışırsa main sürümü alınır, dalın girişi changelog'a taşınır.
+**Son güncelleme:** 2026-11-10 — F3 (İş mantığı) faz kapısı ✓ PASS (`chore: F3 gate check PASS`): 90/90 task; Unit 5791, Integration 3487, Release 0 uyarı; `12 §6.2` F3 B ve C ✓; backlog 105 kalem karara bağlandı (73 ✅, 32 yeniden hedef; yeni F4 task'ları T411, T412 ve T601b); aktif kalem 285; ayrıntı [GATE_CHECK_F3](CHECKPOINT_REPORTS/GATE_CHECK_F3.md) ve `STATUS_CHANGELOG.md`.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -33,10 +33,10 @@
 | F0 | Proje iskeleti | `T01`–`T10` (10) | ✓ PASS | `phase/F0-pass` | [GATE_CHECK_F0](CHECKPOINT_REPORTS/GATE_CHECK_F0.md) |
 | F1 | Veri katmanı | `T101`–`T120` (20) | ✓ PASS | `phase/F1-pass` | [GATE_CHECK_F1](CHECKPOINT_REPORTS/GATE_CHECK_F1.md) |
 | F2 | Çekirdek servisler | `T201`–`T233` (33) | ✓ PASS | `phase/F2-pass` | [GATE_CHECK_F2](CHECKPOINT_REPORTS/GATE_CHECK_F2.md) |
-| F3 | İş mantığı | `T301`–`T390` (90) | ⬚ | — | |
-| F4 | Entegrasyonlar | `T401`–`T410` (10) | ⬚ | — | |
+| F3 | İş mantığı | `T301`–`T390` (90) | ✓ PASS | `phase/F3-pass` | [GATE_CHECK_F3](CHECKPOINT_REPORTS/GATE_CHECK_F3.md) |
+| F4 | Entegrasyonlar | `T401`–`T412` (12) | ⬚ | — | |
 | F5 | Kullanıcı arayüzü | `T501`–`T549` (49) | ⬚ | — | |
-| F6 | Uçtan uca doğrulama | `T601`–`T603` (3) | ⬚ | — | |
+| F6 | Uçtan uca doğrulama | `T601`–`T603`, `T601b` (4) | ⬚ | — | |
 
 ---
 
@@ -142,8 +142,8 @@
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
 | T301 | Siparişin imha parçası | ✓ | ✓ PASS (tur 1) | `a3c9d1a` | #431 |
-| T302 | Öteki kayıtların süreyle imhası | ✓ | ✓ PASS (tur 1) | — | #446 |
-| T303 | İlk yönetici yönetim komutu ve komut çatısı | ✓ | ✓ PASS (tur 1) | — | #469 |
+| T302 | Öteki kayıtların süreyle imhası | ✓ | ✓ PASS (tur 1) | `bcb856d` | #446 |
+| T303 | İlk yönetici yönetim komutu ve komut çatısı | ✓ | ✓ PASS (tur 1) | `f160376` | #469 |
 | T304 | Alıcı başına bildirim gönderim sınırı | ✓ | ✓ PASS (tur 1) | `268ab8d` | #421 |
 | T305 | E-posta ortak kalıbı ve gövde üretimi | ✓ | ✓ PASS (tur 1) | `7cc0db5` | #422 |
 | T306 | Müşteri bildirimleri B-1…B-8 | ✓ | ✓ PASS (tur 3) | `9e3f8c3` | #427 |
@@ -151,86 +151,86 @@
 | T308 | Firma bildirimleri F-1…F-6 | ✓ | ✓ PASS (tur 1) | `ad8c48d` | #424 |
 | T309 | Hesap ve yönetim e-postaları | ✓ | ✓ PASS (tur 1) | `987e438` | #429 |
 | T310 | Kargo şirketi listesi ve takip bağlantısı kalıpları | ✓ | ✓ PASS (tur 1) | `e177fd4` | #423 |
-| T311 | Ödeme sağlayıcısının bildirim ucu: imza, alan eşlemesi ve durum makinesine aktarım | ✓ | ✓ PASS (tur 1) | — | #456 |
+| T311 | Ödeme sağlayıcısının bildirim ucu: imza, alan eşlemesi ve durum makinesine aktarım | ✓ | ✓ PASS (tur 1) | `4c04922` | #456 |
 | T312 | Dosya uçları: imzalı indirme ucu ve parçalı yükleme ucu | ✓ | ✓ PASS (tur 1) | `1112ca6` | #426 |
 | T313 | Site haritası ve robots.txt | ✓ | ✓ PASS (tur 1) | `f94b4d8` | #417 |
 | T314 | Durum ucu: uyarı koşulları ve 500 sayacı | ✓ | ✓ PASS (tur 1) | `335e9cb` | #418 |
 | T315 | Durum makinesi çekirdeği: envanter, geçiş tablosu ve kimlikleri, durum makinesi olmayan varlıkların sınırı | ✓ | ✓ PASS (tur 1) | `8caf0f0` | #434 |
 | T316 | Sipariş durumu geçişleri: sevkiyat ekseni | ✓ | ✓ PASS (tur 2) | `924ef92` | #437 |
-| T317 | Ödeme durumu geçişleri: ödeme ekseni | ✓ | ✓ PASS (tur 3) | — | #441 |
-| T318 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | ✓ | ✓ PASS (tur 2) | — | #455 |
-| T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ✓ | ✓ PASS (tur 1) | — | #465 |
-| T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ✓ | ✓ PASS (tur 2) | — | #466 |
+| T317 | Ödeme durumu geçişleri: ödeme ekseni | ✓ | ✓ PASS (tur 3) | `7097c01` | #441 |
+| T318 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | ✓ | ✓ PASS (tur 2) | `6cce816` | #455 |
+| T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ✓ | ✓ PASS (tur 1) | `02a79bd` | #465 |
+| T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ✓ | ✓ PASS (tur 2) | `643bb0d` | #466 |
 | T321 | Ürün yayın durumları | ✓ | ✓ PASS (tur 3) | `a89710b` | #439 |
 | T322 | İçerik yayın durumları ve iletişim talebi durumları | ✓ | ✓ PASS (tur 1) | `f9ea0fe` | #438 |
-| T323 | Durum × rol × işlem tablosu | ✓ | ✓ PASS (tur 2) | — | #474 |
-| T324 | Zaman aşımı akışları: hesap, oturum, sepet ve ödeme süreleri | ✓ | ✓ PASS (tur 1) | — | #454 |
-| T325 | Zaman aşımı akışları: teslim, cayma, geri ödeme ve ayıp talebi süreleri | ✓ | ✓ PASS (tur 1) | — | #464 |
-| T326 | Zaman aşımı akışları: katalog, kupon, içerik, iletişim ve bildirim süreleri | ✓ | ✓ PASS (tur 1) | — | #471 |
-| T327 | Kendiliğinden işleyen anlar ve sitenin kesintisinde süreler | ✓ | ✓ PASS (tur 1) | — | #480 |
+| T323 | Durum × rol × işlem tablosu | ✓ | ✓ PASS (tur 2) | `48dadb9` | #474 |
+| T324 | Zaman aşımı akışları: hesap, oturum, sepet ve ödeme süreleri | ✓ | ✓ PASS (tur 1) | `e7f6ba0` | #454 |
+| T325 | Zaman aşımı akışları: teslim, cayma, geri ödeme ve ayıp talebi süreleri | ✓ | ✓ PASS (tur 1) | `0a66996` | #464 |
+| T326 | Zaman aşımı akışları: katalog, kupon, içerik, iletişim ve bildirim süreleri | ✓ | ✓ PASS (tur 1) | `8319aa5` | #471 |
+| T327 | Kendiliğinden işleyen anlar ve sitenin kesintisinde süreler | ✓ | ✓ PASS (tur 1) | `d0c97cf` | #480 |
 | T328 | Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi | ✓ | ✓ PASS (tur 1) | `fe78e7b` | #440 |
-| T329 | İlk uçtan uca akış testi: ürün, sepet, sipariş, sahte ödeme sonucu, kargo, teslim (servis düzeyi) | ✓ | ✓ PASS (tur 1) | — | #499 |
+| T329 | İlk uçtan uca akış testi: ürün, sepet, sipariş, sahte ödeme sonucu, kargo, teslim (servis düzeyi) | ✓ | ✓ PASS (tur 1) | `357f5ba` | #499 |
 | T330 | Firma kimliği: tek firma, tip ve tipe göre zorunlu alanlar, yasal kimlik bilgilerinin erişilebilirliği, iade adresi | ✓ | ✓ PASS (tur 1) | `4924037` | #420 |
 | T331 | Satış kapısı: dört koşul, veri toplayan girişlerin kapısı, satışın geçici kapatılması | ✓ | ✓ PASS (tur 1) | `eb91975` | #425 |
 | T332 | Satış modeli, ürün tipleri, ürün–varyant–seçenek yapısı ve stok kodu | ✓ | ✓ PASS (tur 1) | `c4c872c` | #432 |
-| T333 | Kategori ağacı, site içi arama ve liste süzgeçleri | ✓ | ✓ PASS (tur 4) | — | #442 |
-| T334 | Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme | ✓ | ✓ PASS (tur 1) | — | #443 |
-| T335 | Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı | ✓ | ✓ PASS (tur 1) | — | #447 |
-| T336 | Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri | ✓ | ✓ PASS (tur 4) | — | #444 |
-| T337 | İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar | ✓ | ✓ PASS (tur 1) | — | #457 |
-| T338 | Kupon: tanım, kalem payı, sınırlar, kullanım hakkının ayrılması | ✓ | ✓ PASS (tur 1) | — | #458 |
-| T339 | Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti | ✓ | ✓ PASS (tur 2) | — | #445 |
-| T340 | Dijital ürün: dosya, indirme hakkı, hak yenileme, yeniden satın alma | ✓ | ✓ PASS (tur 1) | — | #462 |
-| T341 | Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı | ✓ | ✓ PASS (tur 3) | — | #433 |
-| T342 | Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri | ✓ | ✓ PASS (tur 3) | — | #453 |
-| T343 | Google ile giriş ve hesap bağlama, e-posta değişikliği ve geri alma | ✓ | ✓ PASS (tur 1) | — | #468 |
-| T344 | Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma | ✓ | ✓ PASS (tur 1) | — | #451 |
-| T345 | Hesabın silinmesi ve kişisel veri başvurusu | ✓ | ✓ PASS (tur 2) | — | #477 |
-| T346 | Sepet: sahiplik, giriş anında birleşme, canlı kalem, siparişe girmeyen kalemler | ✓ | ✓ PASS (tur 2) | — | #467 |
-| T347 | Sepet adet kuralları: stok ve sipariş başına sınır, boşalma, istek listesi yokluğu | ✓ | ✓ PASS (tur 1) | — | #475 |
-| T348 | Sipariş onayı: oluşma anı, özet eşitliği, stok ayırma, ödeme süresi, kendiliğinden iptal | ✓ | ✓ PASS (tur 2) | — | #489 |
-| T349 | Asgari sipariş tutarı, kargo ücreti ve ücretsiz kargo eşiği | ✓ | ✓ PASS (tur 2) | — | #476 |
-| T350 | Teslim: il kısıtı, tek yol, kargoya verme süresi ve sözü, kargoya verildi işareti, kargo şirketi | ✓ | ✓ PASS (tur 1) | — | #460 |
-| T351 | Teslim işaretleri: kalem tipine göre teslim, karışık sipariş, fiziksel teslim tarihi | ✓ | ✓ PASS (tur 1) | — | #478 |
-| T352 | Ödeme: satıcı ve kart verisi, iki yöntem, 3D Secure, taksit, ters ibraz | ✓ | ✓ PASS (tur 1) | — | #491 |
-| T353 | Havale/EFT: IBAN ve siparişe donması, ödendi işareti, hatırlatma, süresi dolmuş sipariş | ✓ | ✓ PASS (tur 2) | — | #500 |
-| T354 | Sipariş numarası ve takip erişimi: numara, üç giriş yolu, erişim anahtarı | ✓ | ✓ PASS (tur 4) | — | #470 |
-| T355 | Sipariş anında donan değerler | ✓ | ✓ PASS (tur 1) | — | #484 |
-| T356 | Onay adımı: onay kutuları, Ön Bilgilendirme Formu içeriği, işlem rehberi | ✓ | ✓ PASS (tur 2) | — | #486 |
-| T357 | Fatura verisi ve dışa aktarmada donmuş kimlik | ✓ | ✓ PASS (tur 1) | — | #485 |
-| T358 | Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar | ✓ | ✓ PASS (tur 1) | — | #449 |
-| T359 | Kurumsal içerik: ürün bağı, elle sıralama, zorunlu alanlar, alan tavanları, kapsam dışı yetenekler | ✓ | ✓ PASS (tur 3) | — | #479 |
-| T360 | Duyuru şeridi, boş kurulum, içerik yayın durumu, önizleme ve silme | ✓ | ✓ PASS (tur 1) | — | #481 |
-| T361 | Ana sayfa düzeni ve üst menü | ✓ | ✓ PASS (tur 2) | — | #461 |
-| T362 | Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası | ✓ | ✓ PASS (tur 2) | — | #448 |
-| T363 | Sayfa adresleri, arama motoru bilgileri, kapalı sayfalar ve paylaşım | ✓ | ✓ PASS (tur 1) | — | #482 |
-| T364 | Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler | ✓ | ✓ PASS (tur 2) | — | #511 |
-| T365 | İletişim talebi: form, konu tipi, durumlar, saklama, istenmeyen ileti koruması | ✓ | ✓ PASS (tur 1) | — | #496 |
+| T333 | Kategori ağacı, site içi arama ve liste süzgeçleri | ✓ | ✓ PASS (tur 4) | `cfe924e` | #442 |
+| T334 | Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme | ✓ | ✓ PASS (tur 1) | `af6e7d3` | #443 |
+| T335 | Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı | ✓ | ✓ PASS (tur 1) | `637885c` | #447 |
+| T336 | Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri | ✓ | ✓ PASS (tur 4) | `cca21e4` | #444 |
+| T337 | İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar | ✓ | ✓ PASS (tur 1) | `05705ee` | #457 |
+| T338 | Kupon: tanım, kalem payı, sınırlar, kullanım hakkının ayrılması | ✓ | ✓ PASS (tur 1) | `4ad40fa` | #458 |
+| T339 | Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti | ✓ | ✓ PASS (tur 2) | `9bb46eb` | #445 |
+| T340 | Dijital ürün: dosya, indirme hakkı, hak yenileme, yeniden satın alma | ✓ | ✓ PASS (tur 1) | `f789886` | #462 |
+| T341 | Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı | ✓ | ✓ PASS (tur 3) | `e2e9dbc` | #433 |
+| T342 | Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri | ✓ | ✓ PASS (tur 3) | `02ec535` | #453 |
+| T343 | Google ile giriş ve hesap bağlama, e-posta değişikliği ve geri alma | ✓ | ✓ PASS (tur 1) | `169c3cd` | #468 |
+| T344 | Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma | ✓ | ✓ PASS (tur 1) | `4ff04bc` | #451 |
+| T345 | Hesabın silinmesi ve kişisel veri başvurusu | ✓ | ✓ PASS (tur 2) | `7ee29b2` | #477 |
+| T346 | Sepet: sahiplik, giriş anında birleşme, canlı kalem, siparişe girmeyen kalemler | ✓ | ✓ PASS (tur 2) | `a71c6f0` | #467 |
+| T347 | Sepet adet kuralları: stok ve sipariş başına sınır, boşalma, istek listesi yokluğu | ✓ | ✓ PASS (tur 1) | `8789b22` | #475 |
+| T348 | Sipariş onayı: oluşma anı, özet eşitliği, stok ayırma, ödeme süresi, kendiliğinden iptal | ✓ | ✓ PASS (tur 2) | `5f9b4c4` | #489 |
+| T349 | Asgari sipariş tutarı, kargo ücreti ve ücretsiz kargo eşiği | ✓ | ✓ PASS (tur 2) | `a504ff8` | #476 |
+| T350 | Teslim: il kısıtı, tek yol, kargoya verme süresi ve sözü, kargoya verildi işareti, kargo şirketi | ✓ | ✓ PASS (tur 1) | `0226a90` | #460 |
+| T351 | Teslim işaretleri: kalem tipine göre teslim, karışık sipariş, fiziksel teslim tarihi | ✓ | ✓ PASS (tur 1) | `03007b9` | #478 |
+| T352 | Ödeme: satıcı ve kart verisi, iki yöntem, 3D Secure, taksit, ters ibraz | ✓ | ✓ PASS (tur 1) | `30d43ba` | #491 |
+| T353 | Havale/EFT: IBAN ve siparişe donması, ödendi işareti, hatırlatma, süresi dolmuş sipariş | ✓ | ✓ PASS (tur 2) | `c5cd790` | #500 |
+| T354 | Sipariş numarası ve takip erişimi: numara, üç giriş yolu, erişim anahtarı | ✓ | ✓ PASS (tur 4) | `e3b34b7` | #470 |
+| T355 | Sipariş anında donan değerler | ✓ | ✓ PASS (tur 1) | `8772edb` | #484 |
+| T356 | Onay adımı: onay kutuları, Ön Bilgilendirme Formu içeriği, işlem rehberi | ✓ | ✓ PASS (tur 2) | `2cc3824` | #486 |
+| T357 | Fatura verisi ve dışa aktarmada donmuş kimlik | ✓ | ✓ PASS (tur 1) | `0203297` | #485 |
+| T358 | Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar | ✓ | ✓ PASS (tur 1) | `b345583` | #449 |
+| T359 | Kurumsal içerik: ürün bağı, elle sıralama, zorunlu alanlar, alan tavanları, kapsam dışı yetenekler | ✓ | ✓ PASS (tur 3) | `241f866` | #479 |
+| T360 | Duyuru şeridi, boş kurulum, içerik yayın durumu, önizleme ve silme | ✓ | ✓ PASS (tur 1) | `02d83f7` | #481 |
+| T361 | Ana sayfa düzeni ve üst menü | ✓ | ✓ PASS (tur 2) | `26fd3a9` | #461 |
+| T362 | Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası | ✓ | ✓ PASS (tur 2) | `b7358b7` | #448 |
+| T363 | Sayfa adresleri, arama motoru bilgileri, kapalı sayfalar ve paylaşım | ✓ | ✓ PASS (tur 1) | `b19308d` | #482 |
+| T364 | Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler | ✓ | ✓ PASS (tur 2) | `98c2406` | #511 |
+| T365 | İletişim talebi: form, konu tipi, durumlar, saklama, istenmeyen ileti koruması | ✓ | ✓ PASS (tur 1) | `824662a` | #496 |
 | T366 | Yasal metinler: dört metin, sürüm, bağlantılar, e-postada tam metin | ✓ | ✓ PASS (tur 2) | `11c68fb` | #428 |
-| T367 | Müşteri iptali: kalem ve adet düzeyi, kargoya verilene kadar, dijital ve hizmet sınırı, sayaçların dönmesi, kısmi iptalde kupon | ✓ | ✓ PASS (tur 1) | — | #494 |
-| T368 | Gecikme feshi ve firma iptali: iki fesih yolu, kanuni faiz uyarısı, kapalı sebep listesi, ifanın imkânsızlaşması bildirimi | ✓ | ✓ PASS (tur 1) | — | #498 |
-| T369 | İşlemin adet birimi ve geri ödeme tutarı: açık adet, kupon payı, KDV, kargo ücretinin iptalde ve caymada ayrılması | ✓ | ✓ PASS (tur 1) | — | #501 |
-| T370 | Geri ödeme hattı: ödemenin geldiği yol, kart ve havale, IBAN'ın ömrü, geri ödeme süresi, kart iadesi hataları | ✓ | ✓ PASS (tur 2) | — | #506 |
-| T371 | Cayma hakkı: pencere, dijital ve hizmet istisnası, ürün istisna işareti, tek rejim | ✓ | ✓ PASS (tur 1) | — | #488 |
-| T372 | Cayma beyanı: sipariş sayfasından ve başka kanaldan, beyanın etkisi, kargoya verilmemiş kalemde iptal yolu, firmanın teyidi | ✓ | ✓ PASS (tur 3) | — | #492 |
-| T373 | İade: iade kargo bedeli, ödemeli gönderim ve iade adresi, teslim alma adımı, stoğa ekleme, koşullu istisnada ret, kullanılmış mal | ✓ | ✓ PASS (tur 2) | — | #507 |
-| T374 | Ayıp talebi: kanal, iki yıllık süre, durumlar, çözüm, dijital dosya güncellemesi | ✓ | ✓ PASS (tur 2) | — | #504 |
-| T375 | Yöneticinin sipariş düzeltmeleri: ileri yönlü kayıt, tutar değişmez, firmanın teyidiyle e-posta ve adres düzeltmesi, cayma beyanı geri alınmaz | ✓ | ✓ PASS (tur 1) | — | #505 |
-| T376 | Deneme limitleri: dokuz limit, kayan pencere, hesap kilitlenmez, nötr mesaj | ✓ | ✓ PASS (tur 1) | — | #493 |
-| T377 | Limit ilkeleri: iki eksen, ödenmemiş sipariş sayımı, yönetici muafiyeti yok, tanınan tarayıcı işareti | ✓ | ✓ PASS (tur 1) | — | #497 |
+| T367 | Müşteri iptali: kalem ve adet düzeyi, kargoya verilene kadar, dijital ve hizmet sınırı, sayaçların dönmesi, kısmi iptalde kupon | ✓ | ✓ PASS (tur 1) | `c5d3a58` | #494 |
+| T368 | Gecikme feshi ve firma iptali: iki fesih yolu, kanuni faiz uyarısı, kapalı sebep listesi, ifanın imkânsızlaşması bildirimi | ✓ | ✓ PASS (tur 1) | `5e9f715` | #498 |
+| T369 | İşlemin adet birimi ve geri ödeme tutarı: açık adet, kupon payı, KDV, kargo ücretinin iptalde ve caymada ayrılması | ✓ | ✓ PASS (tur 1) | `8cd6652` | #501 |
+| T370 | Geri ödeme hattı: ödemenin geldiği yol, kart ve havale, IBAN'ın ömrü, geri ödeme süresi, kart iadesi hataları | ✓ | ✓ PASS (tur 2) | `338279e` | #506 |
+| T371 | Cayma hakkı: pencere, dijital ve hizmet istisnası, ürün istisna işareti, tek rejim | ✓ | ✓ PASS (tur 1) | `f7d2feb` | #488 |
+| T372 | Cayma beyanı: sipariş sayfasından ve başka kanaldan, beyanın etkisi, kargoya verilmemiş kalemde iptal yolu, firmanın teyidi | ✓ | ✓ PASS (tur 3) | `d5676e7` | #492 |
+| T373 | İade: iade kargo bedeli, ödemeli gönderim ve iade adresi, teslim alma adımı, stoğa ekleme, koşullu istisnada ret, kullanılmış mal | ✓ | ✓ PASS (tur 2) | `29d3ce6` | #507 |
+| T374 | Ayıp talebi: kanal, iki yıllık süre, durumlar, çözüm, dijital dosya güncellemesi | ✓ | ✓ PASS (tur 2) | `8914f1c` | #504 |
+| T375 | Yöneticinin sipariş düzeltmeleri: ileri yönlü kayıt, tutar değişmez, firmanın teyidiyle e-posta ve adres düzeltmesi, cayma beyanı geri alınmaz | ✓ | ✓ PASS (tur 1) | `d3ff0f8` | #505 |
+| T376 | Deneme limitleri: dokuz limit, kayan pencere, hesap kilitlenmez, nötr mesaj | ✓ | ✓ PASS (tur 1) | `2e55a22` | #493 |
+| T377 | Limit ilkeleri: iki eksen, ödenmemiş sipariş sayımı, yönetici muafiyeti yok, tanınan tarayıcı işareti | ✓ | ✓ PASS (tur 1) | `9d0d611` | #497 |
 | T378 | Zaman sayımı: tek saat dilimi, iş günü ve resmî tatil listesi, takvim ve iş günü sayımı, gün sonu, tarih aralığı, çitler | ✓ | ✓ PASS (tur 1) | `552a13d` | #416 |
-| T379 | Yönetici hesapları: ilk yönetici ve davet, kaldırma kuralları, tek rol, ayrı hesap türü, davetin geri çekilmesi, erişim kaybında kurtarma sınırı | ✓ | ✓ PASS (tur 2) | — | #473 |
+| T379 | Yönetici hesapları: ilk yönetici ve davet, kaldırma kuralları, tek rol, ayrı hesap türü, davetin geri çekilmesi, erişim kaybında kurtarma sınırı | ✓ | ✓ PASS (tur 2) | `02feaca` | #473 |
 | T380 | İşlem izi: sekiz alan, kim-ne zaman-ne değişti, değiştirilemez ve silinemez, sistem olayları ize girmez, düz liste, on yıl | ✓ | ✓ PASS (tur 2) | `7f8d6c3` | #419 |
 | T381 | Ayar katmanları ve parametre envanteri: firma ayarı, kurulum ayarı, ürün sabiti, varsayılan ve çit, değişikliğin ize yazılması | ✓ | ✓ PASS (tur 2) | `ac7d43e` | #430 |
-| T382 | Panel ana sayfası verisi: altı bekleyen iş sayacı, kanal ve firma bildirimi uyarıları, kurulum kontrol listesi | ✓ | ✓ PASS (tur 3) | — | #510 |
-| T383 | Satış özeti ve ölçüler: dönem seçimi, ciro, sayılar, dört mağaza ölçüsü, sıfır payda, tepe gün sayısı | ✓ | ✓ PASS (tur 2) | — | #503 |
-| T384 | Dışa aktarma: sipariş CSV (fatura verisi), üye ve iletişim talebi listesi, işlem izine yazım, imha edilmiş siparişin boş sütunları | ✓ | ✓ PASS (tur 2) | — | #502 |
-| T385 | Gönderim yeniden denemesi ve "e-posta ulaşmadı" işareti: üç deneme, işaretin düşüşü, panelden yeniden gönderim, işaretsiz bildirimler | ✓ | ✓ PASS (tur 2) | — | #512 |
-| T386 | Sipariş müdahaleleri: kalem adedi azaltma ve çıkarma, kargo bilgisinin ve teslim tarihinin düzeltilmesi, iç not | ✓ | ✓ PASS (tur 2) | — | #509 |
-| T387 | Kurulum tarafı yönetim komutları: iş satırını yeniden kuyruğa alma ya da kapatma, anahtar yenilemesi sonrası ödeme sonucunun uygulanması, kayıt okuma komutu | ✓ | ✓ PASS (tur 2) | — | #487 |
-| T388 | Dönüş denetimi komutu ve dönüşten sonra silmelerin yeniden uygulanması | ✓ | ✓ PASS (tur 2) | — | #483 |
-| T389 | Hesap ve durum yönetim komutları: oturumları sonlandırma, şifreyi geçersiz kılma, durum | ✓ | ✓ PASS (tur 3) | — | #472 |
-| T390 | Uçtan uca dal akış testleri (servis düzeyi): karışık sipariş, kargoda cayma, IBAN'sız iade, e-posta düzeltme | ✓ | ✓ PASS (tur 2) | — | #508 |
+| T382 | Panel ana sayfası verisi: altı bekleyen iş sayacı, kanal ve firma bildirimi uyarıları, kurulum kontrol listesi | ✓ | ✓ PASS (tur 3) | `ed1ee67` | #510 |
+| T383 | Satış özeti ve ölçüler: dönem seçimi, ciro, sayılar, dört mağaza ölçüsü, sıfır payda, tepe gün sayısı | ✓ | ✓ PASS (tur 2) | `64d0e44` | #503 |
+| T384 | Dışa aktarma: sipariş CSV (fatura verisi), üye ve iletişim talebi listesi, işlem izine yazım, imha edilmiş siparişin boş sütunları | ✓ | ✓ PASS (tur 2) | `5352fad` | #502 |
+| T385 | Gönderim yeniden denemesi ve "e-posta ulaşmadı" işareti: üç deneme, işaretin düşüşü, panelden yeniden gönderim, işaretsiz bildirimler | ✓ | ✓ PASS (tur 2) | `ad7b10e` | #512 |
+| T386 | Sipariş müdahaleleri: kalem adedi azaltma ve çıkarma, kargo bilgisinin ve teslim tarihinin düzeltilmesi, iç not | ✓ | ✓ PASS (tur 2) | `0aa3716` | #509 |
+| T387 | Kurulum tarafı yönetim komutları: iş satırını yeniden kuyruğa alma ya da kapatma, anahtar yenilemesi sonrası ödeme sonucunun uygulanması, kayıt okuma komutu | ✓ | ✓ PASS (tur 2) | `b90fa93` | #487 |
+| T388 | Dönüş denetimi komutu ve dönüşten sonra silmelerin yeniden uygulanması | ✓ | ✓ PASS (tur 2) | `e958c59` | #483 |
+| T389 | Hesap ve durum yönetim komutları: oturumları sonlandırma, şifreyi geçersiz kılma, durum | ✓ | ✓ PASS (tur 3) | `a646423` | #472 |
+| T390 | Uçtan uca dal akış testleri (servis düzeyi): karışık sipariş, kargoda cayma, IBAN'sız iade, e-posta düzeltme | ✓ | ✓ PASS (tur 2) | `206f918` | #508 |
 
 ---
 
@@ -248,6 +248,8 @@
 | T408 | SES: geri dönen adreslerin öğrenilmesi | ⬚ | — | — | — |
 | T409 | Google: giriş, kayıt ve yeniden doğrulama bağlayıcısı | ⬚ | — | — | — |
 | T410 | Dış olgu varsayımlarının doğrulama kanıtları (DV) | ⬚ | — | — | — |
+| T411 | Kayıt maskeleme taramasının dizge farkında yeniden yazımı | ⬚ | — | — | — |
+| T412 | F3 kapanış düzeltmeleri: sipariş bekçisi, satış sonrası kapanış ve IBAN kullanımı | ⬚ | — | — | — |
 
 ---
 
@@ -312,6 +314,7 @@
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
 | T601 | `DEPLOY_RUNBOOK` provası, canlı kanıt, dış sistemde kayıtlı adresler ve yansıyan tablolar | ⬚ | — | — | — |
+| T601b | Yük senaryosu ve kargo takip kalıplarının gerçek numarayla denemesi | ⬚ | — | — | — |
 | T602 | Güncelleme komutu: referanstan başlayıp sırayla, geride kalmış kurulumun ara sürümlerden geçişi, geri alma ve yedekten dönüş koşulu | ⬚ | — | — | — |
 | T603 | Gerçek sunucuya ilk iniş: ilk sürüm etiketi, açık imajlar, gerçek alan adı ve bulut deposu | ⬚ | — | — | — |
 

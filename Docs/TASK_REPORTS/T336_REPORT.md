@@ -1,6 +1,6 @@
 # T336 — Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 4 PASS) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -191,7 +191,7 @@
 - **Commit:** `7c58024` (kod), `abafdab` (entegrasyon testleri), belgeler commit'i — son hali PR'da
 - **PR:** #444
 - **CI:** *(yardımcı izler)*
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
+- **Post-merge run'lar:** squash `cca21e4` (#444) — CI 42446700473 success, Publish 42446700476 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

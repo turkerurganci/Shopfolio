@@ -129,7 +129,7 @@
 
 - **Branch:** `task/T313-site-haritasi`
 - **Commit:** son commit PR'da
-- **PR:** PR açıklamasında
+- **PR:** #417
 - **CI:** yapım chat'i izlemez
 - **Post-merge run'lar:** squash `f94b4d8` (#417) — CI 42346300012 success, Publish 42346300006 success (T305 yapımında dolduruldu)
 

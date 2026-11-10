@@ -117,9 +117,9 @@ internal sealed partial class OrderTransitions
             _ => new ChosenTransitions([TransitionCode.S6]),
             async (order, token) =>
             {
-                // The delivery date is not before the day of the shipment - the moment of the last S5 or S8 record (06 4.17: read, not stored).
-                DateTimeOffset? shippedAt = await _db.TransitionRecords
-                    .Where(t => t.OrderId == order.Id && (t.TransitionCode == TransitionCode.S5 || t.TransitionCode == TransitionCode.S8))
+                // The delivery date is not before the day of the shipment - the moment of the last S5 or S8 record no correction undid (OrderPeriods.Shipments; 06 4.17: read, not stored).
+                DateTimeOffset? shippedAt = await OrderPeriods.Shipments(_db)
+                    .Where(t => t.OrderId == order.Id)
                     .MaxAsync(t => (DateTimeOffset?)t.CreatedAt, token);
                 DateOnly? shippingDay = shippedAt is { } at ? TurkeyTime.DateOf(at) : null;
                 dateObstacle = DeliveryMarkRules.CheckDeliveryDate(request.DeliveryDate, today, shippingDay);

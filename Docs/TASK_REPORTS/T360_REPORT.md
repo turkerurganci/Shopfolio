@@ -105,10 +105,10 @@
 
 - **Branch:** `task/T360-duyuru-icerik-yayin`
 - **Commit:** dalın başı (PR açıklamasında)
-- **PR:** PR açıklamasında
+- **PR:** #481
 - **CI:** doğrulayıcı izler
 - **CI (dal):** run 42525208897 success (head `b7284315`; Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate pass)
-- **Post-merge run'lar:** *(merge sonrası yardımcı / sonraki kayıt PR'ı)*
+- **Post-merge run'lar:** squash `02d83f7` (#481) — CI 42530025674 success, Publish 42530025706 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

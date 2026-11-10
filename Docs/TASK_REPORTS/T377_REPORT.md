@@ -157,7 +157,7 @@ Bulgu yok.
 - **Branch:** `task/T377-limit-ilkeleri`
 - **PR:** #497
 - **CI:** dal run 42600674503 (head `c6b2a167`) yeşil
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `9d0d611` (#497) — CI 42619534143 success, Publish 42619534329 success (F3 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

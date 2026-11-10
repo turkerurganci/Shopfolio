@@ -99,7 +99,7 @@
 
 - **Branch:** `task/T404-paytr-baglanti-hatasi`
 - **Commit:** dal ucu PR'da
-- **PR:** #PR
+- **PR:** #528
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

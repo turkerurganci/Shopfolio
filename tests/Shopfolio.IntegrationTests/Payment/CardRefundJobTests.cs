@@ -178,6 +178,13 @@ public sealed class CardRefundJobTests : IAsyncLifetime
         Assert.Equal(
             expected == RefundRecordState.OutcomePending ? [record.Id] : Array.Empty<Guid>(),
             await db.Jobs.Where(j => j.JobType == JobType.RefundOutcomeQuery).Select(j => j.RelatedRecordId!.Value).ToListAsync(Ct));
+
+        // The first query is taken a minute after the timeout, not before (KK7; VAL-A990).
+        if (expected == RefundRecordState.OutcomePending)
+        {
+            Job query = await db.Jobs.SingleAsync(j => j.JobType == JobType.RefundOutcomeQuery, Ct);
+            Assert.Equal(_clock.GetUtcNow() + JobTimings.RefundOutcomeQueryFirstDelay, query.NextAttemptAt);
+        }
     }
 
     [Fact]

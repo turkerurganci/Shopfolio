@@ -195,6 +195,20 @@ public sealed partial class PayTrPaymentGatewayTests
     }
 
     [Fact]
+    public async Task RefundQuery_MatchingItem_IsCompleted_WithOrWithoutItsCompletionDate_KK6()
+    {
+        string reference = PayTrRefund.ReferenceOf(RecordId);
+        string dated = "{\"return_amount\":\"10.00\",\"reference_no\":\"" + reference + "\",\"date_completed\":\"2026-11-10 10:05:00\"}";
+        foreach (string answer in new[] { ReturnsAnswer(dated), ReturnsAnswer(Item(reference, "10")) })
+        {
+            using RunnerHarness harness = new();
+            (PayTrPaymentGateway gateway, _) = Gateway(harness, KeysContent(), answer: answer);
+
+            Assert.Equal(new RefundQueryResult.Completed(), await gateway.QueryRefundAsync(Refund(), Ct));
+        }
+    }
+
+    [Fact]
     public async Task RefundQuery_004_IsNoResult_KK6()
     {
         using RunnerHarness harness = new();

@@ -14,8 +14,8 @@ namespace Shopfolio.Infrastructure.Integrations;
 /// notification (08 2.1.5; <see cref="PayTrNotification"/>): the signature with the same keys, the field mapping, the reading of the outcome and the amount check, all
 /// local; a failed payment's reason goes to the application log thinned (<see cref="PaymentFailureReasonLog"/>). T403 builds the final query (08 2.1.6;
 /// <see cref="PayTrPaymentQuery"/>). T404 builds the start's table (08 2.1.8; <see cref="ReadAnswer"/>): the connection error with the provider's <c>reason</c>
-/// written without the request's values, and the second token refusal; the layer still makes each call once and retries none. The refund and its query (T405) are the later provider task; until it comes those jobs refuse with
-/// <see cref="NotSupportedException"/>: the refund jobs are not registered yet.
+/// written without the request's values, and the second token refusal; the layer still makes each call once and retries none. T405 builds the card refund and its
+/// query (08 2.1.9; <see cref="PayTrRefund"/>).
 /// </summary>
 internal sealed class PayTrPaymentGateway : IPaymentGateway
 {
@@ -120,11 +120,41 @@ internal sealed class PayTrPaymentGateway : IPaymentGateway
         return await _runner.RunAsync(IntegrationOperation.PaymentQuery, token => PostQueryAsync(fields, merchantOid, token), ct);
     }
 
-    public Task<RefundRequestResult> RequestRefundAsync(CardRefund refund, CancellationToken ct) =>
-        throw new NotSupportedException("The card refund is built by T405.");
+    /// <summary>
+    /// The card refund (08 2.1.9; <see cref="PayTrRefund"/>): one form-encoded request within the job limit (30 seconds), never repeated by the layer. Without the keys
+    /// no call is made and the refund did not happen (08 2.1.2: the request is refused before it goes; <see cref="KeysMissingReason"/>). A refusal writes its
+    /// <c>err_no</c> and its message with the request's values taken out; an unknown outcome writes its reason; an accepted refund marked as a test on the live
+    /// installation writes <see cref="PayTrRefund.TestOnLiveReason"/> - each the layer's one line.
+    /// </summary>
+    public async Task<RefundRequestResult> RequestRefundAsync(CardRefund refund, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(refund);
+        if (_keys is null)
+        {
+            _runner.WriteFailure(IntegrationOperation.RefundRequest, ExternalCallFailure.Unrecognized(KeysMissingReason));
+            return new RefundRequestResult.NotCompleted(KeysMissingReason);
+        }
 
-    public Task<RefundQueryResult> QueryRefundAsync(CardRefund refund, CancellationToken ct) =>
-        throw new NotSupportedException("The card refund's query is built by T405.");
+        IReadOnlyList<KeyValuePair<string, string>> fields = PayTrRefund.Build(refund, _keys);
+        return await _runner.RunAsync(IntegrationOperation.RefundRequest, token => PostRefundAsync(fields, token), ct);
+    }
+
+    /// <summary>
+    /// The card refund's query (08 2.1.9): the final query's request, read for the refund's reference and amount. Without the keys no call is made and there is no
+    /// result (the line is written); an answer outside the table is "no result" too and writes its reason; the job asks again by its schedule.
+    /// </summary>
+    public async Task<RefundQueryResult> QueryRefundAsync(CardRefund refund, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(refund);
+        if (_keys is null)
+        {
+            _runner.WriteFailure(IntegrationOperation.RefundQuery, ExternalCallFailure.Unrecognized(KeysMissingReason));
+            return new RefundQueryResult.NoResult();
+        }
+
+        IReadOnlyList<KeyValuePair<string, string>> fields = PayTrPaymentQuery.Build(refund.OrderNumber, _keys);
+        return await _runner.RunAsync(IntegrationOperation.RefundQuery, token => PostRefundQueryAsync(fields, refund, token), ct);
+    }
 
     /// <summary>
     /// The notification's signature and field mapping (08 2.1.5). A verified notification of a failed payment writes its reason, thinned, to the application log
@@ -245,6 +275,41 @@ internal sealed class PayTrPaymentGateway : IPaymentGateway
         if (result is PaymentQueryResult.NoResponse noResponse)
         {
             _runner.WriteFailure(IntegrationOperation.PaymentQuery, ExternalCallFailure.Unrecognized(noResponse.ReasonCode));
+        }
+
+        return result;
+    }
+
+    private async Task<RefundRequestResult> PostRefundAsync(IReadOnlyList<KeyValuePair<string, string>> fields, CancellationToken ct)
+    {
+        HttpClient client = _clients.CreateClient(IntegrationHttpClients.PaymentProvider);
+        using FormUrlEncodedContent content = new(fields);
+        using HttpResponseMessage response = await client.PostAsync(PayTrRefund.RefundAddress, content, ct);
+        string body = await response.Content.ReadAsStringAsync(ct);
+        RefundRequestResult result = PayTrRefund.ReadRequestAnswer(
+            (int)response.StatusCode, body, message => WithoutFieldValues(message, fields), out bool isTest, out string? failure);
+        if (failure is not null)
+        {
+            _runner.WriteFailure(IntegrationOperation.RefundRequest, ExternalCallFailure.Unrecognized(failure));
+        }
+        else if (isTest && !_testMode)
+        {
+            _runner.WriteFailure(IntegrationOperation.RefundRequest, ExternalCallFailure.Unrecognized(PayTrRefund.TestOnLiveReason));
+        }
+
+        return result;
+    }
+
+    private async Task<RefundQueryResult> PostRefundQueryAsync(IReadOnlyList<KeyValuePair<string, string>> fields, CardRefund refund, CancellationToken ct)
+    {
+        HttpClient client = _clients.CreateClient(IntegrationHttpClients.PaymentProvider);
+        using FormUrlEncodedContent content = new(fields);
+        using HttpResponseMessage response = await client.PostAsync(PayTrPaymentQuery.QueryAddress, content, ct);
+        string body = await response.Content.ReadAsStringAsync(ct);
+        RefundQueryResult result = PayTrRefund.ReadQueryAnswer((int)response.StatusCode, body, refund, out string? failure);
+        if (failure is not null)
+        {
+            _runner.WriteFailure(IntegrationOperation.RefundQuery, ExternalCallFailure.Unrecognized(failure));
         }
 
         return result;

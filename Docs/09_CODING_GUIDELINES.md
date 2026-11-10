@@ -342,6 +342,7 @@ Parametrenin üç katmanı (`02 §10.1.3`, `05 §8.4`; K-412) kodda üç ayrı e
 | Havale hatırlatması 08:00 (Türkiye saati); kesinti eşiği ve son nabız tazeliği 2 dakika | Kodda sabit | `05 §5.3.1`, §5.4.1, §5.4.3 |
 | Jeton isteğinin bağlantı hatasından sonra kartın "şu an kullanılamıyor" hâli 2 dakika (bellekte; yeniden başlatmada silinir) | Kodda sabit (`CardUnavailability.Duration`) | `08 §2.1.8` (T404) |
 | İş satırının varsayılan yeniden denemesi 1, 5, 15, 60 ve 240 dakika (en çok beş kez); yanıtsız son sorgu 5 dakika; geri dönen adres sorgusu 15 dakika ve okuduğu pencere 24 saat | Kodda sabit | K-1111, K-1132, K-1241, `05 §4.3.4`, `08 §2.2.3` |
+| Sonucu bilinmeyen kart iadesinin sorgusu: zaman aşımından 1 dakika sonra, sonra her biri bir öncekinden 1, 5, 15 ve 60 dakika sonra, sonra saatte bir (üst sınırı yok) | Kodda sabit (`JobTimings.RefundOutcomeQuery*`) | `08 §2.1.9`, K-1238 (3) (T405) |
 | Büyük veri dönüşümünün parçası: en çok 500 satır, her parça kendi işleminde | Kodda sabit | K-1350 |
 | İmha ve gecelik temizliğin parçası: en çok 500 satır (dosya silen parçada 500 dosya), her parça kendi işleminde | Kodda sabit | `05 §7.4.1`, K-1350'nin kalıbı (T201) |
 | Durum komutunun geri ödemesi doğabilecek kart siparişi sayımı: sipariş okuma sayfası 500 sipariş (sipariş kimliği sırasıyla) | Kodda sabit (`AfterSalesModule.ExposurePageOrders`) | `05 §8.5.6`; T389 |

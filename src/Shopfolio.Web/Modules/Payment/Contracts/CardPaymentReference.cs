@@ -7,9 +7,6 @@ namespace Shopfolio.Modules.Payment.Contracts;
 /// </summary>
 public static class CardPaymentReference
 {
-    public static string OfOrderNumber(string orderNumber)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(orderNumber);
-        return orderNumber.Replace("-", string.Empty, StringComparison.Ordinal);
-    }
+    /// <summary>The rule's one home is the order number's (<see cref="Infrastructure.Security.OrderNumber.WithoutSeparator"/>); the link layer sends the same value.</summary>
+    public static string OfOrderNumber(string orderNumber) => Infrastructure.Security.OrderNumber.WithoutSeparator(orderNumber);
 }

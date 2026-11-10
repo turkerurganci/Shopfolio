@@ -5,7 +5,8 @@ namespace Shopfolio.Infrastructure.Integrations;
 /// <summary>
 /// Registers the link layer of the outside services (09 11.1, 11.2): the common runner, the named HTTP clients and, in development, the e-mail
 /// gateway that writes to the capture tool (09 4.3 item 2); without the capture setting the e-mail service's gateway is registered (T407). Google's gateway is
-/// registered always (T409). The payment provider's implementation is registered here by the task that builds it; a module takes only the interface.
+/// registered always (T409). The other provider implementations of the interfaces are registered here by the tasks that build them; a module takes only the interface.
+/// The payment provider's implementation comes in through <c>AddPaymentProvider</c> (T401).
 /// </summary>
 internal static class IntegrationRegistration
 {
@@ -16,6 +17,7 @@ internal static class IntegrationRegistration
 
         services.AddSingleton<ExternalCallRunner>();
         services.AddIntegrationHttpClients();
+        services.AddPaymentProvider();
 
         services.AddOptions<EmailCaptureOptions>().BindConfiguration(EmailCaptureOptions.SectionName).ValidateOnStart();
         services.AddSingleton<IValidateOptions<EmailCaptureOptions>, EmailCaptureOptionsValidator>();

@@ -19,12 +19,11 @@ public sealed class IntegrationSourceScanTests
         List<string> scanned = [];
         List<string> findings = [];
         IEnumerable<string> files = Directory.EnumerateFiles(Path.Combine(root, "src"), "*.*", SearchOption.AllDirectories)
-            .Concat(Directory.EnumerateFiles(Path.Combine(root, "tests", "Shopfolio.UnitTests", "Fakes"), "*.cs", SearchOption.AllDirectories))
-            .Where(file => file.EndsWith(".cs", StringComparison.Ordinal) || file.EndsWith(".cshtml", StringComparison.Ordinal));
+            .Concat(Directory.EnumerateFiles(Path.Combine(root, "tests", "Shopfolio.UnitTests", "Fakes"), "*.cs", SearchOption.AllDirectories));
         foreach (string file in files)
         {
             string path = Path.GetRelativePath(root, file).Replace('\\', '/');
-            if (path.Contains("/obj/", StringComparison.Ordinal) || path.Contains("/bin/", StringComparison.Ordinal))
+            if (!IntegrationSourceScan.IsScannedFile(path))
             {
                 continue;
             }
@@ -39,7 +38,38 @@ public sealed class IntegrationSourceScanTests
         Assert.Contains(IntegrationSourceScan.LayerFolder + "IPaymentGateway.cs", scanned);
         Assert.Contains(IntegrationSourceScan.FakesFolder + "FakePaymentGateway.cs", scanned);
         Assert.Contains(scanned, f => f.StartsWith(IntegrationSourceScan.CallerFolders[0], StringComparison.Ordinal));
+        Assert.Contains(scanned, f => f.EndsWith(".cshtml", StringComparison.Ordinal));
+        Assert.Contains("src/Shopfolio.Web/Infrastructure/EmailComposition/EmailFrame.razor", scanned);
+        Assert.Contains("src/Shopfolio.Web/wwwroot/js/common.js", scanned);
         Assert.Empty(findings);
+    }
+
+    [Theory]
+    [InlineData("src/Shopfolio.Web/Pages/Index.cshtml", true)]
+    [InlineData("src/Shopfolio.Web/Infrastructure/EmailComposition/EmailFrame.razor", true)]
+    [InlineData("src/Shopfolio.Web/wwwroot/js/common.js", true)]
+    [InlineData("src/Shopfolio.Web/Modules/Payment/X.cs", true)]
+    [InlineData("src/Shopfolio.Web/wwwroot/lib/vendor/vendor.js", false)]
+    [InlineData("src/Shopfolio.Web/obj/Debug/X.cs", false)]
+    [InlineData("src/Shopfolio.Web/bin/Debug/X.js", false)]
+    [InlineData("src/Shopfolio.Web/wwwroot/css/site.css", false)]
+    public void IsScannedFile_ReadsTheCodeTheRazorAndTheSiteScripts(string path, bool expected)
+    {
+        Assert.Equal(expected, IntegrationSourceScan.IsScannedFile(path));
+    }
+
+    [Fact]
+    public void Scan_OnARazorComponentAndASiteScript_ReportsTheProviderNames()
+    {
+        string folder = Path.Combine(RepositoryRoot.Find(), "tests", "Shopfolio.UnitTests", "Architecture", "ViolationSamples", "Integrations");
+
+        IReadOnlyList<(string Rule, int Line)> razor = IntegrationSourceScan.Scan(
+            "src/Shopfolio.Web/Infrastructure/EmailComposition/Leak.razor", File.ReadAllText(Path.Combine(folder, "ProviderLeak.razor")));
+        IReadOnlyList<(string Rule, int Line)> script = IntegrationSourceScan.Scan(
+            "src/Shopfolio.Web/wwwroot/js/leak.js", File.ReadAllText(Path.Combine(folder, "provider-leak.js")));
+
+        Assert.Equal([(IntegrationSourceScan.ProviderNameOutsideLayer, 3), (IntegrationSourceScan.ProviderNameOutsideLayer, 4)], razor);
+        Assert.Equal([(IntegrationSourceScan.ProviderNameOutsideLayer, 3), (IntegrationSourceScan.ProviderNameOutsideLayer, 4)], script);
     }
 
     [Fact]
@@ -133,6 +163,16 @@ public sealed class IntegrationSourceScanTests
     [InlineData("// SES rejects it")]
     [InlineData("services.UsePayTrGateway();")]
     [InlineData("const string Key = \"PAY-TR\";")]
+    [InlineData("const string Key = \"CARDPAYTR\";")]
+    [InlineData("// Pay TR form")]
+    [InlineData("var sesClient = Create();")]
+    [InlineData("private readonly object _sesClient;")]
+    [InlineData("private readonly object _ses;")]
+    [InlineData("SESClient client;")]
+    [InlineData("const string Name = \"SES_REGION\";")]
+    [InlineData("// the AWSSDK package")]
+    [InlineData("var awsRegion = Region();")]
+    [InlineData("const string aws_region = \"x\";")]
     public void Scan_FindsAProviderNameInAnyCaseAndInComments(string line)
     {
         Assert.Equal([(IntegrationSourceScan.ProviderNameOutsideLayer, 1)], IntegrationSourceScan.Scan("src/Shopfolio.Web/Modules/Notifications/X.cs", line));
@@ -141,6 +181,9 @@ public sealed class IntegrationSourceScanTests
     [Theory]
     [InlineData("Session session; PaymentTransaction t; string ses = \"x\";")]
     [InlineData("// display tree, repay track, the payment trail")]
+    [InlineData("// the customer may pay transfer fees; Pay Transfer")]
+    [InlineData("private readonly Session _session; string sessionId; const string SESSION_KEY = \"k\";")]
+    [InlineData("// the laws of the store; DISPLAYTREE")]
     [InlineData("services.AddHttpClient(name).ConfigureHttpClient(c => c.Timeout = Timeout.InfiniteTimeSpan);")]
     [InlineData("var config = new { MaxErrorRetry = 0 };")]
     public void Scan_OnLookalikesOutsideTheCallerFolders_FindsNothing(string line)

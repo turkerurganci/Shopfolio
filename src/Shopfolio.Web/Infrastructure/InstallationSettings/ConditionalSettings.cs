@@ -2,7 +2,8 @@ namespace Shopfolio.Infrastructure.InstallationSettings;
 
 /// <summary>
 /// The payment provider's keys (05 8.4.3, 8.4.6; 08 2.1.2): a conditional installation setting. The keys are the whole content of the secret
-/// file <c>payment_provider_keys</c>. When they are missing the application opens and the card payment line is closed.
+/// file <c>payment_provider_keys</c>: three <c>name=value</c> lines, one setting (<see cref="Integrations.PaymentProviderKeys"/>; T401). When the file is missing or one of
+/// the three values is, the application opens and the card payment line is closed.
 /// </summary>
 internal sealed class PaymentOptions
 {
@@ -53,7 +54,9 @@ internal static class ConditionalLines
     {
         return
         [
-            new ConditionalLine(ConditionalLine.CardPayment, MissingOf((PaymentOptions.ProviderKeysKey, payment.ProviderKeys))),
+            new ConditionalLine(
+                ConditionalLine.CardPayment,
+                Integrations.PaymentProviderKeys.TryParse(payment.ProviderKeys) is null ? [PaymentOptions.ProviderKeysKey] : []),
             new ConditionalLine(
                 ConditionalLine.GoogleSignIn,
                 MissingOf((GoogleOptions.ClientIdKey, google.ClientId), (GoogleOptions.ClientSecretKey, google.ClientSecret))),

@@ -4,7 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Integrations;
+using Shopfolio.Infrastructure.Jobs;
+using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.Modules.Notifications;
 
 namespace Shopfolio.IntegrationTests.Web;
 
@@ -49,6 +52,21 @@ public sealed class EmailCaptureRegistrationTests
         Assert.Same(gateway, factory.Services.GetRequiredService<IEmailGateway>());
         Assert.Same(factory.Services.GetRequiredService<IAmazonSimpleEmailServiceV2>(), factory.Services.GetRequiredService<IAmazonSimpleEmailServiceV2>());
         Assert.IsType<ExternalCallRunner>(factory.Services.GetRequiredService<ExternalCallRunner>());
+    }
+
+    [Fact]
+    public async Task Application_WithNoGateway_Opens_AndTheReturnedAddressQueryRunsWithoutOne()
+    {
+        await using ShopfolioWebApplicationFactory factory = new(_database.Dsn);
+        using HttpClient client = factory.CreateClient();
+
+        Assert.Null(factory.Services.GetService<IEmailGateway>());
+        await using AsyncServiceScope scope = factory.Services.CreateAsyncScope();
+        BounceQueryJobHandler handler = scope.ServiceProvider.GetRequiredService<BounceQueryJobHandler>();
+
+        JobOutcome outcome = await handler.HandleAsync(new JobWork(Guid.NewGuid(), JobType.BounceQuery, null, DateTimeOffset.UtcNow, 0), TestContext.Current.CancellationToken);
+
+        Assert.Equal(JobOutcome.RescheduleAfter(JobTimings.BounceQueryInterval), outcome);
     }
 
     [Fact]

@@ -86,8 +86,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T407-ses-gonderim`
-- **Commit:** bkz. PR
-- **PR:** bkz. PR
+- **Commit:** `b0952ce5` — T407: SES: gönderim ve sonuç sınıfları
+- **PR:** #515
 - **CI:** yoklanmadı (yönetici izler)
 - **Post-merge run'lar:** *(validator doldurur)*
 

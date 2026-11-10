@@ -244,7 +244,7 @@
 | T404 | PayTR: bağlantı hatası ve ayrım | ⬚ | — | — | — |
 | T405 | PayTR: kart iadesi | ⬚ | — | — | — |
 | T406 | PayTR: 3D Secure kurulum şartı, test kanıtı ve canlı kanıtın satırları | ⬚ | — | — | — |
-| T407 | SES: gönderim ve sonuç sınıfları | ⏳ | — | — | — |
+| T407 | SES: gönderim ve sonuç sınıfları | ⏳ | — | — | #515 |
 | T408 | SES: geri dönen adreslerin öğrenilmesi | ⬚ | — | — | — |
 | T409 | Google: giriş, kayıt ve yeniden doğrulama bağlayıcısı | ⬚ | — | — | — |
 | T410 | Dış olgu varsayımlarının doğrulama kanıtları (DV) | ⬚ | — | — | — |

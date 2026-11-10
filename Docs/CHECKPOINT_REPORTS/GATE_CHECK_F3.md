@@ -211,7 +211,7 @@ Proje sahibi bu dönemde soru beklemiyor (K-1408 (3)); aşağıdakiler yönetici
 
 ### Faz Tag
 - Tag: `phase/F3-pass`   - Commit: PR merge'ünden sonra yardımcı atar (PASS ritüeli 20. adım; bu kapı merge etmez, etiket atmaz)
-- PR: (PR açıldıktan sonra yazılır)
+- PR: #513 (`chore: F3 gate check PASS`, base `main`)
 
 ### Ek A — 116 "matris eşlemesi" çifti (D-982)
 Kaynak satırı (`11 §7.1` birimi) → F3 task'ı. Satır numaraları kapı sırasındaki ilk sayımdandır; T411/T412 blokları eklendiği için kaymıştır, kaynak kimliğiyle aranır.

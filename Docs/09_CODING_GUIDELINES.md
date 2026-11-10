@@ -340,6 +340,7 @@ Parametrenin üç katmanı (`02 §10.1.3`, `05 §8.4`; K-412) kodda üç ayrı e
 | Tekil dizin çakışmasında işlemin yeniden yürütülmesi: ilk deneme dahil en çok 3 deneme | Kodda sabit | K-1336 |
 | Zamanlayıcının tarama aralığı 1 dakika; nabız 30 saniye; gecelik iş 03:00'te (Türkiye saati), başarısız gecelik işin yeniden deneme beklemesi 1 saat | Kodda sabit | K-895, `05 §5.1.1`, §5.4.1 |
 | Havale hatırlatması 08:00 (Türkiye saati); kesinti eşiği ve son nabız tazeliği 2 dakika | Kodda sabit | `05 §5.3.1`, §5.4.1, §5.4.3 |
+| Jeton isteğinin bağlantı hatasından sonra kartın "şu an kullanılamıyor" hâli 2 dakika (bellekte; yeniden başlatmada silinir) | Kodda sabit (`CardUnavailability.Duration`) | `08 §2.1.8` (T404) |
 | İş satırının varsayılan yeniden denemesi 1, 5, 15, 60 ve 240 dakika (en çok beş kez); yanıtsız son sorgu 5 dakika; geri dönen adres sorgusu 15 dakika ve okuduğu pencere 24 saat | Kodda sabit | K-1111, K-1132, K-1241, `05 §4.3.4`, `08 §2.2.3` |
 | Büyük veri dönüşümünün parçası: en çok 500 satır, her parça kendi işleminde | Kodda sabit | K-1350 |
 | İmha ve gecelik temizliğin parçası: en çok 500 satır (dosya silen parçada 500 dosya), her parça kendi işleminde | Kodda sabit | `05 §7.4.1`, K-1350'nin kalıbı (T201) |

@@ -82,8 +82,8 @@ public sealed class PaymentMethodTests
     public async Task PaymentMethods_WithoutTheProviderKeys_OfferOnlyTheTransfer_KK4()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        PaymentMethods keyless = new(new CardPaymentCondition(ConditionalLines.Evaluate(new PaymentOptions(), new GoogleOptions())), new FixedTransfer(true));
-        PaymentMethods neither = new(new CardPaymentCondition([]), new FixedTransfer(false));
+        PaymentMethods keyless = new(new CardPaymentCondition(ConditionalLines.Evaluate(new PaymentOptions(), new GoogleOptions())), new FixedTransfer(true), new CardUnavailability(TimeProvider.System));
+        PaymentMethods neither = new(new CardPaymentCondition([]), new FixedTransfer(false), new CardUnavailability(TimeProvider.System));
 
         Assert.Equal([PaymentMethod.BankTransfer], await keyless.ListOpenAsync(ct));
         Assert.Empty(await neither.ListOpenAsync(ct));

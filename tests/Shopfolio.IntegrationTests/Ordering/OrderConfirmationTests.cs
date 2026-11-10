@@ -39,7 +39,7 @@ public sealed class OrderConfirmationDefinition : ICollectionFixture<CollectionD
 /// customer's list and stays in the panel.
 /// </summary>
 [Collection(OrderConfirmationDefinition.Name)]
-public sealed class OrderConfirmationTests : IAsyncLifetime
+public sealed partial class OrderConfirmationTests : IAsyncLifetime
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 9, 9, 0, 0, TimeSpan.Zero);
     private const string Iban = "TR330006100519786457841326";
@@ -49,6 +49,9 @@ public sealed class OrderConfirmationTests : IAsyncLifetime
 
     private int _counter;
     private bool _cardLineOpen = true;
+
+    // T404: services a test puts in the provider of every request (the payment gateway and the process's memory shared across requests).
+    private Action<IServiceCollection>? _extra;
     private Guid _provinceId;
     private Guid _formId;
     private Guid _contractId;
@@ -728,7 +731,7 @@ public sealed class OrderConfirmationTests : IAsyncLifetime
     {
         OrderConfirmationRequest request = new(
             input.Owner, seen, _formId, _contractId, ticked ?? new TickedBoxes(true, true, false, false), input.CouponCode, input.ContactEmail, input.Shipping, input.Billing, IPAddress.Parse("203.0.113.5"));
-        await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn, _clock, _cardLineOpen);
+        await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn, _clock, _cardLineOpen, logs: null, _extra);
         await using AsyncServiceScope scope = provider.CreateAsyncScope();
         OrderConfirmation confirmation = scope.ServiceProvider.GetRequiredService<OrderConfirmation>();
         return await scope.ServiceProvider.GetRequiredService<ITransactionRunner>().RunAsync(token => confirmation.ConfirmAsync(request, token), Ct);
@@ -737,7 +740,7 @@ public sealed class OrderConfirmationTests : IAsyncLifetime
     // One request: its own scope and transaction; the owner of the transaction saves (09 6 item 3).
     private async Task<T> RunAsync<T>(Func<IServiceProvider, Task<T>> work)
     {
-        await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn, _clock, _cardLineOpen);
+        await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn, _clock, _cardLineOpen, logs: null, _extra);
         await using AsyncServiceScope scope = provider.CreateAsyncScope();
         IServiceProvider services = scope.ServiceProvider;
         Boxed<T> boxed = await services.GetRequiredService<ITransactionRunner>().RunAsync(async _ => new Boxed<T>(await work(services)), Ct);

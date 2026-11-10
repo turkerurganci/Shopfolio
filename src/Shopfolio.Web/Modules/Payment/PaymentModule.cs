@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.SignedEndpoints;
+using Shopfolio.Infrastructure.Status;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
@@ -577,6 +579,12 @@ internal static class PaymentModuleRegistration
         services.AddConditionalLines();
         services.AddScoped<ICardPaymentCondition, CardPaymentCondition>();
         services.AddScoped<IPaymentMethods, PaymentMethods>();
+
+        // The start of a card payment (T404; 08 2.1.8): the card's two-minute unavailable state and the token requests' error series are the process's memory -
+        // singletons; the series is the status endpoint's record (T314), added here too for a host without the status endpoint (a TryAdd, one instance either way).
+        services.TryAddSingleton<CardUnavailability>();
+        services.TryAddSingleton<PaymentStartFailureSeries>();
+        services.AddScoped<PaymentStarts>();
         services.AddDisposalPart<InboundNotificationDisposalPart>();
         services.AddScoped<PaymentNotificationEndpoint>();
         services.AddTransactionalJobHandler<InboundNotificationJobHandler>(JobType.InboundNotificationProcessing);

@@ -46,21 +46,27 @@ internal static class PaymentMethodRules
 
 /// <summary>
 /// The open methods (<see cref="IPaymentMethods"/>) from the two conditions the sales gate reads too - the card line here, the bank transfer line the Settings module binds (T353: <c>BankTransferCondition</c>) - so
-/// the step, the confirmation and the gate say the same thing.
+/// the step, the confirmation and the gate say the same thing. The card's two-minute unavailable state (<see cref="CardUnavailability"/>; 08 2.1.8) takes the card
+/// out of the open methods - the step and the confirmation - and leaves the gate, which reads the line only.
 /// </summary>
 internal sealed class PaymentMethods : IPaymentMethods
 {
     private readonly ICardPaymentCondition _card;
     private readonly IBankTransferCondition _bankTransfer;
+    private readonly CardUnavailability _unavailability;
 
-    public PaymentMethods(ICardPaymentCondition card, IBankTransferCondition bankTransfer)
+    public PaymentMethods(ICardPaymentCondition card, IBankTransferCondition bankTransfer, CardUnavailability unavailability)
     {
         _card = card;
         _bankTransfer = bankTransfer;
+        _unavailability = unavailability;
     }
 
     public async Task<IReadOnlyList<PaymentMethod>> ListOpenAsync(CancellationToken ct)
     {
-        return PaymentMethodRules.Open(await _card.IsOpenAsync(ct), await _bankTransfer.IsOpenAsync(ct));
+        bool card = await _card.IsOpenAsync(ct) && !_unavailability.IsUnavailable;
+        return PaymentMethodRules.Open(card, await _bankTransfer.IsOpenAsync(ct));
     }
+
+    public async Task<bool> IsCardUnavailableNowAsync(CancellationToken ct) => await _card.IsOpenAsync(ct) && _unavailability.IsUnavailable;
 }

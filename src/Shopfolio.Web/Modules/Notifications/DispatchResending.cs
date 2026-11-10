@@ -69,10 +69,14 @@ internal sealed class DispatchResending
         DateTimeOffset firstEmailAt = CustomerNoticeValues.ReadFirstEmailSentAt(latest.EventValues)
             ?? rows.Where(r => (r.OriginalDispatchId ?? r.Id) == notice.GroupId).Min(r => r.CreatedAt);
 
-        DispatchRecord row = DispatchRecord.Queue(notice.Type, recipient.Trim(), request.OrderId, notice.RelatedRecordType, notice.RelatedRecordId, _time.GetUtcNow());
-        row.OriginalDispatchId = notice.GroupId;
-        row.EventValues = CustomerNoticeValues.WithFirstEmailSentAt(latest.EventValues, firstEmailAt);
-        _db.DispatchRecords.Add(row);
+        new CustomerNoticeQueue(_db, _time).QueueResending(
+            notice.Type,
+            recipient,
+            request.OrderId,
+            notice.RelatedRecordType,
+            notice.RelatedRecordId,
+            notice.GroupId,
+            CustomerNoticeValues.WithFirstEmailSentAt(latest.EventValues, firstEmailAt));
 
         // The re-sending is a firm operation on the order (02 10.3.1); the mark itself never reaches the trail.
         await _trail.WriteAsync(new AuditEntry(AuditOperation.ResendEmail, "Order", request.OrderId, new AuditDetails(request.OrderNumber)), ct);

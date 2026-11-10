@@ -19,6 +19,7 @@ using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Notifications;
+using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment;
@@ -242,6 +243,30 @@ public sealed class OrderOperationsTests : IAsyncLifetime
     }
 
     // ---- helpers ----
+
+    [Fact]
+    public async Task TheResendEmailOperation_IsOpenOnlyWhileTheOrderCarriesTheUndeliveredMark_T385()
+    {
+        (Order order, _) = await SeedAsync(PaymentMethod.Card, ProductType.Physical);
+        await ExecuteAsync($"UPDATE orders SET order_status = 'Preparing', payment_status = 'Paid' WHERE id = '{order.Id}'");
+        Assert.False((await WithOperationsAsync(o => o.ReadAsync(order.Id, ActorKind.Admin, Ct)))!.IsOpen(OrderOperation.ResendEmail));
+        Assert.Equal(OperationDecision.Closed, (await WithOperationsAsync(o => o.CheckAsync(order.Id, OrderOperation.ResendEmail, null, null, Ct))).Decision);
+
+        DispatchRecord row = DispatchRecord.Queue(DispatchType.B2, "alici@example.com", order.Id, null, null, new DateTimeOffset(2026, 11, 6, 9, 0, 0, TimeSpan.Zero));
+        row.DispatchState = DispatchState.Undelivered;
+        row.LastOutcome = DispatchOutcome.ChannelError;
+        row.AttemptCount = DispatchRetrySchedule.AttemptLimit;
+        row.NextAttemptAt = null;
+        await using (AsyncServiceScope scope = _provider.CreateAsyncScope())
+        {
+            AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.DispatchRecords.Add(row);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        Assert.True((await WithOperationsAsync(o => o.ReadAsync(order.Id, ActorKind.Admin, Ct)))!.IsOpen(OrderOperation.ResendEmail));
+        Assert.True((await WithOperationsAsync(o => o.CheckAsync(order.Id, OrderOperation.ResendEmail, null, null, Ct))).IsAllowed);
+    }
 
     private async Task<T> WithOperationsAsync<T>(Func<IOrderOperations, Task<T>> work)
     {

@@ -63,6 +63,21 @@ internal sealed class CustomerNoticeQueue
         return 1;
     }
 
+    /// <summary>
+    /// Queues the re-sending of a marked notice (02 9.1.6; T385): a new "queued" row of the same type in the notice's group - <paramref name="groupId"/> is the chain's root - with the event
+    /// values the re-sending carries. The type passes the notification map like every other row; nothing is read or sent here.
+    /// </summary>
+    public void QueueResending(DispatchType type, string recipientEmail, Guid orderId, DispatchRelatedRecordType? relatedRecordType, Guid? relatedRecordId, Guid groupId, string? eventValues)
+    {
+        NotificationMap.Require(type, NoticeFamily.Customer);
+        ArgumentException.ThrowIfNullOrWhiteSpace(recipientEmail);
+        RequireTransaction();
+        DispatchRecord record = DispatchRecord.Queue(type, recipientEmail.Trim(), orderId, relatedRecordType, relatedRecordId, _time.GetUtcNow());
+        record.OriginalDispatchId = groupId;
+        record.EventValues = eventValues;
+        _db.DispatchRecords.Add(record);
+    }
+
     private async Task<(Guid RootId, DateTimeOffset FirstMoment)> ReadFirstEmailAsync(Guid orderId, Guid givenId, CancellationToken ct)
     {
         // The row must be this order's own B-1; a row that is itself a correction already holds the chain's root id and the first e-mail's moment, which are carried on unchanged.

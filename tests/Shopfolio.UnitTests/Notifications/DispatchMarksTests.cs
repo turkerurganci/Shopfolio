@@ -48,4 +48,42 @@ public sealed class DispatchMarksTests
 
         Assert.True(DispatchMarks.HasMark([refused, otherSent]));
     }
+
+    [Fact]
+    public void ARowClosedWithoutSending_PutsNoMark()
+    {
+        // 06 4.58: a row whose link was no longer valid is closed without an attempt; it is not an e-mail that failed to arrive.
+        Assert.False(DispatchMarks.HasMark([new DispatchMarks.Row(Guid.CreateVersion7(), null, Start, DispatchState.Undelivered, ClosedUnsent: true)]));
+    }
+
+    private static DispatchMarks.NoticeRow Notice(DateTimeOffset at, DispatchState state, Guid? id = null, Guid? original = null, bool closedUnsent = false) =>
+        new(id ?? Guid.CreateVersion7(), original, at, state, DispatchType.B2, null, null, closedUnsent);
+
+    [Fact]
+    public void UndeliveredGroups_ListsOnlyGroupsWhoseLatestRowIsUndelivered_OldestFirst()
+    {
+        Guid firstId = Guid.CreateVersion7();
+        Guid secondId = Guid.CreateVersion7();
+        DispatchMarks.NoticeRow refused = Notice(Start, DispatchState.Undelivered, firstId);
+        DispatchMarks.NoticeRow refusedLater = Notice(Start.AddHours(1), DispatchState.Undelivered, secondId);
+        DispatchMarks.NoticeRow thirdUndelivered = Notice(Start.AddHours(2), DispatchState.Undelivered);
+        DispatchMarks.NoticeRow thirdSentAgain = Notice(Start.AddHours(3), DispatchState.Sent, original: thirdUndelivered.Id);
+
+        IReadOnlyList<UndeliveredNotice> groups = DispatchMarks.UndeliveredGroups([refusedLater, thirdSentAgain, refused, thirdUndelivered]);
+
+        Assert.Equal([firstId, secondId], groups.Select(g => g.LatestDispatchId));
+    }
+
+    [Fact]
+    public void UndeliveredGroups_NamesTheLatestRowOfTheGroup_AndSkipsAClosedUnsentOne()
+    {
+        Guid firstId = Guid.CreateVersion7();
+        DispatchMarks.NoticeRow first = Notice(Start, DispatchState.Undelivered, firstId);
+        DispatchMarks.NoticeRow again = Notice(Start.AddHours(1), DispatchState.Undelivered, original: firstId);
+        DispatchMarks.NoticeRow closed = Notice(Start.AddHours(2), DispatchState.Undelivered, closedUnsent: true);
+
+        UndeliveredNotice only = Assert.Single(DispatchMarks.UndeliveredGroups([first, again, closed]));
+
+        Assert.Equal((firstId, again.Id), (only.GroupId, only.LatestDispatchId));
+    }
 }

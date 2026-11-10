@@ -30,7 +30,7 @@ internal sealed class OrderNoticeContexts
         _settings = settings;
     }
 
-    /// <summary>The context of <paramref name="notice"/> (read from <paramref name="eventValues"/>), or null when the order does not exist.</summary>
+    /// <summary>The context of the given customer notice (its values are read from the row's event values), or null when the order does not exist.</summary>
     public async Task<OrderNoticeContext?> MakeAsync(CustomerNotice notice, string? eventValues, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(notice);

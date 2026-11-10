@@ -18,15 +18,23 @@ public sealed record UndeliveredNotice(
 /// <param name="CurrentContactEmail">The order's current contact e-mail; B-15 ignores it - it goes to the address the group's own row names, the one before the correction.</param>
 public sealed record NoticeResendRequest(Guid OrderId, string OrderNumber, Guid LatestDispatchId, string CurrentContactEmail);
 
-/// <summary>What a re-sending request came to.</summary>
-public enum NoticeResendResult
+/// <summary>
+/// What a re-sending request came to. A call result, not a stored value: it is no enum (an enum of the Contracts folder is a stored one, with a data model table and a lock file) but a
+/// value with three named members.
+/// </summary>
+public readonly record struct NoticeResendResult
 {
+    private NoticeResendResult(string name) => Name = name;
+
+    /// <summary>The member's name; the default value has none and is none of the three.</summary>
+    public string? Name { get; }
+
     /// <summary>A new "queued" row was written into the notice's group and the trail row with it; the ordinary queue sends it.</summary>
-    Queued,
+    public static NoticeResendResult Queued { get; } = new("Queued");
 
     /// <summary>The named row is not the latest row of a customer notice's group of this order, or that row is not "undelivered": nothing was written.</summary>
-    NotMarked,
+    public static NoticeResendResult NotMarked { get; } = new("NotMarked");
 
     /// <summary>The address to send to is empty (the order's personal data is gone, or no address was given): nothing was written.</summary>
-    NoRecipient,
+    public static NoticeResendResult NoRecipient { get; } = new("NoRecipient");
 }

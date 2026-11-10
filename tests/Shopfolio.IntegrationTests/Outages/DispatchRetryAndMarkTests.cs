@@ -85,8 +85,8 @@ public sealed class DispatchRetryAndMarkTests : IAsyncLifetime
         }
 
         _admin = admin.Id;
+        _province = province.Id;
         await ExecuteAsync("INSERT INTO companies (id, created_at) VALUES (gen_random_uuid(), now())");
-        await ExecuteAsync(
         await ExecuteAsync(
             $"UPDATE companies SET company_type = 'Tradesman', legal_name = 'Örnek Ticaret', tax_id_number = '1111111111', province_id = '{_province}', district = 'Çankaya', "
             + "address_line = 'Kızılay 2', phone = '3121234567', email = 'firma@example.com', kep_address = 'firma@hs01.kep.tr', chamber_name = 'Ankara Esnaf Odası', professional_conduct_rules = 'Meslek kuralları'");
@@ -211,6 +211,21 @@ public sealed class DispatchRetryAndMarkTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task AnAccountEmailWhoseLinkIsGone_IsClosedWithoutACall_AndItsClosedRowIsNoMarkAndNoResendingTarget()
+    {
+        Guid owner = Guid.NewGuid();
+        Guid row = await AddRowAsync(DispatchType.PasswordResetLink, CurrentAddress, null, DispatchRelatedRecordType.Customer, owner, LinkEventValues.ForLink(Guid.NewGuid()));
+
+        Assert.Equal(DispatchSendOutcome.ClosedLinkNotValid, await SendAsync(row));
+
+        DispatchRecord closed = await RowAsync(row);
+        Assert.Equal((DispatchState.Undelivered, 0, (DispatchOutcome?)null), (closed.DispatchState, closed.AttemptCount, closed.LastOutcome));
+        Assert.Empty(_gateway.Calls);
+        Assert.False(await DispatchMarks.AccountEmailHasMarkAsync(NewContext(), DispatchType.PasswordResetLink, owner, Ct));
+        Assert.Equal(DispatchSendOutcome.NotDue, await SendAsync(row));
+    }
+
+    [Fact]
     public async Task ASentRow_TheServiceLaterReportsAsAPermanentBounce_MarksTheOrder()
     {
         Guid order = await SeedOrderAsync();
@@ -322,7 +337,7 @@ public sealed class DispatchRetryAndMarkTests : IAsyncLifetime
         Assert.Equal(DispatchState.Sent, (await RowAsync(again.Id)).DispatchState);
         EmailMessage message = Assert.Single(_gateway.Messages);
         Assert.Equal(expectedRecipient, message.RecipientEmail);
-        Assert.Contains("tekrar", message.TextBody, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("yeniden gönderilmesidir", message.TextBody, StringComparison.Ordinal);
         Assert.False(await HasMarkAsync(order));
     }
 

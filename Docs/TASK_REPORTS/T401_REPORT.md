@@ -85,8 +85,8 @@ Derleme: `dotnet build -c Release -warnaserror` Web, Unit, Integration temiz; `d
 ## Commit & PR
 
 - **Branch:** `task/T401-paytr-baslatma`
-- **Commit:** son commit — `T401: PayTR: anahtarlar, ödemenin başlatılması, dönüş ve çerçeve`
-- **PR:** PR açıklamasında
+- **Commit:** `fc3257c2` — `T401: PayTR: anahtarlar, ödemenin başlatılması, dönüş ve çerçeve` (+ rapor commit'i)
+- **PR:** #516
 - **CI:** dal CI'ı doğrulamada okunur
 - **Post-merge run'lar:** *(validator doldurur)*
 

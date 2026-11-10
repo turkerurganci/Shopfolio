@@ -1,6 +1,6 @@
 # T402 — PayTR: bildirim imzası ve alan eşlemesi
 
-**Faz:** F4 | **Durum:** ⏳ Doğrulama bekliyor (kriter 8'in test modu gözlem payı OWNER_INPUT — D-1038) | **Tarih:** 2026-11-10
+**Faz:** F4 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS; kriter 8'in test modu gözlem payı OWNER_INPUT — D-1038) | **Tarih:** 2026-11-10
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -33,7 +33,7 @@
 | 5 | `merchant_oid` iki alana tiresiz; `status` → `Outcome`, `total_amount` → `Amount`; `Sale` | ✓ | `Mapping_MerchantOidToBothReferences_StatusToOutcome_TotalAmountToAmount_EventTypeSale_KK5` + üç `Mapping_…_KK5`; Integration `PayTr_Row7_…` (kayıt alanları) |
 | 6 | `failed_reason_code`/ileti saklanmaz, seyreltilerek kayda | ✓ | `FailedPaymentsReason_IsWrittenThinned_…_KK6`, `FailedPaymentsReasonLine_CarriesNoReferenceNoAmountNoHash_AndTheNoticeHasNoFieldForTheReason_KK6`, `SuccessAndSignatureFailure_WriteNoReasonLine_KK6`; Integration `PayTr_Row5_…_AndItsReasonIsInTheLogOnly_KK6` |
 | 7 | Yanıt kararı T311'in ucunda; katman yalnız sınıf verir | ✓ | `OddForms_AreSignatureInvalid_WithoutAnException_KK7`, `TheLayersNotificationMembers_ReturnOnlyTheirClasses_NoHttpAnswer_KK7` |
-| 8 | Test modunda gerçek bildirimle DV-1, 2, 4, 9, 35, 36, 42 gözlenir | ✓ (gözlem OWNER_INPUT) | `PAYTR.md` §6.1 ve `08 §4.1` yedi satır tarihli "Bekliyor — OWNER_INPUT" + kod tarafı kanıtı; gerçek PayTR test mağazası ve anahtarı yok, gözlem uydurulmadı — iz D-1038; `VAL-E001`/`E002`/`E005`/`E010`/`E036`/`E037`/`E043` `BEKLEMEDE` kalır |
+| 8 | Test modunda gerçek bildirimle DV-1, 2, 4, 9, 35, 36, 42 gözlenir | ✓ (gözlem OWNER_INPUT) | `PAYTR.md` §6.1 ve `08 §4.1` yedi satır tarihli "Bekliyor — OWNER_INPUT" + kod tarafı kanıtı; gerçek PayTR test mağazası ve anahtarı yok, gözlem uydurulmadı — iz D-1038; `VAL-E001`/`E002`/`E004`/`E010`/`E036`/`E037`/`E043` `BEKLEMEDE` kalır |
 
 ### Öz denetim (bitiş kapısı 2)
 
@@ -69,10 +69,12 @@ Derleme: `dotnet build -c Release -warnaserror` Unit ve Integration (Web dahil) 
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-10; dal ucu `27720f76`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 → D-1059 (`09 §14.2` m.3 "tutar çözülemeyen bildirim satır 6 sayılır" der; çekirdeğin `PaymentNotificationRule`'u (T311) okunamayan tutarı 4. sıraya, `UnrecognizedNotification`'a koyar — ikisi de işaretli kayıt, `OK`, işlenmez; yalnız işaret nedeni ayrışıyor); K2 bu PR'da kapatıldı (rapordaki DV-4 satır kimliği `VAL-E005` → `VAL-E004`) |
+
+**Tur 1 kanıtları (doğrulayıcı):** kriter 1–7 ve KK1–KK7 ✓ (kod okundu: `PayTrNotification`, `PayTrPaymentGateway`, `PaymentAmounts`, `PaymentFailureReasonLog`, `SignatureFailureLog`, `SignedEndpointLimits`, `LogEvents`; çekirdeğin `PaymentNotificationEndpoint` ve `PaymentNotificationRule`'u sınıflamanın sırası için okundu). KK1: iki bilinen örnek (`vbLzXkrZ…1wY=` success, `XKWKaEWm…kAY=` failed) `openssl dgst -sha256 -hmac key-sample -binary | base64` ile .NET dışında yeniden hesaplandı, eşleşti; karşılaştırma `SignatureComparison.Matches` (`CryptographicOperations.FixedTimeEquals`). KK3: Integration `PayTr_Row1`…`PayTr_Row7`, 4. sıranın dört kolu ayrı test (`UnknownStatus`, `PaymentTypeThatIsNotCard`, `CurrencyThatIsNotTl`, `TestModeOnTheLiveInstallation`); tekrar (2. sıra) tekil dizinle yazılmaz, `OK` alır. KK4: `NotificationMatches` `09 §14.2` m.3 ile birebir (`long` kuruş, `ToKurus(orderTotal)`), dört durum testi; 5. sırada tutar aranmaz (`Signed(reference, "failed", "0", paymentAmount: "1")` işlenir). KK6: red nedeni yalnız `PaymentFailedReasonSampled` satırında; kayıtta yok (`RowsContaining(message)` = 0), referans/tutar/`hash` satırda yok. KK7: katmanda `StatusCode`/`Results.`/`throw ` yok, dönüş tipleri sınıf aileleri. D-108: tavan 10 000 (`09 §3.5`, `05 §4.5.2` K-1582 ile aynı), üç tavan testi. Kriter 8 ✓ depo payı: `08 §4.1` ve `PAYTR.md` §6.1'de yedi DV satırı tarihli "Bekliyor — OWNER_INPUT" + kod tarafı kanıtı; gerçek test mağazası yok — gözlem payının izi D-1038, `VAL-E001`/`E002`/`E004`/`E010`/`E036`/`E037`/`E043` `BEKLEMEDE` kalır (T401 emsali). Yerel: `-warnaserror` 0 uyarı, `format` üç projede temiz, Unit 5891/5891, Consistency 292/292, betik testleri 4/4, Integration ilgili sınıflar 101/101 (`PaymentNotificationTests`, `PaymentStartTests`, `SignedEndpointDatabaseTests`, `BranchFlowTests`, `MainFlowTests`, `RequestLimitsTests`, `ForgeryProtectionTests`; Postgres 18, `track_commit_timestamp=on`). Dal CI 42836227559 success (dokuz iş yeşil); ana dal son 3 run success.
 
 ## Altyapı Değişiklikleri
 
@@ -104,7 +106,7 @@ Derleme: `dotnet build -c Release -warnaserror` Unit ve Integration (Web dahil) 
 - `failed_reason_msg` imzasızdır; maskeleyici ve JSON kaçışıyla olduğu gibi yazılır, uzunluk sınırı konmadı (gövde 64 KB tavanı).
 - Red nedeni penceresi ürün genelinde tektir (bildirim sağlayıcının sunucularından gelir, IP başına pencere anlamsız); 60 sn genel kayan pencere (K-1570), `09 §3.5`'e satır olarak yazıldı — `08 §2.1.5`'in "seyreltilerek" hükmünün uygulanışı, belge kuralını değiştirmez.
 - 4. sıra Integration testleri yasak desen taraması gereği her kolda `Row4Expected` ile iddia kurar.
-- Kriter 8 gözlem payı OWNER_INPUT; `VAL-E001`/`E002`/`E005`/`E010`/`E036`/`E037`/`E043` `BEKLEMEDE`.
+- Kriter 8 gözlem payı OWNER_INPUT; `VAL-E001`/`E002`/`E004`/`E010`/`E036`/`E037`/`E043` `BEKLEMEDE`.
 
 ## Known Limitations / Follow-up
 

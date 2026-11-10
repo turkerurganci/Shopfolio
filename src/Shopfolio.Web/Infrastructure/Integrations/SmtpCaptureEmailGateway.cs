@@ -108,9 +108,10 @@ internal sealed class SmtpCaptureEmailGateway : IEmailGateway
             IsBodyHtml = false,
         };
         mail.To.Add(new MailAddress(message.RecipientEmail));
-        if (!string.IsNullOrWhiteSpace(message.ReplyToEmail))
+        // A reply address that is not an address is left out (D-106): the firm's setting is checked at its entry, and no exception leaves the layer.
+        if (!string.IsNullOrWhiteSpace(message.ReplyToEmail) && MailAddress.TryCreate(message.ReplyToEmail, out MailAddress? replyTo))
         {
-            mail.ReplyToList.Add(new MailAddress(message.ReplyToEmail));
+            mail.ReplyToList.Add(replyTo);
         }
 
         mail.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(message.HtmlBody, Encoding.UTF8, MediaTypeNames.Text.Html));

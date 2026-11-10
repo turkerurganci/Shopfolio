@@ -257,7 +257,7 @@ public sealed class SettingsAuditTests
         { SiteOptions.DomainKey, "shop.example.com" },
         { EmailOptions.SenderAddressKey, "info@example.com" },
         { EmailOptions.RegionKey, "eu-central-1" },
-        { EmailOptions.CredentialKey, "made-up-credential" },
+        { EmailOptions.CredentialKey, "made-up-key-id\nmade-up-secret-key" },
         { LinkKeyOptions.DerivationSecretKey, Convert.ToBase64String(new byte[LinkKeyOptions.DerivationSecretMinBytes]) },
     };
 

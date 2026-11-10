@@ -143,6 +143,20 @@ public sealed class SmtpCaptureEmailGatewayTests
         Assert.Equal(0, transport.Calls);
     }
 
+    [Theory]
+    [InlineData("not an address")]
+    [InlineData("a@b@c")]
+    public async Task SendAsync_ReplyAddressThatIsNoAddress_IsLeftOut_AndNoExceptionLeavesTheLayer(string replyTo)
+    {
+        using RunnerHarness harness = new();
+        RecordingTransport transport = new();
+
+        EmailSendResult result = await Gateway(harness, transport).SendAsync(Message(replyTo: replyTo), Ct);
+
+        Assert.Equal(new EmailSendResult.Sent(), result);
+        Assert.Empty(Assert.Single(transport.Sent).ReplyTo);
+    }
+
     [Fact]
     public async Task QueryBouncesAsync_IsAnEmptyList_AndMakesNoCall()
     {

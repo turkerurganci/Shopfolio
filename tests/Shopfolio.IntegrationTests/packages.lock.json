@@ -40,6 +40,11 @@
           "AngleSharp": "[1.9.0, 2.0.0)"
         }
       },
+      "AWSSDK.Core": {
+        "type": "Transitive",
+        "resolved": "4.0.100.9",
+        "contentHash": "OPYy41jZjXwxxcYRotaq24HDrwUnVtBB/mvg1IwB9D1ICXAtHqMa1sp2hpmlVJCZwjlcrPcTCJIejInvV1vp5g=="
+      },
       "Microsoft.ApplicationInsights": {
         "type": "Transitive",
         "resolved": "2.23.0",
@@ -235,6 +240,7 @@
       "shopfolio.web": {
         "type": "Project",
         "dependencies": {
+          "AWSSDK.SimpleEmailV2": "[4.0.102.1, )",
           "EFCore.NamingConventions": "[10.0.1, )",
           "HtmlSanitizer": "[10.0.1120, )",
           "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": "[10.0.14, )",
@@ -245,6 +251,15 @@
           "Serilog.Sinks.File": "[7.0.0, )",
           "SkiaSharp": "[4.154.0, )",
           "SkiaSharp.NativeAssets.Linux.NoDependencies": "[4.154.0, )"
+        }
+      },
+      "AWSSDK.SimpleEmailV2": {
+        "type": "CentralTransitive",
+        "requested": "[4.0.102.1, )",
+        "resolved": "4.0.102.1",
+        "contentHash": "SVE4UT0fXKk5SrB6X4VLKYS7EO358dHQdh0rziKDTLqvDLDowupICIyZlkFNtjcfT57diZuXTIIKSV8NBn6ubQ==",
+        "dependencies": {
+          "AWSSDK.Core": "[4.0.100.9, 5.0.0)"
         }
       },
       "EFCore.NamingConventions": {

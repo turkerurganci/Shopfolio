@@ -14,7 +14,8 @@ namespace Shopfolio.UnitTests.Architecture;
 /// (3) no <c>new HttpClient(...)</c> anywhere: a client comes from the factory.
 /// (4) no retry or resilience handler and no retry count above zero anywhere (08 3.1 rule 2).
 /// (5) the fakes of <c>UnitTests/Fakes/</c> name no network type: they never leave the process.
-/// Rules 2-5 skip full-line comments (they keep their line); rule 1 reads the whole text. The scan reads text and writes nothing.
+/// Rules 2-5 skip full-line comments (they keep their line); rule 1 reads the whole text. The application files are the C# sources, the
+/// Razor pages and components and the site's own scripts (<see cref="IsScannedFile"/>; D-105). The scan reads text and writes nothing.
 /// </summary>
 internal static partial class IntegrationSourceScan
 {
@@ -102,9 +103,30 @@ internal static partial class IntegrationSourceScan
         return string.Join('\n', lines);
     }
 
-    // The payment provider in any case where a word or a camel-case part begins (not "display tree"), the e-mail service's short name as a
-    // word or a type prefix, the cloud's name and the service's long name.
-    [GeneratedRegex(@"(?:(?<![A-Za-z])(?i:p)|(?<=[a-z])P)(?i:ay[\s_-]?tr)|\bSES\b|\bSes(?:\b|[A-Z])|(?i:\bamazon)|\bAWS\b|\bAws[A-Z]|(?i:simple\s*email)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    /// <summary>
+    /// Whether the application scan reads the file: C# sources, Razor pages and components (the e-mail frame is a component, 09 11.4) and
+    /// the site's own scripts. Third-party script copies (a <c>wwwroot/lib/</c> folder) and build output are not the application's text.
+    /// </summary>
+    public static bool IsScannedFile(string relativePath)
+    {
+        string path = relativePath.Replace('\\', '/');
+        if (path.Contains("/obj/", StringComparison.Ordinal) || path.Contains("/bin/", StringComparison.Ordinal)
+            || path.Contains("/wwwroot/lib/", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return path.EndsWith(".cs", StringComparison.Ordinal)
+            || path.EndsWith(".cshtml", StringComparison.Ordinal)
+            || path.EndsWith(".razor", StringComparison.Ordinal)
+            || path.EndsWith(".js", StringComparison.Ordinal);
+    }
+
+    // The payment provider in any case where a word, a camel-case part or an upper-case run's tail begins ("CARDPAYTR"; not "display tree");
+    // the spaced form only when "tr" ends there ("Pay TR", not "pay transfer fees"). The e-mail service's short name as a word, a type prefix
+    // in either case ("sesClient", "SESClient"), a field ("_sesClient", "_ses") or a snake-case part ("SES_REGION"), but not "session",
+    // "SESSION_KEY" nor a bare lower-case "ses" (a local's name; the Turkish word for sound). The cloud's name as a prefix ("AWSSDK", "awsRegion", "aws_region"), Amazon, and the service's long name.
+    [GeneratedRegex(@"(?:(?<![A-Za-z])(?i:p)|(?<=[a-z])P|(?<=[A-Z])P(?=AY))(?i:ay)(?:(?i:[_-]?tr)|\s+(?i:tr)(?![a-z]))|\bSES(?:\b|_|[A-Z][a-z])|\bSes(?:\b|[A-Z])|\bses[A-Z]|_[Ss]es(?![a-z])|(?i:\bamazon)|\bAWS|\b[Aa]ws(?:\b|[A-Z_])|(?i:simple\s*email)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex ProviderNames();
 
     [GeneratedRegex(@"\b(?:HttpClient|IHttpClientFactory|HttpMessageHandler|SocketsHttpHandler|HttpClientHandler|SmtpClient)\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

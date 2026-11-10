@@ -24,6 +24,46 @@ internal static class OrderNumber
     /// <summary>A new number for an order that is made in <paramref name="year"/>.</summary>
     public static string Create(int year) => Create(year, ProductConstants.OrderNumberRandomBlockLength);
 
+    /// <summary>
+    /// The number without its separator (08 2.1.4 <c>merchant_oid</c>: letters and digits only): <c>2026-7K4M9P</c> → <c>20267K4M9P</c>. The one home of the rule; the
+    /// payment record's provider reference and the link layer's order reference both read it.
+    /// </summary>
+    public static string WithoutSeparator(string orderNumber)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(orderNumber);
+        return orderNumber.Replace(Separator.ToString(), string.Empty, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// The number a value without its separator maps back to (08 2.1.4: the first <see cref="YearLength"/> characters are the year): <c>20267K4M9P</c> →
+    /// <c>2026-7K4M9P</c>. A value that is not four digits followed by at least one character of <see cref="Alphabet"/> - and only those - maps to nothing.
+    /// </summary>
+    public static string? FromWithoutSeparator(string? value)
+    {
+        if (value is null || value.Length <= YearLength)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < YearLength; i++)
+        {
+            if (!char.IsAsciiDigit(value[i]))
+            {
+                return null;
+            }
+        }
+
+        for (int i = YearLength; i < value.Length; i++)
+        {
+            if (!Alphabet.Contains(value[i], StringComparison.Ordinal))
+            {
+                return null;
+            }
+        }
+
+        return value[..YearLength] + Separator + value[YearLength..];
+    }
+
     /// <summary>The same with an explicit block length; the pure form the tests use.</summary>
     internal static string Create(int year, int blockLength)
     {

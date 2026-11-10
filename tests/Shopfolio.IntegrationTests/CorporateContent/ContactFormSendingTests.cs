@@ -506,6 +506,16 @@ public sealed class ContactFormSendingTests : IAsyncLifetime
         public Task<int> QueueAccountEmailAsync(AccountEmail email, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<bool> QueueGoogleLinkConfirmationAsync(Guid customerId, string email, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<bool> OrderHasUndeliveredMarkAsync(Guid orderId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<bool> ClaimHasUndeliveredMarkAsync(DispatchRelatedRecordType recordType, Guid recordId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<UndeliveredNotice>> FindUndeliveredNoticesAsync(Guid orderId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<Guid>> FindMarkedOrderIdsAsync(Guid? afterOrderId, int maxOrders, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<NoticeResendResult> ResendCustomerNoticeAsync(NoticeResendRequest request, CancellationToken ct) => throw new NotSupportedException();
     }
 
     private sealed class FixedContactEmail(string? email) : ICompanyContactEmail

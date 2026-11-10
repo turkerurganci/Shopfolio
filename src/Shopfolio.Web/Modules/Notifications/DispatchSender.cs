@@ -36,13 +36,15 @@ internal enum DispatchSendOutcome
 /// retries 5 minutes, 30 minutes and 2 hours after the first attempt, then "undelivered") and the channel state in one transaction. Nothing here is a transaction: the call goes out outside
 /// any (09 10.7 item 5). The "e-mail did not arrive" mark is read from the row's state afterwards (<see cref="DispatchMarks"/>) and is never written. A link e-mail whose link is no longer
 /// valid is closed without a call and without an attempt - "undelivered" with no last outcome - which puts no mark and touches no channel state (05 4.4.3; D-233).
-/// The customer notices B-1…B-16 are not picked yet: their bodies need the order's facts (D-965), so those rows wait "queued" until the sender that makes them is added.
+/// The customer notices B-1…B-16 are picked too: their body is made from the order as it is at the time of sending (<see cref="OrderNoticeContexts"/>, D-232, D-293), so a re-sent row (06 4.58) carries the order's current facts.
 /// </summary>
 internal sealed class DispatchSender
 {
     // The families whose body this sender makes: the firm notices and the account and administration e-mails.
     private static readonly DispatchType[] Picked =
     [
+        DispatchType.B1, DispatchType.B2, DispatchType.B3, DispatchType.B4, DispatchType.B5, DispatchType.B6, DispatchType.B7, DispatchType.B8,
+        DispatchType.B9, DispatchType.B10, DispatchType.B11, DispatchType.B12, DispatchType.B13, DispatchType.B14, DispatchType.B15, DispatchType.B16,
         DispatchType.F1, DispatchType.F2, DispatchType.F3, DispatchType.F4, DispatchType.F5, DispatchType.F6,
         DispatchType.EmailVerificationLink, DispatchType.PasswordResetLink, DispatchType.NewEmailVerificationLink, DispatchType.EmailChangeNotice,
         DispatchType.AdminInvitation, DispatchType.AccountDeletedNotice, DispatchType.GoogleLinkConfirmationLink,
@@ -58,6 +60,8 @@ internal sealed class DispatchSender
     private readonly EmailLinks _links;
     private readonly ISettingsModule _settings;
     private readonly ICorporateContentModule _brand;
+    private readonly OrderNoticeContexts _orderContexts;
+    private readonly CustomerNoticeTemplates _customerTemplates;
 
     public DispatchSender(
         AppDbContext db,
@@ -69,8 +73,12 @@ internal sealed class DispatchSender
         EmailComposer composer,
         EmailLinks links,
         ISettingsModule settings,
-        ICorporateContentModule brand)
+        ICorporateContentModule brand,
+        OrderNoticeContexts orderContexts,
+        CustomerNoticeTemplates customerTemplates)
     {
+        _orderContexts = orderContexts;
+        _customerTemplates = customerTemplates;
         _db = db;
         _transactions = transactions;
         _time = time;
@@ -103,7 +111,7 @@ internal sealed class DispatchSender
         DateTimeOffset now = _time.GetUtcNow();
         var row = await _db.DispatchRecords.AsNoTracking()
             .Where(d => d.Id == dispatchId)
-            .Select(d => new { d.DispatchType, d.DispatchState, d.NextAttemptAt, d.RecipientEmail, d.RelatedRecordType, d.RelatedRecordId, d.EventValues })
+            .Select(d => new { d.DispatchType, d.DispatchState, d.NextAttemptAt, d.RecipientEmail, d.OrderId, d.RelatedRecordType, d.RelatedRecordId, d.EventValues })
             .SingleOrDefaultAsync(ct);
         if (row is null || row.DispatchState != DispatchState.Queued || (row.NextAttemptAt is { } due && due > now) || !Picks(row.DispatchType))
         {
@@ -129,6 +137,10 @@ internal sealed class DispatchSender
 
                 content = body.Content;
             }
+            else if (DispatchTypeFamily.IsCustomerNotice(row.DispatchType))
+            {
+                content = await ComposeCustomerNoticeAsync(row.DispatchType, row.OrderId, row.EventValues, row.RelatedRecordId, ct);
+            }
             else
             {
                 content = CompanyNoticeTemplates.Compose(row.DispatchType, row.EventValues, _links);
@@ -148,6 +160,34 @@ internal sealed class DispatchSender
         // No body, or no recipient: the attempt is written as a recipient error without a call, and goes the retry way like every other failure.
         await _attempts.RecordAsync(dispatchId, new EmailSendResult.RecipientError("BodyNotMade"), now, ct);
         return DispatchSendOutcome.BodyNotMade;
+    }
+
+    /// <summary>
+    /// The body of a customer notice B-1…B-16 (D-232, D-293): the notice is read from the row's event values and its related record (B-9), the order's context is made from the order as it is
+    /// now, and the template writes the content. Null - "body not made" - when the order is gone, the values are unreadable, or the order's facts do not fit the notice's template.
+    /// </summary>
+    private async Task<EmailContent?> ComposeCustomerNoticeAsync(DispatchType type, Guid? orderId, string? eventValues, Guid? relatedRecordId, CancellationToken ct)
+    {
+        if (orderId is not { } id || CustomerNoticeValues.Read(type, id, eventValues, relatedRecordId) is not { } notice)
+        {
+            return null;
+        }
+
+        OrderNoticeContext? context = await _orderContexts.MakeAsync(notice, eventValues, ct);
+        if (context is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return _customerTemplates.Compose(context, notice);
+        }
+        catch (ArgumentException)
+        {
+            // A template that cannot be made from the order's facts (an empty firm contact, a guest order without its key): the row goes the retry way as a recipient error.
+            return null;
+        }
     }
 
     private async Task<bool> CloseWithoutAttemptAsync(Guid dispatchId, CancellationToken ct)
@@ -179,6 +219,9 @@ internal sealed class DispatchSender
 /// <summary>The family of a dispatch type, where more than one place asks it.</summary>
 internal static class DispatchTypeFamily
 {
+    /// <summary>True for the sixteen customer notices B-1…B-16 (08 2.2.6): the body is made from the order by <see cref="OrderNoticeContexts"/> and <see cref="CustomerNoticeTemplates"/>.</summary>
+    public static bool IsCustomerNotice(DispatchType type) => type is >= DispatchType.B1 and <= DispatchType.B16;
+
     /// <summary>True for the seven account and administration e-mails (08 2.2.8): the body is made by <see cref="AccountEmailBodies"/>.</summary>
     public static bool IsAccountEmail(DispatchType type) => type is
         DispatchType.EmailVerificationLink or DispatchType.PasswordResetLink or DispatchType.NewEmailVerificationLink or DispatchType.EmailChangeNotice

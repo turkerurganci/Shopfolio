@@ -108,6 +108,9 @@ internal static class NotificationsModuleRegistration
         // The panel's re-sending of a marked customer notice (T385; 02 9.1.6): a new row in the notice's group and its trail row, in the caller's transaction.
         services.AddScoped<DispatchResending>();
 
+        // The body context of a customer notice, read from the order when the row is sent (T385; D-232, D-293).
+        services.AddScoped<OrderNoticeContexts>();
+
         // The e-mail queue is a scheduler source (T385; 05 5.1.1): the rows are sent, retried and given up on by their own time; it sends nothing while no gateway is registered (T407).
         services.AddDueRecordSource<DispatchRetrySource>();
         services.AddSingleton<RecipientLimitLog>();

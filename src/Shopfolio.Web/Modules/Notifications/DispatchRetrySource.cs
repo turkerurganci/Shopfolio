@@ -56,7 +56,9 @@ internal sealed class DispatchRetrySource : IDueRecordSource
             services.GetRequiredService<EmailComposer>(),
             services.GetRequiredService<EmailLinks>(),
             services.GetRequiredService<ISettingsModule>(),
-            services.GetRequiredService<ICorporateContentModule>());
+            services.GetRequiredService<ICorporateContentModule>(),
+            services.GetRequiredService<OrderNoticeContexts>(),
+            services.GetRequiredService<CustomerNoticeTemplates>());
         await sender.SendAsync(recordId, ct);
     }
 }

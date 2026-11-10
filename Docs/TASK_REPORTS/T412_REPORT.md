@@ -1,6 +1,6 @@
 # T412 — F3 kapanış düzeltmeleri: sipariş bekçisi, satış sonrası kapanış ve IBAN kullanımı
 
-**Faz:** F4 | **Durum:** 🔧 Düzeltme 2 bitti — doğrulama tur 3 bekliyor (tur 1 ve tur 2 ✗ FAIL; tur 2 sonrası eskalasyonla düzeltme 2 açıldı) | **Tarih:** 2026-11-10
+**Faz:** F4 | **Durum:** ✓ Tamamlandı — doğrulama tur 3 ✓ PASS (tur 1 ve tur 2 ✗ FAIL; tur 2 sonrası eskalasyonla düzeltme 2) | **Tarih:** 2026-11-10
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -96,6 +96,10 @@
 | Bulgu sayısı (tur 2) | 1 — **B1** (S1, DÜŞÜK; KK1 "`09 §10.2` m.3 kodla eşit"): `OrderVersionGuard` bu kayıtta eklenen (Added) siparişin kayıtlarını kilit ve artış denetiminden muaf tutar (`IsNew` → `continue`, kilit denetiminden önce); `09 §10.2` m.3'ün yeni paragrafı bu muafiyeti yazmaz, tersine "kilidi tutulmayan siparişe yazım, sürümü artırılmış olsa da … reddedilir" der. Muafiyet yük taşır: aynı sepetten yeni sipariş onayı önceki ödenmemiş siparişi kilidiyle iptal eder (`OrderConfirmation` → `CancelEarlierUnpaidOrdersAsync`) ve yeni siparişi aynı işlemde, o kilit tutulurken yazar (`LockSequence.LockedOrders` işlem boyunca dolu) — muafiyet olmasa yeni siparişin yazımı kilit iletisiyle reddedilirdi. T412 öncesi paragraf "önce sürüm artışına bakar" diyordu ve `VersionScope.IsRaised` eklenen kökü artmış sayıyordu (kapsıyordu); sıra değişince muafiyet ayrı bir dal oldu ama belgeye girmedi. `06 §2.6.4` ve `05`'te de yazılı değil. Yapım raporunun öz denetim satırı "paragraf kodla aynı sırayı anlatır (ret → yeni sipariş → kilit → artış)" der — paragrafta "yeni sipariş" adımı yok. |
 | Düzeltme gerekli mi (tur 2) | Evet — `09 §10.2` m.3 paragrafına muafiyet cümlesi: bu kayıtta eklenen siparişin kayıtları kilit ve artış denetiminin dışındadır (satırı kesinleşmeden başka işlem görmez; ör. aynı sepetten yeni siparişin onayı önceki siparişin kilidi altında yazılır); kilit denetimi siparişi bilinen ve var olan kayıtta işler. Kod değişikliği gerekmez. Tur 2, iki iterasyon sınırının sonudur (`12 §8.5`): eskalasyon (`INSTRUCTIONS.md` §3.3). |
 | Bloke-etmeyen not (K) sayısı (tur 2) | 0 |
+| Doğrulama durumu (tur 3) | ✓ PASS — tur 3 (2026-11-10, head `08878fb6`; `origin/main` `398deeaa` dalda, ek birleştirme gerekmedi). Kriter 1–9 ve KK1–KK9 ✓, `09 §25` ilgili satırlar ✓, güvenlik temiz. Tur 2 B1 kapandı: `09 §10.2` m.3 yeni sipariş muafiyetini yazar (K-1605), `OrderVersionGuard.Check` ile satır satır eşit. Dal CI'ı yeşil (run 42836235245, dokuz iş, tam Integration dahil), ana dal son üç run yeşil (42817913057, 42817913065, 42804053557). Yerelde: derleme `-warnaserror` 0 uyarı, `dotnet format` üç proje temiz, Unit 6154/6154 (Consistency ve Architecture dahil), betik testleri 4/4, `test-pre-commit.sh` 216/0, Integration dokunulan ve komşu 32 sınıf 791 + 167 yeşil (PostgreSQL 18, `track_commit_timestamp=on`); paket betiğinin 1/7 deseni dört önekli satırı yakaladı (sonda); `--locked-mode` restore 0. `12`'de T412'ye eşlenen satır yok (Dokümanlar satırında KP-n yok). |
+| Bulgu sayısı (tur 3) | 0 |
+| Düzeltme gerekli mi (tur 3) | Hayır |
+| Bloke-etmeyen not (K) sayısı (tur 3) | 0 (tur 1 K1 D-1036'da açık) |
 
 ## Altyapı Değişiklikleri
 

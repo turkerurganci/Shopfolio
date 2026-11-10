@@ -1,6 +1,6 @@
 # T408 — SES: geri dönen adreslerin öğrenilmesi
 
-**Faz:** F4 | **Durum:** ⏳ Devam ediyor (yapım tamam, doğrulama bekliyor) | **Tarih:** 2026-11-10
+**Faz:** F4 | **Durum:** ✓ Tamamlandı (doğrulama tur 2: PASS) | **Tarih:** 2026-11-10
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -77,7 +77,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-10) |
+| Doğrulama durumu (tur 2) | ✓ PASS (tur 2, 2026-11-10) — kabul kriterleri 1–8 ve KK1–KK8 ✓ (KK8: DV-22 satırı çevrimdışı payla yazılı, gerçek hesap gözlemi OWNER_INPUT → D-1024; `VAL-E023` BEKLEMEDE); `VAL-E084`, `VAL-E085` PASS; yerel: derleme 0 uyarı, biçim temiz, Unit 6118/6118, betik testleri 4/4, Integration `BounceQueryTests` + `EmailCaptureRegistrationTests` 14/14; dal CI run 42828644455 (head `d748eacb`) bütün işler yeşil |
+| Bulgu sayısı (tur 2) | 0 |
+| Bloke-etmeyen not (tur 2) | 1 — K1: `SesEmailGateway.QueryPageSize` (1000) `09 §3.5` tablosunda değil → D-1053 |
+| Doğrulama durumu (tur 1) | ✗ FAIL (tur 1, 2026-11-10) |
 | Bulgu sayısı | 1 (S2 Kırılma, KRİTİK): `BounceQueryJobHandler` koşulsuz kaydedilir ve `IEmailGateway` ister; ağ geçidi kayıtlı olmayan uygulama (test sunucusunun varsayılanı) hizmet doğrulamasında açılmaz — CI Integration 620/3499 kırmızı (run 42818255272) |
 | Düzeltme gerekli mi | Evet — işleyici ağ geçidi yokken de kurulabilmeli (ör. `IServiceProvider` üstünden `GetService`, ya da kaydın ağ geçidine bağlanması) ve uygulamanın bütün Integration paketi yeşil olmalı |
 | Bloke-etmeyen not (K) sayısı | 1 (K1 → D-1045; düzeltme 1'de kapandı) |

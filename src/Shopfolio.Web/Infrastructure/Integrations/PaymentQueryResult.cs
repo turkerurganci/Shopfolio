@@ -14,7 +14,7 @@ internal abstract record PaymentQueryResult : IExternalCallResult<PaymentQueryRe
     /// <summary>
     /// A successful payment exists. The amounts are read culture-free and are not rounded (08 2.1.6; <see cref="PaymentAmounts.TryParseProviderText"/>).
     /// <paramref name="ProviderTransactionId"/> is the provider's reference of the payment, which the payment record keeps and which makes a second application of
-    /// the same payment a repeat (K-970): the layer fills it with the reference it asked about - for PayTR the <c>merchant_oid</c>, the same value the notification
+    /// the same payment a repeat (K-970): the layer fills it with the reference it asked about - the provider's order reference, the same value the notification
     /// carries (08 2.1.6 "ödeme kimliği"; T403, D-448) - and the core never makes it up.
     /// </summary>
     public sealed record Paid(string ProviderTransactionId, decimal PaymentAmount, decimal PaymentTotal, bool PaidByCard, bool InLira, bool TestMode)

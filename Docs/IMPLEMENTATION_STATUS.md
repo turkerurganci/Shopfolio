@@ -248,7 +248,7 @@
 | T408 | SES: geri dönen adreslerin öğrenilmesi | ⬚ | — | — | — |
 | T409 | Google: giriş, kayıt ve yeniden doğrulama bağlayıcısı | ⬚ | — | — | — |
 | T410 | Dış olgu varsayımlarının doğrulama kanıtları (DV) | ⬚ | — | — | — |
-| T411 | Kayıt maskeleme taramasının dizge farkında yeniden yazımı | ⏳ | — | — | #514 |
+| T411 | Kayıt maskeleme taramasının dizge farkında yeniden yazımı | ✓ | ✓ PASS (tur 1) | — | #514 |
 | T412 | F3 kapanış düzeltmeleri: sipariş bekçisi, satış sonrası kapanış ve IBAN kullanımı | ⬚ | — | — | — |
 
 ---

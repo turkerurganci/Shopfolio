@@ -1,6 +1,6 @@
 # T411 — Kayıt maskeleme taramasının dizge farkında yeniden yazımı
 
-**Faz:** F4 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-10
+**Faz:** F4 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-10
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -67,10 +67,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu (tur 1) | ✓ PASS — tur 1 (2026-11-10, head `dcbae57a`; `origin/main` `64bf5f4e` dal tabanı, birleştirme gerekmedi). Kriter 1–7 ve KK1–KK7 ✓; `09 §25` ilgili satırlar evet (kişisel veri alan adı, mimari test + kasıtlı ihlal örneği, test maddesi); güvenlik temiz (sır yok, yeni bağımlılık yok, biçimleyici yalnız daha çok özelliği dışarıda bırakır). `12`'de T411'in satırı yok (Dokümanlar satırında KP birimi yok; `grep T411` boş), `Durum` hücresi yazılmadı. Ana dal CI son 3 run yeşil (42787134973, 42787134975, 42760836228). Dal CI 42790472058 (head `dcbae57a`) success (Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E, CI Gate). Yerelde: restore, derleme 0 uyarı / 0 hata (`-warnaserror`), `dotnet format --verify-no-changes` üç proje temiz, Unit 5873/5873 (Consistency ve Architecture dahil), betik testleri 4/4, Integration `Shopfolio.IntegrationTests.Logging` 30/30 (Postgres 18, `track_commit_timestamp=on`). Validator sondaları (geçici birim testi, silindi): iç içe dizgeli delik, `'{'` karakter sabiti, biçim belirteçli delik, `Write(LogEventLevel…)`, iç içe generic `Define`, çok satırlı `[LoggerMessage]` istisna parametresi, karşılaştırmalı bağımsız değişkenden sonraki istisna, catch değişkeninin üyesi — hepsi bulgu; `IsForbiddenName("MissingKeys"/"missingkeys")` false. Sabitte tutulan şablonla verilen istisna bulgu değil (K1). |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 — **K1** (D-1020'ye forward): şablon sabit adıyla verilince (`_logger.LogWarning(Template, e, ex)`) istisna bağımsız değişkeni taranmaz (`ExceptionArguments` yalnız sabit dizgeli şablonu arar); istisna iletisinin kendisi şablon olunca (`_logger.LogWarning(ex.Message)`) da bulgu çıkmaz. Bugün `src/`'de sabit dizgesiz şablonlu kayıt çağrısı yok (validator sondası). |
 
 ## Altyapı Değişiklikleri
 

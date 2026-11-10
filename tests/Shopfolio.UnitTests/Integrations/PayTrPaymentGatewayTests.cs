@@ -21,7 +21,7 @@ namespace Shopfolio.UnitTests.Integrations;
 /// outside .NET; amounts, the order reference, the stand-in values, the cuts, the client address and the minutes follow 08 2.1.4; the answer gives the frame's address and
 /// the token reaches no log line.
 /// </summary>
-public sealed class PayTrPaymentGatewayTests
+public sealed partial class PayTrPaymentGatewayTests
 {
     // Built from parts: the repository's secret guard stops a secret-looking literal next to a secret key.
     private static readonly string SampleKey = "key-" + "sample";

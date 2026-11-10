@@ -50,9 +50,18 @@ internal sealed partial class ExternalCallRunner
     public TResult Failed<TResult>(IntegrationOperation operation, ExternalCallFailure failure)
         where TResult : IExternalCallResult<TResult>
     {
+        WriteFailure(operation, failure);
+        return TResult.FromFailure(failure);
+    }
+
+    /// <summary>
+    /// Writes the failure's one log line only; an implementation calls it for an answer its table classes as "no answer" without the family's default class (08 2.1.6:
+    /// the final query's request errors, whose interval is the code error rule's).
+    /// </summary>
+    public void WriteFailure(IntegrationOperation operation, ExternalCallFailure failure)
+    {
         ArgumentNullException.ThrowIfNull(failure);
         LogFailed(_logger, LogEvents.ExternalCallFailed, operation, failure.Kind, failure.ReasonCode);
-        return TResult.FromFailure(failure);
     }
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "{Event} {Operation} {FailureKind} {Reason}")]

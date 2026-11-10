@@ -115,6 +115,27 @@ public sealed partial class PaymentNotificationTests
         Assert.Equal((1L, 1L), (await CountAsync("inbound_notification_records"), await CountAsync("jobs")));
     }
 
+    // ---- T403 KK8: a second successful notification of the same merchant_oid, after the first was applied ----
+
+    [Fact]
+    public async Task PayTr_SecondSuccessOfTheSameMerchantOid_WithAnotherTotal_IsARepeat_NoRecordNoJobRow_AndOnePaymentRecord_T403_KK8()
+    {
+        (Order order, string reference) = await SeedPayTrOrderAsync();
+        using HttpResponseMessage first = await PostPayTrAsync(Signed(reference, "success", TotalKurus));
+        Assert.True(await RunNextJobAsync(_payTrApp));
+        await AssertOrderAsync(order.Id, OrderStatus.Preparing, PaymentStatus.Paid, 2);
+
+        using HttpResponseMessage second = await PostPayTrAsync(Signed(reference, "success", "12450", paymentAmount: TotalKurus));
+
+        Assert.Equal((HttpStatusCode.OK, HttpStatusCode.OK), (first.StatusCode, second.StatusCode));
+        Assert.Equal("OK", await second.Content.ReadAsStringAsync(Ct));
+        Assert.Equal((1L, 1L), (await CountAsync("inbound_notification_records"), await CountAsync("jobs")));
+        Assert.False(await RunNextJobAsync(_payTrApp));
+        await AssertOrderAsync(order.Id, OrderStatus.Preparing, PaymentStatus.Paid, 2);
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(reference, (await reader.PaymentRecords.SingleAsync(p => p.OrderId == order.Id, Ct)).ProviderTransactionId);
+    }
+
     // ---- Row 3: a reference that maps to no order ----
 
     [Theory]

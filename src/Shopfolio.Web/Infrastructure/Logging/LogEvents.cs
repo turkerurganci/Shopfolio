@@ -33,6 +33,12 @@ internal static class LogEvents
     public const string PaymentFailedReasonSampled = "PaymentFailedReasonSampled";
 
     /// <summary>
+    /// The final query's successful answer was not applied - an amount, the payment type, the currency or a test transaction on the live installation does not hold;
+    /// the line carries the reason and the order's internal id only, no reference and no amount; the row repeats by the code error rule (08 2.1.6).
+    /// </summary>
+    public const string FinalPaymentQueryNotApplied = "FinalPaymentQueryNotApplied";
+
+    /// <summary>
     /// The system's own transition on an order - the end of the payment window, a provider notification, the final query - was refused against the
     /// order as it is now; the line carries the refusal's code and the order's internal id only, and no notice goes (02 3.31.2; 05 9.1.3; K-1559).
     /// </summary>

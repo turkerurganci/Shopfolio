@@ -329,7 +329,7 @@ internal sealed class OrderingModule : IOrderingModule
             .Where(o => o.Id == orderId)
             .Where(PaymentWindowRules.Awaiting(PaymentMethod.Card))
             .SingleOrDefaultAsync(ct);
-        return order is null ? null : new CardPaymentQueryTarget(order.OrderNumber, PaymentWindowRules.IsPaymentOutcomeUnknown(order, now));
+        return order is null ? null : new CardPaymentQueryTarget(order.OrderNumber, PaymentWindowRules.IsPaymentOutcomeUnknown(order, now), order.Total);
     }
 
     public async Task<InstallerPaymentTarget?> FindInstallerPaymentTargetAsync(string orderNumber, DateTimeOffset now, CancellationToken ct)

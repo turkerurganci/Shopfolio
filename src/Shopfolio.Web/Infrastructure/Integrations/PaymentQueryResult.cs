@@ -12,9 +12,10 @@ internal abstract record PaymentQueryResult : IExternalCallResult<PaymentQueryRe
     }
 
     /// <summary>
-    /// A successful payment exists. The amounts are read culture-free and are not rounded (08 2.1.6). <paramref name="ProviderTransactionId"/> is the
-    /// provider's reference of the payment, which the payment record keeps and which makes a second application of the same payment a repeat (K-970);
-    /// the layer fills it from the provider's answer - which field it maps is the provider task's (T403, D-448) - and the core never makes it up.
+    /// A successful payment exists. The amounts are read culture-free and are not rounded (08 2.1.6; <see cref="PaymentAmounts.TryParseProviderText"/>).
+    /// <paramref name="ProviderTransactionId"/> is the provider's reference of the payment, which the payment record keeps and which makes a second application of
+    /// the same payment a repeat (K-970): the layer fills it with the reference it asked about - the provider's order reference, the same value the notification
+    /// carries (08 2.1.6 "ödeme kimliği"; T403, D-448) - and the core never makes it up.
     /// </summary>
     public sealed record Paid(string ProviderTransactionId, decimal PaymentAmount, decimal PaymentTotal, bool PaidByCard, bool InLira, bool TestMode)
         : PaymentQueryResult;
@@ -22,8 +23,13 @@ internal abstract record PaymentQueryResult : IExternalCallResult<PaymentQueryRe
     /// <summary>The provider says there is no payment for the order.</summary>
     public sealed record NoPayment : PaymentQueryResult;
 
-    /// <summary>No answer was received - the result is unknown (a connection error class; the order is not cancelled).</summary>
-    public sealed record NoResponse(string ReasonCode) : PaymentQueryResult;
+    /// <summary>
+    /// No answer was received - the result is unknown (a connection error class; the order is not cancelled). <paramref name="CodeError"/> tells the two intervals
+    /// apart (08 2.1.6; 05 4.3.4): false for an answer that waiting may change - the unreachable provider, the timeout, the answer outside the table - which is asked
+    /// again every five minutes; true for an answer that waiting does not change - the provider's request errors, an amount text that is not recognized, missing
+    /// keys - which the job's code error rule repeats (1, 5, 15, 60, 240 minutes, then failed).
+    /// </summary>
+    public sealed record NoResponse(string ReasonCode, bool CodeError = false) : PaymentQueryResult;
 
     /// <summary>A query without a classified answer has an unknown result (08 2.1.6; 08 3.1: the unlisted answer is a connection error).</summary>
     public static PaymentQueryResult FromFailure(ExternalCallFailure failure)

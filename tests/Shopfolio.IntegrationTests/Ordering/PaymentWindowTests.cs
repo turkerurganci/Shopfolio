@@ -38,7 +38,7 @@ namespace Shopfolio.IntegrationTests.Ordering;
 /// outcome unknown" mark and is asked again - and the window's end read from the firm's setting and from the product constant.
 /// </summary>
 [Collection(OrderTransitionsDefinition.Name)]
-public sealed class PaymentWindowTests : IAsyncLifetime
+public sealed partial class PaymentWindowTests : IAsyncLifetime
 {
     private const string ContactEmail = "Ali@Example.com";
 
@@ -47,7 +47,7 @@ public sealed class PaymentWindowTests : IAsyncLifetime
     private readonly CollectionDatabaseFixture _collection;
     private readonly ManualTimeProvider _clock = new(Start);
 
-    // The refusal lines of the system's own transition (T364; K-1559); every other category stays silent.
+    // The refusal lines of the system's own transition (T364; K-1559) and the final query's warning (T403); every other category stays silent.
     private readonly CollectingLoggerProvider _logs = new();
     private ServiceProvider _provider = null!;
     private int _counter;
@@ -560,6 +560,7 @@ public sealed class PaymentWindowTests : IAsyncLifetime
         services.AddLogging(builder => builder
             .SetMinimumLevel(LogLevel.None)
             .AddFilter(typeof(AutomaticTransitionLog).FullName, LogLevel.Information)
+            .AddFilter(typeof(FinalPaymentQueryJobHandler).FullName, LogLevel.Warning)
             .AddProvider(_logs));
         services.AddCatalogModule();
         services.AddAfterSalesModule();

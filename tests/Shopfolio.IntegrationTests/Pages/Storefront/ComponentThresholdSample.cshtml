@@ -1,0 +1,14 @@
+@page "/odeme/esik-ornegi"
+@model Shopfolio.IntegrationTests.Pages.ComponentThresholdSampleModel
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = "Eşik örneği";
+}
+@if (Model.FreeShipping is not null)
+{
+    <section id="free-shipping"><partial name="_ThresholdMessage" model="Model.FreeShipping" /></section>
+}
+@if (Model.Minimum is not null)
+{
+    <section id="minimum-order"><partial name="_ThresholdMessage" model="Model.Minimum" /></section>
+}

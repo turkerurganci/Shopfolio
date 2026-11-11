@@ -1,0 +1,27 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@model AwaitingCustomerList
+@* The "Müşteriden beklenenler" list of the panel home (T542; 04 2.6.2; K-750): lines, not a counter. Each line leads to its order; the first ten show, the whole list is the order list's IBAN filter. *@
+@if (Model.Shown.Count > 0)
+{
+    <section class="awaiting-customer" aria-labelledby="awaiting-customer-title">
+        <h2 id="awaiting-customer-title" class="awaiting-customer__title">Müşteriden beklenenler</h2>
+        <ul class="awaiting-customer__list">
+            @foreach (AwaitingCustomerRow row in Model.Shown)
+            {
+                <li class="awaiting-customer__row">
+                    <a href="@row.OrderPath">@row.OrderNumber</a>
+                    <span class="awaiting-customer__text">@row.Text</span>
+                    @if (row.Period is not null)
+                    {
+                        <partial name="_PeriodIndicator" model="row.Period" />
+                    }
+                </li>
+            }
+        </ul>
+        @if (Model.HasMore)
+        {
+            <p class="awaiting-customer__more"><a href="@AwaitingCustomerList.AllPath">Tümünü gör</a></p>
+        }
+    </section>
+}

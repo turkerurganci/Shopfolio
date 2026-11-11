@@ -1,0 +1,4 @@
+@using Shopfolio.Pages.Components
+@model Badge
+@* One status badge (T542; 04 2.5.1): the text is always there; the tone class is an aid, never the meaning (02 6.1.6). *@
+<span class="badge badge--@Model.Tone.ToString().ToLowerInvariant()">@Model.Text</span>

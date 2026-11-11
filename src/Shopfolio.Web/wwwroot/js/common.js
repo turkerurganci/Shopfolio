@@ -126,6 +126,35 @@ for (const group of document.querySelectorAll('[data-js="menu-group"]')) {
     bindMenuGroup(group);
 }
 
+// A resend form is sent once (04 2.5.4, 2.7.2; 09 16.2 item 3): the first send marks the form busy and the button says it is sending; a second send is stopped. The button is not
+// disabled, so the value of the pressed button still enters the form. A page restored from the back/forward cache is made usable again.
+function bindResendOnce(form) {
+    const button = form.querySelector('button[type="submit"]');
+    const original = button ? button.textContent : "";
+    form.addEventListener("submit", (event) => {
+        if (form.getAttribute("aria-busy") === "true") {
+            event.preventDefault();
+            return;
+        }
+        form.setAttribute("aria-busy", "true");
+        if (button && button.dataset.sendingLabel) {
+            button.textContent = button.dataset.sendingLabel;
+        }
+    });
+    window.addEventListener("pageshow", (event) => {
+        if (event.persisted) {
+            form.removeAttribute("aria-busy");
+            if (button) {
+                button.textContent = original;
+            }
+        }
+    });
+}
+
+for (const form of document.querySelectorAll('[data-js="resend-once"]')) {
+    bindResendOnce(form);
+}
+
 // The sign-in merge message can be closed (07 4.34.3; 04 2.7): the close button is hidden in the markup and shown here.
 for (const button of document.querySelectorAll('[data-js="merge-notice-close"]')) {
     button.hidden = false;

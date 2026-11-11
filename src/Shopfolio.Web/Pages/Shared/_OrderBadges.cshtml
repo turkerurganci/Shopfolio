@@ -1,0 +1,8 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@model OrderBadges
+@* The order's two badges side by side, shipment axis first (T542; 04 2.5.1; 02 5.3.1; K-777): the two axes are never one badge. *@
+<span class="badge-pair">
+    <partial name="_Badge" model="Model.Shipping" />
+    <partial name="_Badge" model="Model.Payment" />
+</span>

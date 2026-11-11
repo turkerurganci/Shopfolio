@@ -1,0 +1,26 @@
+@page "/panel/siparisler/bilesen-ornegi"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.Forms
+@model Shopfolio.IntegrationTests.Pages.ComponentSampleModel
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Bileşen örneği";
+}
+<section id="badges"><partial name="_OrderBadges" model="Model.Badges" /></section>
+<section id="item-records"><partial name="_ItemRecords" model="Model.ItemRecords" /></section>
+<section id="marks"><partial name="_PanelMarks" model="Model.Marks" /></section>
+<section id="emails"><partial name="_UndeliveredEmails" model="Model.Emails" /></section>
+<section id="counters"><partial name="_PendingCounters" model="Model.Counters" /></section>
+<section id="awaiting"><partial name="_AwaitingCustomerList" model="Model.Awaiting" /></section>
+<section id="periods">
+    <partial name="_PeriodIndicator" model="Model.Open" />
+    <partial name="_PeriodIndicator" model="Model.Over" />
+    <partial name="_PeriodIndicator" model="Model.Calendar" />
+</section>
+<form id="legal-section" method="post" asp-antiforgery="true" action="/panel/siparisler/bilesen-ornegi?handler=SaveLegal">
+    @ConflictControls.SectionSaveControl("Legal", Model.ConflictedSection, Shopfolio.IntegrationTests.Pages.ComponentSampleModel.ConflictCurrentPath, "Yasal metni kaydet")
+</form>
+<form id="contact-section" method="post" asp-antiforgery="true" action="/panel/siparisler/bilesen-ornegi?handler=SaveContact">
+    @ConflictControls.SectionSaveControl("Contact", Model.ConflictedSection, Shopfolio.IntegrationTests.Pages.ComponentSampleModel.ConflictCurrentPath, "İletişimi kaydet")
+</form>
+<div id="order-notice">@ConflictControls.OrderNotice(ConflictControls.OrderMessage)</div>

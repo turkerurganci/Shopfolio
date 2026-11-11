@@ -4,6 +4,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Categories;
+using Shopfolio.Modules.Catalog.Contracts.Lists;
 using Shopfolio.Modules.CorporateContent.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
 
@@ -70,14 +71,15 @@ internal sealed class HomepageReader
         HomepageSection section = await _settings.GetHomepageAsync(ct);
         HomepageContent content = await _cache.GetOrLoadAsync(CacheArea.HomepageBlocks, LoadAsync, ct);
 
-        ShowcasePage page = await _catalog.ListShowcaseAsync(null, 1, ct);
+        // The showcase's cards are the list cards (D-1178): price, running discount, sold-out mark and main image come with the product.
+        IReadOnlyList<ProductListItem> newest = await _catalog.ListNewestProductsAsync(HomepageRules.ShowcaseProducts(section.Layout), ct);
         HomepageShowcase? showcase = null;
-        if (page.Items.Count > 0)
+        if (newest.Count > 0)
         {
             MenuStructure structure = await _menu.GetStructureAsync(ct);
             showcase = new HomepageShowcase(
                 section.MenuNames.Products,
-                [.. page.Items.Take(HomepageRules.ShowcaseProducts(section.Layout))],
+                newest,
                 [.. structure.Catalog.Categories.Where(c => c.Level == 1)]);
         }
 

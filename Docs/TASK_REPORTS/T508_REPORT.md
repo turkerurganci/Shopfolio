@@ -1,0 +1,106 @@
+# T508 — Sepet (E-12)
+
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-11
+
+---
+
+## Yapılan İşler
+
+- Sepet sayfası `Pages/Storefront/Cart.cshtml(.cs)`: `GET /sepet` kalemleri, tutarın dökümünü, kargo satırını, ücretsiz kargo ve asgari tutar mesajlarını ve ödeme adımı geçişini modülün hesabıyla (`IOrderingModule.OpenCartPageAsync`, `ISettingsModule.GetShippingFeeAsync`, satış kapısı) çizer; sayfa kendi hesabını yapmaz.
+- `UpdateCartItem` (mutlak adet; 303 → `/sepet`, 422, 404) ve `RemoveCartItem` (303, 404) uçları; 422 yeniden gösteriminde reddedilen satır gönderilen adetle ve satır mesajıyla kalır.
+- Bir kez söylenen mesajlar (birleşmenin eklediği kalemler, vitrinden kalkan kalem, ödeme işareti) içerik başında; okuma onları siler.
+- Çerez: çerezsiz misafir boş sepet, GET çerez açmaz; çerezli misafirde son erişim yazılır ve çerez yenilenir; sepet boşalınca ödeme adımı çerezi silinir.
+- Vitrin ve panel çerçeve süzgecinin sırası 100 → -150 (422/400 yeniden gösterimi çerçeveyle çizilir; T511 aynı değeri ve yorumu kullanır).
+- Dijital varyantın ekleme yolu 1 dışı adedi ve ikinci eklemeyi reddeder (D-637); sepet kapalı ekran başlığını `RecordPages.ClosedScreen` ile kurar (D-693 sepet payı).
+- Sepet reddinin `07 §6.2.3` kodları tek yerde: `Pages/Components/CartRefusalCodes.cs`; stok/sınır reddi ret satırını bu kodla yazar (D-638).
+
+## Etkilenen Modüller / Dosyalar
+
+`src/Shopfolio.Web/Pages/Storefront/Cart.cshtml(.cs)`, `Pages/Components/{CartTexts,CartRefusalCodes}.cs`, `Pages/Frame/{StorefrontFrameBuilder,StorefrontFrameFilter}.cs`, `Pages/Shared/_StorefrontLayout.cshtml`, `Modules/Ordering/{Carts,OrderingModule}.cs`, `Modules/Ordering/Contracts/*` (sepet sözleşmeleri, `CartItemUpdateOutcome`, `CartAddOutcome.AlreadyInCart`), `Infrastructure/Security/ForgeryProtectionFilter.cs` (yorum); testler `tests/Shopfolio.IntegrationTests/Web/CartPageTests.cs`, `Ordering/CartTests.cs`, `tests/Shopfolio.UnitTests/Pages/CartPageModelTests.cs`; kayıt dosyaları.
+
+## Kabul Kriterleri Kontrolü
+
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Kalemler, döküm, ücretsiz kargo mesajı, asgari tutar eksiği sunucunun hesabıyla | ✓ | `CartPageTests.TheBreakdown_TheFreeShippingMessage_AndTheButton_AreTheModulesComputation_T508_KK1`, `AMissingMinimumAmount_ClosesTheStepWithTheMissingAmount_T508_KK3` |
+| 2 | Fiyat ve satın alınabilirlik güncel üründen; satır mesajı koşul sürdükçe | ✓ | `APriceChange_ShowsTheCurrentPrice_AndItsMessageStaysAtEveryRead_WhileTheFirstPriceIsKept_T508_KK2` |
+| 3 | Ödeme adımı geçişi sunucunun kararı; üç kapalı sebep | ✓ | `NoLineThatEntersTheOrder_ClosesTheStepWithItsSentence_T508_KK3`, `AMissingMinimumAmount_…_T508_KK3`, `AClosedSale_ClosesTheStepInTheButtonsPlace_AndTheCartStaysVisible_T508_KK3`; `CartPageModelTests.ThePaymentStep_TellsAClosedSaleFirst_ThenTheCartsOwnBlock` |
+| 4 | Bir kez söylenen mesajlar başta; kalem silinir, işaret kalkar, yenilemede yok | ✓ | `TheOnceToldMessages_AreToldOnceAtTheHead_TheMarkedLineIsDeleted_AndTheMarksAreCleared_T508_KK4` |
+| 5 | Çerezsiz misafir boş, GET çerez açmaz; çerezli misafirde son erişim + çerez yenilenir | ✓ | `AGuestWithoutTheCartCookie_HasAnEmptyCart_AndTheGetOpensNoCookie_T508_KK5`, `AGuestWithTheCartCookie_HasTheLastAccessWritten_AndTheCookieRenewed_T508_KK5` |
+| 6 | Sepet boşalınca ödeme adımı çerezi silinir | ✓ | `RemovingTheLastLine_DeletesTheCheckoutCookie_AndAnEmptyCartsGetDeletesItToo_T508_KK6` |
+| 7 | Mutlak adet, 303; ilk eklenme fiyatı değişmez; dijitalde adet alanı yok | ✓ | `TheQuantity_IsWrittenAsAnAbsoluteValue_TheRepeatGivesTheSameResult_AndTheFirstPriceStays_T508_KK7`, `ADigitalLine_HasNoQuantityField_AndAQuantityOtherThanOneIsRefused_T508_KK7` |
+| 8 | 422: adet < 1 / tam sayı değil; stok ya da sınır aşımı (yazılmaz, satır mesajı); 404 yabancı kalem | ✓ | `AQuantityUnderOneOrNotWhole_Is422_AndNothingIsWritten_T508_KK8`, `ARaiseOverTheStock_Is422WithTheLinesMessage_AndNothingIsWritten_T508_KK8`, `ARaiseOverTheProductsLimit_CountingItsOtherLines_Is422WithTheLimit_AndNothingIsWritten_T508_KK8`, `ALineOfAnotherCart_OrOneThatNeverWas_Is404_AndNothingIsWritten_T508_KK8`; sahtecilik `AWriteWithoutTheForgeryToken_Is400InTheFrame_AndNothingIsWritten_T508_KK8` |
+| 9 | Vitrinden kalkmış kalemde adet yazılmaz; k4'le silinir | ✓ | `ALineTakenOffTheShowcase_KeepsItsQuantity_AndTheNextReadTellsItOnceAndDeletesIt_T508_KK9` |
+| 10 | Çıkarma işaretli kalemi de çıkarır; yabancı/çıkarılmış kalem 404 | ✓ | `TheRemoval_Is303_TheSecondRemovalIs404_AndAForeignLineStays_T508_KK10`, `AMarkedLine_IsRemovedWhateverItsShowcaseState_T508_KK10` |
+
+### Öz denetim (bitiş kapısı 2)
+
+Önceki işçilerin yaptıkları dahil kriter 1–10 ve KK1–KK10 diff'te yeniden denetlendi. `sik-fail-nedenleri.md` beş sık nedeni: (1) tarama istisnası eklenmedi; (2) yeni kaynak taraması yok, ret satırı mevcut yazıcıdan (`RejectionLog.Rejected`) geçer — `RejectionLineSourceScan` yeşil; (3) şema değişikliği yok; (4) süzgeç sırası değişince `ForgeryProtectionFilter` sınıf yorumundaki "every other page filter" cümlesi düzeltildi, `FrameLayoutTests` güncel; (5) 09 metni değişmedi (süzgeç sırası tablosu D-1191'de). Hedefi T508 olan backlog kalemleri tarandı: D-302, D-559, D-620, D-637, D-638 kapandı; D-198, D-507, D-627, D-693 T508 payı kapandı; D-650 gerekçeyle T509'a.
+
+| KK | Sonuç | Kanıt |
+|---|---|---|
+| KK1 dökümün her satırı sunucu hesabında | ✓ | kriter 1 |
+| KK2 fiyat değişince satır güncel, mesaj kalıcı | ✓ | kriter 2 |
+| KK3 üç kapalı sebep ayrı testte | ✓ | kriter 3 (üç ayrı test) |
+| KK4 mesaj bir kez; kalem silinir, işaret kalkar | ✓ | kriter 4 |
+| KK5 çerezsiz GET çerez açmaz | ✓ | kriter 5 |
+| KK6 son kalemden sonra çerez silinir | ✓ | kriter 6 |
+| KK7 mutlak adet, tekrar aynı sonuç | ✓ | kriter 7 |
+| KK8 iki 422 sebebi ve 404 | ✓ | kriter 8; ret kodları `CartPageModelTests.TheCartsRefusals_AreWrittenWith07sCodes_AndAResultThatIsNoRefusalHasNone_D638` |
+| KK9 kalkmış kalemde adet sabit | ✓ | kriter 9 |
+| KK10 çıkarma ve ikinci 404 | ✓ | kriter 10 |
+| `09 §25` satırları; güvenlik taraması | ✓ | `Cart.cshtml`'de ham HTML yok (`Html.Raw` 0); yazan uçlar sahtecilik denetimli (400 testi); sahiplik denetimi modülde (yabancı kalem 404); yanıt `[NoStore]`; yeni bağımlılık, sır, şema yok |
+
+`12`: bu task için VAL satırı yok (grep T508 boş).
+
+## Test Sonuçları
+
+| Tür | Sonuç | Komut | Çıktı özeti |
+|---|---|---|---|
+| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build --max-threads 3` | 7122/7122 (origin/main `157e7ec3` T543 birleştirmesinden sonra) |
+| Integration | ✓ | parçalı, `--filter-namespace`, `SHOPFOLIO_TEST_DATABASE` Postgres 18 (`track_commit_timestamp=on`) | TAM, bütün ad alanları yeşil. T543 birleştirmesinden sonra: Web 734 (tek koşuda 730 + `StartupSettingsCheckTests`'in 4 durumu makine yükünde kırmızı; sınıf tek başına 17/17), Model 1407/1407 (`--max-threads 3`), Administration+Catalog+Commands+Concurrency+CorporateContent+Database 472/472, Disposal+FileSecrets+Files+Jobs+Logging+Outages+Payment+Security+SignedEndpoints+kök 459/459. Birleştirmeden önce: Ordering 638/638 (T543 Ordering'e dokunmuyor) |
+| Biçim | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` | Web, Unit temiz (değişen dosyalar); Integration devir 4'te temiz |
+
+## Doğrulama
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu (tur 1) | ✓ PASS — tur 1 (2026-11-11, head `6a8e61a0`; `origin/main` `d2bc2d33` (T502 #541) birleşik ağaçta, birleştirme çakışmasız). Kriter 1–10 ve KK1–KK10 ✓ (kanıtlar: `CartPageTests` 22 durum + `CartTests` dijital ekleme, kod okuması `Carts.UpdateItemAsync`/`RemoveItemAsync`/`OpenCoreAsync`, `CartModel`); `09 §25` ilgili satırlar ✓ (sahiplik modülde kilit altında, POST'lar sahtecilik süzgecinde, `[NoStore]`, `Html.Raw`/satır içi betik yok, ret satırı `07` koduyla, yeni bağımlılık/şema/sır yok). Para: tutarlar modülün görünümünden (`OrderableSubtotal`, `Shipping.Fee`, eşik metinleri `ShippingAssessment`'ten); yuvarlama yok, kalem tutarı `02 §3.8.3` gereği yuvarlanmaz; görünümdeki çarpma/toplama K2. Yerel: derleme `-warnaserror` 0 uyarı (birleştirmeden önce ve sonra), `dotnet format` üç proje temiz, Unit 7139/7139, betik testleri 4/4, Integration TAM (birleştirmeden önce Web 742, Ordering 638, Model 1407, kalan 931; birleştirmeden sonra Web 755, kalan 931; hepsi 0 kırmızı; `track_commit_timestamp=on`). Dal CI run 43033057523 success (9 iş). `12` satırları PASS: `VAL-A029` (KK2), `VAL-A638` (KK8), `VAL-A639` (KK10), `VAL-A640` (KK9, KK10), `VAL-A641` (KK8), `VAL-A642` (KK4), `VAL-A643` (KK5), `VAL-A644` (KK6), `VAL-A668` (KK4); KP-9/KP-10/KP-38'in öteki satırları (ekleme ucu, birleşme, satış kapısının uçtan uca ve tarayıcı kanıtı) bu task'ın kriterlerine bağlı değil, BEKLEMEDE. |
+| Bulgu sayısı (tur 1) | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (tur 1) | 3 — **K1** (D-1245'e forward): `04` 5.12.3 (3) teslimat il kısıtı satırı sepette yok; UC-19'un görünümü 5.12.3–5.12.7'dir, kriterler anmaz. **K2** (D-1246'ya forward): satır tutarı ve ödenecek toplam görünümde çarpma/toplamayla kuruluyor; bugün değer modülün kuralıyla aynı, kaynak ikiye bölünüyor. **K3** (bu PR'da kapatıldı): yapım raporu "`12`'de VAL satırı yok" diyordu; satırlar `07 §4.12` ve KP-9 aramasıyla bulundu, `Durum` hücreleri bu commit'te yazıldı. |
+| Yapım raporu karşılaştırması (tur 1) | Kabul kriterlerinde tam uyum (1–10 ✓); öz denetim tablosu var, maddeler kanıtlı. Uyuşmazlık 2: (1) "`12`: bu task için VAL satırı yok" yanlış (K3); (2) "sayfa kendi hesabını yapmaz" cümlesi görünümdeki satır tutarı ve toplam için tam doğru değil (K2). D-1189 (görsel, seçenek değerleri, ürün bağlantısı) ve D-1190 (400 yeniden gösteriminde boş sepet hâli) kriter dışı, backlog'da gerekçeli. |
+
+## Altyapı Değişiklikleri
+
+- **Şema/migration:** Yok
+- **Config / ortam değişkeni:** Yok
+- **Paketleme / dağıtım:** Yok
+- **Yeni bağımlılık:** Yok
+- **Ortak altyapı:** vitrin/panel çerçeve süzgeci sırası -150 (T511 ile ortak)
+
+## Commit & PR
+
+- **Branch:** `task/T508-sepet`
+- **PR:** #544
+- **CI:** yapım işçisi izlemez; yardımcı yürütür
+
+## Dış Varsayımlar
+
+| # | Varsayım | Kanıt | Sonuç |
+|---|---|---|---|
+| 1 | Dış varsayım: yok (plan tier, kota, API, paket sürümü, bölge kısıtı geçmiyor) | Kabul kriterleri tarandı | ✓ |
+
+## Known Limitations / Follow-up
+
+| # | Kalem | Backlog ID | Neden ertelendi |
+|---|---|---|---|
+| 1 | Satırda görsel, seçenek değerleri ve ürün sayfası bağlantısı yok (`04` 5.12.4) | D-1189 | Catalog'un sepet okuması bu alanları taşımıyor; ödeme özeti aynı satırı kullanır (T509) |
+| 2 | 400 sahtecilik yeniden gösteriminde sepet içeriği yok | D-1190 | Hiçbir şey yazılmaz; aynı kalıp ödeme formunda (T509) |
+| 3 | Çerçeve süzgeci sırası (-150) 09'da yazılı değil | D-1191 | Sonraki 09 geçişi |
+| 4 | Kargo 0 TL iken eşik mesajı | D-650 | `02 §3.19.5` kural değişikliği, karar kaydı ister; ödeme özetiyle birlikte T509 |
+
+## Notlar
+
+- **⚠ Kararlar:** (1) `04` 2.12.1.8 "adedi bir olan kalemde adet alanı görünmez" cümlesi işlem adedi varyantı içindir (iptal/cayma/ayıp seçimi, 5.17.4, 5.19.3); sepette 5.12.4 "adet ve adedi değiştiren alan" der ve UC-20 adedi artırmayı ister — alan yalnız dijital kalemde gizli. (2) D-638: sonuç adları değiştirilmedi, eşleme `CartRefusalCodes`'ta; ekleme ucu eşlemesi de yazıldı (T503 okur). (3) D-650 T509'a ileri atıldı. (4) D-1189 KK'da değil, backlog'da kaldı. (5) main'deki T543 (ortak form alanı bileşenleri) birleşti; T508'in bağımlılığı değil, sepet satırındaki adet alanı satır içi formda kaldı (`FormSourceScanTests` yeşil). (6) `StartupSettingsCheckTests` tam Web koşusunda makine yükünde 4 durumda kırmızı, tek başına yeşil; T508 başlangıç ayarlarına dokunmuyor.
+- **Repo memory:** `MEMORY.md`'ye dokunulmadı.

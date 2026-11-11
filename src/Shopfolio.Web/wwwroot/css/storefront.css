@@ -524,3 +524,231 @@
     font-family: inherit;
     white-space: pre-wrap;
 }
+
+/* ---- Home page and category page (E-01, E-02; T502; 04 5.1, 5.2) ---- */
+
+.home-block {
+    margin-block: var(--space-6);
+}
+
+.home-block__title {
+    margin: 0 0 var(--space-4);
+    font-size: var(--font-size-large);
+}
+
+.home-block__title a {
+    color: var(--color-text);
+}
+
+.home-block__more {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+    margin-block-start: var(--space-3);
+}
+
+/* The corporate block (04 5.1.4, 5.1.13): both layouts put the short introduction and the main picture side by side from the medium class up (the band layout is one narrow strip,
+   the wide layout is the full block); the narrow class stacks them in both (K-753). */
+.home-intro {
+    display: grid;
+    gap: var(--space-4);
+    align-items: center;
+}
+
+.home-intro__image,
+.home-intro__logo {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.home-intro__summary {
+    margin: 0 0 var(--space-3);
+    font-size: var(--font-size-large);
+    overflow-wrap: anywhere;
+}
+
+.home-intro__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+}
+
+.home-intro__brand {
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+}
+
+.home-intro__logo {
+    max-height: 6rem;
+    width: auto;
+}
+
+.home-intro__name {
+    margin: 0;
+    font-size: var(--font-size-large);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+@media (min-width: 768px) {
+    .home-intro--wide,
+    .home-intro--band {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* The content cards of the home page are at most three (04 5.1.5): three columns on the wide class too, a single card is a single card and the row is not filled. */
+@media (min-width: 1024px) {
+    .home-cards .card-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.home-showcase__categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.home-showcase__category {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+}
+
+/* The medium class shows no incomplete row in the showcase (04 5.1.13; K-754, K-755, K-841): the three-column grid hides the last card when the count is 4 or 7 and the last two when it is 5 or 8;
+   fewer than three cards, 3, 6 and the narrow and wide classes show every card. The medium class is the span between the two limits (09 16.1: only min-width conditions): the rule starts at the
+   medium limit and the wide limit shows the cards again. The browser check of this rule is in 12 (D-1199). */
+@media (min-width: 768px) {
+    .home-showcase .card-grid__item:nth-child(4):last-child,
+    .home-showcase .card-grid__item:nth-child(7):last-child,
+    .home-showcase .card-grid__item:nth-child(5):last-child,
+    .home-showcase .card-grid__item:nth-child(8):last-child,
+    .home-showcase .card-grid__item:nth-child(4):nth-last-child(2),
+    .home-showcase .card-grid__item:nth-child(7):nth-last-child(2) {
+        display: none;
+    }
+}
+
+@media (min-width: 1024px) {
+    .home-showcase .card-grid__item:nth-child(4):last-child,
+    .home-showcase .card-grid__item:nth-child(7):last-child,
+    .home-showcase .card-grid__item:nth-child(5):last-child,
+    .home-showcase .card-grid__item:nth-child(8):last-child,
+    .home-showcase .card-grid__item:nth-child(4):nth-last-child(2),
+    .home-showcase .card-grid__item:nth-child(7):nth-last-child(2) {
+        display: list-item;
+    }
+}
+
+.breadcrumb {
+    margin-block: var(--space-4) var(--space-2);
+}
+
+.breadcrumb__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--font-size-small);
+}
+
+.breadcrumb__item + .breadcrumb__item::before {
+    content: "/";
+    margin-inline-end: var(--space-2);
+    color: var(--color-text-muted);
+}
+
+.breadcrumb__item a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+}
+
+.category-title {
+    margin: 0 0 var(--space-4);
+    overflow-wrap: anywhere;
+}
+
+.category-layout {
+    display: grid;
+    gap: var(--space-4);
+}
+
+.category-layout__list {
+    min-width: 0;
+}
+
+/* The filters (04 5.2.11): a collapsible section on the narrow and the medium class; beside the list on the wide class, where the section is always open and its summary is not shown. */
+.filters {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-1);
+    padding: var(--space-2) var(--space-3);
+}
+
+.filters__summary {
+    display: flex;
+    align-items: center;
+    min-height: var(--touch-target);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.filters__form {
+    display: grid;
+    gap: var(--space-3);
+    padding-block: var(--space-3);
+}
+
+.filters__field {
+    display: grid;
+    gap: var(--space-1);
+}
+
+.filters__field--check {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+}
+
+.filters__input {
+    min-height: var(--touch-target);
+    padding: var(--space-2) var(--space-3);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-1);
+}
+
+.filters__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+}
+
+.filters__clear {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+}
+
+@media (min-width: 1024px) {
+    .category-layout {
+        grid-template-columns: 16rem minmax(0, 1fr);
+        align-items: start;
+    }
+
+    .filters::details-content {
+        content-visibility: visible;
+        display: block;
+    }
+
+    .filters__summary {
+        display: none;
+    }
+}

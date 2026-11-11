@@ -1,0 +1,126 @@
+@page "/sepet"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Modules.Catalog.Contracts
+@using Shopfolio.Modules.Ordering.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@model Shopfolio.Pages.Storefront.CartModel
+@inject SearchEngineData Search
+@*
+    The cart (T508; 04 5.12; 07 4.12). Order of the content (04 5.12.3): the once-told messages, the lines, the amount's breakdown, the way to the payment step. Every amount, message and state is
+    the server's (the page model's view); the page draws and computes nothing. The quantity and the removal are forms of their own per line, so the page works without a script (T539); the forms
+    lock themselves while they are sent (04 5.12.17, data-js="submit-once").
+*@
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = CartTexts.ScreenName;
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState);
+}
+@section Head {
+    @* A closed screen (02 3.30.5 item 1; K-1559; D-693): the tab title is the screen's name and the brand name, and the robots meta tag is the only data for the search engines. *@
+    @Search.Head(ViewContext.HttpContext, RecordPages.ClosedScreen(CartTexts.ScreenName, ViewContext.HttpContext.GetStorefrontFrame()?.Brand.BrandName, FramePaths.Cart))
+}
+<h1>@CartTexts.ScreenName</h1>
+@foreach (MessageView message in Model.OnceTold)
+{
+    <partial name="_Message" model="message" />
+}
+@if (Model.IsEmpty)
+{
+    <partial name="_EmptyRow" model='EmptyStates.WithExit(CartTexts.EmptySentence, CartTexts.EmptyExitLabel, "/")' />
+}
+else
+{
+    CartView view = Model.View!; // non-null: IsEmpty is true when there is no view
+    ThresholdMessage? freeShipping = ThresholdMessages.FreeShipping(view.Shipping);
+    ThresholdMessage? minimum = ThresholdMessages.MinimumOrder(view.Shipping);
+    <div class="cart" data-js="cart">
+        <ul class="cart__lines">
+            @foreach (CartLine line in view.Lines)
+            {
+                string quantityId = "quantity-" + line.ItemId.ToString("N");
+                bool refused = Model.RefusedItemId == line.ItemId;
+                string? quantityMessage = refused && Model.RefusalText is not null ? Model.RefusalText : CartTexts.QuantityProblem(line.QuantityProblem, line.OrderLimit);
+                <li class="cart-line" id="line-@line.ItemId.ToString("N")">
+                    <p class="cart-line__name">@line.ProductName</p>
+                    <p class="cart-line__price">@DisplayFormat.Amount(line.UnitPrice)</p>
+                    @if (line.ProductType != ProductType.Digital)
+                    {
+                        <form method="post" asp-antiforgery="true" action="@(FramePaths.Cart)?handler=UpdateCartItem" class="cart-line__quantity" data-js="submit-once">
+                            <input type="hidden" name="CartItemId" value="@line.ItemId" />
+                            <label for="@quantityId">Adet</label>
+                            <input id="@quantityId" name="Quantity" type="number" min="1" step="1" inputmode="numeric" value="@(refused && Model.SentQuantity is not null ? Model.SentQuantity : line.Quantity.ToString(System.Globalization.CultureInfo.InvariantCulture))" aria-describedby="@Messages.FieldMessageId(quantityId)" aria-invalid="@(refused && summary.HasContent ? "true" : null)" />
+                            <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf("Güncelle")">Güncelle</button>
+                            @if (refused)
+                            {
+                                @foreach (FormFieldError error in summary.Fields)
+                                {
+                                    <partial name="_Message" model="Messages.ForField(quantityId, error.Text)" />
+                                }
+                            }
+                        </form>
+                    }
+                    @if (line.EntersOrder)
+                    {
+                        <p class="cart-line__total">@DisplayFormat.Amount(line.UnitPrice * line.Quantity)</p>
+                    }
+                    @if (line.PriceChanged)
+                    {
+                        <partial name="_Message" model="Messages.InPlace(MessageMeaning.Info, CartTexts.PriceChanged)" />
+                    }
+                    @if (line.IsSoldOut)
+                    {
+                        <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, CartTexts.SoldOut)" />
+                    }
+                    else if (quantityMessage is not null)
+                    {
+                        <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, quantityMessage)" />
+                    }
+                    <form method="post" asp-antiforgery="true" action="@(FramePaths.Cart)?handler=RemoveCartItem" class="cart-line__remove" data-js="submit-once">
+                        <input type="hidden" name="CartItemId" value="@line.ItemId" />
+                        <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf("Çıkar")">Çıkar</button>
+                    </form>
+                </li>
+            }
+        </ul>
+        <section class="cart__summary" aria-label="Tutarın dökümü">
+            <dl class="cart__breakdown">
+                <dt>Ürünler</dt>
+                <dd id="cart-subtotal">@DisplayFormat.Amount(view.OrderableSubtotal)</dd>
+                @if (view.Shipping.HasPhysicalItem)
+                {
+                    <dt>Kargo</dt>
+                    <dd id="cart-shipping">@DisplayFormat.Amount(view.Shipping.Fee)</dd>
+                }
+                <dt>Ödenecek toplam</dt>
+                <dd id="cart-total">@DisplayFormat.Amount(view.OrderableSubtotal + view.Shipping.Fee)</dd>
+            </dl>
+            @if (freeShipping is not null)
+            {
+                <partial name="_ThresholdMessage" model="freeShipping" />
+            }
+            <div class="cart__proceed" id="cart-proceed">
+                @switch (Model.PaymentStepBlock)
+                {
+                    case CartPaymentBlock.None:
+                        <a class="button button--primary" href="@FramePaths.Checkout">@CartTexts.ProceedLabel</a>
+                        break;
+                    case CartPaymentBlock.SalesClosed:
+                        <partial name="_Message" model="Messages.InPlace(MessageMeaning.Info, SalesClosedMessages.StorefrontText)" />
+                        break;
+                    case CartPaymentBlock.NoOrderableItem:
+                        <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, CartTexts.NoOrderableItem)" />
+                        break;
+                    case CartPaymentBlock.MinimumOrderAmountNotMet:
+                        @if (minimum is not null)
+                        {
+                            <partial name="_ThresholdMessage" model="minimum" />
+                        }
+                        break;
+                }
+            </div>
+        </section>
+    </div>
+}

@@ -25,6 +25,9 @@ internal static partial class AddressRules
     /// <summary>The prefix of a general page record.</summary>
     public const string GeneralPagePrefix = "sayfa";
 
+    /// <summary>The home page: the root address <c>/</c>, the one fixed page without a first segment (07 2.1.2); <see cref="IsClosedFirstSegment"/> takes the empty segment as this page.</summary>
+    public const string HomePage = "/";
+
     /// <summary>The contact page: company identity, branches and the contact form on one page (07 2.1.2; 02 3.27.8). The service introduction's "Bize ulaşın" button leads here.</summary>
     public const string ContactPage = "iletisim";
 
@@ -93,11 +96,14 @@ internal static partial class AddressRules
         return SegmentPattern().IsMatch(segment);
     }
 
-    /// <summary>Whether the text is a member of the closed list of first path segments (07 2.1.2); the comparison is exact, the list is lower case.</summary>
+    /// <summary>
+    /// Whether the text is a member of the closed list of first path segments (07 2.1.2); the comparison is exact, the list is lower case. The empty
+    /// segment is the home page <c>/</c>, which 07 2.1.2 counts in the list and which has no segment of its own (<see cref="HomePage"/>).
+    /// </summary>
     public static bool IsClosedFirstSegment(string segment)
     {
         ArgumentNullException.ThrowIfNull(segment);
-        return _closed.Contains(segment);
+        return segment.Length == 0 || _closed.Contains(segment);
     }
 
     /// <summary>

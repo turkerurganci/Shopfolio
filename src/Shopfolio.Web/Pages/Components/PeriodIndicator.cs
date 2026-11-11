@@ -1,3 +1,5 @@
+using Shopfolio.Infrastructure;
+
 namespace Shopfolio.Pages.Components;
 
 /// <summary>

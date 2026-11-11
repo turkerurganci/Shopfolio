@@ -16,7 +16,11 @@ public enum ItemRecordName
 }
 
 /// <summary>One record on an item's row: its name, the units it covers when it covers units, and the moment it was born (04 2.5.2; 03 1.7.1).</summary>
-public sealed record ItemRecordEntry(ItemRecordName Name, int? Quantity, DateTimeOffset? At);
+public sealed record ItemRecordEntry(ItemRecordName Name, int? Quantity, DateTimeOffset? At)
+{
+    /// <summary>The moment as the row writes it, or null when the record carries no moment (the view only prints it; it derives nothing from the date).</summary>
+    public string? MomentText => At is DateTimeOffset moment ? Infrastructure.DisplayFormat.Date(moment) : null;
+}
 
 /// <summary>
 /// The names an item record shows with on the item's row (04 2.5.2): the record's own name, in the order the document lists them. The row is the place of the record, so no badge

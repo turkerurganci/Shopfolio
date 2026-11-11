@@ -21,7 +21,7 @@ public sealed partial class StatusComponentTests
 
     private static string UiSpec() => File.ReadAllText(Path.Combine(RepositoryRoot.Find(), "Docs", "04_UI_SPECS.md")).ReplaceLineEndings("\n");
 
-    private static bool SameText(string a, string b) => string.Compare(a, b, Turkish, CompareOptions.IgnoreCase) == 0;
+    private static bool SameText(string a, string b) => string.Equals(a.ToUpper(Turkish), b.ToUpper(Turkish), StringComparison.Ordinal);
 
     /// <summary>The values cell of the 04 2.5.1 row <paramref name="number"/> (for example "2.5.1.1"), split at the middle dots.</summary>
     private static string[] DocumentedValues(string number)
@@ -31,7 +31,7 @@ public sealed partial class StatusComponentTests
         return cells[3].Split('·', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
     }
 
-    private static void AssertNames(string[] documented, IEnumerable<string> actual)
+    private static string[] AssertNames(string[] documented, IEnumerable<string> actual)
     {
         string[] shown = [.. actual];
         Assert.Equal(documented.Length, shown.Length);
@@ -39,38 +39,40 @@ public sealed partial class StatusComponentTests
         {
             Assert.True(SameText(documented[i], shown[i]), $"Document says '{documented[i]}', the screen says '{shown[i]}'.");
         }
+
+        return shown;
     }
 
     [Fact]
     public void TheShipmentAxisBadges_AreTheNamesOf_04_2_5_1_1_InTheEnumsOrder_KK2()
     {
-        AssertNames(DocumentedValues("2.5.1.1"), Enum.GetValues<OrderStatus>().Select(s => StatusBadges.For(s).Text));
+        Assert.NotEmpty(AssertNames(DocumentedValues("2.5.1.1"), Enum.GetValues<OrderStatus>().Select(s => StatusBadges.For(s).Text)));
     }
 
     [Fact]
     public void ThePaymentAxisBadges_AreTheNamesOf_04_2_5_1_2_InTheEnumsOrder_KK2()
     {
-        AssertNames(DocumentedValues("2.5.1.2"), Enum.GetValues<PaymentStatus>().Select(s => StatusBadges.For(s).Text));
+        Assert.NotEmpty(AssertNames(DocumentedValues("2.5.1.2"), Enum.GetValues<PaymentStatus>().Select(s => StatusBadges.For(s).Text)));
     }
 
     [Fact]
     public void ThePublishStatusBadges_AreTheNamesOf_04_2_5_1_3_KK2()
     {
-        AssertNames(DocumentedValues("2.5.1.3"), Enum.GetValues<PublishStatus>().Select(s => StatusBadges.For(s).Text));
+        Assert.NotEmpty(AssertNames(DocumentedValues("2.5.1.3"), Enum.GetValues<PublishStatus>().Select(s => StatusBadges.For(s).Text)));
     }
 
     [Fact]
     public void TheCorporateContentBadges_AreTheNamesOf_04_2_5_1_4_AndHaveNoArchive_KK2()
     {
-        AssertNames(DocumentedValues("2.5.1.4"), new[] { PublishStatus.Draft, PublishStatus.Published }.Select(s => StatusBadges.ForCorporateContent(s).Text));
+        Assert.NotEmpty(AssertNames(DocumentedValues("2.5.1.4"), new[] { PublishStatus.Draft, PublishStatus.Published }.Select(s => StatusBadges.ForCorporateContent(s).Text)));
         Assert.Throws<ArgumentOutOfRangeException>(() => StatusBadges.ForCorporateContent(PublishStatus.Archived));
     }
 
     [Fact]
     public void TheDefectClaimAndTheContactRequestBadges_AreTheNamesOf_04_2_5_1_5_AndOf_2_5_1_6_KK2()
     {
-        AssertNames(DocumentedValues("2.5.1.5"), Enum.GetValues<DefectClaimStatus>().Select(s => StatusBadges.For(s).Text));
-        AssertNames(DocumentedValues("2.5.1.6"), Enum.GetValues<ContactRequestStatus>().Select(s => StatusBadges.For(s).Text));
+        Assert.NotEmpty(AssertNames(DocumentedValues("2.5.1.5"), Enum.GetValues<DefectClaimStatus>().Select(s => StatusBadges.For(s).Text)));
+        Assert.NotEmpty(AssertNames(DocumentedValues("2.5.1.6"), Enum.GetValues<ContactRequestStatus>().Select(s => StatusBadges.For(s).Text)));
     }
 
     [Fact]
@@ -120,7 +122,7 @@ public sealed partial class StatusComponentTests
         Assert.True(sentence.Success, "04 2.5.2 has no list of the records.");
         string[] documented = sentence.Groups[1].Value.Split(", ", StringSplitOptions.TrimEntries);
 
-        AssertNames(documented, ItemRecordLabels.All.Select(ItemRecordLabels.Of));
+        Assert.NotEmpty(AssertNames(documented, ItemRecordLabels.All.Select(ItemRecordLabels.Of)));
     }
 
     [Fact]
@@ -141,7 +143,7 @@ public sealed partial class StatusComponentTests
         ];
 
         Assert.Equal(7, documented.Length);
-        AssertNames(documented, Enum.GetValues<PanelMark>().Select(PanelMarks.TextOf));
+        Assert.NotEmpty(AssertNames(documented, Enum.GetValues<PanelMark>().Select(PanelMarks.TextOf)));
     }
 
     [Fact]

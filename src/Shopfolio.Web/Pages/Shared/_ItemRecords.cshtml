@@ -13,9 +13,9 @@
                 {
                     <span class="item-records__quantity">@DisplayFormat.Number(quantity) adet</span>
                 }
-                @if (record.At is DateTimeOffset at)
+                @if (record.MomentText is string moment)
                 {
-                    <span class="item-records__moment">@DisplayFormat.Date(at)</span>
+                    <span class="item-records__moment">@moment</span>
                 }
             </li>
         }

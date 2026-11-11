@@ -40,7 +40,7 @@ public sealed partial class IndicatorComponentTests
         string[] shown = [.. Enum.GetValues<PanelCounterKind>().Select(PendingCounters.NameOf)];
         for (int i = 0; i < 6; i++)
         {
-            Assert.True(string.Compare(documented[i], shown[i], Turkish, CompareOptions.IgnoreCase) == 0, $"Document says '{documented[i]}', the screen says '{shown[i]}'.");
+            Assert.True(string.Equals(documented[i].ToUpper(Turkish), shown[i].ToUpper(Turkish), StringComparison.Ordinal), $"Document says '{documented[i]}', the screen says '{shown[i]}'.");
         }
     }
 

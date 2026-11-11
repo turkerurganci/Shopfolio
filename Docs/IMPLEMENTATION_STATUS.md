@@ -257,7 +257,7 @@
 
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
-| T501 | Yerli üretim logosu varlığı ve gösterimi | ⏳ Devam ediyor | — | — | — |
+| T501 | Yerli üretim logosu varlığı ve gösterimi | ✓ | ✓ PASS (tur 1) | `131fe46b` | #535 |
 | T502 | Vitrin: ana sayfa ve kategori sayfası (E-01, E-02) | ⬚ | — | — | — |
 | T503 | Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04) | ⬚ | — | — | — |
 | T504 | Hata sayfaları: bulunamayan adres ve beklenmeyen hata (E-06, 500) | ⬚ | — | — | — |

@@ -1,6 +1,6 @@
 # T501 — Yerli üretim logosu varlığı ve gösterimi
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-11
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -66,10 +66,11 @@ Derleme: Release `-warnaserror` 0 uyarı, 0 hata; `dotnet format --verify-no-cha
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | (doğrulayıcı doldurur) |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-11, head `131fe46b`; `origin/main` `06057bf9` dal tabanında, birleştirme gerekmedi). Kriter 1–7 ve KK1–KK7 ✓. Gömülü dosyanın SHA-256'sı Bakanlığın DV-34'teki dosya adresinden doğrulayıcının bugün indirdiği dosyayla aynı (`5316c500…55b6`, 39882 bayt, 900x387 JPEG); duyuru sayfası dosyayı "Renkli Vektörel Görseli" olarak bağlıyor. Yerel: `-warnaserror` derleme 0 uyarı/0 hata; `dotnet format --verify-no-changes` üç projede temiz; Unit 6831/6831; Integration `Shopfolio.IntegrationTests.Web` ad alanı 629/629 (DomesticProductionLogo, FrameLayout, PageFormPattern, RequestLimits, SecurityHeaders dahil); betik testleri 4/4. Dal CI run 42968341155 (head `131fe46b`) yeşil. Ana dal son 3 run yeşil. |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 3 — **K1** (D-1165'e forward): `08 §4.3` madde 3 "bu aşamada logonun dosyası indirilmedi" demeye devam ediyor; T501 sonrası okuyanı yanıltır. **K2** (D-1166'ya forward): `DomesticProductionLogo.Address` `/statik` önekini elle yazar, tek tanım `AddressRules.StaticArea`'dır. **K3** (bu PR'da kapatıldı): `12` VAL-E035 (DV-34, dış sistem kaydı) yapımda BEKLEMEDE bırakılmıştı; dosya güncel ve koşul satıra yazılı olduğu için doğrulama PASS yazdı (VAL-E034/DV-33 emsali). |
+| `12` satırları | VAL-E035 → PASS. VAL-A015, VAL-A016, VAL-B034 BEKLEMEDE kalır: beklenen sonuç ürün sayfası uç yanıtı ya da tarayıcı gözlemidir, çağrı T503'tedir (kriter 4–5'in ileri işareti). `12_matris_denetle.py --kapsam 1-77` hata 0. |
 
 ## Altyapı Değişiklikleri
 
@@ -83,7 +84,7 @@ Derleme: Release `-warnaserror` 0 uyarı, 0 hata; `dotnet format --verify-no-cha
 - **Branch:** `task/T501-yerli-uretim-logosu`
 - **Commit:** `bc3ae96e` — T501: Yerli üretim logosu: rapor, DV-34 kaydı ve backlog (PR açıldığındaki head)
 - **PR:** #535
-- **CI:** (yönetici izler)
+- **CI:** run 42968341155 (head `131fe46b`) — 1–8 ve CI Gate yeşil
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

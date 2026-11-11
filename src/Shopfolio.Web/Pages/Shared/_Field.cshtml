@@ -1,0 +1,41 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@model FieldView
+@*
+    The one form field (T543; 04 OB-12, 2.12.1): a visible label that says in words whether the field is required, the field, and under it the field's message tied to it by aria-describedby (04 2.12.1.1).
+    A closed list is a select with no text box (04 2.12.1.3). Required fields carry aria-required, not the browser's required: the browser would stop at the first empty field, and a sent form marks
+    every wrong field together (04 2.12.1.2, 7.3.5). The maxlength is the screen's product constant (09 3.4 item 6). The value is what the form shows; the sent value stays after a 422.
+*@
+@{
+    string? invalid = Model.IsInvalid ? "true" : null;
+    string? required = Model.Requirement == FieldRequirement.Required ? "true" : null;
+}
+<div class="field@(Model.IsInvalid ? " field--invalid" : string.Empty)" data-js="field">
+    <label class="field__label" for="@Model.Id">@Model.Label <span class="field__requirement">@Model.RequirementText</span></label>
+    @if (Model.Hint is not null)
+    {
+        <p class="field__hint" id="@Model.HintId">@Model.Hint</p>
+    }
+    @switch (Model.Kind)
+    {
+        case FieldKind.ClosedList:
+            <select class="field__control" id="@Model.Id" name="@Model.Name" aria-invalid="@invalid" aria-required="@required" aria-describedby="@Model.DescribedBy" autofocus="@Model.Autofocus" disabled="@Model.ReadOnly">
+                <option value="" selected="@(!Model.HasValidChoice)">Seçiniz</option>
+                @foreach (FieldOption option in Model.Options)
+                {
+                    <option value="@option.Value" selected="@Model.IsSelected(option)" disabled="@option.Disabled">@option.Text@(option.Note is null ? string.Empty : " — " + option.Note)</option>
+                }
+            </select>
+            break;
+        case FieldKind.TextArea:
+            <textarea class="field__control" id="@Model.Id" name="@Model.Name" rows="4" maxlength="@Model.MaxLength" autocomplete="@Model.Autocomplete" aria-invalid="@invalid" aria-required="@required" aria-describedby="@Model.DescribedBy" autofocus="@Model.Autofocus" readonly="@Model.ReadOnly">@Model.Value</textarea>
+            break;
+        default:
+            <input class="field__control" type="@Model.InputType" inputmode="@Model.InputMode" id="@Model.Id" name="@Model.Name" value="@Model.Value" maxlength="@Model.MaxLength" autocomplete="@Model.Autocomplete" aria-invalid="@invalid" aria-required="@required" aria-describedby="@Model.DescribedBy" autofocus="@Model.Autofocus" readonly="@Model.ReadOnly">
+            break;
+    }
+    @if (Model.Error is not null)
+    {
+        <partial name="_Message" model="Model.Error" />
+    }
+</div>

@@ -64,6 +64,13 @@ internal static class OrderRoutes
         return "/" + AddressRules.OrderArea + "/" + orderNumber;
     }
 
+    /// <summary>The address of one of the order screens (07 2.1.3) under the root the page was opened from; <paramref name="screen"/> is one of <see cref="Screens"/>.</summary>
+    public static string ScreenPath(string rootPath, string screen)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(rootPath);
+        return Combine(rootPath, screen);
+    }
+
     private static string Combine(string root, string screen)
     {
         ArgumentNullException.ThrowIfNull(screen);

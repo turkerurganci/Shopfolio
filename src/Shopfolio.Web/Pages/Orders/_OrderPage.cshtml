@@ -1,0 +1,248 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Modules.Catalog.Contracts
+@using Shopfolio.Modules.Ordering.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Orders
+@model OrderPageModel
+@*
+    E-16 (04 5.16; 07 UC-33, UC-34, UC-36): the regions in the order of 04 5.16.3 - heading, what is expected from the customer, items, operations, breakdown and refunds, delivery,
+    addresses and e-mail, documents. Every value comes from the page model; the view decides nothing - no status name, no date sum (09 8.3 item 2c). A closed operation has no button
+    at all (04 5.16.6). No meta refresh and no script refreshes the page while a card result is awaited (04 5.16.4). The documents open in place (04 5.16.9).
+*@
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = "Sipariş " + Model.Summary.OrderNumber;
+}
+<article class="order-page" aria-labelledby="order-page-title">
+    <header class="order-page__heading">
+        <h1 id="order-page-title">Sipariş @Model.Summary.OrderNumber</h1>
+        <p class="order-page__date">Sipariş tarihi: @Model.CreatedOnText</p>
+        <partial name="_OrderBadges" model="Model.Badges" />
+    </header>
+
+    @if (Model.ShowsTransferDetails || Model.Detail.IsCardPaymentAwaited || Model.Detail.IsCardPaymentFailed)
+    {
+        <section class="order-page__expected" aria-labelledby="order-expected-title">
+            <h2 id="order-expected-title">Sizden beklenen</h2>
+            @if (Model.ShowsTransferDetails)
+            {
+                <div class="order-page__transfer" id="order-transfer">
+                    <p>Ödemenizi aşağıdaki IBAN'a havale ile yapın; açıklamaya sipariş numaranızı yazın.</p>
+                    <dl>
+                        <dt>IBAN</dt>
+                        <dd class="order-page__iban">@Model.TransferIbanText</dd>
+                        <dt>Ödenecek toplam</dt>
+                        <dd>@DisplayFormat.Amount(Model.Detail.Breakdown.Total)</dd>
+                        <dt>Sipariş numarası</dt>
+                        <dd>@Model.Summary.OrderNumber</dd>
+                        @if (Model.TransferEndsOnText is string endsOn)
+                        {
+                            <dt>Son ödeme günü</dt>
+                            <dd>@endsOn</dd>
+                        }
+                    </dl>
+                </div>
+            }
+            @if (Model.Detail.IsCardPaymentAwaited)
+            {
+                <partial name="_Message" model='Messages.InPlace(MessageMeaning.Info, OrderPageModel.CardAwaitedText, "order-card-awaited")' />
+            }
+            @if (Model.Detail.IsCardPaymentFailed)
+            {
+                <partial name="_Message" model='Messages.InPlace(MessageMeaning.Warning, OrderPageModel.CardFailedText, "order-card-failed")' />
+                <p><a href="@FramePaths.Cart">Sepete git</a></p>
+            }
+        </section>
+    }
+
+    <section class="order-page__items" aria-labelledby="order-items-title">
+        <h2 id="order-items-title">Kalemler</h2>
+        <ul class="order-items">
+            @foreach (OrderPageItem item in Model.Detail.Items)
+            {
+                OrderDownloadButton? download = Model.DownloadOf(item.OrderItemId);
+                <li class="order-items__item">
+                    @if (item.ImageId is Guid imageId)
+                    {
+                        <img class="order-items__image" src="@FrameStyle.ImagePath(imageId)" alt="" />
+                    }
+                    <span class="order-items__name">@item.Name</span>
+                    <span class="order-items__quantity">
+                        @DisplayFormat.Number(item.Quantity) adet
+                        @if (item.OpenQuantity != item.Quantity)
+                        {
+                            <span class="order-items__open">(açık: @DisplayFormat.Number(item.OpenQuantity) adet)</span>
+                        }
+                    </span>
+                    <span class="order-items__price">Birim fiyat: @DisplayFormat.Amount(item.UnitPrice)</span>
+                    <span class="order-items__amount">Tutar: @DisplayFormat.Amount(item.LineAmount)</span>
+                    @if (item.ExemptionNote is string exemption)
+                    {
+                        <span class="order-items__exemption">@exemption</span>
+                    }
+                    <partial name="_ItemRecords" model="Model.RecordsOf(item)" />
+                    @if (Model.RefusedItemId == item.OrderItemId && Model.RefusalText is string refusal)
+                    {
+                        <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, refusal, "order-download-message")' />
+                    }
+                    else if (download is { IsAvailable: true })
+                    {
+                        <form method="post" asp-antiforgery="true" action="@(Model.RootPath)?handler=DownloadDigitalFile" class="order-items__download" data-js="submit-once">
+                            <input type="hidden" name="OrderItemId" value="@item.OrderItemId" />
+                            <button type="submit" class="button button--secondary" data-busy-label="Hazırlanıyor">İndir</button>
+                        </form>
+                    }
+                    else if (download is { IsAvailable: false })
+                    {
+                        <partial name="_Message" model='Messages.InPlace(MessageMeaning.Info, OrderPageModel.AllowanceUsedText)' />
+                    }
+                </li>
+            }
+        </ul>
+    </section>
+
+    @if (Model.ScreenLinks.Count > 0)
+    {
+        <section class="order-page__operations" aria-labelledby="order-operations-title">
+            <h2 id="order-operations-title">İşlemler</h2>
+            <ul class="order-operations">
+                @foreach (OrderScreenLink link in Model.ScreenLinks)
+                {
+                    <li><a class="button button--secondary" href="@link.Href">@link.Text</a></li>
+                }
+            </ul>
+        </section>
+    }
+
+    <section class="order-page__breakdown" aria-labelledby="order-breakdown-title">
+        <h2 id="order-breakdown-title">Tutarın dökümü</h2>
+        <dl>
+            <dt>Kalemlerin toplamı</dt>
+            <dd>@DisplayFormat.Amount(Model.Detail.Breakdown.ItemsTotal)</dd>
+            @if (Model.Detail.Breakdown.CouponShare > 0)
+            {
+                <dt>Kupon indirimi @(Model.Detail.Breakdown.CouponCode is string code ? "(" + code + ")" : string.Empty)</dt>
+                <dd>-@DisplayFormat.Amount(Model.Detail.Breakdown.CouponShare)</dd>
+            }
+            <dt>KDV (toplama dahil)</dt>
+            <dd>@DisplayFormat.Amount(Model.Detail.Breakdown.Vat)</dd>
+            @if (Model.HasPhysicalItem)
+            {
+                <dt>Kargo ücreti</dt>
+                <dd>@(Model.Detail.Breakdown.IsShippingFree ? "Kargo ücretsiz" : DisplayFormat.Amount(Model.Detail.Breakdown.ShippingFee))</dd>
+            }
+            <dt>Toplam</dt>
+            <dd>@DisplayFormat.Amount(Model.Detail.Breakdown.Total)</dd>
+            <dt>Ödeme yöntemi</dt>
+            <dd>@Model.PaymentMethodText</dd>
+        </dl>
+        @if (Model.Detail.Refunds.Count > 0)
+        {
+            <h3>Geri ödemeler</h3>
+            <ul class="order-refunds">
+                @foreach (OrderPageRefund refund in Model.Detail.Refunds)
+                {
+                    <li>
+                        @OrderPageModel.RefundDateText(refund) · @DisplayFormat.Amount(refund.Amount) ·
+                        @(refund.Way == Shopfolio.Modules.Payment.Contracts.PaymentMethod.Card ? "Karta" : "IBAN'a")
+                        · @(refund.ItemName is string name ? name + (refund.Quantity is int units ? " (" + DisplayFormat.Number(units) + " adet)" : string.Empty) : "Tutar bazlı")
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    @if (Model.HasPhysicalItem)
+    {
+        <section class="order-page__delivery" aria-labelledby="order-delivery-title">
+            <h2 id="order-delivery-title">Teslimat</h2>
+            @if (Model.Shipping?.PromiseText is string promise)
+            {
+                <p>@promise</p>
+            }
+            @if (Model.Shipping?.Display is { } shipping)
+            {
+                @if (shipping.IsOwnVehicleDeclaration)
+                {
+                    <p>Siparişiniz kendi aracımızla teslim edilir.</p>
+                }
+                else
+                {
+                    <p>Kargo şirketi: @shipping.CarrierName · Takip numarası: @shipping.TrackingNumber</p>
+                    @if (shipping.Link is { } tracking)
+                    {
+                        <p><a href="@tracking.Href" rel="noopener noreferrer" target="_blank">Takip et</a></p>
+                    }
+                }
+            }
+            @if (Model.ShippedOnText is string shippedOn)
+            {
+                <p>Kargoya verildiği gün: @shippedOn</p>
+            }
+            @if (Model.IsDeliveryFailed)
+            {
+                <p>Gönderi teslim edilemedi ve firmaya döndü.</p>
+            }
+        </section>
+    }
+
+    <section class="order-page__addresses" aria-labelledby="order-addresses-title">
+        <h2 id="order-addresses-title">Adresler ve iletişim</h2>
+        @if (Model.Detail.Addresses.ContactEmail is string email)
+        {
+            <p>E-posta: @email</p>
+        }
+        @foreach ((string title, OrderPageAddress? address) in new[] { ("Teslimat adresi", Model.Detail.Addresses.Shipping), ("Fatura adresi", Model.Detail.Addresses.Billing) })
+        {
+            @if (address is not null)
+            {
+                <div class="order-page__address">
+                    <h3>@title</h3>
+                    <p>@address.RecipientName</p>
+                    <p>@address.AddressLine</p>
+                    <p>@address.District / @address.ProvinceName</p>
+                    @if (address.Phone is string phone)
+                    {
+                        <p>@DisplayFormat.Phone(phone)</p>
+                    }
+                </div>
+            }
+        }
+    </section>
+
+    <section class="order-page__documents" aria-labelledby="order-documents-title">
+        <h2 id="order-documents-title">Belgeler</h2>
+        <details class="order-document" id="order-document-pre-information">
+            <summary>Ön Bilgilendirme Formu</summary>
+            <partial name="_OrderDocumentText" model="Model.PreInformationFormText" />
+        </details>
+        <details class="order-document" id="order-document-contract">
+            <summary>Mesafeli Satış Sözleşmesi</summary>
+            <partial name="_OrderDocumentText" model="Model.DistanceSalesContractText" />
+        </details>
+        @if (Model.PrivacyNotice is { } notice)
+        {
+            <details class="order-document" id="order-document-privacy">
+                <summary>Aydınlatma metni (sürüm @DisplayFormat.Number(notice.VersionNumber))</summary>
+                <partial name="_OrderDocumentText" model="notice.Text" />
+            </details>
+        }
+        @if (Model.Detail.Checkboxes.Count > 0)
+        {
+            <details class="order-document" id="order-document-checkboxes">
+                <summary>Onay kutuları</summary>
+                <ul>
+                    @foreach (OrderPageCheckbox box in Model.Detail.Checkboxes)
+                    {
+                        <li>
+                            <p>@box.ShownText</p>
+                            <p>Kapsadığı kalemler: @string.Join(", ", box.ItemNames)</p>
+                        </li>
+                    }
+                </ul>
+            </details>
+        }
+    </section>
+</article>

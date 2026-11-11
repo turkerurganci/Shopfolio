@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Operations;
+using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Ordering.Documents;
 using Shopfolio.Modules.Payment.Contracts;
@@ -19,18 +21,73 @@ internal sealed class OrderPageReader : IOrderPage
     private readonly OrderOperations _operations;
     private readonly IPaymentModule _payment;
     private readonly ISettingsModule _settings;
+    private readonly OrderLocks _locks;
+    private readonly IDigitalDelivery _delivery;
 
-    public OrderPageReader(AppDbContext db, OrderOperations operations, IPaymentModule payment, ISettingsModule settings)
+    public OrderPageReader(AppDbContext db, OrderOperations operations, IPaymentModule payment, ISettingsModule settings, OrderLocks locks, IDigitalDelivery delivery)
     {
         ArgumentNullException.ThrowIfNull(db);
         ArgumentNullException.ThrowIfNull(operations);
         ArgumentNullException.ThrowIfNull(payment);
         ArgumentNullException.ThrowIfNull(settings);
+        ArgumentNullException.ThrowIfNull(locks);
+        ArgumentNullException.ThrowIfNull(delivery);
         _db = db;
         _operations = operations;
         _payment = payment;
         _settings = settings;
+        _locks = locks;
+        _delivery = delivery;
     }
+
+    public async Task<DownloadOperationResult> TakeDownloadAsync(Guid orderId, Guid orderItemId, CancellationToken ct)
+    {
+        OperationRow row = OrderOperationCatalog.Find(OrderOperation.DownloadDigitalFile)
+            ?? throw new InvalidOperationException("The operation table has no download row (03 1.11.14).");
+        OperationInput? input = null;
+        DownloadLinkIssue? issue = null;
+        GatedOperationResult gate = await OperationGate.ExecuteAsync<OperationInput>(
+            async stepCt =>
+            {
+                // The customer's operation carries no version (09 8.3 item 3): the lock is taken and nothing is compared.
+                await _locks.LockAsync([orderId], stepCt);
+                return true;
+            },
+            async stepCt =>
+            {
+                OrderOperationFacts facts = await _operations.ReadFactsAsync(orderId, stepCt)
+                    ?? throw new InvalidOperationException("The order of an opened order page does not exist.");
+                OperationInput loaded = new(facts, facts.Items.FirstOrDefault(i => i.ItemId == orderItemId));
+                input = loaded;
+                return loaded;
+            },
+            row.Rule,
+            null,
+            async (_, _, stepCt) => issue = await _delivery.IssueLinkAsync(orderItemId, stepCt),
+            ct);
+
+        if (gate.IsRejected)
+        {
+            return new DownloadOperationResult(gate, null, ClosedReason(input));
+        }
+
+        // The rule said open; the file's absence and a right used up by a request of the same moment are found by the write itself, which then wrote nothing (05 7.7.4).
+        if (issue is { Value: string value })
+        {
+            return new DownloadOperationResult(gate, value, null);
+        }
+
+        DownloadRefusal refusal = ReferenceEquals(issue, DownloadLinkIssue.NoFile) ? DownloadRefusal.NoFile
+            : ReferenceEquals(issue, DownloadLinkIssue.AllowanceUsed) ? DownloadRefusal.AllowanceUsed
+            : ClosedReason(input);
+        return new DownloadOperationResult(GatedOperationResult.Decided(new OperationVerdict(OperationDecision.Closed, OperationAvailability.Closed)), null, refusal);
+    }
+
+    // The reason of a closed download, from the same facts the rule read: an unconfirmed payment first (the button is not there at all), then the used-up right (04 5.16.13).
+    private static DownloadRefusal ClosedReason(OperationInput? input) =>
+        input is not { } read || !DownloadRules.IsPaymentConfirmed(read.Order.PaymentStatus)
+            ? DownloadRefusal.PaymentNotConfirmed
+            : DownloadRefusal.AllowanceUsed;
 
     public async Task<OrderPageDetail?> ReadAsync(Guid orderId, CancellationToken ct)
     {

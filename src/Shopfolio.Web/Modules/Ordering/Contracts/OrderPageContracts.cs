@@ -1,3 +1,4 @@
+using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
 
@@ -7,13 +8,37 @@ namespace Shopfolio.Modules.Ordering.Contracts;
 /// The lists of the customer's order page (07 UC-33; 04 5.16.3, 5.16.5, 5.16.7, 5.16.9; 02 3.23): the items as they were frozen at the confirmation, the frozen breakdown, the refunds that
 /// were carried out, the order's addresses and contact e-mail, and the record of the ticked boxes. The order's statuses, the delivery area, the download buttons and the frozen IBAN are
 /// <see cref="IOrderingModule.GetOrderPageSummaryAsync"/>'s, the open operations <see cref="IOrderOperations.ReadAsync"/>'s and the two documents <see cref="IOrderDocuments"/>'s: the page puts
-/// the answers side by side and derives no status of its own (04 5.16.17). A plain read: nothing here writes.
+/// the answers side by side and derives no status of its own (04 5.16.17). <see cref="ReadAsync"/> is a plain read; <see cref="TakeDownloadAsync"/> is the customer's one write of the page
+/// (UC-36).
 /// </summary>
 public interface IOrderPage
 {
     /// <summary>The order page's lists, or null when there is no such order. The order is already opened by one of the three ways (07 2.3.4); nothing here asks who is asking.</summary>
     Task<OrderPageDetail?> ReadAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
+    /// UC-36 — the download of a digital item (07 4.16.3; 03 1.11.14; 05 7.7.4; 09 8.3 item 3). Joins the caller's transaction (<c>OperationRunner</c>) and runs the operation table's
+    /// <see cref="OrderOperation.DownloadDigitalFile"/> row through the gate: the order's row lock (the customer's operation carries no version), the decision's facts, the row's rule,
+    /// and only for an open verdict the write - the item's file is looked up and the right drops by the counter's one conditional update; a missing file spends no right. A refused
+    /// result (<see cref="GatedOperationResult.IsRejected"/>) rolls the transaction back and names the reason; an issued one carries the one-hour signed value of the link.
+    /// The caller has already checked that the item is a digital item of this order (404 otherwise).
+    /// </summary>
+    Task<DownloadOperationResult> TakeDownloadAsync(Guid orderId, Guid orderItemId, CancellationToken ct);
 }
+
+/// <summary>Why the download was refused (07 4.16.3, the three 422 reasons): the right is used up, the payment is not confirmed (a transfer without the "ödendi" mark), the item has no file.</summary>
+public enum DownloadRefusal
+{
+    AllowanceUsed,
+    PaymentNotConfirmed,
+    NoFile,
+}
+
+/// <summary>
+/// The answer of <see cref="IOrderPage.TakeDownloadAsync"/>: <see cref="Gate"/> is what the runner reads (a rejected one rolls back), <see cref="LinkValue"/> the signed value of an issued
+/// link and <see cref="Refusal"/> the reason of a refused one.
+/// </summary>
+public sealed record DownloadOperationResult(GatedOperationResult Gate, string? LinkValue, DownloadRefusal? Refusal);
 
 /// <summary>
 /// The order page's lists (04 5.16.3). <see cref="CreatedAt"/> is the order's date in the heading. <see cref="IsCardPaymentAwaited"/> is a card order still waiting for the provider's answer

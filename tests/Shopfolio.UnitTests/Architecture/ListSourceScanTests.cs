@@ -162,10 +162,15 @@ public sealed partial class ListSourceScanTests
     public void TheCardGrid_IsTwoColumnsNarrow_ThreeMedium_FourWide_KK5() =>
         Assert.Equal(new Dictionary<int, int> { [0] = 2, [768] = 3, [1024] = 4 }, GridColumns(Css("components.css")));
 
+    public static TheoryData<string> WrongGrids =>
+    [
+        ".card-grid { grid-template-columns: repeat(2, 1fr); } @media (min-width: 768px) { .card-grid { grid-template-columns: repeat(3, 1fr); } }",
+        ".card-grid { grid-template-columns: repeat(1, 1fr); } @media (min-width: 768px) { .card-grid { grid-template-columns: repeat(3, 1fr); } } @media (min-width: 1024px) { .card-grid { grid-template-columns: repeat(4, 1fr); } }",
+        ".card-grid { grid-template-columns: repeat(2, 1fr); } @media (min-width: 768px) { .card-grid { grid-template-columns: repeat(3, 1fr); } } @media (min-width: 1024px) { .card-grid { grid-template-columns: repeat(5, 1fr); } }",
+    ];
+
     [Theory]
-    [InlineData(".card-grid { grid-template-columns: repeat(2, 1fr); } @media (min-width: 768px) { .card-grid { grid-template-columns: repeat(3, 1fr); } }")]
-    [InlineData(".card-grid { grid-template-columns: repeat(1, 1fr); } @media (min-width: 768px) { .card-grid { grid-template-columns: repeat(3, 1fr); } } @media (min-width: 1024px) { .card-grid { grid-template-columns: repeat(4, 1fr); } }")]
-    [InlineData(".card-grid { grid-template-columns: repeat(2, 1fr); } @media (min-width: 768px) { .card-grid { grid-template-columns: repeat(3, 1fr); } } @media (min-width: 1024px) { .card-grid { grid-template-columns: repeat(5, 1fr); } }")]
+    [MemberData(nameof(WrongGrids))]
     public void AGridThatIsNotTwoThreeFour_IsFound_KK5(string css) =>
         Assert.NotEqual(new Dictionary<int, int> { [0] = 2, [768] = 3, [1024] = 4 }, GridColumns(css));
 

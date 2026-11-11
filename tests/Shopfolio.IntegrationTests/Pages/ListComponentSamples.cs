@@ -11,7 +11,7 @@ namespace Shopfolio.IntegrationTests.Pages;
 /// <summary>The product grid with a pager (T545 KK1-KK5, KK8): four cards - a plain one with an image, a discounted one, a sold-out one and a long-named one - and the navigation of a list of seven pages.</summary>
 public sealed class ProductGridSampleModel : PageModel
 {
-    public const string Root = "/liste-deneme/urunler";
+    public const string Root = "/odeme/liste-urunler";
 
     public const int PageCount = 12;
 
@@ -33,7 +33,7 @@ public sealed class ProductGridSampleModel : PageModel
         ];
         Cards = ProductCards.Of(items, item => item.Slug == "duz-ampul" ? ProductCards.ImageOf(ImageId, "Düz ampul görseli") : null);
 
-        ProductQuery query = new() { Search = search };
+        ProductQuery query = new() { Search = search, Page = page };
         Pager = Pager.Of(Root, query, query.RequestedPage(), PageCount);
         return Page();
     }
@@ -63,7 +63,7 @@ public sealed class ListEmptySampleModel : PageModel
 
     public EmptyState State { get; } = new("Bu listede kayıt yok.", "Ana sayfaya dön", "/");
 
-    public ListSearch Search => new(Kind, "/liste-deneme/bos", "Ara", null);
+    public ListSearch Search => new(Kind, "/odeme/liste-bos", "Ara", null);
 
     public IActionResult OnGet([FromQuery(Name = "kind")] ListKind kind)
     {

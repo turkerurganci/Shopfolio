@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
+using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages;
 
 namespace Shopfolio.IntegrationTests.Web;
@@ -15,7 +16,7 @@ namespace Shopfolio.IntegrationTests.Web;
 [Collection(StorefrontFrameTestsDefinition.Name)]
 public sealed class ListComponentPageTests
 {
-    private const string Grid = "/liste-deneme/urunler";
+    private const string Grid = "/odeme/liste-urunler";
 
     private readonly CollectionDatabaseFixture _database;
 
@@ -166,7 +167,7 @@ public sealed class ListComponentPageTests
 
         Assert.Equal(["1", "2", "…", "12", "Sonraki"], PagerOf(html));
         Assert.DoesNotContain("rel=\"prev\"", html, StringComparison.Ordinal);
-        Assert.Contains("href=\"/liste-deneme/urunler?page=2\" rel=\"next\"", html, StringComparison.Ordinal);
+        Assert.Contains("href=\"/odeme/liste-urunler?page=2\" rel=\"next\"", html, StringComparison.Ordinal);
         Assert.DoesNotContain("page=1\"", html, StringComparison.Ordinal);
         Assert.DoesNotContain("page=1&", html, StringComparison.Ordinal);
     }
@@ -180,8 +181,8 @@ public sealed class ListComponentPageTests
         string html = await GetAsync(client, Grid + "?search=ampul&page=6");
 
         Assert.Equal(["Önceki", "1", "…", "5", "6", "7", "…", "12", "Sonraki"], PagerOf(html));
-        Assert.Contains("href=\"/liste-deneme/urunler?search=ampul&page=5\"", html, StringComparison.Ordinal);
-        Assert.Contains("href=\"/liste-deneme/urunler?search=ampul\"", html, StringComparison.Ordinal);
+        Assert.Contains("href=\"/odeme/liste-urunler?search=ampul&page=5\"", html, StringComparison.Ordinal);
+        Assert.Contains("href=\"/odeme/liste-urunler?search=ampul\"", html, StringComparison.Ordinal);
         Assert.Contains("<span class=\"pager__current\" aria-current=\"page\">6</span>", html, StringComparison.Ordinal);
     }
 
@@ -208,7 +209,7 @@ public sealed class ListComponentPageTests
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        string grid = GridOf(await GetAsync(client, "/liste-deneme/icerik"));
+        string grid = GridOf(await GetAsync(client, "/odeme/liste-icerik"));
         string[] cards = Cards(grid, "content-card");
 
         Assert.Equal(2, cards.Length);
@@ -239,12 +240,12 @@ public sealed class ListComponentPageTests
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        string html = await GetAsync(client, "/liste-deneme/bos?kind=" + kind);
+        string html = await GetAsync(client, "/odeme/liste-bos?kind=" + kind);
 
         Assert.Equal(drawn, html.Contains("class=\"list-search\"", StringComparison.Ordinal));
         if (drawn)
         {
-            Assert.Contains("method=\"get\" action=\"/liste-deneme/bos\"", html, StringComparison.Ordinal);
+            Assert.Contains("method=\"get\" action=\"/odeme/liste-bos\"", html, StringComparison.Ordinal);
             Assert.Contains("name=\"search\"", html, StringComparison.Ordinal);
             Assert.DoesNotContain("name=\"page\"", html, StringComparison.Ordinal);
         }
@@ -256,7 +257,7 @@ public sealed class ListComponentPageTests
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        string html = await GetAsync(client, "/liste-deneme/bos?kind=PanelCoupons");
+        string html = await GetAsync(client, "/odeme/liste-bos?kind=PanelCoupons");
 
         Assert.Contains("<p class=\"empty-state__message\">Bu listede kayıt yok.</p>", html, StringComparison.Ordinal);
         Assert.Contains("class=\"button button--secondary empty-state__action\" href=\"/\">Ana sayfaya dön</a>", html, StringComparison.Ordinal);
@@ -272,7 +273,7 @@ public sealed class ListComponentPageTests
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        string html = await GetRawAsync(client, "/liste-deneme/tablo");
+        string html = await GetAsync(client, "/odeme/liste-tablo");
 
         Assert.Equal(3, Regex.Count(html, "<tr class=\"panel-table__row\">", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
         Assert.Equal(3, Regex.Count(html, "<th scope=\"col\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
@@ -290,7 +291,7 @@ public sealed class ListComponentPageTests
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        string html = await GetRawAsync(client, "/liste-deneme/tablo");
+        string html = await GetRawAsync(client, "/odeme/liste-tablo");
 
         Assert.DoesNotContain("<b>b</b>", html, StringComparison.Ordinal);
         Assert.Contains("&lt;b&gt;b&lt;/b&gt;@example.test", html, StringComparison.Ordinal);

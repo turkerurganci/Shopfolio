@@ -13,7 +13,7 @@ public sealed record PagerItem(int? Number, string? Path, bool IsCurrent)
 /// The page navigation of a long list (04 2.13.3; K-766): previous, next and the page numbers - numbered pages, never an endless scroll. A list that fits one page shows no navigation
 /// (<see cref="IsShown"/> false). Every address is the list's own address with the filters the request carried and <c>page</c> last; the first page is written without the parameter (07 2.6.2; <see cref="ListAddress"/>).
 /// </summary>
-public sealed record Pager(string? PreviousPath, string? NextPath, IReadOnlyList<PagerItem> Items)
+public sealed record Pager(string? PrevPagePath, string? NextPath, IReadOnlyList<PagerItem> Items)
 {
     /// <summary>How many page numbers stand on each side of the page shown before the rest becomes a gap.</summary>
     internal const int Neighbours = 1;

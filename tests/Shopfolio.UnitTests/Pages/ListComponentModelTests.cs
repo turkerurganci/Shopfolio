@@ -160,7 +160,7 @@ public sealed class ListComponentModelTests
         Pager pager = Pager.Of(Root, new Query { Search = "ampul" }, 2, 3);
 
         Assert.True(pager.IsShown);
-        Assert.Equal("/kategori/lamba?search=ampul", pager.PreviousPath);
+        Assert.Equal("/kategori/lamba?search=ampul", pager.PrevPagePath);
         Assert.Equal("/kategori/lamba?search=ampul&page=3", pager.NextPath);
         Assert.Equal([1, 2, 3], pager.Items.Select(i => i.Number!.Value).ToArray());
         Assert.Equal("/kategori/lamba?search=ampul", pager.Items[0].Path);
@@ -171,10 +171,10 @@ public sealed class ListComponentModelTests
     [Fact]
     public void TheFirstPage_HasNoPrevious_AndTheLastHasNoNext_KK8()
     {
-        Assert.Null(Pager.Of(Root, new Query(), 1, 5).PreviousPath);
+        Assert.Null(Pager.Of(Root, new Query(), 1, 5).PrevPagePath);
         Assert.NotNull(Pager.Of(Root, new Query(), 1, 5).NextPath);
         Assert.Null(Pager.Of(Root, new Query(), 5, 5).NextPath);
-        Assert.NotNull(Pager.Of(Root, new Query(), 5, 5).PreviousPath);
+        Assert.NotNull(Pager.Of(Root, new Query(), 5, 5).PrevPagePath);
     }
 
     [Theory]

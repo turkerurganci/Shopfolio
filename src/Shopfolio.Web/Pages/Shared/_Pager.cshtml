@@ -5,9 +5,9 @@
 {
     <nav class="pager" aria-label="Sayfalar">
         <ul class="pager__list">
-            @if (Model.PreviousPath is not null)
+            @if (Model.PrevPagePath is not null)
             {
-                <li class="pager__item"><a class="pager__link" href="@Model.PreviousPath" rel="prev">Önceki</a></li>
+                <li class="pager__item"><a class="pager__link" href="@Model.PrevPagePath" rel="prev">Önceki</a></li>
             }
             @foreach (var item in Model.Items)
             {

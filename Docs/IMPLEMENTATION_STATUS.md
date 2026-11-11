@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-10 — F3 (İş mantığı) faz kapısı ✓ PASS (`chore: F3 gate check PASS`): 90/90 task; Unit 5791, Integration 3487, Release 0 uyarı; `12 §6.2` F3 B ve C ✓; backlog 105 kalem karara bağlandı (73 ✅, 32 yeniden hedef; yeni F4 task'ları T411, T412 ve T601b); aktif kalem 285; ayrıntı [GATE_CHECK_F3](CHECKPOINT_REPORTS/GATE_CHECK_F3.md) ve `STATUS_CHANGELOG.md`.
+**Son güncelleme:** 2026-11-11 — F4 (Entegrasyonlar) faz kapısı ✓ PASS (`chore: F4 gate check PASS`): 11/12 task, T410 `⛔ BLOCKED (OWNER_INPUT)`; Unit 6598, Integration 3575, Release 0 uyarı; `12 §6.2` F4 E çevrimdışı payı ✓, gerçek gözlem payı OWNER_INPUT (T410); backlog 20 kalem karara bağlandı (10 ✅, 10 yeniden hedef; yeni F5 task'ı T550); aktif kalem 279; ayrıntı [GATE_CHECK_F4](CHECKPOINT_REPORTS/GATE_CHECK_F4.md) ve `STATUS_CHANGELOG.md`.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -34,8 +34,8 @@
 | F1 | Veri katmanı | `T101`–`T120` (20) | ✓ PASS | `phase/F1-pass` | [GATE_CHECK_F1](CHECKPOINT_REPORTS/GATE_CHECK_F1.md) |
 | F2 | Çekirdek servisler | `T201`–`T233` (33) | ✓ PASS | `phase/F2-pass` | [GATE_CHECK_F2](CHECKPOINT_REPORTS/GATE_CHECK_F2.md) |
 | F3 | İş mantığı | `T301`–`T390` (90) | ✓ PASS | `phase/F3-pass` | [GATE_CHECK_F3](CHECKPOINT_REPORTS/GATE_CHECK_F3.md) |
-| F4 | Entegrasyonlar | `T401`–`T412` (12) | ⬚ | — | |
-| F5 | Kullanıcı arayüzü | `T501`–`T549` (49) | ⬚ | — | |
+| F4 | Entegrasyonlar | `T401`–`T412` (12) | ✓ (E ölçütü OWNER_INPUT — T410) | `phase/F4-pass` | [GATE_CHECK_F4](CHECKPOINT_REPORTS/GATE_CHECK_F4.md) |
+| F5 | Kullanıcı arayüzü | `T501`–`T550` (50) | ⬚ | — | |
 | F6 | Uçtan uca doğrulama | `T601`–`T603`, `T601b` (4) | ⬚ | — | |
 
 ---
@@ -238,18 +238,18 @@
 
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
-| T401 | PayTR: anahtarlar, ödemenin başlatılması, dönüş ve çerçeve | ✓ | ✓ PASS (tur 1) | `d7062c8` | #516 |
-| T402 | PayTR: bildirim imzası ve alan eşlemesi | ✓ | ✓ PASS (tur 1) | `1b7b3127` | #520 |
-| T403 | PayTR: son sorgu ve tek tahsilat | ✓ | ✓ PASS (tur 1) | `c08172ff` | #526 |
-| T404 | PayTR: bağlantı hatası ve ayrım | ✓ | ✓ PASS (tur 1) | `91d8ad6d` | #528 |
-| T405 | PayTR: kart iadesi | ✓ | ✓ PASS (tur 1) | `be7accaf` | #529 |
-| T406 | PayTR: 3D Secure kurulum şartı, test kanıtı ve canlı kanıtın satırları | ✓ | ✓ PASS (tur 1) | `e482f70f` | #530 |
-| T407 | SES: gönderim ve sonuç sınıfları | ✓ | ✓ PASS (tur 1) | `ed0866f` | #515 |
-| T408 | SES: geri dönen adreslerin öğrenilmesi | ✓ | ✓ PASS (tur 2) | — | #518 |
-| T409 | Google: giriş, kayıt ve yeniden doğrulama bağlayıcısı | ✓ | ✓ PASS (tur 2) | — | #519 |
-| T410 | Dış olgu varsayımlarının doğrulama kanıtları (DV) | ⬚ | — | — | — |
-| T411 | Kayıt maskeleme taramasının dizge farkında yeniden yazımı | ✓ | ✓ PASS (tur 1) | — | #514 |
-| T412 | F3 kapanış düzeltmeleri: sipariş bekçisi, satış sonrası kapanış ve IBAN kullanımı | ✓ | ✓ PASS (tur 3) | — | #517 |
+| T401 | PayTR: anahtarlar, ödemenin başlatılması, dönüş ve çerçeve | ✓ | ✓ PASS (tur 1) | `06eb036` | #516 |
+| T402 | PayTR: bildirim imzası ve alan eşlemesi | ✓ | ✓ PASS (tur 1) | `8cbf70b` | #520 |
+| T403 | PayTR: son sorgu ve tek tahsilat | ✓ | ✓ PASS (tur 1) | `06f704a` | #526 |
+| T404 | PayTR: bağlantı hatası ve ayrım | ✓ | ✓ PASS (tur 1) | `5a29775` | #528 |
+| T405 | PayTR: kart iadesi | ✓ | ✓ PASS (tur 1) | `cda5032` | #529 |
+| T406 | PayTR: 3D Secure kurulum şartı, test kanıtı ve canlı kanıtın satırları | ✓ | ✓ PASS (tur 1) | `26e6631` | #530 |
+| T407 | SES: gönderim ve sonuç sınıfları | ✓ | ✓ PASS (tur 1) | `0b0d182` | #515 |
+| T408 | SES: geri dönen adreslerin öğrenilmesi | ✓ | ✓ PASS (tur 2) | `398deea` | #518 |
+| T409 | Google: giriş, kayıt ve yeniden doğrulama bağlayıcısı | ✓ | ✓ PASS (tur 2) | `44f651a` | #519 |
+| T410 | Dış olgu varsayımlarının doğrulama kanıtları (DV) | ⛔ BLOCKED (OWNER_INPUT) | — | — | — |
+| T411 | Kayıt maskeleme taramasının dizge farkında yeniden yazımı | ✓ | ✓ PASS (tur 1) | `8e1e621` | #514 |
+| T412 | F3 kapanış düzeltmeleri: sipariş bekçisi, satış sonrası kapanış ve IBAN kullanımı | ✓ | ✓ PASS (tur 3) | `553222f` | #517 |
 
 ---
 
@@ -306,6 +306,7 @@
 | T547 | Durum × rol matrisi ve form envanteri eşitlik denetimleri | ⬚ | — | — | — |
 | T548 | Parçalı yükleme betiği: başlatma–parça–durum akışı, 409/404/400/413 yanıtları, ağ hatasında üç kez sürdürme | ⬚ | — | — | — |
 | T549 | Vitrin: arşivlenmiş ürün sayfası (E-05) | ⬚ | — | — | — |
+| T550 | F4 kapanış düzeltmeleri: null-forgiving temizliği ve sır bekçisi önek soyma | ⬚ | — | — | — |
 
 ---
 

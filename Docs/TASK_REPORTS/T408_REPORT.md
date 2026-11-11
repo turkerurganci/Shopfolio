@@ -105,7 +105,7 @@
 - **Commit:** `02245cba` — T408: SES: geri dönen adreslerin öğrenilmesi
 - **PR:** #518
 - **CI:** (yönetici izler)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `398deea` (#518) — CI 42836039893 success, Publish 42836040436 success (F4 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

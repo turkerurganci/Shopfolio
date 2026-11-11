@@ -278,7 +278,7 @@ FAZ = [(1, 99, "F0"), (101, 199, "F1"), (201, 299, "F2"), (301, 399, "F3"),
 # Gate'i "Implement edildi" ve "Kanit" hucrelerini doldurmus fazlar (11 6.1 madde 3).
 # gate-check PASS rituelinin chore PR'i fazini buraya ekler; listedeki bir faza bagli
 # satirin iki hucresi dolu olmali, oteki satirlarinki bos.
-GATE_DOLU = {"F0", "F1", "F2", "F3"}
+GATE_DOLU = {"F0", "F1", "F2", "F3", "F4"}
 
 
 def faz_of(t):

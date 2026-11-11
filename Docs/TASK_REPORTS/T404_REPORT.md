@@ -100,10 +100,10 @@
 ## Commit & PR
 
 - **Branch:** `task/T404-paytr-baglanti-hatasi`
-- **Commit:** dal ucu PR'da
+- **Commit:** squash `5a29775` (#528) (F4 gate'te dolduruldu)
 - **PR:** #528
 - **CI:** run 42889751461 (head `91d8ad6d`) `success` — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `5a29775` (#528) — CI 42894790643 success, Publish 42894790413 success (F4 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

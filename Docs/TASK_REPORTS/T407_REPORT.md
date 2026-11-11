@@ -91,7 +91,7 @@
 - **Commit:** `b0952ce5` — T407: SES: gönderim ve sonuç sınıfları
 - **PR:** #515
 - **CI:** yoklanmadı (yönetici izler)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `0b0d182` (#515) — CI 42804053578 success, Publish 42804053557 success (F4 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

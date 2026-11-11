@@ -56,7 +56,14 @@ public sealed class ShopfolioWebApplicationFactory : WebApplicationFactory<Progr
         _loggerProvider = loggerProvider;
         _withJobRunner = withJobRunner;
         LogDirectory = Path.Combine(Path.GetTempPath(), "shopfolio-test-logs-" + Guid.NewGuid().ToString("N"));
+        ExportDirectory = Path.Combine(Path.GetTempPath(), "shopfolio-test-export-" + Guid.NewGuid().ToString("N"));
     }
+
+    /// <summary>
+    /// The export temporary directory (<c>Export:TempDirectory</c>): one made-up directory per factory. The start-up sweep empties the directory,
+    /// so two hosts sharing the default one delete each other's probe file (D-980). A test replaces it through <c>settings</c>.
+    /// </summary>
+    public string ExportDirectory { get; }
 
     /// <summary>
     /// The directory the application's log files go to (<c>Logging:Directory</c>, 09 18.1 item 2): one made-up directory per factory, so a test host
@@ -67,16 +74,19 @@ public sealed class ShopfolioWebApplicationFactory : WebApplicationFactory<Progr
     public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();
-        try
+        foreach (string directory in new[] { LogDirectory, ExportDirectory })
         {
-            if (Directory.Exists(LogDirectory))
+            try
             {
-                Directory.Delete(LogDirectory, recursive: true);
+                if (Directory.Exists(directory))
+                {
+                    Directory.Delete(directory, recursive: true);
+                }
             }
-        }
-        catch (IOException)
-        {
-            // A temporary directory that cannot be removed is left to the operating system.
+            catch (IOException)
+            {
+                // A temporary directory that cannot be removed is left to the operating system.
+            }
         }
     }
 
@@ -84,6 +94,7 @@ public sealed class ShopfolioWebApplicationFactory : WebApplicationFactory<Progr
     {
         builder.UseSetting(DatabaseOptions.ConnectionStringKey, _connectionString);
         builder.UseSetting(LoggingOptions.DirectoryKey, LogDirectory);
+        builder.UseSetting(Shopfolio.Infrastructure.LogRead.LogExportFile.DirectoryKey, ExportDirectory);
         foreach (KeyValuePair<string, string> setting in RequiredSettings)
         {
             builder.UseSetting(setting.Key, setting.Value);

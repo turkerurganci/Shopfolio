@@ -1,3 +1,0 @@
-## 2026-11-10 — D-1074: Dependabot güncellemeleri (F4 chore, dal `chore/deps-2026-11-f4`)
-
-`AWSSDK.SimpleEmailV2` 4.0.106.10, EF Core ailesi + `dotnet-ef` 10.0.15, `Microsoft.AspNetCore.Mvc.Testing` 10.0.15 ve `HtmlSanitizer` 11.0.26 tek PR'da alındı (Dependabot #521, #523, #524, #525); `dotnet-ef` 11.0.0 (#522) `09 §4.3` gereği alınmadı. Kilitler `--force-evaluate` ile yenilendi, `--locked-mode` çıkış 0; `09` Kütüphaneler tablosu güncellendi. Yerel: `-warnaserror` 0 uyarı, Unit 6415/6415 (Consistency ve Architecture dahil), Integration Database 36, Security/Outages/Jobs/Model 1579, Web/Pages 600 geçti, betik testleri 4/4.

@@ -105,10 +105,10 @@
 ## Commit & PR
 
 - **Branch:** `task/T405-paytr-kart-iadesi`
-- **Commit:** dal ucu PR'da
+- **Commit:** squash `cda5032` (#529) (F4 gate'te dolduruldu)
 - **PR:** #529
 - **CI:** run 42906065591 `success` (dal ucu `be7accaf`)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `cda5032` (#529) — CI 42912360534 success, Publish 42912360420 success (F4 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

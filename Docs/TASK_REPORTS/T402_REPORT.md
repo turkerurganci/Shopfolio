@@ -89,7 +89,7 @@ Derleme: `dotnet build -c Release -warnaserror` Unit ve Integration (Web dahil) 
 - **Commit:** `1b7b3127` — `T402: PayTR: bildirim imzası ve alan eşlemesi` (+ rapor commit'i)
 - **PR:** #520
 - **CI:** dal CI'ı doğrulamada okunur
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `8cbf70b` (#520) — CI 42842956730 success, Publish 42842956641 success (F4 gate'te dolduruldu)
 - **Süre:** yapım üç işçide (iki bölünme: bağlam, süre); devam 2 ~40 dk (Integration B/C, rapor, kayıt, PR)
 
 ## Dış Varsayımlar

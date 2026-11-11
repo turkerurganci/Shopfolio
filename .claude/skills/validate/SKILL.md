@@ -69,7 +69,7 @@ Task/doğrulama commit'leri `.claude/memory/MEMORY.md` "Güncel Durum" bloğuna 
 
 2. **Referans dokümanları oku** — task tanımında belirtilen bölümler. Bunlar source of truth.
 
-   **2a. Task'ın `12` satırlarını oku (`12` okuma tablosu, K-1511 (1)):** `Docs/12_VALIDATION_PROTOCOL.md` bütün okunmaz (100 KB üstü; `INSTRUCTIONS §9` (7)). Task'ın kaynak birimleri (`11 §7.1`; KP-n) için `grep -nE 'KP-n([^0-9]|$)' Docs/12_VALIDATION_PROTOCOL.md` komutu satırları getirir; her satır kimliğiyle (`VAL-…`) bir kabul kriterine eşlenir, eşlenmeyen satır adım 5'te ayrıca doğrulanır. Satırın `Ön koşul`, `Beklenen sonuç`, `Kanıt türü` ve `Kanıt ortamı` hücreleri doğrulamanın ölçüsüdür (`12 §7`)
+   **2a. Task'ın `12` satırlarını oku (`12` okuma tablosu, K-1511 (1)):** `Docs/12_VALIDATION_PROTOCOL.md` bütün okunmaz (100 KB üstü; `INSTRUCTIONS §9` (7)). Task'ın kaynak birimleri (`11 §7.1`; KP-n) için `grep -nE 'KP-n([^0-9]|$)' Docs/12_VALIDATION_PROTOCOL.md` komutu satırları getirir; task'ın `02 §5.x` ve `03 §1.x` kaynakları (durum makinesi, geçiş tabloları) için de aynı grep koşulur (`grep -nE '02 §5\.4|§5\.5' …`) — geçiş tablosu satırları (`12 §12.3`) KP'siz olduğu için yalnız bu grep'le task'a düşer (F4 kapısı, D-981); her satır kimliğiyle (`VAL-…`) bir kabul kriterine eşlenir, eşlenmeyen satır adım 5'te ayrıca doğrulanır. Satırın `Ön koşul`, `Beklenen sonuç`, `Kanıt türü` ve `Kanıt ortamı` hücreleri doğrulamanın ölçüsüdür (`12 §7`)
 
 3. **Remote'u güncelle** — `git fetch origin`. Fetch yapılmazsa eski dal state'i incelenir.
 

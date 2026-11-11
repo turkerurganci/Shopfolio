@@ -57,6 +57,9 @@ public interface ISettingsModule
     /// <summary>The firm's bank transfer IBAN of the moment (02 3.21.5); empty while the firm has entered none. The confirmation freezes it into a bank transfer order (06 4.17).</summary>
     Task<string?> GetBankTransferIbanAsync(CancellationToken ct);
 
+    /// <summary>The WhatsApp number the storefront frame shows beside the social links (T537; 02 3.27.12; 06 4.2): ten digits, or null while the firm has entered none. A plain read.</summary>
+    Task<string?> GetWhatsAppNumberAsync(CancellationToken ct);
+
     /// <summary>
     /// The periods form's save (T381; 07 UC-170): same transaction, lock and trail as <see cref="SaveShippingFeeAsync"/>. A shipping period over P-5's upper fence and a payment
     /// window outside P-7's lower or upper fence is a refusal that names the side and the fence value (02 4.1.5).

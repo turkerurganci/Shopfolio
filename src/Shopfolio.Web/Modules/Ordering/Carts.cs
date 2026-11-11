@@ -50,6 +50,61 @@ internal sealed class Carts
         return names;
     }
 
+    /// <summary>
+    /// The frame's cart badge (T537; 07 5.5.1): the number of the owner's live lines and whether a sign-in merge mark waits to be told. A plain read: no lock, no cart made, no guest access
+    /// moment renewed. A line taken off the showcase (marked removed) is not live; a member with no cart, and a guest whose cookie matches no cart, read zero.
+    /// </summary>
+    public async Task<CartBadge> ReadBadgeAsync(CartOwner owner, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(owner);
+        Guid? cartId = await FindCartIdAsync(owner, ct);
+        if (cartId is not Guid id)
+        {
+            return CartBadge.Empty;
+        }
+
+        IQueryable<CartItem> live = _db.CartItems.AsNoTracking().Where(i => i.CartId == id && i.RemovedProductName == null && i.VariantId != null);
+        int count = await live.CountAsync(ct);
+        bool hasMergeNotice = owner.CustomerId is not null && await live.AnyAsync(i => i.IsMergeNoticePending, ct);
+        return new CartBadge(count, hasMergeNotice);
+    }
+
+    /// <summary>
+    /// The once-told merge message (T537; 07 4.34.3; 02 3.16.4): the product names of the member's lines still marked by the sign-in merge, the marks cleared in the same call. The caller holds nothing;
+    /// the method takes the cart's lock first, so a request that arrived together waits, finds no mark and tells nothing. Joins the caller's transaction and does not save.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> TakeMergeNoticeAsync(Guid customerId, CancellationToken ct)
+    {
+        Guid? cartId = await FindCartIdAsync(CartOwner.ForMember(customerId), ct);
+        if (cartId is not Guid id)
+        {
+            return [];
+        }
+
+        await _locks.LockAsync(AdvisoryLockScope.Cart, id, ct);
+        List<CartItem> marked = await _db.CartItems
+            .Where(i => i.CartId == id && i.RemovedProductName == null && i.VariantId != null && i.IsMergeNoticePending)
+            .OrderBy(i => i.CreatedAt).ThenBy(i => i.Id)
+            .ToListAsync(ct);
+        if (marked.Count == 0)
+        {
+            return [];
+        }
+
+        Dictionary<Guid, CartVariantFact> facts = (await _catalog.ListCartVariantFactsAsync([.. marked.Select(i => i.VariantId!.Value)], ct)).ToDictionary(f => f.VariantId);
+        List<string> names = [];
+        foreach (CartItem item in marked)
+        {
+            item.IsMergeNoticePending = false;
+            if (facts.TryGetValue(item.VariantId!.Value, out CartVariantFact? fact))
+            {
+                names.Add(fact.ProductName);
+            }
+        }
+
+        return [.. names.Distinct()];
+    }
+
     public Task<CartView> OpenAsync(CartOwner owner, ShippingFeeSection shippingTerms, CancellationToken ct) => OpenAsync(owner, shippingTerms, null, ct);
 
     /// <summary>

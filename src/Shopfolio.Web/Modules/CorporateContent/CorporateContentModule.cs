@@ -16,6 +16,7 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     private readonly ContactFormSending _contactForm;
     private readonly ContactRequests _requests;
     private readonly ContactRequestExport _contactRequestExport;
+    private readonly SocialLinks _socialLinks;
 
     public CorporateContentModule(
         CorporateContentSitemapReader sitemap,
@@ -25,9 +26,11 @@ internal sealed class CorporateContentModule : ICorporateContentModule
         AnnouncementReader announcement,
         ContactFormSending contactForm,
         ContactRequests requests,
-        ContactRequestExport contactRequestExport)
+        ContactRequestExport contactRequestExport,
+        SocialLinks socialLinks)
     {
         _contactRequestExport = contactRequestExport;
+        _socialLinks = socialLinks;
         _contactForm = contactForm;
         _requests = requests;
         _sitemap = sitemap;
@@ -51,6 +54,9 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     public Task<BrandingSaveResult> SaveBrandingAsync(BrandingInput input, int formVersion, CancellationToken ct) => _branding.SaveAsync(input, formVersion, ct);
 
     public Task<BrandIdentity> GetBrandIdentityAsync(CancellationToken ct) => _branding.ReadIdentityAsync(ct);
+
+    public async Task<IReadOnlyList<SocialLinkItem>> ListSocialLinksAsync(CancellationToken ct) =>
+        [.. (await _socialLinks.ListAsync(ct)).Select(l => new SocialLinkItem(l.Platform, l.Url))];
 
     public Task<ContactFormView> GetContactFormAsync(string? memberName, string? memberEmail, CancellationToken ct) => _contactForm.ReadAsync(memberName, memberEmail, ct);
 

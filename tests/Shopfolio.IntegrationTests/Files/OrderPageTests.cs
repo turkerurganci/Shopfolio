@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Encodings.Web;
+using System.Text.RegularExpressions;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -295,7 +296,16 @@ public sealed class OrderPageTests
 
         Assert.Equal(HttpStatusCode.NotFound, renewed.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, gone.StatusCode);
-        Assert.Equal(await renewed.Content.ReadAsStringAsync(Ct), await gone.Content.ReadAsStringAsync(Ct));
+        // The page carries a fresh nonce on every response (T504), so the content region is what is compared.
+        Assert.Equal(await ContentOfAsync(renewed), await ContentOfAsync(gone));
+    }
+
+    /// <summary>The page's content region; the frame around it carries the per-response nonce.</summary>
+    private static async Task<string> ContentOfAsync(HttpResponseMessage response)
+    {
+        Match content = Regex.Match(await response.Content.ReadAsStringAsync(Ct), "<main .*?</main>", RegexOptions.Singleline | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5));
+        Assert.True(content.Success);
+        return content.Value;
     }
 
     /// <summary>The text the way the application's own encoder writes it in the page.</summary>

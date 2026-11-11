@@ -107,6 +107,19 @@ internal sealed class OrderOperations : IOrderOperations
             : (OrderOperationCatalog.Check(facts, operation, orderItemId, quantity), facts);
     }
 
+    /// <summary>
+    /// The open quantity of each item of the order as the decision reads it (06 2.7.2; K-790): the order page's item row shows the same number the buttons are decided from
+    /// (T511). Null: no such order.
+    /// </summary>
+    internal async Task<IReadOnlyDictionary<Guid, int>?> ReadOpenQuantitiesAsync(Guid orderId, CancellationToken ct)
+    {
+        OrderOperationFacts? facts = await LoadAsync(orderId, ct);
+        return facts?.Items.ToDictionary(i => i.ItemId, i => i.OpenQuantity);
+    }
+
+    /// <summary>The facts the decision reads, for a module write that runs the row's rule through the gate itself (09 8.3 item 3; T511's download). Null: no such order.</summary>
+    internal Task<OrderOperationFacts?> ReadFactsAsync(Guid orderId, CancellationToken ct) => LoadAsync(orderId, ct);
+
     private async Task<OrderOperationFacts?> LoadAsync(Guid orderId, CancellationToken ct)
     {
         Order? order = await _db.Orders.AsNoTracking().SingleOrDefaultAsync(o => o.Id == orderId, ct);

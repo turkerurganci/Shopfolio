@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Security;
-using Shopfolio.Modules.Ordering.Contracts;
 
 namespace Shopfolio.IntegrationTests.Pages;
 
@@ -96,59 +95,6 @@ public sealed class PanelRecordModel : PageModel
     public IActionResult OnGet(Guid id) => AccessDenial.NotFound();
 
     public IActionResult OnPostSave(Guid id) => AccessDenial.NotFound();
-}
-
-/// <summary>The member root of the order page (07 2.1.3, 2.3.3): the order of the signed-in customer, else the 404 of every denied access.</summary>
-[NoStore]
-public sealed class MemberOrderModel(IOrderingModule ordering, AccessWriteLog log) : PageModel
-{
-    public async Task<IActionResult> OnGetAsync(string orderNumber, CancellationToken ct)
-    {
-        Guid? orderId = await FindAsync(orderNumber, ct);
-        return orderId is null ? AccessDenial.NotFound() : Content($"order:{orderId}");
-    }
-
-    public async Task<IActionResult> OnPostCancelAsync(string orderNumber, CancellationToken ct)
-    {
-        Guid? orderId = await FindAsync(orderNumber, ct);
-        if (orderId is null)
-        {
-            return AccessDenial.NotFound();
-        }
-
-        log.Add($"cancel:{orderId}");
-        return FormResults.SeeOther("/");
-    }
-
-    private async Task<Guid?> FindAsync(string orderNumber, CancellationToken ct)
-    {
-        Guid? customerId = User.AccountId();
-        return customerId is null ? null : await ordering.FindMemberOrderAsync(orderNumber, customerId.Value, ct);
-    }
-}
-
-/// <summary>The access-key root of the order page (07 2.1.3, 2.3.4): the order that holds the key, else the 404 of every denied access.</summary>
-[KeyedLinkPage]
-[NoStore]
-public sealed class AccessOrderModel(IOrderingModule ordering, AccessWriteLog log) : PageModel
-{
-    public async Task<IActionResult> OnGetAsync(string accessKey, CancellationToken ct)
-    {
-        Guid? orderId = await ordering.FindOrderByAccessKeyAsync(accessKey, ct);
-        return orderId is null ? AccessDenial.NotFound() : Content($"order:{orderId}");
-    }
-
-    public async Task<IActionResult> OnPostCancelAsync(string accessKey, CancellationToken ct)
-    {
-        Guid? orderId = await ordering.FindOrderByAccessKeyAsync(accessKey, ct);
-        if (orderId is null)
-        {
-            return AccessDenial.NotFound();
-        }
-
-        log.Add($"cancel:{orderId}");
-        return FormResults.SeeOther("/");
-    }
 }
 
 /// <summary>A storefront page that reads the panel's session for the admin strip (07 2.2.6; 05 3.5.4): the customer identity and the panel session are two answers.</summary>

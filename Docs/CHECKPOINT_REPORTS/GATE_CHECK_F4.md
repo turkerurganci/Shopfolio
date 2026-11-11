@@ -153,4 +153,4 @@ Not: "Kabul edilen riskler"deki OWNER_INPUT payı `12 §8.4` anlamında KABUL ED
 
 ### Faz Tag
 - Tag: `phase/F4-pass`   - Commit: PR merge'ünden sonra yardımcı atar (PASS ritüeli 20. adım; bu kapı merge etmez, etiket atmaz)
-- PR: (PR açılınca yazılır)
+- PR: #531 (`chore: F4 gate check PASS`, base `main`)

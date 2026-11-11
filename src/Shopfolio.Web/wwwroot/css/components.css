@@ -85,3 +85,112 @@
     font-size: var(--font-size-small);
     font-weight: 600;
 }
+
+/* ---- Badges, item records, panel marks, period indicator, threshold message (T542; 04 2.5, 2.6) ---- */
+
+/* A status badge always carries its text; the tone is an aid, never the meaning (02 6.1.6). The two axes of an order sit side by side and wrap on a narrow screen. */
+.badge {
+    display: inline-block;
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+    font-size: var(--font-size-small);
+    font-weight: 600;
+}
+
+.badge--info {
+    background: var(--color-tone-info-bg);
+    color: var(--color-tone-info-text);
+}
+
+.badge--success {
+    background: var(--color-tone-success-bg);
+    color: var(--color-tone-success-text);
+}
+
+.badge--warning {
+    background: var(--color-tone-warning-bg);
+    color: var(--color-tone-warning-text);
+}
+
+.badge--danger {
+    background: var(--color-tone-danger-bg);
+    color: var(--color-tone-danger-text);
+}
+
+.badge-pair {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+/* The records of an order item sit on the item's row under their own names; the row lists them one under the other. */
+.item-records {
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.item-records__item {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.item-records__name {
+    font-weight: 600;
+}
+
+/* A panel mark is a text label that lasts as long as its condition (04 2.5.3). */
+.panel-marks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-2) 0;
+    padding: 0;
+    list-style: none;
+}
+
+.panel-marks__item {
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-pending);
+    border-radius: var(--radius-2);
+    font-size: var(--font-size-small);
+    font-weight: 600;
+}
+
+/* A period indicator says the days and the last day in words; the overrun is a word as well, the border only helps (04 2.6.6). */
+.period-indicator {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-2);
+}
+
+.period-indicator__label {
+    font-weight: 600;
+}
+
+.period-indicator--over {
+    padding: 0 var(--space-2);
+    border-inline-start: 4px solid var(--color-tone-danger-text);
+    background: var(--color-tone-danger-bg);
+    color: var(--color-tone-danger-text);
+}
+
+/* A threshold message lasts in its place; it carries text only (04 2.6.5). */
+.threshold-message {
+    margin: var(--space-2) 0;
+    font-weight: 600;
+}
+
+/* The concurrent edit message of a record form (04 2.10.1; K-800): a lasting message in the place of the save button. */
+.conflict-notice {
+    margin: var(--space-3) 0;
+    padding: var(--space-3);
+    border-inline-start: 4px solid var(--color-pending);
+    background: var(--color-tone-warning-bg);
+    color: var(--color-tone-warning-text);
+    font-weight: 600;
+}

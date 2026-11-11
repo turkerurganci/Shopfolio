@@ -1,0 +1,41 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Pages.Components
+@model UndeliveredEmailList
+@* The "e-posta ulaşmadı" block of an order's page (T542; 04 2.5.3.1, 2.5.4; K-759, K-760, K-761): one line per e-mail with its notice's name, the first sending's date and the address; "Yeniden gönder"
+   on a resendable line only (an administrator's invitation line carries the mark and no button), "Hepsini yeniden gönder" when more than one line can be resent. A button that is pressed says it is
+   sending and cannot be pressed twice (data-js="resend-once"); the resending is a queued job, so the result is read at the next drawing of the page. *@
+@if (Model.Rows.Count > 0)
+{
+    <section class="undelivered-emails" aria-labelledby="undelivered-emails-title">
+        <h3 id="undelivered-emails-title" class="undelivered-emails__title">E-posta ulaşmadı</h3>
+        @if (Model.ResendFailed)
+        {
+            <p class="undelivered-emails__failure" role="alert">@UndeliveredEmailList.ResendFailedMessage</p>
+        }
+        <ul class="undelivered-emails__list">
+            @foreach (UndeliveredEmailRow row in Model.Rows)
+            {
+                <li class="undelivered-emails__row">
+                    <span class="undelivered-emails__notice">@row.NoticeName</span>
+                    <span class="undelivered-emails__first-sent">İlk gönderim: @DisplayFormat.Date(row.FirstSentAt)</span>
+                    <span class="undelivered-emails__address">Gittiği adres: @row.Address</span>
+                    @if (row.CanResend)
+                    {
+                        <form method="post" action="@(Model.PagePath)?handler=@Model.ResendHandler" asp-antiforgery="true" data-js="resend-once">
+                            <input type="hidden" name="key" value="@row.Key">
+                            <button type="submit" class="button button--secondary" data-sending-label="@UndeliveredEmailList.ResendingLabel">@UndeliveredEmailList.ResendLabel</button>
+                        </form>
+                    }
+                </li>
+            }
+        </ul>
+        @if (Model.ShowsResendAll)
+        {
+            <form method="post" action="@(Model.PagePath)?handler=@Model.ResendAllHandler" asp-antiforgery="true" data-js="resend-once">
+                <button type="submit" class="button button--secondary" data-sending-label="@UndeliveredEmailList.ResendingLabel">@UndeliveredEmailList.ResendAllLabel</button>
+            </form>
+        }
+        <p class="undelivered-emails__reminder">@UndeliveredEmailList.WrongAddressReminder</p>
+    </section>
+}

@@ -1,0 +1,4 @@
+@using Shopfolio.Pages.Components
+@model ThresholdMessage
+@* A threshold message of the cart and of the payment summary (T542; 04 2.6.5; 02 3.19.5): a lasting message in its place, not a timed announcement; the page draws it only when the basket has the condition. *@
+<p class="threshold-message threshold-message--@(Model.Kind == ThresholdKind.FreeShipping ? "free-shipping" : "minimum-order")">@Model.Text</p>

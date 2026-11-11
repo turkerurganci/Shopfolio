@@ -1,0 +1,18 @@
+@using Shopfolio.Infrastructure
+@using Shopfolio.Pages.Components
+@model IReadOnlyList<PendingCounterItem>
+@* The "Bekleyen işler" block of the panel home (T542; 04 2.6.1; K-750): six counters; a zero counter is drawn and says zero; each leads to its filtered list. On the narrow class they sit two by two. *@
+<section class="pending-counters" aria-labelledby="pending-counters-title">
+    <h2 id="pending-counters-title" class="pending-counters__title">Bekleyen işler</h2>
+    <ul class="pending-counters__list">
+        @foreach (PendingCounterItem counter in Model)
+        {
+            <li class="pending-counters__item">
+                <a class="pending-counters__link" href="@counter.ListPath">
+                    <span class="pending-counters__count">@DisplayFormat.Number(counter.Count)</span>
+                    <span class="pending-counters__name">@counter.Name</span>
+                </a>
+            </li>
+        }
+    </ul>
+</section>

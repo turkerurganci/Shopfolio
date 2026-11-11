@@ -194,6 +194,12 @@ public interface ICatalogModule
     Task<PriceLabel?> GetPriceLabelAsync(Guid variantId, CancellationToken ct);
 
     /// <summary>
+    /// The price labels of all the variants of one product, by variant (the product page's read; 09 20 item 4: the number of commands does not grow with the number of variants). Each label is the one
+    /// <see cref="GetPriceLabelAsync"/> gives; empty when there is no such product. A plain read.
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, PriceLabel>> GetProductPriceLabelsAsync(Guid productId, CancellationToken ct);
+
+    /// <summary>
     /// The shipping period of each of the given variants (02 3.20.5): the variant's product, the product's type and the product's own period in business days - null when it sets none
     /// and the firm default applies. A variant takes its product's period; one that does not exist is left out. A plain read.
     /// </summary>
@@ -349,6 +355,9 @@ public interface ICatalogModule
 
     /// <summary>The image a variant shows (02 3.11.1, 3.11.4): its own, else the product's main image, with the text for it; null when it has neither. A plain read.</summary>
     Task<VariantImage?> GetVariantImageAsync(Guid variantId, CancellationToken ct);
+
+    /// <summary>The images of all the variants of one product, by variant (the product page's read; 09 20 item 4): each is the one <see cref="GetVariantImageAsync"/> gives, a variant with none is left out; empty when there is no such product. A plain read.</summary>
+    Task<IReadOnlyDictionary<Guid, VariantImage>> GetProductVariantImagesAsync(Guid productId, CancellationToken ct);
 
     /// <summary>
     /// The live facts a cart item reads of its variant (T346; 02 3.16.5-3.16.7): the product's name, the price that applies now, whether the variant and its product are Published and

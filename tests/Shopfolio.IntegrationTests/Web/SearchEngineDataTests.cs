@@ -334,7 +334,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
 
         Answer panel = await GetAsync(host, "/panel/urun-listesi", panel: true);
         Answer filtered = await GetAsync(host, "/sss/kategori-listesi/masalar?minPrice=1");
-        Answer search = await GetAsync(host, "/arama?search=masa");
+        Answer search = await GetAsync(host, "/sss/arama-listesi?search=masa");
         Answer category = await GetAsync(host, "/sss/kategori-listesi/masalar");
         Answer secondPage = await GetAsync(host, "/sss/kategori-listesi/masalar?page=2");
 

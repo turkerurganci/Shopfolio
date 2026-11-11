@@ -112,6 +112,8 @@ internal sealed class CatalogModule : ICatalogModule
 
     public Task<PriceLabel?> GetPriceLabelAsync(Guid variantId, CancellationToken ct) => _priceLabels.GetAsync(variantId, ct);
 
+    public Task<IReadOnlyDictionary<Guid, PriceLabel>> GetProductPriceLabelsAsync(Guid productId, CancellationToken ct) => _priceLabels.GetForProductAsync(productId, ct);
+
     public Task<IReadOnlyList<VariantShippingPeriod>> GetShippingPeriodsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct) => _shippingPeriods.GetAsync(variantIds, ct);
 
     public Task<DiscountSaveResult> SaveDiscountAsync(Guid productId, decimal percentage, DateOnly startDate, DateOnly endDate, CancellationToken ct)
@@ -180,6 +182,9 @@ internal sealed class CatalogModule : ICatalogModule
 
     public Task<VariantImage?> GetVariantImageAsync(Guid variantId, CancellationToken ct)
         => _gallery.GetVariantImageAsync(variantId, ct);
+
+    public Task<IReadOnlyDictionary<Guid, VariantImage>> GetProductVariantImagesAsync(Guid productId, CancellationToken ct)
+        => _gallery.GetProductVariantImagesAsync(productId, ct);
 
     public Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct)
         => _cartVariants.ListAsync(variantIds, ct);

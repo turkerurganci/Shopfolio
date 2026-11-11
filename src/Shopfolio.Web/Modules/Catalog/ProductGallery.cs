@@ -121,13 +121,53 @@ internal sealed class ProductGallery
     {
         string? name = await _db.Products.Where(p => p.Id == productId).Select(p => p.Name).SingleOrDefaultAsync(ct);
         List<ProductImage> links = await OrderedLinksAsync(productId, ct);
-        return [.. links.Select((l, i) => new GalleryImage(
+        return GalleryOf(name, links);
+    }
+
+    /// <summary>
+    /// The images of all the variants of a product, by variant (09 20 item 4): the product's name, its gallery links, its variants and their option values are each one read, whatever the number of
+    /// variants. Each is the image <see cref="GetVariantImageAsync"/> gives; a variant with neither its own image nor a product main image is left out.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<Guid, VariantImage>> GetProductVariantImagesAsync(Guid productId, CancellationToken ct)
+    {
+        List<Variant> variants = await _db.Variants.AsNoTracking().Where(v => v.ProductId == productId).ToListAsync(ct);
+        Dictionary<Guid, VariantImage> images = [];
+        if (variants.Count == 0)
+        {
+            return images;
+        }
+
+        string? name = await _db.Products.Where(p => p.Id == productId).Select(p => p.Name).SingleOrDefaultAsync(ct);
+        List<ProductImage> links = await OrderedLinksAsync(productId, ct);
+        GalleryImage? main = GalleryOf(name, links).FirstOrDefault(g => g.IsMain);
+        List<Guid> valueIds = [.. variants.SelectMany(v => new[] { v.FirstOptionValueId, v.SecondOptionValueId }).OfType<Guid>().Distinct()];
+        Dictionary<Guid, string> valueTexts = valueIds.Count == 0
+            ? []
+            : await _db.OptionValues.AsNoTracking().Where(v => valueIds.Contains(v.Id)).ToDictionaryAsync(v => v.Id, v => v.Value, ct);
+        foreach (Variant variant in variants)
+        {
+            if (variant.ImageId is { } ownId)
+            {
+                string? firmText = links.FirstOrDefault(l => l.ImageId == ownId)?.AltText;
+                List<string?> values = [.. new[] { variant.FirstOptionValueId, variant.SecondOptionValueId }.OfType<Guid>().Select(id => valueTexts.GetValueOrDefault(id))];
+                images[variant.Id] = new VariantImage(ownId, IsOwn: true, ImageAltText.Choose(firmText, () => ImageAltText.ForVariant(name, values)));
+            }
+            else if (main is not null)
+            {
+                images[variant.Id] = new VariantImage(main.ImageId, IsOwn: false, main.EffectiveAltText);
+            }
+        }
+
+        return images;
+    }
+
+    private static IReadOnlyList<GalleryImage> GalleryOf(string? name, List<ProductImage> links) =>
+        [.. links.Select((l, i) => new GalleryImage(
             l.ImageId,
             i + 1,
             l.IsMain,
             l.AltText,
             ImageAltText.Choose(l.AltText, () => ImageAltText.ForGallery(name, i + 1, links.Count))))];
-    }
 
     /// <summary>The text of the image the card and the list show - the main image - (02 3.11.4): the firm's when it wrote one, else the product's name alone; null when the product does not exist.</summary>
     public async Task<string?> GetCardAltTextAsync(Guid productId, CancellationToken ct)

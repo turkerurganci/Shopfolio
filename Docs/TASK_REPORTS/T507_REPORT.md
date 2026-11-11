@@ -1,6 +1,6 @@
 # T507 — Yasal metin sayfaları ve panelde yönetimi (E-11, E-47)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-11
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -64,7 +64,11 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
+| Doğrulama durumu (tur 1) | ✓ PASS — tur 1 (2026-11-11, head `7eadf545`; `origin/main` `a9270c02` (T511 #545) birleşik ağaçta, birleştirme çakışmasız). Kriter 1–10 ve KK1–KK10 ✓ (kanıtlar: `LegalTextPageTests` 20 durum, `LegalTextTests` önizleme ve temizleme, `LegalTextsModelTests`; kod okuması `LegalTexts.SaveDraftAsync`/`GetDraftPreviewAsync`/`PublishAsync`, `LegalTextsModel`, `PrivacyNoticeModel`, `CookiePolicyModel`, `ProcessGuideModel`, `_LegalTextSection`). Yayının ret hâlinde taslak yazımı `ITransactionRunner` ile geri alınır; eşzamanlı ikinci yayın taslak satırının sürümüne takılır (409). `09 §25` ilgili satırlar ✓ (sayfada `DbContext` yok, panel klasör yetkisi ve `no-store` kuralı, POST'lar sahtecilik süzgecinde, `RequestBodyClass.LongText` 1 MB, uzun metin yazımda `RichTextSanitizer`, gösterimde yalnız `RichText.Render`; `Html.Raw`/satır içi betik ve stil yok; yeni bağımlılık, şema, sır yok). Yerel: derleme `-warnaserror` 0 uyarı, `dotnet format` 3 proje temiz, Unit 7147/7147 (birleşik ağaçta 7158/7158), betik testleri 4/4, Integration `*LegalText*` + `Model.AddressTests` + `Model.MembershipTests` 190/190 (birleşik ağaçta `LegalTextPageTests` + `OrderPageTests` 30/30); CI run 43078021979 dokuz iş yeşil. `12`: VAL-A300 ve VAL-D034 → PASS; VAL-A299 tarayıcı gözlemi ister → BEKLEMEDE. |
+| Bulgu sayısı (tur 1) | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (tur 1) | 2 — **K1** (bu PR'da kapatıldı): hedefi T507 olan D-219, D-269, D-730 işi yapılmıştı ama backlog'da açık duruyordu; üçü bu commit'te ✅ kapandı. **K2** (bu PR'da kapatıldı): D-222'nin "kayıt, onay adımı ve IBAN giriş ekranları T507 …" payı T507'nin kriterlerinde yok; hedef ilgili ekranların task'larına çevrildi. |
+| Yapım raporu karşılaştırması (tur 1) | Kabul kriterlerinde tam uyum (1–10 ✓); öz denetim tablosu var, maddeler kanıtlı. Uyuşmazlık 1: rapor hedefi T507 olan backlog kalemlerini (D-219, D-269, D-730, D-222 payı) anmıyor (K1, K2). |
 
 ## Altyapı Değişiklikleri
 

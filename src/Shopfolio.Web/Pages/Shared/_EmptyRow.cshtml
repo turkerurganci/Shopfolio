@@ -1,0 +1,10 @@
+@using Shopfolio.Pages.Components
+@model EmptyStateView
+@*
+    The empty-state line (T541; 04 2.7.1.2, K-765): what is not there in one sentence and a way out - the link back, or the button that opens the first record. It is not an error and carries no error
+    symbol. A region the source calls "görünmez" (04 2.7.1.1) is not drawn at all and has no markup.
+*@
+<div class="empty-state">
+    <p class="empty-state__sentence">@Model.Sentence</p>
+    <a class="@(Model.IsFirstRecordButton ? "button button--primary" : "empty-state__exit")" href="@Model.ExitPath">@Model.ExitLabel</a>
+</div>

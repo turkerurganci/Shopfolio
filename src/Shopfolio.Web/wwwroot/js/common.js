@@ -136,3 +136,83 @@ for (const button of document.querySelectorAll('[data-js="merge-notice-close"]')
         }
     });
 }
+
+// A message told once is closable (04 2.3.1.3): the close button is hidden in the markup and shown here, so a browser without JavaScript shows no button that does nothing.
+for (const button of document.querySelectorAll('[data-js="message-close"]')) {
+    button.hidden = false;
+    button.addEventListener("click", () => {
+        const message = button.closest('[data-js="message"]');
+        if (message) {
+            message.hidden = true;
+        }
+    });
+}
+
+// The focus goes to the first wrong field of a submitted form (04 2.3.2, T541). The page marks that field with autofocus already; this covers a browser that ignores it on a page load,
+// and falls back to the summary itself when the field is not on the page.
+for (const summary of document.querySelectorAll('[data-js="error-summary"]')) {
+    const firstFieldId = summary.dataset.firstField;
+    const field = firstFieldId ? document.getElementById(firstFieldId) : null;
+    (field ?? summary).focus();
+}
+
+// A form that carries submit-once can not be sent twice and says that the operation continues (04 2.4.6, 2.7.2; 09 16.2 item 3). The button is not disabled: a disabled button would drop the handler
+// value from the form. State lives in aria-busy; a page that comes back from the back/forward cache is made ready again.
+function bindSubmitOnce(form) {
+    const labelOf = (button) => button.dataset.originalLabel ?? button.textContent;
+    form.addEventListener("submit", (event) => {
+        if (form.getAttribute("aria-busy") === "true") {
+            event.preventDefault();
+            return;
+        }
+
+        form.setAttribute("aria-busy", "true");
+        const submitter = event.submitter ?? form.querySelector('button[type="submit"]');
+        if (submitter && submitter.dataset.busyLabel) {
+            submitter.dataset.originalLabel = labelOf(submitter);
+            submitter.textContent = submitter.dataset.busyLabel;
+        }
+    });
+    window.addEventListener("pageshow", (event) => {
+        if (!event.persisted) {
+            return;
+        }
+
+        form.removeAttribute("aria-busy");
+        for (const button of form.querySelectorAll("button[data-original-label]")) {
+            button.textContent = button.dataset.originalLabel;
+        }
+    });
+}
+
+for (const form of document.querySelectorAll('[data-js="submit-once"]')) {
+    bindSubmitOnce(form);
+}
+
+// The administrator's confirmation window (04 2.4.4, T541): drawn open by the server, it is opened as a modal window here; the focus is on "Vazgeç"; Escape and a click outside the window are "Vazgeç".
+function bindConfirmWindow(dialog) {
+    const cancel = dialog.querySelector('[data-js="confirm-cancel"]');
+    if (!cancel || typeof dialog.showModal !== "function") {
+        return;
+    }
+
+    dialog.close();
+    dialog.showModal();
+    cancel.focus();
+    const goBack = () => {
+        window.location.assign(cancel.href);
+    };
+    dialog.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        goBack();
+    });
+    dialog.addEventListener("click", (event) => {
+        if (event.target === dialog) {
+            goBack();
+        }
+    });
+}
+
+for (const dialog of document.querySelectorAll('[data-js="confirm-window"]')) {
+    bindConfirmWindow(dialog);
+}

@@ -1,0 +1,24 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@model ConfirmView
+@*
+    The form of the confirmation (T541; 04 2.4.1): the same anatomy in the window and in the customer's step. After the click the button can not be pressed twice and says that the operation continues
+    (data-js="submit-once", 09 16.2 item 3); without the script the protection is the post-redirect-get and the server's re-check (07 2.5.1).
+*@
+<form method="post" action="@(Model.ActionPath)?handler=@(Model.Handler)" asp-antiforgery="true" class="confirm__form" data-js="submit-once">
+    <h2 class="confirm__title" id="@ConfirmView.HeadingId">@Model.OperationName</h2>
+    <div class="confirm__body">
+        @foreach (string line in Model.Lines)
+        {
+            <p class="confirm__line">@line</p>
+        }
+    </div>
+    @foreach (KeyValuePair<string, string> field in Model.Fields)
+    {
+        <input type="hidden" name="@field.Key" value="@field.Value">
+    }
+    <div class="confirm__buttons">
+        <a class="button button--secondary confirm__cancel" href="@Model.CancelPath" autofocus="@(Model.Surface == ConfirmSurface.AdminWindow)" data-js="confirm-cancel">@ConfirmView.CancelLabel</a>
+        <button type="submit" class="button button--primary confirm__submit" data-busy-label="@LoadingViews.BusyLabelOf(Model.ConfirmLabel)">@Model.ConfirmLabel</button>
+    </div>
+</form>

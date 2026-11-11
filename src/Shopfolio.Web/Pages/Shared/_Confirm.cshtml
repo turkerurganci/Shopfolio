@@ -1,0 +1,20 @@
+@using Shopfolio.Pages.Components
+@model ConfirmView
+@*
+    The one confirmation (T541; 04 OB-04, 2.4): the operation's name, the one sentence of the result (with the number when the operation has one), "Bu işlem geri alınamaz." when it can not be undone,
+    a button named after the operation and "Vazgeç". The administrator's face is a window: the focus is on "Vazgeç" (autofocus), the narrow class draws it full screen, and the script-free path draws the
+    same markup as the page's own confirmation state - the server's response of the first POST (07 2.2.4) - while common.js opens it as a modal window and takes a click outside and the Escape key as
+    "Vazgeç". The customer's face is the last step inside the page, not a window; its "Vazgeç" goes back to the page the customer came from (_ConfirmForm draws both).
+*@
+@if (Model.Surface == ConfirmSurface.AdminWindow)
+{
+    <dialog class="confirm confirm--window" open aria-labelledby="@ConfirmView.HeadingId" data-js="confirm-window">
+        <partial name="_ConfirmForm" model="Model" />
+    </dialog>
+}
+else
+{
+    <section class="confirm confirm--step" aria-labelledby="@ConfirmView.HeadingId">
+        <partial name="_ConfirmForm" model="Model" />
+    </section>
+}

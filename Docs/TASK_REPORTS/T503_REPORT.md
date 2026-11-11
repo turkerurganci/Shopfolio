@@ -28,7 +28,10 @@
 
 ## Koşular
 
-- Derleme `-warnaserror`: temiz. Unit: 7065/7065. Integration: `StorefrontSearchAndProductTests` 18/18; `SecurityHeadersTests`, `SessionAccessTests`, `ListPatternPageTests`, `SearchEngineDataTests` ile birlikte 130/130. Integration tamamı bu turda koşulmadı (CI'a bırakıldı).
+- `origin/main` birleştirildi (T504 sonrası; tek çakışma `IMPLEMENTATION_STATUS.md` satırları). Derleme Release `-warnaserror`: temiz.
+- Unit: 6785 (Consistency hariç) + Consistency 295 = hepsi geçti. `dotnet format --verify-no-changes`: Web, UnitTests, IntegrationTests temiz.
+- Integration `Shopfolio.IntegrationTests.Web`: 720/720 geçti. Bu turda bulunan hata düzeltildi: T504'ün 404 çerçevesi nonce taşıyor; `StorefrontSearchAndProductTests` KK3 gizli/bilinmeyen 404 gövde karşılaştırması nonce ve returnUrl normalleştirilerek yapılıyor.
+- Integration `Catalog` ad alanı: 82/82 geçti. Web dışındaki öteki ad alanları (Administration, Commands, Concurrency, CorporateContent, Database, Disposal, FileSecrets, Files, Jobs, Logging, Model, Ordering, Outages, Pages, Payment, Security, SignedEndpoints) süre bütçesi yüzünden bu turda koşulmadı (Catalog tek başına 5m47); T503 bunlara dokunmaz (değişen kaynak Pages, Catalog okuyucusu, Settings/Ordering ek yöntemleri) — CI tam koşar.
 - Mimari taramalar (ModelBinding, NullForgiving, NoticeParameter, ModuleBoundary, Forgery, Cookie) Unit içinde yeşil.
 
 ## ⚠ Kararlar ve açık noktalar
@@ -37,5 +40,6 @@
 - Mesaj metinleri: "Bu ürün tükendi", "Adet 1 veya daha büyük bir tam sayı olmalı.", "Bir seçenek belirleyin", "Bu sayfa bir önizlemedir; sepete ekleme yoktur."
 - `IOrderingModule.FindCartIdAsync` arayüz eki (T508 ile çakışma riski).
 - Kart görseli ürün başına `GetProductGalleryAsync` (N+1); `MainImageId` gelince toplu okumaya geçilir (D-1204).
-- Süre bütçesi yüzünden yapılmayanlar: `Docs/12` Durum hücreleri ve D-146, D-247, D-336, D-344, D-359, D-477, D-507, D-691..693 kayıtlarının yerinde kapatılması/ilerletilmesi; D-1166 kapatma. Doğrulayıcı/ikinci tur bunları tamamlar.
-- `dotnet format` bu turda koşulmadı.
+- Backlog (yerinde): D-247, D-336, D-1166 ✅ kapatıldı; D-344 (T525 form payı), D-359 (T502), D-477 (T502), D-507 (T508), D-691 (T502, T505), D-692 (T505), D-693 (sepet, ödeme, takip, hesap, panel) T503 payı yapılıp ileri atıldı; D-146 (`notice` tarama boşluğu) kapanmadı, hedef en geç F5 gate. Yeni kalemler D-1204…D-1208 `DEFERRED_BACKLOG.d/T503.md`'de.
+- `Docs/12` Durum hücreleri: hiçbir satırın kaynak hücresi `11 T503` atfı taşımıyor; tarayıcı satırları BEKLEMEDE kalır (Implementation doğrulaması), değişiklik yok.
+- Integration Web dışı ad alanlarının tam koşusu (yukarıda) bu turda yapılmadı; CI'da doğrulanır.

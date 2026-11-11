@@ -1,0 +1,70 @@
+@page "/kayit"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@model Shopfolio.Pages.Storefront.RegisterModel
+@inject SearchEngineData Search
+@*
+    The registration screen (T514; 04 5.20; 07 UC-47 to UC-49). Order of the content (04 5.20.3): the heading, the form (name, e-mail, secret), the privacy notice's link, the button. The state after
+    the send (04 5.20.4) takes the form's place on the same address and carries the resend button. While the gate of the data-collecting entries is closed the form is replaced by the closed sentence and has
+    no button (04 5.20.10). The Google button is T515's. The secret field is never given a value, so no refusal draws it again.
+*@
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = RegistrationTexts.ScreenName;
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, Shopfolio.Pages.Storefront.RegisterModel.FormOrder);
+    FieldView nameField = Fields.Bind(Fields.Text("Name", RegistrationTexts.NameLabel, FieldRequirement.Required, Model.SentName, autocomplete: "name"), summary);
+    FieldView emailField = Fields.Bind(Fields.Email("Email", RegistrationTexts.EmailLabel, FieldRequirement.Required, Model.SentEmail), summary);
+    FieldView concealedField = Fields.Bind(Fields.Concealed("Password", RegistrationTexts.ConcealedLabel, FieldRequirement.Required, hint: RegistrationTexts.ConcealedHint), summary);
+}
+@section Head {
+    @Search.Head(ViewContext.HttpContext, RecordPages.ClosedScreen(RegistrationTexts.ScreenName, ViewContext.HttpContext.GetStorefrontFrame()?.Brand.BrandName, FramePaths.Register))
+}
+<h1>@RegistrationTexts.ScreenName</h1>
+@if (Model.Pending is not null)
+{
+    <section class="registration-sent" id="registration-sent">
+        @if (Model.LinkWasResent)
+        {
+            <partial name="_Message" model="Messages.InPlace(MessageMeaning.Success, RegistrationTexts.LinkResent)" />
+        }
+        <partial name="_Message" model="Messages.InPlace(MessageMeaning.Info, RegistrationTexts.Submitted(Model.Pending.Email, Model.Pending.LinkEndsAt))" />
+        <form method="post" asp-antiforgery="true" action="@(FramePaths.Register)?handler=ResendVerificationLink" data-js="submit-once">
+            <input type="hidden" name="PendingRegistration" value="@Model.PendingValue" />
+            <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(RegistrationTexts.ResendLabel)">@RegistrationTexts.ResendLabel</button>
+            @foreach (string text in summary.FormMessages)
+            {
+                <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, text)" />
+            }
+        </form>
+    </section>
+}
+else if (!Model.IsOpen)
+{
+    <partial name="_Message" model="Messages.InPlace(MessageMeaning.Info, SalesClosedMessages.DataEntryText)" />
+}
+else
+{
+    @if (Model.PendingGone)
+    {
+        <partial name="_Message" model="Messages.InPlace(MessageMeaning.Info, RegistrationTexts.NoLongerPending)" />
+    }
+    <partial name="_FormErrorSummary" model="summary" />
+    <form method="post" asp-antiforgery="true" action="@(FramePaths.Register)?handler=Register" id="registration-form" data-js="submit-once">
+        <partial name="_Field" model="nameField" />
+        <partial name="_Field" model="emailField" />
+        @if (Model.EmailIsTaken)
+        {
+            <p class="field__follow"><a href="@FramePaths.SignIn">@RegistrationTexts.SignInLabel</a></p>
+        }
+        <partial name="_Field" model="concealedField" />
+        <p class="registration__privacy"><a href="@FramePaths.PrivacyNotice">@RegistrationTexts.PrivacyNoticeLabel</a></p>
+        <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(RegistrationTexts.SubmitLabel)">@RegistrationTexts.SubmitLabel</button>
+        @foreach (string text in summary.FormMessages)
+        {
+            <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, text)" />
+        }
+    </form>
+}

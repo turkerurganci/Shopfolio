@@ -9,7 +9,11 @@ namespace Shopfolio.Modules.Membership.Contracts;
 /// The registration form's three values (02 3.13.21): the name, the e-mail and the password, and nothing else. There is no marketing consent field here or in the account
 /// (02 3.13.18). The password is never written to a record, a log or a message (09 18.2).
 /// </summary>
-public sealed record RegisterInput(string Name, string Email, string Password);
+public sealed record RegisterInput(string Name, string Email, string Password)
+{
+    /// <summary>The unique index of the e-mail (06 4.36): the caller runs the registration with it, so a second registration of the same address at the same moment is answered as the first's duplicate (09 9.4 item 3).</summary>
+    public static IReadOnlyCollection<string> RetryOnUniqueIndexes { get; } = ["ix_customers_normalized_email"];
+}
 
 /// <summary>
 /// One refused field of a form: the field's name as the input's and the code of 07 6.2.2. <paramref name="Detail"/> carries the one value the message needs when the code alone is not
@@ -65,6 +69,12 @@ public sealed class RegistrationResult : IOperationResult
 
     internal static RegistrationResult FieldsRefused(IReadOnlyList<MembershipFieldError> fields) => new(null, null, null, fields[0].Code, fields, null);
 }
+
+/// <summary>
+/// What the registration screen shows after the form is sent (T514; 04 5.20.4): the address the link went to and the last day of the pending registration (the end of its first link,
+/// Z-1). Nothing of the account's name or password.
+/// </summary>
+public sealed record PendingRegistrationReading(string Email, DateTimeOffset LinkEndsAt);
 
 /// <summary>The reading of a verification link: its status and, when there is a record, the account it belongs to.</summary>
 public sealed record VerificationLinkReading(VerificationLinkStatus Status, Guid? CustomerId);

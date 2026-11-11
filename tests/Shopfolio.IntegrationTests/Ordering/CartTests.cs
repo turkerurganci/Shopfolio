@@ -86,6 +86,26 @@ public sealed class CartTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ADigitalVariant_IsAddedOnlyWithOne_AndASecondAddIsRefused_LeavingTheLineAtOne_D637()
+    {
+        (_, List<Variant> digital) = await SeedProductAsync("E-kitap", 1, ProductType.Digital, 120m);
+        CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());
+
+        CartAddResult two = await AddAsync(owner, digital[0].Id, 2);
+        Assert.Equal(CartAddOutcome.InvalidQuantity, two.Outcome);
+        await using (AppDbContext db = NewContext())
+        {
+            Assert.Equal(0, await db.Carts.CountAsync(c => c.CustomerId == owner.CustomerId, Ct));
+        }
+
+        Assert.Equal(CartAddOutcome.Added, (await AddAsync(owner, digital[0].Id, 1)).Outcome);
+        Assert.Equal(CartAddOutcome.AlreadyInCart, (await AddAsync(owner, digital[0].Id, 1)).Outcome);
+
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(1, await reader.CartItems.Where(i => i.VariantId == digital[0].Id).Select(i => i.Quantity).SingleAsync(Ct));
+    }
+
+    [Fact]
     public async Task ADigitalCart_HasNoMinimumAndNoFee_AndAMixedCartsBasisCountsTheDigitalItem_T349_KK3_KK4_KK7()
     {
         SetShippingTerms(50m, 500m, 300m);

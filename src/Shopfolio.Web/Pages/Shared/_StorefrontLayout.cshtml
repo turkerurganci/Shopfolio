@@ -80,7 +80,7 @@
                 @if (frame.MergeAddedProductNames.Count > 0)
                 {
                     <div class="merge-notice" role="status" data-js="merge-notice">
-                        <p>Giriş yapmadan önce sepetinize eklediğiniz ürünler hesabınızın sepetine eklendi: @string.Join(", ", frame.MergeAddedProductNames)</p>
+                        <p>@Shopfolio.Pages.Components.CartTexts.MergeAdded(frame.MergeAddedProductNames)</p>
                         <button type="button" class="button button--secondary merge-notice__close" data-js="merge-notice-close" hidden>Kapat</button>
                     </div>
                 }

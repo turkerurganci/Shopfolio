@@ -237,6 +237,19 @@ public sealed class ControlComponentModelTests
         Assert.Null(view.CodeField!.Error);
     }
 
+    [Fact]
+    public void TheCouponCodeField_IsOptionalInEveryHal_KK4()
+    {
+        CouponFieldView opened = CouponFields.Open("Input.Coupon");
+        CouponFieldView refused = CouponFields.From(CouponApplication.Rejected(200m), "Input.Coupon", "Yanlis");
+
+        Assert.Equal(FieldRequirement.Optional, CouponFields.Closed("Input.Coupon").CodeField!.Requirement);
+        Assert.Equal(FieldRequirement.Optional, opened.CodeField!.Requirement);
+        Assert.Equal(FieldRequirement.Optional, refused.CodeField!.Requirement);
+        Assert.Equal(FieldRequirement.Optional, CouponFields.Applied("YAZ20", 50m, "Input.Coupon").CodeField!.Requirement);
+        Assert.Equal("(isteğe bağlı)", opened.CodeField.RequirementText);
+    }
+
     [Theory]
     [InlineData("YAZ20", "yaz20", true)]
     [InlineData(" Yaz20 ", "YAZ20", true)]
@@ -676,5 +689,46 @@ public sealed class ControlComponentModelTests
 
         Assert.StartsWith(FieldCodes.UploadMissing, state["Input.File"]!.Errors[0].ErrorMessage, StringComparison.Ordinal);
         Assert.Equal("Sebep.", state["Input.Logo"]!.Errors[0].ErrorMessage);
+    }
+
+    [Fact]
+    public void TheGalleryAndTheSingleFile_TakeTheirMessageFromTheSummary_AndTheGalleryInputIdIsTheSummarysLinkTarget_KK10()
+    {
+        ModelStateDictionary state = new();
+        UploadChecks.AddRefusal(state, "Input.Gallery.Files", new UploadRefusal(FieldCodes.InvalidImage, UploadChecks.SizeMessage(UploadSurface.ProductGallery)));
+        UploadChecks.AddRefusal(state, "Input.Logo", new UploadRefusal(FieldCodes.InvalidImage, UploadChecks.FormatMessage()));
+        FormErrorSummary summary = FormErrorSummary.From(state, ["Input.Gallery.Files", "Input.Logo"]);
+
+        GalleryUploadView gallery = GalleryUploads.Create(UploadSide.Panel, UploadSurface.ProductGallery, "Input.Gallery.", "Lamba", [], summary: summary);
+        SingleUploadView logo = SingleUploads.Create(UploadSide.Panel, UploadSurface.Logo, "Input.Logo", "Logo", summary: summary);
+
+        Assert.Equal("Input_Gallery_Files", gallery.FilesId);
+        Assert.Equal(summary.Fields[0].FieldId, gallery.FilesId);
+        Assert.Equal(UploadChecks.SizeMessage(UploadSurface.ProductGallery), gallery.Error!.Text);
+        Assert.Equal(MessagePlace.Field, gallery.Error.Place);
+        Assert.Equal("Input_Gallery_Files-message", gallery.Error.Id);
+        Assert.True(gallery.Autofocus);
+        Assert.Equal(UploadChecks.FormatMessage(), logo.Error!.Text);
+        Assert.Equal("Input_Logo-message Input_Logo-limit", logo.DescribedBy);
+        Assert.False(logo.Autofocus);
+    }
+
+    [Fact]
+    public void AGoneUpload_IsMarkedAtItsFieldWithTheSameMessage_AndAFieldTheSummaryDoesNotNameHasNone_KK10()
+    {
+        ModelStateDictionary state = new();
+        UploadChecks.AddMissingUpload(state, "Input.File");
+        FormErrorSummary summary = FormErrorSummary.From(state);
+
+        SingleUploadView file = SingleUploads.Create(UploadSide.Panel, UploadSurface.DigitalFile, "Input.File", "Dijital dosya", summary: summary);
+        SingleUploadView other = SingleUploads.Create(UploadSide.Panel, UploadSurface.Logo, "Input.Logo", "Logo", summary: summary);
+        GalleryUploadView clean = GalleryUploads.Create(UploadSide.Panel, UploadSurface.ContentGallery, "Input.Gallery.", "Hakkımızda", [], summary: summary);
+
+        Assert.Equal(summary.Fields[0].Text, file.Error!.Text);
+        Assert.True(file.IsInvalid);
+        Assert.Null(other.Error);
+        Assert.Equal("Input_Logo-limit", other.DescribedBy);
+        Assert.Null(clean.Error);
+        Assert.False(clean.IsInvalid);
     }
 }

@@ -34,11 +34,15 @@
             </li>
         }
     </ol>
-    @if (Model.HasRoom)
+    @if (Model.HasRoom || Model.IsInvalid)
     {
-        <div class="field">
-            <label class="field__label" for="gallery-files">Görsel ekle</label>
-            <input class="field__control" type="file" id="gallery-files" name="@Model.FilesName" multiple accept="@Model.Accept">
+        <div class="field@(Model.IsInvalid ? " field--invalid" : string.Empty)">
+            <label class="field__label" for="@Model.FilesId">Görsel ekle</label>
+            <input class="field__control" type="file" id="@Model.FilesId" name="@Model.FilesName" multiple accept="@Model.Accept" aria-invalid="@(Model.IsInvalid ? "true" : null)" aria-describedby="@Model.Error?.Id" autofocus="@Model.Autofocus">
+            @if (Model.Error is not null)
+            {
+                <partial name="_Message" model="Model.Error" />
+            }
         </div>
     }
 </fieldset>

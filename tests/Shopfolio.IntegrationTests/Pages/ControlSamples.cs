@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -49,6 +50,50 @@ public sealed class ControlSampleModel : PageModel
 
         Confirmed = true;
         return Page();
+    }
+
+    // The upload: a file the component refuses is not kept; the form is shown again with the reason at the field (04 2.12.8.3). The page decides nothing: the refusal is UploadChecks'.
+    public async Task<IActionResult> OnPostUploadAsync(
+        [FromForm(Name = "Input.Gallery.Files")] List<IFormFile>? galleryFiles,
+        [FromForm(Name = "Input.Logo")] IFormFile? logo,
+        bool goneUpload = false,
+        int existingImages = 0)
+    {
+        UploadRefusal? count = UploadChecks.CheckCount(UploadSurface.ProductGallery, existingImages, galleryFiles?.Count ?? 0);
+        if (count is not null)
+        {
+            UploadChecks.AddRefusal(ModelState, "Input.Gallery.Files", count);
+        }
+
+        foreach (IFormFile file in galleryFiles ?? [])
+        {
+            UploadRefusal? refusal = await CheckAsync(UploadSurface.ProductGallery, file, existingImages);
+            if (refusal is not null)
+            {
+                UploadChecks.AddRefusal(ModelState, "Input.Gallery.Files", refusal);
+                break;
+            }
+        }
+
+        if (logo is not null && await CheckAsync(UploadSurface.Logo, logo, 0) is { } logoRefusal)
+        {
+            UploadChecks.AddRefusal(ModelState, "Input.Logo", logoRefusal);
+        }
+
+        if (goneUpload)
+        {
+            UploadChecks.AddMissingUpload(ModelState, "Input.File");
+        }
+
+        return ModelState.IsValid ? Page() : FormResults.Redisplay(this);
+    }
+
+    private static async Task<UploadRefusal?> CheckAsync(UploadSurface surface, IFormFile file, int existingCount)
+    {
+        byte[] head = new byte[16];
+        await using Stream stream = file.OpenReadStream();
+        int read = await stream.ReadAsync(head);
+        return UploadChecks.CheckImage(surface, head.AsSpan(0, read), file.Length, existingCount);
     }
 
     public ConsentSent Sent() => new(

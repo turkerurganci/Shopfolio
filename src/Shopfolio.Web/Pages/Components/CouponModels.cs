@@ -50,7 +50,7 @@ public sealed class CouponFieldView
     /// <summary>True when the applied hâl offers its two buttons.</summary>
     public bool OffersChangeAndRemove => Mode == CouponFieldMode.Applied;
 
-    /// <summary>True when the field takes a code: only the open hâl does (04 2.12.6.3: the limit closes the field).</summary>
+    /// <summary>True when the field takes a code: every hâl but the limit-closed one - the closed row opens into the field, the applied hâl offers "Değiştir" (04 2.12.6.3: the limit closes the field).</summary>
     public bool TakesACode => Mode != CouponFieldMode.LimitClosed;
 }
 
@@ -153,11 +153,11 @@ public static class CouponFields
         _ => throw new ArgumentOutOfRangeException(nameof(outcome), outcome, "Only the two refusals are told at the field; an accepted code is applied and the limit closes the field."),
     };
 
-    // The code field every state draws: required, no autofill (a code is not a stored value).
+    // The code field every state draws: optional ("İsteğe bağlı", no aria-required; 04 7.1.5.7 - the customer who has no code leaves it), no autofill (a code is not a stored value).
     private static FieldView BlankField(string name, string? typed = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        return Fields.Text(name, CodeLabel, FieldRequirement.Required, typed, autocomplete: "off");
+        return Fields.Text(name, CodeLabel, FieldRequirement.Optional, typed, autocomplete: "off");
     }
 
     /// <summary>The message of a valid code under its minimum basket amount (04 5.13.15; 02 3.10.4): it says the amount.</summary>

@@ -222,6 +222,87 @@ public sealed class ControlComponentTests
         Assert.Matches(new Regex(@"<button[^>]*id=""save-button""[^>]*\sdisabled", RegexOptions.CultureInvariant, PatternTimeout), form);
     }
 
+    private static readonly byte[] PngHead = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0];
+
+    private static async Task<(HttpStatusCode Status, string Html)> PostUploadAsync(HttpClient client, string query, byte[]? galleryFile, string galleryName, byte[]? logoFile)
+    {
+        using MultipartFormDataContent content = new();
+        if (galleryFile is not null)
+        {
+            content.Add(new ByteArrayContent(galleryFile), "Input.Gallery.Files", galleryName);
+        }
+
+        if (logoFile is not null)
+        {
+            content.Add(new ByteArrayContent(logoFile), "Input.Logo", "logo.bin");
+        }
+
+        using HttpResponseMessage response = await client.PostAsync(new Uri(ControlSampleModel.Path + "?handler=Upload" + query, UriKind.Relative), content, Ct);
+        return (response.StatusCode, WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct)));
+    }
+
+    [Fact]
+    public async Task ARefusedGalleryFile_IsToldAtTheFileInput_AndTheSummaryLinkPointsAtThatInput_KK10()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (HttpStatusCode status, string html) = await PostUploadAsync(client, string.Empty, "not an image"u8.ToArray(), "yazi.txt", logoFile: null);
+        string form = Region(html, "panel-form");
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, status);
+        Assert.Matches(new Regex(@"<input[^>]*type=""file""[^>]*id=""Input_Gallery_Files""[^>]*aria-invalid=""true""[^>]*aria-describedby=""Input_Gallery_Files-message""", RegexOptions.CultureInvariant, PatternTimeout), form);
+        Assert.Matches(new Regex(@"id=""Input_Gallery_Files-message""[^>]*>[^<]*(<[^>]+>[^<]*)*" + Regex.Escape(UploadChecks.FormatMessage()), RegexOptions.CultureInvariant | RegexOptions.Singleline, PatternTimeout), form);
+        Assert.Contains("href=\"#Input_Gallery_Files\"", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("id=\"gallery-files\"", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("Input_Logo-message", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ARefusedLogo_IsToldAtTheLogoField_AndAnAcceptedFileTellsNothing_KK10()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (HttpStatusCode refusedStatus, string refused) = await PostUploadAsync(client, string.Empty, galleryFile: null, "x", "not an image"u8.ToArray());
+        (HttpStatusCode okStatus, string accepted) = await PostUploadAsync(client, string.Empty, PngHead, "a.png", PngHead);
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, refusedStatus);
+        Assert.Matches(new Regex(@"<input[^>]*name=""Input.Logo""[^>]*aria-invalid=""true""[^>]*aria-describedby=""Input_Logo-message Input_Logo-limit""", RegexOptions.CultureInvariant, PatternTimeout), Region(refused, "panel-form"));
+        Assert.Contains(UploadChecks.FormatMessage(), Region(refused, "panel-form"), StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.OK, okStatus);
+        Assert.DoesNotContain("-message\"", Region(accepted, "panel-form"), StringComparison.Ordinal);
+        Assert.DoesNotContain("aria-invalid", Region(accepted, "panel-form"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AGoneUpload_IsMarkedAtItsOwnField_WithTheMessageOfTheSummary_KK10()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (HttpStatusCode status, string html) = await PostUploadAsync(client, "&goneUpload=true", PngHead, "a.png", PngHead);
+        string form = Region(html, "panel-form");
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, status);
+        Assert.Matches(new Regex(@"<input[^>]*name=""Input.File""[^>]*aria-invalid=""true""[^>]*aria-describedby=""Input_File-message Input_File-limit""", RegexOptions.CultureInvariant, PatternTimeout), form);
+        Assert.Contains("id=\"Input_File-message\"", form, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TheCouponField_IsOptional_NoAriaRequired_KK4()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (_, string html) = await GetAsync(client, "?coupon=open");
+        string coupon = Region(html, "summary");
+
+        Assert.Contains("(isteğe bağlı)", coupon, StringComparison.Ordinal);
+        Assert.DoesNotContain("(zorunlu)", coupon, StringComparison.Ordinal);
+        Assert.DoesNotContain("aria-required", coupon, StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task TheSingleFileField_TakesOneFile_AndSaysItsLimitsFromTheConstants_AndTheCustomersFormHasNoFileInput_KK10()
     {

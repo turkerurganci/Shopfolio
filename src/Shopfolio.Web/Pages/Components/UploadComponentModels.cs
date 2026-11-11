@@ -144,6 +144,16 @@ public static class UploadChecks
         modelState.AddModelError(name, refusal.Reason);
     }
 
+    /// <summary>
+    /// The message of the field whose element id is <paramref name="fieldId"/>, taken from the summary of the sent form (04 2.3.2, 2.12.8.3): a refused file and a file that is gone are told at the field.
+    /// Null when the summary does not name the field. The message id is the one the field's <c>aria-describedby</c> names.
+    /// </summary>
+    internal static MessageView? ErrorOf(FormErrorSummary? summary, string fieldId)
+    {
+        FormFieldError? error = summary?.Fields.FirstOrDefault(f => string.Equals(f.FieldId, fieldId, StringComparison.OrdinalIgnoreCase));
+        return error is null ? null : Messages.ForField(fieldId, error.Text);
+    }
+
     /// <summary>The upload a form names is gone - the form was open for more than a day and the nightly disposal deleted it (04 2.12.8.7; K-1100): the field asks for it again and the other entries stay.</summary>
     public static void AddMissingUpload(ModelStateDictionary modelState, string name)
     {
@@ -241,12 +251,14 @@ public sealed record GalleryRowView(GalleryImage Image, int Position, int Total,
 /// <summary>The gallery upload (T544; 04 OB-19, 2.12.8.1): the rows in their order, the main mark, the room that is left, and the file input.</summary>
 public sealed class GalleryUploadView
 {
-    internal GalleryUploadView(UploadSurface surface, string namePrefix, IReadOnlyList<GalleryRowView> rows, Guid? mainImageId)
+    internal GalleryUploadView(UploadSurface surface, string namePrefix, IReadOnlyList<GalleryRowView> rows, Guid? mainImageId, FormErrorSummary? summary = null)
     {
         Surface = surface;
         NamePrefix = namePrefix;
         Rows = rows;
         MainImageId = mainImageId;
+        Error = UploadChecks.ErrorOf(summary, FilesId);
+        Autofocus = Error is not null && string.Equals(summary?.FirstFieldId, FilesId, StringComparison.OrdinalIgnoreCase);
     }
 
     public UploadSurface Surface { get; }
@@ -263,6 +275,18 @@ public sealed class GalleryUploadView
 
     /// <summary>The member the file input is sent as.</summary>
     public string FilesName => NamePrefix + "Files";
+
+    /// <summary>The element id of the file input: the framework's id of its name, the one the summary's link points to (04 2.3.2).</summary>
+    public string FilesId => FormErrorSummary.FieldIdOf(FilesName);
+
+    /// <summary>The message of the file input - the reason a file was refused, or that an upload is gone - drawn under it; null when the field is right (04 2.12.8.3, 2.12.8.7).</summary>
+    public MessageView? Error { get; }
+
+    /// <summary>True when the file input is the first wrong field of the sent form: its tag carries <c>autofocus</c> (04 2.3.2).</summary>
+    public bool Autofocus { get; }
+
+    /// <summary>True when the file input has a message.</summary>
+    public bool IsInvalid => Error is not null;
 
     public int MaxCount => UploadLimits.MaxCount(Surface);
 
@@ -282,7 +306,7 @@ public static class GalleryUploads
     /// The gallery of a record (04 2.12.8.1): the images in the order the firm gave, the generated alternative text of each (the record's name and the image's place, the one rule of <c>GalleryText</c>) and the
     /// main image - the one marked, else the current main image when it is still in the list, else the first.
     /// </summary>
-    public static GalleryUploadView Create(UploadSide side, UploadSurface surface, string namePrefix, string recordName, IReadOnlyList<GalleryImage> images, Guid? currentMainImageId = null)
+    public static GalleryUploadView Create(UploadSide side, UploadSurface surface, string namePrefix, string recordName, IReadOnlyList<GalleryImage> images, Guid? currentMainImageId = null, FormErrorSummary? summary = null)
     {
         UploadChecks.RequirePanel(side);
         if (!UploadLimits.IsGallery(surface))
@@ -302,7 +326,7 @@ public static class GalleryUploads
         }
 
         Guid? main = MainOf(ordered, currentMainImageId);
-        return new GalleryUploadView(surface, namePrefix, rows, main);
+        return new GalleryUploadView(surface, namePrefix, rows, main, summary);
     }
 
     /// <summary>The images in the order the firm gave them; two images with the same number keep the order they came in, so the result is the same on every sort (04 2.12.8.1: the order is set by hand).</summary>
@@ -334,6 +358,18 @@ public sealed record SingleUploadView(UploadSurface Surface, string Name, string
 {
     public string Id => FormErrorSummary.FieldIdOf(Name);
 
+    /// <summary>The message of the field - the reason the file was refused, or that the upload is gone - drawn under it; null when the field is right (04 2.12.8.3, 2.12.8.7).</summary>
+    public MessageView? Error { get; init; }
+
+    /// <summary>True when the field is the first wrong field of the sent form: its tag carries <c>autofocus</c> (04 2.3.2).</summary>
+    public bool Autofocus { get; init; }
+
+    /// <summary>True when the field has a message.</summary>
+    public bool IsInvalid => Error is not null;
+
+    /// <summary>The ids <c>aria-describedby</c> lists: the message first when there is one (it is the tie of the message to the field), then the line of limits.</summary>
+    public string DescribedBy => (Error is null ? string.Empty : Error.Id + " ") + Id + "-limit";
+
     public string? Accept => UploadLimits.Accept(Surface);
 
     /// <summary>The line that says what the field takes: the format and the size for an image, the size for the digital file.</summary>
@@ -345,7 +381,7 @@ public sealed record SingleUploadView(UploadSurface Surface, string Name, string
 /// <summary>The only constructor of a <see cref="SingleUploadView"/>.</summary>
 public static class SingleUploads
 {
-    public static SingleUploadView Create(UploadSide side, UploadSurface surface, string name, string label, string? currentFileName = null, string? hint = null)
+    public static SingleUploadView Create(UploadSide side, UploadSurface surface, string name, string label, string? currentFileName = null, string? hint = null, FormErrorSummary? summary = null)
     {
         UploadChecks.RequirePanel(side);
         if (UploadLimits.IsGallery(surface))
@@ -355,6 +391,8 @@ public static class SingleUploads
 
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(label);
-        return new SingleUploadView(surface, name, label.Trim(), string.IsNullOrWhiteSpace(currentFileName) ? null : currentFileName.Trim(), hint);
+        SingleUploadView view = new(surface, name, label.Trim(), string.IsNullOrWhiteSpace(currentFileName) ? null : currentFileName.Trim(), hint);
+        MessageView? error = UploadChecks.ErrorOf(summary, view.Id);
+        return error is null ? view : view with { Error = error, Autofocus = string.Equals(summary?.FirstFieldId, view.Id, StringComparison.OrdinalIgnoreCase) };
     }
 }

@@ -8,8 +8,11 @@
     FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, Shopfolio.IntegrationTests.Pages.ControlSampleModel.BoxOrder);
     CouponFieldView coupon = Model.Coupon();
     ConsentBoxesView boxes = ConsentBoxes.Create("Input.", Shopfolio.IntegrationTests.Pages.ControlSampleModel.Basket, Model.Sent(), ConsentReset.None, summary);
-    GalleryUploadView gallery = GalleryUploads.Create(UploadSide.Panel, UploadSurface.ProductGallery, "Input.Gallery.", "Deneme ürünü", Shopfolio.IntegrationTests.Pages.ControlSampleModel.Images);
-    SingleUploadView logo = SingleUploads.Create(UploadSide.Panel, UploadSurface.Logo, "Input.Logo", "Logo");
+    FormErrorSummary uploadSummary = FormErrorSummary.From(ViewData.ModelState, ["Input.Gallery.Files", "Input.Logo", "Input.File"]);
+    // One summary heads the page; the upload fields take their message from the same state, in the order of the upload form.
+    GalleryUploadView gallery = GalleryUploads.Create(UploadSide.Panel, UploadSurface.ProductGallery, "Input.Gallery.", "Deneme ürünü", Shopfolio.IntegrationTests.Pages.ControlSampleModel.Images, summary: uploadSummary);
+    SingleUploadView logo = SingleUploads.Create(UploadSide.Panel, UploadSurface.Logo, "Input.Logo", "Logo", summary: uploadSummary);
+    SingleUploadView digital = SingleUploads.Create(UploadSide.Panel, UploadSurface.DigitalFile, "Input.File", "Dijital dosya", summary: uploadSummary);
     UploadStatusView status = UploadStatusView.Of(Model.Uploading ? [new UploadProgressView("a.webp", 30, 100)] : []);
 }
 <p id="sample-content">Kontrol ornegi</p>
@@ -36,9 +39,10 @@
 </section>
 
 <section id="panel-form">
-    <form method="post" asp-antiforgery="true" action="/sss/kontrol?handler=Save" id="panel-upload-form" enctype="multipart/form-data">
+    <form method="post" asp-antiforgery="true" action="/sss/kontrol?handler=Upload" id="panel-upload-form" enctype="multipart/form-data">
         <partial name="_GalleryUpload" model="gallery" />
         <partial name="_SingleUpload" model="logo" />
+        <partial name="_SingleUpload" model="digital" />
         <partial name="_UploadStatus" model="status" />
         <button type="submit" id="save-button" disabled="@status.SaveBlocked">Kaydet</button>
     </form>

@@ -1,0 +1,84 @@
+@page "/kategori/{slug}"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Storefront
+@model Shopfolio.Pages.CategoryModel
+@inject SearchEngineData Search
+@*
+    The category page (E-02; T502; 04 5.2). Order of the parts (04 5.2.3): the path from the root, the category's name, the filters - price range and stock state - the product grid and the page navigation.
+    No sort control, no option-value filter and no add-to-cart on the card (04 5.2.4). The filters sit in a collapsible section on the narrow and the medium class and beside the list on the wide class
+    (04 5.2.11; the style sheet). A wrong price range shows its field message under the field and the filter is not applied (04 5.2.7). An empty list is the empty-state line (04 5.2.9).
+*@
+@{
+    Layout = "_StorefrontLayout";
+    StorefrontFrame frame = ViewContext.HttpContext.GetStorefrontFrame()
+        ?? throw new InvalidOperationException("The category page needs the storefront frame (T537).");
+    CategoryPage view = Model.View
+        ?? throw new InvalidOperationException("The category page is drawn only for a category that exists.");
+    CategoryFilterForm filter = view.Filter;
+}
+@section Head {
+    @Search.Head(ViewContext.HttpContext, StorefrontHeads.Category(Search, frame, view.Name, view.Slug, view.Trail, Model.ClosedToSearchEngines))
+}
+<nav class="breadcrumb" aria-label="Kategori yolu">
+    <ol class="breadcrumb__list">
+        @for (int i = 0; i < view.Trail.Count; i++)
+        {
+            CategoryCrumb crumb = view.Trail[i];
+            if (i < view.Trail.Count - 1)
+            {
+                <li class="breadcrumb__item"><a href="@crumb.Path">@crumb.Name</a></li>
+            }
+            else
+            {
+                <li class="breadcrumb__item" aria-current="page">@crumb.Name</li>
+            }
+        }
+    </ol>
+</nav>
+<h1 class="category-title">@view.Name</h1>
+<div class="category-layout">
+    <details class="filters"@(filter.IsApplied || filter.PriceRangeMessage is not null ? " open" : string.Empty)>
+        <summary class="filters__summary">Süzgeçler</summary>
+        <form class="filters__form" method="get" action="@filter.ActionPath">
+            <div class="filters__field">
+                <label for="@CategoryFilterForm.MinPriceFieldId">En düşük fiyat</label>
+                <input class="filters__input" id="@CategoryFilterForm.MinPriceFieldId" name="minPrice" type="text" inputmode="decimal" value="@filter.MinPrice"
+                       aria-invalid="@(filter.PriceRangeMessage is null ? "false" : "true")"
+                       aria-describedby="@(filter.PriceRangeMessage is null ? null : Messages.FieldMessageId(CategoryFilterForm.MinPriceFieldId))" />
+                @if (filter.PriceRangeMessage is { } rangeMessage)
+                {
+                    <partial name="_Message" model="Messages.ForField(CategoryFilterForm.MinPriceFieldId, rangeMessage)" />
+                }
+            </div>
+            <div class="filters__field">
+                <label for="@CategoryFilterForm.MaxPriceFieldId">En yüksek fiyat</label>
+                <input class="filters__input" id="@CategoryFilterForm.MaxPriceFieldId" name="maxPrice" type="text" inputmode="decimal" value="@filter.MaxPrice" />
+            </div>
+            <div class="filters__field filters__field--check">
+                <input id="@CategoryFilterForm.InStockFieldId" name="inStock" type="checkbox" value="true" checked="@filter.InStockOnly" />
+                <label for="@CategoryFilterForm.InStockFieldId">Yalnız stokta olanlar</label>
+            </div>
+            <div class="filters__actions">
+                <button class="button button--secondary" type="submit">Uygula</button>
+                @if (filter.IsApplied || filter.MinPrice is not null || filter.MaxPrice is not null || filter.InStockOnly)
+                {
+                    <a class="filters__clear" href="@filter.ActionPath">Süzgeci kaldır</a>
+                }
+            </div>
+        </form>
+    </details>
+    <div class="category-layout__list">
+        @if (view.Empty is { } empty)
+        {
+            <partial name="_EmptyState" model="empty" />
+        }
+        else
+        {
+            <partial name="_ProductGrid" model="view.Cards" />
+        }
+        <partial name="_Pager" model="view.Pager" />
+    </div>
+</div>

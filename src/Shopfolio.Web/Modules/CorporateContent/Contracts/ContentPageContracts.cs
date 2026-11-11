@@ -11,7 +11,7 @@ public sealed record ContentListView(string Title, IReadOnlyList<HomepageCard> C
 
 /// <summary>
 /// A content record's page (T505; 04 5.8.3-5.8.5): <see cref="Title"/> is the record's name or title - for Hakkımızda, which has none, the firm's menu name -; <see cref="Summary"/> the short
-/// introduction or description; <see cref="BodyHtml"/> the stored cleaned text; <see cref="Images"/> the gallery in the firm's order with the text each image uses; <see cref="Related"/> the
+/// introduction or description, which only the search engine description uses (the page itself does not show it; 04 5.8.3); <see cref="BodyHtml"/> the stored cleaned text; <see cref="Images"/> the gallery in the firm's order with the text each image uses; <see cref="Related"/> the
 /// linked products that are published, in the firm's order (empty for Hakkımızda and a general page, and when none is linked or none is published). <see cref="IsDraft"/> is true for the
 /// administrator's preview of a draft; <see cref="RecordId"/> is the record's internal key, which only the panel's address uses. <see cref="Path"/> is the page's own address.
 /// </summary>

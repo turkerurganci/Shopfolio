@@ -31,8 +31,6 @@ public abstract class ContentRecordPageModel : PageModel
 
     public string Title { get; private set; } = string.Empty;
 
-    public string? Summary { get; private set; }
-
     public IHtmlContent? Body { get; private set; }
 
     public IReadOnlyList<GalleryImage> Images { get; private set; } = [];
@@ -73,7 +71,6 @@ public abstract class ContentRecordPageModel : PageModel
         }
 
         Title = page.Title;
-        Summary = string.IsNullOrWhiteSpace(page.Summary) ? null : page.Summary;
         Body = RichText.Render(page.BodyHtml);
         Images = page.Images;
         LinkedProducts = ProductCards.Of(

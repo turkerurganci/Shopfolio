@@ -63,10 +63,28 @@ internal sealed class ProductListReader
         return await PageOfAsync(products, filter, page, ct);
     }
 
+    /// <summary>
+    /// The newest published products, at most <paramref name="count"/> of them, as the same cards the lists use (T502; 02 3.28.1; 04 5.1.6): the home page's showcase. No filter, no scope,
+    /// the list's order. The count is the layout's; a count below one gives no card.
+    /// </summary>
+    public async Task<IReadOnlyList<ProductListItem>> ListNewestAsync(int count, CancellationToken ct)
+    {
+        if (count < 1)
+        {
+            return [];
+        }
+
+        ProductListPage page = await PageOfAsync(Published(), null, PageNumber.First, count, ct);
+        return page.Items;
+    }
+
     // The product's visibility is the one rule of ShowcaseVisibility (09 24 item 4), not a condition written here.
     private IQueryable<Product> Published() => _db.Products.AsNoTracking().Listed();
 
-    private async Task<ProductListPage> PageOfAsync(IQueryable<Product> products, ProductListFilter? filter, int page, CancellationToken ct)
+    private Task<ProductListPage> PageOfAsync(IQueryable<Product> products, ProductListFilter? filter, int page, CancellationToken ct) =>
+        PageOfAsync(products, filter, page, PageSizes.StorefrontProducts, ct);
+
+    private async Task<ProductListPage> PageOfAsync(IQueryable<Product> products, ProductListFilter? filter, int page, int pageSize, CancellationToken ct)
     {
         ProductListFilter applied = filter ?? ProductListFilter.None;
         decimal? min = applied.IsPriceRangeInverted ? null : applied.MinPrice;
@@ -89,7 +107,7 @@ internal sealed class ProductListReader
             .Select(p => new CardRow { Id = p.Id, Name = p.Name, Slug = p.Slug, CreatedAt = p.CreatedAt })
             .OrderByDescending(r => r.CreatedAt)
             .ThenByDescending(r => r.Id);
-        PagedList<CardRow> paged = await ordered.ToPageAsync(page, PageSizes.StorefrontProducts, ct);
+        PagedList<CardRow> paged = await ordered.ToPageAsync(page, pageSize, ct);
         IReadOnlyList<ProductListItem> items = await ItemsOfAsync(paged.Items, ct);
         return new ProductListPage(items, paged.PageNumber, paged.PageSize, paged.TotalCount, paged.PageCount);
     }
@@ -115,30 +133,8 @@ internal sealed class ProductListReader
         IReadOnlyList<ProductListItem> items = await ItemsOfAsync(rows, ct);
         Dictionary<Guid, ProductListItem> byId = items.ToDictionary(i => i.Id);
 
-        var links = await _db.ProductImages.AsNoTracking()
-            .Where(i => wanted.Contains(i.ProductId))
-            .Select(i => new { i.ProductId, i.ImageId, i.IsMain, i.SortOrder, i.CreatedAt, i.AltText })
-            .ToListAsync(ct);
-        Dictionary<Guid, (Guid ImageId, string? AltText)> mainImages = links
-            .GroupBy(l => l.ProductId)
-            .ToDictionary(
-                g => g.Key,
-                g =>
-                {
-                    var main = g.OrderByDescending(l => l.IsMain).ThenBy(l => l.SortOrder).ThenBy(l => l.CreatedAt).First();
-                    return (main.ImageId, main.AltText);
-                });
-
-        return
-        [
-            .. wanted.Where(byId.ContainsKey).Select(id =>
-            {
-                ProductListItem item = byId[id];
-                bool hasImage = mainImages.TryGetValue(id, out (Guid ImageId, string? AltText) main);
-                string? alt = hasImage && !string.IsNullOrWhiteSpace(main.AltText) ? main.AltText.Trim() : item.Name;
-                return new ProductListCard(item, hasImage ? main.ImageId : null, alt);
-            }),
-        ];
+        // The items already carry the main image and its text (T502; D-332).
+        return [.. wanted.Where(byId.ContainsKey).Select(id => new ProductListCard(byId[id], byId[id].MainImageId, byId[id].MainImageAltText))];
     }
 
     private async Task<IReadOnlyList<ProductListItem>> ItemsOfAsync(IReadOnlyList<CardRow> rows, CancellationToken ct)
@@ -151,15 +147,27 @@ internal sealed class ProductListReader
             .ToDictionaryAsync(f => f.ProductId, ct);
 
         Dictionary<Guid, DiscountLine> discounts = await DiscountLinesAsync(keys, ct);
+
+        // The main image of each card (D-332): one more read for the page's keys; the firm's text, else the product's name alone (02 3.11.4).
+        Dictionary<Guid, MainImageRow> mainImages = await _db.ProductImages.AsNoTracking()
+            .Where(i => keys.Contains(i.ProductId) && i.IsMain)
+            .Select(i => new MainImageRow(i.ProductId, i.ImageId, i.AltText))
+            .ToDictionaryAsync(i => i.ProductId, ct);
         return
         [
-            .. rows.Select(p => new ProductListItem(
-                p.Id,
-                p.Name,
-                p.Slug,
-                figures.TryGetValue(p.Id, out CardFigures? f) ? f.LowestPrice : null,
-                f is not null && f.IsPurchasable,
-                discounts.GetValueOrDefault(p.Id))),
+            .. rows.Select(p =>
+            {
+                mainImages.TryGetValue(p.Id, out MainImageRow? image);
+                return new ProductListItem(
+                    p.Id,
+                    p.Name,
+                    p.Slug,
+                    figures.TryGetValue(p.Id, out CardFigures? f) ? f.LowestPrice : null,
+                    f is not null && f.IsPurchasable,
+                    discounts.GetValueOrDefault(p.Id),
+                    image?.ImageId,
+                    image is null ? null : ImageAltText.Choose(image.AltText, () => ImageAltText.ForCard(p.Name)));
+            }),
         ];
     }
 
@@ -203,6 +211,8 @@ internal sealed class ProductListReader
 
         public required DateTimeOffset CreatedAt { get; init; }
     }
+
+    private sealed record MainImageRow(Guid ProductId, Guid ImageId, string? AltText);
 
     private sealed record CardFigures(Guid ProductId, decimal? LowestPrice, bool IsPurchasable);
 }

@@ -192,6 +192,8 @@ public sealed class SitemapSourceTests
 
         public Task<ProductListPage?> SearchProductsAsync(string? search, ProductListFilter? filter, int page, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<IReadOnlyList<ProductListItem>> ListNewestProductsAsync(int count, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<GallerySaveResult> SaveProductGalleryAsync(Guid productId, IReadOnlyList<GalleryEntry> entries, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<VariantImageResult> SetVariantImageAsync(Guid variantId, Guid? imageId, CancellationToken ct) => throw new NotSupportedException();

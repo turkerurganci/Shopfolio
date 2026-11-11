@@ -61,6 +61,20 @@ public static class ProductCards
             discount);
     }
 
+    /// <summary>The card of one list item with the main image the item itself carries (D-332): the image is absent for a product without a gallery.</summary>
+    public static ProductCard Of(ProductListItem item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        return Of(item, item.MainImageId is { } imageId ? ImageOf(imageId, string.IsNullOrWhiteSpace(item.MainImageAltText) ? item.Name : item.MainImageAltText) : null);
+    }
+
+    /// <summary>The cards of a page of the list with the images the items carry, in the list's order, one per item (the category page and the home page's showcase).</summary>
+    public static IReadOnlyList<ProductCard> Of(IReadOnlyList<ProductListItem> items)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+        return [.. items.Select(item => Of(item))];
+    }
+
     /// <summary>The cards of a page of the list, in the list's order, one per item.</summary>
     public static IReadOnlyList<ProductCard> Of(IReadOnlyList<ProductListItem> items, Func<ProductListItem, CardImage?> imageOf)
     {

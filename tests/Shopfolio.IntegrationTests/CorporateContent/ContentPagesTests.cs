@@ -181,7 +181,9 @@ public sealed partial class ContentPagesTests : IAsyncLifetime
 
         string html = await HtmlAsync(client, $"/hizmet/{slug}");
 
-        Assert.Contains("Kısa tanıtım.", html, StringComparison.Ordinal);
+        // The short text is not in the page's hierarchy (04 5.8.3); it reaches only the search engine description.
+        Assert.DoesNotContain("Kısa tanıtım.", MainOf(html), StringComparison.Ordinal);
+        Assert.Matches("<meta name=\"description\" content=\"[^\"]*Kısa tanıtım\\.", html);
         Assert.Contains("Yılda <strong>iki</strong> bakım.", html, StringComparison.Ordinal);
         Assert.DoesNotContain("alert(1)", html, StringComparison.Ordinal);
         int firstAt = html.IndexOf($"/gorsel/{first:D}", StringComparison.Ordinal);

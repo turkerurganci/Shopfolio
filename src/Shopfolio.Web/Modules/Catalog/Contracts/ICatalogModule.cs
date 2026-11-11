@@ -323,6 +323,12 @@ public interface ICatalogModule
     Task<ProductListPage?> SearchProductsAsync(string? search, ProductListFilter? filter, int page, CancellationToken ct);
 
     /// <summary>
+    /// The home page's showcase (T502; 02 3.28.1; 04 5.1.6): the newest published products, at most <paramref name="count"/>, as the same cards the lists use - price, running discount, sold-out
+    /// mark and main image included (D-1178). Nobody picks them; a sold-out product that comes up in the order is in. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<ProductListItem>> ListNewestProductsAsync(int count, CancellationToken ct);
+
+    /// <summary>
     /// Saves a product's gallery as the product form posts it (02 3.11.2, 3.11.3; 06 4.71): the links are made to match the list, the position in the list is the order, the main mark is the
     /// listed one - or the current main image while it stays, or the first image - so a gallery that has an image always has exactly one main image, and the firm's alternative text is kept.
     /// The gallery's and the variants' images together, each once, may not pass P-24. A refusal writes nothing. Joins the caller's transaction and never saves it (09 9.1 item 3); outside one it throws.

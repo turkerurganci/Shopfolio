@@ -10,7 +10,7 @@
 ## Yapılan İşler
 
 - Liste sayfaları `/hizmetler` ve `/referanslar` (`Pages/Content/ContentListPages.cs`, `_ContentListBody.cshtml`): tipin yayındaki kayıtları firmanın sırasıyla, 24'lük sayfalarla, tip adı menüdeki ad; kayıt yoksa boş hâl satırı.
-- Kayıt sayfaları `/hakkimizda`, `/hizmet/{slug}`, `/referans/{slug}`, `/sayfa/{slug}` (`ContentRecordPages.cs`, `_ContentRecordBody.cshtml`): ad, özet, galeri, metin, hizmette "Bize ulaşın", "Paylaş", yayındaki bağlı ürünlerle "İlgili ürünler".
+- Kayıt sayfaları `/hakkimizda`, `/hizmet/{slug}`, `/referans/{slug}`, `/sayfa/{slug}` (`ContentRecordPages.cs`, `_ContentRecordBody.cshtml`): ad, galeri, metin, hizmette "Bize ulaşın", "Paylaş", yayındaki bağlı ürünlerle "İlgili ürünler".
 - Taslak: panel oturumuyla "Taslak" bandı ve noindex; ziyaretçiye, olmayan ve başka tipin adresine aynı 404.
 - Modül: `StorefrontContentPages`, `ICorporateContentModule.GetContentListAsync/GetContentPageAsync`, `ICatalogModule.ListPublishedProductCardsAsync` (`ProductListCard`), `ContentProductLinks.ListRelatedCardsAsync`; `RecordPages.FixedContent/ContentList`.
 - Integration örnek sayfaları gerçek adreslerle çakışmasın diye `/sss/ornek-*` altına taşındı.
@@ -50,6 +50,17 @@
 | KK8 yabancı Slug 404 | ✓ | `…_T505_KK8` |
 | `09 §25` ilgili satırlar | ✓ | sayfalar yazmaz (KK6); metin `RichText.Render` ile yeniden süzülür; iç anahtar yalnız panel bağlantısında; sayfa modül klasörüne girmez; her şey `ICorporateContentModule`/`ICatalogModule` arayüzünden |
 | Güvenlik taraması | ✓ | ham HTML yalnız süzülmüş metin; POST 200/303 vermez; taslak ziyaretçiye 404 ve noindex; yeni bağımlılık, sır, şema yok |
+
+### Düzeltme 1 (B1) — öz denetim
+
+Tur 1 FAIL'i (B1) kapatıldı: `_ContentRecordBody.cshtml` kısa metin paragrafı, `ContentRecordPageModel.Summary` ve `.content-page__summary` stili kaldırıldı; `page.Summary` yalnız arama motoru açıklamasına (`RecordPages.Content`/`FixedContent`) gider. `git grep` ile aynı alanı anan başka yer kalmadı (`ContentRecordPage.Summary` sözleşmesinin açıklaması "yalnız arama motoru açıklaması" diye güncellendi). Dalın main ile birleştirmesinde `storefront.css` (T502 ve T505 blokları ikisi de kaldı) ve `ProductListReader.cs` (T502 `ProductListItem` ana görseli + T505 `ListCardsAsync`; kart görseli artık `ProductListItem.MainImageId/MainImageAltText`'ten gelir) çakıştı, elle çözüldü. `sik-fail-nedenleri.md` okundu; B1 türü ("sayfa hiyerarşisinde olmayan alan") için sayfa bölge listesi `04` 5.8.3/5.8.4 ile yeniden karşılaştırıldı.
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1–3, 5–8 | ✓ | değişmedi; ilgili KK testleri yeşil |
+| Kriter 4 / KK4 | ✓ | `…_T505_KK4` artık kısa metnin `<main>`'de olmadığını ve `description` meta'sında olduğunu sınar; bölgeler: ad, görseller, metin, türe özgü bölge, "Paylaş" |
+| KK1–KK3, KK5–KK8 | ✓ | `ContentPagesTests` yeşil |
+| `09 §25` | ✓ | kısa metin sayfada yok; modül sınırı ve süzme değişmedi |
 
 ## Test Sonuçları
 

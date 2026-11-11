@@ -12,6 +12,7 @@ using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
 using Shopfolio.IntegrationTests.Pages;
 using Shopfolio.Modules.Catalog;
+using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.CorporateContent;
 using Shopfolio.Modules.CorporateContent.Contracts;
 using Shopfolio.Modules.Ordering;
@@ -55,8 +56,8 @@ public sealed class StorefrontFrameTests : IAsyncLifetime
         db.Carts.RemoveRange(await db.Carts.ToListAsync(Ct));
         db.Announcements.RemoveRange(await db.Announcements.ToListAsync(Ct));
         db.SocialLinks.RemoveRange(await db.SocialLinks.ToListAsync(Ct));
-        db.LegalTextVersions.RemoveRange(await db.LegalTextVersions.Where(l => l.LegalTextType == LegalTextType.PrivacyNotice || l.LegalTextType == LegalTextType.CookiePolicy).ToListAsync(Ct));
         await db.SaveChangesAsync(Ct);
+        await db.Database.ExecuteSqlRawAsync("TRUNCATE legal_text_versions CASCADE", Ct);
         await db.CompanySettings.ExecuteUpdateAsync(s => s.SetProperty(c => c.WhatsAppNumber, (string?)null), Ct);
         await db.Companies.ExecuteUpdateAsync(c => c.SetProperty(x => x.EtbisVerificationUrl, (string?)null), Ct);
     }
@@ -115,7 +116,7 @@ public sealed class StorefrontFrameTests : IAsyncLifetime
         Assert.Equal("/iletisim", footer.GetProperty("ContactPath").GetString());
         Assert.Equal(JsonValueKind.Null, footer.GetProperty("EtbisVerificationUrl").ValueKind);
         Assert.Equal(JsonValueKind.Object, footer.GetProperty("Identity").ValueKind);
-        Assert.Equal(["/islem-rehberi"], footer.GetProperty("LegalLinks").EnumerateArray().Select(l => l.GetProperty("Path").GetString()).ToArray());
+        Assert.Equal(["/islem-rehberi"], footer.GetProperty("LegalLinks").EnumerateArray().Select(l => l.GetProperty("Path").GetString()!).ToArray());
     }
 
     [Fact]
@@ -135,7 +136,7 @@ public sealed class StorefrontFrameTests : IAsyncLifetime
 
         Assert.Equal("https://etbis.example/dogrula", footer.GetProperty("EtbisVerificationUrl").GetString());
         // The cookie policy has a published version, the privacy notice has none: only the first and the guide are linked.
-        Assert.Equal(["/cerez-politikasi", "/islem-rehberi"], footer.GetProperty("LegalLinks").EnumerateArray().Select(l => l.GetProperty("Path").GetString()).ToArray());
+        Assert.Equal(["/cerez-politikasi", "/islem-rehberi"], footer.GetProperty("LegalLinks").EnumerateArray().Select(l => l.GetProperty("Path").GetString()!).ToArray());
     }
 
     [Fact]
@@ -280,25 +281,22 @@ public sealed class StorefrontFrameTests : IAsyncLifetime
         Assert.True(closed.GetProperty("IsSalesClosed").GetBoolean());
         Assert.False(closed.GetProperty("IsDataCollectionOpen").GetBoolean());
 
+        Assert.False(closed.GetProperty("IsTemporarilyClosed").GetBoolean());
+
+        // The same application, the next request: the firm's own switch is read afresh, then read again after it is turned off.
         await using (AppDbContext db = NewContext())
         {
-            db.LegalTextVersions.Add(LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, 1, Now, "metin", Now).WithHosting());
-            db.LegalTextVersions.Add(LegalTextVersion.CreatePublished(LegalTextType.CookiePolicy, 1, Now, "metin", Now));
-            await db.SaveChangesAsync(Ct);
+            await db.CompanySettings.ExecuteUpdateAsync(s => s.SetProperty(c => c.IsSalesTemporarilyClosed, true), Ct);
         }
 
-        // The same application, the next request: the data-collecting gate reads open; the sales gate still waits for the identity and the rest.
-        JsonElement open = (await FrameOfAsync(client, "/hakkimizda")).GetProperty("Sales");
-        Assert.True(open.GetProperty("IsDataCollectionOpen").GetBoolean());
-        Assert.True(open.GetProperty("IsSalesClosed").GetBoolean());
+        Assert.True((await FrameOfAsync(client, "/hakkimizda")).GetProperty("Sales").GetProperty("IsTemporarilyClosed").GetBoolean());
 
         await using (AppDbContext db = NewContext())
         {
-            db.LegalTextVersions.RemoveRange(await db.LegalTextVersions.Where(l => l.LegalTextType == LegalTextType.PrivacyNotice || l.LegalTextType == LegalTextType.CookiePolicy).ToListAsync(Ct));
-            await db.SaveChangesAsync(Ct);
+            await db.CompanySettings.ExecuteUpdateAsync(s => s.SetProperty(c => c.IsSalesTemporarilyClosed, false), Ct);
         }
 
-        Assert.False((await FrameOfAsync(client, "/hakkimizda")).GetProperty("Sales").GetProperty("IsDataCollectionOpen").GetBoolean());
+        Assert.False((await FrameOfAsync(client, "/hakkimizda")).GetProperty("Sales").GetProperty("IsTemporarilyClosed").GetBoolean());
     }
 
     // ---- KK5: the cart count of this browser; the links ----
@@ -333,7 +331,7 @@ public sealed class StorefrontFrameTests : IAsyncLifetime
 
         JsonElement contact = admin.GetProperty("Contact");
         Assert.Equal("5321234567", contact.GetProperty("WhatsAppNumber").GetString());
-        Assert.Equal(["Instagram", "YouTube"], contact.GetProperty("SocialLinks").EnumerateArray().Select(l => l.GetProperty("Platform").GetString()).ToArray());
+        Assert.Equal(["Instagram", "YouTube"], contact.GetProperty("SocialLinks").EnumerateArray().Select(l => l.GetProperty("Platform").GetString()!).ToArray());
     }
 
     // ---- KK9: the merge message is told once ----

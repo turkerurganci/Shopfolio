@@ -91,6 +91,18 @@ Tur 2 FAIL'i (B2) kapatıldı: "Paylaş" `</article>` ve "İlgili ürünler" bö
 
 | Alan | Sonuç |
 |---|---|
+| Doğrulama durumu (tur 4) | ✓ PASS — tur 4 (2026-11-12, head `df5a8864`; `origin/main` `9f5b8ac8` (T520 #549) çakışmasız birleştirildi → `687ec955`, doğrulama birleşik ağaçta). Kriter 1–8 ve KK1–KK8 ✓; tur 3'ten sonraki iki kod birleştirmesi (`storefront.css` — main'den satır silinmedi, yalnız T505 stilleri eklendi; `SessionAccessTests.cs` — iki eski `/sayfa/…` örnek adresi `/sss/ornek-serit/…` karşılığıyla değişti) davranışı bozmadı |
+| Bulgu sayısı (tur 4) | 0 |
+| Düzeltme gerekli mi (tur 4) | Hayır |
+| Bloke-etmeyen not (K) sayısı (tur 4) | 0 yeni — D-1209, D-1211, D-1212, D-1213, D-1256, D-1257, D-1273 açık ve hedefli; `09 §24` madde 4 notu (iki "İlgili ürünler" okuyucusu) D-1273'te |
+| `12` satırları (tur 4) | `VAL-A115`…`A119` (KP-32) `BEKLEMEDE` kalır (tarayıcı gözlemi); `12_matris_denetle.py --kapsam 1-77` Hata 0 |
+
+**Validator kanıtları (tur 4):** kod okuması (`StorefrontContentPages`, `ContentListPages`, `ContentRecordPages`, `_ContentListBody`, `_ContentRecordBody`, `ProductListReader.ListCardsAsync`, `RecordPages.FixedContent/ContentList`, `StorefrontMenuReader`) `07 §4.7.1`, §4.8.1, `04` 5.7, 5.8, 6.2.7, 6.2.8 ile birebir; menü öğeleri her zaman listede (görünürlük bayrağıyla), `First` başarısız olmaz. Yerel (birleşik ağaç `687ec955`): restore ✓, `build -warnaserror` 0/0, `dotnet format --verify-no-changes` üç proje 0, Unit Consistency 295/295 + kalan 6920/6920, betik testleri 4/4, Integration TAM ad alanı parçalarıyla 3827/3827 (CorporateContent+Pages+Pages.Panel+Administration+Catalog 346, Web 821, Ordering+Payment 704, Model+Database 1446, kök+kalan 510; Postgres 18 `track_commit_timestamp=on`, 127.0.0.1:58705), `restore --locked-mode` 0, `git status` temiz. CI: PR #543 run 43113395347 (head `df5a8864`) success. Ana dal son 3: 43110306088, 43110304288, 43101562500 success. Güvenlik: yeni POST yok, taslak yetkisi sunucuda (`HasAdminSessionAsync`), metin `RichText.Render` ile süzülüyor, iç anahtar yalnız yöneticinin bandında, yeni paket/sır yok.
+
+**Yapım raporu karşılaştırması (tur 4):** öz denetim tabloları var ve kanıtlı; verdict'le uyumlu, yeni uyuşmazlık yok.
+
+| Alan | Sonuç |
+|---|---|
 | Doğrulama durumu (tur 3) | ✓ PASS — tur 3 (2026-11-11, head `e70eac37`; dal main `25f1f1ee` ile birleşikti, doğrulama sonunda `origin/main` `a9270c02` (T511 #545) birleştirildi: yalnız `DEFERRED_BACKLOG.md`'de kayıt çakışması — satır satır, her satırda değiştiren taraf alındı (D-668, D-693 main; D-671, D-672, D-690 dal); `SessionAccessTests.cs` ve `ApplicationEnums.cs` kendiliğinden birleşti). Kriter 1–8 ve KK1–KK8 ✓; B2 kapandı |
 | Bulgu sayısı (tur 3) | 0 |
 | Düzeltme gerekli mi (tur 3) | Hayır |

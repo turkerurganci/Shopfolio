@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
@@ -30,6 +32,8 @@ internal sealed class CartModel : PageModel
     private readonly IOrderingModule _ordering;
     private readonly ISettingsModule _settings;
     private readonly ITransactionRunner _transactions;
+
+    private bool _loaded;
 
     public CartModel(IOrderingModule ordering, ISettingsModule settings, ITransactionRunner transactions)
     {
@@ -62,6 +66,23 @@ internal sealed class CartModel : PageModel
     /// <summary>The quantity the customer sent on the refused line: the field shows it again (07 2.2.2).</summary>
     public string? SentQuantity { get; private set; }
 
+    /// <summary>
+    /// The validation filter answers a form whose fields break their rules itself, 422 without the handler (09 3.4 item 3; 07 UC-20): the page it shows again still needs the cart as it stands
+    /// and the refused line. The cart is read after the filters, so a request the forgery check refused reads and writes nothing.
+    /// </summary>
+    public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        PageHandlerExecutedContext executed = await next();
+        if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
+        {
+            RefusedItemId = context.HandlerArguments.Values.OfType<UpdateCartItemInput>().FirstOrDefault()?.CartItemId;
+            SentQuantity = Request.HasFormContentType ? Request.Form[nameof(UpdateCartItemInput.Quantity)].ToString() : null;
+            await LoadAsync(HttpContext.RequestAborted);
+        }
+    }
+
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         await LoadAsync(ct);
@@ -92,7 +113,8 @@ internal sealed class CartModel : PageModel
             case CartItemUpdateOutcome.NotInCart:
                 return AccessDenial.NotFound();
             case CartItemUpdateOutcome.InvalidQuantity:
-                ModelState.AddFieldError(nameof(UpdateCartItemInput.Quantity), FieldCodes.InvalidQuantity);
+                // The module's refusal is a digital line's quantity other than one (02 3.12.4): the message names one as the limit.
+                ModelState.AddFieldError(nameof(UpdateCartItemInput.Quantity), FieldCodes.InvalidQuantity, DisplayFormat.Number(1));
                 return await RefuseAsync(input.CartItemId, null, ct);
             default:
                 CartQuantityProblem problem = result.Outcome == CartItemUpdateOutcome.OverOrderLimit ? CartQuantityProblem.OverOrderLimit : CartQuantityProblem.NoStock;
@@ -135,6 +157,7 @@ internal sealed class CartModel : PageModel
 
     private async Task LoadAsync(CancellationToken ct)
     {
+        _loaded = true;
         ShippingFeeSection shippingTerms = await _settings.GetShippingFeeAsync(ct);
         SalesGate gate = await _settings.GetSalesGateAsync(ct);
         CartOwner? owner = StorefrontFrameBuilder.CartOwnerOf(HttpContext);

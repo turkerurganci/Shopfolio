@@ -1,6 +1,6 @@
 # T503 — Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04)
 
-**Faz:** F5 | **Durum:** ⏳ Düzeltme 1 yapıldı, tur 2 doğrulaması bekliyor | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✗ FAIL (tur 2) — eskalasyon | **Tarih:** 2026-11-11
 
 ---
 
@@ -78,3 +78,32 @@
 **Öz denetim:** T503 kriter 1–9 ve KK1–KK9 yeniden denetlendi; tablodaki her satırın kanıt testi mevcut ve yeşil (kriter 5 betikli yol ✓, 7 ✓, 9 ✓). `sik-fail-nedenleri.md` iki T503 satırı (betikli yol yeniden hesabı, değişken alanın yer tutucusu) kapandı; aynı kalıp ürün sayfasının öteki değişken satırlarında (`reference`, `mark`, `dates`) da düzeltildi.
 
 **Koşular (düzeltme 1):** `origin/main` (T502 #541) birleştirildi (kod çakışması `storefront.css` ve iki test rotasında iki taraf korunarak; kayıt belgelerinde main sürümü). Restore, build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` Web, UnitTests, IntegrationTests temiz; Unit 7179/7179; betik testleri 4/4; Integration Web 754/754, öteki ad alanları 2974/2975 — kırmızı `SchedulerBackupDisposalAndKeyTablesTests.Migration_WithoutARoleSettingItReads_…(shopfolio.reader_user)` veritabanı bırakma okuma zaman aşımıydı (makinede başka koşu), tek başına sınıf 55/55 geçti. PostgreSQL 18, `track_commit_timestamp=on`.
+
+## Doğrulama tur 2 (2026-11-11)
+
+| Alan | Değer |
+|---|---|
+| Doğrulama durumu | ✗ FAIL — tur 2 (ikinci iterasyon; kod head'i `c25d4697` + `origin/main` `25f1f1ee` (T508 #544) birleştirmesi `71a98f16`; yalnız `DEFERRED_BACKLOG.md` kayıt çakışması). İkinci iterasyonun düzeltmesi FAIL verdiği için `12 §8.5` / `INSTRUCTIONS.md` §3.3 eskalasyonu. |
+| Bulgu sayısı | 4 (ORTA, S1) — kabul kriterlerinin davranışı karşılanıyor; `09 §25` kontrol listesinin üç sorusu "hayır" ve task'ın kendi testi kararsız. |
+| Düzeltme gerekli mi | Evet — bu PR'da. |
+| K-notları | 2 — ikisi de bu PR'da kapatılır. |
+
+**Bulgu 1 (ORTA, S1; kriter 8; `09 §8.2` madde 3, `07 §6.1.3`, §6.2.3; `09 §25` "red uygulama kaydında mı"):** `AddCartItem`'ın hiçbir 422 reddi ret satırı yazmıyor. `Product.cshtml.cs` `RefuseAsync` → `FormResults.Redisplay` yalnız 422 döner; adet ve seçim mesajları `ModelState`'e değil `BuyState`'e yazıldığı için `ValidationPageFilter` da satır yazmaz. `07 §6.2.3` bu uç için kodları sayar (`StockInsufficient`, `MaxQuantityPerOrderExceeded`, `DigitalVariantAlreadyInCart`, `VariantUnavailable`, `SalesClosed`); main'deki eşleme `Pages/Components/CartRefusalCodes.CodeOf(CartAddOutcome)` (T508, D-638 "Ekleme ucu (UC-05) aynı eşlemeyi T503'te okur") çağrılmıyor. Sepet ucu aynı redde `RejectionLog.Rejected(CartRefusalCodes.CodeOf(...))` yazıyor (`Cart.cshtml.cs:124`). Testlerde ret satırı sınaması yok.
+
+**Bulgu 2 (ORTA, S1; kriter 8; `09 §3.4` madde 1–4, `04` 7.1.2.1, 7.1.2.2, 7.3.2.10; `09 §25` "aynı işi yapan tek işlev"):** Adet ve varyant seçimi alan doğrulaması kalıbın dışında: `CartQuantity.Read` + sabit metin "Adet 1 veya daha büyük bir tam sayı olmalı." ve "Bir seçenek belirleyin"; alan kodu (`FieldCodes.InvalidQuantity`, `FieldRequired`) ve mesaj kataloğu (`FieldMessageCatalog`: "{0} 1 ile {1} arasında bir tam sayı olmalıdır.") kullanılmıyor, alanın kayıt satırı (`FieldsRejected`) yazılmıyor. Sepet sayfası aynı hâli `ModelState.AddFieldError(..., FieldCodes.InvalidQuantity, ...)` ile çözüyor.
+
+**Bulgu 3 (ORTA, S1; `09 §20` madde 4; `09 §25` Performans "döngüde sorgu yok mu"):** (a) Arama sayfası her kart için `GetProductGalleryAsync` çağırıyor (`Search.cshtml.cs` `ImageOfAsync`; sayfa başına 24'e kadar ek sorgu). Birleşik ağaçta `ProductListItem.MainImageId`/`MainImageAltText` liste okuyucusunda toplu okunuyor (T502) ve `ProductCards.Of(list.Items)` hazır — D-1204'ün koşulu gerçekleşti. (b) Ürün sayfası `BuildAsync` varyant döngüsünde varyant başına `GetPriceLabelAsync` (3+ sorgu), `GetVariantImageAsync` ve `ICountryList.FindAsync` çağırıyor; sorgu sayısı varyant sayısıyla büyüyor. §20 madde 4'ün istediği komut sayısı sınaması (kalem yükleyen ekran) yok.
+
+**Bulgu 4 (ORTA, S1; kriter 4, 5; kırık test):** `StorefrontSearchAndProductTests` varsayılan varyantın tohum sırasındaki ilk varyant olduğunu varsayıyor, ama tohumdaki varyantlar aynı `CreatedAt`'i taşıyor (`Now.AddMinutes(n)`) ve okuyucu `OrderBy(CreatedAt).ThenBy(Id)` ile sıralıyor; `EntityIds.New()` = `Guid.CreateVersion7()` aynı milisaniyede rastgele sıradadır. Tam Web koşusunda `TheScriptData_HoldsEachCombinationsPlacesAndSoldOutMark_ForTheOtherOptionsChoices_T503_KK5` satır 490'da kırmızı (776'da 1), tek başına ve sınıfça yeniden koşuda yeşil. Aynı varsayım `TheSelection_IsTheTwoOrders_…_KK4`'te (111 TL beklentisi) de var. CI'ı rastgele kırar.
+
+**Kabul kriterleri (validator kanıtı, tur 2):** 1 ✓ (`SearchTerm.ToLikePattern`, `NameSearchForm`; KK1 testleri) · 2 ✓ (KK2 testleri; `SearchModel` boş sözcükte liste yok, `ClosedToSearchEngines`) · 3 ✓ (`OnGetAsync` → `NotFound()` taslak/yok; KK3 testleri) · 4 ✓ davranış (`VariantSelection.Resolve`), test kararsız (bulgu 4) · 5 ✓ (sunucu yolu ve betik verisi; `refreshChoices`, değişken satırlar her zaman çiziliyor) · 6 ✓ (`VariantScriptData` stok adedi yok; Paylaş) · 7 ✓ (303 adresi, `notice`, sepet sayısı 0 → 1) · 8 ✓ davranış (422/404 yolları), kayıt ve alan kalıbı bulgu 1–2 · 9 ✓ (KK9 testi; `product.js` submit kilidi).
+
+**Koşular (tur 2, birleşik ağaç):** restore; build `-warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes` Web, UnitTests, IntegrationTests 0; Unit 7190/7190; betik testleri 4/4; Integration tam (PostgreSQL 18, `track_commit_timestamp=on`): Web 775/776 (bulgu 4), Ordering 638/638, Model 1403/1407 + 4 tekrar 5/5, Pages+Pages.Panel+CorporateContent+Catalog 267/267, Database+Jobs+Files+Disposal+Payment 343/343, Security+Concurrency+Commands 133/134 + tekrar 14/14, kalan ad alanları 187/187 (tekrar edilenler makine yükünden PostgreSQL zaman aşımı; T503'e dokunmayan ad alanları). Ana dal son 3 run success (43046780915, 43046780990, 43038133909). Dal CI: head `c25d4697` için run yok (PR #542 `CONFLICTING`); son run 43030869524 (`34cd89da`) success.
+
+**`12` satırları:** VAL-A009, VAL-A011 → PASS (tur 1 bulgusu kapandı; sunucu yolu ve betik verisi sınandı). VAL-A004, VAL-A005, VAL-A019, VAL-A022 PASS kalır. Öteki KP-2…KP-7 satırları BEKLEMEDE. `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**K-notları:** K1 birleşmeden sonra `AddCartItem` sonuç `switch`'i main'in yeni `CartAddOutcome.AlreadyInCart` değerini `_` koluyla "Bu adette stok yok"a düşürüyor (yalnız yarışta: önce `CheckDigitalAddAsync` engeller) → bulgu 1'in düzeltmesiyle bu PR'da · K2 birleşmeden sonra D-507'nin T508 payı main'de, T503 payı dalda kapandı; kayıt kapatılabilir → bu PR'da.
+
+**Yapım raporu karşılaştırması:** 2 uyuşmazlık — rapor kriter 8'i ✓ veriyor, ret satırı ve alan kalıbı denetlenmemiş; rapor N+1'i D-1204'e ileri atıyor, `09 §25` "hayır" cevabı ileri atılamaz. Öz denetim tablosu var, her satırda kanıt adı var.
+
+**Birleştirme notu:** `origin/main` (T508 #544) birleşmesinde yalnız `DEFERRED_BACKLOG.md` çakıştı: D-507 ve D-693'te main sürümü alındı (dalın T503 notları `DEFERRED_BACKLOG.d/T503.md`'ye taşındı), D-691 ve D-692'de main değişmediği için dalın satırı kaldı.

@@ -259,7 +259,7 @@
 |---|---|---|---|---|---|
 | T501 | Yerli üretim logosu varlığı ve gösterimi | ✓ | ✓ PASS (tur 1) | `e7e5d3e1` | #535 |
 | T502 | Vitrin: ana sayfa ve kategori sayfası (E-01, E-02) | ✓ | ✓ PASS (tur 2) | `038a972f` | #541 |
-| T503 | Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04) | ⏳ | ✗ FAIL (tur 1) | — | #542 |
+| T503 | Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04) | ⏳ | ✗ FAIL (tur 2) | — | #542 |
 | T504 | Hata sayfaları: bulunamayan adres ve beklenmeyen hata (E-06, 500) | ✓ | ✓ PASS (tur 1) | `e59bfa5f` | #540 |
 | T505 | İçerik liste ve içerik sayfaları (E-07, E-08) | ⬚ | — | — | — |
 | T506 | Sık sorulan sorular ve iletişim sayfası ve formu (E-09, E-10) | ⬚ | — | — | — |

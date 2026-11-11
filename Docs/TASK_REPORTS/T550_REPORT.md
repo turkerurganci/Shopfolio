@@ -1,6 +1,6 @@
 # T550 — F4 kapanış düzeltmeleri: null-forgiving temizliği ve sır bekçisi önek soyma
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-11
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -71,10 +71,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-11; dal ucu `bf77ceaf`) — **birleştirme notu:** doğrulama sırasında `origin/main` `dca82c42`'ye (T537, #532) ilerledi; `git merge origin/main` metin olarak temiz, ama birleşik ağaçta `NullForgivingSourceScanTests.ApplicationSource_HasNoNullForgivingWithoutReason` kırmızı: T537'nin eklediği iki gerekçesiz `!` — `src/Shopfolio.Web/Modules/Ordering/Carts.cs:94` (`marked.Select(i => i.VariantId!.Value)`) ve `:99` (`facts.TryGetValue(item.VariantId!.Value, …)`; satır numaraları birleşik ağaçta). Birleştirme geri alındı, kayıt commit'i birleştirmesiz; dal main'le güncellenip bu iki satır kaldırılmadan ya da `// non-null:` gerekçesi almadan merge edilirse main'in Unit adımı kırılır |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 bu PR'da kapatıldı: D-1120'nin envanteri `scripts/ci/package-build.sh:259, 263, 266, 268` satırlarını (`docker exec -e PGPASSWORD="$(cat …)"`; eski bekçi geçirir, yeni bekçi satır düzenlenirse takılır) saymıyordu, kayıt düzeltildi; K2 forward → D-1130: bekçinin kendi test dosyası `test-pre-commit.sh` artık bekçiye takılır (`-e KEY=<gerçek görünümlü değer>` örnek satırı eklenirse — e2, e4, e7, e9, e10 bugün takılır; yapım commit'leri main'deki eski bekçiyle geçti) |
+
+**Tur 1 kanıtları (doğrulayıcı):** kriter 1–6 ve KK1–KK6, `09 §25` ve güvenlik taraması ✓. Bağımsız envanter (`git grep -nE` ile doğrudan biçim, literal/`>` ardındaki ve boşluklu biçim, `.cs`/`.cshtml`/`.razor`): dalda gerekçesiz aday satır 0, `// non-null:` taşıyan 169 satır; `origin/main`'de aynı desen 199 satır (Ordering+Payment 104). Gerekçeler örneklenerek koda karşı okundu (Carts `Where(... VariantId != null)`, FirmSettings `CheckRequiredAmount`/`CheckFenced`, ReadLogsCommand `Required: true`, TryCancellationActor/TryAdminActor/TryNormalizeShipment/TryPlan `[NotNullWhen]` sözleşmesi — `-warnaserror` derleme CS8762'yi zorlar). Kaldırışlar: sekiz `?? throw new InvalidOperationException(…)`, sessiz varsayılan yok (`BrandName ?? _domain` eski üçlü ifadenin aynısı; `PriceLabelRules` `netQuantity` boşken `CheckNetQuantity` zaten `Missing` döner; `PayTrStartForm` `IPAddress.TryParse(null)` zaten false). Mutasyon: `Carts.cs:48` yorumu silinince `ApplicationSource_HasNoNullForgivingWithoutReason` kırmızı (`Carts.cs:48`), geri alındı. Bekçi sondası (main bekçisi ↔ dal bekçisi, geçici depo): D-80 devam satırı 1↔1; ikinci `-e`, tek satırlık `docker run -e "…"`, tek tırnak, satır ortası `--env`, üçüncü önek, sekme, YAML `run:` satırı 0↔1; `${VAR}`, `--env-file`, Markdown tablo satırı, kısa değer 0↔0. Paket betiği sondası: `_FILE` + gerçek değer aynı satırda eski 0 ↔ yeni yakalar; `deploy/images` iki sürümde de temiz. Yerel: build `-warnaserror` 0 uyarı; `dotnet format` üç proje 0; Unit 295 + 6333 = 6628/6628; betik testleri 4/4; kanca 223/223; Integration Ordering 637, Payment 59, Concurrency 30, Catalog 82, CorporateContent 185, Administration 69, Jobs 85, Commands 70 (Postgres 18, `track_commit_timestamp=on`). CI run 42942279998 (`bf77ceaf`) dokuz iş `success`.
 
 ## Altyapı Değişiklikleri
 
@@ -88,7 +90,7 @@
 - **Branch:** `task/T550-f4-kapanis-duzeltmeleri`
 - **Commit:** `5a9572af` (sır bekçisi), `001debe2` (Ordering + tarama), `39c269af` (kalan satırlar, tarama biçimleri, 09/K-1614), `fce20fb6` (kayıtlar)
 - **PR:** #533
-- **CI:** yönetici izler
+- **CI:** run 42942279998 (`bf77ceaf`) — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E (advisory), CI Gate `success`
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar
@@ -100,6 +102,7 @@ Dış varsayım: yok (kod içi null sözleşmeleri kod okunarak doğrulandı; d�
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
 | 1 | Sır bekçisi kabuk genişlemesini (`"$(cat …)"`, `$VAR`) ve `_FILE` yolunu gerçek değer sayar; artık satır ortasındaki önekte de (yanlış pozitif) | D-1120 | İstisnayı genişletmek D-21 ilkesine aykırı; dar istisna ayrı karar ister |
+| 2 | Bekçinin kendi test dosyası (`test-pre-commit.sh`) satır ortasındaki `-e KEY=<değer>` örneğiyle bekçiye takılır (doğrulama tur 1 K2) | D-1130 | Test dosyasını bekçinin dışına almak güvenlik kararıdır; yapım + bağımsız doğrulama ister |
 
 ## Notlar
 

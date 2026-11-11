@@ -489,3 +489,38 @@
         grid-template-columns: 2fr 1fr 1fr;
     }
 }
+
+/* A legal text page (T507; 04 5.11.3): the heading and the whole text on one page; a long line breaks and nothing scrolls sideways. */
+.legal-text {
+    max-width: 48rem;
+    margin: var(--space-5) auto;
+    overflow-wrap: anywhere;
+}
+
+.legal-text__title {
+    margin: 0 0 var(--space-4);
+    font-size: var(--font-size-title);
+}
+
+.legal-text__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.legal-text__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.legal-text__heading {
+    margin: 0;
+    font-size: var(--font-size-large);
+}
+
+.legal-text__plain {
+    margin: 0;
+    font-family: inherit;
+    white-space: pre-wrap;
+}

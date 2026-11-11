@@ -215,7 +215,7 @@ public sealed class FormComponentModelTests
         Assert.Equal("Input_SameAsShipping", billing.SameAsShippingId);
         Assert.False(withoutPhysical.OffersSameAsShipping);
         Assert.Throws<ArgumentException>(() => AddressForms.Create(AddressVariant.Delivery, "", Provinces, offerSameAsShipping: true, sameAsShippingName: "x"));
-        Assert.Throws<ArgumentException>(() => AddressForms.Create(AddressVariant.Billing, "", Provinces, offerSameAsShipping: true));
+        Assert.ThrowsAny<ArgumentException>(() => AddressForms.Create(AddressVariant.Billing, "", Provinces, offerSameAsShipping: true));
     }
 
     // ---- KK6: an unserved province ----

@@ -46,17 +46,11 @@ public sealed class FormSourceScanTests
             found.Add(".form-fields is not one column by default");
         }
 
-        foreach (Match many in Regex.Matches(text, @"([^{}]*)\{[^{}]*grid-template-columns:\s*(repeat\(\s*[2-9]|[^;]*\s[^;]*\s)[^{}]*\}", RegexOptions.CultureInvariant, PatternTimeout))
+        // Cut the min-width blocks out; a several-column form-fields rule left outside them is a violation.
+        string outside = Regex.Replace(text, @"@media\s*\(\s*min-width[^)]*\)\s*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}", string.Empty, RegexOptions.CultureInvariant, PatternTimeout);
+        foreach (Match many in Regex.Matches(outside, @"([^{}]*)\{[^{}]*grid-template-columns:\s*(repeat\(\s*[2-9]|[^;{}\s(]+\s+[^;{}\s]|[^;{}]*\)\s+[^;{}\s])[^{}]*\}", RegexOptions.CultureInvariant, PatternTimeout))
         {
-            if (!many.Groups[1].Value.Contains(".form-fields", StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            int at = text.IndexOf(many.Value, StringComparison.Ordinal);
-            int media = text.LastIndexOf("@media", at, StringComparison.Ordinal);
-            string head = media < 0 ? string.Empty : text[media..Math.Min(text.IndexOf('{', media), at)];
-            if (!head.Contains("min-width", StringComparison.Ordinal))
+            if (many.Groups[1].Value.Contains(".form-fields", StringComparison.Ordinal))
             {
                 found.Add("a form-fields rule with several columns is outside a min-width block");
             }

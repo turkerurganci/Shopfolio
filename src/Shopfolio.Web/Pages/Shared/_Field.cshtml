@@ -8,7 +8,7 @@
 *@
 @{
     string? invalid = Model.IsInvalid ? "true" : null;
-    string? required = Model.Requirement == FieldRequirement.Required ? "true" : null;
+    string? ariaRequired = Model.Requirement == FieldRequirement.Required ? "true" : null;
 }
 <div class="field@(Model.IsInvalid ? " field--invalid" : string.Empty)" data-js="field">
     <label class="field__label" for="@Model.Id">@Model.Label <span class="field__requirement">@Model.RequirementText</span></label>
@@ -19,7 +19,7 @@
     @switch (Model.Kind)
     {
         case FieldKind.ClosedList:
-            <select class="field__control" id="@Model.Id" name="@Model.Name" aria-invalid="@invalid" aria-required="@required" aria-describedby="@Model.DescribedBy" autofocus="@Model.Autofocus" disabled="@Model.ReadOnly">
+            <select class="field__control" id="@Model.Id" name="@Model.Name" aria-invalid="@invalid" aria-required="@ariaRequired" aria-describedby="@Model.DescribedBy" autofocus="@Model.Autofocus" disabled="@Model.ReadOnly">
                 <option value="" selected="@(!Model.HasValidChoice)">Seçiniz</option>
                 @foreach (FieldOption option in Model.Options)
                 {
@@ -28,10 +28,10 @@
             </select>
             break;
         case FieldKind.TextArea:
-            <textarea class="field__control" id="@Model.Id" name="@Model.Name" rows="4" maxlength="@Model.MaxLength" autocomplete="@Model.Autocomplete" aria-invalid="@invalid" aria-required="@required" aria-describedby="@Model.DescribedBy" autofocus="@Model.Autofocus" readonly="@Model.ReadOnly">@Model.Value</textarea>
+            <textarea class="field__control" id="@Model.Id" name="@Model.Name" rows="4" maxlength="@Model.MaxLength" autocomplete="@Model.Autocomplete" aria-invalid="@invalid" aria-required="@ariaRequired" aria-describedby="@Model.DescribedBy" autofocus="@Model.Autofocus" readonly="@Model.ReadOnly">@Model.Value</textarea>
             break;
         default:
-            <input class="field__control" type="@Model.InputType" inputmode="@Model.InputMode" id="@Model.Id" name="@Model.Name" value="@Model.Value" maxlength="@Model.MaxLength" autocomplete="@Model.Autocomplete" aria-invalid="@invalid" aria-required="@required" aria-describedby="@Model.DescribedBy" autofocus="@Model.Autofocus" readonly="@Model.ReadOnly">
+            <input class="field__control" type="@Model.InputType" inputmode="@Model.InputMode" id="@Model.Id" name="@Model.Name" value="@Model.Value" maxlength="@Model.MaxLength" autocomplete="@Model.Autocomplete" aria-invalid="@invalid" aria-required="@ariaRequired" aria-describedby="@Model.DescribedBy" autofocus="@Model.Autofocus" readonly="@Model.ReadOnly">
             break;
     }
     @if (Model.Error is not null)

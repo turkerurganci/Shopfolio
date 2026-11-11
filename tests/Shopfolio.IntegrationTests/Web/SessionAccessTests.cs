@@ -647,7 +647,7 @@ public sealed class SessionAccessTests
         Assert.Empty(unguarded);
         Assert.Contains(endpoints, e => e.Metadata.GetMetadata<IAuthorizeData>() is not null);
         Assert.Equal(
-            ["/hesap/silindi", "/panel/giris", "/panel/sifre-sifirlama", "/panel/sifre-sifirlama/{}"],
+            ["/hesap/silindi", "/panel/davet/{}", "/panel/giris", "/panel/sifre-sifirlama", "/panel/sifre-sifirlama/{}"], // /panel/davet/{key} is the test project's bare-layout sample (T540); the product's invitation page takes its place
             open.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray());
     }
 

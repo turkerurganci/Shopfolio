@@ -292,6 +292,16 @@ public sealed class ForgeryProtectionSourceScanTests
     }
 
     [Fact]
+    public void Scan_OfTheNonceBlockOfTheStorefrontFrameLayout_IsQuiet_AndOfAnyOtherLayoutIsAFinding()
+    {
+        const string block = "<style nonce=\"@nonce\">@FrameStyle.BrandVariables(frame.Brand)</style>";
+
+        Assert.Empty(ForgeryProtectionSourceScan.Scan("src/Shopfolio.Web/Pages/Shared/_StorefrontLayout.cshtml", block));
+        Assert.Contains(ForgeryProtectionSourceScan.Scan("src/Shopfolio.Web/Pages/Shared/_PanelLayout.cshtml", block), f => f.Rule == ForgeryProtectionSourceScan.StyleBlockOutsideLayout);
+        Assert.Contains(ForgeryProtectionSourceScan.Scan("src/Shopfolio.Web/Pages/Shared/_StorefrontLayout.cshtml", "<style>:root{}</style>"), f => f.Rule == ForgeryProtectionSourceScan.StyleBlockOutsideLayout);
+    }
+
+    [Fact]
     public void Scan_OfTheNonceBlockOfTheLayout_IsQuiet()
     {
         Assert.Empty(ForgeryProtectionSourceScan.Scan("src/Shopfolio.Web/Pages/Shared/_Layout.cshtml", "<style nonce=\"@SecurityHeaders.NonceOf(Context)\">:root { --brand: red }</style>"));

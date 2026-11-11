@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Routing;
+
+using Shopfolio.Infrastructure.Security;
 
 namespace Shopfolio.Pages.Frame;
 
@@ -15,7 +18,7 @@ internal sealed class StorefrontFrameFilter : IAsyncPageFilter, IOrderedFilter
     public const int FilterOrder = 100;
 
     /// <summary>The page folder of the panel: its pages have their own frame.</summary>
-    private const string PanelFolderPrefix = "/Panel/";
+    private const string PanelFolderPrefix = SessionSchemes.PanelFolder + "/";
 
     private readonly StorefrontFrameBuilder _builder;
 
@@ -44,7 +47,7 @@ internal sealed class StorefrontFrameFilter : IAsyncPageFilter, IOrderedFilter
     }
 
     private static bool IsPanelPage(PageHandlerExecutingContext context) =>
-        context.ActionDescriptor.RelativePath.StartsWith(PanelFolderPrefix, StringComparison.OrdinalIgnoreCase);
+        context.ActionDescriptor.ViewEnginePath.StartsWith(PanelFolderPrefix, StringComparison.OrdinalIgnoreCase);
 }
 
 /// <summary>Where the layout finds the frame of the request (T537): the request's items, written by <see cref="StorefrontFrameFilter"/> and read here only.</summary>
@@ -67,7 +70,13 @@ internal static class StorefrontFrameSetup
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.Services.AddScoped<StorefrontFrameBuilder>();
-        builder.Services.Configure<MvcOptions>(options => options.Filters.Add<StorefrontFrameFilter>(StorefrontFrameFilter.FilterOrder));
+        builder.Services.AddScoped<PanelFrameBuilder>();
+        builder.Services.AddSingleton(sp => new StaticAssetResolver(sp.GetRequiredService<EndpointDataSource>()));
+        builder.Services.Configure<MvcOptions>(options =>
+        {
+            options.Filters.Add<StorefrontFrameFilter>(StorefrontFrameFilter.FilterOrder);
+            options.Filters.Add<PanelFrameFilter>(StorefrontFrameFilter.FilterOrder);
+        });
         return builder;
     }
 }

@@ -61,9 +61,9 @@ internal static partial class AddressSourceScan
         matchTimeoutMilliseconds: 5000)]
     private static partial Regex OldAddress();
 
-    // The share addresses and scripts of the platforms and of the share widgets.
+    // The share addresses and scripts of the platforms and of the share widgets. A WhatsApp chat link to the firm's own number (wa.me/ then digits; 04 2.2.3) is not a share address.
     [GeneratedRegex(
-        @"sharer\.php|facebook\.com/(?:sharer|dialog/share)|connect\.facebook\.net|twitter\.com/(?:intent|share)|x\.com/(?:intent|share)|platform\.twitter\.com|api\.whatsapp\.com|web\.whatsapp\.com|\bwa\.me\b|linkedin\.com/(?:sharing|shareArticle)|t\.me/share|telegram\.me/share|pinterest\.com/pin/create|reddit\.com/submit|addthis|sharethis|addtoany",
+        @"sharer\.php|facebook\.com/(?:sharer|dialog/share)|connect\.facebook\.net|twitter\.com/(?:intent|share)|x\.com/(?:intent|share)|platform\.twitter\.com|api\.whatsapp\.com|web\.whatsapp\.com|\bwa\.me\b(?!/[0-9])|linkedin\.com/(?:sharing|shareArticle)|t\.me/share|telegram\.me/share|pinterest\.com/pin/create|reddit\.com/submit|addthis|sharethis|addtoany",
         RegexOptions.CultureInvariant | RegexOptions.IgnoreCase,
         matchTimeoutMilliseconds: 5000)]
     private static partial Regex PlatformAddress();

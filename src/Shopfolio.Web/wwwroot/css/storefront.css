@@ -1,0 +1,491 @@
+/* The storefront frame (09 section 16.1 item 1; 04 2.2, 2.9): the administrator strip and the draft band, the announcement strip, the header, the menu and the footer. Designed from the
+   narrow class up (04 2.1.2): the base is the narrow layout, the medium and wide classes add to it. Nothing is hidden in any class, only placed (04 2.1.2). The brand colour is a filled
+   background in five places - the primary button, the announcement strip, the cart count, the active menu item's thick mark and the site icon's background - and nowhere else (04 2.1.3).
+   Page-specific rules of the storefront are sections of this file, never a file of their own (09 16.1 item 1). */
+
+/* ---- Frame-wide ---- */
+
+.storefront {
+    /* The primary button takes the brand fill here (04 2.1.3). */
+    --button-primary-bg: var(--brand-color);
+    --button-primary-text: var(--brand-text-color);
+}
+
+/* ---- Administrator strip and draft band (04 2.9) ---- */
+
+.admin-strip,
+.draft-band {
+    padding-block: var(--space-2);
+    font-size: var(--font-size-small);
+}
+
+.admin-strip {
+    background: var(--color-strip);
+    color: var(--color-strip-text);
+}
+
+.draft-band {
+    background: var(--color-draft);
+    color: var(--color-draft-text);
+}
+
+.admin-strip__inner,
+.draft-band__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+}
+
+.admin-strip a,
+.draft-band a {
+    color: inherit;
+    font-weight: 600;
+}
+
+.draft-band__label {
+    font-weight: 700;
+}
+
+/* ---- Announcement strip (04 2.2.2): one line of text and an optional link, on the brand fill ---- */
+
+.announcement {
+    padding-block: var(--space-2);
+    background: var(--brand-color);
+    color: var(--brand-text-color);
+    text-align: center;
+}
+
+.announcement a {
+    color: inherit;
+    font-weight: 600;
+}
+
+.announcement__draft {
+    display: inline-block;
+    margin-inline-end: var(--space-2);
+    padding: 0 var(--space-2);
+    border: 1px solid currentcolor;
+    border-radius: var(--radius-1);
+    font-size: var(--font-size-small);
+    font-weight: 700;
+}
+
+/* ---- Header (04 2.2.3, 2.2.4) ----
+   Narrow: the brand, the cart and the menu toggle stand in the bar; the menu, the search, the account area and the social links stand in the menu panel, which common.js folds. Without
+   JavaScript the panel stays open under the bar and nothing is lost. Medium and wide: one grid - the thin row of social links, the bar, the menu. */
+
+.site-header {
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+
+.site-header__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+        "brand cart toggle"
+        "panel panel panel";
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    padding-block: var(--space-3);
+}
+
+.site-header__brand {
+    grid-area: brand;
+    min-width: 0;
+    font-size: var(--font-size-large);
+    font-weight: 700;
+}
+
+.site-header__brand a {
+    display: flex;
+    align-items: center;
+    min-height: var(--touch-target);
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.site-header__logo {
+    display: block;
+    max-height: 2.5rem;
+    width: auto;
+}
+
+.site-header__cart {
+    grid-area: cart;
+}
+
+.site-header .menu-toggle {
+    grid-area: toggle;
+}
+
+.site-header__panel {
+    grid-area: panel;
+    display: grid;
+    gap: var(--space-4);
+}
+
+.site-header__panel[data-collapsed="true"] {
+    display: none;
+}
+
+/* The cart link with its count: the count is a filled mark on the brand colour (04 2.1.3). */
+.cart-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--touch-target);
+    padding-inline: var(--space-2);
+    color: var(--color-text);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.cart-link__count {
+    min-width: 1.5rem;
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-2);
+    background: var(--brand-color);
+    color: var(--brand-text-color);
+    font-size: var(--font-size-small);
+    text-align: center;
+}
+
+.site-search {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.site-search__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: var(--touch-target);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-text-muted);
+    border-radius: var(--radius-1);
+    background: var(--color-surface);
+}
+
+.account-area {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+}
+
+.account-area__name {
+    font-weight: 600;
+}
+
+.account-area__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+}
+
+.account-area a,
+.account-area__sign-out {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+}
+
+.account-area__sign-out {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-link);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.social-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    font-size: var(--font-size-small);
+}
+
+.social-list a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+}
+
+/* The menu (04 2.2.3): a flat list; "Ürünler" holds the category tree. */
+.site-menu {
+    display: flex;
+    flex-direction: column;
+}
+
+.site-menu__item,
+.site-menu__link {
+    display: block;
+}
+
+.site-menu__link {
+    position: relative;
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-text);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.site-menu__link:hover {
+    text-decoration: underline;
+}
+
+/* The active item's thick mark is a filled bar on the brand colour (04 2.1.3). */
+.site-menu__link[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    inset-inline: var(--space-3);
+    bottom: 0;
+    height: 0.25rem;
+    background: var(--brand-color);
+}
+
+.site-menu__group-title,
+.site-menu__group-toggle {
+    display: block;
+    padding: var(--space-2) var(--space-3);
+    font-weight: 600;
+}
+
+/* Once common.js has run, "Ürünler" is a button and the category tree folds on every class; without the script the title stays plain text and the tree stays open (04 2.1.2). */
+.site-menu__group-toggle {
+    min-height: var(--touch-target);
+    border: 0;
+    background: none;
+    color: var(--color-text);
+    font: inherit;
+    font-weight: 600;
+    text-align: start;
+    cursor: pointer;
+}
+
+.site-menu__group-toggle[aria-expanded="true"]::after {
+    content: " \25B4";
+}
+
+.site-menu__group-toggle[aria-expanded="false"]::after {
+    content: " \25BE";
+}
+
+.site-menu__item--group[data-js-ready="true"] > .site-menu__group-title {
+    display: none;
+}
+
+.site-menu__item--group[data-js-ready="true"][data-collapsed="true"] > .site-menu__panel {
+    display: none;
+}
+
+.site-menu__tree {
+    padding-inline-start: var(--space-4);
+}
+
+.site-menu__tree .site-menu__tree {
+    padding-inline-start: var(--space-4);
+}
+
+.site-menu__tree a {
+    display: block;
+    padding: var(--space-1) var(--space-3);
+    color: var(--color-text);
+}
+
+@media (min-width: 768px) {
+    .site-header__grid {
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
+        grid-template-areas:
+            "social social social social"
+            "brand search account cart"
+            "menu menu menu menu";
+        gap: var(--space-2) var(--space-5);
+    }
+
+    /* The panel dissolves into the grid: its children take the grid's areas. It never folds on this class. */
+    .site-header__panel,
+    .site-header__panel[data-collapsed="true"] {
+        display: contents;
+    }
+
+    .site-header__social {
+        grid-area: social;
+        justify-content: flex-end;
+    }
+
+    .site-header__search {
+        grid-area: search;
+    }
+
+    .site-header__account {
+        grid-area: account;
+    }
+
+    .site-header__menu {
+        grid-area: menu;
+    }
+
+    .site-menu {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: var(--space-1) var(--space-2);
+    }
+
+    .site-menu__item--group {
+        position: relative;
+    }
+
+    /* The category tree opens under "Ürünler" as a drop-down when the "Ürünler" button is pressed (click, Enter or Space) and closes on Escape; its links are in the tab order only while it is open.
+       Without the script the tree is not a drop-down: it stays open in the flow. */
+    .site-menu__item--group[data-js-ready="true"] > .site-menu__panel {
+        position: absolute;
+        inset-inline-start: 0;
+        top: 100%;
+        z-index: 10;
+        min-width: 14rem;
+        padding: var(--space-2);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-1);
+        background: var(--color-surface);
+        box-shadow: var(--shadow-1);
+    }
+}
+
+/* Only the long brand name of the narrow class is cut, on one line; the whole name is in the tab title and the footer (04 8.3.2 row 1). */
+@media (min-width: 768px) {
+    .site-header__brand .u-single-line {
+        overflow: visible;
+        white-space: normal;
+        text-overflow: clip;
+    }
+}
+
+/* The payment step's reduced header (04 2.2.7): the brand and "Sepete dön" only. */
+.site-header--checkout .site-header__grid {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "brand back";
+}
+
+.site-header--checkout .site-header__back {
+    grid-area: back;
+}
+
+@media (min-width: 768px) {
+    .site-header--checkout .site-header__grid {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "brand back";
+    }
+}
+
+/* The merge message (07 4.34.3): told once at the head of the content area, closable (the close is a link-free form of the next request; nothing to do but read). */
+.merge-notice {
+    margin-block: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border: 2px solid var(--color-text);
+    border-radius: var(--radius-1);
+    background: var(--color-surface-alt);
+}
+
+.merge-notice[hidden] {
+    display: none;
+}
+
+.merge-notice__close {
+    margin-block-start: var(--space-2);
+}
+
+/* ---- Footer (04 2.2.5, 2.2.6): whole on every storefront screen, never folded, long names and addresses break into lines ---- */
+
+.site-footer {
+    margin-block-start: var(--space-7);
+    padding-block: var(--space-6);
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface-alt);
+}
+
+.site-footer__grid {
+    display: grid;
+    gap: var(--space-5);
+}
+
+.site-footer__heading {
+    margin: 0 0 var(--space-3);
+    font-size: var(--font-size-large);
+}
+
+.site-footer__heading a {
+    color: var(--color-text);
+}
+
+.site-footer__brand {
+    margin: 0 0 var(--space-3);
+    font-weight: 700;
+}
+
+.identity-block {
+    margin: 0;
+}
+
+.identity-block__row {
+    display: grid;
+    gap: var(--space-1);
+    margin-block-end: var(--space-2);
+}
+
+.identity-block dt {
+    font-size: var(--font-size-small);
+    color: var(--color-text-muted);
+}
+
+.identity-block dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.etbis-band {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+    margin-block-start: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border: 2px solid var(--color-text);
+    border-radius: var(--radius-1);
+    color: var(--color-text);
+    font-weight: 600;
+}
+
+.footer-links {
+    display: grid;
+    gap: var(--space-1);
+}
+
+.footer-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+}
+
+.site-footer__signature {
+    margin-block-start: var(--space-5);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-small);
+}
+
+@media (min-width: 768px) {
+    .site-footer__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .identity-block__row {
+        grid-template-columns: minmax(8rem, 1fr) minmax(0, 2fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .site-footer__grid {
+        grid-template-columns: 2fr 1fr 1fr;
+    }
+}

@@ -1,0 +1,36 @@
+@using Shopfolio.Pages.Lists
+@model ProductCard
+@* The product card (04 2.11.1-2.11.3; T545): main image, name, VAT-included price; one link - opening the product page. No add-to-cart, no stock count, no rating (K-774).
+   A running discount declares the reference price beside the price and the dates right under the price row; the mark carries text. A sold-out product keeps its card and says "Tükendi". *@
+<article class="product-card">
+    <a class="product-card__link" href="@Model.Path">
+        @if (Model.Image is { } image)
+        {
+            <img class="product-card__image" src="@image.Path" alt="@image.AltText" loading="lazy" width="400" height="400" />
+        }
+        else
+        {
+            <span class="product-card__image product-card__image--empty" aria-hidden="true"></span>
+        }
+        <span class="product-card__name">@Model.Name</span>
+        @if (Model.PriceText is not null)
+        {
+            <span class="product-card__price-row">
+                <span class="product-card__price">@Model.PriceText</span>
+                @if (Model.Discount is { } discount)
+                {
+                    <s class="product-card__reference-price">@discount.ReferencePriceText</s>
+                    <span class="product-card__discount-mark">@discount.MarkText</span>
+                }
+            </span>
+            @if (Model.Discount is { } range)
+            {
+                <span class="product-card__discount-dates">@range.DateRangeText</span>
+            }
+        }
+        @if (Model.IsSoldOut)
+        {
+            <span class="product-card__sold-out">Tükendi</span>
+        }
+    </a>
+</article>

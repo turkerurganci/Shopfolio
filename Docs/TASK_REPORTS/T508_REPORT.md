@@ -72,7 +72,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T508-sepet`
-- **PR:** açılmadı (Integration TAM bitmedi)
+- **PR:** #544
 - **CI:** yapım işçisi izlemez; yardımcı yürütür
 
 ## Dış Varsayımlar

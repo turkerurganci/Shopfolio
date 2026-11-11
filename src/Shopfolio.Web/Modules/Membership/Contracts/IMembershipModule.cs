@@ -135,6 +135,12 @@ public interface IMembershipModule
     /// </summary>
     Task<OrderAccountResolution> ResolveOrderAccountAsync(Guid? signedInCustomerId, string contactEmail, CancellationToken ct);
 
+    /// <summary>
+    /// The signed-in member's name for the storefront frame's account area (T537; 07 5.5.1; 04 2.2.3): the account's name, or null when no account holds the id. A plain read; the frame
+    /// shows nothing else of the account.
+    /// </summary>
+    Task<string?> GetMemberNameAsync(Guid customerId, CancellationToken ct);
+
     /// <summary>The member changes the account's name (02 3.13.21): an empty name is refused; no verification is asked again and no order's recipient name is touched.</summary>
     Task<NameChangeResult> ChangeNameAsync(Guid customerId, string name, CancellationToken ct);
 

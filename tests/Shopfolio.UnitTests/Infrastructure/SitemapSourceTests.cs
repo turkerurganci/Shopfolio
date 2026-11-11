@@ -233,6 +233,8 @@ public sealed class SitemapSourceTests
 
         public Task<BrandIdentity> GetBrandIdentityAsync(CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<IReadOnlyList<SocialLinkItem>> ListSocialLinksAsync(CancellationToken ct) => throw new NotSupportedException();
+
         public Task<ContactFormView> GetContactFormAsync(string? memberName, string? memberEmail, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<ContactFormResult> SendContactRequestAsync(ContactFormInput input, System.Net.IPAddress? ipAddress, CancellationToken ct) => throw new NotSupportedException();

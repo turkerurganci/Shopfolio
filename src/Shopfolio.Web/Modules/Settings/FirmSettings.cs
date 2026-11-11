@@ -70,6 +70,11 @@ internal sealed class FirmSettings
         return await _db.CompanySettings.AsNoTracking().Select(s => s.BankTransferIban).SingleAsync(ct);
     }
 
+    public async Task<string?> ReadWhatsAppNumberAsync(CancellationToken ct)
+    {
+        return await _db.CompanySettings.AsNoTracking().Select(s => s.WhatsAppNumber).SingleAsync(ct);
+    }
+
     public async Task<ProductDefaultsSection> ReadProductDefaultsAsync(CancellationToken ct)
     {
         return await _db.CompanySettings.AsNoTracking()

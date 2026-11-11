@@ -293,7 +293,7 @@
 | T534 | Kurumsal içerik ve marka yönetimi (E-41, E-43) | ⬚ | — | — | — |
 | T535 | Ana sayfa ve menü, firma kimliği ve satış (E-42, E-44) | ⬚ | — | — | — |
 | T536 | Ödeme yöntemleri, kargo, süreler ve varsayılanlar (E-45, E-46) | ⬚ | — | — | — |
-| T537 | Vitrin çerçevesinin modeli: marka, menü, duyuru şeridi, hesap alanı, sepet sayısı | ⬚ | — | — | — |
+| T537 | Vitrin çerçevesinin modeli: marka, menü, duyuru şeridi, hesap alanı, sepet sayısı | ✓ | ✓ PASS (tur 1) | `b69ac697` | #532 |
 | T538 | Uç ve model eşitlik denetimleri: uç envanteri, form girdi ve sorgu modelleri, makine ucu gövdeleri | ⬚ | — | — | — |
 | T539 | Betiksiz yol: JavaScript kapalıyken temel akışlar ve betikli iyileştirme | ⬚ | — | — | — |
 | T540 | Tasarım tabanı, vitrin ve panel çerçevesi, yönetici şeridi ve Taslak bandı (OB-01, OB-02, OB-09) | ⬚ | — | — | — |

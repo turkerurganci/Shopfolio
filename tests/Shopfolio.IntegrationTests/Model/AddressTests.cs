@@ -678,6 +678,8 @@ public sealed class AddressTests : IAsyncLifetime
 
         public Task<SalesGate> GetSalesGateAsync(CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<string?> GetWhatsAppNumberAsync(CancellationToken ct) => throw new NotSupportedException();
+
         public Task<CompanyIdentity> GetCompanyIdentityAsync(CancellationToken ct) => throw new NotSupportedException();
 
         public Task<CompanyIdentityCompleteness> GetCompanyIdentityCompletenessAsync(CancellationToken ct) => throw new NotSupportedException();

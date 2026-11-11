@@ -33,6 +33,7 @@ using Shopfolio.Modules.Notifications;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Settings;
+using Shopfolio.Pages.Frame;
 
 // The command mode (05 8.5.1; 09 13.2 item 1): the first argument "admin" runs a management command and builds no web host.
 if (CommandHost.IsCommandMode(args))
@@ -48,7 +49,7 @@ builder.Services.AddAuditLineWriter();
 
 // The address rules (07 2.1): every page template is checked against the closed list of first path segments when the routes are built.
 // The input validation pattern (09 3.4): the rule attributes with their codes, the trimming binder, the one page filter and the catalog messages.
-builder.Services.AddRazorPages().AddAddressRules().AddSessionAccess().AddFieldValidation().AddFormSecurity().AddListPattern().AddUnexpectedErrorLayer();
+builder.Services.AddRazorPages().AddAddressRules().AddSessionAccess().AddFieldValidation().AddFormSecurity().AddListPattern().AddUnexpectedErrorLayer().AddStorefrontFrame();
 
 // The two identity schemes, their policies and the closed doors (07 2.3.1; 09 15.1 item 2): the panel and the account folders are closed by folder path.
 builder.Services.AddSessionAuthentication();

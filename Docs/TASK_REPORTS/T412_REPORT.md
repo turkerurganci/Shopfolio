@@ -111,10 +111,10 @@
 ## Commit & PR
 
 - **Branch:** `task/T412-f3-kapanis-duzeltmeleri`
-- **Commit:** son commit — T412: F3 kapanış düzeltmeleri: sipariş bekçisi, satış sonrası kapanış ve IBAN kullanımı
+- **Commit:** squash `553222f` (#517) (F4 gate'te dolduruldu)
 - **PR:** #517
 - **CI:** yönetici izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `553222f` (#517) — CI 42845641513 success, Publish 42845641664 success (F4 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

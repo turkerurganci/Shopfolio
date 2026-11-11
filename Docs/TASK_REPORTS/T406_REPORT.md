@@ -89,7 +89,7 @@
 - **Commit:** ara `37a9b731`; `49d17155` — T406: PayTR: 3D Secure kurulum şartı, test kanıtı ve canlı kanıtın satırları
 - **PR:** #530
 - **CI:** run 42919459743 (`e482f70f`) — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E (advisory), CI Gate `success`
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `26e6631` (#530) — CI 42924454349 success, Publish 42924454187 success (F4 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

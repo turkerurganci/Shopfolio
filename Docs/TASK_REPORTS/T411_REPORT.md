@@ -85,7 +85,7 @@
 - **Commit:** `fad84128` — T411: Kayıt maskeleme taramasının dizge farkında yeniden yazımı
 - **PR:** #514
 - **CI:** yönetici izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `8e1e621` (#514) — CI 42796731944 success, Publish 42796731464 success (F4 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

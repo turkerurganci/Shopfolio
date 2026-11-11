@@ -91,10 +91,10 @@
 ## Commit & PR
 
 - **Branch:** `task/T409-google-baglayici`
-- **Commit:** son commit PR gövdesinde (head SHA dönüşte)
+- **Commit:** squash `44f651a` (#519) (F4 gate'te dolduruldu)
 - **PR:** dönüşte
 - **CI:** işçi izlemez
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `44f651a` (#519) — CI 42871869364 success, Publish 42871869385 success (F4 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

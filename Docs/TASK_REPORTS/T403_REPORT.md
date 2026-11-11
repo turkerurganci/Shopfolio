@@ -1,5 +1,7 @@
 # T403 — PayTR: son sorgu ve tek tahsilat
 
+**Faz:** F4 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-10
+
 - **Dal:** `task/T403-paytr-son-sorgu` (taban `main`, `origin/main` `44f651aa` ile birleştirildi)
 - **Bağımlılık:** T402 ✓
 - **Tarih:** 2026-11-10
@@ -78,6 +80,13 @@
 | Bloke-etmeyen not (K) sayısı | 2 — K1 → D-1072 (`PaymentQueryResult.NoResponse.CodeError` alanı `09 §11.1` madde 2–3'te yazılı değil; davranış `08 §2.1.6`'ya uyar); K2 bu PR'da kapatıldı (öz denetim tablosunda `12` satırları yoktu: `VAL-E090` ve `VAL-E013` aşağıda) |
 
 **Tur 1 kanıtları (doğrulayıcı):** kriter 1–9 ve KK1–KK9 ✓ (kod okundu: `PayTrPaymentQuery`, `PayTrPaymentGateway`, `PaymentAmounts`, `PaymentQueryResult`, `ExternalCallRunner`, `FinalPaymentQueryRule`, `FinalPaymentQueryJobHandler`, `PaymentModule`, `OrderingModule.GetCardPaymentQueryTargetAsync`; çalıştırıcının istisna yolu için `JobRunnerService`, `JobRetryPolicy`). KK1: bilinen `paytr_token` (`iXALazpQ…roQ=`) `printf '%s' 12345620267K4M9Psalt-sample | openssl dgst -sha256 -hmac key-sample -binary | base64` ile .NET dışında yeniden hesaplandı, eşleşti; süre `ExternalCallTimeouts.Job` = 30 sn (`IntegrationOperation.PaymentQuery` → `Job`). KK4: kod hatası yolu işleyicinin istisnasıdır; `JobRetryPolicy` `FinalPaymentQuery`'yi varsayılan kurala verir (`JobRetryPolicyTests`), varsayılan kuralın anları ve altıncı hatada `Failed` `JobRunnerTests.RunOne_AHandlerThatAlwaysFails_*`, başarısız satırın durum ucu uyarısı `StatusEndpointTests`; satırın `LastErrorSummary`'si yalnız istisna tür adıdır. KK9: `08 §4.1` DV-12 hücresi ve `PAYTR.md` §6.1 tarihli "Bekliyor — OWNER_INPUT", gözlem payı D-1065. `12` satırları: `VAL-E090` (mock, KRİTİK) `BEKLEMEDE` → `PASS` — sekiz yanıtın her biri Integration `PaymentWindowTests.PayTr_*` (1)–(4) `SuccessWhoseConditionDoesNotHold` (uygulanmaz, ödeme kaydı yok, sürüm 1, `FinalPaymentQueryNotApplied` satırı), (5) `SuccessWithTheInstalmentDifference` (Ö1), (6)–(8) `QueryRequestError` (kod hatası istisnası, `ExternalCallFailed err:00n`); `VAL-E013` (sandbox) `BEKLEMEDE` kalır (OWNER_INPUT); `VAL-E009`, `E012`, `E016` (gerçek/sandbox, PayTR'den yanıt) bu task'ın ortamında üretilemez, `BEKLEMEDE`. `12_matris_denetle.py --kapsam 1-77` hata 0. Yerel: restore, `-warnaserror` derleme 0 uyarı, `dotnet format` üç projede temiz, Unit 6123/6123 + Consistency 292/292, betik testleri 4 dosya, Integration (Postgres 18, `track_commit_timestamp=on`) `PaymentWindowTests` 33, `PaymentNotificationTests` 29, `FinalPaymentQueryOutageTests` + `AccountAndStatusCommandTests` + `AppCacheTests` + `AutomaticMomentsTests` + `JobRunnerTests` 92 — hepsi yeşil. Dal CI'ı run 42876712837 (`c08172ff`) dokuz iş yeşil; ana dal CI'ı 42871869364 (CI), 42871869385 (Publish) `success`.
+
+## Commit & PR
+
+- **Branch:** `task/T403-paytr-son-sorgu`
+- **Commit:** squash `06f704a` — `T403: PayTR: son sorgu ve tek tahsilat (#526)` (F4 gate'te eklendi)
+- **PR:** #526
+- **Post-merge run'lar:** squash `06f704a` (#526) — CI 42882407232 success, Publish 42882407240 success (F4 gate'te dolduruldu)
 
 ## ⚠ Kararlar
 

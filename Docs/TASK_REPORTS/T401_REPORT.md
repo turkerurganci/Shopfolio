@@ -90,7 +90,7 @@ Derleme: `dotnet build -c Release -warnaserror` Web, Unit, Integration temiz; `d
 - **Commit:** `fc3257c2` — `T401: PayTR: anahtarlar, ödemenin başlatılması, dönüş ve çerçeve` (+ rapor commit'i)
 - **PR:** #516
 - **CI:** dal CI'ı doğrulamada okunur
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `06eb036` (#516) — CI 42817913065 success, Publish 42817913057 success (F4 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

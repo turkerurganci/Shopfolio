@@ -50,7 +50,7 @@ internal static class RichTextSanitizer
             return string.Empty;
         }
 
-        string cleaned = Cleaner.Value!.Sanitize(html);
+        string cleaned = Cleaner.Value!.Sanitize(html); // non-null: ThreadLocal with a factory builds the value on first read, never null
         return string.IsNullOrWhiteSpace(cleaned) ? string.Empty : cleaned;
     }
 

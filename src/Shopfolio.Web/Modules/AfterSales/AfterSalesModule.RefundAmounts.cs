@@ -122,7 +122,7 @@ internal sealed partial class AfterSalesModule
         List<UnitMove> back =
         [
             .. withdrawals.Where(w => !afterDelivery.Contains(w.Id)).Select(w => new UnitMove(w.OrderItemId, w.Id, w.CreatedAt, w.Quantity)),
-            .. receipts.Where(r => afterDelivery.Contains(r.WithdrawalId!.Value)).Select(r => new UnitMove(r.OrderItemId, r.Id, r.CreatedAt, r.Quantity)),
+            .. receipts.Where(r => afterDelivery.Contains(r.WithdrawalId!.Value)).Select(r => new UnitMove(r.OrderItemId, r.Id, r.CreatedAt, r.Quantity)), // non-null: receipts holds only returns with a withdrawal (its query keeps WithdrawalId != null)
         ];
 
         // The withdrawal after the delivery is refunded per receipt (K-1057), the one before it at its declaration: the subject is the record that refunds.

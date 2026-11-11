@@ -31,7 +31,7 @@ internal static class PriceHistoryReads
                 })
                 .ToListAsync(ct))
                 .Where(r => r.Last is not null)
-                .ToDictionary(r => r.Id, r => new PricePoint(r.Last!.StartedAt, r.Last.Price));
+                .ToDictionary(r => r.Id, r => new PricePoint(r.Last!.StartedAt, r.Last.Price)); // non-null: the Where above keeps only rows with a last price
 
         foreach (PriceHistory row in AddedRows(db).Where(r => variantIds.Contains(r.VariantId)))
         {

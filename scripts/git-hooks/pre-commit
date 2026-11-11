@@ -92,6 +92,71 @@ done <<< "$STAGED"
 KEY_RE="$DEFAULT_SECRET_KEYS"
 [ -n "$SECRET_KEYS" ] && KEY_RE="($DEFAULT_SECRET_KEYS|$SECRET_KEYS)"
 
+# is_secret_assignment <candidate>: 0 when the candidate assigns a real value to
+# a secret key name, 1 otherwise. Reads $path and $is_code of the file in hand.
+is_secret_assignment() {
+  local body="$1" lhs value v_loose v_strict v_noq ID CHAIN EFARG MULTI
+  # The key name must sit on the LEFT of the first = or : — that is what an
+  # assignment looks like (API_KEY=..., "token": ..., password: ...). Prose
+  # that merely mentions the word after a label ("Sorun: ... token ...")
+  # is not an assignment; flagging it trained the workaround of hiding text
+  # in blockquotes (learning promotion, Phase 1, 2026-10-03).
+  lhs="${body%%[=:]*}"
+  [ "$lhs" != "$body" ] || return 1
+  echo "$lhs" | grep -qiE "$KEY_RE" || return 1
+  # The left side must look like a key: at most two prefix words (export, const ...)
+  # and then one identifier. A sentence or a URL path that merely contains the word
+  # ("POST /odeme/api/get-token: ...") is prose (Phase 9: false positive on a task
+  # block, learning promotion Ö-171).
+  echo "$lhs" | grep -qE "^[[:space:]]*([\"']?[A-Za-z]+[\"']?[[:space:]]+){0,2}[\"']?[]A-Za-z0-9_.[-]+[\"']?[[:space:]]*\$" || return 1
+  # Grab whatever is on the right-hand side of = or :
+  value="$(echo "$body" | sed -E 's/^[^=:]*[=:][[:space:]]*//')"
+  MULTI=0
+  if [ "$is_code" = "1" ]; then
+    # Narrow carve-out: the whole right side is an identifier, dotted chain,
+    # nameof(chain), null, default, default(Type) or a placeholder -- not a
+    # literal.
+    ID='[A-Za-z_][A-Za-z0-9_]*'
+    CHAIN="$ID(\\.$ID)*"
+    v_loose="$(echo "$value" | sed -E 's/[;,){[:space:]]*$//')"
+    v_strict="$(echo "$value" | sed -E 's/[;,{[:space:]]*$//')"
+    echo "$v_loose" | grep -qE "^$CHAIN\$" && return 1
+    # Placeholder carve-out applies to a single literal only: a concatenation,
+    # list or several quoted parts ("<" + secret + ">") is still checked.
+    MULTI=0
+    echo "$v_loose" | grep -qE '[+,=]|(["'"'"'].*){3}' && MULTI=1
+    if [ "$MULTI" = "0" ]; then
+      echo "$v_loose" | grep -qiE "$PLACEHOLDER" && return 1
+    fi
+    echo "$v_strict" | grep -qE "^(nameof\\($CHAIN\\)|default\\($CHAIN\\))\$" && return 1
+    # EF migration column constructor (generated code, no value assigned):
+    # the right side is exactly table.Column<Type>(args). The only quoted
+    # string allowed is the value of the named argument type: "..." in PostgreSQL type-name form (lowercase letter
+    # first, then lowercase letters, digits, spaces; optional trailing
+    # "(digits, commas, spaces)"; no underscore, uppercase, hyphen); the
+    # other arguments are literal-free named values (nullable, maxLength,
+    # precision, scale, unicode, fixedLength). Any other quoted string,
+    # positional literal, concatenation or second call keeps the normal
+    # rule. The call must close on the same line (open multi-line form is
+    # not exempt: its continuation lines would go unchecked). .cs only.
+    case "$path" in
+      *.cs)
+        v_noq="$(echo "$value" | sed -E 's/([(,][[:space:]]*)type:[[:space:]]*"[a-z][a-z0-9 ]*(\([0-9, ]+\))?"/\1type: T/g; s/[[:space:]]+$//')"
+        EFARG='[[:space:]]*(type|nullable|maxLength|precision|scale|unicode|fixedLength)[[:space:]]*:[[:space:]]*[A-Za-z0-9_.]+[[:space:]]*,?'
+        echo "$v_noq" | grep -qE "^table\\.Column<[A-Za-z0-9_.?]+>\\(($EFARG)*\\)[,;]?\$" && return 1
+        ;;
+    esac
+  fi
+  # In source code a multi-part right side never counts as a placeholder.
+  if [ "${MULTI:-0}" = "0" ]; then
+    echo "$value" | grep -qiE "$PLACEHOLDER" && return 1
+  fi
+  # Ignore prose/markdown and code that merely names the key.
+  echo "$body" | grep -qE '^[[:space:]]*(#|//|\*|>|\|)' && return 1
+  [ "${#value}" -lt 8 ] && return 1
+  return 0
+}
+
 while IFS= read -r path; do
   [ -n "$path" ] || continue
   case "$path" in
@@ -126,71 +191,32 @@ while IFS= read -r path; do
   candidates="$(echo "$added" | sed 's/^+//' | grep -iE "$KEY_RE" || true)"
   [ -n "$candidates" ] || continue
 
-  while IFS= read -r body; do
+  while IFS= read -r line; do
     # A shell option that passes an environment variable (-e "KEY=value",
     # -e KEY=value, --env "KEY=value", --env=KEY=value) is an assignment too:
     # strip the option so the key-shape check below sees the key (D-80; the
     # package build script carries its made-up CI values in this form).
-    body="$(printf '%s' "$body" | sed -E 's/^([[:space:]]*)(-e|--env)([[:space:]]+|=)/\1/')"
-    # The key name must sit on the LEFT of the first = or : — that is what an
-    # assignment looks like (API_KEY=..., "token": ..., password: ...). Prose
-    # that merely mentions the word after a label ("Sorun: ... token ...")
-    # is not an assignment; flagging it trained the workaround of hiding text
-    # in blockquotes (learning promotion, Phase 1, 2026-10-03).
-    lhs="${body%%[=:]*}"
-    [ "$lhs" != "$body" ] || continue
-    echo "$lhs" | grep -qiE "$KEY_RE" || continue
-    # The left side must look like a key: at most two prefix words (export, const ...)
-    # and then one identifier. A sentence or a URL path that merely contains the word
-    # ("POST /odeme/api/get-token: ...") is prose (Phase 9: false positive on a task
-    # block, learning promotion Ö-171).
-    echo "$lhs" | grep -qE "^[[:space:]]*([\"']?[A-Za-z]+[\"']?[[:space:]]+){0,2}[\"']?[]A-Za-z0-9_.[-]+[\"']?[[:space:]]*\$" || continue
-    # Grab whatever is on the right-hand side of = or :
-    value="$(echo "$body" | sed -E 's/^[^=:]*[=:][[:space:]]*//')"
-    MULTI=0
-    if [ "$is_code" = "1" ]; then
-      # Narrow carve-out: the whole right side is an identifier, dotted chain,
-      # nameof(chain), null, default, default(Type) or a placeholder -- not a
-      # literal.
-      ID='[A-Za-z_][A-Za-z0-9_]*'
-      CHAIN="$ID(\\.$ID)*"
-      v_loose="$(echo "$value" | sed -E 's/[;,){[:space:]]*$//')"
-      v_strict="$(echo "$value" | sed -E 's/[;,{[:space:]]*$//')"
-      echo "$v_loose" | grep -qE "^$CHAIN\$" && continue
-      # Placeholder carve-out applies to a single literal only: a concatenation,
-      # list or several quoted parts ("<" + secret + ">") is still checked.
-      MULTI=0
-      echo "$v_loose" | grep -qE '[+,=]|(["'"'"'].*){3}' && MULTI=1
-      if [ "$MULTI" = "0" ]; then
-        echo "$v_loose" | grep -qiE "$PLACEHOLDER" && continue
+    # Every such option on the line is its own candidate, not only the one at
+    # the start: a second option on the same line (-e A=x -e API_KEY=...) and
+    # an option inside a one-line command (docker run --rm -e "KEY=..." img)
+    # are checked too (D-1036). The candidate is the option's one shell word
+    # (bare, quoted, or bare with quoted parts), so the next option or the
+    # image name is not read as part of the value. The whole line, with a
+    # leading option stripped, stays the first candidate as before.
+    # A prose/markdown or comment line is skipped as a whole, options included.
+    echo "$line" | grep -qE '^[[:space:]]*(#|//|\*|>|\|)' && continue
+    first="$(printf '%s' "$line" | sed -E 's/^([[:space:]]*)(-e|--env)([[:space:]]+|=)/\1/')"
+    options="$(printf '%s\n' "$line" | grep -oE "(^|[[:space:]])(-e|--env)([[:space:]]+|=)([^[:space:]\"']|\"[^\"]*\"|'[^']*')+" | sed -E 's/^[[:space:]]*(-e|--env)([[:space:]]+|=)//' || true)"
+    caught=0
+    while IFS= read -r body; do
+      [ -n "$body" ] || continue
+      if is_secret_assignment "$body"; then
+        caught=1
+        break
       fi
-      echo "$v_strict" | grep -qE "^(nameof\\($CHAIN\\)|default\\($CHAIN\\))\$" && continue
-      # EF migration column constructor (generated code, no value assigned):
-      # the right side is exactly table.Column<Type>(args). The only quoted
-      # string allowed is the value of the named argument type: "..." in PostgreSQL type-name form (lowercase letter
-      # first, then lowercase letters, digits, spaces; optional trailing
-      # "(digits, commas, spaces)"; no underscore, uppercase, hyphen); the
-      # other arguments are literal-free named values (nullable, maxLength,
-      # precision, scale, unicode, fixedLength). Any other quoted string,
-      # positional literal, concatenation or second call keeps the normal
-      # rule. The call must close on the same line (open multi-line form is
-      # not exempt: its continuation lines would go unchecked). .cs only.
-      case "$path" in
-        *.cs)
-          v_noq="$(echo "$value" | sed -E 's/([(,][[:space:]]*)type:[[:space:]]*"[a-z][a-z0-9 ]*(\([0-9, ]+\))?"/\1type: T/g; s/[[:space:]]+$//')"
-          EFARG='[[:space:]]*(type|nullable|maxLength|precision|scale|unicode|fixedLength)[[:space:]]*:[[:space:]]*[A-Za-z0-9_.]+[[:space:]]*,?'
-          echo "$v_noq" | grep -qE "^table\\.Column<[A-Za-z0-9_.?]+>\\(($EFARG)*\\)[,;]?\$" && continue
-          ;;
-      esac
-    fi
-    # In source code a multi-part right side never counts as a placeholder.
-    if [ "${MULTI:-0}" = "0" ]; then
-      echo "$value" | grep -qiE "$PLACEHOLDER" && continue
-    fi
-    # Ignore prose/markdown and code that merely names the key.
-    echo "$body" | grep -qE '^[[:space:]]*(#|//|\*|>|\|)' && continue
-    [ "${#value}" -lt 8 ] && continue
-    add_finding "icerik: $path — sir anahtarina gercek deger atamasi: $(echo "$body" | cut -c1-60)" "anahtar-atamasi:$path"
+    done <<< "$first"$'\n'"$options"
+    [ "$caught" = "1" ] || continue
+    add_finding "icerik: $path — sir anahtarina gercek deger atamasi: $(echo "$line" | cut -c1-60)" "anahtar-atamasi:$path"
     break
   done <<< "$candidates"
 done <<< "$STAGED"

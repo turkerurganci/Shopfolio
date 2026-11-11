@@ -28,13 +28,13 @@ internal sealed partial class OrderTransitions
             return ItemRefused(locked);
         }
 
-        if (!IsMoneyTaken(order!))
+        if (!IsMoneyTaken(order!)) // non-null: LockItemAsync returns the order and the item when it returns no refusal
         {
             return ItemRefused(TransitionRefusal.ConditionNotMet);
         }
 
-        ItemRecordSubject subject = Subject(order!, item!);
-        ItemFrozenAmounts frozen = new(item!.DiscountedUnitPrice ?? item.UnitPrice, item.CouponShare, item.VatAmount);
+        ItemRecordSubject subject = Subject(order!, item!); // non-null: LockItemAsync returns the order and the item when it returns no refusal
+        ItemFrozenAmounts frozen = new(item!.DiscountedUnitPrice ?? item.UnitPrice, item.CouponShare, item.VatAmount); // non-null: LockItemAsync returns the order and the item when it returns no refusal
         DefectRemedyCheck check = await _afterSales.CheckDefectClaimRescissionAsync(new DefectClaimRescissionEntry(subject, request.Quantity, frozen), ct);
         if (check.Refusal is { } refused)
         {
@@ -44,15 +44,15 @@ internal sealed partial class OrderTransitions
         // The item's refunds never pass its paid amount (D-893): after a price reduction the rescission pays at most what the item's started and sent refunds left.
         // A rescission with nothing to pay back (the coupon took the whole price, or the earlier refunds did) has no refund to carry its units (06 4.33: the amount
         // is above zero; D-881).
-        RefundAmount amount = check.Amount!;
-        decimal payable = Math.Min(amount.Amount, await ItemRefundLeftAsync(order!, item, ct));
+        RefundAmount amount = check.Amount ?? throw new InvalidOperationException("A rescission check without a refusal carries the amount.");
+        decimal payable = Math.Min(amount.Amount, await ItemRefundLeftAsync(order!, item, ct)); // non-null: LockItemAsync returns the order and the item when it returns no refusal
         if (payable <= 0m)
         {
             return ItemRefused(TransitionRefusal.ConditionNotMet);
         }
 
-        DefectRescissionShares shares = new(check.ClaimId!.Value, amount.Quantity, amount.CouponShare, amount.VatAmount);
-        return await StartRemedyRefundAsync(order!, subject, request.Admin, payable, shares, ct);
+        DefectRescissionShares shares = new(check.ClaimId ?? throw new InvalidOperationException("A rescission check without a refusal carries the claim."), amount.Quantity, amount.CouponShare, amount.VatAmount);
+        return await StartRemedyRefundAsync(order!, subject, request.Admin, payable, shares, ct); // non-null: LockItemAsync returns the order and the item when it returns no refusal
     }
 
     public async Task<ItemRecordResult> ReduceDefectClaimPriceAsync(ReduceDefectClaimPriceRequest request, CancellationToken ct)
@@ -74,12 +74,12 @@ internal sealed partial class OrderTransitions
             return ItemRefused(locked);
         }
 
-        if (!IsMoneyTaken(order!))
+        if (!IsMoneyTaken(order!)) // non-null: LockItemAsync returns the order and the item when it returns no refusal
         {
             return ItemRefused(TransitionRefusal.ConditionNotMet);
         }
 
-        ItemRecordSubject subject = Subject(order!, item!);
+        ItemRecordSubject subject = Subject(order!, item!); // non-null: LockItemAsync returns the order and the item when it returns no refusal
         DefectRemedyCheck check = await _afterSales.CheckDefectClaimPriceReductionAsync(subject, ct);
         if (check.Refusal is { } refused)
         {
@@ -88,7 +88,7 @@ internal sealed partial class OrderTransitions
 
         // The amount-based refund pays back while paid money that is not refunded is left (03 1.11.31): the refunds already started count, so two never pass the total;
         // and the item's refunds never pass the item's paid amount (D-893).
-        decimal left = Math.Min(order!.Total - await _payment.CommittedRefundTotalAsync(order.Id, ct), await ItemRefundLeftAsync(order, item!, ct));
+        decimal left = Math.Min(order!.Total - await _payment.CommittedRefundTotalAsync(order.Id, ct), await ItemRefundLeftAsync(order, item!, ct)); // non-null: LockItemAsync returns the order and the item when it returns no refusal
         if (request.Amount > left)
         {
             return ItemRefused(TransitionRefusal.InvalidInput);

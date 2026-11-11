@@ -38,13 +38,13 @@ internal sealed partial class OrderTransitions
         }
 
         ReturnReceiptEntry entry = new(
-            Subject(order!, item!),
+            Subject(order!, item!), // non-null: LockItemAsync returns the order and the item when it returns no refusal
             request.WithdrawalId,
             request.Quantity,
             request.ArrivalDate,
             new ItemRecordAdmin(request.Admin.AdminId, request.Admin.AdminName.Trim()),
             now,
-            order!.PaymentMethod == PaymentMethod.BankTransfer);
+            order!.PaymentMethod == PaymentMethod.BankTransfer); // non-null: LockItemAsync returns the order and the item when it returns no refusal
         ItemRecordWriteResult written = await _afterSales.AddReturnReceiptAsync(entry, ct);
         if (written.Refusal is { } refused)
         {
@@ -80,7 +80,7 @@ internal sealed partial class OrderTransitions
         }
 
         NotReturnedClosureEntry entry = new(
-            Subject(order!, item!), request.WithdrawalId, request.Quantity, new ItemRecordAdmin(request.Admin.AdminId, request.Admin.AdminName.Trim()), _time.GetUtcNow());
+            Subject(order!, item!), request.WithdrawalId, request.Quantity, new ItemRecordAdmin(request.Admin.AdminId, request.Admin.AdminName.Trim()), _time.GetUtcNow()); // non-null: LockItemAsync returns the order and the item when it returns no refusal
         ItemRecordWriteResult written = await _afterSales.AddNotReturnedClosureAsync(entry, ct);
         if (written.Refusal is { } refused)
         {
@@ -88,7 +88,7 @@ internal sealed partial class OrderTransitions
         }
 
         // No refund and no notice (02 10.4.9; 9.2); the declaration's IBAN goes with the closure unless a pending refund still uses it (K-497, K-1127).
-        await DeleteUnusedIbansAsync(order!.Id, ct);
+        await DeleteUnusedIbansAsync(order!.Id, ct); // non-null: LockItemAsync returns the order and the item when it returns no refusal
         RaiseVersionOnce(order);
         return new ItemRecordResult(null, written.RecordId);
     }
@@ -108,20 +108,20 @@ internal sealed partial class OrderTransitions
         }
 
         // The step is not offered when the variant is gone (06 4.26 StockAddedAt): there is no counter to return the units to.
-        if (item!.VariantId is not { } variant)
+        if (item!.VariantId is not { } variant) // non-null: LockItemAsync returns the order and the item when it returns no refusal
         {
             return ItemRefused(TransitionRefusal.ConditionNotMet);
         }
 
-        ReturnStockResult marked = await _afterSales.MarkReturnStockAddedAsync(new ReturnStockEntry(Subject(order!, item), request.ReturnId, _time.GetUtcNow()), ct);
+        ReturnStockResult marked = await _afterSales.MarkReturnStockAddedAsync(new ReturnStockEntry(Subject(order!, item), request.ReturnId, _time.GetUtcNow()), ct); // non-null: LockItemAsync returns the order and the item when it returns no refusal
         if (marked.Refusal is { } refused)
         {
             return ItemRefused(Map(refused));
         }
 
         // 1.4.4.6: as many units as were received (02 7.4.7, 3.6.6; K-215).
-        await _counters.ReturnAsync(order!, [new VariantQuantity(variant, marked.Quantity)], ct);
-        RaiseVersionOnce(order!);
+        await _counters.ReturnAsync(order!, [new VariantQuantity(variant, marked.Quantity)], ct); // non-null: LockItemAsync returns the order and the item when it returns no refusal
+        RaiseVersionOnce(order!); // non-null: LockItemAsync returns the order and the item when it returns no refusal
         return new ItemRecordResult(null, request.ReturnId);
     }
 }

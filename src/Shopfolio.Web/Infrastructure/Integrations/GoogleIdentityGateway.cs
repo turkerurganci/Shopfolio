@@ -131,7 +131,7 @@ internal sealed class GoogleIdentityGateway : IGoogleIdentityGateway
         GoogleExchangeOutcome outcome = GoogleIdentityMapping.ReadExchangeAnswer(response.StatusCode, body);
         return outcome.Failure is { } failure
             ? new Step<string>.Ended(_runner.Failed<GoogleIdentityResult>(IntegrationOperation.IdentityVerify, failure))
-            : new Step<string>.Done(outcome.IdToken!);
+            : new Step<string>.Done(outcome.IdToken!); // non-null: ReadExchangeAnswer gives an id token whenever it gives no failure
     }
 
     /// <summary>Gets the discovery document and the key set into the manager's cache (or reads the cache) before the check; the call has the limit of its own and an outage is "unavailable".</summary>

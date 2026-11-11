@@ -97,7 +97,7 @@ internal sealed class FirmSettings
             return SettingsSaveResult.Refused(rejections);
         }
 
-        decimal fee = input.ShippingFee!.Value;
+        decimal fee = input.ShippingFee!.Value; // non-null: CheckRequiredAmount refuses an empty fee, refused above
         List<AuditValueChange> changes = [];
         Track(changes, nameof(CompanySettings.ShippingFee), current.ShippingFee, fee);
         Track(changes, nameof(CompanySettings.FreeShippingThreshold), current.FreeShippingThreshold, input.FreeShippingThreshold);
@@ -125,8 +125,8 @@ internal sealed class FirmSettings
             return SettingsSaveResult.Refused(rejections);
         }
 
-        int shipping = input.DefaultShippingPeriod!.Value;
-        int window = input.BankTransferPaymentWindow!.Value;
+        int shipping = input.DefaultShippingPeriod!.Value; // non-null: CheckFenced refuses an empty period, refused above
+        int window = input.BankTransferPaymentWindow!.Value; // non-null: CheckFenced refuses an empty window, refused above
         List<AuditValueChange> changes = [];
         Track(changes, nameof(CompanySettings.DefaultShippingPeriod), current.DefaultShippingPeriod, shipping);
         Track(changes, nameof(CompanySettings.BankTransferPaymentWindow), current.BankTransferPaymentWindow, window);
@@ -161,8 +161,8 @@ internal sealed class FirmSettings
             return SettingsSaveResult.Refused(rejections);
         }
 
-        int allowance = input.DownloadAllowance!.Value;
-        decimal vat = input.DefaultVatRate!.Value;
+        int allowance = input.DownloadAllowance!.Value; // non-null: CheckFenced refuses an empty allowance, refused above
+        decimal vat = input.DefaultVatRate!.Value; // non-null: an empty rate is refused above (FieldRequired)
         List<AuditValueChange> changes = [];
         Track(changes, nameof(CompanySettings.DownloadAllowance), current.DownloadAllowance, allowance);
         Track(changes, nameof(CompanySettings.DefaultVatRate), current.DefaultVatRate, vat);

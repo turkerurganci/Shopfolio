@@ -60,7 +60,7 @@ internal sealed class OrderCounters
         ArgumentNullException.ThrowIfNull(items);
         List<VariantQuantity> units = Merge([.. items
             .Where(i => i.ProductType != ProductType.Digital && i.VariantId != null)
-            .Select(i => new VariantQuantity(i.VariantId!.Value, i.Quantity))]);
+            .Select(i => new VariantQuantity(i.VariantId!.Value, i.Quantity))]); // non-null: the Where above keeps only items with a variant
         if (units.Count == 0 && order.CouponId is null)
         {
             return true;
@@ -221,7 +221,7 @@ internal sealed class OrderCounters
         List<OrderItem> items = await _db.OrderItems
             .Where(i => i.OrderId == order.Id && i.ProductType != ProductType.Digital && i.VariantId != null)
             .ToListAsync(ct);
-        return Merge([.. items.Select(i => new VariantQuantity(i.VariantId!.Value, i.Quantity))]);
+        return Merge([.. items.Select(i => new VariantQuantity(i.VariantId!.Value, i.Quantity))]); // non-null: the Where above keeps only items with a variant
     }
 
     private static List<VariantQuantity> Merge(IReadOnlyList<VariantQuantity> units)
@@ -254,7 +254,7 @@ internal sealed class OrderCounters
         }
 
         _db.StockReservations.RemoveRange(rows);
-        List<VariantQuantity> units = [.. rows.Where(r => r.VariantId is not null).Select(r => new VariantQuantity(r.VariantId!.Value, r.Quantity))];
+        List<VariantQuantity> units = [.. rows.Where(r => r.VariantId is not null).Select(r => new VariantQuantity(r.VariantId!.Value, r.Quantity))]; // non-null: the Where before it keeps only rows with a variant
         return new StockClaim(units, rows.FirstOrDefault(r => r.CouponId is not null)?.CouponId);
     }
 }

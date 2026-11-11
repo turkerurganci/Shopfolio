@@ -178,7 +178,7 @@ internal sealed class ProductGallery
     {
         return await _db.Variants.AsNoTracking()
             .Where(v => v.ProductId == productId && v.ImageId != null && v.Id != exceptVariantId)
-            .Select(v => v.ImageId!.Value)
+            .Select(v => v.ImageId!.Value) // non-null: the Where above keeps only variants with an image
             .ToListAsync(ct);
     }
 

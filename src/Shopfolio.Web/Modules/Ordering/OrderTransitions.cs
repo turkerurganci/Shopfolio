@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
@@ -148,7 +150,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         // 2. The white list, the actor and the reasons - all on the order's values; nothing is written yet.
         if (!TryPlan(order, request, out List<(ShipmentTransition? Shipment, PaymentTransition? Payment)> steps, out OrderStatus orderStatus, out PaymentStatus paymentStatus, out TransitionRejection? refusal))
         {
-            return TransitionOutcome.Rejected(refusal!.Value);
+            return TransitionOutcome.Rejected(refusal.Value);
         }
 
         if (!TransitionTable.IsPairAllowed(orderStatus, paymentStatus))
@@ -175,8 +177,8 @@ internal sealed partial class OrderTransitions : IOrderTransitions
             }
             else
             {
-                order.ApplyTransition(payment!);
-                code = payment!.Code;
+                order.ApplyTransition(payment!); // non-null: TryPlan adds a step with its shipment or its payment transition, never with neither
+                code = payment!.Code; // non-null: TryPlan adds a step with its shipment or its payment transition, never with neither
             }
 
             TransitionReasons? reasons = request.Reasons is { IsEmpty: false } ? request.Reasons : null;
@@ -399,7 +401,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         out List<(ShipmentTransition? Shipment, PaymentTransition? Payment)> steps,
         out OrderStatus orderStatus,
         out PaymentStatus paymentStatus,
-        out TransitionRejection? refusal)
+        [NotNullWhen(false)] out TransitionRejection? refusal)
     {
         steps = [];
         orderStatus = order.OrderStatus;
@@ -429,7 +431,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
             }
             else
             {
-                if (paymentStatus != payment!.From)
+                if (paymentStatus != payment!.From) // non-null: the check above returns when the code has neither, and this branch has no shipment
                 {
                     refusal = TransitionRejection.NotInTheTable;
                     return false;
@@ -439,7 +441,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
                 steps.Add((null, payment));
             }
 
-            IReadOnlyList<ActorKind> actors = TransitionTable.ActorsOf(code)!;
+            IReadOnlyList<ActorKind> actors = TransitionTable.ActorsOf(code) ?? throw new InvalidOperationException($"The transition table has no actors for {code}.");
             if (!actors.Contains(request.Actor.Kind) || !request.Actor.IsConsistent)
             {
                 refusal = TransitionRejection.ActorNotAllowed;

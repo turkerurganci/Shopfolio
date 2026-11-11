@@ -120,7 +120,7 @@ internal static class DispatchMarks
             Guid? from = cursor;
             List<Guid> candidates = await db.DispatchRecords.AsNoTracking()
                 .Where(d => d.OrderId != null && d.DispatchState == DispatchState.Undelivered && (from == null || d.OrderId > from))
-                .Select(d => d.OrderId!.Value)
+                .Select(d => d.OrderId!.Value) // non-null: the Where above keeps only records with an order
                 .Distinct()
                 .OrderBy(id => id)
                 .Take(batch)
@@ -132,7 +132,7 @@ internal static class DispatchMarks
 
             var rows = await db.DispatchRecords.AsNoTracking()
                 .Where(d => d.OrderId != null && candidates.Contains(d.OrderId.Value))
-                .Select(d => new { OrderId = d.OrderId!.Value, Row = new Row(d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState, d.AttemptCount == 0 && d.LastOutcome == null) })
+                .Select(d => new { OrderId = d.OrderId!.Value, Row = new Row(d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState, d.AttemptCount == 0 && d.LastOutcome == null) }) // non-null: the Where above keeps only records with an order
                 .ToListAsync(ct);
             ILookup<Guid, Row> byOrder = rows.ToLookup(r => r.OrderId, r => r.Row);
             foreach (Guid candidate in candidates)

@@ -40,12 +40,12 @@ internal sealed class OrderPaymentArms
             .ToListAsync(ct);
 
         IReadOnlyList<PaymentSource> sources = await _payment.FindPaymentSourcesAsync([.. rows.Select(r => r.Id)], ct);
-        Guid[] confirming = [.. sources.Where(s => s.TransitionRecordId is not null).Select(s => s.TransitionRecordId!.Value).Distinct()];
+        Guid[] confirming = [.. sources.Where(s => s.TransitionRecordId is not null).Select(s => s.TransitionRecordId!.Value).Distinct()]; // non-null: the Where before it keeps only sources with a transition record
         HashSet<Guid> corrected = confirming.Length == 0
             ? []
             : [.. await _db.TransitionRecords.AsNoTracking()
                 .Where(t => t.CorrectedTransitionRecordId != null && confirming.Contains(t.CorrectedTransitionRecordId.Value))
-                .Select(t => t.CorrectedTransitionRecordId!.Value)
+                .Select(t => t.CorrectedTransitionRecordId!.Value) // non-null: the Where above keeps only records that correct another
                 .ToListAsync(ct)];
         HashSet<Guid> paid = [.. sources.Where(s => s.TransitionRecordId is null || !corrected.Contains(s.TransitionRecordId.Value)).Select(s => s.OrderId)];
 

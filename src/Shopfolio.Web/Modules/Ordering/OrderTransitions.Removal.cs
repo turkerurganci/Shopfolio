@@ -55,7 +55,7 @@ internal sealed partial class OrderTransitions
 
         DateTimeOffset now = _time.GetUtcNow();
         ItemRecordWriteResult written = await _afterSales.AddItemRemovalAsync(
-            new ItemRemovalEntry(Subject(order, item), request.Quantity, FrozenOf(item), new ItemRecordAdmin(request.Admin!.AdminId, request.Admin.AdminName.Trim()), now), ct);
+            new ItemRemovalEntry(Subject(order, item), request.Quantity, FrozenOf(item), new ItemRecordAdmin(request.Admin.AdminId, request.Admin.AdminName.Trim()), now), ct);
         if (written.Refusal is { } refused)
         {
             return Refused(Map(refused));
@@ -69,7 +69,7 @@ internal sealed partial class OrderTransitions
 
         // The removed item counts as a cancelled one on the shipping line (02 10.4.3 (1); 5.4 S3, S4, S10): the closure rule decides whether the order closes.
         List<Guid> recordIds = [];
-        ClosureResult closure = await EvaluateClosureAsync(order, actor!, ct);
+        ClosureResult closure = await EvaluateClosureAsync(order, actor, ct);
         if (closure.TransitionRecordId is { } closureId)
         {
             recordIds.Add(closureId);

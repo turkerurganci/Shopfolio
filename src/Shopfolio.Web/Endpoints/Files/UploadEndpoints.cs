@@ -64,7 +64,7 @@ internal static class UploadEndpoints
         if (!result.IsRejected)
         {
             return Json(
-                new UploadStatusResponse { Id = result.Id!.Value, ReceivedBytes = 0, ChunkSizeBytes = DigitalFileDelivery.UploadChunkSizeBytes, IsCompleted = false },
+                new UploadStatusResponse { Id = result.Id!.Value, ReceivedBytes = 0, ChunkSizeBytes = DigitalFileDelivery.UploadChunkSizeBytes, IsCompleted = false }, // non-null: a result that is not rejected is Started, which always carries the id
                 StatusCodes.Status201Created);
         }
 

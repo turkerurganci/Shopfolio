@@ -340,7 +340,7 @@ internal static partial class CustomerNoticeValues
         entries.Add((prefix + "ProvinceId", address.ProvinceId.ToString()));
         if (hasPhone)
         {
-            entries.Add((prefix + "Phone", address.Phone!));
+            entries.Add((prefix + "Phone", address.Phone!)); // non-null: hasPhone means the phone is not null or white space
         }
     }
 

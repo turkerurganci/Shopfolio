@@ -149,7 +149,7 @@ internal static partial class AuditEntryRules
             throw new ArgumentException("The target record's id is empty.", nameof(entry));
         }
 
-        if (hasType && entry.TargetRecordType!.Length > MaxNameLength)
+        if (hasType && entry.TargetRecordType!.Length > MaxNameLength) // non-null: hasType means the type is not null or white space
         {
             throw new ArgumentException("The target record's kind is too long.", nameof(entry));
         }
@@ -175,7 +175,7 @@ internal static partial class AuditEntryRules
             return;
         }
 
-        if (!hasType || !allowed.Contains(entry.TargetRecordType!, StringComparer.Ordinal))
+        if (!hasType || !allowed.Contains(entry.TargetRecordType!, StringComparer.Ordinal)) // non-null: read only when hasType, which means the type is not null or white space
         {
             throw new ArgumentException($"{entry.Operation} takes the target kind {string.Join(" or ", allowed)} (09 9.2 item 3).", nameof(entry));
         }

@@ -50,8 +50,8 @@ internal sealed class DataExport : IDataExport
             return ExportFileResult.Invalid(error);
         }
 
-        DateOnly start = startDay!.Value;
-        DateOnly end = endDay!.Value;
+        DateOnly start = startDay!.Value; // non-null: CheckRange returns StartMissing for an empty start, refused above
+        DateOnly end = endDay!.Value; // non-null: CheckRange returns EndMissing for an empty end, refused above
         return await ProduceAsync(
             AuditOperation.ExportOrders,
             [new AuditValue("exportType", "Orders"), new AuditValue("startDate", Day(start)), new AuditValue("endDate", Day(end))],

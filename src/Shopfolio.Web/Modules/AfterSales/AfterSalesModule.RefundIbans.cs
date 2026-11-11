@@ -19,7 +19,7 @@ internal sealed partial class AfterSalesModule
             .Where(i => i.ScheduledDeletionAt != null && i.ScheduledDeletionAt <= now)
             .OrderBy(i => i.ScheduledDeletionAt)
             .ThenBy(i => i.Id)
-            .Select(i => new DueRefundIbanDeletion(i.Id, i.OrderId, i.ScheduledDeletionAt!.Value))
+            .Select(i => new DueRefundIbanDeletion(i.Id, i.OrderId, i.ScheduledDeletionAt!.Value)) // non-null: the Where above keeps only IBANs with a deletion time
             .ToListAsync(ct);
     }
 

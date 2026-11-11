@@ -196,7 +196,7 @@ internal sealed class ModelRulesConvention : IModelFinalizingConvention
         foreach (IConventionAnnotation rule in rules)
         {
             string name = "ck_" + table + "_" + rule.Name[ModelBuilderExtensions.RuleAnnotationPrefix.Length..];
-            entityType.AddCheckConstraint(name, (string)rule.Value!);
+            entityType.AddCheckConstraint(name, (string)rule.Value!); // non-null: a rule annotation is written only by HasRule, whose value is the check's SQL text
             entityType.RemoveAnnotation(rule.Name);
         }
     }

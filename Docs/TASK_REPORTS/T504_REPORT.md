@@ -1,6 +1,6 @@
 # T504 — Hata sayfaları: bulunamayan adres ve beklenmeyen hata (E-06, 500)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-11
 
 ---
 
@@ -63,10 +63,25 @@ Model, Database, Catalog, Commands, Concurrency, Disposal, Logging, Ordering ad 
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | — (doğrulama bekliyor) |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-11; head `e59bfa5f`) |
+| Bulgu sayısı | 0 (S1/S2/S3 yok) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 → D-1216 (E-06 çizimi düşerse kayıt/sayaç yok; forward), K2 → D-1184 metni düzeltildi (T502 KK8; bu PR'da kapatıldı) |
+
+**Validator kanıtları (tur 1):**
+
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | 404 vitrinin tam çerçevesinde E-06 | ✓ | `NotFoundPageTests` KK1 üç testi (çerçeve, başlık, "Ana sayfaya dön", birinci seviye kategori; ürünsüzken yol yok; 500 sayfası değil, yönetici şeridi); `_NotFound.cshtml` `04` 5.6.2–5.6.4 ile birebir |
+| 2 | 404 hâlleri | ✓ | bilinmeyen ilk bölüm, üye kökü/erişim anahtarı reddi, POST sahiplik reddi, panel kaydı, imzası bozuk/ömrü dolmuş/indirilemez indirme değeri (`NotFoundPageTests`, `SessionAccessTests`, `DownloadEndpointTests.*Is404WithThePageE06*`); öteki hâller kendi task'ında (`11` T504 KK2) |
+| 3 | Sebep ayırt edilmez; noindex; sayaç yok; boş kategori bu yanıt değil | ✓ | dört kaynağın işaretlemesi nonce/dönüş adresi dışında aynı; meta robots noindex, no-store, çerez yok, sayaç ve `UnexpectedPageError` satırı yok; bulunan boş sayfa 200 (kategori sayfasının kendi testi T502 KK8, D-1184) |
+| 4 | 500 çerçeveleri | ✓ | `TheStorefront500_…`, `ThePanel500_…`, `TheSignInScreensOfThePanel_…_IsBare_…` |
+| 5 | POST 500 değerlerle ve kalıcı mesajla | ✓ | `APost500_ShowsTheFormAgainWithTheSentValue_…` |
+| 6 | Sonucu belirsiz işlemde 303 | ✓ | `AnUncertainOperationsError_IsA303_…` |
+| 7 | Ayrıntı/kod yok; kayıt ve sayaç | ✓ | `TheStorefront500_…_KK4_KK7` (istisna metni ve `ErrorCode` adları yok; sayaç +1; kayıtta `UnexpectedPageError`) |
+| 8 | Makine ucunda 500 gövdesiz | ✓ | `Download_OfACompletedRowWhoseFileIsMissingFromTheStore_Is500WithNoBody`; makine ucu 404'ü gövdesiz (`AMachineEndpointsAndAStaticFilesNotFound_StayEmpty_…`, `NotFoundAnswerTests`) |
+
+Yerel sınama (validator): derleme `-warnaserror` 0/0; `dotnet format` üç proje temiz; Unit 6734/6734 + Consistency 295/295; betik testleri 4/4; Integration TAM 3677/3677 (Web 702 — ilk koşuda 5 sınıf yerel Postgres zaman aşımıyla düştü, yeniden koşuda 29/29 —, Files+Pages+SignedEndpoints+Security+FileSecrets 171, Payment+Outages+Administration+CorporateContent+Jobs+kök 451, Model+Database+Catalog+Commands 1595, Concurrency+Disposal+Logging+Ordering 758). CI run 43000656410 (head `e59bfa5f`) 1–8 ve CI Gate yeşil.
 
 ## Altyapı Değişiklikleri
 
@@ -80,7 +95,7 @@ Model, Database, Catalog, Commands, Concurrency, Disposal, Logging, Ordering ad 
 - **Branch:** `task/T504-hata-sayfalari`
 - **Commit:** PR başlığına ve dal geçmişine bakınız (kod: `bdfba2d3`, devam: `51d4ffa5`, birleştirme `0f94d56b`)
 - **PR:** #540
-- **CI:** yoklanmadı (yönetici izler)
+- **CI:** yeşil — run 43000656410 (head `e59bfa5f`, doğrulama tur 1)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası)*
 
 ## Dış Varsayımlar

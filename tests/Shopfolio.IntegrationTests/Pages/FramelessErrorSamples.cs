@@ -14,5 +14,5 @@ public sealed class FramelessErrorSampleModel : PageModel
     public const string FailureText = "t504 failure in the frameless handler";
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822", Justification = "Razor Pages ignores static handler methods.")]
-    public IActionResult OnGet(string key) => throw new InvalidOperationException(FailureText);
+    public IActionResult OnGet() => throw new InvalidOperationException(FailureText);
 }

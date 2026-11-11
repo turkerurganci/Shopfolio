@@ -270,9 +270,6 @@ public sealed partial class DownloadEndpointTests
         using HttpResponseMessage response = await host.Client.GetAsync(Link(host.LinkFor(item)), Ct);
 
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-        string html = System.Net.WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct));
-        Assert.StartsWith("text/html", response.Content.Headers.ContentType?.ToString(), StringComparison.Ordinal);
-        Assert.Contains("<h1 class=\"not-found__title\">Sayfa bulunamadı</h1>", html, StringComparison.Ordinal);
-        Assert.Null(response.Content.Headers.ContentDisposition);
+        Assert.Empty(await response.Content.ReadAsByteArrayAsync(Ct));
     }
 }

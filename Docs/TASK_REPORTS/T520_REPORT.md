@@ -75,6 +75,7 @@ Test adlarındaki KK ekleri yapım sırasındaki numaradır; plandaki KK1…KK10
 ## Commit & PR
 
 - **Branch:** `task/T520-panel-giris-sifre-davet`
+- **PR:** #549
 
 ## ⚠ Maddeler
 

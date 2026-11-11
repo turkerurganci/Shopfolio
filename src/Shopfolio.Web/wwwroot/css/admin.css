@@ -256,6 +256,129 @@
     padding: var(--space-5) var(--space-4);
 }
 
+/* ---- Panel lists (04 2.13.4, 2.13.6; T545) ---- */
+
+/* One markup, three layouts. Narrow: a card per row - the primary cells first, then the others, each carrying its column's title. Medium: the primary cells stand in one line and the secondary
+   cells go under the row. Wide: a table. No cell is hidden and nothing scrolls sideways (04 2.1.2, 2.13.4); a cell's text breaks into lines (04 8.3.3). */
+.panel-table {
+    display: block;
+    width: 100%;
+}
+
+.panel-table__caption {
+    display: block;
+    margin-bottom: var(--space-3);
+    font-weight: 700;
+    text-align: start;
+}
+
+.panel-table__head {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+}
+
+.panel-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.panel-table__row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+    background: var(--color-surface);
+}
+
+.panel-table__cell {
+    min-width: 0;
+    text-align: start;
+    overflow-wrap: anywhere;
+}
+
+.panel-table td.panel-table__cell--primary {
+    order: 0;
+}
+
+.panel-table td.panel-table__cell--secondary {
+    order: 1;
+    color: var(--color-text-muted);
+}
+
+.panel-table td.panel-table__cell--secondary::before {
+    content: attr(data-label) ": ";
+    font-weight: 600;
+}
+
+@media (min-width: 768px) {
+    .panel-table__row {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-4);
+    }
+
+    .panel-table td.panel-table__cell--primary {
+        flex: 1 1 0;
+    }
+
+    .panel-table td.panel-table__cell--secondary {
+        flex: 0 0 100%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .panel-table {
+        display: table;
+        table-layout: fixed;
+        border-collapse: collapse;
+        background: var(--color-surface);
+    }
+
+    .panel-table__caption {
+        display: table-caption;
+    }
+
+    .panel-table__head {
+        position: static;
+        width: auto;
+        height: auto;
+        margin: 0;
+        overflow: visible;
+        clip-path: none;
+        display: table-header-group;
+    }
+
+    .panel-table tbody {
+        display: table-row-group;
+    }
+
+    .panel-table__row {
+        display: table-row;
+        padding: 0;
+        border: 0;
+    }
+
+    .panel-table__row > td,
+    .panel-table__head th {
+        display: table-cell;
+        padding: var(--space-3);
+        border-bottom: 1px solid var(--color-border);
+        color: var(--color-text);
+        vertical-align: top;
+    }
+
+    .panel-table td.panel-table__cell--secondary::before {
+        content: none;
+    }
+}
+
 /* ---- Panel home blocks and the order page's undelivered e-mail block (T542; 04 2.5.3.1, 2.6.1, 2.6.2) ---- */
 
 /* The six counters sit two by two on the narrow class and three by two from the medium class on (04 2.6.1); a zero counter is drawn like the others. */

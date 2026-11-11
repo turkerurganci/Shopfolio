@@ -1,0 +1,36 @@
+@using Shopfolio.Pages.Lists
+@model PanelTable
+@* The panel list (04 2.13.4, 2.13.6; T545): one table markup, three layouts by the style sheet - a table on the wide class, the secondary columns under the row on the medium class, a card list on the
+   narrow class. No cell is hidden, nothing scrolls sideways, and there is no selection column and no bulk action. Every cell carries its column's title for the layouts that have no header row. *@
+<table class="panel-table">
+    <caption class="panel-table__caption">@Model.Caption</caption>
+    <thead class="panel-table__head">
+        <tr>
+            @foreach (var column in Model.Columns)
+            {
+                <th scope="col" class="@(column.IsPrimary ? "panel-table__cell panel-table__cell--primary" : "panel-table__cell panel-table__cell--secondary")">@column.Title</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var row in Model.Rows)
+        {
+            <tr class="panel-table__row">
+                @for (var i = 0; i < Model.Columns.Count; i++)
+                {
+                    var column = Model.Columns[i];
+                    <td class="@(column.IsPrimary ? "panel-table__cell panel-table__cell--primary" : "panel-table__cell panel-table__cell--secondary")" data-label="@column.Title">
+                        @if (i == Model.LinkColumn && row.RecordPath is not null)
+                        {
+                            <a href="@row.RecordPath">@row.Cells[i]</a>
+                        }
+                        else
+                        {
+                            @row.Cells[i]
+                        }
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>

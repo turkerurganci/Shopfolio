@@ -1,0 +1,10 @@
+@using Shopfolio.Pages.Lists
+@model EmptyState
+@* The empty-state line (04 2.7.1.2; T545): one sentence and a way out; not an error and no error mark. *@
+<div class="empty-state">
+    <p class="empty-state__message">@Model.Message</p>
+    @if (Model.ActionPath is not null)
+    {
+        <a class="button button--secondary empty-state__action" href="@Model.ActionPath">@Model.ActionText</a>
+    }
+</div>

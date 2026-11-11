@@ -1,0 +1,7 @@
+@page "/odeme/liste-icerik"
+@model Shopfolio.IntegrationTests.Pages.ContentGridSampleModel
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = "Hizmetlerimiz";
+}
+@await Html.PartialAsync("_ContentGrid", Model.Cards)

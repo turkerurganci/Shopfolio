@@ -1,0 +1,17 @@
+@using Shopfolio.Pages.Lists
+@model ContentCard
+@* The content card (04 2.11.4; T545): main image, title and short description of a service introduction or a reference work. A record without a main image is drawn as text only; there is no price
+   and no add-to-cart (K-755). *@
+<article class="content-card">
+    <a class="content-card__link" href="@Model.Path">
+        @if (Model.Image is { } image)
+        {
+            <img class="content-card__image" src="@image.Path" alt="@image.AltText" loading="lazy" width="400" height="300" />
+        }
+        <span class="content-card__title">@Model.Title</span>
+        @if (Model.ShortDescription is not null)
+        {
+            <span class="content-card__description">@Model.ShortDescription</span>
+        }
+    </a>
+</article>

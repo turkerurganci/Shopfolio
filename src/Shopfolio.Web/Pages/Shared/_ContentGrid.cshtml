@@ -1,0 +1,12 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Lists
+@model IReadOnlyList<ContentCard>
+@* The content list (04 2.11.4, 2.13.1; T545): the cards in the order the firm gave in the panel; no sort control, no search, no filter. *@
+<ul class="card-grid">
+    @foreach (var card in Model)
+    {
+        <li class="card-grid__item">
+            <partial name="_ContentCard" model="card" />
+        </li>
+    }
+</ul>

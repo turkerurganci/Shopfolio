@@ -1,0 +1,33 @@
+@using Shopfolio.Pages.Lists
+@model Pager
+@* The page navigation (04 2.13.3; T545): previous, next and numbered pages; a list that fits one page shows nothing; there is no endless scroll. The page shown is a mark, not a link. *@
+@if (Model.IsShown)
+{
+    <nav class="pager" aria-label="Sayfalar">
+        <ul class="pager__list">
+            @if (Model.PrevPagePath is not null)
+            {
+                <li class="pager__item"><a class="pager__link" href="@Model.PrevPagePath" rel="prev">Önceki</a></li>
+            }
+            @foreach (var item in Model.Items)
+            {
+                if (item.IsGap)
+                {
+                    <li class="pager__item pager__item--gap" aria-hidden="true">…</li>
+                }
+                else if (item.IsCurrent)
+                {
+                    <li class="pager__item"><span class="pager__current" aria-current="page">@item.Number</span></li>
+                }
+                else
+                {
+                    <li class="pager__item"><a class="pager__link" href="@item.Path">@item.Number</a></li>
+                }
+            }
+            @if (Model.NextPath is not null)
+            {
+                <li class="pager__item"><a class="pager__link" href="@Model.NextPath" rel="next">Sonraki</a></li>
+            }
+        </ul>
+    </nav>
+}

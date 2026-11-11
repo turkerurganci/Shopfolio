@@ -1,0 +1,12 @@
+@using Shopfolio.Pages.Lists
+@model ListSearch
+@* The search field of a list (04 2.13.2; T545): only the lists the table gives a search draw it - the form is a GET to the list's own address with the one parameter, and a changed word returns
+   to the first page because the form carries no page. Coupons, the corporate content and the other lists have none. *@
+@if (Model.IsShown)
+{
+    <form class="list-search" method="get" action="@Model.ListRoot" role="search">
+        <label class="list-search__label" for="list-search-field">@Model.Label</label>
+        <input class="list-search__field" id="list-search-field" type="search" name="search" value="@Model.Value" />
+        <button class="button button--secondary list-search__submit" type="submit">Ara</button>
+    </form>
+}

@@ -86,6 +86,194 @@
     font-weight: 600;
 }
 
+/* ---- Lists and cards (04 2.11, 2.13; T545) ---- */
+
+/* The card grid: two columns on the narrow class, three on the medium, four on the wide (04 2.11.5). The product cards and the content cards stand in the same grid. */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+    .card-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .card-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.card-grid__item {
+    min-width: 0;
+}
+
+/* The product card (04 2.11.1-2.11.3): one link; the image, the name, the price. The name is cut at two lines - the one text cut of the card (04 8.3.2.2; K-741); its whole is on the product page. */
+.product-card,
+.content-card {
+    height: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+    background: var(--color-surface);
+}
+
+.product-card__link,
+.content-card__link {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    height: 100%;
+    padding: var(--space-3);
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.product-card__image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: var(--radius-1);
+    background: var(--color-surface-alt);
+}
+
+.product-card__name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    font-weight: 600;
+}
+
+.product-card__price-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-2);
+}
+
+.product-card__price {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.product-card__reference-price {
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
+.product-card__discount-mark,
+.product-card__sold-out {
+    align-self: flex-start;
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-text);
+    border-radius: var(--radius-1);
+    font-size: var(--font-size-small);
+    font-weight: 600;
+}
+
+.product-card__discount-dates {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-small);
+}
+
+/* The content card (04 2.11.4): without a main image it is the text alone. */
+.content-card__image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-1);
+    background: var(--color-surface-alt);
+}
+
+.content-card__title {
+    font-weight: 600;
+}
+
+.content-card__description {
+    color: var(--color-text-muted);
+}
+
+/* The page navigation (04 2.13.3): previous, next and numbered pages; every target is a full touch target. */
+.pager {
+    margin-block: var(--space-5);
+}
+
+.pager__list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+}
+
+.pager__link,
+.pager__current,
+.pager__item--gap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--touch-target);
+    min-height: var(--touch-target);
+    padding: 0 var(--space-3);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-1);
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.pager__current {
+    border-color: var(--color-text);
+    font-weight: 700;
+}
+
+.pager__item--gap {
+    border-color: transparent;
+}
+
+/* The empty-state line (04 2.7.1.2): one sentence and a way out; no error colour. */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-5) var(--space-4);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-2);
+    background: var(--color-surface);
+}
+
+.empty-state__message {
+    margin: 0;
+}
+
+/* The search field of a list (04 2.13.2). */
+.list-search {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-2);
+    margin-block: var(--space-4);
+}
+
+.list-search__label {
+    flex: 1 0 100%;
+    font-weight: 600;
+}
+
+.list-search__field {
+    flex: 1 1 12rem;
+    min-height: var(--touch-target);
+    padding: var(--space-2) var(--space-3);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-1);
+    background: var(--color-surface);
+}
+
 /* ---- Message (T541; 04 OB-03, 2.3) -------------------------------------------------------------------------------------------------------------------------------------------
    Every message has a symbol and its text; the colour only helps (02 6.1.6). The colours of the meanings are the semantic variables of base.css and never the brand colour (04 2.1.3). */
 .message {

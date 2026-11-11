@@ -305,7 +305,7 @@
 | T546 | Gezinme ve geçiş eşitlik denetimleri: iskeletler, geçişler, dışarıdan girişler, dönüşler | ⬚ | — | — | — |
 | T547 | Durum × rol matrisi ve form envanteri eşitlik denetimleri | ⬚ | — | — | — |
 | T548 | Parçalı yükleme betiği: başlatma–parça–durum akışı, 409/404/400/413 yanıtları, ağ hatasında üç kez sürdürme | ⬚ | — | — | — |
-| T549 | Vitrin: arşivlenmiş ürün sayfası (E-05) | ⬚ | — | — | — |
+| T549 | Vitrin: arşivlenmiş ürün sayfası (E-05) | ⏳ | — | — | — |
 | T550 | F4 kapanış düzeltmeleri: null-forgiving temizliği ve sır bekçisi önek soyma | ✓ | ✓ PASS (tur 1) | `bf77ceaf` | #533 |
 
 ---

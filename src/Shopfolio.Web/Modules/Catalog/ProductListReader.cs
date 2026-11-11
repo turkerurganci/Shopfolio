@@ -90,8 +90,60 @@ internal sealed class ProductListReader
             .OrderByDescending(r => r.CreatedAt)
             .ThenByDescending(r => r.Id);
         PagedList<CardRow> paged = await ordered.ToPageAsync(page, PageSizes.StorefrontProducts, ct);
+        IReadOnlyList<ProductListItem> items = await ItemsOfAsync(paged.Items, ct);
+        return new ProductListPage(items, paged.PageNumber, paged.PageSize, paged.TotalCount, paged.PageCount);
+    }
 
-        List<Guid> keys = [.. paged.Items.Select(p => p.Id)];
+    /// <summary>
+    /// The cards of the published products among <paramref name="productIds"/>, in the order of the ids given (T505; 02 3.27.10; 04 5.8.5, 2.11.1): the list item of each - name, address, lowest price,
+    /// purchasable mark and running discount - and the main image with the text the card uses (the firm's text when written, else the product's name; 02 3.11.4). A draft and an archived product
+    /// are left out, an id that is no product is left out, a product comes once. A plain read; the number of ids is the caller's (a content record's links).
+    /// </summary>
+    public async Task<IReadOnlyList<ProductListCard>> ListCardsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(productIds);
+        if (productIds.Count == 0)
+        {
+            return [];
+        }
+
+        Guid[] wanted = [.. productIds.Distinct()];
+        List<CardRow> rows = await Published()
+            .Where(p => wanted.Contains(p.Id))
+            .Select(p => new CardRow { Id = p.Id, Name = p.Name, Slug = p.Slug, CreatedAt = p.CreatedAt })
+            .ToListAsync(ct);
+        IReadOnlyList<ProductListItem> items = await ItemsOfAsync(rows, ct);
+        Dictionary<Guid, ProductListItem> byId = items.ToDictionary(i => i.Id);
+
+        var links = await _db.ProductImages.AsNoTracking()
+            .Where(i => wanted.Contains(i.ProductId))
+            .Select(i => new { i.ProductId, i.ImageId, i.IsMain, i.SortOrder, i.CreatedAt, i.AltText })
+            .ToListAsync(ct);
+        Dictionary<Guid, (Guid ImageId, string? AltText)> mainImages = links
+            .GroupBy(l => l.ProductId)
+            .ToDictionary(
+                g => g.Key,
+                g =>
+                {
+                    var main = g.OrderByDescending(l => l.IsMain).ThenBy(l => l.SortOrder).ThenBy(l => l.CreatedAt).First();
+                    return (main.ImageId, main.AltText);
+                });
+
+        return
+        [
+            .. wanted.Where(byId.ContainsKey).Select(id =>
+            {
+                ProductListItem item = byId[id];
+                bool hasImage = mainImages.TryGetValue(id, out (Guid ImageId, string? AltText) main);
+                string? alt = hasImage && !string.IsNullOrWhiteSpace(main.AltText) ? main.AltText.Trim() : item.Name;
+                return new ProductListCard(item, hasImage ? main.ImageId : null, alt);
+            }),
+        ];
+    }
+
+    private async Task<IReadOnlyList<ProductListItem>> ItemsOfAsync(IReadOnlyList<CardRow> rows, CancellationToken ct)
+    {
+        List<Guid> keys = [.. rows.Select(p => p.Id)];
         Dictionary<Guid, CardFigures> figures = await _db.Variants.AsNoTracking()
             .Where(v => keys.Contains(v.ProductId) && v.PublishStatus == PublishStatus.Published)
             .GroupBy(v => v.ProductId)
@@ -99,18 +151,16 @@ internal sealed class ProductListReader
             .ToDictionaryAsync(f => f.ProductId, ct);
 
         Dictionary<Guid, DiscountLine> discounts = await DiscountLinesAsync(keys, ct);
-        return new ProductListPage(
-            [.. paged.Items.Select(p => new ProductListItem(
+        return
+        [
+            .. rows.Select(p => new ProductListItem(
                 p.Id,
                 p.Name,
                 p.Slug,
                 figures.TryGetValue(p.Id, out CardFigures? f) ? f.LowestPrice : null,
                 f is not null && f.IsPurchasable,
-                discounts.GetValueOrDefault(p.Id)))],
-            paged.PageNumber,
-            paged.PageSize,
-            paged.TotalCount,
-            paged.PageCount);
+                discounts.GetValueOrDefault(p.Id))),
+        ];
     }
 
     // The discount declarations of the page's products whose discount runs now (02 3.9.2; 04 2.11.2; K-1578): the card's price is the lowest list price, so the

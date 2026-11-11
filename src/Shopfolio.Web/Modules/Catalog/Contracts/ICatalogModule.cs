@@ -124,6 +124,12 @@ public interface ICatalogModule
     /// </summary>
     Task<IReadOnlyList<ShowcaseProduct>> ListPublishedProductsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct);
 
+    /// <summary>
+    /// The product cards of the Published products among <paramref name="productIds"/>, in the order of the ids given (T505; 02 3.27.10; 04 5.8.5, 2.11.1): the list item with the lowest price and the running discount, the main image
+    /// and its text - what a content page's "İlgili ürünler" draws. A Draft and an Archived product, and an id that is no product, are left out. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<ProductListCard>> ListPublishedProductCardsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct);
+
     /// <summary>The ids among <paramref name="productIds"/> that are products, whatever their status (T359; 02 3.27.10): a content record links a draft product too. A plain read.</summary>
     Task<IReadOnlyList<Guid>> FindProductIdsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct);
 

@@ -1,3 +1,4 @@
+@using Shopfolio.Pages.Frame
 @using Shopfolio.Modules.Settings.Contracts
 @model StorefrontFrame
 @*
@@ -65,9 +66,9 @@
             @if (footer.GeneralPages.Count > 0)
             {
                 <nav class="footer-links" aria-label="Sayfalar">
-                    @foreach (var page in footer.GeneralPages)
+                    @foreach (var generalPage in footer.GeneralPages)
                     {
-                        <a href="@page.Path">@page.Title</a>
+                        <a href="@generalPage.Path">@generalPage.Title</a>
                     }
                 </nav>
             }

@@ -36,7 +36,7 @@ public sealed class StorefrontFrameTestsDefinition : ICollectionFixture<Collecti
 /// now. Sessions, carts, texts and the firm's settings are real rows of the collection database; the frame is printed as JSON by the sample page and read back here.
 /// </summary>
 [Collection(StorefrontFrameTestsDefinition.Name)]
-public sealed class StorefrontFrameTests : IAsyncLifetime
+public sealed partial class StorefrontFrameTests : IAsyncLifetime
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 10, 9, 0, 0, TimeSpan.Zero);
 

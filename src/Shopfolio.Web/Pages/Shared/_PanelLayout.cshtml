@@ -1,0 +1,94 @@
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Infrastructure.SearchEngine
+@*
+    The panel frame (T540; 04 2.2.8; 07 5.5.1): the top row and the eight-entry menu. A panel page names it with Layout = "_PanelLayout". The frame model is not the page's: PanelFrameFilter put it
+    in the request (Context.GetPanelFrame()). The panel never carries the brand colour, the identity block or the ETBIS band (04 2.1.3, 2.2.8); its style sheets are base, components, admin
+    (09 16.1 item 1). A page that writes its own head through the Head section (the search engine data pattern) carries the closing tag itself; otherwise the layout writes the title and the
+    robots meta tag: the whole panel is closed to the search engines (05 3.7.4). No style attribute, no inline script, no event attribute anywhere.
+*@
+@{
+    PanelFrame frame = Context.GetPanelFrame()
+        ?? throw new InvalidOperationException("The panel layout needs the panel frame; the response is not a framed panel page response (T540).");
+    string? pageTitle = ViewData["Title"] as string;
+    string title = string.IsNullOrWhiteSpace(pageTitle) ? "Shopfolio Panel" : $"{pageTitle} - Shopfolio Panel";
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    @if (IsSectionDefined("Head"))
+    {
+        @await RenderSectionAsync("Head", required: false)
+    }
+    else
+    {
+        <title>@title</title>
+        <meta name="robots" content="@SearchEngineClosure.Directive">
+    }
+    <link rel="stylesheet" href="@Context.StaticAsset("css/base.css")">
+    <link rel="stylesheet" href="@Context.StaticAsset("css/components.css")">
+    <link rel="stylesheet" href="@Context.StaticAsset("css/admin.css")">
+</head>
+<body class="panel-page">
+    <a class="skip-link" href="#content">İçeriğe geç</a>
+    <div class="panel">
+        <header class="panel-top">
+            <button type="button" class="menu-toggle" data-js="menu-toggle" aria-controls="panel-menu" aria-expanded="false" hidden>Menü</button>
+            <a class="panel-top__sales panel-top__sales--@(frame.Sales.IsOpen ? "open" : "closed")" href="@frame.Sales.Path">@frame.Sales.Text</a>
+            <a class="panel-top__site" href="@frame.SiteViewPath">Siteyi görüntüle</a>
+            <span class="panel-top__spacer"></span>
+            <div class="panel-top__admin">
+                <span class="panel-top__name u-single-line">@frame.Admin.Name</span>
+                <div class="panel-top__links">
+                    <a href="@frame.Admin.AccountPath">Hesabım</a>
+                    <form method="post" action="@frame.Admin.SignOut.Action">
+                        <button type="submit" class="panel-top__sign-out">Çıkış</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+        <div class="panel-body">
+            <nav class="panel-menu" id="panel-menu" aria-label="Panel menüsü">
+                <ul class="panel-menu__list">
+                    @foreach (PanelMenuEntry entry in frame.Menu)
+                    {
+                        if (entry.Items.Count == 0)
+                        {
+                            <li>
+                                <a class="panel-menu__link" href="@entry.Path" aria-current="@(entry.IsActive ? "page" : null)">
+                                    <span>@entry.Title</span>
+                                    @if (entry.HasPendingMark)
+                                    {
+                                        <span class="pending-mark">Bekleyen iş</span>
+                                    }
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="panel-menu__group" data-js="menu-group" data-active="@(entry.IsActive ? "true" : "false")">
+                                <h2 class="panel-menu__group-title">@entry.Title</h2>
+                                <button type="button" class="panel-menu__group-toggle" data-js="group-toggle" aria-expanded="@(entry.IsActive ? "true" : "false")" hidden>@entry.Title</button>
+                                <ul class="panel-menu__sub">
+                                    @foreach (PanelMenuItem item in entry.Items)
+                                    {
+                                        <li>
+                                            <a class="panel-menu__link" href="@item.Path" aria-current="@(item.IsActive ? "page" : null)">@item.Title</a>
+                                        </li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+                    }
+                </ul>
+            </nav>
+            <main id="content" class="panel-content" tabindex="-1">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+    <script type="module" src="@Context.StaticAsset("js/common.js")"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

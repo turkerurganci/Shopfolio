@@ -131,6 +131,17 @@
     text-decoration: none;
 }
 
+/* The pending work mark of an entry (04 2.2.8): a text label, never colour alone. */
+.pending-mark {
+    margin-inline-start: var(--space-2);
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-2);
+    background: var(--color-pending);
+    color: var(--color-pending-text);
+    font-size: var(--font-size-small);
+    font-weight: 700;
+}
+
 .panel-menu__link:hover {
     text-decoration: underline;
 }

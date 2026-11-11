@@ -1,3 +1,11 @@
 @page "/odeme"
 @model Shopfolio.IntegrationTests.Pages.FrameCheckoutSampleModel
-@Html.Raw(Shopfolio.IntegrationTests.Pages.FrameJson.Of(HttpContext))
+@if (HttpContext.Request.Query.ContainsKey("cizim"))
+{
+    Layout = "_StorefrontLayout";
+    <p id="sample-content">Odeme icerigi</p>
+}
+else
+{
+    @Html.Raw(Shopfolio.IntegrationTests.Pages.FrameJson.Of(HttpContext))
+}

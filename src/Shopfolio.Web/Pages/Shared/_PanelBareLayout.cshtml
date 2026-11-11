@@ -1,0 +1,39 @@
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Infrastructure.SearchEngine
+@*
+    The panel's screens without the frame (T540; 04 2.2.9): the sign-in and reset (E-29), the invitation (E-30) and the landing steps of E-54 show the product's panel title and the content only -
+    no menu, no top row, no brand. Closed to the search engines like the whole panel (05 3.7.4).
+*@
+@{
+    string? pageTitle = ViewData["Title"] as string;
+    string title = string.IsNullOrWhiteSpace(pageTitle) ? "Shopfolio Panel" : $"{pageTitle} - Shopfolio Panel";
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    @if (IsSectionDefined("Head"))
+    {
+        @await RenderSectionAsync("Head", required: false)
+    }
+    else
+    {
+        <title>@title</title>
+        <meta name="robots" content="@SearchEngineClosure.Directive">
+    }
+    <link rel="stylesheet" href="@Context.StaticAsset("css/base.css")">
+    <link rel="stylesheet" href="@Context.StaticAsset("css/components.css")">
+    <link rel="stylesheet" href="@Context.StaticAsset("css/admin.css")">
+</head>
+<body class="panel-page panel-page--bare">
+    <div class="panel-bare">
+        <h1 class="panel-bare__title">Shopfolio Panel</h1>
+        <main id="content" class="panel-bare__content" tabindex="-1">
+            @RenderBody()
+        </main>
+    </div>
+    <script type="module" src="@Context.StaticAsset("js/common.js")"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

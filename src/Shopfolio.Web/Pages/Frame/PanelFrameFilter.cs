@@ -33,7 +33,7 @@ internal sealed class PanelFrameFilter : IAsyncPageFilter, IOrderedFilter
         PageHandlerExecutedContext executed = await next();
         if (executed.Exception is not null
             || executed.Result is not (null or PageResult)
-            || !context.ActionDescriptor.RelativePath.StartsWith(SessionSchemes.PanelFolder + "/", StringComparison.OrdinalIgnoreCase)
+            || !context.ActionDescriptor.ViewEnginePath.StartsWith(SessionSchemes.PanelFolder + "/", StringComparison.OrdinalIgnoreCase)
             || PanelFrameBuilder.IsFramelessScreen(context.HttpContext.Request))
         {
             return;

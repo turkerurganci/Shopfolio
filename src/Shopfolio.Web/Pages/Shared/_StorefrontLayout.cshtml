@@ -1,4 +1,7 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Frame
 @using Shopfolio.Infrastructure.Security
+@using Shopfolio.Infrastructure.SearchEngine
 @*
     The storefront frame (T540; 04 2.2; 07 5.5.1). A storefront page names it with Layout = "_StorefrontLayout". The frame model is not the page's: StorefrontFrameFilter put it in the request
     (Context.GetStorefrontFrame()) and nothing here reads another source. Order of the regions (04 2.2.1): administrator strip or draft band, announcement strip, top section, menu, content,
@@ -18,15 +21,22 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@title</title>
+    @if (!IsSectionDefined("Head"))
+    {
+        <title>@title</title>
+        @if (SearchEngineClosure.IsClosed(Context))
+        {
+            <meta name="robots" content="@SearchEngineClosure.Directive">
+        }
+    }
     @if (frame.Brand.FaviconId is Guid faviconId)
     {
         <link rel="icon" href="@FrameStyle.ImagePath(faviconId)">
     }
     <style nonce="@nonce">@Html.Raw(FrameStyle.BrandVariables(frame.Brand))</style>
-    <link rel="stylesheet" href="@Assets["css/base.css"]">
-    <link rel="stylesheet" href="@Assets["css/components.css"]">
-    <link rel="stylesheet" href="@Assets["css/storefront.css"]">
+    <link rel="stylesheet" href="@Context.StaticAsset("css/base.css")">
+    <link rel="stylesheet" href="@Context.StaticAsset("css/components.css")">
+    <link rel="stylesheet" href="@Context.StaticAsset("css/storefront.css")">
     @await RenderSectionAsync("Head", required: false)
 </head>
 <body class="storefront">
@@ -75,7 +85,7 @@
         </main>
         <partial name="_StorefrontFooter" model="frame" />
     </div>
-    <script type="module" src="@Assets["js/common.js"]"></script>
+    <script type="module" src="@Context.StaticAsset("js/common.js")"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

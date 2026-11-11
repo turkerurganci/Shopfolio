@@ -84,8 +84,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T537-vitrin-cercevesi`
-- **Commit:** son commit PR'ın head'idir
-- **PR:** #NN (PR açıldıktan sonra yardımcı numarayı işler)
+- **Commit:** `3b1ba2ad` — T537: Vitrin çerçevesinin modeli (PR head son commit)
+- **PR:** #532
 - **CI:** yardımcı yürütür
 - **Post-merge run'lar:** *(validator doldurur)*
 

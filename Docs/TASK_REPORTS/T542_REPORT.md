@@ -1,6 +1,6 @@
 # T542 — Rozet ve işaretler, sayaç ve süre göstergeleri, eşzamanlı düzenleme uyarısı (OB-05, OB-06, OB-10)
 
-**Faz:** F5 | **Durum:** ⏳ Yapım tamamlandı, doğrulama bekliyor | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-11
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -74,7 +74,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulayıcı doldurur)* |
+| Doğrulama durumu (tur 1) | ✓ PASS — tur 1 (2026-11-11, head `926a2e12`; `origin/main` `06057bf9` dal tabanında, birleştirme gerekmedi). Kriter 1–9 ve KK1–KK9 ✓; `09 §25` ilgili satırlar (`§16.2` madde 3 çift gönderim kalıbı, `Html.Raw`/satır içi betik yok, formlarda antiforgery, yeni bağımlılık yok) ✓. Dal CI'ı yeşil (run 42970856849, dokuz iş); ana dal son üç run yeşil (42964801854, 42964801839, 42951686078). Yerelde: restore, derleme 0 uyarı (`-warnaserror`), format üç proje temiz, Unit 6809/6809 (Consistency ve Architecture dahil), betik testleri 4/4, Integration `Shopfolio.IntegrationTests.Web` ad alanı 636/636 (yeni `ComponentMarkupTests` 13 dahil; PostgreSQL 18 `track_commit_timestamp=on`); tam Integration dal CI'ında yeşil. `12`: task satırları (KP-76: VAL-A371, A372, C076, C077, C078; `02 §5.8`/§3.19.5 grep'iyle gelen VAL-A044, C085, C112, C113 vb.) uç, veri ve tarayıcı kanıtı gerçek ekranlarda istediği için `BEKLEMEDE` kaldı; `Durum` hücresi değişmedi, `12_matris_denetle.py --kapsam 1-77` Hata 0. |
+| Bulgu sayısı (tur 1) | 0 |
+| Bloke-etmeyen not (tur 1) | 2 — **K1** (D-1167'ye forward): `11` izlenebilirlik tablosu KP-76'yı "kalan T542" der, ama KP-76'nın beş KRİTİK satırı (VAL-A371, A372, C076, C077, C078) ortak bileşenle değil gerçek kayıt ve sipariş ekranlarında (E-33, E-37, E-41…E-47, E-16…E-18) uç, veri ve tarayıcı kanıtı ister; T542'den sonra satırların kapanış sahibi yazılı değil. **K2** (bu PR'da kapatıldı): D-1150'nin kanıt sütunu `Docs/04_USER_FLOWS.md` diyordu; dosya `Docs/04_UI_SPECS.md`, düzeltildi. |
+| Yapım raporu karşılaştırması (tur 1) | Kabul kriterlerinde tam uyum (1–9 ✓); öz denetim tablosu var, maddeler kanıtlı. 1 uyuşmazlık: yapım raporu `12` task satırlarını (KP-76) anmıyor, yalnız "`12` Durum hücrelerine dokunulmadı" diyor (K1 ile kayda alındı). |
 
 ## Altyapı Değişiklikleri
 
@@ -87,7 +90,7 @@
 
 - **Branch:** `task/T542-rozet-sayac-eszamanli-uyari`
 - **PR:** #536
-- **CI:** *(yönetici izler)*
+- **CI:** dal run 42970856849 yeşil (Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E, CI Gate)
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

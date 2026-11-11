@@ -82,8 +82,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T506-sss-iletisim`
-- **Commit:** birleştirme `e07bdf75` (yapım ucu bu raporun commit'inden önce)
-- **PR:** *(PR açılınca yazılır)*
+- **Commit:** `50b7486e` (yapım ucu; birleştirme `e07bdf75`)
+- **PR:** #551
 - **CI:** *(yardımcı denetler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

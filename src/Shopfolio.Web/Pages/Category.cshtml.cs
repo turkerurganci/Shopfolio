@@ -53,7 +53,7 @@ public sealed class CategoryModel : PageModel, IListPage
 
         string path = CategoryPaths.Of(category.Slug);
         IReadOnlyList<ProductCard> cards = ProductCards.Of(list.Items);
-        bool applied = query.HasAppliedFilter;
+        bool applied = query.IsFilterApplied();
         View = new CategoryPage(
             category.Name,
             category.Slug,

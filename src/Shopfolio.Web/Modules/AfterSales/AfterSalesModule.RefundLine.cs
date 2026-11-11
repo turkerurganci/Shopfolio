@@ -54,6 +54,44 @@ internal sealed partial class AfterSalesModule
             .SingleOrDefaultAsync(ct);
     }
 
+    public async Task<IReadOnlyList<RefundIbanField>> ListRefundIbanFieldsAsync(Guid orderId, IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderItemIds);
+        Guid[] itemIds = [.. orderItemIds];
+        List<RefundIbanField> fields =
+        [
+            .. await _db.RefundIbanRequests.AsNoTracking()
+                .Where(r => r.FulfilledAt == null && r.ClosedAt == null
+                    && ((r.OrderItemId != null && itemIds.Contains(r.OrderItemId.Value)) || (r.OrderItemId == null && r.RefundId != null)))
+                .OrderBy(r => r.CreatedAt).ThenBy(r => r.Id)
+                .Select(r => new RefundIbanField(r.OrderItemId, r.Id, r.RefundId, r.Reason, null, null))
+                .ToListAsync(ct),
+        ];
+
+        // An IBAN on file names its items through the records that use it: the fulfilled request, the cancellation, the termination, the withdrawal (06 4.22, 4.24,
+        // 4.25, 4.29). One without an item (the late payment's refund) is the itemless field.
+        foreach (RefundIban iban in await _db.RefundIbans.AsNoTracking().Where(i => i.OrderId == orderId).OrderBy(i => i.CreatedAt).ThenBy(i => i.Id).ToListAsync(ct))
+        {
+            Guid id = iban.Id;
+            List<Guid> linked =
+            [
+                .. await _db.RefundIbanRequests.AsNoTracking().Where(r => r.RefundIbanId == id && r.OrderItemId != null).Select(r => r.OrderItemId!.Value).ToListAsync(ct), // non-null: the Where keeps only requests on an item
+                .. await _db.Cancellations.AsNoTracking().Where(c => c.RefundIbanId == id).Select(c => c.OrderItemId).ToListAsync(ct),
+                .. await _db.LateDeliveryTerminations.AsNoTracking().Where(t => t.RefundIbanId == id).Select(t => t.OrderItemId).ToListAsync(ct),
+                .. await _db.Withdrawals.AsNoTracking().Where(w => w.RefundIbanId == id).Select(w => w.OrderItemId).ToListAsync(ct),
+            ];
+            Guid[] items = [.. linked.Where(itemIds.Contains).Distinct()];
+            if (items.Length == 0)
+            {
+                fields.Add(new RefundIbanField(null, null, null, null, iban.Id, iban.Iban));
+            }
+
+            fields.AddRange(items.Select(itemId => new RefundIbanField(itemId, null, null, null, iban.Id, iban.Iban)));
+        }
+
+        return fields;
+    }
+
     public async Task<bool> IsRefundIbanEnteredForRefundAsync(Guid refundId, CancellationToken ct)
     {
         return await _db.RefundIbanRequests.AnyAsync(r => r.RefundId == refundId && r.FulfilledAt != null, ct)

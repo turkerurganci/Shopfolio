@@ -1,4 +1,5 @@
 using Shopfolio.Infrastructure.Operations;
+using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
 
@@ -113,5 +114,12 @@ public sealed record CustomerScreenItem(
     int MaxQuantity,
     bool HasQuantityField);
 
-/// <summary>An open IBAN field of the order page (04 5.16.12): its item (null on the late payment's itemless field) and the IBAN on file when it is a correction.</summary>
-public sealed record RefundIbanFieldView(Guid? OrderItemId, string? Iban);
+/// <summary>An open IBAN field of the order page (04 5.16.12): its item (null on the late payment's itemless field), the IBAN on file when it is a correction and the open request's reason otherwise.</summary>
+public sealed record RefundIbanFieldView(Guid? OrderItemId, string? Iban, RefundIbanRequestReason? Reason)
+{
+    /// <summary>A correction of an IBAN on file rather than an answer to an open request.</summary>
+    public bool IsCorrection => Reason is null;
+
+    /// <summary>The two card-line exceptions where entering an IBAN is a choice (04 2.12.3.1): the failed card refund's transfer path (K-569) and the late payment's refund (K-1075).</summary>
+    public bool IsOptional => Reason == RefundIbanRequestReason.CardRefundFailed || (Reason is not null && OrderItemId is null);
+}

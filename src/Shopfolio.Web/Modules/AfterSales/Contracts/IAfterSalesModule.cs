@@ -240,6 +240,13 @@ public interface IAfterSalesModule
     /// <summary>The open IBAN request with the given id, or null when it is fulfilled, closed or gone. A plain read; the caller checks that its item or refund is the order's.</summary>
     Task<OpenRefundIbanRequest?> FindOpenRefundIbanRequestAsync(Guid requestId, CancellationToken ct);
 
+    /// <summary>
+    /// The order page's IBAN fields (T512; 04 5.16.12; 02 7.4.5): the open requests of <paramref name="orderItemIds"/>, the open itemless requests of a late payment's
+    /// refund (K-1075; the caller keeps those whose refund is the order's) and the order's IBANs still on file - an IBAN lives only while a pending refund uses it, so
+    /// one on file is not processed yet and is corrected in place (K-575). A plain read.
+    /// </summary>
+    Task<IReadOnlyList<RefundIbanField>> ListRefundIbanFieldsAsync(Guid orderId, IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
     /// <summary>True when an IBAN request on the refund was fulfilled: the customer chose the transfer path, so the card refund is not retried (02 7.2.8; K-569).</summary>
     Task<bool> IsRefundIbanEnteredForRefundAsync(Guid refundId, CancellationToken ct);
 

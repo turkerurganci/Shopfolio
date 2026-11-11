@@ -1,0 +1,8 @@
+@page "/odeme/liste-urunler"
+@model Shopfolio.IntegrationTests.Pages.ProductGridSampleModel
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = "Ürünler";
+}
+@await Html.PartialAsync("_ProductGrid", Model.Cards)
+@await Html.PartialAsync("_Pager", Model.Pager)

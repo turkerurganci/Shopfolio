@@ -1,0 +1,13 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Lists
+@model IReadOnlyList<ProductCard>
+@* The product grid (04 2.11.5, 2.13.5; T545): two columns on the narrow class, three on the medium, four on the wide (the style sheet). The category page, the search result, the related products
+   and the home page's showcase all draw their cards through this one grid and the one card. The order is the list's: there is no sort control (04 2.13.1). *@
+<ul class="card-grid">
+    @foreach (var card in Model)
+    {
+        <li class="card-grid__item">
+            <partial name="_ProductCard" model="card" />
+        </li>
+    }
+</ul>

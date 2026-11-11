@@ -1,0 +1,23 @@
+@page "/panel/mesaj-sss"
+@using Shopfolio.Pages.Components
+@model Shopfolio.IntegrationTests.Pages.PanelMessageSampleModel
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Mesaj";
+}
+<p id="sample-content">Panel mesaj ornegi</p>
+
+<section id="warning">
+    @{ ViewData["Part"] = "warning"; }
+    <partial name="_PanelSalesStatus" model="Model.Status" />
+</section>
+<section id="checklist">
+    @{ ViewData["Part"] = "checklist"; }
+    <partial name="_PanelSalesStatus" model="Model.Status" />
+</section>
+<section id="conditions">
+    @{ ViewData["Part"] = "conditions"; }
+    <partial name="_PanelSalesStatus" model="Model.Status" />
+</section>
+
+<partial name="_Confirm" model="Model.Window" />

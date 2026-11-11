@@ -1,0 +1,27 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@model FormErrorSummary
+@*
+    The summary at the head of a submitted form (T541; 04 2.3.2, K-743): the number of wrong fields, a link to each, and the focus on the first wrong field - by the field's own autofocus attribute
+    (FormErrorSummary.AutofocusFor) without a script, and by common.js when the summary names a first field. The typed values stay: the form is drawn again with the sent values (07 2.2.2). The
+    messages at the level of the action - the refusal, the neutral limit sentence, the unexpected-error sentence - are lasting messages in place beside the action's button; they are not counted as fields and not drawn here.
+*@
+@if (Model.HasContent)
+{
+    <section class="error-summary" id="@FormErrorSummary.ElementId" tabindex="-1" role="alert" data-js="error-summary" data-first-field="@Model.FirstFieldId">
+        @if (Model.ErrorCount > 0)
+        {
+            <h2 class="error-summary__heading">
+                <span class="message__symbol" aria-hidden="true">@MessageSymbols.Of(MessageMeaning.Error)</span>
+                <span class="u-visually-hidden">@MessageSymbols.WordOf(MessageMeaning.Error)</span>
+                <span>@Model.Heading</span>
+            </h2>
+            <ul class="error-summary__list">
+                @foreach (FormFieldError field in Model.Fields)
+                {
+                    <li><a href="#@field.FieldId">@field.Text</a></li>
+                }
+            </ul>
+        }
+    </section>
+}

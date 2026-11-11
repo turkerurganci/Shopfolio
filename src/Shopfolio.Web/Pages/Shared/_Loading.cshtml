@@ -1,0 +1,9 @@
+@using Shopfolio.Pages.Components
+@model LoadingView
+@*
+    The loading state of a region (T541; 04 2.7.2, K-765): the frame stays; the waiting region keeps its place (min-height in components.css) and carries the text of the waiting. The whole screen is never covered.
+*@
+<div class="loading" role="status" aria-busy="true">
+    <span class="loading__indicator" aria-hidden="true"></span>
+    <span class="loading__text">@Model.Text</span>
+</div>

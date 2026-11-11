@@ -1,0 +1,24 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@model ErrorPageView
+@*
+    The error page of the page-level unexpected error (T541; 04 2.7.3.2; D-135): drawn inside the storefront's frame, the panel's frame or - on the panel screens without a frame (04 2.2.9) - bare with the
+    panel title only. A short explanation, "Yeniden dene" and the way home; no error code, request id or technical detail (07 2.7.3). Not the "Sayfa bulunamadı" page (E-06).
+*@
+@{
+    Layout = Model.Surface switch
+    {
+        ErrorSurface.Storefront => "_StorefrontLayout",
+        ErrorSurface.Panel => "_PanelLayout",
+        _ => "_PanelBareLayout",
+    };
+    ViewData["Title"] = Model.Title;
+}
+<section class="error-page">
+    <h1 class="error-page__title">@Model.Title</h1>
+    <partial name="_Message" model="Messages.InPlace(MessageMeaning.Error, Model.Message)" />
+    <p class="error-page__actions">
+        <a class="button button--primary" href="@Model.RetryPath">Yeniden dene</a>
+        <a class="button button--secondary" href="@Model.HomePath">@Model.HomeLabel</a>
+    </p>
+</section>

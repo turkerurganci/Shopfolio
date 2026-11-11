@@ -1,0 +1,72 @@
+@page "/sss/mesaj"
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Modules.Settings.Contracts.Gates
+@model Shopfolio.IntegrationTests.Pages.MessageSampleModel
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = "Mesaj";
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, Model.FormOrder);
+    FrameSales sales = new(Model.SalesClosed, false, !Model.DataClosed);
+    MessageView? closedAtButton = SalesClosedMessages.ForStorefront(sales, SalesGateOperation.AddToCart);
+    MessageView? closedAtForm = SalesClosedMessages.ForDataEntry(sales, DataCollectionEntry.ContactForm);
+}
+<p id="sample-content">Mesaj ornegi</p>
+
+<section id="messages">
+    <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, "Hata metni.")' />
+    <partial name="_Message" model='Messages.InPlace(MessageMeaning.Warning, "Uyari metni.")' />
+    <partial name="_Message" model='Messages.InPlace(MessageMeaning.Info, "Bilgi metni.")' />
+    <partial name="_Message" model='Messages.InPlace(MessageMeaning.Success, "Basari metni.")' />
+    <partial name="_Message" model='Messages.OnceTold(MessageMeaning.Info, "Bir kez soylenen metin.")' />
+    <partial name="_Message" model='Messages.ShortLivedSuccess("Kaydedildi.")' />
+    <partial name="_Message" model='Messages.PanelBlock("Kategori silinemez.", 3, "Once urunleri taslaga alin.")' />
+</section>
+
+<section id="sales">
+    @if (closedAtButton is not null)
+    {
+        <partial name="_Message" model="closedAtButton" />
+    }
+    @if (closedAtForm is not null)
+    {
+        <partial name="_Message" model="closedAtForm" />
+    }
+</section>
+
+<partial name="_FormErrorSummary" model="summary" />
+<form method="post" asp-antiforgery="true" action="/sss/mesaj?handler=Save" id="sample-form" data-js="submit-once">
+    <label for="Input_Name">Ad</label>
+    <input id="Input_Name" name="Input.Name" value="@Model.Input.Name" aria-invalid="@(summary.IsInvalid("Input_Name") ? "true" : null)" aria-describedby="@Messages.FieldMessageId("Input_Name")" autofocus="@(summary.AutofocusFor("Input_Name").Length > 0)" />
+    @foreach (FormFieldError error in summary.Fields.Where(f => f.FieldId == "Input_Name"))
+    {
+        <partial name="_Message" model='Messages.ForField(error.FieldId, error.Text)' />
+    }
+    <label for="Input_Sku">Stok numarasi</label>
+    <input id="Input_Sku" name="Input.Sku" value="@Model.Input.Sku" aria-invalid="@(summary.IsInvalid("Input_Sku") ? "true" : null)" aria-describedby="@Messages.FieldMessageId("Input_Sku")" autofocus="@(summary.AutofocusFor("Input_Sku").Length > 0)" />
+    @foreach (FormFieldError error in summary.Fields.Where(f => f.FieldId == "Input_Sku"))
+    {
+        <partial name="_Message" model='Messages.ForField(error.FieldId, error.Text)' />
+    }
+    <label for="Input_Note">Not</label>
+    <input id="Input_Note" name="Input.Note" value="@Model.Input.Note" />
+    <button type="submit" data-busy-label="Kaydet surüyor">Kaydet</button>
+</form>
+<form method="post" asp-antiforgery="true" action="/sss/mesaj?handler=Limit" id="limit-form">
+    <input name="Input.Name" value="@Model.Input.Name" />
+    <button type="submit">Giris yap</button>
+    @if (ViewData.ModelState.TryGetValue(string.Empty, out var limit) && limit.Errors.Count > 0)
+    {
+        <partial name="_Message" model='Messages.NeutralLimit("limit-message")' />
+    }
+</form>
+
+<section id="customer-step">
+    <partial name="_Confirm" model="Model.CustomerStep" />
+</section>
+
+<section id="states">
+    <partial name="_EmptyRow" model='EmptyStates.WithExit("Henuz urun yok.", "Ana sayfaya don", "/")' />
+    <partial name="_EmptyRow" model='EmptyStates.WithFirstRecordButton("Henuz adresiniz yok.", "Adres ekle", "/hesabim/adresler/yeni")' />
+    <partial name="_Loading" model='LoadingViews.Of("Siparisler yukleniyor")' />
+</section>

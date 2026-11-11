@@ -71,6 +71,7 @@ internal static class StorefrontFrameSetup
         ArgumentNullException.ThrowIfNull(builder);
         builder.Services.AddScoped<StorefrontFrameBuilder>();
         builder.Services.AddScoped<PanelFrameBuilder>();
+        builder.Services.AddScoped<Shopfolio.Infrastructure.Errors.IErrorPageRenderer, FramedErrorPageRenderer>();
         builder.Services.AddSingleton(sp => new StaticAssetResolver(sp.GetRequiredService<EndpointDataSource>()));
         builder.Services.Configure<MvcOptions>(options =>
         {

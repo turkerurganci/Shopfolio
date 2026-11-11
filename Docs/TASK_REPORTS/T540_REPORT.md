@@ -1,6 +1,6 @@
 # T540 — Tasarım tabanı, vitrin ve panel çerçevesi, yönetici şeridi ve Taslak bandı (OB-01, OB-02, OB-09)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor — doğrulama tur 1 ✗ FAIL (düzeltme bekliyor) | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı — doğrulama tur 2 ✓ PASS | **Tarih:** 2026-11-11
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -74,6 +74,10 @@
 
 | Alan | Sonuç |
 |---|---|
+| Doğrulama durumu (tur 2) | ✓ PASS — tur 2 (2026-11-11, head `0fddab5e`; `origin/main` `de34daf4` dal tabanında, birleştirme boş geçti). Kriter 1–9 ve KK1–KK9 ✓; B1 ("Ürünler" `<button type="button">`, `aria-expanded`/`aria-controls`, tıklama/Enter/Space ve Esc `common.js` `bindMenuTreeGroup`'ta, hover kuralı yok, betiksiz yolda ağaç açık) ve B2 (`admin.css` geniş sınıfta `.panel-content` `max-width: var(--content-max-width)` + `margin-inline: auto`) giderildi. Dal CI'ı yeşil (run 42960747674, dokuz iş), ana dal son üç run yeşil (42951686078, 42951686087, 42945971198). Yerelde: restore, derleme 0 uyarı (`-warnaserror`), format üç proje temiz, Unit 6777/6777, betik testleri 4/4, Integration TAM 3598/3598 (Web 623, Model 1407 — taze konteynerde ilk koşu yeşil, öteki ad alanları 1568; PostgreSQL 18 `track_commit_timestamp=on`). `12`: tarayıcı gözlemi isteyen KP-69…KP-71 satırları (VAL-A337…A350, B028…B092) BEKLEMEDE; VAL-A671 PASS (uç yanıtı ve veri kaydı: `TheMergeMessage_IsDrawnWithTheProductNames_ThenGone_T540_D1132` + T537'nin yönlendirme testi). |
+| Bulgu sayısı (tur 2) | 0 |
+| Bloke-etmeyen not (tur 2) | 2 — **K1** (D-1143'e forward): orta ve geniş sınıfta ETBİS bandı kimlik bloğunun altında; `04` 2.2.5 "hemen yanında — dar sınıfta hemen altında" der. **K2** (bu PR'da kapatıldı): raporun Notlar bölümü VAL-A125, A127, A128, A129, A133'ü PASS diye anıyordu; tur 1 bunları BEKLEMEDE'ye döndürmüştü, satır düzeltildi. |
+| Yapım raporu karşılaştırması (tur 2) | Kabul kriterlerinde tam uyum (1–9 ✓); öz denetim tablosu var, maddeler kanıtlı. 1 uyuşmazlık: K2 (Notlar'daki eski `12` satırı). |
 | Doğrulama durumu (tur 1) | ✗ FAIL — tur 1 (2026-11-11, head `f39d4137`; `origin/main` `de34daf4` dal tabanında, birleştirme gerekmedi). Kriter 3, 5–9 ve KK3, KK5–KK9 ✓; **kriter 1 / KK1 ~ Kısmi** (B2), **kriter 2 / KK2 ~ Kısmi** ve **kriter 4 / KK4 ✗** (B1). Dal CI'ı yeşil (run 42955145005), ana dal son üç run yeşil (42951686078, 42951686087, 42945971198). Yerelde: restore, derleme 0 uyarı (`-warnaserror`), format üç proje temiz, Unit 6764/6764, betik testleri 4/4, Integration TAM 3597/3597 (Web 622, Ordering 637, Model 1407, kalan 15 ad alanı 931; Model'in ilk koşusunda 1 kararsız kırmızı, iki yeniden koşuda yeşil — K2). `12_matris_denetle.py --kapsam 1-77` hata 0. |
 | Bulgu sayısı | 2 — **B1** (S1, ORTA; kriter 4 ve 2, `04` 2.1.4 kural (3), 2.1.2; komşu satırlar VAL-A001, VAL-A345, VAL-B054 — satırsız bulgu, satırlar tarayıcı kanıtı beklediği için BEKLEMEDE): orta ve geniş sınıfta vitrin menüsünün kategori ağacı klavyeyle ulaşılamaz. `storefront.css` `@media (min-width: 768px)` içinde `.site-menu__item--group > .site-menu__tree { display: none; }` ağacı yalnız `:hover` ya da `:focus-within` ile açar; grubun başlığı "Ürünler" odaklanamayan bir `<span class="site-menu__group-title">`'dır (`_StorefrontHeader.cshtml`) ve `display: none` altındaki bağlantılar sekme sırasından çıkar — grubun içinde odaklanacak öğe kalmaz, `:focus-within` hiç tetiklenmez. Sonuç: klavyeyle (ve fare üstüne gelmesi olmayan dokunmatik orta/geniş ekranda) birinci, ikinci ve üçüncü seviye kategorilerin hiçbiri menüden açılamaz (`04` 3.1.11); CSS yorumu ("the same links stay reachable by keyboard") ve D-1137'nin "içerik gizlenmez, bağlantı çalışır" cümlesi bu yüzden yanlış. **B2** (S1, DÜŞÜK; kriter 1, `04` 2.1.1, `05 §3.8.2`; VAL-B062 → FAIL): panel çerçevesinde geniş sınıfta içerik sınırlı genişlikte durmaz — `.panel-content` (`admin.css`) yalnız `flex: 1 1 auto` taşır, `max-width` yok; 1280 ile daha geniş pencere arasında panel içeriği ekranla yayılır. Vitrin `.container` (`--content-max-width: 72rem`) kuralı karşılar. |
 | Düzeltme gerekli mi | Evet — **B1:** ağaç orta/geniş sınıfta klavyeyle ve dokunmayla açılmalı (ör. "Ürünler" başlığı `aria-expanded` taşıyan bir düğme olur, betiksiz yolda ağaç açık kalır ya da `:focus-within` için odaklanabilir bir öğe; seçim yapımın), CSS yorumu ve D-1137 buna göre güncellenir, kaynak taraması ya da entegrasyon testi gizli ağacın odaklanabilir bir tetikleyicisi olduğunu sınar. **B2:** `.panel-content` (ya da içindeki sarmalayıcı) geniş sınıfta sınırlı genişlik alır (değişken `base.css`'te); vitrin kuralıyla aynı ilke. |
@@ -91,7 +95,7 @@
 
 - **Branch:** `task/T540-tasarim-tabani-cerceve`
 - **PR:** #534
-- **CI:** *(yönetici izler)*
+- **CI:** yeşil — run 42960747674 (head `0fddab5e`, doğrulama tur 2)
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar
@@ -128,6 +132,6 @@ Dış varsayım: yok. Task yalnız uygulama içi düzen, stil ve model kurar; pl
 ## Notlar
 
 - **⚠ kolay kararlar:** global `_ViewStart` yok (her sayfa düzenini adıyla seçer); `Assets` yerine `StaticAsset` yardımcısı (Razor Pages'te derlenmedi); Web'de `_ViewImports` yok (test projesindekiyle tür çakışıyordu); panel başlığı "Shopfolio Panel"; Taslak bandı metni "Bu kayıt yayında değil, yalnız siz görüyorsunuz."; panel menü işareti "Bekleyen iş"; filtreler `RelativePath` yerine `ViewEnginePath` kullanır (T537 kodu panel sayfalarını ayıramıyordu); `wa.me/<rakam>` sohbet bağlantısı paylaşım taramasından ayrıldı (sohbet bağlantısı, paylaşım değil: `04` 2.2.3); çıkış formu modeli `Action` yerine `Path` taşır, `?handler=SignOut` görünümde yazılı (06/07 işleyici kuralı taraması); birleşme kutusunun kancası `data-js="merge-notice"` (bildirim parametresi adıyla çakışıyordu); `SessionAccessTests` kapalı listesine test projesinin çerçevesiz örnek sayfası `/panel/davet/{key}` eklendi (üründe davet sayfası aynı adreste gelecek).
-- **12 Durum hücreleri:** VAL-A125, A127, A128, A129, A133, A671 PASS'a çekildi (kanıt yukarıdaki testler; doğrulayıcı onaylar). VAL-A126, A130, A131, A132, A134, A135 BEKLEMEDE bırakıldı (kanıtı bu task'ta yok: işletme adı ya da marka kimlik sayfasında, rehber sayfasının kendisi T507, sosyal bağlantı ve WhatsApp düğmesi birim düzeyinde sınandı ama tarayıcı gözlemi yok, Paylaş düğmesi ürün ve içerik sayfalarında).
+- **12 Durum hücreleri:** VAL-A671 PASS (uç yanıtı ve veri kaydı kanıtı; doğrulama tur 2 onayladı). VAL-A125, A127, A128, A129, A133'ü yapım PASS'a çekmişti; doğrulama tur 1 tarayıcı gözlemi olmadığı için BEKLEMEDE'ye döndürdü (tur 2 K2). VAL-A126, A130, A131, A132, A134, A135 BEKLEMEDE bırakıldı (kanıtı bu task'ta yok: işletme adı ya da marka kimlik sayfasında, rehber sayfasının kendisi T507, sosyal bağlantı ve WhatsApp düğmesi birim düzeyinde sınandı ama tarayıcı gözlemi yok, Paylaş düğmesi ürün ve içerik sayfalarında).
 - **Repo memory:** dokunulmadı.
 - Önceki iki işçi bağlam sınırında bölündü; bu tur: mimari taramalar, KK2 testi, belgeler, kayıtlar, tam Unit ve parçalı Integration.

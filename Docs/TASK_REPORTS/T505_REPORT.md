@@ -64,10 +64,14 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu (tur 1) | ✗ FAIL — tur 1 (2026-11-11, head `9321aac8`; `origin/main` `157e7ec3` (T543 #539) birleştirildi, çakışma yok, doğrulama birleşik ağaçta). Kriter 1–3, 5–8 ve KK1–KK3, KK5–KK8 ✓; kriter 4 / KK4 ✗ (B1) |
+| Bulgu sayısı (tur 1) | 1 — **B1** (S1, ORTA; kriter 4 / KK4; satırsız bulgu — KP-32 satırları `VAL-A115`…`A119` tarayıcı gözlemi bekler): içerik sayfası kaydın kısa metnini (`ContentPageView.Summary` → `ContentRecordPageModel.Summary`) `_ContentRecordBody.cshtml`'de başlığın altında `<p class="content-page__summary">` olarak çiziyor. `04` 5.8.3'ün bilgi hiyerarşisi beş öğedir — ad ya da başlık, görseller, metin, türe özgü bölge, "Paylaş" — kısa metin yoktur; `04` 5.8.4 Hakkımızda için "uzun metin ve görseller; kısa tanıtım ana sayfanın bloğundadır" der; `06 §4.47`/§4.48 `ShortDescription`'ın yerini "listedeki kartta görünür" (ve arama motoru açıklaması) diye yazar. Gerçekleşen: `/hakkimizda` kısa tanıtımı, `/hizmet/{slug}` ve `/referans/{slug}` kısa açıklamayı sayfada gösteriyor; `ContentPagesTests.ARecordPage_…_T505_KK4` bunu `Assert.Contains("Kısa tanıtım.")` ile kilitliyor. Düzeltme: sayfa gövdesinden kısa metin paragrafı (ve kullanılmıyorsa `Summary` özelliği ile `.content-page__summary` stili) kalkar, arama motoru açıklaması (`RecordPages.Content`/`FixedContent`'e giden `page.Summary`) kalır; KK4 testi kısa metnin gövdede olmadığını ve açıklama meta'sında olduğunu sınar |
+| Düzeltme gerekli mi | Evet — B1 aynı PR'da (tur 2) |
+| Bloke-etmeyen not (K) sayısı (tur 1) | 2 — **K1** (bu PR'da kapatıldı): D-1210 "tip adları `07`'den teyit edilmedi" diyordu; `07 §3.1.1` `{tip}` kapalı listesi `hakkimizda`, `hizmet`, `referans`, `sayfa`'yı birebir tanımlar (K-1175), `PanelType` değerleri doğru — kayıt ✅ kapatıldı. **K2** (bu PR'da kapatıldı): raporun Notlar bölümü "`12`'de T505'e eşlenen VAL satırı yok" diyordu; KP-32 grep'i `VAL-A115`…`VAL-A119`'u getirir (T505 KP-32'nin son sahibi; `11 §7.1`) — not düzeltildi; satırlar tarayıcı gözlemi beklediği ve tur FAIL olduğu için `BEKLEMEDE` kaldı |
+
+**Validator kanıtları (tur 1):** kriter 1 ✓ (`StorefrontContentPages.ListAsync` → `ContentReaders.ListOfferingsAsync`/`ListPortfolioItemsAsync`: yalnız `Published`, `SortOrder`→`CreatedAt`→`Id`, `PageSizes.ContentList`; tip adı menünün adı — gizli öğe de `Items`'ta, `First` boş tipte düşmez; `…_T505_KK1` iki test: 26 kayıt elle ters sırada, 24 + 2, `page=99` son sayfa, ad değişikliği, `?x=1` noindex) · 2 ✓ (`…_KK2`: taslak yok, boş tip boş hâl + ana sayfa yolu, menüde `/referanslar` yok) · 3 ✓ (dört `@page`, `/hakkimizda/baska` 404; `07 §4.8.1`) · 4 ✗ (B1; galeri sırası, etkin alt metin, `RichText.Render` ile `<script>` süzülmesi, "Paylaş" ✓) · 5 ✓ (`ContentProductLinks.ListRelatedCardsAsync` → `ProductListReader.ListCardsAsync` `Listed()` ile; bağ sırası korunur; `…_KK5` taslak/arşiv yok, hiçbiri yayında değilken ve bağsızken başlık yok, referans yolu) · 6 ✓ (hizmette `href="/iletisim"` "Bize ulaşın", referans/genel sayfada yok; altı adreste `<form` yok, POST 200/303 değil) · 7 ✓ (`HasAdminSessionAsync` sunucuda; dört tipte ziyaretçi 404, yönetici 200 + `draft-band` + `noindex` + panel bağlantısı `/panel/kurumsal-icerik/hizmet/{id}`; yayındaki kayıt noindex'siz) · 8 ✓ (bilinmeyen, başka tipin slug'ı, taslak, boşluk, geçersiz bölüm 404; büyük harf 200 — `07 §2.1.7`). Yerel (birleşik ağaç): restore ✓, `build -warnaserror` 0/0, `dotnet format --verify-no-changes` üç proje 0, Unit 7114/7114, betik testleri 4/4, Integration TAM ad alanı parçalarıyla 3704/3704 (CorporateContent 194, Web 720, Pages+Pages.Panel+Administration+Catalog+Files+Payment+Security+SignedEndpoints+Outages+FileSecrets 434, Ordering 637, Model 1407, Database+Jobs+Disposal+Commands+Logging+Concurrency+kök 312; Postgres 18 `track_commit_timestamp=on`). CI: PR #543 run 43022135662 (head `9321aac8`) dokuz iş yeşil. Ana dal son 3: 43011159643, 43011159636, 42994459437 success. `12_matris_denetle.py --kapsam 1-77` Hata 0; `Durum` hücresi değişmedi. Güvenlik: yeni POST yok, yetki sunucuda, metin süzülüyor, `Html.Raw`/satır içi stil/yeni paket/sır yok.
+
+**Yapım raporu karşılaştırması (tur 1):** öz denetim tablosu var ve kanıtlı; uyuşmazlık 2 — kriter 4'ü ✓ saymış (B1: "ad, özet, galeri, metin" bilinçli çizilmiş, `04` 5.8.3/5.8.4 ile çelişkisi kayda geçmemiş); `12` notu satırları yok saymış (K2).
 
 ## Altyapı Değişiklikleri
 
@@ -95,7 +99,7 @@
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
 | 1 | "Bize ulaşın" düz `/iletisim`; sayfa içi çapa iletişim formunun kimliğine bağlı | D-1209 | Form T506'da yazılır |
-| 2 | Panel kayıt adresi tip adları `07`'den teyit edilmedi | D-1210 | Panel içerik formu task'ı doğrular |
+| 2 | Panel kayıt adresi tip adları — doğrulama tur 1'de `07 §3.1.1` ile teyit edildi, kayıt kapandı | D-1210 ✅ | — |
 | 3 | Video ayrı alan değil, metnin bağlantısı (`04` 5.8.6) | D-1211 | Karar kaydı; yeni istek gelirse |
 | 4 | `ListPublishedProductCardsAsync` yalnız "İlgili ürünler" için; ana sayfa vitrini `ShowcaseProduct` | D-1212 | T502 aynı yöntemi kullanır |
 | 5 | Örnek sayfalar `/sss/ornek-*`; T506 `/sss/{…}` kalıbı eklerse çakışır | D-1213 | T506 |
@@ -109,4 +113,4 @@ Kapanan kalemler: D-671 (kart alt metni boşken kayıt adı; galeri etkin metni)
 - **Ana dal CI startup (Adım 0):** son 3 run success: 42994459437, 42994459582, 42991019324.
 - **Repo memory (bitiş kapısı 9):** `MEMORY.md`'ye dokunulmadı.
 - **⚠ Kararlar:** "Bize ulaşın" çapasız `/iletisim`; video bağlantısı metnin bağlantısı; katalog arayüzüne `ListPublishedProductCardsAsync` eklendi; panel kayıt adresi tip adları teyitsiz; menü öğesi gizleme çerçeve (T537) tarafından, testte doğrulandı; örnek sayfalar `/sss/ornek-*`.
-- **`12`:** `12`'de T505'e eşlenen VAL satırı yok (E-07/E-08 için VAL-B062, VAL-B065, VAL-B066 tarayıcı gözlemi, BEKLEMEDE; `Durum` hücresine dokunulmadı — doğrulayıcının işi).
+- **`12`:** T505'in KP-32 satırları `VAL-A115`…`VAL-A119` (doğrulama tur 1 K2; KP-32 → T358, T359, T505); kanıt türleri tarayıcı gözlemi içerir, `BEKLEMEDE`. `VAL-A117`'nin SSS payı T506'dadır. E-07/E-08'in KP-69 satırları VAL-B062, VAL-B065, VAL-B066 tarayıcı gözlemi, BEKLEMEDE.

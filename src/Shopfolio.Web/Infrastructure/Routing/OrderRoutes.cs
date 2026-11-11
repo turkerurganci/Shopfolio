@@ -50,6 +50,20 @@ internal static class OrderRoutes
         return StartsWithRoot(template, MemberRoot) || StartsWithRoot(template, AccessRoot);
     }
 
+    /// <summary>The address of an order's access-key root (07 2.1.3): the key as it is, case sensitive (07 2.1.7); it holds only the letters the root's pattern allows.</summary>
+    public static string AccessPath(string accessKey)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(accessKey);
+        return "/" + AddressRules.OrderArea + "/" + AccessSegment + "/" + accessKey;
+    }
+
+    /// <summary>The address of a member's order root (07 2.1.3) for the order number as it is written.</summary>
+    public static string MemberPath(string orderNumber)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(orderNumber);
+        return "/" + AddressRules.OrderArea + "/" + orderNumber;
+    }
+
     private static string Combine(string root, string screen)
     {
         ArgumentNullException.ThrowIfNull(screen);

@@ -82,6 +82,12 @@ public interface IPaymentModule
     /// </summary>
     Task<decimal> SentRefundTotalAsync(Guid orderId, CancellationToken ct);
 
+    /// <summary>
+    /// The order's refunds that were carried out, in the order of their dates (04 5.16.7; K-826): sent and not voided - the late payment's refund included, the page shows it
+    /// too (02 6.2.16). A refund still waiting to be processed or settled is not in the list. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<SentRefund>> ListSentRefundsAsync(Guid orderId, CancellationToken ct);
+
     /// <summary>The panel marks of the order's card refunds (02 7.2.8; 05 4.6.2), the changes of the open transaction included.</summary>
     Task<RefundMarks> ReadRefundMarksAsync(Guid orderId, CancellationToken ct);
 

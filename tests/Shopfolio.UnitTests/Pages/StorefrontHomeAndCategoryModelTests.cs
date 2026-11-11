@@ -202,6 +202,19 @@ public sealed class StorefrontHomeAndCategoryModelTests
         Assert.DoesNotContain(".category-layout", hide + show, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void TheStyleSheet_PutsTheBandLayoutOfTheCorporateBlockSideBySide_FromTheMediumClassUp_KK1()
+    {
+        string css = File.ReadAllText(StyleSheetPath("storefront.css"));
+
+        // Only a min-width condition starts the side-by-side rule (09 16.1); outside it the grid is the single narrow column (04 5.1.13).
+        string medium = BlockOf(css, "@media (min-width: 768px) {\n    .home-intro--wide");
+
+        Assert.Contains(".home-intro--band", medium, StringComparison.Ordinal);
+        Assert.Contains(".home-intro--wide", medium, StringComparison.Ordinal);
+        Assert.Contains("grid-template-columns: repeat(2, minmax(0, 1fr));", medium, StringComparison.Ordinal);
+    }
+
     private static string BlockOf(string css, string start)
     {
         string text = css.Replace("\r\n", "\n", StringComparison.Ordinal);

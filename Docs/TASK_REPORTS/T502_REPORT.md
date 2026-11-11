@@ -22,9 +22,9 @@
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | Dört blok, firmanın düzeni | ✓ | `StorefrontHomeAndCategoryTests.TheHomePage_ShowsTheFourBlocks_…_KK1`; Unit `TheHomePage_KeepsTheModulesBlockOrder_…_KK1` |
+| 1 | Dört blok, firmanın düzeni; kök adres kapalı listede; mağaza öncelikli düzende kurumsal blok orta ve geniş sınıfta yan yana tek bant | ✓ | `StorefrontHomeAndCategoryTests.TheHomePage_ShowsTheFourBlocks_…_KK1`; Unit `TheHomePage_KeepsTheModulesBlockOrder_…_KK1`; Düzeltme 1: `PageFormPatternTests.EveryMappedEndpoint_StartsWithAFirstSegmentOfTheClosedList` (27/27), Unit `AddressRulesTests.IsClosedFirstSegment_OnlyForTheListedFirstSegments("", true)`, `TheStyleSheet_PutsTheBandLayoutOfTheCorporateBlockSideBySide_FromTheMediumClassUp_KK1` |
 | 2 | İlk üç işaretli kayıt; sekiz/dört ürün; orta sınıf kuralı stilde, tarayıcı sınaması 12'de | ✓ | `TheServiceAndReferenceBlocks_ShowTheFirstThreeFlaggedRecords_…_KK2`, `TheShowcase_IsTheNewestPublishedProducts_Eight…_KK2`; Unit `TheStyleSheet_HidesTheIncompleteShowcaseRow_…_KK2`; tarayıcı: D-1199 (VAL-A408–A410) |
-| 3 | Yayında ürünü olan birinci seviye kategori bağlantıları | ✓ | `TheCategoryLinks_AreTheFirstLevelCategories…_KK3` (alt dal ürünü üst kategoriyi gösterir; ürünsüz ve yalnız taslaklı yok) |
+| 3 | Yayında ürünü olan birinci seviye kategori bağlantıları | ✓ | `TheCategoryLinks_AreTheFirstLevelCategories…_KK3` (alt dal ürünü üst kategoriyi gösterir; ürünsüz ve yalnız taslaklı yok); Düzeltme 1: `TheCategoryLinks_AreInAlphabeticalOrderOfTheName_NotInTheOrderOfCreation_KK3` (D-1219) |
 | 4 | Satış kapalıyken vitrin aynı; yapılandırılmış veri ilk yanıtta | ✓ | `WhileSalesAreClosed_TheShowcaseIsTheSame_…_KK4` |
 | 5 | Alt dallı tek liste, en yeni önce | ✓ | `TheCategoryPage_ListsTheProductsOfTheCategoryAndOfItsBranches_NewestFirst_KK5` |
 | 6 | page/minPrice/maxPrice/inStock; aşım son sayfa; noindex | ✓ | `APageBeyondTheLast_ShowsTheLastPage_…_KK6`; Unit `TheQuery_ReadsThePriceBounds…_KK6` |
@@ -54,7 +54,18 @@
 |---|---|---|---|
 | Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/... --filter-not-trait "Consistency=true"` | tam koşu 6735 test, ilk koşuda 2 kırık (stil koşulu, model bağlama); düzeltmeden sonra ilgili sınıflar 141/141 |
 | Integration | ✓ (hedefli) | `--filter-class StorefrontHomeAndCategoryTests, ListPatternPageTests, SearchEngineDataTests, StorefrontReadersTests, StorefrontFrameTests` | 137/137 (yeni sınıf 12) |
+| Unit (düzeltme 1) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/... --no-build` (Consistency dahil, tam) | 7046/7046 |
+| Integration (düzeltme 1, TAM) | ✓ | `--filter-namespace` parçaları (Administration, Catalog, Commands, Concurrency, CorporateContent, Database, Disposal, FileSecrets, Files, Jobs, Logging, Model, Ordering, Outages, Payment, Security, SignedEndpoints) ve `Web` sınıf adı parçaları (A*…V*); `Pages` ad alanında test yok | 3687/3687 (Web 712, Model 1407, Ordering 637; yeni Integration testi 1); konteyner `shopfolio-t502-fix1-pg`, `track_commit_timestamp=on`; DB zaman aşımı olmadı |
+| Build / format (düzeltme 1) | ✓ | `dotnet build -warnaserror`; `dotnet format --verify-no-changes` ×3 | 0 uyarı, çıkış 0 |
 | Contract | n/a | — | — |
+
+## Düzeltme 1 (2026-11-11)
+
+- **B1 (ORTA):** ana sayfa `/` kapalı ilk bölüm listesinde sayılır: `AddressRules.IsClosedFirstSegment` boş ilk bölümü ana sayfa (`HomePage = "/"`) olarak kabul eder; `ClosedFirstSegments` listesi ve `07 §2.1.2` eşitliği (`AddressListConsistencyTests`) değişmedi, tarama genişletilmedi, istisna açılmadı. Listeyi anan öteki yerler `git grep` ile tarandı (`AddressTemplates`, `SearchEngineClosure`, `SearchEngineSourceScanTests`, `SearchEngineDataTests`, `ContentRelationsTests`): yalnız `AddressRulesTests`'in `("", false)` örneği `("", true)` oldu.
+- **B2 (DÜŞÜK):** `.home-intro--band` orta sınıftan (`min-width: 768px`) iki sütun, dar sınıfta alt alta; CSS yorumu düzeltildi; kaynak taramasıyla sınandı.
+- **K1 → D-1218:** hedefi T503/T505 olan kalan parçalar (D-477 ürün sayfası, D-691 ürün/içerik, D-353 projeksiyon) bu task'ın kapsamı dışında; kayıt olduğu gibi T503'e ileri.
+- **K2 → D-1219/D-1202:** KK3'e sıra sınaması eklendi; D-1202 ve D-1219 ✅.
+- **Öz denetim:** KK1–KK9'un bütün maddeleri yeniden denetlendi (yukarıdaki tablo; testler tam Integration'da yeşil). Sık FAIL nedenleri okundu: "yeni sayfa mevcut tarama sınamasını kırdı" (tam Integration koşuldu), "belgedeki yerleşim kuralının stili yazılmadı" (stil + sınama eklendi), "aynı sayıyı anan öteki yerler" (liste tarandı).
 
 ## Doğrulama
 

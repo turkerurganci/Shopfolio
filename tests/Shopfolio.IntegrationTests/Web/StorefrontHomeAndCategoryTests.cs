@@ -196,6 +196,25 @@ public sealed class StorefrontHomeAndCategoryTests : IAsyncLifetime
         Assert.DoesNotContain("Sandalyeler", html, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task TheCategoryLinks_AreInAlphabeticalOrderOfTheName_NotInTheOrderOfCreation_KK3()
+    {
+        Guid last = await SeedCategoryAsync("Zeytin", null);
+        Guid middle = await SeedCategoryAsync("Mobilya", null);
+        Guid first = await SeedCategoryAsync("Ahşap", null);
+        await SeedProductAsync("Zeytin ürünü", last, 10m, 1);
+        await SeedProductAsync("Mobilya ürünü", middle, 10m, 1);
+        await SeedProductAsync("Ahşap ürünü", first, 10m, 1);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = factory.CreateClient();
+
+        string page = await GetOkAsync(client, "/");
+        string html = Regex.Match(page, """<ul class="home-showcase__categories".*?</ul>""", RegexOptions.Singleline | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)).Value;
+        string[] names = [.. Regex.Matches(html, """>([^<]+)</a>""", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)).Select(m => m.Groups[1].Value)];
+
+        Assert.Equal(["Ahşap", "Mobilya", "Zeytin"], names);
+    }
+
     // --- KK4: closed sales, structured data ---
 
     [Fact]

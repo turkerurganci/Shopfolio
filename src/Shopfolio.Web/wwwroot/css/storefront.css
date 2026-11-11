@@ -512,7 +512,8 @@
     margin-block-start: var(--space-3);
 }
 
-/* The corporate block (04 5.1.4): the band layout stacks the picture and the text; the wide layout puts them side by side from the medium class up. */
+/* The corporate block (04 5.1.4, 5.1.13): both layouts put the short introduction and the main picture side by side from the medium class up (the band layout is one narrow strip,
+   the wide layout is the full block); the narrow class stacks them in both (K-753). */
 .home-intro {
     display: grid;
     gap: var(--space-4);
@@ -557,7 +558,8 @@
 }
 
 @media (min-width: 768px) {
-    .home-intro--wide {
+    .home-intro--wide,
+    .home-intro--band {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }

@@ -69,7 +69,7 @@ public sealed class FormSourceScanTests
     [InlineData(".form-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }")]
     [InlineData(".form-fields { display: grid; }")]
     [InlineData(".form-fields { grid-template-columns: minmax(0, 1fr); } .form-fields--paired { grid-template-columns: repeat(2, minmax(0, 1fr)); }")]
-    [InlineData(".form-fields { grid-template-columns: minmax(0, 1fr); } @media (max-width: 767px) { .form-fields--paired { grid-template-columns: 1fr 1fr; } }")]
+    [InlineData(".form-fields { grid-template-columns: minmax(0, 1fr); } @media (max-width: 767px)" + " { .form-fields--paired { grid-template-columns: 1fr 1fr; } }")]
     public void AFormThatIsNotOneColumnOnTheNarrowClass_IsFound_KK2(string css)
     {
         Assert.NotEmpty(ColumnViolations(css));
@@ -78,7 +78,7 @@ public sealed class FormSourceScanTests
     [Fact]
     public void AFormThatPairsFieldsInsideAMinWidthBlock_IsQuiet_KK2()
     {
-        Assert.Empty(ColumnViolations(".form-fields { grid-template-columns: minmax(0, 1fr); } @media (min-width: 768px) { .form-fields--paired { grid-template-columns: repeat(2, minmax(0, 1fr)); } }"));
+        Assert.Empty(ColumnViolations(".form-fields { grid-template-columns: minmax(0, 1fr); } @media (min-width: 768px)" + " { .form-fields--paired { grid-template-columns: repeat(2, minmax(0, 1fr)); } }"));
     }
 
     // ---- KK3: a closed list is never built as a text box ----

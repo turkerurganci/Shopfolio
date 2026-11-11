@@ -113,8 +113,8 @@ public sealed class FormComponentTests
         string sections = html[sectionsStart..html.IndexOf("<section id=\"address\"", sectionsStart, StringComparison.Ordinal)];
 
         Assert.Equal(2, Regex.Count(sections, "<form ", RegexOptions.CultureInvariant, PatternTimeout));
-        Assert.Contains("name=\"handler\" value=\"SaveBrand\"", sections, StringComparison.Ordinal);
-        Assert.Contains("name=\"handler\" value=\"SaveSocial\"", sections, StringComparison.Ordinal);
+        Assert.Contains("handler=SaveBrand", sections, StringComparison.Ordinal);
+        Assert.Contains("handler=SaveSocial", sections, StringComparison.Ordinal);
         string brandForm = sections[..sections.IndexOf("</form>", StringComparison.Ordinal)];
         Assert.Contains("name=\"Input.Brand\"", brandForm, StringComparison.Ordinal);
         Assert.DoesNotContain("name=\"Input.Social\"", brandForm, StringComparison.Ordinal);

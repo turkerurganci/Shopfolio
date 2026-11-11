@@ -239,14 +239,14 @@ public static class Fields
 }
 
 /// <summary>
-/// One section of a form that is saved by sections (04 2.12.1.5; K-752): its heading, its fields and its own save button. The button carries the section's handler as its value (09 16.2 item 3), so a
+/// One section of a form that is saved by sections (04 2.12.1.5; K-752): its heading, its fields and its own save button. The form names the section's handler (07 2.2.1), so a
 /// section saves its own fields and the others stay as they are. The section is its own <c>form</c>: the fields of another section are not sent with it.
 /// </summary>
 /// <param name="Id">The element id of the section.</param>
 /// <param name="Heading">The section's heading.</param>
 /// <param name="Fields">The fields of the section, in the order they are drawn.</param>
 /// <param name="SaveLabel">The text of the section's own save button.</param>
-/// <param name="Handler">The page handler the button names (<c>SaveBrand</c>).</param>
+/// <param name="Handler">The page handler the section's form names (<c>SaveBrand</c>).</param>
 public sealed record FormSectionView(string Id, string Heading, IReadOnlyList<FieldView> Fields, string SaveLabel, string Handler)
 {
     /// <summary>Builds the sections of a screen: each has a heading, a save button and a handler of its own; two sections never share a handler (04 2.12.1.5).</summary>

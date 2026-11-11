@@ -58,7 +58,7 @@
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
 | Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build --max-threads 3` | 7040/7040 |
-| Integration | ⏳ | parçalı, `SHOPFOLIO_TEST_DATABASE` Postgres 18 (`track_commit_timestamp=on`) | Web parça 1 (11 sınıf) 148/148; Web parça 2 (16 sınıf) + `Ordering.CartTests` 352/352. Kalan: Web parça 3 (RequestLimits…VersionedFormPage, 14 sınıf) ve öteki ad alanları |
+| Integration | ⏳ | parçalı, `SHOPFOLIO_TEST_DATABASE` Postgres 18 (`track_commit_timestamp=on`) | Web ad alanı TAM (41 sınıf, üç parça): 148/148, 352/352 (`Ordering.CartTests` dahil), 274/274; Ordering ad alanı 638/638. Kalan: Model ve öteki küçük ad alanları |
 | Biçim | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` | Web, Unit temiz (değişen dosyalar); Integration devir 4'te temiz |
 
 ## Altyapı Değişiklikleri

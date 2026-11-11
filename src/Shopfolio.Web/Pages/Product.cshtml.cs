@@ -2,11 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Infrastructure.SearchEngine;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Categories;
 using Shopfolio.Modules.Catalog.Contracts.Pricing;
@@ -89,8 +91,9 @@ public sealed class ProductModel : PageModel
         Guid? variantId = input.ReadVariantId();
         if (variantId is null)
         {
-            // No variant chosen: the field message of the selection (04 7.1.2.1); the page is shown with the default variant.
-            View = await BuildAsync(page, VariantSelection.Default(page.Variants), BuyState.Of(input.Quantity, optionMessage: CartAddMessages.SelectOptionText), ct);
+            // No variant chosen: the field message of the selection (04 7.1.2.1) through the common rule (09 3.4); the page is shown with the default variant.
+            ModelState.AddFieldError(nameof(AddCartItemInput.VariantId), FieldCodes.FieldRequired);
+            View = await BuildAsync(page, VariantSelection.Default(page.Variants), BuyState.Of(input.Quantity), ct);
             return FormResults.Redisplay(this);
         }
 
@@ -105,13 +108,15 @@ public sealed class ProductModel : PageModel
         SalesGate gate = await _settings.GetSalesGateAsync(ct);
         if (!gate.Permits(SalesGateOperation.AddToCart))
         {
-            return await RefuseAsync(page, variant, input.Quantity, SalesClosedMessages.StorefrontText, ct);
+            return await RefuseAsync(page, variant, input.Quantity, ErrorCode.SalesClosed, SalesClosedMessages.StorefrontText, ct);
         }
 
         int? quantity = CartQuantity.Read(page.Type, input.Quantity);
         if (quantity is null)
         {
-            return await RefuseAsync(page, variant, input.Quantity, null, ct, quantityMessage: CartQuantity.InvalidText);
+            // The quantity field's rule (04 7.1.2.2) through the common rule (09 3.4): the filter writes the field line and the text comes from the catalog.
+            ModelState.AddFieldError(nameof(AddCartItemInput.Quantity), FieldCodes.InvalidQuantity, DisplayFormat.Number(CartQuantity.Max));
+            return await RefuseAsync(page, variant, input.Quantity, null, null, ct);
         }
 
         CartOwner? owner = OwnerOf(HttpContext, out bool isGuest, out string? guestKey);
@@ -121,7 +126,7 @@ public sealed class ProductModel : PageModel
             DigitalAddCheck check = await _ordering.CheckDigitalAddAsync(new DigitalAddRequest(variant.Id, page.Type, quantity.Value, cartId, StorefrontFrameBuilder.CustomerOf(HttpContext)), ct);
             if (check.IsBlocked)
             {
-                return await RefuseAsync(page, variant, input.Quantity, CartAddMessages.AlreadyInCartText, ct);
+                return await RefuseAsync(page, variant, input.Quantity, ErrorCode.DigitalVariantAlreadyInCart, CartAddMessages.AlreadyInCartText, ct);
             }
         }
 
@@ -142,14 +147,29 @@ public sealed class ProductModel : PageModel
             return FormResults.SeeOther(VariantSelection.PathFor(productPath, variant), NoticeCode.CartItemAdded);
         }
 
-        return attempt.Result.Outcome switch
+        // Every named refusal writes its one rejection line with 07's code (07 6.1.3, 6.2.3; D-638): the mapping is the cart's, written once in CartRefusalCodes. The 404 answers write none (07 2.3.3).
+        CartAddOutcome outcome = attempt.Result.Outcome;
+        if (outcome is CartAddOutcome.NotOnSale or CartAddOutcome.VariantNotFound)
         {
-            CartAddOutcome.NotOnSale or CartAddOutcome.VariantNotFound => NotFound(),
-            CartAddOutcome.InvalidQuantity => await RefuseAsync(page, variant, input.Quantity, null, ct, quantityMessage: CartQuantity.InvalidText),
-            CartAddOutcome.OverOrderLimit => await RefuseAsync(page, variant, input.Quantity, CartAddMessages.OrderLimitText(attempt.Result.OrderLimit ?? 0), ct),
-            CartAddOutcome.SoldOut => await RefuseAsync(page, variant, input.Quantity, CartAddMessages.SoldOutText, ct),
-            _ => await RefuseAsync(page, variant, input.Quantity, CartAddMessages.NoStockText, ct),
+            return NotFound();
+        }
+
+        ErrorCode code = CartRefusalCodes.CodeOf(outcome);
+        if (outcome == CartAddOutcome.InvalidQuantity)
+        {
+            // The module's own quantity rule (a digital product's quantity other than one, a number out of range) is the quantity field's message (04 7.1.2.2; 09 3.4); the filter writes the line.
+            ModelState.AddFieldError(nameof(AddCartItemInput.Quantity), FieldCodes.InvalidQuantity, DisplayFormat.Number(CartQuantity.Max));
+            return await RefuseAsync(page, variant, input.Quantity, null, null, ct);
+        }
+
+        string text = outcome switch
+        {
+            CartAddOutcome.OverOrderLimit => CartAddMessages.OrderLimitText(attempt.Result.OrderLimit ?? 0),
+            CartAddOutcome.SoldOut => CartAddMessages.SoldOutText,
+            CartAddOutcome.AlreadyInCart => CartAddMessages.AlreadyInCartText,
+            _ => CartAddMessages.NoStockText,
         };
+        return await RefuseAsync(page, variant, input.Quantity, code, text, ct);
     }
 
     /// <summary>The cart the request adds to: a member's, or the guest browser's from its cookie; null for a browser with no cart key yet (<paramref name="guestKey"/> stays null).</summary>
@@ -173,10 +193,16 @@ public sealed class ProductModel : PageModel
         return CartOwner.ForGuest(key);
     }
 
-    // The 422: the page again with the variant the form named, the typed quantity and the message beside the button (04 5.4.10, 2.3.1.2).
-    private async Task<IActionResult> RefuseAsync(ProductPage page, ProductPageVariant variant, string? typedQuantity, string? message, CancellationToken ct, string? quantityMessage = null)
+    // The 422: the page again with the variant the form named, the typed quantity and the message beside the button (04 5.4.10, 2.3.1.2). A named refusal writes its rejection line first (07 6.1.3; D-638);
+    // a field error (code null, the message in the model state) leaves the line to the validation filter (09 3.4).
+    private async Task<IActionResult> RefuseAsync(ProductPage page, ProductPageVariant variant, string? typedQuantity, ErrorCode? code, string? message, CancellationToken ct)
     {
-        View = await BuildAsync(page, variant, BuyState.Of(typedQuantity, message, quantityMessage), ct);
+        if (code is { } refused)
+        {
+            HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(refused);
+        }
+
+        View = await BuildAsync(page, variant, BuyState.Of(typedQuantity, message), ct);
         return FormResults.Redisplay(this);
     }
 
@@ -194,7 +220,7 @@ public sealed class ProductModel : PageModel
         {
             IReadOnlyList<GalleryImage> archivedGallery = page.ProductId is Guid archivedId ? await _catalog.GetProductGalleryAsync(archivedId, ct) : [];
             ProductImage? main = ImageOf(archivedGallery.FirstOrDefault(i => i.IsMain) ?? (archivedGallery.Count > 0 ? archivedGallery[0] : null));
-            return new ProductView(page.Kind, name, slug, path, [], main, [], null, null, [], new ProductBuyArea(BuyMode.None, null, false, string.Empty, null, null, null, null), null, null, null, null, false, main?.Path, null);
+            return new ProductView(page.Kind, name, slug, path, [], main, [], null, null, [], new ProductBuyArea(BuyMode.None, null, false, string.Empty, null, null), null, null, null, null, false, main?.Path, null);
         }
 
         IReadOnlyList<CategoryNode> tree = await _catalog.GetCategoryTreeAsync(ct);
@@ -202,20 +228,25 @@ public sealed class ProductModel : PageModel
         ProductPeriods periods = await ReadPeriodsAsync(ct);
         SalesGate gate = await _settings.GetSalesGateAsync(ct);
 
+        // The variants' labels and images are read once for the product, not once per variant (09 20 item 4); the place of origin is the product's, so one lookup serves every label.
+        IReadOnlyDictionary<Guid, PriceLabel> labels = page.ProductId is Guid labelsProductId ? await _catalog.GetProductPriceLabelsAsync(labelsProductId, ct) : new Dictionary<Guid, PriceLabel>();
+        IReadOnlyDictionary<Guid, VariantImage> variantImages = page.ProductId is Guid imagesProductId ? await _catalog.GetProductVariantImagesAsync(imagesProductId, ct) : new Dictionary<Guid, VariantImage>();
+        Guid? originCountryId = labels.Values.Select(l => l.OriginCountryId).FirstOrDefault(id => id is not null);
+        CountryInfo? country = originCountryId is Guid countryId ? await _countries.FindAsync(countryId, ct) : null;
+
         List<VariantScriptData> script = [];
         ProductPriceBlock? shownPrice = null;
         decimal? shownAmount = null;
         ProductImage? shownVariantImage = null;
         foreach (ProductPageVariant variant in page.Variants)
         {
-            PriceLabel? label = await _catalog.GetPriceLabelAsync(variant.Id, ct);
-            if (label is null)
+            if (!labels.TryGetValue(variant.Id, out PriceLabel? label))
             {
                 continue;
             }
 
-            VariantImage? variantImage = await _catalog.GetVariantImageAsync(variant.Id, ct);
-            OriginLabel? origin = await OriginOfAsync(page.Type, label, ct);
+            VariantImage? variantImage = variantImages.GetValueOrDefault(variant.Id);
+            OriginLabel? origin = label.OriginCountryId is not null && country is not null ? OriginLabel.Of(page.Type, country.Code, country.Name) : null;
             ProductPriceBlock block = ProductViews.PriceBlockOf(label, origin);
             ProductImage? image = variantImage is null ? null : new ProductImage(FrameStyle.ImagePath(variantImage.ImageId), variantImage.AltText);
             script.Add(new VariantScriptData(
@@ -260,9 +291,7 @@ public sealed class ProductModel : PageModel
             page.Type != ProductType.Digital,
             state.Quantity ?? "1",
             message,
-            warning,
-            state.OptionMessage is { } optionMessage ? Messages.ForField(VariantQuery.FirstParameter, optionMessage) : null,
-            state.QuantityMessage is { } quantityMessage ? Messages.ForField(ProductBuyArea.QuantityFieldId, quantityMessage) : null);
+            warning);
 
         IReadOnlyList<OptionField> options = VariantSelection.Fields(page, shown);
         string? sku = shown?.Sku;
@@ -290,28 +319,16 @@ public sealed class ProductModel : PageModel
     private async Task<ProductPeriods> ReadPeriodsAsync(CancellationToken ct) =>
         new((await _settings.GetPeriodsAsync(ct)).DefaultShippingPeriod, await _settings.GetDeliveryAreaAsync(ct));
 
-    private async Task<OriginLabel?> OriginOfAsync(ProductType type, PriceLabel label, CancellationToken ct)
-    {
-        if (label.OriginCountryId is not Guid countryId)
-        {
-            return null;
-        }
-
-        CountryInfo? country = await _countries.FindAsync(countryId, ct);
-        return country is null ? null : OriginLabel.Of(type, country.Code, country.Name);
-    }
-
     private static ProductImage? ImageOf(GalleryImage? image) => image is null ? null : new ProductImage(FrameStyle.ImagePath(image.ImageId), image.EffectiveAltText);
 
     private sealed record ProductPeriods(int DefaultShippingPeriod, DeliveryArea Area);
 
     // What a refused add carries back to the page: the typed quantity and the messages.
-    private sealed record BuyState(string? Quantity, string? Message, string? QuantityMessage, string? OptionMessage)
+    private sealed record BuyState(string? Quantity, string? Message)
     {
-        public static BuyState Empty { get; } = new(null, null, null, null);
+        public static BuyState Empty { get; } = new(null, null);
 
-        public static BuyState Of(string? quantity, string? message = null, string? quantityMessage = null, string? optionMessage = null) =>
-            new(quantity, message, quantityMessage, optionMessage);
+        public static BuyState Of(string? quantity, string? message = null) => new(quantity, message);
     }
 
     // The add's result as the transaction's value: anything but an added line rolls the work back, so a refusal leaves no cart behind (07 4.4.2).

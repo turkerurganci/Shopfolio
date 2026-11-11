@@ -9,7 +9,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Validation;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages;
 using Shopfolio.Modules.Catalog;
@@ -64,11 +67,17 @@ public sealed partial class StorefrontSearchAndProductTests : IAsyncLifetime
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
-    private WebApplicationFactory<Program> Open() =>
-        new ShopfolioWebApplicationFactory(_database.Dsn).WithWebHostBuilder(b => b.ConfigureServices(s =>
+    // The logs spy collects the application's log lines (the rejection lines of KK8); the counter counts the commands the contexts send (the job runner is off then, so its polling is not counted).
+    private WebApplicationFactory<Program> Open(CollectingLoggerProvider? logs = null, CommandCounter? counter = null) =>
+        new ShopfolioWebApplicationFactory(_database.Dsn, loggerProvider: logs, withJobRunner: counter is null).WithWebHostBuilder(b => b.ConfigureServices(s =>
         {
             s.AddRazorPages().AddApplicationPart(typeof(FrameSampleModel).Assembly);
             s.AddSingleton(_gate);
+            if (counter is not null)
+            {
+                s.ConfigureDbContext<AppDbContext>(options => options.AddInterceptors(counter));
+            }
+
             ServiceDescriptor original = s.Single(d => d.ServiceType == typeof(ISettingsModule));
             s.Remove(original);
             s.AddScoped<ISettingsModule>(provider =>
@@ -160,7 +169,7 @@ public sealed partial class StorefrontSearchAndProductTests : IAsyncLifetime
         List<Variant> rows = [];
         foreach (VariantSpec spec in specs)
         {
-            Variant variant = Variant.Create(product.Id, $"SKU-{n:D4}-{rows.Count}", spec.Price, Now.AddMinutes(n));
+            Variant variant = Variant.Create(product.Id, $"SKU-{n:D4}-{rows.Count}", spec.Price, Now.AddMinutes(n).AddSeconds(rows.Count));
             variant.PublishStatus = spec.Status;
             variant.StockQuantity = type == ProductType.Digital ? null : spec.Stock;
             if (first is not null && spec.First is int firstOrder)
@@ -647,13 +656,13 @@ public sealed partial class StorefrontSearchAndProductTests : IAsyncLifetime
 
         Reply unselected = await PostAsync(client, AddPath(soldOut.Slug), null, ("VariantId", string.Empty), ("Quantity", "1"));
         Assert.Equal(HttpStatusCode.UnprocessableEntity, unselected.Status);
-        Assert.Contains(CartAddMessages.SelectOptionText, unselected.Text, StringComparison.Ordinal);
+        Assert.Contains(FieldMessageCatalog.Build(FieldCodes.FieldRequired, "Seçenek", null), unselected.Text, StringComparison.Ordinal);
 
         foreach (string quantity in new[] { "0", "-1", "abc", "1.5", string.Empty, "99999999999" })
         {
             Reply invalid = await PostAsync(client, AddPath(stock.Slug), null, ("VariantId", stock.VariantIds[0].ToString("D")), ("Quantity", quantity));
             Assert.Equal(HttpStatusCode.UnprocessableEntity, invalid.Status);
-            Assert.Contains(CartQuantity.InvalidText, invalid.Text, StringComparison.Ordinal);
+            Assert.Contains(FieldMessageCatalog.Build(FieldCodes.InvalidQuantity, "Adet", DisplayFormat.Number(CartQuantity.Max)), invalid.Text, StringComparison.Ordinal);
         }
 
         Assert.Equal(0, await CartCountAsync());
@@ -715,6 +724,133 @@ public sealed partial class StorefrontSearchAndProductTests : IAsyncLifetime
             new[] { draftReply, archivedReply, missingProduct, foreignVariant, unknownVariant, draftVariantReply },
             r => Assert.Equal(HttpStatusCode.NotFound, r.Status));
         Assert.Equal(0, await CartCountAsync());
+    }
+
+    // ---- KK8: a named refusal writes one rejection line with its code; a field error writes the field line (09 8.2 item 3, 3.4; 07 6.1.3, 6.2.3) ----
+
+    [Fact]
+    public async Task EachNamedRefusal_WritesOneRejectionLineWithItsCode_AndTheFieldErrorsTheFieldLine_AndAnAddWritesNone_T503_KK8()
+    {
+        SeededProduct stock = await SeedAsync("Masa kayit stoklu", variants: new VariantSpec(Stock: 2));
+        SeededProduct limited = await SeedAsync("Masa kayit sinirli", maxPerOrder: 2, variants: new VariantSpec(Stock: 1));
+        SeededProduct soldOut = await SeedAsync("Masa kayit tukenmis", variants: [new VariantSpec(First: 1), new VariantSpec(Stock: 0, First: 2)]);
+        SeededProduct digital = await SeedAsync("Kitap kayit dijital", type: ProductType.Digital);
+        CollectingLoggerProvider logs = new();
+        await using WebApplicationFactory<Program> factory = Open(logs);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        async Task<IReadOnlyList<string>> LinesOfAsync(string slug, string cookie, Guid variantId, string quantity)
+        {
+            int before = RejectionLines(logs).Count;
+            await PostAsync(client, AddPath(slug), cookie.Length == 0 ? null : cookie, ("VariantId", variantId.ToString("D")), ("Quantity", quantity));
+            return [.. RejectionLines(logs).Skip(before)];
+        }
+
+        Assert.EndsWith(" " + ErrorCode.StockInsufficient, Assert.Single(await LinesOfAsync(stock.Slug, string.Empty, stock.VariantIds[0], "3")), StringComparison.Ordinal);
+        Assert.EndsWith(" " + ErrorCode.MaxQuantityPerOrderExceeded, Assert.Single(await LinesOfAsync(limited.Slug, string.Empty, limited.VariantIds[0], "3")), StringComparison.Ordinal);
+        Assert.EndsWith(" " + ErrorCode.VariantUnavailable, Assert.Single(await LinesOfAsync(soldOut.Slug, string.Empty, soldOut.VariantIds[1], "1")), StringComparison.Ordinal);
+
+        // The field errors: the filter's one line carries the field and the code.
+        string badQuantity = Assert.Single(await LinesOfAsync(stock.Slug, string.Empty, stock.VariantIds[0], "0"));
+        Assert.Contains("Quantity", badQuantity, StringComparison.Ordinal);
+        Assert.Contains(FieldCodes.InvalidQuantity, badQuantity, StringComparison.Ordinal);
+        int beforeUnselected = RejectionLines(logs).Count;
+        await PostAsync(client, AddPath(soldOut.Slug), null, ("VariantId", string.Empty), ("Quantity", "1"));
+        string unselected = Assert.Single(RejectionLines(logs).Skip(beforeUnselected));
+        Assert.Contains("VariantId", unselected, StringComparison.Ordinal);
+        Assert.Contains(FieldCodes.FieldRequired, unselected, StringComparison.Ordinal);
+
+        // The digital variant: the first add writes no line, the second is the named refusal.
+        int beforeAdd = RejectionLines(logs).Count;
+        Reply first = await PostAsync(client, AddPath(digital.Slug), null, ("VariantId", digital.VariantIds[0].ToString("D")), ("Quantity", "1"));
+        Assert.Equal(HttpStatusCode.SeeOther, first.Status);
+        Assert.Equal(beforeAdd, RejectionLines(logs).Count);
+        Assert.EndsWith(" " + ErrorCode.DigitalVariantAlreadyInCart, Assert.Single(await LinesOfAsync(digital.Slug, GuestCartCookieOf(first), digital.VariantIds[0], "1")), StringComparison.Ordinal);
+
+        // The closed gate.
+        _gate.Value = new SalesGate([SalesGateCondition.TemporaryClosure], []);
+        Assert.EndsWith(" " + ErrorCode.SalesClosed, Assert.Single(await LinesOfAsync(stock.Slug, string.Empty, stock.VariantIds[0], "1")), StringComparison.Ordinal);
+    }
+
+    private static List<string> RejectionLines(CollectingLoggerProvider logs) =>
+        [.. logs.Lines.Where(l => l.Contains("RejectionLog|", StringComparison.Ordinal) && l.Contains(LogEvents.ValidationRejected, StringComparison.Ordinal))];
+
+    // ---- no query in a loop: the commands one screen sends do not depend on the number of items it shows (09 20 item 4, 25) ----
+
+    [Fact]
+    public async Task TheProductPage_SendsTheSameNumberOfCommands_WhateverTheNumberOfVariants_T503_KK5()
+    {
+        SeededProduct few = await SeedAsync("Masa az varyant", variants: [.. Enumerable.Range(1, 2).Select(i => new VariantSpec(First: i, Second: 1))]);
+        SeededProduct many = await SeedAsync("Masa cok varyant", variants: [.. Enumerable.Range(1, 8).Select(i => new VariantSpec(First: i, Second: i % 3 + 1))]);
+        CommandCounter counter = new();
+        await using WebApplicationFactory<Program> factory = Open(counter: counter);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        await GetAsync(client, $"/urun/{few.Slug}");
+        int beforeFew = counter.Count;
+        Reply fewReply = await GetAsync(client, $"/urun/{few.Slug}");
+        int fewCommands = counter.Count - beforeFew;
+        int beforeMany = counter.Count;
+        Reply manyReply = await GetAsync(client, $"/urun/{many.Slug}");
+        int manyCommands = counter.Count - beforeMany;
+
+        Assert.Equal(HttpStatusCode.OK, fewReply.Status);
+        Assert.Equal(HttpStatusCode.OK, manyReply.Status);
+        Assert.Contains("data-variants=", manyReply.Body, StringComparison.Ordinal);
+        Assert.True(fewCommands > 0);
+        Assert.Equal(fewCommands, manyCommands);
+    }
+
+    [Fact]
+    public async Task TheSearchPage_SendsTheSameNumberOfCommands_WhateverTheNumberOfCards_T503_KK1()
+    {
+        foreach (int i in Enumerable.Range(1, 3))
+        {
+            await SeedAsync("Sayacazurun " + i);
+        }
+
+        foreach (int i in Enumerable.Range(1, 12))
+        {
+            await SeedAsync("Sayacmanyurun " + i);
+        }
+
+        CommandCounter counter = new();
+        await using WebApplicationFactory<Program> factory = Open(counter: counter);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        await GetAsync(client, "/arama?search=sayacazurun");
+        int beforeFew = counter.Count;
+        Reply fewReply = await GetAsync(client, "/arama?search=sayacazurun");
+        int fewCommands = counter.Count - beforeFew;
+        int beforeMany = counter.Count;
+        Reply manyReply = await GetAsync(client, "/arama?search=sayacmanyurun");
+        int manyCommands = counter.Count - beforeMany;
+
+        Assert.Equal(3, CardLinkCount(fewReply.Body, "urun-"));
+        Assert.Equal(12, CardLinkCount(manyReply.Body, "urun-"));
+        Assert.True(fewCommands > 0);
+        Assert.Equal(fewCommands, manyCommands);
+    }
+
+    private static int CardLinkCount(string body, string slugStart) =>
+        Regex.Count(body, "href=\"/urun/" + slugStart, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
+
+    /// <summary>Counts the commands (reads and scalar reads) the contexts of the opened application send.</summary>
+    public sealed class CommandCounter : Microsoft.EntityFrameworkCore.Diagnostics.DbCommandInterceptor
+    {
+        private int _count;
+
+        public int Count => Volatile.Read(ref _count);
+
+        public override ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<System.Data.Common.DbDataReader>> ReaderExecutingAsync(
+            System.Data.Common.DbCommand command,
+            Microsoft.EntityFrameworkCore.Diagnostics.CommandEventData eventData,
+            Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<System.Data.Common.DbDataReader> result,
+            CancellationToken cancellationToken = default)
+        {
+            Interlocked.Increment(ref _count);
+            return ValueTask.FromResult(result);
+        }
     }
 
     public sealed class GateHolder

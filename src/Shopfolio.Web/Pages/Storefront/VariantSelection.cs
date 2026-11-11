@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
 using Shopfolio.Infrastructure.Binding;
@@ -28,8 +29,10 @@ public sealed class VariantQuery : IQueryModel
 /// </summary>
 public sealed class AddCartItemInput : IFormInput
 {
+    [Display(Name = "Seçenek")]
     public string? VariantId { get; set; }
 
+    [Display(Name = "Adet")]
     public string? Quantity { get; set; }
 
     /// <summary>The variant the form names; null when the field is empty or not an identifier.</summary>
@@ -151,7 +154,8 @@ public static class VariantSelection
 /// <summary>The quantity the add-to-cart form carries (04 7.1.2.2): a digital product has none and is one; the others need a whole number from one up.</summary>
 public static class CartQuantity
 {
-    public const string InvalidText = "Adet 1 veya daha büyük bir tam sayı olmalı.";
+    /// <summary>The largest quantity the form reads: nine digits. The field message names it as the limit (<c>FieldCodes.InvalidQuantity</c>).</summary>
+    public const int Max = 999_999_999;
 
     private const int MaxDigits = 9;
 
@@ -188,8 +192,6 @@ public static class CartAddMessages
     public const string AlreadyInCartText = "Bu ürün zaten sepetinde";
 
     public const string RepurchaseWarningText = "Bu ürünü daha önce aldınız — sipariş sayfanızdan indirebilirsiniz";
-
-    public const string SelectOptionText = "Bir seçenek belirleyin";
 
     public const string AddedText = "Ürün sepete eklendi";
 

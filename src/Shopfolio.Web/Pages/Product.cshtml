@@ -20,6 +20,9 @@
     ProductView view = Model.View
         ?? throw new InvalidOperationException("The product page is drawn only for a product that exists.");
     ProductBuyArea buy = view.Buy;
+    FormErrorSummary errors = FormErrorSummary.From(ViewData.ModelState);
+    MessageView? optionError = ProductBuyArea.OptionMessageOf(errors) is { } optionText ? Messages.ForField(VariantQuery.FirstParameter, optionText) : null;
+    MessageView? quantityError = ProductBuyArea.QuantityMessageOf(errors) is { } quantityText ? Messages.ForField(ProductBuyArea.QuantityFieldId, quantityText) : null;
     ViewData["Title"] = view.Name;
 }
 @section Head {
@@ -101,9 +104,9 @@
                             </select>
                         </div>
                     }
-                    @if (buy.OptionMessage is { } optionMessage)
+                    @if (optionError is not null)
                     {
-                        <partial name="_Message" model="optionMessage" />
+                        <partial name="_Message" model="optionError" />
                     }
                     <button class="button button--secondary" type="submit" data-js="apply-selection">Seçimi uygula</button>
                 </form>
@@ -118,11 +121,11 @@
                             <div class="buy-form__quantity">
                                 <label for="@ProductBuyArea.QuantityFieldId">Adet</label>
                                 <input id="@ProductBuyArea.QuantityFieldId" name="Quantity" type="text" inputmode="numeric" value="@buy.QuantityValue"
-                                       aria-invalid="@(buy.QuantityMessage is null ? "false" : "true")"
-                                       aria-describedby="@(buy.QuantityMessage is null ? null : Messages.FieldMessageId(ProductBuyArea.QuantityFieldId))" />
-                                @if (buy.QuantityMessage is { } quantityMessage)
+                                       aria-invalid="@(quantityError is null ? "false" : "true")"
+                                       aria-describedby="@(quantityError is null ? null : Messages.FieldMessageId(ProductBuyArea.QuantityFieldId))" />
+                                @if (quantityError is not null)
                                 {
-                                    <partial name="_Message" model="quantityMessage" />
+                                    <partial name="_Message" model="quantityError" />
                                 }
                             </div>
                         }

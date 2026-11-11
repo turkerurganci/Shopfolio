@@ -49,12 +49,8 @@ public sealed class SearchModel : PageModel, IListPage
             return Page();
         }
 
-        List<ProductCard> cards = [];
-        foreach (ProductListItem item in list.Items)
-        {
-            cards.Add(ProductCards.Of(item, await ImageOfAsync(item, ct)));
-        }
-
+        // The main image and its text come with the list's items, so the number of commands does not grow with the number of cards (09 20 item 4; D-332, D-1204).
+        IReadOnlyList<ProductCard> cards = ProductCards.Of(list.Items);
         string clearAddress = ListAddress.Of(Frame.FramePaths.Search, new ProductQuery { Search = query.Search }, 1);
         EmptyState? empty = SearchPage.EmptyStateOf(cards.Count, applied, clearAddress);
         IReadOnlyList<SearchCategoryLink> categories = empty is null ? [] : await RootCategoriesAsync(ct);
@@ -67,14 +63,6 @@ public sealed class SearchModel : PageModel, IListPage
             empty,
             categories);
         return Page();
-    }
-
-    // The card's main image (D-332): the gallery's main image and its text; none for a product without a gallery.
-    private async Task<CardImage?> ImageOfAsync(ProductListItem item, CancellationToken ct)
-    {
-        IReadOnlyList<GalleryImage> gallery = await _catalog.GetProductGalleryAsync(item.Id, ct);
-        GalleryImage? main = gallery.FirstOrDefault(i => i.IsMain) ?? (gallery.Count > 0 ? gallery[0] : null);
-        return main is null ? null : ProductCards.ImageOf(main.ImageId, string.IsNullOrWhiteSpace(main.EffectiveAltText) ? item.Name : main.EffectiveAltText);
     }
 
     private async Task<IReadOnlyList<SearchCategoryLink>> RootCategoriesAsync(CancellationToken ct)

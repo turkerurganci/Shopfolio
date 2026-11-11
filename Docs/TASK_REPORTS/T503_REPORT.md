@@ -107,3 +107,11 @@
 **Yapım raporu karşılaştırması:** 2 uyuşmazlık — rapor kriter 8'i ✓ veriyor, ret satırı ve alan kalıbı denetlenmemiş; rapor N+1'i D-1204'e ileri atıyor, `09 §25` "hayır" cevabı ileri atılamaz. Öz denetim tablosu var, her satırda kanıt adı var.
 
 **Birleştirme notu:** `origin/main` (T508 #544) birleşmesinde yalnız `DEFERRED_BACKLOG.md` çakıştı: D-507 ve D-693'te main sürümü alındı (dalın T503 notları `DEFERRED_BACKLOG.d/T503.md`'ye taşındı), D-691 ve D-692'de main değişmediği için dalın satırı kaldı.
+
+## Düzeltme 2 (2026-11-11)
+
+Tur 2 dört ORTA bulgusu kapatıldı. (1) `AddCartItem` her adlı 422 reddinde `RejectionLog.Rejected` ile kodu yazar; kod `CartRefusalCodes.CodeOf(CartAddOutcome)` eşlemesinden gelir (D-638), `AlreadyInCart` kendi koluyla; satış kapalı `SalesClosed`. (2) Adet ve seçim hataları `ModelState.AddFieldError` (`FieldCodes.InvalidQuantity`, `FieldRequired`) ile; metin `FieldMessageCatalog`'dan, süzgecin `FieldsRejected` satırı oluşur; ekran iletiyi model durumundan okur, sabit metinler kaldırıldı. (3) `Search.cshtml.cs` `ProductCards.Of(list.Items)` kullanır (D-1204 kapandı); ürün sayfası `GetProductPriceLabelsAsync` ve `GetProductVariantImagesAsync` ile varyantları toplu okur, ülke bir kez okunur. (4) Tohum varyantlara artan `CreatedAt` verir. K1 ve K2 (D-507) kapandı.
+
+Yeni sınamalar: `EachNamedRefusal_WritesOneRejectionLineWithItsCode_AndTheFieldErrorsTheFieldLine_AndAnAddWritesNone_T503_KK8`, `TheProductPage_SendsTheSameNumberOfCommands_WhateverTheNumberOfVariants_T503_KK5`, `TheSearchPage_SendsTheSameNumberOfCommands_WhateverTheNumberOfCards_T503_KK1`.
+
+Koşular: build `-warnaserror` temiz; format ×3 temiz; Unit 7190/7190; betik testleri 4/4; Integration Web 779/779 (776 + 3 yeni). Öteki Integration ad alanları ve tam öz denetim süre bütçesi dolduğu için devir notunda.

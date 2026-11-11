@@ -59,10 +59,25 @@ public enum BuyMode
 
 /// <summary>The buy area of the page: what stands in the button's place, the form's hidden variant, the typed quantity and the in-place message (kept beside the button) and warning.</summary>
 public sealed record ProductBuyArea(
-    BuyMode Mode, Guid? VariantId, bool ShowsQuantity, string QuantityValue, MessageView? Message, MessageView? Warning, MessageView? OptionMessage, MessageView? QuantityMessage)
+    BuyMode Mode, Guid? VariantId, bool ShowsQuantity, string QuantityValue, MessageView? Message, MessageView? Warning)
 {
     /// <summary>The id of the quantity field; its message names it in <c>aria-describedby</c> (04 2.3.1.1).</summary>
     public const string QuantityFieldId = "quantity";
+
+    /// <summary>
+    /// The field messages of a refused add are the model state's (09 3.4): the page filter turns each rule code into the catalog text after the handler returns, so the screen reads them while it is
+    /// drawn. The quantity field's message, or null.
+    /// </summary>
+    public static string? QuantityMessageOf(FormErrorSummary summary) => MessageOf(summary, nameof(AddCartItemInput.Quantity));
+
+    /// <summary>The selection's message (no variant named), or null.</summary>
+    public static string? OptionMessageOf(FormErrorSummary summary) => MessageOf(summary, nameof(AddCartItemInput.VariantId));
+
+    private static string? MessageOf(FormErrorSummary summary, string field)
+    {
+        ArgumentNullException.ThrowIfNull(summary);
+        return summary.Fields.FirstOrDefault(f => string.Equals(f.FieldId, field, StringComparison.OrdinalIgnoreCase))?.Text;
+    }
 }
 
 /// <summary>

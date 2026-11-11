@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.SearchEngine;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages;
@@ -248,6 +249,21 @@ public sealed class CartPageTests : IAsyncLifetime
         Assert.DoesNotContain("id=\"cart-proceed\"", html, StringComparison.Ordinal);
         Assert.Empty(setCookies);
         Assert.Equal(cartsBefore, await CountCartsAsync());
+    }
+
+    [Fact]
+    public async Task TheCart_IsAClosedScreen_WithTheScreensNameInTheTabTitle_AndOnlyTheRobotsMetaTag_D693()
+    {
+        await using WebApplicationFactory<Program> factory = Open(salesOpen: true);
+
+        (HttpStatusCode status, string html, _) = await GetAsync(factory);
+
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.Contains($"<title>{CartTexts.ScreenName}{SearchText.TitleSeparator}", html, StringComparison.Ordinal);
+        Assert.Contains("<meta name=\"robots\" content=\"noindex\"", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("name=\"description\"", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("og:title", html, StringComparison.Ordinal);
+        Assert.Single(html.Split("<title>"), part => part.Contains("</title>", StringComparison.Ordinal));
     }
 
     [Fact]

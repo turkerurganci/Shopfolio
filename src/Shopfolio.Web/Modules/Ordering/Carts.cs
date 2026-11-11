@@ -329,6 +329,12 @@ internal sealed class Carts
             return new CartAddResult(CartAddOutcome.SoldOut, null);
         }
 
+        // A digital variant is bought one at a time (02 3.12.4; D-637): the rule of CheckDigitalAddAsync, refused before a cart is opened.
+        if (!DownloadRules.IsQuantityAllowed(fact.ProductType, quantity))
+        {
+            return new CartAddResult(CartAddOutcome.InvalidQuantity, null);
+        }
+
         // A cart that does not exist yet holds nothing else: a refusal on the first add must not leave an empty cart behind.
         Guid? existingCartId = await FindCartIdAsync(owner, ct);
         if (existingCartId is null && await RefusalAsync(variantId, quantity, [], ct) is { } firstRefusal)
@@ -353,6 +359,13 @@ internal sealed class Carts
             .Where(i => i.CartId == cartId && i.RemovedProductName == null && i.VariantId != null)
             .Select(i => new { VariantId = i.VariantId!.Value, i.Quantity }) // non-null: the Where above keeps only lines with a variant
             .ToListAsync(ct)).Select(i => new CartQuantityLine(i.VariantId, i.Quantity))];
+
+        // The same digital variant a second time is refused, not raised (02 3.12.4 "Bu ürün zaten sepetinde"; D-637); a marked line is no line of the cart (06 4.16).
+        if (fact.ProductType == ProductType.Digital && held.Any(l => l.VariantId == variantId))
+        {
+            return new CartAddResult(CartAddOutcome.AlreadyInCart, null);
+        }
+
         if (await RefusalAsync(variantId, quantity, held, ct) is { } refusal)
         {
             return refusal;

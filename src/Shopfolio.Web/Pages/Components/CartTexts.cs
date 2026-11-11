@@ -9,6 +9,9 @@ namespace Shopfolio.Pages.Components;
 /// </summary>
 public static class CartTexts
 {
+    /// <summary>The screen's name: its heading and, with the brand name, its tab title (04 5.12.1; 02 3.30.5 item 1).</summary>
+    public const string ScreenName = "Sepet";
+
     /// <summary>02 3.16.5; 04 5.12.5: the current price differs from the first add's; the old price and the direction are not told.</summary>
     public const string PriceChanged = "Sepete eklediğinden beri fiyatı değişti";
 

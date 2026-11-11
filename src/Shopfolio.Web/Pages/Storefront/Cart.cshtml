@@ -1,11 +1,13 @@
 @page "/sepet"
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.SearchEngine
 @using Shopfolio.Modules.Catalog.Contracts
 @using Shopfolio.Modules.Ordering.Contracts
 @using Shopfolio.Pages.Components
 @using Shopfolio.Pages.Frame
 @model Shopfolio.Pages.Storefront.CartModel
+@inject SearchEngineData Search
 @*
     The cart (T508; 04 5.12; 07 4.12). Order of the content (04 5.12.3): the once-told messages, the lines, the amount's breakdown, the way to the payment step. Every amount, message and state is
     the server's (the page model's view); the page draws and computes nothing. The quantity and the removal are forms of their own per line, so the page works without a script (T539); the forms
@@ -13,10 +15,14 @@
 *@
 @{
     Layout = "_StorefrontLayout";
-    ViewData["Title"] = "Sepet";
+    ViewData["Title"] = CartTexts.ScreenName;
     FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState);
 }
-<h1>Sepet</h1>
+@section Head {
+    @* A closed screen (02 3.30.5 item 1; K-1559; D-693): the tab title is the screen's name and the brand name, and the robots meta tag is the only data for the search engines. *@
+    @Search.Head(ViewContext.HttpContext, RecordPages.ClosedScreen(CartTexts.ScreenName, ViewContext.HttpContext.GetStorefrontFrame()?.Brand.BrandName, FramePaths.Cart))
+}
+<h1>@CartTexts.ScreenName</h1>
 @foreach (MessageView message in Model.OnceTold)
 {
     <partial name="_Message" model="message" />

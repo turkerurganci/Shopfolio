@@ -3,10 +3,12 @@
 @using Shopfolio.Pages.Components
 @using Shopfolio.Pages.Frame
 @using Shopfolio.Pages.Orders
+@using Shopfolio.Infrastructure.SearchEngine
+@inject SearchEngineData Search
 @model Shopfolio.Pages.Orders.TrackingModel
 @*
     E-15 (04 5.15; 07 UC-31, UC-32): heading, the two fields, the query button and the reminder of the two other ways. The neutral "not matched" message stands at the top of the form
-    (K-772), the limit message beside the button (04 5.15.4); the reminder stays where it is in both. One column in every class (04 5.15.8). Closed to search engines by its address.
+    (K-772), the limit message beside the button (04 5.15.4); the reminder stays where it is in both. One column in every class (04 5.15.8). Closed to search engines by its address; its head is the closed screen's (RecordPages.ClosedScreen; D-693).
 *@
 @{
     Layout = "_StorefrontLayout";
@@ -15,6 +17,9 @@
     bool isLimited = ViewData.ModelState.TryGetValue(string.Empty, out var actionLevel) && actionLevel.Errors.Count > 0;
     const string numberId = "Input_OrderNumber";
     const string emailId = "Input_ContactEmail";
+}
+@section Head {
+    @Search.Head(HttpContext, RecordPages.ClosedScreen("Sipariş takibi", HttpContext.GetStorefrontFrame()?.Brand.BrandName, HttpContext.Request.Path))
 }
 <section class="order-tracking" aria-labelledby="order-tracking-title">
     <h1 id="order-tracking-title">Sipariş takibi</h1>

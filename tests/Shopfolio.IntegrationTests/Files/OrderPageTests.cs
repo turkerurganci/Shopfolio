@@ -14,6 +14,7 @@ using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Pages.Components;
 using Shopfolio.Pages.Orders;
 
 namespace Shopfolio.IntegrationTests.Files;
@@ -107,6 +108,32 @@ public sealed class OrderPageTests
         Assert.DoesNotContain("id=\"order-delivery-title\"", body, StringComparison.Ordinal);
         Assert.DoesNotContain("Siparişi iptal et", body, StringComparison.Ordinal);
         Assert.DoesNotContain("Sorun bildir", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AnItemRecord_StandsOnTheItemsRow_UnderItsName_KK6()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (_, _, string key, Guid itemId) = await SeedAsync(host, PaymentStatus.Paid);
+
+        using (HttpResponseMessage before = await host.Client.GetAsync(At(OrderRoutes.AccessPath(key)), Ct))
+        {
+            Assert.DoesNotContain("item-records__name", await before.Content.ReadAsStringAsync(Ct), StringComparison.Ordinal);
+        }
+
+        await using (AppDbContext db = host.NewContext())
+        {
+            DateTimeOffset now = host.Time.GetUtcNow();
+            db.Withdrawals.Add(Modules.AfterSales.Withdrawal.ByBuyer(itemId, 1, DateOnly.FromDateTime(now.UtcDateTime), null, new(10m, 0m, 1.67m), null, now));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        using HttpResponseMessage response = await host.Client.GetAsync(At(OrderRoutes.AccessPath(key)), Ct);
+        string body = await response.Content.ReadAsStringAsync(Ct);
+
+        // The withdrawal written for the item stands on its row under its own name (04 5.16.5; 2.5.2), read through AfterSales' item records.
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("class=\"item-records__name\">" + await EncodedAsync(host, ItemRecordLabels.Of(ItemRecordName.Withdrawal)) + "<", body, StringComparison.Ordinal);
     }
 
     [Fact]

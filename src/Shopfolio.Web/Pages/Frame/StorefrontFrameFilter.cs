@@ -15,10 +15,10 @@ namespace Shopfolio.Pages.Frame;
 internal sealed class StorefrontFrameFilter : IAsyncPageFilter, IOrderedFilter
 {
     /// <summary>
-    /// Inside the error layer (-300), the handler-required filter (-200) and the forgery check (-100): the layer still sees a failure of the frame's own reads. Outside the field
-    /// validation (order 0): its 422 shows the form again without the handler (ValidationPageFilter), and that page is a storefront page that needs the frame too (T511).
+    /// Inside the error layer (-300) and the handler-required filter (-200): the layer still sees a failure of the frame's own reads. Outside the forgery check (-100) and the field validation (0)
+    /// (T508): both answer a form again without the handler (400, 422), and the page they show again is drawn in its frame.
     /// </summary>
-    public const int FilterOrder = -50;
+    public const int FilterOrder = -150;
 
     /// <summary>The page folder of the panel: its pages have their own frame.</summary>
     private const string PanelFolderPrefix = SessionSchemes.PanelFolder + "/";

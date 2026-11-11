@@ -96,6 +96,10 @@ public sealed class OrderTrackingPageTests : IAsyncLifetime
         Assert.Contains("name=\"Input.ContactEmail\"", body, StringComparison.Ordinal);
         Assert.Contains("id=\"order-tracking-reminder\"", body, StringComparison.Ordinal);
         Assert.Contains("name=\"robots\" content=\"noindex", body, StringComparison.Ordinal);
+
+        // The closed screen's head (RecordPages.ClosedScreen; D-693): one title and no description.
+        Assert.Equal(2, body.Split("<title>", StringSplitOptions.None).Length);
+        Assert.DoesNotContain("name=\"description\"", body, StringComparison.Ordinal);
     }
 
     // --- KK2 ---

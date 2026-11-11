@@ -87,6 +87,10 @@ public sealed partial class StorefrontSearchAndProductTests : IAsyncLifetime
         return new AppDbContext(builder.Options);
     }
 
+    // The markup without the response's own nonce and the sign-in link's return address: two 404 answers are the same page when nothing else differs (the frame writes a fresh nonce per response).
+    private static string WithoutNonce(string html) =>
+        Regex.Replace(Regex.Replace(html, "nonce=\"[^\"]*\"", "nonce=\"-\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2)), "returnUrl=[^\"]*", "returnUrl=-", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
+
     private sealed record Reply(HttpStatusCode Status, string Body, HttpResponseMessage Message)
     {
         public string Text => WebUtility.HtmlDecode(Body);
@@ -351,7 +355,7 @@ public sealed partial class StorefrontSearchAndProductTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.NotFound, hidden.Status);
         Assert.Equal(HttpStatusCode.NotFound, unknown.Status);
-        Assert.Equal(unknown.Body, hidden.Body);
+        Assert.Equal(WithoutNonce(unknown.Body), WithoutNonce(hidden.Body));
     }
 
     [Fact]

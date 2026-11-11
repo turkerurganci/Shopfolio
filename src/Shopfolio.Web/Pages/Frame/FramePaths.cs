@@ -33,6 +33,9 @@ internal static class FramePaths
     /// <summary>UC-74: the order history ("Siparişlerim").</summary>
     public const string AccountOrders = "/hesap/siparisler";
 
+    /// <summary>UC-13: the FAQ page.</summary>
+    public const string Faq = "/sss";
+
     /// <summary>UC-14: the contact page, the footer heading's link.</summary>
     public const string Contact = "/iletisim";
 

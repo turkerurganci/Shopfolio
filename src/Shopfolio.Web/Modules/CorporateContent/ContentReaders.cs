@@ -21,7 +21,9 @@ internal sealed record BranchView(
     string? Phone,
     string? WorkingHours,
     MapLinkView? MapLink,
-    bool IsDraft = false);
+    bool IsDraft = false,
+    Guid? ImageId = null,
+    string? ImageAltText = null);
 
 /// <summary>The "Haritada aç" link of a branch: the address of the map the firm gave and the text the page shows. The map opens elsewhere; nothing is embedded.</summary>
 internal sealed record MapLinkView(string Url, string Text);
@@ -136,7 +138,7 @@ internal sealed class ContentReaders
         var rows = await _db.Branches.AsNoTracking()
             .Where(b => statuses.Contains(b.PublishStatus))
             .OrderBy(b => b.SortOrder).ThenBy(b => b.CreatedAt).ThenBy(b => b.Id)
-            .Select(b => new { b.Id, b.Name, b.ProvinceId, b.District, b.AddressLine, b.Phone, b.WorkingHours, b.MapUrl, b.PublishStatus })
+            .Select(b => new { b.Id, b.Name, b.ProvinceId, b.District, b.AddressLine, b.Phone, b.WorkingHours, b.MapUrl, b.ImageId, b.ImageAltText, b.PublishStatus })
             .ToListAsync(ct);
         Guid[] provinceIds = [.. rows.Where(r => r.ProvinceId is not null).Select(r => r.ProvinceId!.Value).Distinct()]; // non-null: the Where on this line keeps only branches with a province
         IReadOnlyDictionary<Guid, string> names = await _provinces.GetNamesAsync(provinceIds, ct);
@@ -151,7 +153,9 @@ internal sealed class ContentReaders
                 r.Phone,
                 r.WorkingHours,
                 MapLinkOf(r.MapUrl),
-                r.PublishStatus == PublishStatus.Draft)),
+                r.PublishStatus == PublishStatus.Draft,
+                r.ImageId,
+                r.ImageId is null ? null : GalleryText.Choose(r.ImageAltText, () => GalleryText.Generated(r.Name, 1, 1)))),
         ];
         return new ContactPageContent(identity, branches, HasContactForm: true);
     }

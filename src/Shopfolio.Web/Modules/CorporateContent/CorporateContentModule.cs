@@ -17,6 +17,7 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     private readonly ContactRequests _requests;
     private readonly ContactRequestExport _contactRequestExport;
     private readonly SocialLinks _socialLinks;
+    private readonly ContentReaders _readers;
 
     public CorporateContentModule(
         CorporateContentSitemapReader sitemap,
@@ -27,8 +28,10 @@ internal sealed class CorporateContentModule : ICorporateContentModule
         ContactFormSending contactForm,
         ContactRequests requests,
         ContactRequestExport contactRequestExport,
-        SocialLinks socialLinks)
+        SocialLinks socialLinks,
+        ContentReaders readers)
     {
+        _readers = readers;
         _contactRequestExport = contactRequestExport;
         _socialLinks = socialLinks;
         _contactForm = contactForm;
@@ -57,6 +60,21 @@ internal sealed class CorporateContentModule : ICorporateContentModule
 
     public async Task<IReadOnlyList<SocialLinkItem>> ListSocialLinksAsync(CancellationToken ct) =>
         [.. (await _socialLinks.ListAsync(ct)).Select(l => new SocialLinkItem(l.Platform, l.Url))];
+
+    public async Task<IReadOnlyList<FaqQuestionView>> GetFaqAsync(bool asAdministrator, CancellationToken ct)
+    {
+        IReadOnlyList<FaqView> items = asAdministrator ? await _readers.ListFaqForAdministratorAsync(ct) : await _readers.ListFaqAsync(ct);
+        return [.. items.Select(f => new FaqQuestionView(f.Id, f.Question, f.AnswerHtml, f.IsDraft))];
+    }
+
+    public async Task<ContactPageView> GetContactPageAsync(bool asAdministrator, CancellationToken ct)
+    {
+        ContactPageContent content = asAdministrator ? await _readers.ReadContactPageForAdministratorAsync(ct) : await _readers.ReadContactPageAsync(ct);
+        return new ContactPageView(
+            content.Identity,
+            [.. content.Branches.Select(b => new ContactBranchView(
+                b.Id, b.Name, b.ProvinceName, b.District, b.AddressLine, b.Phone, b.WorkingHours, b.ImageId, b.ImageAltText, b.MapLink?.Url, b.MapLink?.Text, b.IsDraft))]);
+    }
 
     public Task<ContactFormView> GetContactFormAsync(string? memberName, string? memberEmail, CancellationToken ct) => _contactForm.ReadAsync(memberName, memberEmail, ct);
 

@@ -717,3 +717,178 @@
         display: none;
     }
 }
+
+/* ---- FAQ page (E-09; 04 5.9) ----
+   One column on every class (04 5.9.9): the page name and the share button on one line, every question open with its answer under it. The draft label is the one the previews use. */
+
+.faq__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+    margin-block-end: var(--space-4);
+}
+
+.faq__title {
+    margin: 0;
+}
+
+.faq__list {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.faq__item {
+    padding-block-end: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.faq__question {
+    margin: 0 0 var(--space-2);
+    font-size: var(--font-size-large);
+    overflow-wrap: anywhere;
+}
+
+.faq__answer {
+    overflow-wrap: anywhere;
+}
+
+.faq__draft,
+.branch__draft {
+    display: inline-block;
+    margin-inline-end: var(--space-2);
+    padding: 0 var(--space-2);
+    border: 1px solid currentcolor;
+    border-radius: var(--radius-1);
+    background: var(--color-draft);
+    color: var(--color-draft-text);
+    font-size: var(--font-size-small);
+    font-weight: 700;
+}
+
+/* ---- Contact page (E-10; 04 5.10) ----
+   Narrow: one column in the order of the identity block, the form and the branches (04 5.10.15). Wide: the identity block and the branches on the left, the form on the right. The identity block is
+   never folded and a long title or address breaks into lines (04 8.3.3). */
+
+.contact__layout {
+    display: grid;
+    gap: var(--space-5);
+    grid-template-areas:
+        "identity"
+        "form"
+        "branches";
+}
+
+.contact__identity {
+    grid-area: identity;
+    min-width: 0;
+}
+
+.contact__form {
+    grid-area: form;
+    min-width: 0;
+}
+
+.contact__branches {
+    grid-area: branches;
+    min-width: 0;
+}
+
+.contact__heading {
+    margin-block: 0 var(--space-3);
+}
+
+.contact-form__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+    margin-block-start: var(--space-3);
+}
+
+.contact-form__notice {
+    margin-block: var(--space-3) 0;
+    font-size: var(--font-size-small);
+}
+
+/* The invisible trap field (02 3.32.7): out of the sight of a person and of the keyboard; a script fills it. Not display:none, which a bot may skip. */
+.contact-form__trap {
+    position: absolute;
+    inset-inline-start: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.contact-sent {
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+}
+
+.branch-list {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.branch {
+    display: grid;
+    gap: var(--space-2);
+    justify-items: start;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-1);
+}
+
+.branch__image {
+    max-width: 100%;
+    height: auto;
+}
+
+.branch__name {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.branch__details {
+    margin: 0;
+}
+
+.branch__row {
+    display: grid;
+    gap: var(--space-1);
+    margin-block-end: var(--space-2);
+}
+
+.branch__row dt {
+    font-size: var(--font-size-small);
+    color: var(--color-text-muted);
+}
+
+.branch__row dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.branch__map {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+}
+
+@media (min-width: 1024px) {
+    .contact__layout {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+            "identity form"
+            "branches form";
+        align-items: start;
+    }
+}

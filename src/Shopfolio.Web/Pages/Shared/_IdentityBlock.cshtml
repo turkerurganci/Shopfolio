@@ -1,0 +1,36 @@
+@using Shopfolio.Modules.Settings.Contracts
+@model LegalIdentity
+@*
+    The identity block (04 2.2.5, 5.10.3; K-747): the one list of the company's legal identity, drawn the same way in the footer of every storefront page and under "İletişim" on the contact page - the set
+    of the firm's type (the reader returns the fields of that type only), no link around it, never folded. An empty value has no row. The ETBİS band is the caller's: it stands next to the block.
+*@
+@{
+    LegalIdentity identity = Model;
+    string nameLabel = identity.CompanyType == CompanyType.Tradesman ? "Ad soyad" : "Ticaret unvanı";
+    (string Label, string? Value)[] rows =
+    [
+        (nameLabel, identity.LegalName),
+        ("İşletme adı", identity.BusinessName),
+        ("Vergi kimlik numarası", identity.TaxIdNumber),
+        ("MERSİS numarası", identity.MersisNumber),
+        ("Ticaret sicil numarası", identity.TradeRegistryNumber),
+        ("Adres", string.Join(" ", new[] { identity.AddressLine, identity.District, identity.ProvinceName }.Where(part => !string.IsNullOrWhiteSpace(part)))),
+        ("Telefon", identity.Phone),
+        ("E-posta", identity.Email),
+        ("KEP adresi", identity.KepAddress),
+        ("Meslek odası", identity.ChamberName),
+        ("Meslekle ilgili davranış kuralları", identity.ProfessionalConductRules),
+    ];
+}
+<dl class="identity-block">
+    @foreach (var row in rows)
+    {
+        if (!string.IsNullOrWhiteSpace(row.Value))
+        {
+            <div class="identity-block__row">
+                <dt>@row.Label</dt>
+                <dd>@row.Value</dd>
+            </div>
+        }
+    }
+</dl>

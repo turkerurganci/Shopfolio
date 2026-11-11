@@ -182,3 +182,6 @@ public sealed class NameChangeResult : IOperationResult
 
     internal static NameChangeResult FieldRefused(MembershipFieldError field) => new(false, false, [field]);
 }
+
+/// <summary>The signed-in member's name and e-mail as the account holds them (T506): the contact form's starting values, which the member may change.</summary>
+public sealed record MemberContact(string Name, string Email);

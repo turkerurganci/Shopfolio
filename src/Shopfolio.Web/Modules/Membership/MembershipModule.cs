@@ -336,6 +336,11 @@ internal sealed class MembershipModule : IMembershipModule
         return await _db.Customers.AsNoTracking().Where(c => c.Id == customerId).Select(c => c.Name).SingleOrDefaultAsync(ct);
     }
 
+    public async Task<MemberContact?> GetMemberContactAsync(Guid customerId, CancellationToken ct)
+    {
+        return await _db.Customers.AsNoTracking().Where(c => c.Id == customerId).Select(c => new MemberContact(c.Name, c.Email)).SingleOrDefaultAsync(ct);
+    }
+
     public async Task<NameChangeResult> ChangeNameAsync(Guid customerId, string name, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(name);

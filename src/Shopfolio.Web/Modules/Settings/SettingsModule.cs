@@ -78,6 +78,8 @@ internal sealed class SettingsModule : ISettingsModule
 
     public Task<string?> GetBankTransferIbanAsync(CancellationToken ct) => _firm.ReadBankTransferIbanAsync(ct);
 
+    public Task<string?> GetWhatsAppNumberAsync(CancellationToken ct) => _firm.ReadWhatsAppNumberAsync(ct);
+
     public Task<SettingsSaveResult> SavePeriodsAsync(PeriodsInput input, int formVersion, CancellationToken ct) =>
         _firm.SavePeriodsAsync(input, formVersion, ct);
 

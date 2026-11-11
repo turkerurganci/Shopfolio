@@ -52,6 +52,12 @@ public interface ICorporateContentModule
     Task<BrandIdentity> GetBrandIdentityAsync(CancellationToken ct);
 
     /// <summary>
+    /// The social media links the storefront frame shows (T537; 02 3.27.12; 06 4.55): the platforms that have a link, in the order of the closed list (06 5.3.11), at most one each. A
+    /// platform with no link is not listed. A plain read; nothing is cached.
+    /// </summary>
+    Task<IReadOnlyList<SocialLinkItem>> ListSocialLinksAsync(CancellationToken ct);
+
+    /// <summary>
     /// The contact form as the page shows it (T365; 02 3.32.1, 3.32.3, 3.32.8): open or closed by the gate of the data-collecting entries (with the refusal when closed), the five topics,
     /// and the starting values - the signed-in member's name and e-mail, which can be changed, or empty values. The form needs no sign-in. A plain read.
     /// </summary>

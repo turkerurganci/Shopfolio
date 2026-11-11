@@ -157,6 +157,19 @@ public interface IOrderingModule
     Task<CartAddResult> AddToCartAsync(CartOwner owner, Guid variantId, int quantity, CancellationToken ct);
 
     /// <summary>
+    /// The storefront frame's cart read (T537; 07 5.5.1): how many live lines the owner's cart holds and whether the sign-in merge left a message to tell once. A plain read - no lock, no cart
+    /// made, no guest access moment renewed - and it never opens the cart's lines.
+    /// </summary>
+    Task<CartBadge> ReadCartBadgeAsync(CartOwner owner, CancellationToken ct);
+
+    /// <summary>
+    /// The once-told merge message of the frame (T537; 07 4.34.3; 02 3.16.4): the product names of the member's lines the sign-in merge marked, the marks cleared in the same call - the request
+    /// that tells them is the request that clears them. Takes the cart's advisory lock first, so a request that arrived together waits, finds no mark and tells nothing. Joins the caller's
+    /// transaction (09 10.2 item 5) and does not save.
+    /// </summary>
+    Task<IReadOnlyList<string>> TakeMergeNoticeAsync(Guid customerId, CancellationToken ct);
+
+    /// <summary>
     /// The sign-in merge (T346; 02 3.16.3, 3.16.4): the guest browser's cart falls into the member's cart and ends. The same variant keeps the larger quantity and the price of the line added first; other
     /// variants stand side by side. Whatever the member's cart holds that the guest cart did not show - another product, or a larger quantity - is marked to be told once. One method for every sign-in path.
     /// It takes the guest cart's advisory lock first, so it runs in a transaction of its own and not in the one that holds the account's lock (05 6.1.2; <c>LockKind.Account</c> is a family of its own).

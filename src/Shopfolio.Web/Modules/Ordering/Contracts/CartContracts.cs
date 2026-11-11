@@ -97,3 +97,13 @@ public sealed record CartAddResult(CartAddOutcome Outcome, Guid? CartId, int? Or
 /// next cart view tells once.
 /// </summary>
 public sealed record CartMergeResult(Guid? MemberCartId, bool WasMerged, int UnseenLines);
+
+/// <summary>
+/// What the storefront frame reads of the cart (T537; 07 5.5.1): the number of live lines - the badge beside the cart - and whether the sign-in merge left a message not told yet
+/// (a member's cart only). Nothing about prices, stock or the lines themselves: the frame never opens the cart.
+/// </summary>
+public sealed record CartBadge(int ItemCount, bool HasMergeNotice)
+{
+    /// <summary>No cart, or a cart with no live line.</summary>
+    public static CartBadge Empty { get; } = new(0, false);
+}

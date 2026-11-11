@@ -257,6 +257,10 @@ internal sealed class OrderingModule : IOrderingModule
 
     public Task<CartAddResult> AddToCartAsync(CartOwner owner, Guid variantId, int quantity, CancellationToken ct) => _carts.AddAsync(owner, variantId, quantity, ct);
 
+    public Task<CartBadge> ReadCartBadgeAsync(CartOwner owner, CancellationToken ct) => _carts.ReadBadgeAsync(owner, ct);
+
+    public Task<IReadOnlyList<string>> TakeMergeNoticeAsync(Guid customerId, CancellationToken ct) => _carts.TakeMergeNoticeAsync(customerId, ct);
+
     public Task<CartMergeResult> MergeGuestCartAsync(Guid customerId, string guestCartKey, CancellationToken ct) => _carts.MergeAsync(customerId, guestCartKey, ct);
 
     public async Task<IReadOnlyList<ReservationHolder>> ListReservationHoldersAsync(Guid variantId, CancellationToken ct)

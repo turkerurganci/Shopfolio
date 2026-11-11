@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-10 — F3 (İş mantığı) faz kapısı ✓ PASS (`chore: F3 gate check PASS`): 90/90 task; Unit 5791, Integration 3487, Release 0 uyarı; `12 §6.2` F3 B ve C ✓; backlog 105 kalem karara bağlandı (73 ✅, 32 yeniden hedef; yeni F4 task'ları T411, T412 ve T601b); aktif kalem 285; ayrıntı [GATE_CHECK_F3](CHECKPOINT_REPORTS/GATE_CHECK_F3.md) ve `STATUS_CHANGELOG.md`.
+**Son güncelleme:** 2026-11-11 — F4 (Entegrasyonlar) faz kapısı ✓ PASS (`chore: F4 gate check PASS`): 11/12 task, T410 `⛔ BLOCKED (OWNER_INPUT)`; Unit 6598, Integration 3575, Release 0 uyarı; `12 §6.2` F4 E çevrimdışı payı ✓, gerçek gözlem payı OWNER_INPUT (T410); backlog 20 kalem karara bağlandı (10 ✅, 10 yeniden hedef; yeni F5 task'ı T550); aktif kalem 279; ayrıntı [GATE_CHECK_F4](CHECKPOINT_REPORTS/GATE_CHECK_F4.md) ve `STATUS_CHANGELOG.md`.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.

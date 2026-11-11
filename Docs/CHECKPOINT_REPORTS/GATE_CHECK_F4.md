@@ -72,7 +72,7 @@ Konfigürasyon: test/CI eşdeğeri (ara faz; `00 §L.1` boot provası F6'da).
 | `VAL-E001` (DV-1) | ORTA | sandbox — test mağazası yok | BEKLEMEDE | BEKLEMEDE | BEKLİYOR (OWNER_INPUT) — D-1038, D-1090, T410 |
 | `VAL-E002` (DV-2) | ORTA | sandbox — test mağazası yok | BEKLEMEDE | BEKLEMEDE | BEKLİYOR (OWNER_INPUT) — D-1038, D-1090, T410 |
 | `VAL-E010` (DV-9) | ORTA | sandbox — test mağazası yok | BEKLEMEDE | BEKLEMEDE | BEKLİYOR (OWNER_INPUT) — D-1034, D-1090, T410 |
-| Kalan 20 sandbox E satırı (`E003`–`E005`, `E012`, `E013`, `E015`, `E017`, `E018`, `E020`, `E022`, `E024`, `E036`, `E038`–`E040`, `E043`, `E067`–`E069`, `E087`) | ORTA/DÜŞÜK | PayTR test modu, SES üretim hesabı, Google uygulaması | BEKLEMEDE | BEKLEMEDE | BEKLİYOR (OWNER_INPUT) — D-1015, D-1024, D-1029, D-1034, D-1038, D-1090 |
+| Kalan 20 sandbox E satırı (`E003`–`E005`, `E012`, `E013`, `E015`, `E017`, `E018`, `E020`, `E022`, `E024`, `E036`, `E038`–`E040`, `E043`, `E067`–`E069`, `E087`) | KRİTİK 5 (`E003`, `E005`, `E012`, `E043`, `E067`) · ORTA 11 · DÜŞÜK 4 (`E018`, `E022`, `E036`, `E038`) | PayTR test modu, SES üretim hesabı, Google uygulaması | BEKLEMEDE | BEKLEMEDE | BEKLİYOR (OWNER_INPUT) — D-1015, D-1024, D-1029, D-1034, D-1038, D-1090 |
 
 Gate'te ayrıca yeniden doğrulanıp `PASS`'e çevrilen (D-981): `VAL-C089`, `VAL-C093` (`PaymentTransitionsTests` KK5–KK7, `CardRefundJobTests`), `VAL-C102` (`StatusCorrectionTests`, `AssertCorrectedAsync` B-13 dahil), `VAL-E056` (`FinalPaymentQueryOutageTests`).
 

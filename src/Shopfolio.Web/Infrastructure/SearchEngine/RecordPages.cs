@@ -44,6 +44,26 @@ internal static class RecordPages
         Record(prefix, name, shortText, textHtml, slug, imagePath, logoPath, brandName, open, structuredData);
 
     /// <summary>
+    /// The page of a fixed address that is a content record (Hakkımızda; T505; 02 3.27.3): the title is the firm's menu name and the brand name, the description the start of the text.
+    /// <paramref name="open"/> is true for a published record; a draft is closed.
+    /// </summary>
+    public static PageSearchData FixedContent(string path, string name, string? shortText, string? bodyHtml, string? imagePath, string? logoPath, string? brandName, bool open)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        return new PageSearchData(SearchText.Title(name, brandName), SearchText.Description(shortText, bodyHtml), path, imagePath, logoPath, brandName, !open, []);
+    }
+
+    /// <summary>
+    /// A content list page (T505; 02 3.27.4, 3.27.5; 07 2.6.7): the title is the type's name as the firm gave it and the brand name; no description or image of its own. <paramref name="closed"/>
+    /// is the list pattern's mark - an address that carries a parameter other than <c>page</c> is closed.
+    /// </summary>
+    public static PageSearchData ContentList(string path, string name, string? logoPath, string? brandName, bool closed)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        return new PageSearchData(SearchText.Title(name, brandName), null, path, null, logoPath, brandName, closed, []);
+    }
+
+    /// <summary>
     /// The head data of a screen the search engines may not index - the cart, a payment step, the order tracking, the account and the panel (02 3.30.5 item 1; K-1559): the tab title is the
     /// screen's name and the brand name, the page is closed and carries no description, image or structured data.
     /// </summary>

@@ -3,22 +3,6 @@ using Shopfolio.Modules.Catalog.Contracts.Lists;
 
 namespace Shopfolio.Modules.CorporateContent.Contracts;
 
-/// <summary>The two content types that have a list page (T505; 02 3.27.4, 3.27.5; 04 5.7): the service introductions and the reference works.</summary>
-public enum ContentListKind
-{
-    Offerings,
-    PortfolioItems,
-}
-
-/// <summary>The four kinds of record that have a page of their own (T505; 02 3.27.3-3.27.5, 3.27.9; 04 5.8): Hakkımızda at its fixed address, the others by <c>{Slug}</c>.</summary>
-public enum ContentPageKind
-{
-    AboutPage,
-    Offering,
-    PortfolioItem,
-    CustomPage,
-}
-
 /// <summary>
 /// One page of a content list page (T505; 04 5.7.3): <see cref="Title"/> is the type's name as the firm gave it (the menu's name), <see cref="Cards"/> the published records in the firm's manual
 /// order - 24 a page, a draft never among them - and the paging figures; a type with no published record has no cards (the page shows the empty-state line, 04 5.7.8).

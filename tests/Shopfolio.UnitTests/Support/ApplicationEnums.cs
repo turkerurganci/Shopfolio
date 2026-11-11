@@ -23,6 +23,9 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.CorporateContent.Contracts.MenuItemKind",
         "Shopfolio.Modules.CorporateContent.Contracts.MenuHiddenReason",
         "Shopfolio.Modules.CorporateContent.Contracts.HomepageBlockKind",
+        // T505: which content list and which content record page a read asks for - the request's identity, answered per read, never a column.
+        "Shopfolio.Modules.CorporateContent.Contracts.ContentListKind",
+        "Shopfolio.Modules.CorporateContent.Contracts.ContentPageKind",
         "Shopfolio.Modules.Ordering.Contracts.CorrectionObstacle",
         "Shopfolio.Modules.Catalog.Contracts.ProductPageKind",
         // T323: the identity of an operation of 03 1.11 - the request names it and the decision table answers; the document's table is its definition, no column holds it.

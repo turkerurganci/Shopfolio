@@ -8,14 +8,17 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Membership.Contracts;
 using Shopfolio.Modules.Notifications;
+using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.Pages.Components;
 using Shopfolio.Pages.Frame;
+using Shopfolio.Pages.Storefront;
 
 namespace Shopfolio.IntegrationTests.Web;
 

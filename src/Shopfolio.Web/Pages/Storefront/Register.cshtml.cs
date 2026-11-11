@@ -19,6 +19,8 @@ using Shopfolio.Modules.Settings.Contracts.Gates;
 using Shopfolio.Pages.Components;
 using Shopfolio.Pages.Frame;
 
+using MembershipRegisterInput = Shopfolio.Modules.Membership.Contracts.RegisterInput;
+
 namespace Shopfolio.Pages.Storefront;
 
 /// <summary>
@@ -55,7 +57,7 @@ internal sealed class RegisterModel : PageModel
     }
 
     /// <summary>The order of the form's fields: the error summary lists the wrong ones in it (04 2.3.2).</summary>
-    public static IReadOnlyList<string> FormOrder { get; } = [nameof(RegistrationFormInput.Name), nameof(RegistrationFormInput.Email), nameof(RegistrationFormInput.Password)];
+    public static IReadOnlyList<string> FormOrder { get; } = [nameof(RegisterInput.Name), nameof(RegisterInput.Email), nameof(RegisterInput.Password)];
 
     /// <summary>True while the gate of the data-collecting entries is open (02 3.13.19; 04 5.20.10); a closed gate shows the form closed and no button.</summary>
     public bool IsOpen { get; private set; } = true;
@@ -92,7 +94,7 @@ internal sealed class RegisterModel : PageModel
         PageHandlerExecutedContext executed = await next();
         if (!_loaded && executed.Exception is null && executed.Result is PageResult && Request.HasFormContentType)
         {
-            RememberSent(context.HandlerArguments.Values.OfType<RegistrationFormInput>().FirstOrDefault());
+            RememberSent(context.HandlerArguments.Values.OfType<RegisterInput>().FirstOrDefault());
             await LoadAsync(Request.Form[PendingParameter].ToString(), HttpContext.RequestAborted);
         }
     }
@@ -113,7 +115,7 @@ internal sealed class RegisterModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostRegisterAsync(RegistrationFormInput input, CancellationToken ct)
+    public async Task<IActionResult> OnPostRegisterAsync(RegisterInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
         RememberSent(input);
@@ -122,22 +124,22 @@ internal sealed class RegisterModel : PageModel
         RegistrationOutcome outcome = await _transactions.RunAsync(
             async token =>
             {
-                RegistrationResult result = await _membership.RegisterAsync(new RegisterInput(input.Name, input.Email, input.Password), ip, token);
+                RegistrationResult result = await _membership.RegisterAsync(new MembershipRegisterInput(input.Name, input.Email, input.Password), ip, token);
                 if (result.IsRegistered)
                 {
                     // The e-mail is a row of the same transaction (D-252): the account and its link never exist without the message that carries the link.
-                    await _notifications.QueueAccountEmailAsync(new VerificationLinkEmail(result.CustomerId!.Value, result.LinkId!.Value, input.Email.Trim()), token);
+                    await _notifications.QueueAccountEmailAsync(new VerificationLinkEmail(result.CustomerId.GetValueOrDefault(), result.LinkId.GetValueOrDefault(), input.Email.Trim()), token);
                 }
 
                 return new RegistrationOutcome(result);
             },
-            RegisterInput.RetryOnUniqueIndexes,
+            MembershipRegisterInput.RetryOnUniqueIndexes,
             ct);
 
         RegistrationResult registration = outcome.Result;
         if (registration.IsRegistered)
         {
-            string value = _protectedValues.Protect(DataProtectionPurposes.PendingRegistration, registration.CustomerId!.Value.ToString("N"));
+            string value = _protectedValues.Protect(DataProtectionPurposes.PendingRegistration, registration.CustomerId.GetValueOrDefault().ToString("N"));
             return FormResults.SeeOther(FramePaths.Register + "?" + PendingParameter + "=" + Uri.EscapeDataString(value), NoticeCode.RegistrationSubmitted);
         }
 
@@ -150,7 +152,7 @@ internal sealed class RegisterModel : PageModel
             case ErrorCode.EmailAlreadyRegistered:
                 // The screen tells that the address is taken - on purpose (04 5.20.9; 03 3.4.3); L-3 narrows the asking.
                 EmailIsTaken = true;
-                ModelState.AddModelError(nameof(RegistrationFormInput.Email), RegistrationTexts.EmailAlreadyRegistered);
+                ModelState.AddModelError(nameof(RegisterInput.Email), RegistrationTexts.EmailAlreadyRegistered);
                 rejections.Rejected(ErrorCode.EmailAlreadyRegistered);
                 break;
             case var _ when registration.Gate is not null:
@@ -192,7 +194,7 @@ internal sealed class RegisterModel : PageModel
                 VerificationResendResult result = await _membership.ResendVerificationLinkAsync(customerId, ip, token);
                 if (result.IsIssued)
                 {
-                    await _notifications.QueueAccountEmailAsync(new VerificationLinkEmail(customerId, result.LinkId!.Value, pending.Email), token);
+                    await _notifications.QueueAccountEmailAsync(new VerificationLinkEmail(customerId, result.LinkId.GetValueOrDefault(), pending.Email), token);
                 }
 
                 return new ResendOutcome(result, pending);
@@ -255,7 +257,7 @@ internal sealed class RegisterModel : PageModel
     private static IActionResult GoneAddress(string sent) =>
         FormResults.SeeOther(FramePaths.Register + (sent.Length == 0 ? string.Empty : "?" + PendingParameter + "=" + Uri.EscapeDataString(sent)));
 
-    private void RememberSent(RegistrationFormInput? input)
+    private void RememberSent(RegisterInput? input)
     {
         if (input is not null)
         {
@@ -278,7 +280,7 @@ internal sealed class RegisterModel : PageModel
 }
 
 /// <summary>The form of UC-48 (07 5.2.1): the name, the e-mail and the secret - all three required; no marketing consent, no agreement box (04 5.20.5).</summary>
-public sealed class RegistrationFormInput : IFormInput
+public sealed class RegisterInput : IFormInput
 {
     [Display(Name = "Ad")]
     [FieldRequired]
@@ -290,6 +292,7 @@ public sealed class RegistrationFormInput : IFormInput
     public string Email { get; set; } = string.Empty;
 
     [Display(Name = "Şifre")]
+    [SpecAssignedName]
     [PasswordField]
     [FieldRequired]
     [PasswordTooWeak]
@@ -299,6 +302,7 @@ public sealed class RegistrationFormInput : IFormInput
 /// <summary>The form of UC-49 (07 5.2.1): the protected value of the pending registration, the only thing the resend names.</summary>
 public sealed class ResendVerificationLinkInput : IFormInput
 {
+    [SpecAssignedName]
     [NotTrimmed]
     public string? PendingRegistration { get; set; }
 }

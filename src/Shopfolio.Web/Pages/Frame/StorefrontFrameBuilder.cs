@@ -37,7 +37,7 @@ internal sealed class StorefrontFrameBuilder
     }
 
     /// <summary>The longest cart cookie value that is looked up; a real key is 43 characters (09 15.1 item 1).</summary>
-    private const int CartCookieValueLimit = 256;
+    internal const int CartCookieValueLimit = 256;
 
     /// <summary>True when the request is the payment step's own page (UC-22): the frame is reduced there (04 2.2.7).</summary>
     public static bool IsCheckoutStep(HttpRequest request)
@@ -99,7 +99,7 @@ internal sealed class StorefrontFrameBuilder
     }
 
     // The customer identity of the request, or null: only the customer scheme counts - the panel's session is no session of the storefront (04 2.9.4).
-    private static Guid? CustomerOf(HttpContext context)
+    internal static Guid? CustomerOf(HttpContext context)
     {
         if (context.User.Identity is { IsAuthenticated: true, AuthenticationType: SessionSchemes.CustomerScheme })
         {

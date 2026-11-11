@@ -156,6 +156,9 @@ public interface IOrderingModule
     /// </summary>
     Task<CartAddResult> AddToCartAsync(CartOwner owner, Guid variantId, int quantity, CancellationToken ct);
 
+    /// <summary>The id of the owner's cart, or null when the owner has none yet (T503): the product page asks it to tell a member that a digital variant is already in the cart. A plain read; it opens no cart.</summary>
+    Task<Guid?> FindCartIdAsync(CartOwner owner, CancellationToken ct);
+
     /// <summary>
     /// The storefront frame's cart read (T537; 07 5.5.1): how many live lines the owner's cart holds and whether the sign-in merge left a message to tell once. A plain read - no lock, no cart
     /// made, no guest access moment renewed - and it never opens the cart's lines.

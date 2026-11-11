@@ -11,4 +11,10 @@ public enum CartPaymentBlock
 
     /// <summary>The order has a physical item and its basis is under the firm's minimum order amount (02 3.18.1; T349): the cart shows the missing amount in place of the button.</summary>
     MinimumOrderAmountNotMet,
+
+    /// <summary>
+    /// The sales gate is closed (04 5.12.14; 02 3.1.6): the cart stays visible and its button's place says so. Never part of the module's own read (<see cref="CartView.PaymentBlock"/>); the cart
+    /// page sets it from the sales gate (<see cref="CartView.PaymentStepBlock"/>).
+    /// </summary>
+    SalesClosed,
 }

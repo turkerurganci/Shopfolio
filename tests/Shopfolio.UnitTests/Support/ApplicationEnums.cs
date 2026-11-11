@@ -29,6 +29,8 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.Ordering.Contracts.OrderOperation",
         "Shopfolio.Modules.Ordering.Contracts.CartAddOutcome",
         "Shopfolio.Modules.Ordering.Contracts.CartPaymentBlock",
+        // T508: what the change of a cart line's quantity came to - the result code of UC-20, never a column.
+        "Shopfolio.Modules.Ordering.Contracts.CartItemUpdateOutcome",
         // T351: why a delivery date is refused - the result code of the delivery mark, never a column.
         "Shopfolio.Modules.Ordering.Contracts.DeliveryDateObstacle",
         // T347: the verdict on a cart line's quantity - computed per read from the stock and the per-order limit, never a column.

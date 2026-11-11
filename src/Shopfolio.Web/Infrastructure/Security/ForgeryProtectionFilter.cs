@@ -14,7 +14,8 @@ namespace Shopfolio.Infrastructure.Security;
 /// The protection against cross-site forgery of every page POST (07 2.5.4; 05 6.5.1; 09 15.2 item 1). The framework's own check of a page handler
 /// answers a bare 400 and the form's content is lost; the product wants the page again, with what the user typed, a new token and a message at the
 /// level of the action (04 2.7.3.1). The page is shown only after the model is bound, so the check lives here, in a page filter that runs after the
-/// binding and before every other page filter (<see cref="FilterOrder"/>), and the framework's check is switched off for the pages by the policy
+/// binding and before the field validation and the handler (<see cref="FilterOrder"/>; only the error layer, the handler-required filter and the frames' filter, which
+/// draws the page shown again, run outside it), and the framework's check is switched off for the pages by the policy
 /// marker <see cref="ForgeryProtectionPolicy"/>: the framework validates only when no other policy of a higher order is in force.
 /// A failed check writes nothing - the handler does not run - and the answer is 400 (<see cref="FormResults.ForgeryRefused"/>).
 /// </summary>

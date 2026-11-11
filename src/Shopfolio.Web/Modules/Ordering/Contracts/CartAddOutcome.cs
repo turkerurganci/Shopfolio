@@ -6,7 +6,7 @@ public enum CartAddOutcome
     /// <summary>The variant is in the cart: a new line, or the quantity of the existing line went up.</summary>
     Added,
 
-    /// <summary>The quantity is not above zero.</summary>
+    /// <summary>The quantity is not above zero, or a digital variant's is not one (02 3.12.4).</summary>
     InvalidQuantity,
 
     /// <summary>No such variant.</summary>
@@ -23,4 +23,7 @@ public enum CartAddOutcome
 
     /// <summary>The quantity of the product's lines together would pass the firm's per-order limit (02 3.16.9); the result carries the limit. It wins over <see cref="NoStock"/>.</summary>
     OverOrderLimit,
+
+    /// <summary>A digital variant already in the cart: the second add is refused, the line keeps its one ("Bu ürün zaten sepetinde"; 02 3.12.4).</summary>
+    AlreadyInCart,
 }

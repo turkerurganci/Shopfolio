@@ -1,6 +1,6 @@
 # T511 — Sipariş takibi girişi, sipariş sayfası ve indirme bağlantısı (E-15, E-16)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-11
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -86,10 +86,11 @@ Yerelde koşulmayan ad alanları (Model, Database, Catalog, Commands, Concurrenc
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu (tur 1) | ✓ PASS — tur 1 (2026-11-11, head `20c8bbcc` = dal `1064e43f` + `origin/main` `25f1f1ee` (T508 #544) birleştirmesi; çakışma yalnız `DEFERRED_BACKLOG.md` kayıt satırlarında, kurala göre çözüldü). Kriter 1–10 ve KK1–KK10 ✓ (kanıtlar: `OrderTrackingPageTests` 7, `OrderPageTests`, `SessionAccessTests`, `NotFoundPageTests`, `OrderPageLinksTests`; doğrulayıcı sondaları — eşleşen sorgunun 303'ü çerez ve deneme kaydı bırakmaz; ret satırları `OrderLookupFailed`/`OrderLookupLimitExceeded`/`DownloadNotAvailable` uygulama kaydında, e-posta ve anahtar kayıtta yok; numara tek başına 302; havale IBAN'ı tam, kargo adı + takip no + "Takip et", kendi aracı beyanı, gönderilmiş geri ödeme tarih/tutar/yol ile, gönderilmemiş ve geçersizleşmiş yok — sondalar silindi). Para/yetki/IDOR: indirme kalemi önce çözülen kökün siparişinde ve dijital olmalı (değilse 404, hak düşmez), kural kapıda kilit altında yeniden okunur, hak tek koşullu güncellemeyle düşer; tutarlar siparişin donmuş sütunlarından, geri ödemeler yalnız gönderilmiş ve geçersizleşmemiş kayıtlardan; üye kökü sahiplikle, yönetici oturumu 404. `09 §25` ilgili satırlar ✓ (POST `[GatedOperation]` + sahtecilik, `[NoStore]`, `[KeyedLinkPage]`, betik/meta yenileme yok, ret satırı `07` koduyla, yeni bağımlılık/şema/sır yok; GET indirme düğmesi ayrı koşuldan — K2). Yerel: derleme `-warnaserror` 0 uyarı, `dotnet format` üç proje temiz, Unit 7150/7150, betik testleri 4/4, Integration TAM ad alanı parçalarıyla (`track_commit_timestamp=on`): T511 sınıfları 67, Ordering 645, Model 1407, Web 755, Administration+Catalog+Commands+Concurrency+CorporateContent 436, Database+Disposal+FileSecrets 121, Files+Jobs+Logging+Outages 280, Payment+Security+SignedEndpoints+Pages 104 — hepsi 0 kırmızı (Web'in önceki iki koşusunda ve bir parça koşusunda ~17 sn'lik farklı kırmızılar yeniden koşularda yeşil: yük kararsızlığı, T511 kodu dışında). Dal CI run 43069617924 success (9 iş). `12` satırları PASS: `VAL-B015`, `VAL-A605`, `VAL-A488`, `VAL-A489` (KK2, KK3), `VAL-A054`, `VAL-A977` (KK4), `VAL-B016`, `VAL-A609` (KK5), `VAL-A056`, `VAL-A061`, `VAL-A063` (KK6), `VAL-B018`, `VAL-A065`, `VAL-A636` (KK9), `VAL-A064`, `VAL-A491` (KK10); tarayıcı gözlemi isteyen satırlar (`VAL-A058`, `VAL-A391`, `VAL-A981`, `VAL-B014`, `VAL-A055`, `VAL-A057`, `VAL-A062`, `VAL-A883`) uç kısmı karşılansa da BEKLEMEDE; öteki task'larla paylaşılan satırlar (`VAL-A353`, `VAL-A604`, `VAL-A773`, `VAL-A864`, `VAL-A868`, `VAL-B011`, `VAL-B017`, `VAL-A059`, `VAL-A060`, `VAL-A066`, `VAL-D013`, `VAL-D014`) BEKLEMEDE. |
+| Bulgu sayısı (tur 1) | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (tur 1) | 3 — **K1** (D-1258'e forward): `04` 5.16.14 "IBAN'ı kopyalamak" E-16'nın havale bloğunda yok. **K2** (D-1259'a forward): indirme düğmesinin GET'teki açıklığı `OrderAccess.GetSummaryAsync`'in kendi koşulundan, POST işlem satırının kuralından; bugün eşit, D-1197 satırı değiştirirse ayrışır. **K3** (bu PR'da kapatıldı, kod okuması): KK2 "değişmiş e-posta" ayrı testle sınanmıyor; sorgu yalnız siparişin donmuş `NormalizedContactEmail`'ini okur ve onu yalnız `Order.SetContactEmail` (oluşturma, imha, misafir e-posta düzeltmesi) yazar — hesap e-postasının değişmesi siparişe dokunmaz. |
+| Yapım raporu karşılaştırması (tur 1) | Kabul kriterlerinde tam uyum (1–10 ✓); öz denetim tablosu var, maddeler kanıtlı. Uyuşmazlık 2: (1) öz denetim `VAL-A981`'i ✓ sayar; satırın kanıt türü tarayıcı gözlemi de istediği için doğrulamada BEKLEMEDE kaldı (uç kısmı `SecurityHeadersTests` ile karşılanıyor). (2) Integration yapımda TAM koşulmamıştı; doğrulamada TAM koşuldu, kırmızı yok. |
 
 ## Altyapı Değişiklikleri
 
@@ -103,7 +104,7 @@ Yerelde koşulmayan ad alanları (Model, Database, Catalog, Commands, Concurrenc
 - **Branch:** `task/T511-siparis-takibi-sayfasi`
 - **Commit:** PR başlığına ve dal geçmişine bakınız
 - **PR:** #545
-- **CI:** *(validator doldurur)*
+- **CI:** dal run 43069617924 (head `20c8bbcc`) success — Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E (advisory); Guard atlandı
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası)*
 
 ## Dış Varsayımlar

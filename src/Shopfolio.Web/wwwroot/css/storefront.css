@@ -246,10 +246,39 @@
     background: var(--brand-color);
 }
 
-.site-menu__group-title {
+.site-menu__group-title,
+.site-menu__group-toggle {
     display: block;
     padding: var(--space-2) var(--space-3);
     font-weight: 600;
+}
+
+/* Once common.js has run, "Ürünler" is a button and the category tree folds on every class; without the script the title stays plain text and the tree stays open (04 2.1.2). */
+.site-menu__group-toggle {
+    min-height: var(--touch-target);
+    border: 0;
+    background: none;
+    color: var(--color-text);
+    font: inherit;
+    font-weight: 600;
+    text-align: start;
+    cursor: pointer;
+}
+
+.site-menu__group-toggle[aria-expanded="true"]::after {
+    content: " \25B4";
+}
+
+.site-menu__group-toggle[aria-expanded="false"]::after {
+    content: " \25BE";
+}
+
+.site-menu__item--group[data-js-ready="true"] > .site-menu__group-title {
+    display: none;
+}
+
+.site-menu__item--group[data-js-ready="true"][data-collapsed="true"] > .site-menu__panel {
+    display: none;
 }
 
 .site-menu__tree {
@@ -309,24 +338,19 @@
         position: relative;
     }
 
-    /* The category tree opens under "Ürünler" when the item is hovered or focused; the same links stay reachable by keyboard because the tree is in the document. */
-    .site-menu__item--group > .site-menu__tree {
+    /* The category tree opens under "Ürünler" as a drop-down when the "Ürünler" button is pressed (click, Enter or Space) and closes on Escape; its links are in the tab order only while it is open.
+       Without the script the tree is not a drop-down: it stays open in the flow. */
+    .site-menu__item--group[data-js-ready="true"] > .site-menu__panel {
         position: absolute;
         inset-inline-start: 0;
         top: 100%;
         z-index: 10;
-        display: none;
         min-width: 14rem;
         padding: var(--space-2);
         border: 1px solid var(--color-border);
         border-radius: var(--radius-1);
         background: var(--color-surface);
         box-shadow: var(--shadow-1);
-    }
-
-    .site-menu__item--group:hover > .site-menu__tree,
-    .site-menu__item--group:focus-within > .site-menu__tree {
-        display: block;
     }
 }
 

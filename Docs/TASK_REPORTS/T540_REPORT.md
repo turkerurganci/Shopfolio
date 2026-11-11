@@ -25,10 +25,10 @@
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | Üç genişlik sınıfı; geniş sınıfta sınırlı genişlik; tarayıcı tabanı | ✓ | `base.css` `--bp-medium: 768px`, `--bp-wide: 1024px`, `.container` sınırlı genişlik; `FrameSourceScanTests.TheBaseFile_DefinesTheTwoLimitsOnce_AndEveryWidthConditionOfEveryFileIsOneOfThem_KK1` (+ ihlal ve yakın örnekler) |
-| 2 | Vitrin dar, panel geniş sınıftan; hiçbir içerik gizlenmez; metin kesilmez (üç istisna dışında) | ✓ | Vitrin `storefront.css` dar tabandan, panel `admin.css` geniş sınıftan; `…TheCutTextLine_IsUsedByTheTwoNamedExceptionsOnly_AndNoStyleSheetCutsTextOtherwise_KK2`; menü, arama ve sosyal bağlantılar dar sınıfta açılır panelde, belgede durur (`TheMenuAndTheAccountAreaAndTheSearchBox_AreInsideTheFoldOutPanel_OfTheHeader_T540_KK5`) |
+| 1 | Üç genişlik sınıfı; geniş sınıfta sınırlı genişlik; tarayıcı tabanı | ✓ | `base.css` `--bp-medium: 768px`, `--bp-wide: 1024px`, `.container` sınırlı genişlik; `FrameSourceScanTests.TheBaseFile_DefinesTheTwoLimitsOnce_AndEveryWidthConditionOfEveryFileIsOneOfThem_KK1` (+ ihlal ve yakın örnekler); panel: `admin.css` geniş sınıfta `.panel-content` `max-width: var(--content-max-width)` + `margin-inline: auto` (tek değişken `base.css`'te); `FrameSourceScanTests.TheVariableOfTheContentWidth_IsDefinedOnce_AndTheStorefrontAndThePanelColumnsBothLimitAndCentreTheirContent_KK1` (+ `AColumnWithoutALimitedAndCentredWidth_IsFound_KK1` ihlal örnekleri, `AColumnWithALimitedAndCentredWidth_IsLeftAlone_KK1`) — düzeltme 1 (B2) |
+| 2 | Vitrin dar, panel geniş sınıftan; hiçbir içerik gizlenmez; metin kesilmez (üç istisna dışında) | ✓ | Vitrin `storefront.css` dar tabandan, panel `admin.css` geniş sınıftan; `…TheCutTextLine_IsUsedByTheTwoNamedExceptionsOnly_AndNoStyleSheetCutsTextOtherwise_KK2`; menü, arama ve sosyal bağlantılar dar sınıfta açılır panelde, belgede durur (`TheMenuAndTheAccountAreaAndTheSearchBox_AreInsideTheFoldOutPanel_OfTheHeader_T540_KK5`); kategori ağacı her sınıfta "Ürünler" düğmesiyle açılır, betiksiz yolda açık (`TheProductsGroupOfTheMenu_IsAButtonWithAriaState_ThatControlsTheCategoryTree_T540_KK2_KK4`) — düzeltme 1 (B1) |
 | 3 | Marka rengi vitrinde yalnız dolu zemin | ✓ | `FrameSourceScanTests.TheBrandColour_IsAFilledBackgroundOnTheStorefrontOnly_…_KK3`; `TheBrandVariables_AreTwoColours_…_KK3` |
-| 4 | Klavye, odak, %200; ölçüm, dış betik, gömme yok | ✓ (tarayıcı sınaması `12`'de) | `TheScripts_ImportNothing_…_KK4`, `TheFrameViews_HaveNoEventAttribute…_KK4`; entegrasyon `TheLayouts_HaveOneNoncedStyleBlock_…_KK3_KK4`; atlama bağlantısı ve odak halkası `base.css` |
+| 4 | Klavye, odak, %200; ölçüm, dış betik, gömme yok | ✓ (tarayıcı sınaması `12`'de) | `TheScripts_ImportNothing_…_KK4`, `TheFrameViews_HaveNoEventAttribute…_KK4`; entegrasyon `TheLayouts_HaveOneNoncedStyleBlock_…_KK3_KK4`; atlama bağlantısı ve odak halkası `base.css`; menü ağacı: `FrameSourceScanTests.TheMenuGroupTitle_HasAFocusableTrigger_ThatTheScriptOpensByClickAndClosesOnEscape_KK4` (+ `AGroupTitleWithoutAFocusableTrigger_IsFound_KK4`, `ATriggerThatTheScriptNeverBinds_IsFound_KK4`, `AGroupTitleWithItsTrigger_IsLeftAlone_KK4`); `common.js` `bindMenuTreeGroup` (tıklama/Enter/Space, Esc odağı düğmeye döndürür) — düzeltme 1 (B1) |
 | 5 | Vitrin çerçevesi beş bölge; dar sınıfta menü, arama, sosyal açılır menüde | ✓ | `TheStorefrontLayout_DrawsTheFiveRegionsInOrder_…_KK5_KK9`; `…AreInsideTheFoldOutPanel…_KK5` |
 | 6 | Altbilgi eksiksiz, katlanmaz; "İletişim" E-10'a; yalnız yayındaki yasal metne bağlantı | ✓ | `TheFooter_IsWholeOnEveryScreen_TheContactHeadingLeadsToE10_AndOnlyPublishedLegalTextsAreLinked_T540_KK6` |
 | 7 | Ödeme adımı üst bölümü yalnız logo/marka adı + "Sepete dön" | ✓ | `ThePaymentStepHeader_CarriesTheBrandAndBackToTheCartOnly_T540_KK7` |
@@ -114,8 +114,16 @@ Dış varsayım: yok. Task yalnız uygulama içi düzen, stil ve model kurar; pl
 | 1 | "Diğer" taşma menüsü | D-1134 | Kategori sayısı küçükken sorun çıkmaz; `04` 2.2.3 |
 | 2 | Favicon yedeği; statik dosya önbellek başlığı ölçümü | D-1135 | Belge istemiyor; ölçüm |
 | 3 | Görsel adresi `/gorsel/{id}` varsayımı ⚠ | D-1136 | Görsel sunan uç T501'de |
-| 4 | Hover kategori ağacı dokunmatikte | D-1137 | İçerik gizlenmiyor; bağlantı çalışıyor |
+| 4 | ~~Hover kategori ağacı dokunmatikte~~ | D-1137 ✅ | Düzeltme 1'de kapandı: düğmeyle açılır (tıklama, Enter, Space, Esc); D-1139 (dar sınıfta katlanma) da kapandı |
 | 5 | Panel menü işareti metni "Bekleyen iş" ⚠ | D-1138 | `04` metni yazmıyor |
+
+## Düzeltme 1 (doğrulama tur 1 FAIL sonrası, 2026-11-11)
+
+- **B1:** "Ürünler" gerçek bir `<button type="button" aria-expanded aria-controls="site-menu-tree">` oldu (`_StorefrontHeader.cshtml`; betiksiz yolda düğme gizli, başlık metin, ağaç açık). `common.js` `bindMenuTreeGroup`: tıklama/Enter/Space açar ve kapatır, Esc kapatıp odağı düğmeye döndürür; kapalıyken ağaç `display: none` (bağlantılar sekme sırasında değil), açıkken sekme sırasında. Hover açılışı kaldırıldı (tek yol olamaz; dokunmatik ve klavye aynı yol). Dar sınıfta da aynı düğme ağacı katlar (`04` 2.2.4): D-1139 ve D-1137 ✅. CSS yorumu düzeltildi; D-1137'nin yanlış cümlesi çözüm kaydıyla değişti.
+- **B2:** `.panel-content` geniş sınıfta `max-width: var(--content-max-width)` ve `margin-inline: auto` (vitrinle aynı tek değişken; `04` belge panel için ayrı değer yazmıyor).
+- **K4:** `.pending-mark` yinelenen kuralı `admin.css`'ten kaldırıldı (tek ev `components.css`).
+- **12:** VAL-B062 FAIL'den BEKLEMEDE'ye döndü (kaynak taraması + Integration kanıtı var; tarayıcı gözlemi bekliyor, PASS'a çekilmedi); tarayıcı isteyen öteki satırlar BEKLEMEDE'de kaldı.
+- **Öz denetim (düzeltme 1):** T540 kabul kriterleri 1–9 ve KK1–KK9 yeniden denetlendi — 1, 2, 4 yukarıdaki yeni kanıtla ✓; 3, 5–9 değişmedi (StorefrontFrameTests 23/23, Unit 6777/6777 yeşil). `sik-fail-nedenleri.md` okundu: menü klavye erişimi ve iki çerçevede sınırlı genişlik satırları kapatıldı, `12` satırı PASS'a çekilmedi.
 
 ## Notlar
 

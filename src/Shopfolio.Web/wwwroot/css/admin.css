@@ -131,17 +131,6 @@
     text-decoration: none;
 }
 
-/* The pending work mark of an entry (04 2.2.8): a text label, never colour alone. */
-.pending-mark {
-    margin-inline-start: var(--space-2);
-    padding: 0 var(--space-2);
-    border-radius: var(--radius-2);
-    background: var(--color-pending);
-    color: var(--color-pending-text);
-    font-size: var(--font-size-small);
-    font-weight: 700;
-}
-
 .panel-menu__link:hover {
     text-decoration: underline;
 }
@@ -238,7 +227,10 @@
         top: 0;
     }
 
+    /* The content keeps a limited width on the wide class (04 2.1.1): the same limit as the storefront's, one definition in the base file. */
     .panel-content {
+        max-width: var(--content-max-width);
+        margin-inline: auto;
         padding: var(--space-6);
     }
 }

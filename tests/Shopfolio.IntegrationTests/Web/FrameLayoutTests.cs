@@ -114,6 +114,36 @@ public sealed partial class StorefrontFrameTests
         Assert.Contains("href=\"/giris?returnUrl=%2Fsss\"", html, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task TheProductsGroupOfTheMenu_IsAButtonWithAriaState_ThatControlsTheCategoryTree_T540_KK2_KK4()
+    {
+        await using (AppDbContext db = NewContext())
+        {
+            Category category = Category.Create("Mobilya", "mobilya", null, 1, Now);
+            Product product = Product.Create("Masa", "masa", ProductType.Physical, 20m, Now).WithSeededOrigin();
+            product.PublishStatus = PublishStatus.Published;
+            db.Categories.Add(category);
+            db.Products.Add(product);
+            db.ProductCategories.Add(ProductCategory.Create(product.Id, category.Id, true, Now));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = factory.CreateClient();
+
+        string html = (await GetHtmlAsync(client, "/sss")).Html;
+
+        // The group's tree is reachable by keyboard: a real button (hidden until common.js runs), expanded state and the id of the panel it controls.
+        Match button = Regex.Match(html, "<button[^>]*data-js=\"menu-tree-toggle\"[^>]*>", RegexOptions.CultureInvariant, PatternTimeout);
+        Assert.True(button.Success, "The Ürünler group has no toggle button.");
+        Assert.Contains("type=\"button\"", button.Value, StringComparison.Ordinal);
+        Assert.Contains("aria-expanded=\"false\"", button.Value, StringComparison.Ordinal);
+        Assert.Contains("aria-controls=\"site-menu-tree\"", button.Value, StringComparison.Ordinal);
+        Assert.Matches(new Regex("\\shidden[\\s>]", RegexOptions.CultureInvariant, PatternTimeout), button.Value);
+        Assert.Contains("<div class=\"site-menu__panel\" id=\"site-menu-tree\">", html, StringComparison.Ordinal);
+        Assert.Matches(new Regex("id=\"site-menu-tree\">\\s*<ul class=\"site-menu__tree\">\\s*<li>\\s*<a href=\"[^\"]*mobilya\">Mobilya</a>", RegexOptions.CultureInvariant, PatternTimeout), html);
+    }
+
     // ---- KK6: the footer ----
 
     [Fact]

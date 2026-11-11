@@ -74,6 +74,36 @@ for (const toggle of document.querySelectorAll('[data-js="menu-toggle"]')) {
     bindMenuToggle(toggle);
 }
 
+// The storefront menu's category tree under "Ürünler" (04 2.1.4 item 3, 2.2.4; T540). The title is a plain text in the markup and a hidden button beside it; once this script has run the button
+// replaces the title and the tree folds on every class: click, Enter or Space opens and closes it, Escape closes it and gives the focus back to the button. Without the script the tree stays open.
+function bindMenuTreeGroup(group) {
+    const button = group.querySelector('[data-js="menu-tree-toggle"]');
+    const panel = button ? document.getElementById(button.getAttribute("aria-controls")) : null;
+    if (!button || !panel) {
+        return;
+    }
+
+    const setOpen = (open) => {
+        button.setAttribute("aria-expanded", open ? "true" : "false");
+        group.dataset.collapsed = open ? "false" : "true";
+    };
+
+    button.hidden = false;
+    group.dataset.jsReady = "true";
+    setOpen(false);
+    button.addEventListener("click", () => setOpen(button.getAttribute("aria-expanded") !== "true"));
+    group.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && button.getAttribute("aria-expanded") === "true") {
+            setOpen(false);
+            button.focus();
+        }
+    });
+}
+
+for (const group of document.querySelectorAll('[data-js="menu-tree-group"]')) {
+    bindMenuTreeGroup(group);
+}
+
 // The panel menu's groups fold on the narrow class and the active group arrives open (04 2.2.8). Each group's title is also a button that is shown only when this script has run; the
 // wide and medium classes keep every group open in the style sheet.
 function bindMenuGroup(group) {

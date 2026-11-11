@@ -89,12 +89,15 @@
                             {
                                 if (item.Path is null)
                                 {
-                                    <li class="site-menu__item site-menu__item--group">
+                                    var tree = FrameMenuTree.Build(menu.Categories);
+                                    <li class="site-menu__item site-menu__item--group" data-js="menu-tree-group">
                                         <span class="site-menu__group-title">@item.Name</span>
-                                        @{ var tree = FrameMenuTree.Build(menu.Categories); }
                                         @if (tree.Count > 0)
                                         {
-                                            <partial name="_MenuTree" model="tree" />
+                                            <button type="button" class="site-menu__group-toggle" data-js="menu-tree-toggle" aria-controls="site-menu-tree" aria-expanded="false" hidden>@item.Name</button>
+                                            <div class="site-menu__panel" id="site-menu-tree">
+                                                <partial name="_MenuTree" model="tree" />
+                                            </div>
                                         }
                                     </li>
                                 }

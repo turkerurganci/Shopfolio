@@ -288,6 +288,101 @@ public sealed partial class FrameSourceScanTests
         Assert.Empty(WidthConditionViolations(MediaRuleOf(condition), [768, 1024]));
     }
 
+    // ---- The content column keeps a limited width in both frames (04 2.1.1; 05 3.8.2) ----
+
+    private static readonly (string File, string Selector)[] ContentColumns = [("base.css", ".container"), ("admin.css", ".panel-content")];
+
+    private static List<string> UnlimitedContentViolations(string css, string selector)
+    {
+        // A rule of the selector (alone, inside a media block or not) that sets max-width to the one shared variable and centres the column.
+        List<string> rules = [.. StripStyleComments(css).Split('}').Where(rule => rule.Contains('{', StringComparison.Ordinal) && Regex.IsMatch(rule[..rule.LastIndexOf('{')], @"(?:^|[\s,{])" + Regex.Escape(selector) + @"\s*$", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)))];
+        if (!rules.Any(rule => Regex.IsMatch(rule, @"max-width:\s*var\(--content-max-width\)", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5))))
+        {
+            return [$"{selector} has no max-width of the shared content width"];
+        }
+
+        return rules.Any(rule => Regex.IsMatch(rule, @"margin-inline:\s*auto", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5))) ? [] : [$"{selector} is not centred"];
+    }
+
+    [Fact]
+    public void TheVariableOfTheContentWidth_IsDefinedOnce_AndTheStorefrontAndThePanelColumnsBothLimitAndCentreTheirContent_KK1()
+    {
+        Assert.Single(Regex.Matches(StripStyleComments(ReadWeb("wwwroot/css/base.css")), @"--content-max-width\s*:", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
+        foreach ((string file, string selector) in ContentColumns)
+        {
+            Assert.Empty(UnlimitedContentViolations(ReadWeb($"wwwroot/css/{file}"), selector));
+        }
+    }
+
+    [Theory]
+    [InlineData(".panel-content { flex: 1 1 auto; padding: 1rem; }")]
+    [InlineData(".panel-content { padding: 2rem; }")]
+    [InlineData(".panel-content { max-width: 80rem; margin-inline: auto; }")]
+    [InlineData(".panel-content { max-width: var(--content-max-width); }")]
+    public void AColumnWithoutALimitedAndCentredWidth_IsFound_KK1(string rule)
+    {
+        Assert.NotEmpty(UnlimitedContentViolations(rule, ".panel-content"));
+        Assert.NotEmpty(UnlimitedContentViolations("@media (min-width: 1024px) { " + rule + " }", ".panel-content"));
+    }
+
+    [Theory]
+    [InlineData(".panel-content { max-width: var(--content-max-width); margin-inline: auto; }")]
+    [InlineData(".panel-content__title { margin: 0; } .panel-content { max-width: var(--content-max-width); margin-inline: auto; }")]
+    public void AColumnWithALimitedAndCentredWidth_IsLeftAlone_KK1(string rule)
+    {
+        Assert.Empty(UnlimitedContentViolations(rule, ".panel-content"));
+        Assert.Empty(UnlimitedContentViolations("@media (min-width: 1024px) { " + rule + " }", ".panel-content"));
+    }
+
+    // ---- The menu's category tree is reachable by keyboard (04 2.1.4 item 3; 2.1.2) ----
+
+    private static List<string> TreeTriggerViolations(string view, string script)
+    {
+        List<string> found = [];
+        if (view.Contains("site-menu__group-title", StringComparison.Ordinal))
+        {
+            // The first button after the title: the title's own trigger, not the menu toggle that comes earlier in the header.
+            Match button = Regex.Match(view, @"site-menu__group-title[\s\S]*?(?<tag><button\b[^>]*\btype=""button""[^>]*>)", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5));
+            string tag = button.Groups["tag"].Value;
+            if (!button.Success || !tag.Contains("aria-expanded=", StringComparison.Ordinal) || !tag.Contains("aria-controls=", StringComparison.Ordinal))
+            {
+                found.Add("the group title has no <button type=\"button\"> carrying aria-expanded and aria-controls");
+            }
+        }
+
+        if (!script.Contains("\"Escape\"", StringComparison.Ordinal) || !script.Contains("addEventListener(\"click\"", StringComparison.Ordinal))
+        {
+            found.Add("the script binds no click and no Escape");
+        }
+
+        return found;
+    }
+
+    [Fact]
+    public void TheMenuGroupTitle_HasAFocusableTrigger_ThatTheScriptOpensByClickAndClosesOnEscape_KK4()
+    {
+        Assert.Empty(TreeTriggerViolations(FrameView("_StorefrontHeader"), ReadWeb("wwwroot/js/common.js")));
+
+        // Nothing opens the tree by hover or focus alone any more: that was the only way and keyboard users could not take it.
+        string css = StripStyleComments(ReadWeb("wwwroot/css/storefront.css"));
+        Assert.DoesNotContain(".site-menu__item--group:hover", css, StringComparison.Ordinal);
+        Assert.DoesNotContain(".site-menu__item--group:focus-within", css, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("<li><span class=\"site-menu__group-title\">Ürünler</span><ul></ul></li>")]
+    [InlineData("<li><span class=\"site-menu__group-title\">Ürünler</span><a href=\"#\" aria-expanded=\"false\" aria-controls=\"x\">x</a></li>")]
+    [InlineData("<li><span class=\"site-menu__group-title\">Ürünler</span><button type=\"button\">x</button></li>")]
+    public void AGroupTitleWithoutAFocusableTrigger_IsFound_KK4(string view) => Assert.NotEmpty(TreeTriggerViolations(view, "x.addEventListener(\"click\", f); if (e.key === \"Escape\") {}"));
+
+    [Fact]
+    public void ATriggerThatTheScriptNeverBinds_IsFound_KK4() =>
+        Assert.NotEmpty(TreeTriggerViolations("<span class=\"site-menu__group-title\">x</span><button type=\"button\" aria-expanded=\"false\" aria-controls=\"t\">x</button>", "const a = 1;"));
+
+    [Fact]
+    public void AGroupTitleWithItsTrigger_IsLeftAlone_KK4() =>
+        Assert.Empty(TreeTriggerViolations("<span class=\"site-menu__group-title\">x</span><button type=\"button\" class=\"b\" aria-controls=\"t\" aria-expanded=\"false\" hidden>x</button>", "b.addEventListener(\"click\", f); if (e.key === \"Escape\") {}"));
+
     // ---- The class names (09 16.1 item 5) ----
 
     private static List<string> ClassNameViolations(IEnumerable<string> names) => [.. names.Where(name => !BemName().IsMatch(name))];

@@ -188,8 +188,9 @@ public sealed class NotFoundPageTests : IAsyncLifetime
         await using WebApplicationFactory<Program> factory = WithSamples(baseFactory);
         using HttpClient client = ClientOf(factory);
 
-        // T206's first path segment, T207's ownership denial (the member root of a visitor and a wrong access key), T312's signed value that is not valid.
-        string[] paths = ["/bilinmeyen-bolum", "/siparis/2026-ABC123", "/siparis/erisim/yanlis-anahtar", "/indir/gecersiz-deger"];
+        // T206's first path segment, T207's ownership denial (a wrong access key), T312's signed value that is not valid. The member root of a visitor is a 302 to the sign-in
+        // (07 UC-33; T511 KK4), and a signed-in member's foreign order is the same 404 page content (SessionAccessTests).
+        string[] paths = ["/bilinmeyen-bolum", "/siparis/erisim/yanlis-anahtar", "/indir/gecersiz-deger"];
         List<string> pages = [];
         foreach (string path in paths)
         {
@@ -210,7 +211,11 @@ public sealed class NotFoundPageTests : IAsyncLifetime
         using HttpClient client = ClientOf(factory);
         (_, string unknown) = await GetAsync(client, "/bilinmeyen-bolum");
 
-        using HttpResponseMessage response = await client.PostAsync(new Uri("/siparis/erisim/yanlis-anahtar?handler=Cancel", UriKind.Relative), new FormUrlEncodedContent([]), Ct);
+        // The order page's one write (UC-36; T511): the root is looked up before the item, so a wrong key is the 404 page. A handler the page does not have is a 400 before any lookup.
+        using HttpResponseMessage response = await client.PostAsync(
+            new Uri("/siparis/erisim/yanlis-anahtar?handler=DownloadDigitalFile", UriKind.Relative),
+            new FormUrlEncodedContent([new KeyValuePair<string, string>("OrderItemId", Guid.NewGuid().ToString())]),
+            Ct);
         string html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct));
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

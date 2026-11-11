@@ -378,3 +378,74 @@
         content: none;
     }
 }
+
+/* ---- Panel home blocks and the order page's undelivered e-mail block (T542; 04 2.5.3.1, 2.6.1, 2.6.2) ---- */
+
+/* The six counters sit two by two on the narrow class and three by two from the medium class on (04 2.6.1); a zero counter is drawn like the others. */
+.pending-counters__list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pending-counters__link {
+    display: flex;
+    flex-direction: column;
+    min-height: var(--touch-target);
+    padding: var(--space-3);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-2);
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.pending-counters__count {
+    font-size: var(--font-size-title);
+    font-weight: 700;
+}
+
+@media (min-width: 768px) {
+    .pending-counters__list {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.awaiting-customer__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.awaiting-customer__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.undelivered-emails__row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.undelivered-emails__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.undelivered-emails__failure {
+    padding: var(--space-3);
+    border-inline-start: 4px solid var(--color-tone-danger-text);
+    background: var(--color-tone-danger-bg);
+    color: var(--color-tone-danger-text);
+    font-weight: 600;
+}

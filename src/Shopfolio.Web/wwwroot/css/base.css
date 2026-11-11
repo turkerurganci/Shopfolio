@@ -22,8 +22,29 @@
     --color-sales-open: #0a5c2b;
     --color-sales-closed: #8a1c1c;
     --color-sales-text: #ffffff;
+    /* The meanings of a message (04 2.3, 2.1.3): independent of the brand colour; each pair is a text colour and the pale surface under it, and a message always carries a symbol and text too (02 6.1.6). */
+    --color-error: #8a1c1c;
+    --color-error-surface: #fdecec;
+    --color-warning: #7a4a00;
+    --color-warning-surface: #fff4d6;
+    --color-info: #0b3d91;
+    --color-info-surface: #e8f0fc;
+    --color-success: #0a5c2b;
+    --color-success-surface: #e6f4ea;
+    --color-overlay: rgb(27 31 36 / 0.6);
+    /* How long a short-lived notice stays on the screen (04 2.3.1.4); the document gives no number (D-1145). */
+    --notice-duration: 6s;
     --color-pending: #b45309;
     --color-pending-text: #ffffff;
+    /* The tones of a badge (04 2.5; 02 6.1.6): an aid to the text, independent of the brand colour. */
+    --color-tone-info-bg: #dbe7fb;
+    --color-tone-info-text: #0b2a5e;
+    --color-tone-success-bg: #d4edda;
+    --color-tone-success-text: #0a3d1c;
+    --color-tone-warning-bg: #ffe8a3;
+    --color-tone-warning-text: #3d2d00;
+    --color-tone-danger-bg: #f8d7da;
+    --color-tone-danger-text: #5c1212;
     --brand-color: #1a56db;
     --brand-text-color: #ffffff;
     /* The primary action button's fill: neutral by default, the brand colour on the storefront only (storefront.css; 04 2.1.3). The panel never has the brand colour. */
@@ -51,6 +72,8 @@
 
     --content-max-width: 72rem;
     --touch-target: 2.75rem;
+    /* The domestic production logo's width (T501; 04 5.4.18): one size in every width class - the logo is never hidden or cut. */
+    --origin-logo-width: 7.5rem;
 }
 
 *,

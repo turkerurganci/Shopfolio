@@ -234,6 +234,8 @@ public sealed partial class FrameSourceScanTests
     private static HashSet<int> DefinedLimits(string baseCss) =>
         [.. BreakpointDefinition().Matches(StripStyleComments(baseCss)).Select(m => int.Parse(m.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture))];
 
+    private const string ReducedMotionCondition = "(prefers-reduced-motion: reduce)";
+
     private static string MediaRuleOf(string condition) => "@media " + condition + " { a { margin: 0; } }";
 
     private static List<string> WidthConditionViolations(string css, HashSet<int> limits)
@@ -242,6 +244,12 @@ public sealed partial class FrameSourceScanTests
         foreach (Match media in MediaRule().Matches(StripStyleComments(css)))
         {
             string condition = media.Groups[1].Value.Trim();
+            if (condition == ReducedMotionCondition)
+            {
+                // The one condition that is not a width: the user's own choice to see no motion (04 2.7.2); it carries no breakpoint.
+                continue;
+            }
+
             Match min = MinWidthCondition().Match(condition);
             if (!min.Success || !limits.Contains(int.Parse(min.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture)))
             {
@@ -278,6 +286,8 @@ public sealed partial class FrameSourceScanTests
     [InlineData("(max-width: 768px)")]
     [InlineData("(min-width: 768px) and (max-width: 1023px)")]
     [InlineData("screen and (min-width: 1024px)")]
+    [InlineData("(prefers-reduced-motion: reduce) and (max-width: 500px)")]
+    [InlineData("(prefers-reduced-motion: no-preference)")]
     public void AWidthConditionOutsideTheTwoLimits_IsFound_KK1(string condition)
     {
         Assert.NotEmpty(WidthConditionViolations(MediaRuleOf(condition), [768, 1024]));
@@ -286,6 +296,7 @@ public sealed partial class FrameSourceScanTests
     [Theory]
     [InlineData("(min-width: 768px)")]
     [InlineData("(min-width: 1024px)")]
+    [InlineData("(prefers-reduced-motion: reduce)")]
     public void AWidthConditionAtALimit_IsLeftAlone_KK1(string condition)
     {
         Assert.Empty(WidthConditionViolations(MediaRuleOf(condition), [768, 1024]));
@@ -475,4 +486,40 @@ public sealed partial class FrameSourceScanTests
     [InlineData(".storefront { --button-primary-bg: var(--brand-color); --button-primary-text: var(--brand-text-color); }")]
     [InlineData("a { background-color: var(--brand-color); }")]
     public void TheBrandColourAsAFilledBackground_IsLeftAlone_KK3(string css) => Assert.Empty(BrandColourViolations(css));
+
+    // ---- A shared view that writes a tag helper declares the helpers it needs (T541; the framed error page drew a raw <partial> tag) ----
+
+    [GeneratedRegex(@"<partial\b|<(?:form|input|a|select|textarea|label|environment|cache)\b[^>]*\basp-[a-z-]+", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex TagHelperUse();
+
+    [GeneratedRegex(@"@addTagHelper\s+\*\s*,\s*Microsoft\.AspNetCore\.Mvc\.TagHelpers\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex TagHelperDeclaration();
+
+    private static bool UsesTagHelpersWithoutDeclaring(string view)
+    {
+        string text = RazorComment().Replace(view, string.Empty);
+        return TagHelperUse().IsMatch(text) && !TagHelperDeclaration().IsMatch(view);
+    }
+
+    [Fact]
+    public void EverySharedView_ThatWritesATagHelper_DeclaresTheHelpers_KK1()
+    {
+        string directory = Path.Combine(RepositoryRoot.Find(), Web, "Pages", "Shared");
+        string[] views = Directory.GetFiles(directory, "*.cshtml");
+
+        Assert.NotEmpty(views);
+        Assert.Empty(views.Where(path => UsesTagHelpersWithoutDeclaring(File.ReadAllText(path))).Select(Path.GetFileName));
+    }
+
+    [Theory]
+    [InlineData("<partial name=\"_Message\" model=\"x\" />")]
+    [InlineData("<form method=\"post\" asp-antiforgery=\"true\"></form>")]
+    [InlineData("<a asp-page=\"/Index\">x</a>")]
+    public void ASharedViewWithATagHelperAndNoDeclaration_IsFound_KK1(string view) => Assert.True(UsesTagHelpersWithoutDeclaring(view));
+
+    [Theory]
+    [InlineData("@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers\n<partial name=\"_Message\" model=\"x\" />")]
+    [InlineData("<p>no helper here</p>")]
+    [InlineData("@* <partial name=\"_Message\" /> stays in a comment *@\n<p>text</p>")]
+    public void ASharedViewWithADeclarationOrNoTagHelper_IsLeftAlone_KK1(string view) => Assert.False(UsesTagHelpersWithoutDeclaring(view));
 }

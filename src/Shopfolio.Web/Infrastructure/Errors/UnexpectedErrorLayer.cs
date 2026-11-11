@@ -118,13 +118,43 @@ internal sealed partial class UnexpectedErrorLayer
 /// </summary>
 internal static class UnexpectedErrorAnswer
 {
-    public const string PageMessage = "Sayfa şu anda açılamadı. Birkaç dakika sonra yeniden deneyin.";
+    public const string PageMessage = "Sayfa şu anda açılamadı. Birkaç dakika sonra yeniden deneyin. Sorun sürerse İletişim sayfasından bize ulaşın.";
 
     public const string OperationMessage = "İşlem tamamlanamadı. Yazdıklarınız duruyor; aynı düğmeyle yeniden deneyin. Sorun sürerse İletişim sayfasından bize ulaşın.";
 
     public const string PanelOperationMessage = "İşlem tamamlanamadı. Yazdıklarınız duruyor; aynı düğmeyle yeniden deneyin. Sorun sürerse kurulumu yapan kişiye bildirin.";
 
     private static readonly PathString _panelPath = new("/panel");
+
+    /// <summary>The title of the storefront's error page (04 2.7.3.2); the page is not "Sayfa bulunamadı" (E-06).</summary>
+    public const string PageTitle = "Sayfa açılamadı";
+
+    public const string PanelTitle = "Panel";
+
+    /// <summary>The panel's page-level message points the administrator to the person who installed the product (04 2.7.3.4).</summary>
+    public const string PanelPageMessage = "Sayfa şu anda açılamadı. Birkaç dakika sonra yeniden deneyin. Sorun sürerse kurulumu yapan kişiye bildirin.";
+
+    /// <summary>The page-level message of the request's surface: the customer is pointed to the contact page, the administrator to the installer (04 2.7.3.4).</summary>
+    public static string PageMessageFor(HttpRequest request) => IsPanel(request) ? PanelPageMessage : PageMessage;
+
+    // The framed page is the first try; any failure of drawing it - the frame's own reads included - leaves the plain page below (05 10.3.6).
+#pragma warning disable CA1031 // 09 8.1 item 6: this is inside the single catching layer, the first of the six places of the wide catch.
+    private static async Task<bool> TryRenderFramedAsync(HttpContext context, IErrorPageRenderer renderer, ErrorPageText page)
+    {
+        try
+        {
+            await renderer.RenderAsync(context, page);
+            return true;
+        }
+        catch (Exception) when (!context.Response.HasStarted)
+        {
+            context.Response.Clear();
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.Headers.CacheControl = Security.SecurityHeaders.NoStore;
+            return false;
+        }
+    }
+#pragma warning restore CA1031
 
     public static bool IsPanel(HttpRequest request) => request.Path.StartsWithSegments(_panelPath, StringComparison.OrdinalIgnoreCase);
 
@@ -185,12 +215,18 @@ internal static class UnexpectedErrorAnswer
     private static async Task WritePageAsync(HttpContext context, ErrorState state)
     {
         bool panel = IsPanel(context.Request);
-        string message = state == ErrorState.PageLevel ? PageMessage : OperationMessageFor(context.Request);
+        string message = state == ErrorState.PageLevel ? PageMessageFor(context.Request) : OperationMessageFor(context.Request);
+        string framedTitle = panel ? PanelTitle : PageTitle;
+        if (context.RequestServices.GetService(typeof(IErrorPageRenderer)) is IErrorPageRenderer renderer && await TryRenderFramedAsync(context, renderer, new ErrorPageText(framedTitle, message)))
+        {
+            return;
+        }
+
         string retry = state == ErrorState.PageLevel
             ? $"<a href=\"{WebUtility.HtmlEncode(context.Request.Path.ToUriComponent())}\">Yeniden dene</a> "
             : string.Empty;
         string home = panel ? "/panel" : "/";
-        string title = panel ? "Panel" : "Sayfa açılamadı";
+        string title = framedTitle;
         string html =
             "<!DOCTYPE html><html lang=\"tr\"><head><meta charset=\"utf-8\"><title>" + title + "</title></head><body><main>" +
             "<h1>" + title + "</h1><p>" + WebUtility.HtmlEncode(message) + "</p><p>" + retry + "<a href=\"" + home + "\">Ana sayfaya dön</a></p></main></body></html>";

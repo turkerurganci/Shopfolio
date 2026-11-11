@@ -257,7 +257,7 @@
 
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
-| T501 | Yerli üretim logosu varlığı ve gösterimi | ⬚ | — | — | — |
+| T501 | Yerli üretim logosu varlığı ve gösterimi | ✓ | ✓ PASS (tur 1) | `131fe46b` | #535 |
 | T502 | Vitrin: ana sayfa ve kategori sayfası (E-01, E-02) | ⬚ | — | — | — |
 | T503 | Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04) | ⬚ | — | — | — |
 | T504 | Hata sayfaları: bulunamayan adres ve beklenmeyen hata (E-06, 500) | ⬚ | — | — | — |
@@ -297,8 +297,8 @@
 | T538 | Uç ve model eşitlik denetimleri: uç envanteri, form girdi ve sorgu modelleri, makine ucu gövdeleri | ⬚ | — | — | — |
 | T539 | Betiksiz yol: JavaScript kapalıyken temel akışlar ve betikli iyileştirme | ⬚ | — | — | — |
 | T540 | Tasarım tabanı, vitrin ve panel çerçevesi, yönetici şeridi ve Taslak bandı (OB-01, OB-02, OB-09) | ✓ | ✓ PASS (tur 2) | `0fddab5e` | #534 |
-| T541 | Mesaj, onay, boş ve hata hâlleri ve satış kapalı hâli (OB-03, OB-04, OB-07, OB-08) | ⬚ | — | — | — |
-| T542 | Rozet ve işaretler, sayaç ve süre göstergeleri, eşzamanlı düzenleme uyarısı (OB-05, OB-06, OB-10) | ⬚ | — | — | — |
+| T541 | Mesaj, onay, boş ve hata hâlleri ve satış kapalı hâli (OB-03, OB-04, OB-07, OB-08) | ✓ | ✓ PASS (tur 1) | `8e7e4782` | #537 |
+| T542 | Rozet ve işaretler, sayaç ve süre göstergeleri, eşzamanlı düzenleme uyarısı (OB-05, OB-06, OB-10) | ✓ | ✓ PASS (tur 1) | `926a2e12` | #536 |
 | T543 | Form alanı ve düzeni, adres formu, IBAN alanı, sebep seçimi ve ortak alan kuralları (OB-12…OB-15) | ⬚ | — | — | — |
 | T544 | Tarih alanı, kupon alanı, onay kutuları, görsel ve dosya yükleme arayüzü (OB-16…OB-19) | ⬚ | — | — | — |
 | T545 | Liste ve tablo, ürün kartı (OB-20, OB-11) | ✓ | ✓ PASS (tur 2) | `3b867682` | #538 |

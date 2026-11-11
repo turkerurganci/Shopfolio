@@ -1,0 +1,53 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@model PanelSalesStatus
+@*
+    The panel's sales state in its places (T541; 04 2.8.2): the home page's warning, the setup checklist - gone when everything is done - and E-44's "Satış durumu" section: the four conditions one by one with
+    the screen that fixes the unmet one; the temporary closure switch's place is in the same section and always visible, alone it does not open sales. The indicator of the top row is the frame's (T540).
+    A screen asks for one part: ViewData["Part"] = "warning" | "checklist" | "conditions".
+*@
+@{
+    string part = ViewData["Part"] as string ?? "conditions";
+}
+@if (part == "warning")
+{
+    @if (Model.WarningText is not null)
+    {
+        <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, Model.WarningText)" />
+    }
+}
+else if (part == "checklist")
+{
+    @if (Model.Checklist.Count > 0)
+    {
+        <section class="sales-status" aria-labelledby="setup-checklist-title">
+            <h2 id="setup-checklist-title">Kurulum kontrol listesi</h2>
+            <ul class="sales-status__list">
+                @foreach (PanelChecklistRow row in Model.Checklist)
+                {
+                    <li><a href="@row.FixPath">@row.Name</a></li>
+                }
+            </ul>
+        </section>
+    }
+}
+else
+{
+    <section class="sales-status" aria-labelledby="sales-status-title" id="satis-durumu">
+        <h2 id="sales-status-title">Satış durumu</h2>
+        <p class="sales-status__state">@Model.IndicatorText</p>
+        <ul class="sales-status__list">
+            @foreach (PanelSalesConditionRow row in Model.Conditions)
+            {
+                <li class="sales-status__row">
+                    <span class="message__symbol" aria-hidden="true">@(row.IsMet ? MessageSymbols.Of(MessageMeaning.Success) : MessageSymbols.Of(MessageMeaning.Warning))</span>
+                    <span>@row.Name: @(row.IsMet ? "Tamam" : "Eksik")</span>
+                    @if (!row.IsMet)
+                    {
+                        <a href="@row.FixPath">Düzelt</a>
+                    }
+                </li>
+            }
+        </ul>
+    </section>
+}

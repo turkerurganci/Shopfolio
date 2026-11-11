@@ -1,0 +1,25 @@
+@using Shopfolio.Pages.Components
+@model MessageView
+@*
+    The one message (T541; 04 OB-03, 2.3.1): symbol, hidden word of the meaning and the text - the meaning is never carried by colour alone (02 6.1.6) and the colours of the meanings are
+    independent of the brand colour (04 2.1.3). Four places: at the field (its id is the one the field's aria-describedby names), in place, told once (closable) and short-lived (success only).
+    No error code is ever drawn here (09 8.2 item 4).
+*@
+@{
+    string place = Model.Place switch
+    {
+        MessagePlace.Field => "field",
+        MessagePlace.InPlace => "in-place",
+        MessagePlace.OnceTold => "once-told",
+        _ => "short-lived",
+    };
+}
+<div class="message @Model.Modifier message--@place" role="@Model.Role" id="@Model.Id" data-js="message">
+    <span class="message__symbol" aria-hidden="true">@Model.Symbol</span>
+    <span class="u-visually-hidden">@Model.MeaningWord</span>
+    <span class="message__text">@Model.Text</span>
+    @if (Model.Place == MessagePlace.OnceTold)
+    {
+        <button type="button" class="button button--secondary message__close" data-js="message-close" hidden>Kapat</button>
+    }
+</div>

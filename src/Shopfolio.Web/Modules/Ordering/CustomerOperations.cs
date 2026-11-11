@@ -189,7 +189,10 @@ internal sealed class CustomerOperations : ICustomerOperations
             return Refused(CustomerOperationOutcome.InvalidIban);
         }
 
-        foreach (CancelOrderItemsLine line in lines)
+        // Each line's refund is worked out when its record is written, from the records already there (05 4.6): the line that meets the shipping fee's trigger must be
+        // written last, and of records of one moment the fee goes to the smallest item id (K-1107; ShippingFeeRefunds) - so the lines go in descending uuid order and
+        // the record that covers the last physical units, whether it shares the moment with the others or not, is the one that carries the fee (K-789).
+        foreach (CancelOrderItemsLine line in lines.OrderByDescending(l => l.OrderItemId.ToString("N"), StringComparer.Ordinal))
         {
             OrderTransitionResult result = await _transitions.CancelItemAsync(new CancelItemRequest(orderId, line.OrderItemId, line.Quantity, iban), ct);
             if (result.IsRejected)

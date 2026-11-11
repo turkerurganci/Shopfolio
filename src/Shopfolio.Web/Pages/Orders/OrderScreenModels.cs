@@ -261,6 +261,13 @@ public abstract class CancellationPageModel(ICustomerOperations operations, IOrd
             return refusal ?? AccessDenial.NotFound();
         }
 
+        // One row per item (07 5.1.5; K-1196): two rows of the same item are an invalid selection - 422 under the list, nothing added up, no row processed.
+        if (!ItemRows.RejectRepeated(ModelState, nameof(CancelOrderItemsInput.Items), input.Items.Where(l => l.OrderItemId != Guid.Empty).Select(l => l.OrderItemId)))
+        {
+            HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.InvalidListValue);
+            return await LoadAsync(ct) ?? FormResults.Redisplay(this);
+        }
+
         List<CancelOrderItemsLine> lines = [];
         for (int index = 0; index < input.Items.Count; index++)
         {
@@ -289,11 +296,6 @@ public abstract class CancellationPageModel(ICustomerOperations operations, IOrd
         {
             HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.InvalidQuantity);
             return await LoadAsync(ct) ?? FormResults.Redisplay(this);
-        }
-
-        if (lines.Select(l => l.OrderItemId).Distinct().Count() != lines.Count)
-        {
-            return AccessDenial.NotFound();
         }
 
         if (!input.Confirmed)

@@ -1,0 +1,52 @@
+@page "/arama"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Storefront
+@model Shopfolio.Pages.SearchModel
+@inject SearchEngineData Search
+@*
+    The search page (E-03; T503; 04 5.3): the search field, and - only for a searched word - the filter form, the product grid and the page navigation. The page is closed to the search engines (07 2.6.7;
+    the head says it). A blank word shows only the search field; a result that is empty is the empty-state line with the way back to the categories (04 5.3).
+*@
+@{
+    Layout = "_StorefrontLayout";
+    StorefrontFrame frame = ViewContext.HttpContext.GetStorefrontFrame()
+        ?? throw new InvalidOperationException("The search page needs the storefront frame (T537).");
+    SearchPage view = Model.View
+        ?? throw new InvalidOperationException("The search page is drawn only after its handler ran.");
+    ViewData["Title"] = "Arama";
+}
+@section Head {
+    @Search.Head(ViewContext.HttpContext, ProductHeads.SearchScreen(frame))
+}
+<h1 class="category-title">Arama</h1>
+<partial name="_ListSearch" model="view.Search" />
+@if (view.HasResultList)
+{
+    <div class="category-layout">
+        <partial name="_ProductFilter" model="view.Filter" />
+        <div class="category-layout__list">
+            @if (view.Empty is { } empty)
+            {
+                <partial name="_EmptyState" model="empty" />
+                @if (view.Categories.Count > 0)
+                {
+                    <nav class="search-categories" aria-label="Kategoriler">
+                        <ul class="search-categories__list">
+                            @foreach (SearchCategoryLink category in view.Categories)
+                            {
+                                <li><a href="@category.Path">@category.Name</a></li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                <partial name="_ProductGrid" model="view.Cards" />
+            }
+            <partial name="_Pager" model="view.Pager" />
+        </div>
+    </div>
+}

@@ -1,0 +1,36 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Storefront
+@model ProductFilterForm
+@* The filter form of the storefront's product lists (04 5.2.5, 5.3; T503): the price range and the stock state - nothing else, no sort and no option-value filter. The search word, when the list is
+   the search page's, travels in a hidden field so that applying a filter keeps the search. A wrong price range shows its field message under the field and the filter is not applied (04 7.1.1.1). *@
+<details class="filters"@(Model.IsApplied || Model.PriceRangeMessage is not null ? " open" : string.Empty)>
+    <summary class="filters__summary">Süzgeçler</summary>
+    <form class="filters__form" method="get" action="@Model.ActionPath">
+        @if (Model.Search is not null)
+        {
+            <input type="hidden" name="search" value="@Model.Search" />
+        }
+        <div class="filters__field">
+            <label for="@ProductFilterForm.MinPriceFieldId">En düşük fiyat</label>
+            <input class="filters__input" id="@ProductFilterForm.MinPriceFieldId" name="minPrice" type="text" inputmode="decimal" value="@Model.MinPrice"
+                   aria-invalid="@(Model.PriceRangeMessage is null ? "false" : "true")"
+                   aria-describedby="@(Model.PriceRangeMessage is null ? null : Messages.FieldMessageId(ProductFilterForm.MinPriceFieldId))" />
+            @if (Model.PriceRangeMessage is { } rangeMessage)
+            {
+                <partial name="_Message" model="Messages.ForField(ProductFilterForm.MinPriceFieldId, rangeMessage)" />
+            }
+        </div>
+        <div class="filters__field">
+            <label for="@ProductFilterForm.MaxPriceFieldId">En yüksek fiyat</label>
+            <input class="filters__input" id="@ProductFilterForm.MaxPriceFieldId" name="maxPrice" type="text" inputmode="decimal" value="@Model.MaxPrice" />
+        </div>
+        <div class="filters__field filters__field--check">
+            <input id="@ProductFilterForm.InStockFieldId" name="inStock" type="checkbox" value="true" checked="@Model.InStockOnly" />
+            <label for="@ProductFilterForm.InStockFieldId">Yalnız stokta olanlar</label>
+        </div>
+        <div class="filters__actions">
+            <button class="button button--secondary" type="submit">Uygula</button>
+        </div>
+    </form>
+</details>

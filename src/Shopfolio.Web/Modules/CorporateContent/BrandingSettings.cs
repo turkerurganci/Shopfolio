@@ -55,7 +55,7 @@ internal sealed class BrandingSettings
     {
         BrandingSection section = await ReadSectionAsync(ct);
         bool hasName = section.BrandName is not null;
-        string displayName = hasName ? section.BrandName! : _domain;
+        string displayName = section.BrandName ?? _domain;
 
         // The colour and the text on it come from the product's one rule (02 3.29.5): the stored colour, or the product's default when none is chosen.
         string chosen = section.BrandColor ?? EmailColors.DefaultButtonBackground;

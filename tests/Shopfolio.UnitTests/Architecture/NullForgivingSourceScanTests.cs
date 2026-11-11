@@ -46,7 +46,7 @@ public sealed class NullForgivingSourceScanTests
 
         IReadOnlyList<(string Rule, int Line)> findings = NullForgivingSourceScan.Scan(sample);
 
-        Assert.Equal([5, 6, 7, 8, 9, 10, 11], findings.Select(f => f.Line));
+        Assert.Equal([5, 6, 7, 8, 9, 10, 11, 12, 13], findings.Select(f => f.Line));
         Assert.All(findings, f => Assert.Equal(NullForgivingSourceScan.Unexplained, f.Rule));
     }
 
@@ -64,6 +64,16 @@ public sealed class NullForgivingSourceScanTests
     [InlineData("T t = Get<T>()!;", 1)]
     [InlineData("bool b = x =>!y;", 0)]
     [InlineData("#if !DEBUG", 0)]
+    [InlineData("string s = \"a\"!;", 1)]
+    [InlineData("char c = 'a'!;", 1)]
+    [InlineData("string s = $\"{a}\"!;", 1)]
+    [InlineData("string s = \"\"\"raw\"\"\"!;", 1)]
+    [InlineData("string s = x !;", 1)]
+    [InlineData("int n = Call(x !, y);", 1)]
+    [InlineData("string s = x ! .Trim();", 1)]
+    [InlineData("return !flag;", 0)]
+    [InlineData("bool b = a && ! (c);", 0)]
+    [InlineData("bool b = \"a\" != x;", 0)]
     public void Scan_OnOneLine_FindsOnlyThePostfixOperatorInCode(string line, int expected)
     {
         Assert.Equal(expected, NullForgivingSourceScan.Scan(line).Count);

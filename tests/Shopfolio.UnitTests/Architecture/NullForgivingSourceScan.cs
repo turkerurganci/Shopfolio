@@ -9,8 +9,9 @@ namespace Shopfolio.UnitTests.Architecture;
 /// the same line that starts with <see cref="ReasonMarker"/>. The scan separates code from comments and literals first - string,
 /// verbatim, raw and character literals and comments are blanked, the holes of interpolated strings stay code - so an exclamation
 /// mark in a text or a comment is not a finding, and an operator inside an interpolation hole is. A <c>!</c> is postfix when it
-/// directly follows an identifier, a closing parenthesis or bracket, or a generic's closing angle bracket, and is not part of
-/// <c>!=</c>. Razor files have no lexer here: their lines are matched with the narrower form of a <c>!</c> followed by member
+/// directly follows an identifier, a closing parenthesis or bracket, a literal's closing quote, or a generic's closing angle
+/// bracket, and is not part of <c>!=</c>; after white space it is postfix when only a member access, a closing parenthesis or
+/// bracket, a comma or a semicolon follows it. Razor files have no lexer here: their lines are matched with the narrower form of a <c>!</c> followed by member
 /// access, an index, a closing parenthesis, a comma or a semicolon, so a sentence ending with an exclamation mark is not a finding.
 /// </summary>
 internal static partial class NullForgivingSourceScan
@@ -65,6 +66,9 @@ internal static partial class NullForgivingSourceScan
     }
 
     private const int MinimumReasonLength = 10;
+
+    /// <summary>What a literal's closing quote becomes in the code line: its contents are blanked, but a ! right after it is still an operand's.</summary>
+    private const char LiteralEnd = '"';
 
     /// <summary>
     /// Splits the text into lines of code (comments and literal contents blanked) and lines of the <c>//</c> comment text.
@@ -123,7 +127,7 @@ internal static partial class NullForgivingSourceScan
 
                     break;
                 case Kind.Char:
-                    codeLine.Append(' ');
+                    codeLine.Append(c == '\'' ? LiteralEnd : ' ');
                     if (c == '\\')
                     {
                         if (Next(source, i) is char n && n != '\n')
@@ -274,7 +278,7 @@ internal static partial class NullForgivingSourceScan
                 return i + 1;
             case Kind.Regular when c == '"':
                 stack.Pop();
-                codeLine.Append(' ');
+                codeLine.Append(LiteralEnd);
                 return i + 1;
             case Kind.Verbatim when c == '"':
                 if (Next(source, i) == '"')
@@ -284,14 +288,18 @@ internal static partial class NullForgivingSourceScan
                 }
 
                 stack.Pop();
-                codeLine.Append(' ');
+                codeLine.Append(LiteralEnd);
                 return i + 1;
             case Kind.Raw when c == '"':
                 int run = Run(source, i, '"');
-                codeLine.Append(' ', run);
                 if (run >= top.Quotes)
                 {
                     stack.Pop();
+                    codeLine.Append(' ', run - 1).Append(LiteralEnd);
+                }
+                else
+                {
+                    codeLine.Append(' ', run);
                 }
 
                 return i + run;
@@ -359,7 +367,9 @@ internal static partial class NullForgivingSourceScan
         }
     }
 
-    [GeneratedRegex(@"(?:[\w)\]]|(?<![=\-])>)!(?!=)")]
+    // The direct form, and the form with white space before the operator: a prefix ! needs an operand after it, so a ! that only a
+    // member access, a closing parenthesis or bracket, a comma or a semicolon follows is the postfix one ("return !flag" is not).
+    [GeneratedRegex(@"(?:[\w)\]""]|(?<![=\-])>)!(?!=)|[\w)\]""]\s+!(?=\s*[.),;\]])")]
     private static partial Regex PostfixBang();
 
     [GeneratedRegex(@"[\w)\]]!(?=[.\[),;])")]

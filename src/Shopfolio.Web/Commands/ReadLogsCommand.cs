@@ -66,8 +66,8 @@ internal sealed partial class ReadLogsCommand : IAdminCommand
             return CommandExit.UsageError;
         }
 
-        DateOnly from = input.Date(FromOption)!.Value;
-        DateOnly to = input.Date(ToOption)!.Value;
+        DateOnly from = input.Date(FromOption)!.Value; // non-null: the option is Required, so the command host refuses the call before ExecuteAsync when it is missing
+        DateOnly to = input.Date(ToOption)!.Value; // non-null: the option is Required, so the command host refuses the call before ExecuteAsync when it is missing
         if (from > to)
         {
             terminal.WriteErrorLine($"--{FromOption} günü --{ToOption} gününden sonra olamaz.");
@@ -81,7 +81,7 @@ internal sealed partial class ReadLogsCommand : IAdminCommand
             return CommandExit.UsageError;
         }
 
-        Guid accountId = filter.Kind == LogFilterKind.Account ? Guid.Parse(filter.Value!) : Guid.Empty;
+        Guid accountId = filter.Kind == LogFilterKind.Account ? Guid.Parse(filter.Value!) : Guid.Empty; // non-null: ParseFilter gives the account kind only with the parsed id as its value
         string? value = filter.Value;
         IAuditLineWriter writer = input.Services.GetRequiredService<IAuditLineWriter>();
         await using AsyncServiceScope scope = input.Services.CreateAsyncScope();

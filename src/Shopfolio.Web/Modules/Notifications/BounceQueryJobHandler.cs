@@ -67,7 +67,7 @@ internal sealed class BounceQueryJobHandler : IJobHandler
             .AsAsyncEnumerable()
             .WithCancellation(ct))
         {
-            if (bounced.Contains(TextNormalizer.NormalizeIdentity(row.RecipientEmail!)))
+            if (bounced.Contains(TextNormalizer.NormalizeIdentity(row.RecipientEmail!))) // non-null: the Where above keeps only records with a recipient
             {
                 matching.Add(row.Id);
             }

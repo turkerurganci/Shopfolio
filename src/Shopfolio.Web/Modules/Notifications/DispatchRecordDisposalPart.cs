@@ -89,7 +89,7 @@ internal sealed class DispatchRecordDisposalPart : IDisposalPart
             List<RowOfOrder> page = await db.DispatchRecords.AsNoTracking()
                 .Where(d => d.OrderId != null && d.CreatedAt < before && (d.RecipientEmail != null || d.EventValues != null) && !passed.Contains(d.Id))
                 .OrderBy(d => d.Id)
-                .Select(d => new RowOfOrder(d.Id, d.OrderId!.Value))
+                .Select(d => new RowOfOrder(d.Id, d.OrderId!.Value)) // non-null: the Where above keeps only records with an order
                 .Take(max)
                 .ToListAsync(ct);
             if (page.Count == 0)

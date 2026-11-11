@@ -293,7 +293,7 @@ internal sealed partial class AfterSalesModule
         IReadOnlyList<WithdrawalStanding> withdrawals = await WithdrawalStandingsAsync(ids, ct);
         HashSet<Guid> awaitingIban = [.. await _db.RefundIbanRequests.AsNoTracking()
             .Where(r => r.OrderItemId != null && ids.Contains(r.OrderItemId.Value) && r.FulfilledAt == null && r.ClosedAt == null)
-            .Select(r => r.OrderItemId!.Value).Distinct().ToListAsync(ct)];
+            .Select(r => r.OrderItemId!.Value).Distinct().ToListAsync(ct)]; // non-null: the Where above keeps only requests with an item
 
         foreach (Guid id in ids)
         {

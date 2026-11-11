@@ -53,7 +53,7 @@ internal sealed class AdvisoryLocks
         {
             await using NpgsqlCommand command = new("SELECT pg_try_advisory_lock(hashtextextended($1, 0))", connection);
             command.Parameters.Add(new NpgsqlParameter { Value = workName });
-            bool held = (bool)(await command.ExecuteScalarAsync(ct))!;
+            bool held = (bool)(await command.ExecuteScalarAsync(ct))!; // non-null: pg_try_advisory_lock returns a boolean for every call, never NULL
             if (!held)
             {
                 return null;

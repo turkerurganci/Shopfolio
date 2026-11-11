@@ -44,7 +44,7 @@ internal static class CategoryLevels
             return [];
         }
 
-        ILookup<Guid, Guid> children = tree.Where(c => c.ParentId is not null).ToLookup(c => c.ParentId!.Value, c => c.Id);
+        ILookup<Guid, Guid> children = tree.Where(c => c.ParentId is not null).ToLookup(c => c.ParentId!.Value, c => c.Id); // non-null: the Where on this line keeps only categories with a parent
         List<Guid> found = [root];
         HashSet<Guid> seen = [root];
         for (int i = 0; i < found.Count; i++)

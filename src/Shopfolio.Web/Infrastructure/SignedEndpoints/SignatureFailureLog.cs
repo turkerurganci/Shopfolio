@@ -113,7 +113,7 @@ internal sealed partial class SignatureFailureLog
             }
         }
 
-        KeyValuePair<string, Window> taken = oldestCounted ?? oldest!.Value;
+        KeyValuePair<string, Window> taken = oldestCounted ?? oldest!.Value; // non-null: the map is full here (the guard above), so the loop set oldest
         _windows.Remove(taken.Key);
         return taken.Value;
     }

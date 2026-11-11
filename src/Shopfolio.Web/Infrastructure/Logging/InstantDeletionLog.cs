@@ -112,7 +112,7 @@ internal sealed class InstantDeletionLog
                 return (false, null);
             }
 
-            return (true, new InstantDeletionEntry(at.ToUniversalTime(), kind.GetString()!, id));
+            return (true, new InstantDeletionEntry(at.ToUniversalTime(), kind.GetString()!, id)); // non-null: the condition above makes kind a String element, whose GetString is never null
         }
         catch (JsonException)
         {

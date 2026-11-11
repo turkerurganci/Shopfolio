@@ -57,7 +57,7 @@ internal sealed class LegalTextGenerator
             LegalTextVersion row = LegalTextVersion.CreatePublished(type, (last?.VersionNumber ?? 0) + 1, now, text, now);
             row.TemplateVersion = template.Version;
             _db.LegalTextVersions.Add(row);
-            written.Add(new GeneratedVersion(type, row.Id, row.VersionNumber!.Value, last is null || last.TemplateVersion != template.Version));
+            written.Add(new GeneratedVersion(type, row.Id, row.VersionNumber!.Value, last is null || last.TemplateVersion != template.Version)); // non-null: CreatePublished sets the version number
         }
 
         // The rows are added to the caller's unit of work: the command pipeline and the start-up transaction runner save it before they commit. The one writer of the settings

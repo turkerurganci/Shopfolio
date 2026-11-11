@@ -121,7 +121,7 @@ internal sealed class ContactFormSending
             return ContactFormResult.LimitExceeded();
         }
 
-        await _requests.OpenAsync(new NewContactRequest(name, email, phone, topic!.Value, message), ct);
+        await _requests.OpenAsync(new NewContactRequest(name, email, phone, topic!.Value, message), ct); // non-null: a missing or unknown topic is refused above
         return ContactFormResult.Sent();
     }
 

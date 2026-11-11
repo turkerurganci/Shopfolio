@@ -22,7 +22,7 @@ internal sealed partial class AfterSalesModule
     {
         List<RequestUse> requests = await _db.RefundIbanRequests
             .Where(r => r.RefundIbanId != null && ibanIds.Contains(r.RefundIbanId.Value))
-            .Select(r => new RequestUse(r.OrderItemId, r.RefundId, r.RefundIbanId!.Value, r.FulfilledAt))
+            .Select(r => new RequestUse(r.OrderItemId, r.RefundId, r.RefundIbanId!.Value, r.FulfilledAt)) // non-null: the Where above keeps only requests with an IBAN
             .ToListAsync(ct);
         Guid[] requestItems = [.. requests.Where(r => r.RefundId == null).Select(r => r.OrderItemId).OfType<Guid>().Distinct()];
 
@@ -43,7 +43,7 @@ internal sealed partial class AfterSalesModule
         Guid[] withdrawalIds = [.. withdrawals.Select(w => w.Id)];
         List<ReceiptUse> receipts = withdrawalIds.Length == 0
             ? []
-            : await _db.Returns.Where(r => r.WithdrawalId != null && withdrawalIds.Contains(r.WithdrawalId.Value)).Select(r => new ReceiptUse(r.Id, r.WithdrawalId!.Value)).ToListAsync(ct);
+            : await _db.Returns.Where(r => r.WithdrawalId != null && withdrawalIds.Contains(r.WithdrawalId.Value)).Select(r => new ReceiptUse(r.Id, r.WithdrawalId!.Value)).ToListAsync(ct); // non-null: the Where on this line keeps only receipts with a withdrawal
 
         List<Guid> asked = [.. cancellations.Select(c => c.Id), .. terminations.Select(t => t.Id), .. removals.Select(r => r.Id), .. withdrawalIds, .. requestItems];
         asked.AddRange(requests.Select(r => r.RefundId).OfType<Guid>());
@@ -72,11 +72,11 @@ internal sealed partial class AfterSalesModule
         Dictionary<Guid, Guid> recordIbans = new(
         [
             .. await _db.Cancellations.Where(c => cancellationIds.Contains(c.Id) && c.RefundIbanId != null)
-                .Select(c => new KeyValuePair<Guid, Guid>(c.Id, c.RefundIbanId!.Value)).ToListAsync(ct),
+                .Select(c => new KeyValuePair<Guid, Guid>(c.Id, c.RefundIbanId!.Value)).ToListAsync(ct), // non-null: the Where above keeps only cancellations with an IBAN
             .. await _db.LateDeliveryTerminations.Where(t => terminationIds.Contains(t.Id) && t.RefundIbanId != null)
-                .Select(t => new KeyValuePair<Guid, Guid>(t.Id, t.RefundIbanId!.Value)).ToListAsync(ct),
+                .Select(t => new KeyValuePair<Guid, Guid>(t.Id, t.RefundIbanId!.Value)).ToListAsync(ct), // non-null: the Where above keeps only terminations with an IBAN
             .. await _db.Withdrawals.Where(w => withdrawalIds.Contains(w.Id) && w.RefundIbanId != null)
-                .Select(w => new KeyValuePair<Guid, Guid>(w.Id, w.RefundIbanId!.Value)).ToListAsync(ct),
+                .Select(w => new KeyValuePair<Guid, Guid>(w.Id, w.RefundIbanId!.Value)).ToListAsync(ct), // non-null: the Where above keeps only withdrawals with an IBAN
         ]);
 
         Guid[] refundIds = [.. pending.Select(r => r.RefundId)];
@@ -84,7 +84,7 @@ internal sealed partial class AfterSalesModule
         List<RequestUse> fulfilled = await _db.RefundIbanRequests
             .Where(r => r.RefundIbanId != null
                 && ((r.RefundId != null && refundIds.Contains(r.RefundId.Value)) || (r.RefundId == null && r.OrderItemId != null && itemIds.Contains(r.OrderItemId.Value))))
-            .Select(r => new RequestUse(r.OrderItemId, r.RefundId, r.RefundIbanId!.Value, r.FulfilledAt))
+            .Select(r => new RequestUse(r.OrderItemId, r.RefundId, r.RefundIbanId!.Value, r.FulfilledAt)) // non-null: the Where above keeps only requests with an IBAN
             .ToListAsync(ct);
 
         List<PendingPayee> payees = [];

@@ -78,7 +78,7 @@ internal static class LogEvents
     public static IReadOnlyList<string> All { get; } = typeof(LogEvents)
         .GetFields(BindingFlags.Public | BindingFlags.Static)
         .Where(field => field.IsLiteral && field.FieldType == typeof(string))
-        .Select(field => (string)field.GetRawConstantValue()!)
+        .Select(field => (string)field.GetRawConstantValue()!) // non-null: the Where above keeps only string constants, whose raw value is the literal
         .ToArray();
 
     public static bool IsKnown(string? name) => name is not null && All.Contains(name, StringComparer.Ordinal);

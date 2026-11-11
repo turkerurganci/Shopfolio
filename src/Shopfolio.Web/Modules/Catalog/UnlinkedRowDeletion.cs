@@ -35,7 +35,7 @@ internal static class UnlinkedRowDeletion
             {
                 StoreObjectIdentifier linkTable = StoreObjectIdentifier.Create(fk.DeclaringEntityType, StoreObjectType.Table)
                     ?? throw new InvalidOperationException($"A table that links to the {entityType.Name} table has no store object.");
-                return $"NOT EXISTS (SELECT 1 FROM {SqlIdentifier(linkTable.Name)} l WHERE l.{SqlIdentifier(fk.Properties[0].GetColumnName(linkTable)!)} = i.{id})";
+                return $"NOT EXISTS (SELECT 1 FROM {SqlIdentifier(linkTable.Name)} l WHERE l.{SqlIdentifier(fk.Properties[0].GetColumnName(linkTable)!)} = i.{id})"; // non-null: a foreign key's column is mapped to the table that declares the key
             }));
         string extra = extraCondition == null
             ? string.Empty

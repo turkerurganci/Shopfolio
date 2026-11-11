@@ -72,6 +72,6 @@ internal sealed class JobHandlerRegistry
 
     public bool TryGet(JobType jobType, out JobHandlerRegistration registration)
     {
-        return _byType.TryGetValue(jobType, out registration!);
+        return _byType.TryGetValue(jobType, out registration!); // non-null: read only when TryGetValue returns true, which fills the registration
     }
 }

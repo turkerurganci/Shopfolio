@@ -30,7 +30,7 @@ internal static class DigitalFileCoverage
         Guid except = exceptFileId ?? Guid.Empty;
         HashSet<Guid> served = [.. await db.DigitalFiles.AsNoTracking()
             .Where(f => f.DetachedAt == null && f.Id != except && f.VariantId != null && published.Contains(f.VariantId.Value))
-            .Select(f => f.VariantId!.Value)
+            .Select(f => f.VariantId!.Value) // non-null: the Where above keeps only files with a variant
             .ToListAsync(ct)];
         return [.. published.Where(id => !served.Contains(id))];
     }

@@ -93,13 +93,13 @@ internal sealed partial class LogReader
             case LogFilterKind.None:
                 break;
             case LogFilterKind.Ip:
-                ip = IPAddress.Parse(request.Value!);
+                ip = IPAddress.Parse(request.Value!); // non-null: ReadLogsCommand, the one caller, sends the IP kind only with the address it read and parsed
                 break;
             case LogFilterKind.Email:
-                email = request.Value!;
+                email = request.Value!; // non-null: ReadLogsCommand, the one caller, sends the e-mail kind only with the normalized address it read
                 break;
             case LogFilterKind.Event:
-                outcome = Enum.Parse<LoginOutcome>(request.Value!);
+                outcome = Enum.Parse<LoginOutcome>(request.Value!); // non-null: ReadLogsCommand.ParseFilter gives the event kind only with a plain token as its value
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(request), "The sign-in record has no such filter.");
@@ -131,7 +131,7 @@ internal sealed partial class LogReader
             case LogFilterKind.None:
                 break;
             case LogFilterKind.Event:
-                DisposalRecordType type = Enum.Parse<DisposalRecordType>(request.Value!);
+                DisposalRecordType type = Enum.Parse<DisposalRecordType>(request.Value!); // non-null: ReadLogsCommand.ParseFilter gives the event kind only with a plain token as its value
                 rows = rows.Where(d => d.DisposalRecordType == type);
                 break;
             default:
@@ -412,7 +412,7 @@ internal sealed partial class LogReader
 
                     break;
                 case JsonValueKind.String:
-                    values.Add(element.GetString()!);
+                    values.Add(element.GetString()!); // non-null: GetString of a String element is never null
                     break;
                 default:
                     break;

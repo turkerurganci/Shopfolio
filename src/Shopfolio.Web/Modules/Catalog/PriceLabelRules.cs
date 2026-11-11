@@ -69,13 +69,13 @@ internal static class PriceLabelRules
     /// </summary>
     public static UnitPriceLine? UnitPrice(decimal price, MeasurementUnit? unit, decimal? netQuantity)
     {
-        if (unit is not { } measurementUnit || CheckNetQuantity(unit, netQuantity) != NetQuantityProblem.None)
+        if (unit is not { } measurementUnit || netQuantity is not { } quantity || CheckNetQuantity(unit, netQuantity) != NetQuantityProblem.None)
         {
             return null;
         }
 
         (MeasurementUnit baseUnit, decimal unitsPerBase) = BaseOf(measurementUnit);
-        decimal amount = Money.Round(price * unitsPerBase / netQuantity!.Value);
+        decimal amount = Money.Round(price * unitsPerBase / quantity);
         return amount == price ? null : new UnitPriceLine(baseUnit, amount);
     }
 

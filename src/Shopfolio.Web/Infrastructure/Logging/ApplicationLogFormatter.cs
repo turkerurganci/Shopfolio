@@ -231,7 +231,7 @@ internal sealed class ApplicationLogFormatter : ITextFormatter
                 json.WriteBooleanValue(flag);
                 break;
             case int or long or short or sbyte or byte or ushort or uint or ulong:
-                json.WriteRawValue(Convert.ToString(value, CultureInfo.InvariantCulture)!);
+                json.WriteRawValue(Convert.ToString(value, CultureInfo.InvariantCulture)!); // non-null: Convert.ToString of a boxed integer is never null
                 break;
             case double number when double.IsFinite(number):
                 json.WriteNumberValue(number);

@@ -86,7 +86,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T540-tasarim-tabani-cerceve`
-- **PR:** *(PR açılınca yazıldı)*
+- **PR:** #534
 - **CI:** *(yönetici izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

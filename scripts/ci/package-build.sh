@@ -64,8 +64,12 @@ done
 
 # A secret value in a build file: a *PASSWORD/SECRET/TOKEN/KEY name given a literal value, a private key block, a cloud key id.
 # A name ending in _FILE carries a path, not a value.
+# The pattern is not anchored to the line start, so every assignment on a line is a match of its own, also after an -e / --env
+# option or inside a one-line command; there is no option prefix to strip (T550; the pre-commit secret guard's rule, D-1036).
+# -o prints each match on its own, so the _FILE carve-out drops only that one assignment, not a whole line that also holds a
+# second, real value (T550).
 SENSITIVE_NAME='[A-Za-z0-9_]*(PASSWORD|PASSWD|SECRET|TOKEN|PRIVATE_KEY|ACCESS_KEY|API_KEY)[A-Za-z0-9_]*'
-if grep -rnE -- "(^|[^A-Za-z0-9_])${SENSITIVE_NAME}[[:space:]]*[=:][[:space:]]*[\"']?[^[:space:]\"'\$]" deploy/images | grep -vE "_FILE[[:space:]]*[=:]"; then
+if grep -rnoE -- "(^|[^A-Za-z0-9_])${SENSITIVE_NAME}[[:space:]]*[=:][[:space:]]*[\"']?[^[:space:]\"'\$]" deploy/images | grep -vE "_FILE[[:space:]]*[=:]"; then
   fail "a secret value appears in a build file above; secrets arrive as mounted files (09 17 item 2)"
 fi
 if grep -rnE -- 'BEGIN [A-Z ]*PRIVATE KEY|AKIA[0-9A-Z]{16}' deploy; then

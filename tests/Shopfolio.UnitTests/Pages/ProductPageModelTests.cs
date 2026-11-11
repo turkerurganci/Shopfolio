@@ -1,8 +1,8 @@
 using System.Text.Json;
 
+using Shopfolio.Infrastructure;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Pricing;
-using Shopfolio.Infrastructure;
 using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.Pages.Lists;
 using Shopfolio.Pages.Storefront;

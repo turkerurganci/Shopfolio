@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Pricing;
 
 namespace Shopfolio.Modules.Catalog;
@@ -56,15 +57,68 @@ internal sealed class PriceLabelReader
             discount = DiscountRules.LineOf(running.Terms, row.Price, references[variantId]);
         }
 
-        bool sellsByMeasure = row.MeasurementUnit is not null;
+        return LabelOf(row.Price, row.VatRate, row.ProductType, row.OriginCountryId, since, row.MeasurementUnit, row.NetQuantity, discount);
+    }
+
+    /// <summary>
+    /// The labels of all the variants of <paramref name="productId"/>, by variant (09 20 item 4): the product, its variants, the last started price row of each and the product's running discount with
+    /// the reference prices are each one read, whatever the number of variants. Each label is the one <see cref="GetAsync"/> gives; empty when there is no such product.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<Guid, PriceLabel>> GetForProductAsync(Guid productId, CancellationToken ct)
+    {
+        var product = await _db.Products.AsNoTracking()
+            .Where(p => p.Id == productId)
+            .Select(p => new { p.VatRate, p.ProductType, p.OriginCountryId, p.MeasurementUnit })
+            .SingleOrDefaultAsync(ct);
+        if (product is null)
+        {
+            return new Dictionary<Guid, PriceLabel>();
+        }
+
+        var variants = await _db.Variants.AsNoTracking()
+            .Where(v => v.ProductId == productId)
+            .Select(v => new { v.Id, v.Price, v.FirstOnSaleAt, v.NetQuantity })
+            .ToListAsync(ct);
+        DateTimeOffset now = _time.GetUtcNow();
+        Dictionary<Guid, DateTimeOffset> started = await _db.PriceHistories.AsNoTracking()
+            .Where(h => h.StartedAt <= now && _db.Variants.Any(v => v.Id == h.VariantId && v.ProductId == productId))
+            .GroupBy(h => h.VariantId)
+            .Select(g => new { VariantId = g.Key, Since = g.Max(h => h.StartedAt) })
+            .ToDictionaryAsync(r => r.VariantId, r => r.Since, ct);
+
+        Dictionary<Guid, decimal> references = [];
+        RunningDiscount? running = null;
+        if ((await PriceHistoryReads.RunningDiscountsAsync(_db, [productId], now, ct)).TryGetValue(productId, out RunningDiscount? found))
+        {
+            running = found;
+            references = await PriceHistoryReads.ReferencesAsync(
+                _db, found.Rule, DiscountRules.StartsAt(found.Terms), [.. variants.Select(v => new ReferenceInput(v.Id, v.Price, v.FirstOnSaleAt))], ct);
+        }
+
+        Dictionary<Guid, PriceLabel> labels = [];
+        foreach (var variant in variants)
+        {
+            DiscountLine? discount = running is null ? null : DiscountRules.LineOf(running.Terms, variant.Price, references[variant.Id]);
+            labels[variant.Id] = LabelOf(
+                variant.Price, product.VatRate, product.ProductType, product.OriginCountryId, started.TryGetValue(variant.Id, out DateTimeOffset since) ? since : null,
+                product.MeasurementUnit, variant.NetQuantity, discount);
+        }
+
+        return labels;
+    }
+
+    private static PriceLabel LabelOf(
+        decimal price, decimal vatRate, ProductType productType, Guid? originCountryId, DateTimeOffset? since, MeasurementUnit? measurementUnit, decimal? netQuantity, DiscountLine? discount)
+    {
+        bool sellsByMeasure = measurementUnit is not null;
         return new PriceLabel(
-            row.Price,
-            row.VatRate,
-            PriceLabelRules.ShowsOrigin(row.ProductType, row.OriginCountryId) ? row.OriginCountryId : null,
+            price,
+            vatRate,
+            PriceLabelRules.ShowsOrigin(productType, originCountryId) ? originCountryId : null,
             since,
-            row.MeasurementUnit,
-            sellsByMeasure ? row.NetQuantity : null,
-            PriceLabelRules.UnitPrice(discount?.DiscountedPrice ?? row.Price, row.MeasurementUnit, row.NetQuantity),
+            measurementUnit,
+            sellsByMeasure ? netQuantity : null,
+            PriceLabelRules.UnitPrice(discount?.DiscountedPrice ?? price, measurementUnit, netQuantity),
             discount);
     }
 }

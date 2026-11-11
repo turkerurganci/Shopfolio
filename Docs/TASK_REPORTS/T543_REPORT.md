@@ -79,7 +79,7 @@
 
 - **Branch:** `task/T543-form-alani-adres-iban`
 - **Commit:** bkz. PR
-- **PR:** PR_NO
+- **PR:** #539
 - **CI:** *(yönetici izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

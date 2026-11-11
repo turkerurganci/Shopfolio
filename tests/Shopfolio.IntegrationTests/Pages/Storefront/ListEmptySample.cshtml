@@ -1,0 +1,8 @@
+@page "/liste-deneme/bos"
+@model Shopfolio.IntegrationTests.Pages.ListEmptySampleModel
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = "Liste";
+}
+@await Html.PartialAsync("_ListSearch", Model.Search)
+@await Html.PartialAsync("_EmptyState", Model.State)

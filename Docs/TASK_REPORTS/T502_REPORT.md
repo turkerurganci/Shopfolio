@@ -60,10 +60,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-11) |
+| Bulgu sayısı | 2 — **B1** (S2, ORTA; kriter 1 / KK1, `07 §2.1.2`): yeni `/` sayfası `PageFormPatternTests.EveryMappedEndpoint_StartsWithAFirstSegmentOfTheClosedList`'i kırıyor — `AddressRules.IsClosedFirstSegment("")` yanlış döner, kapalı listede ana sayfa yok; yerelde tek başına koşuda da kırmızı, dal CI'ı Integration adımında 3675'te 1 kırık (run 43006706756). **B2** (S1, DÜŞÜK; kriter 1 / KK1, `04` 5.1.4, 5.1.13; komşu satır VAL-A112): `home-intro--band` için stil yok, `storefront.css` yorumu "band layout stacks"; dar hâl her genişlikte alt alta, `04` 5.1.4 orta ve geniş sınıfta "kısa tanıtım ile ana görsel yan yana, tek bant" ister (alt alta yalnız dar sınıfta) |
+| Düzeltme gerekli mi | Evet — B1: ana sayfanın kökü kapalı listede sayılır (`AddressRules` ya da sınamanın kökü `07 §2.1.2` uyarınca kabul etmesi); B2: `.home-intro--band` orta sınıftan itibaren iki sütun (görsel ve metin yan yana), dar sınıfta alt alta; yorum düzeltilir |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 → D-1218 (D-477 ✅ erken, D-691 kalan parça, D-353 ele alınmadı); K2 → D-1219 (D-1202 gerekçesi yanlış: sıra okuyucuda zaten alfabetik) |
+| Task satırları (`12 §7.5`) | VAL-A002 → PASS (KK5 Integration sınaması, uç yanıtı); VAL-A001, VAL-A003 ve VAL-A408–A423 tarayıcı/menü kanıtı ister → BEKLEMEDE |
+| Yerel sınama | restore ✓, build `-warnaserror` 0 uyarı ✓, format üç proje ✓, Unit 7030/7030 ✓, betik testleri 4/4 ✓, Integration `StorefrontHomeAndCategoryTests` 12/12 ✓, `PageFormPatternTests` 26/27 (B1); `Web` ad alanı makine yükü altında DB zaman aşımlarıyla kırıldı (ilgisiz), tam Integration kanıtı dal CI'ı |
 
 ## Altyapı Değişiklikleri
 

@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure.Routing;
-using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.SearchEngine;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Lists;
 using Shopfolio.Modules.CorporateContent.Contracts;

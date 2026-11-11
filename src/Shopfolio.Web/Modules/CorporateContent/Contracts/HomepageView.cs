@@ -1,5 +1,6 @@
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Categories;
+using Shopfolio.Modules.Catalog.Contracts.Lists;
 
 namespace Shopfolio.Modules.CorporateContent.Contracts;
 
@@ -22,7 +23,7 @@ public sealed record HomepageCardBlock(string Title, string ListPath, IReadOnlyL
 /// The product showcase (02 3.28.1; 04 5.1.6): the newest published products as many as the layout shows - the firm picks none and no product carries a home page mark - and, under it,
 /// the first-level categories that hold a published product, alphabetically. A sold-out product that comes up in the order is shown and marked.
 /// </summary>
-public sealed record HomepageShowcase(string Title, IReadOnlyList<ShowcaseProduct> Products, IReadOnlyList<MenuCategory> CategoryLinks);
+public sealed record HomepageShowcase(string Title, IReadOnlyList<ProductListItem> Products, IReadOnlyList<MenuCategory> CategoryLinks);
 
 /// <summary>
 /// The home page (T361; 02 3.28.1-3.28.3): <see cref="Blocks"/> are the blocks that show, in the order the layout gives - content-first: the corporate block, services, references, the

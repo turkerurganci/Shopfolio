@@ -1,0 +1,109 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Infrastructure.Security
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Panel
+@model EditedLegalTextView
+@*
+    The section of one firm-edited legal text on the legal texts screen (T507; 04 9.19.3, 9.19.8): the version in force, the completion line, the edited text with "Taslağı kaydet" and "Yayına al" in one
+    form of its own. The conflict controls are drawn in the section that was saved against a changed draft and nowhere else (04 2.10.1). The form carries the draft row's version (06 4.56) and the text
+    type; a field's message is drawn in the section that was sent only. Field ids carry the section's prefix, so the two sections never share an id. The stored text is only ever printed in the text area
+    (encoded) and, as the preview, through the display helper (09 15.3 item 4).
+*@
+@{
+    string textId = Model.IdPrefix + "-text";
+    string hostingId = Model.IdPrefix + "-hosting-location";
+    string headingId = Model.IdPrefix + "-heading";
+    string? textError = Model.IsPosted ? ViewData.ModelState.TryGetValue("input.Text", out var textEntry) && textEntry.Errors.Count > 0 ? textEntry.Errors[0].ErrorMessage : null : null;
+    string? hostingError = Model.IsPosted ? ViewData.ModelState.TryGetValue("input.HostingLocation", out var hostingEntry) && hostingEntry.Errors.Count > 0 ? hostingEntry.Errors[0].ErrorMessage : null : null;
+    string saveLabel = "Taslağı kaydet";
+    string publishLabel = "Yayına al";
+}
+<section class="legal-section" id="@Model.IdPrefix" aria-labelledby="@headingId">
+    <h3 class="legal-section__heading" id="@headingId">@Model.Title</h3>
+    <p class="legal-section__published">@Model.PublishedLine</p>
+    @if (Model.DiffersFromPublished)
+    {
+        <p class="legal-section__differs">@LegalTextsModel.DiffersText</p>
+    }
+    @if (Model.IsComplete)
+    {
+        <p class="legal-section__complete">@LegalTextsModel.CompleteText</p>
+    }
+    else
+    {
+        <ul class="legal-section__completion">
+            @foreach (CompletionItemView item in Model.Completion)
+            {
+                <li>
+                    @if (item.Href is not null)
+                    {
+                        <a href="@item.Href">@item.Text</a>
+                    }
+                    else
+                    {
+                        @item.Text
+                    }
+                </li>
+            }
+        </ul>
+    }
+    @if (Model.GateNote is not null)
+    {
+        MessageView gate = Messages.InPlace(MessageMeaning.Warning, Model.GateNote, Model.IdPrefix + "-gate-note");
+        <partial name="_Message" model="gate" />
+    }
+    @if (Model.IsPublicationIncomplete)
+    {
+        MessageView incomplete = Messages.InPlace(MessageMeaning.Error, LegalTextsModel.PublicationIncompleteText, Model.IdPrefix + "-incomplete");
+        <partial name="_Message" model="incomplete" />
+    }
+    <form method="post" asp-antiforgery="true" asp-page-handler="SaveLegalTextDraft" class="form" data-js="submit-once">
+        <input type="hidden" name="Input.LegalTextType" value="@Model.Type">
+        @VersionFields.Version(Model.FormVersion, "Input")
+        <div class="form-fields">
+            <div class="field@(textError is null ? string.Empty : " field--invalid")" data-js="field">
+                <label class="field__label" for="@textId">Metin <span class="field__requirement">@FieldRequirements.TextOf(FieldRequirement.Required)</span></label>
+                <textarea class="field__control" id="@textId" name="Input.Text" rows="16" aria-required="true" aria-invalid="@(textError is null ? null : "true")" aria-describedby="@(textError is null ? null : Messages.FieldMessageId(textId))">
+@Model.Text</textarea>
+                @if (textError is not null)
+                {
+                    MessageView message = Messages.ForField(textId, textError);
+                    <partial name="_Message" model="message" />
+                }
+            </div>
+            @if (Model.HasHostingLocation)
+            {
+                <div class="field@(hostingError is null ? string.Empty : " field--invalid")" data-js="field">
+                    <label class="field__label" for="@hostingId">Barındırma ve e-posta altyapısının konumu <span class="field__requirement">@FieldRequirements.TextOf(FieldRequirement.RequiredForPublish)</span></label>
+                    <textarea class="field__control" id="@hostingId" name="Input.HostingLocation" rows="3" aria-invalid="@(hostingError is null ? null : "true")" aria-describedby="@(hostingError is null ? null : Messages.FieldMessageId(hostingId))">
+@Model.HostingLocation</textarea>
+                    @if (hostingError is not null)
+                    {
+                        MessageView message = Messages.ForField(hostingId, hostingError);
+                        <partial name="_Message" model="message" />
+                    }
+                </div>
+            }
+        </div>
+        <div class="legal-section__actions">
+            @if (Model.IsConflicted)
+            {
+                @ConflictControls.RecordSaveControl(true, PanelFramePaths.LegalTexts)
+            }
+            else
+            {
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(saveLabel)">@saveLabel</button>
+            }
+            <button type="submit" class="button button--primary" asp-page-handler="PublishLegalText" data-busy-label="@LoadingViews.BusyLabelOf(publishLabel)">@publishLabel</button>
+        </div>
+    </form>
+    @if (Model.FilledPreview is not null)
+    {
+        <div class="legal-section__preview" id="@(Model.IdPrefix)-preview">
+            <h4>Yer tutucuların kimlikteki güncel değerlerle görünümü</h4>
+            @RichText.Render(Model.FilledPreview)
+        </div>
+    }
+</section>

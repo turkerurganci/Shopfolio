@@ -103,10 +103,13 @@ public interface ISettingsModule
     /// <summary>The draft of a firm-edited text (the privacy notice or the cookie policy); another type is an <see cref="ArgumentException"/> (02 3.33.1).</summary>
     Task<LegalTextDraft> GetLegalTextDraftAsync(LegalTextType type, CancellationToken ct);
 
+    /// <summary>The draft as the panel shows it (T507; 04 9.19.3, 9.19.11): the placeholders filled from the current identity, and whether it differs from the last published version. A generated type is an <see cref="ArgumentException"/>.</summary>
+    Task<LegalTextDraftPreview> GetLegalTextDraftPreviewAsync(LegalTextType type, CancellationToken ct);
+
     /// <summary>
     /// Saves the draft of a firm-edited text (T366; 02 3.33.2): in the caller's transaction, the record variant against the draft's version. The text cannot be emptied; the
-    /// hosting location exists on the privacy notice only and cannot be emptied once filled. The text is taken as given: the closed-format cleaning of the HTML is the panel
-    /// page's step before this call (09 15.3; T507).
+    /// hosting location exists on the privacy notice only and cannot be emptied once filled. The text is cleaned with the closed format set before it is written - the module's own
+    /// write step, as the product description's and the corporate content's are (T507; 09 15.3 item 1) - and a text the cleaning leaves empty is an empty text.
     /// </summary>
     Task<SettingsSaveResult> SaveLegalTextDraftAsync(LegalTextType type, string text, string? hostingLocation, int formVersion, CancellationToken ct);
 

@@ -1,6 +1,6 @@
 # T508 — Sepet (E-12)
 
-**Faz:** F5 | **Durum:** ⏳ Yapım bitti, Integration TAM sürüyor | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Yapım bitti, PR açıldı | **Tarih:** 2026-11-11
 
 ---
 
@@ -57,8 +57,8 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build --max-threads 3` | 7040/7040 |
-| Integration | ⏳ | parçalı, `SHOPFOLIO_TEST_DATABASE` Postgres 18 (`track_commit_timestamp=on`) | Web ad alanı TAM (41 sınıf, üç parça): 148/148, 352/352 (`Ordering.CartTests` dahil), 274/274; Ordering ad alanı 638/638. Kalan: Model ve öteki küçük ad alanları |
+| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build --max-threads 3` | 7122/7122 (origin/main `157e7ec3` T543 birleştirmesinden sonra) |
+| Integration | ✓ | parçalı, `--filter-namespace`, `SHOPFOLIO_TEST_DATABASE` Postgres 18 (`track_commit_timestamp=on`) | TAM, bütün ad alanları yeşil. T543 birleştirmesinden sonra: Web 734 (tek koşuda 730 + `StartupSettingsCheckTests`'in 4 durumu makine yükünde kırmızı; sınıf tek başına 17/17), Model 1407/1407 (`--max-threads 3`), Administration+Catalog+Commands+Concurrency+CorporateContent+Database 472/472, Disposal+FileSecrets+Files+Jobs+Logging+Outages+Payment+Security+SignedEndpoints+kök 459/459. Birleştirmeden önce: Ordering 638/638 (T543 Ordering'e dokunmuyor) |
 | Biçim | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` | Web, Unit temiz (değişen dosyalar); Integration devir 4'te temiz |
 
 ## Altyapı Değişiklikleri
@@ -92,5 +92,5 @@
 
 ## Notlar
 
-- **⚠ Kararlar:** (1) `04` 2.12.1.8 "adedi bir olan kalemde adet alanı görünmez" cümlesi işlem adedi varyantı içindir (iptal/cayma/ayıp seçimi, 5.17.4, 5.19.3); sepette 5.12.4 "adet ve adedi değiştiren alan" der ve UC-20 adedi artırmayı ister — alan yalnız dijital kalemde gizli. (2) D-638: sonuç adları değiştirilmedi, eşleme `CartRefusalCodes`'ta; ekleme ucu eşlemesi de yazıldı (T503 okur). (3) D-650 T509'a ileri atıldı. (4) D-1189 KK'da değil, backlog'da kaldı.
+- **⚠ Kararlar:** (1) `04` 2.12.1.8 "adedi bir olan kalemde adet alanı görünmez" cümlesi işlem adedi varyantı içindir (iptal/cayma/ayıp seçimi, 5.17.4, 5.19.3); sepette 5.12.4 "adet ve adedi değiştiren alan" der ve UC-20 adedi artırmayı ister — alan yalnız dijital kalemde gizli. (2) D-638: sonuç adları değiştirilmedi, eşleme `CartRefusalCodes`'ta; ekleme ucu eşlemesi de yazıldı (T503 okur). (3) D-650 T509'a ileri atıldı. (4) D-1189 KK'da değil, backlog'da kaldı. (5) main'deki T543 (ortak form alanı bileşenleri) birleşti; T508'in bağımlılığı değil, sepet satırındaki adet alanı satır içi formda kaldı (`FormSourceScanTests` yeşil). (6) `StartupSettingsCheckTests` tam Web koşusunda makine yükünde 4 durumda kırmızı, tek başına yeşil; T508 başlangıç ayarlarına dokunmuyor.
 - **Repo memory:** `MEMORY.md`'ye dokunulmadı.

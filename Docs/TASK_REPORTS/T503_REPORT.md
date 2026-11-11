@@ -142,3 +142,23 @@ Yeni sınamalar: `EachNamedRefusal_WritesOneRejectionLineWithItsCode_AndTheField
 Koşular: build `-warnaserror` temiz; format ×3 temiz; Unit 7190/7190; betik testleri 4/4; Integration Web 779/779 (776 + 3 yeni). Öteki Integration ad alanları ve tam öz denetim süre bütçesi dolduğu için devir notunda.
 
 **Düzeltme 2 koşuları (tam):** build `-warnaserror` temiz; `dotnet format --verify-no-changes` Web, UnitTests, IntegrationTests temiz; Unit 7190/7190; betik testleri 4/4; Integration TAM: Web 779/779 + Ordering 638/638 + Catalog 82/82 + öteki ad alanları (Model, Pages, CorporateContent, Database, Jobs, Files, Disposal, Payment, Security, Concurrency, Commands, Administration, Logging, Outages, SignedEndpoints, FileSecrets) 2256/2256 (PostgreSQL 18, `track_commit_timestamp=on`). Not: öteki ad alanları ilk denemede başka bir koşuyla aynı anda çalıştığı için şablon veritabanı kurulumunda zaman aşımına düştü; tek başına yeniden koşuldu, hepsi geçti.
+
+
+## Doğrulama tur 3 (2026-11-11)
+
+| Alan | Değer |
+|---|---|
+| Doğrulama durumu | ✓ PASS — tur 3; kod head'i `f1a840ce` + `origin/main` `30832ba6` (T511 #545, T507 #547) birleştirmesi `2f131820`; yalnız `DEFERRED_BACKLOG.md` kayıt çakışması (D-691, D-692 main sürümü; dalın girişleri `DEFERRED_BACKLOG.d/T503.md` birleştirme notunda). |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| K-notları | 2 — D-1275, D-1276 (`DEFERRED_BACKLOG.d/T503.md`; hedef F5 kapısı). |
+
+**Kabul kriterleri (validator kanıtı, tur 3):** 1 ✓ (`SearchTerm.ToLikePattern` + `NameSearchForm`; KK1 testleri, komut sayısı testi) · 2 ✓ (`SearchModel`: boş sözcükte liste yok, sonuçsuzda boş hâl + kök kategori bağlantıları, arşiv ve taslak sonuçta yok, süzgeç ve ters aralık mesajı, noindex; KK2 testleri) · 3 ✓ (`ProductPageReader`: taslak ziyaretçiye ve yok adres `NotFound`, panel oturumuyla önizleme; gizli ve bilinmeyen 404 gövdesi aynı) · 4 ✓ (`VariantSelection.ParseOrder`/`Resolve`/`Default`; bozuk, eksik, açılmamış ve tükenmiş seçim varsayılana düşer, noindex) · 5 ✓ (fiyat bloğu ve görsel seçilen varyantın; teslimat tipe göre; seçilemez ve "Tükendi"; `StockQuantity - ReservedQuantity`; T501 logosu `DomesticProductionLogo.Address`) · 6 ✓ (betik verisinde yalnız yayındaki varyantlar, stok alanı yok; "Paylaş") · 7 ✓ (303 → `PathFor` iki parametre + `CartItemAdded` bildirimi; sepet sayısı) · 8 ✓ (stok, P-9 önce, dijital tekrar, tükenmiş, seçilmemiş, satış kapalı, geçersiz adet 422 ve sepet/çerez açılmaz; taslak/arşiv/yok ürün ve yabancı/bilinmeyen/taslak `VariantId` 404; adlı redler ret satırı) · 9 ✓ (ikinci gönderim adedi artırır; `product.js` düğme kilidi).
+
+**Koşular (tur 3, birleşik ağaç):** restore; build `-warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes` Web, UnitTests, IntegrationTests 0; Unit 7209/7209 (Consistency ve Architecture dahil); betik testleri 4/4; Integration TAM (PostgreSQL 18, `track_commit_timestamp=on`, ad alanı parçaları sırayla): Web 799/799, Model 1410/1410, Ordering 645/645, öteki ad alanları 941/941 — toplam 3795/3795; `restore --locked-mode` 0; `git status` temiz. CI: dalın son kod run'ı `43078357253` (`9ef71b2a`) success; `f1a840ce` yalnız rapor değişikliği, PR birleştirme çakışması yüzünden yeni run yoktu — birleştirme push'uyla yeniden koşar.
+
+**`12` satırları:** VAL-A006, VAL-A007 (arama süzgeçleri, KK2), VAL-A013 (seçilen varyantın KDV dahil kayıtlı fiyatı, KK5) → PASS. VAL-A004, A005, A009, A011, A019, A022 PASS kalır. Kalan KP-2…KP-7 satırları BEKLEMEDE (D-1276). `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**K-notları:** K1 `ProductPageReader.ReadOptionsAsync` seçenek başına `OptionValues` sorgusu (en çok iki; `09 §20` m.4'ün sözü) → D-1275 · K2 D-1200 yapıldı ama kapanmadı, D-1218 (2)/D-353 ele alınmadı, matris satırlarının kalanı → D-1276.
+
+**Yapım raporu karşılaştırması:** 1 uyuşmazlık — düzeltme 2 öz denetimi `09 §25` Performans satırında "döngüde sorgu yok" diyor; `ReadOptionsAsync` seçenek başına sorgu atıyor (K1). Öz denetim tablosu var, her satırda kanıt adı var; kabul kriterleri sonuçları uyumlu.

@@ -143,6 +143,25 @@ public sealed partial class FrameSourceScanTests
     ];
 
     [Fact]
+    public void TheCutTextLine_IsUsedByTheTwoNamedExceptionsOnly_AndNoStyleSheetCutsTextOtherwise_KK2()
+    {
+        // 04 8.3.2: text is never cut except the long brand name of the narrow header and the administrator's name in the panel's top row.
+        string[] users = [.. FrameViews.Where(name => FrameView(name).Contains("u-single-line", StringComparison.Ordinal)).Order(StringComparer.Ordinal)];
+        Assert.Equal(["_PanelLayout", "_StorefrontHeader"], users);
+
+        foreach (string file in StyleFiles)
+        {
+            foreach (string rule in StripStyleComments(ReadWeb($"wwwroot/css/{file}")).Split('}'))
+            {
+                if (rule.Contains("text-overflow", StringComparison.Ordinal))
+                {
+                    Assert.Contains("u-single-line", rule, StringComparison.Ordinal);
+                }
+            }
+        }
+    }
+
+    [Fact]
     public void TheFrameViews_HaveNoEventAttributeNoInlineScriptNoStyleAttributeAndNoEmbeddedContent_KK4()
     {
         foreach (string name in FrameViews)

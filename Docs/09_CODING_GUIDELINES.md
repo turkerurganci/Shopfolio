@@ -1817,11 +1817,11 @@ Bu bölüm güvenlik mekanizmasının **kodda nasıl yazıldığını** söyler;
 
    ```html
    <!-- Çerçevenin ortak düzeninde: her sayfa -->
-   <script type="module" src="~/js/common.js" asp-append-version="true"></script>
+   <script type="module" src="@Context.StaticAsset("js/common.js")"></script>
    <!-- Davranışı olan sayfanın kendi bölümünde -->
-   <script type="module" src="~/js/pages/panel/products/edit.js" asp-append-version="true"></script>
+   <script type="module" src="@Context.StaticAsset("js/pages/panel/products/edit.js")"></script>
    ```
-3. **Modül başka modülü içe aktarmaz** (`import` yok): içe aktarılan dosyanın adresi sürüm izi taşımaz ve eski kalırdı. Ortak davranış `common.js`'tedir; sayfa modülü yalnız kendi sayfasının öğelerine bağlanır. Satır içi betik ve satır içi olay niteliği (`onclick`) yazılmaz (§15.2 madde 4: `script-src 'self'`). Sürüm izi çatının hattıdır (`asp-append-version`; `05 §3.8.1`).
+3. **Modül başka modülü içe aktarmaz** (`import` yok): içe aktarılan dosyanın adresi sürüm izi taşımaz ve eski kalırdı. Ortak davranış `common.js`'tedir; sayfa modülü yalnız kendi sayfasının öğelerine bağlanır. Satır içi betik ve satır içi olay niteliği (`onclick`) yazılmaz (§15.2 madde 4: `script-src 'self'`). Sürüm izi çatının hattıdır: dosyalar `/statik` altında dosya adındaki parmak iziyle sunulur (`MapStaticAssets`), görünüm adresi `Context.StaticAsset("js/common.js")` yardımcısından alır, adresi elle yazmaz (`05 §3.8.1`; `07 §2.1.2`).
 4. **Bağlanma.** JavaScript kancası `data-js="ad"` niteliğidir. Stil sınıfı ya da kimlik JavaScript kancası olmaz; JavaScript'in tuttuğu durum `data-` ve `aria-` niteliğinde durur, stil de duruma niteliğe bakarak bağlanır. Temel akışlar JavaScript kapalıyken tamamlanır (`05 §3.8.1`): modül sayfada zaten çalışan bir şeyi iyileştirir, başka yol açmaz.
 
    ```javascript
@@ -1845,7 +1845,7 @@ Bu bölüm güvenlik mekanizmasının **kodda nasıl yazıldığını** söyler;
    @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
    ```
 8. **Tarayıcı tabanı** son iki büyük sürümdür (`05 §3.8.4`); ES modülü, özel özellik ve `:where` bu tabanın kapsamındadır (bilgim tarihli; özellik tablosu bu oturumda taranmadı, ilk task'ta `can i use` ya da MDN'e karşı sınanır). Kütüphane yoktur: ön yüz çerçevesi, jQuery, paketleyici ve CSS ön işlemcisi kullanılmaz (Kütüphaneler tablosunun altındaki "Kütüphanesiz kararlar").
-9. **Test (kaynak taraması, CI):** `wwwroot/js/` altında `import` ifadesi yok; `.cshtml` dosyalarında satır içi olay niteliği ve satır içi `<script>` yok (yapılandırılmış veri bloğu hariç); `wwwroot/js/` altında `innerHTML`, `outerHTML`, `insertAdjacentHTML` ve `document.write` yok (metin `textContent` ile yazılır; MK-05); `common.js` ve her sayfa modülü `asp-append-version` ile bağlı; stil dosyalarında `@import` yok; bileşen dosyalarında ham renk kodu (`#` ile başlayan onaltılık değer, `rgb(`) yok; her `@media` koşulundaki sınır değeri `base.css`'teki tanımın bir değeri; sınıf adı biçimi. Ön yüzün tarayıcı davranış testi Doğrulama Protokolü'nündür (`12`).
+9. **Test (kaynak taraması, CI):** `wwwroot/js/` altında `import` ifadesi yok; `.cshtml` dosyalarında satır içi olay niteliği ve satır içi `<script>` yok (yapılandırılmış veri bloğu hariç); `wwwroot/js/` altında `innerHTML`, `outerHTML`, `insertAdjacentHTML` ve `document.write` yok (metin `textContent` ile yazılır; MK-05); `common.js` ve her sayfa modülü `Context.StaticAsset` ile bağlı (adres `/statik` altında parmak izli); stil dosyalarında `@import` yok; bileşen dosyalarında ham renk kodu (`#` ile başlayan onaltılık değer, `rgb(`) yok; her `@media` koşulundaki sınır değeri `base.css`'teki tanımın bir değeri; sınıf adı biçimi. Ön yüzün tarayıcı davranış testi Doğrulama Protokolü'nündür (`12`).
 
 **Yasak.** Sayfa başına stil dosyası (ortak bileşenin kopyasını sayfada tutar ve ortak kural değişince sapar); tek büyük stil dosyası (vitrin ziyaretçisine panelin stilini indirtir); `import` ve içe aktarma haritası; kimliği ya da stil sınıfını JavaScript kancası yapmak.
 

@@ -20,6 +20,12 @@ public interface ICustomerOperations
     /// </summary>
     Task<CustomerOperationScreen?> ReadScreenAsync(Guid orderId, CustomerScreen screen, CancellationToken ct);
 
+    /// <summary>
+    /// UC-40's last step — whether cancelling <paramref name="selectedUnits"/> pays the shipping fee back, over the screen's <see cref="CustomerOperationScreen.OpenPhysicalUnits"/>
+    /// (04 5.17.5; K-789): the AfterSales shipping fee rule's answer, so the page works out no amount (09 3.4 item 1).
+    /// </summary>
+    bool CancellationRefundsShippingFee(IReadOnlyDictionary<Guid, int> openPhysicalUnits, IReadOnlyDictionary<Guid, int> selectedUnits);
+
     /// <summary>The order page's open IBAN fields (04 5.16.4, 5.16.12; 2.12.3): an open request to answer, or an IBAN to correct until the refund is processed.</summary>
     Task<IReadOnlyList<RefundIbanFieldView>> ReadRefundIbanFieldsAsync(Guid orderId, CancellationToken ct);
 
@@ -42,42 +48,6 @@ public interface ICustomerOperations
 
     /// <summary>UC-41 — the late delivery termination of every open unit of the undelivered physical items (03 1.11.8; K-796), with <paramref name="iban"/> on the transfer line.</summary>
     Task<CustomerOperationResult> TerminateForLateDeliveryAsync(Guid orderId, string? iban, CancellationToken ct);
-}
-
-/// <summary>The two addresses of the screen under the order's root (07 2.1.3, 4.17.1).</summary>
-public enum CustomerScreen
-{
-    /// <summary><c>{kök}/iptal</c>: the order's cancellation or the item cancellation by the payment status (K-1162 (3)).</summary>
-    Cancellation,
-
-    /// <summary><c>{kök}/gecikme-feshi</c>.</summary>
-    LateDeliveryTermination,
-}
-
-/// <summary>The three operations the one screen carries (04 5.17 m1; K-744).</summary>
-public enum CustomerScreenOperation
-{
-    CancelOrder,
-    CancelOrderItems,
-    TerminateForLateDelivery,
-}
-
-/// <summary>Why a customer's operation was not applied, or that it was (07 4.16.2, 4.17.2–4.17.4).</summary>
-public enum CustomerOperationOutcome
-{
-    Applied,
-
-    /// <summary>The operation or the field is not open now (303 with <c>OperationClosed</c> on the screen; 422 on the IBAN field).</summary>
-    Closed,
-
-    /// <summary>A quantity above the open units, or an open quantity other than the one shown (K-1202): 303 with <c>QuantityExceedsOpen</c>.</summary>
-    QuantityExceedsOpen,
-
-    /// <summary>The IBAN is empty where it is required, or fails format or check digits: 422 with the field's message.</summary>
-    InvalidIban,
-
-    /// <summary>An item that is not the order's: 404 (07 2.3.3).</summary>
-    NotFound,
 }
 
 /// <summary>The answer of a customer's write: <see cref="Gate"/> is what the runner reads (a rejected one rolls back) and <see cref="Outcome"/> says why.</summary>

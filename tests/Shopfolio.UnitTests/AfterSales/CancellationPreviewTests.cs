@@ -6,10 +6,10 @@ namespace Shopfolio.UnitTests.AfterSales;
 
 /// <summary>
 /// What E-17 says about the refund before the last step (T512 KK9, KK10; 04 5.17.5; K-789): the shipping fee comes back only when the selection covers every open unit of
-/// every physical item - the rule home's trigger (1), read over the open units - and the period is the rule home's. The IBAN field's optional cases are the card line's two
+/// every physical item - the rule home's trigger (1), read over the open units. The IBAN field's optional cases are the card line's two
 /// exceptions (04 2.12.3.1).
 /// </summary>
-public sealed class RefundPreviewTests
+public sealed class CancellationPreviewTests
 {
     private static readonly Guid First = Guid.Parse("00000000-0000-0000-0000-000000000001");
 
@@ -22,8 +22,8 @@ public sealed class RefundPreviewTests
     {
         Dictionary<Guid, int> open = new() { [First] = 2, [Second] = 1 };
 
-        Assert.True(RefundPreview.CancellationRefundsShippingFee(open, new Dictionary<Guid, int> { [First] = 2, [Second] = 1 }));
-        Assert.True(RefundPreview.CancellationRefundsShippingFee(open, new Dictionary<Guid, int> { [Second] = 1, [First] = 2, [Digital] = 1 }));
+        Assert.True(ShippingFeeRefunds.OnCancellationPreview(open, new Dictionary<Guid, int> { [First] = 2, [Second] = 1 }));
+        Assert.True(ShippingFeeRefunds.OnCancellationPreview(open, new Dictionary<Guid, int> { [Second] = 1, [First] = 2, [Digital] = 1 }));
     }
 
     [Fact]
@@ -31,21 +31,15 @@ public sealed class RefundPreviewTests
     {
         Dictionary<Guid, int> open = new() { [First] = 2, [Second] = 1 };
 
-        Assert.False(RefundPreview.CancellationRefundsShippingFee(open, new Dictionary<Guid, int> { [First] = 1, [Second] = 1 }));
-        Assert.False(RefundPreview.CancellationRefundsShippingFee(open, new Dictionary<Guid, int> { [First] = 2 }));
-        Assert.False(RefundPreview.CancellationRefundsShippingFee(open, new Dictionary<Guid, int> { [Digital] = 1 }));
+        Assert.False(ShippingFeeRefunds.OnCancellationPreview(open, new Dictionary<Guid, int> { [First] = 1, [Second] = 1 }));
+        Assert.False(ShippingFeeRefunds.OnCancellationPreview(open, new Dictionary<Guid, int> { [First] = 2 }));
+        Assert.False(ShippingFeeRefunds.OnCancellationPreview(open, new Dictionary<Guid, int> { [Digital] = 1 }));
     }
 
     [Fact]
     public void AnOrderWithoutAnOpenPhysicalUnit_HasNoTrigger()
     {
-        Assert.False(RefundPreview.CancellationRefundsShippingFee(new Dictionary<Guid, int>(), new Dictionary<Guid, int> { [Digital] = 1 }));
-    }
-
-    [Fact]
-    public void ThePeriod_IsTheRuleHomes()
-    {
-        Assert.Equal(AfterSalesPeriodRules.RefundPeriodDays, RefundPreview.RefundPeriodDays);
+        Assert.False(ShippingFeeRefunds.OnCancellationPreview(new Dictionary<Guid, int>(), new Dictionary<Guid, int> { [Digital] = 1 }));
     }
 
     [Theory]

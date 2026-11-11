@@ -107,7 +107,7 @@ public sealed class CustomerOperationsTests : IAsyncLifetime
 
         // The open units, the default and the upper limit are the decision's (the whole open quantity for a cancellation); the digital item's cancellation is not the customer's.
         Assert.NotNull(screen);
-        Assert.Equal((CustomerScreenOperation.CancelOrderItems, false, RefundPreview.RefundPeriodDays), (screen.Operation, screen.AsksIban, screen.RefundPeriodDays));
+        Assert.Equal((CustomerScreenOperation.CancelOrderItems, false, AfterSalesPeriodRules.RefundPeriodDays), (screen.Operation, screen.AsksIban, screen.RefundPeriodDays));
         Assert.Equal(
             [(items[0].Id, 2, 2, 2, true), (items[1].Id, 1, 1, 1, false)],
             screen.Items.OrderByDescending(i => i.OpenQuantity).Select(i => (i.OrderItemId, i.OpenQuantity, i.DefaultQuantity, i.MaxQuantity, i.HasQuantityField)));
@@ -236,7 +236,7 @@ public sealed class CustomerOperationsTests : IAsyncLifetime
         CustomerOperationResult result = await OperateAsync((o, t) => o.CancelOrderItemsAsync(order.Id, lines, null, t));
 
         // The screen said so before the last step (the rule home), and the refund line pays it: the units' amounts and the fee once.
-        Assert.True(RefundPreview.CancellationRefundsShippingFee(open, selected));
+        Assert.True(ShippingFeeRefunds.OnCancellationPreview(open, selected));
         Assert.Equal(CustomerOperationOutcome.Applied, result.Outcome);
         await using AppDbContext reader = NewContext();
         List<Refund> refunds = await reader.Refunds.Where(r => r.OrderId == order.Id).ToListAsync(Ct);
@@ -263,7 +263,7 @@ public sealed class CustomerOperationsTests : IAsyncLifetime
 
         CustomerOperationResult result = await OperateAsync((o, t) => o.CancelOrderItemsAsync(order.Id, [new CancelOrderItemsLine(items[0].Id, 2, 2)], null, t));
 
-        Assert.False(RefundPreview.CancellationRefundsShippingFee(new Dictionary<Guid, int> { [items[0].Id] = 2, [items[1].Id] = 1 }, new Dictionary<Guid, int> { [items[0].Id] = 2 }));
+        Assert.False(ShippingFeeRefunds.OnCancellationPreview(new Dictionary<Guid, int> { [items[0].Id] = 2, [items[1].Id] = 1 }, new Dictionary<Guid, int> { [items[0].Id] = 2 }));
         Assert.Equal(CustomerOperationOutcome.Applied, result.Outcome);
         await using AppDbContext reader = NewContext();
         Refund refund = await reader.Refunds.SingleAsync(r => r.OrderId == order.Id, Ct);

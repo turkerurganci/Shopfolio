@@ -90,9 +90,12 @@ internal sealed class CustomerOperations : ICustomerOperations
             screenItems,
             facts.PaymentMethod,
             operation != CustomerScreenOperation.CancelOrder && IsPaidTransfer(facts.PaymentMethod, facts.PaymentStatus),
-            RefundPreview.RefundPeriodDays,
+            _afterSales.RefundPeriodDays,
             openPhysical);
     }
+
+    public bool CancellationRefundsShippingFee(IReadOnlyDictionary<Guid, int> openPhysicalUnits, IReadOnlyDictionary<Guid, int> selectedUnits) =>
+        _afterSales.CancellationRefundsShippingFee(openPhysicalUnits, selectedUnits);
 
     public async Task<IReadOnlyList<RefundIbanFieldView>> ReadRefundIbanFieldsAsync(Guid orderId, CancellationToken ct)
     {

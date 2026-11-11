@@ -23,7 +23,7 @@ namespace Shopfolio.Pages.Orders;
 /// <summary>
 /// E-17 — the cancellation and late delivery termination screen (07 UC-38…UC-41; 04 5.17; T512). The screen hangs under the root it was reached from (07 2.1.3): the member's root by the
 /// account's ownership, the access-key root by the key (<see cref="OrderRoots"/>); a root that does not hold is the one 404. Everything the screen shows is the server's: the operation, the
-/// items with their open quantity, default and upper limit (K-1170 (2)), the refund's way and period and whether the shipping fee comes back (<see cref="RefundPreview"/>; K-789) - the page
+/// items with their open quantity, default and upper limit (K-1170 (2)), the refund's way and period and whether the shipping fee comes back (<see cref="ICustomerOperations.CancellationRefundsShippingFee"/>; K-789) - the page
 /// works out no amount. An operation that is not open, on the GET or on the POST, is 303 to the root with the reason (<see cref="OperationRefusals.ToOrderPage"/>; K-1170 (1), (4)). The first
 /// POST without the confirmation mark is the script-free last step - 200, nothing written (07 2.2.4); the confirmed POST runs the module's write in the page's transaction
 /// (<see cref="OperationRunner"/>) and answers 303 to the root, where the result stays (04 5.17.9).
@@ -271,7 +271,7 @@ public abstract class CancellationPageModel(ICustomerOperations operations, IOrd
         List<CancelOrderItemsLine> lines = [];
         for (int index = 0; index < input.Items.Count; index++)
         {
-            CancelOrderItemsLineInput line = input.Items[index];
+            CancelOrderItemsInputLine line = input.Items[index];
             if (line.OrderItemId == Guid.Empty)
             {
                 continue;
@@ -280,7 +280,7 @@ public abstract class CancellationPageModel(ICustomerOperations operations, IOrd
             // The quantity's field rule (at least one, a whole number; 09 3.4; D-155) is the page's: a wrong value is 422 under the field, not a closed operation.
             if (!int.TryParse(line.Quantity, NumberStyles.None, CultureInfo.InvariantCulture, out int quantity) || quantity < 1)
             {
-                ModelState.AddFieldError($"{nameof(CancelOrderItemsInput.Items)}[{index}].{nameof(CancelOrderItemsLineInput.Quantity)}", FieldCodes.InvalidQuantity, DisplayFormat.Number(Math.Max(1, line.OriginalOpenQuantity)));
+                ModelState.AddFieldError($"{nameof(CancelOrderItemsInput.Items)}[{index}].{nameof(CancelOrderItemsInputLine.Quantity)}", FieldCodes.InvalidQuantity, DisplayFormat.Number(Math.Max(1, line.OriginalOpenQuantity)));
                 continue;
             }
 
@@ -322,7 +322,7 @@ public abstract class CancellationPageModel(ICustomerOperations operations, IOrd
             }
 
             Dictionary<Guid, int> selected = lines.ToDictionary(l => l.OrderItemId, l => l.Quantity);
-            bool fee = RefundPreview.CancellationRefundsShippingFee(Screen.OpenPhysicalUnits, selected);
+            bool fee = _operations.CancellationRefundsShippingFee(Screen.OpenPhysicalUnits, selected);
             string amount = fee ? "bu ürünler için ödediğiniz tutar ve kargo ücreti" : "bu ürünler için ödediğiniz tutar";
             string sentence = $"Seçtiğiniz {DisplayFormat.Number(lines.Sum(l => l.Quantity))} ürün iptal edilecek; {amount} {DisplayFormat.Number(Screen.RefundPeriodDays)} gün içinde {RefundWayText} geri ödenecek.";
             return LastStep("Seçilen ürünleri iptal et", sentence, "CancelOrderItems");
@@ -407,28 +407,32 @@ public sealed class AccessLateDeliveryTerminationModel(ICustomerOperations opera
 /// <summary>UC-39's form (07 5): the confirmation mark only (07 2.2.4).</summary>
 public sealed class CancelOrderInput : IFormInput
 {
+    [SpecAssignedName]
     public bool Confirmed { get; set; }
 }
 
 /// <summary>UC-40's form (07 5): the chosen items - a line whose item is empty was not chosen - the transfer line's IBAN and the confirmation mark.</summary>
 public sealed class CancelOrderItemsInput : IFormInput
 {
-    public IList<CancelOrderItemsLineInput> Items { get; } = [];
+    [SpecAssignedName]
+    public IList<CancelOrderItemsInputLine> Items { get; } = [];
 
     [Display(Name = IbanFields.Label)]
     [InvalidIban]
     public string? Iban { get; set; }
 
+    [SpecAssignedName]
     public bool Confirmed { get; set; }
 }
 
 /// <summary>One line of UC-40's form: the item, the units as typed (the page's field rule reads them) and the open quantity the screen showed (K-1202).</summary>
-public sealed class CancelOrderItemsLineInput
+public sealed class CancelOrderItemsInputLine
 {
     public Guid OrderItemId { get; set; }
 
     public string? Quantity { get; set; }
 
+    [SpecAssignedName]
     public int OriginalOpenQuantity { get; set; }
 }
 
@@ -439,5 +443,6 @@ public sealed class SubmitLateDeliveryTerminationInput : IFormInput
     [InvalidIban]
     public string? Iban { get; set; }
 
+    [SpecAssignedName]
     public bool Confirmed { get; set; }
 }

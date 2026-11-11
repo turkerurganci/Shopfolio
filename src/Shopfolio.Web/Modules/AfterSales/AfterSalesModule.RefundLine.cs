@@ -19,6 +19,11 @@ internal sealed partial class AfterSalesModule
     /// <summary>The IBAN's one format rule (04 7.3.2.7): the field rule the order page's form uses, asked again by the writer.</summary>
     private static readonly InvalidIbanAttribute IbanRule = new();
 
+    public int RefundPeriodDays => AfterSalesPeriodRules.RefundPeriodDays;
+
+    public bool CancellationRefundsShippingFee(IReadOnlyDictionary<Guid, int> openPhysicalUnits, IReadOnlyDictionary<Guid, int> selectedUnits) =>
+        ShippingFeeRefunds.OnCancellationPreview(openPhysicalUnits, selectedUnits);
+
     public async Task<RefundIbanRequestOpened> OpenRefundIbanRequestAsync(RefundIbanRequestEntry entry, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(entry);

@@ -12,10 +12,10 @@ namespace Shopfolio.IntegrationTests.Files;
 
 /// <summary>
 /// UC-37 on the opened application and a real PostgreSQL (T312 criteria 1 to 4 and 10; KK1 to KK4, KK10; 07 4.31.1; 09 15.7 items 1 to 3): the signed address opens with no session;
-/// the three reasons for the 404 (a bad signature, a spent life, an item that cannot be downloaded) and a file that did not complete are all the same empty answer; the answer
+/// the three reasons for the 404 (a bad signature, a spent life, an item that cannot be downloaded) and a file that did not complete are all the same answer, the "page not found" page E-06 (T504, D-217); the answer
 /// is the variant's current file as an attachment of a general binary type with <c>no-store</c>, <c>nosniff</c>, a strong tag that shows no storage key, <c>Last-Modified</c> and
 /// <c>X-Robots-Tag</c>; a changed file is a new file and a new tag, a range is 206 and an <c>If-Range</c> of an old tag gets the whole file; the downloads left to the buyer
-/// do not change and the trace gets no line; a life that ends while the file is sent does not cut the transfer, and the next range request is 404; a file missing from the
+/// do not change and the trace gets no line; a life that ends while the file is sent does not cut the transfer, and the next range request is 404 (the page); a file missing from the
 /// store is an unexpected error (500, no body).
 /// </summary>
 [Collection(FileEndpointsDefinition.Name)]
@@ -39,10 +39,13 @@ public sealed partial class DownloadEndpointTests
 
     private static Uri Link(string value) => new("/indir/" + value, UriKind.Relative);
 
-    private static async Task AssertEmpty404Async(HttpResponseMessage response)
+    private static async Task AssertNotFoundPageAsync(HttpResponseMessage response)
     {
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Empty(await response.Content.ReadAsByteArrayAsync(Ct));
+        string html = System.Net.WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct));
+        Assert.StartsWith("text/html", response.Content.Headers.ContentType?.ToString(), StringComparison.Ordinal);
+        Assert.Contains("<h1 class=\"not-found__title\">Sayfa bulunamadı</h1>", html, StringComparison.Ordinal);
+        Assert.Null(response.Content.Headers.ContentDisposition);
     }
 
     // --- KK1 and the headers (criteria 1, 3, 10) ---
@@ -88,7 +91,7 @@ public sealed partial class DownloadEndpointTests
     // --- KK2: the three 404 reasons, apart (criterion 2) ---
 
     [Fact]
-    public async Task Download_WithABadSignature_Is404WithNoBody()
+    public async Task Download_WithABadSignature_Is404WithThePageE06()
     {
         await using FileEndpointsHost host = new(_database.Dsn);
         (Guid item, _, _) = await host.SeedDownloadAsync(Hundred);
@@ -99,12 +102,12 @@ public sealed partial class DownloadEndpointTests
         using HttpResponseMessage garbage = await host.Client.GetAsync(Link("not-a-signed-value"), Ct);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        await AssertEmpty404Async(response);
-        await AssertEmpty404Async(garbage);
+        await AssertNotFoundPageAsync(response);
+        await AssertNotFoundPageAsync(garbage);
     }
 
     [Fact]
-    public async Task Download_WithASpentLife_Is404WithNoBody_AndTheLastSecondOfTheLifeStillOpens()
+    public async Task Download_WithASpentLife_Is404WithThePageE06_AndTheLastSecondOfTheLifeStillOpens()
     {
         await using FileEndpointsHost host = new(_database.Dsn);
         (Guid item, _, _) = await host.SeedDownloadAsync(Hundred);
@@ -116,11 +119,11 @@ public sealed partial class DownloadEndpointTests
         using HttpResponseMessage spent = await host.Client.GetAsync(Link(value), Ct);
 
         Assert.Equal(HttpStatusCode.OK, inside.StatusCode);
-        await AssertEmpty404Async(spent);
+        await AssertNotFoundPageAsync(spent);
     }
 
     [Fact]
-    public async Task Download_OfAnItemThatCannotBeDownloaded_Is404WithNoBody()
+    public async Task Download_OfAnItemThatCannotBeDownloaded_Is404WithThePageE06()
     {
         await using FileEndpointsHost host = new(_database.Dsn);
         (Guid physical, _, _) = await host.SeedDownloadAsync(Hundred, itemType: ProductType.Physical);
@@ -129,12 +132,12 @@ public sealed partial class DownloadEndpointTests
         using HttpResponseMessage unknownItem = await host.Client.GetAsync(Link(host.LinkFor(Guid.NewGuid())), Ct);
 
         Assert.Equal(HttpStatusCode.NotFound, notDigital.StatusCode);
-        await AssertEmpty404Async(notDigital);
-        await AssertEmpty404Async(unknownItem);
+        await AssertNotFoundPageAsync(notDigital);
+        await AssertNotFoundPageAsync(unknownItem);
     }
 
     [Fact]
-    public async Task Download_OfAFileWhoseUploadDidNotComplete_Is404WithNoBody()
+    public async Task Download_OfAFileWhoseUploadDidNotComplete_Is404WithThePageE06()
     {
         await using FileEndpointsHost host = new(_database.Dsn);
         Guid item = await host.SeedItemOfAnIncompleteFileAsync();
@@ -142,7 +145,7 @@ public sealed partial class DownloadEndpointTests
         using HttpResponseMessage response = await host.Client.GetAsync(Link(host.LinkFor(item)), Ct);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        await AssertEmpty404Async(response);
+        await AssertNotFoundPageAsync(response);
     }
 
     // --- KK3: a changed file, the range (criterion 3) ---
@@ -250,7 +253,7 @@ public sealed partial class DownloadEndpointTests
         Assert.Equal(big.Length, head.Length + rest.Length);
         Assert.Equal(big[..1024], head);
         Assert.Equal(big[1024..], rest.ToArray());
-        await AssertEmpty404Async(next);
+        await AssertNotFoundPageAsync(next);
     }
 
     // --- A missing file in the store (09 15.7 item 3; 09 8.1) ---
@@ -267,6 +270,9 @@ public sealed partial class DownloadEndpointTests
         using HttpResponseMessage response = await host.Client.GetAsync(Link(host.LinkFor(item)), Ct);
 
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-        Assert.Empty(await response.Content.ReadAsByteArrayAsync(Ct));
+        string html = System.Net.WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct));
+        Assert.StartsWith("text/html", response.Content.Headers.ContentType?.ToString(), StringComparison.Ordinal);
+        Assert.Contains("<h1 class=\"not-found__title\">Sayfa bulunamadı</h1>", html, StringComparison.Ordinal);
+        Assert.Null(response.Content.Headers.ContentDisposition);
     }
 }

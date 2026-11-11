@@ -17,7 +17,7 @@ public sealed partial class FrameSourceScanTests
 
     private static readonly string[] FrameViews =
     [
-        "_StorefrontLayout", "_StorefrontHeader", "_StorefrontFooter", "_MenuTree", "_AdminStrip", "_DraftBand", "_PanelLayout", "_PanelBareLayout",
+        "_StorefrontLayout", "_StorefrontHeader", "_StorefrontFooter", "_MenuTree", "_AdminStrip", "_DraftBand", "_PanelLayout", "_PanelBareLayout", "_NotFound",
     ];
 
     [GeneratedRegex(@"/\*.*?\*/", RegexOptions.Singleline | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

@@ -3,6 +3,9 @@ namespace Shopfolio.Pages.Frame;
 /// <summary>The addresses and names the storefront frame points to (07 2.1.2, §3; T537): the fixed pages, the account pages and the three forms the frame starts. Written here once.</summary>
 internal static class FramePaths
 {
+    /// <summary>UC-01: the home page, the way home of the "page not found" page (T504).</summary>
+    public const string Home = "/";
+
     /// <summary>UC-22: the payment step.</summary>
     public const string Checkout = "/odeme";
 

@@ -67,10 +67,11 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu (tur 1) | *(validator doldurur)* |
-| Bulgu sayısı (tur 1) | — |
-| Düzeltme gerekli mi | — |
-| Yapım raporu karşılaştırması (tur 1) | — |
+| Doğrulama durumu (tur 1) | ✗ FAIL (2026-11-12; dal ucu `a53c6c33`, origin/main `9f5b8ac8` içinde) |
+| Bulgu sayısı (tur 1) | 1 (ORTA, S1) + 2 K-notu |
+| Düzeltme gerekli mi | Evet — B1: kapı kapalıyken `SendContactRequest` 422'si `DataCollectionClosed` ret satırını yazmıyor (`Contact.cshtml.cs` `default` dalı yalnız `FormResults.Redisplay`; `RejectionLog.Rejected(result.Code)` yok; `09 §8.2` m.3, K-1198; `VAL-A123` kanıtı "Uygulama kaydı"). Düzeltme: dal ret satırını `result.Code` ile yazar; test kapalı kapı POST'unda kayıt satırını (`code=DataCollectionClosed`) doğrular |
+| Yapım raporu karşılaştırması (tur 1) | KK1–KK10 kanıtları uyumlu; uyuşmazlıklar: (1) öz denetimin `09 §25` satırı "red uygulama kaydında mı" sorusunu kapsamıyor (B1 kaçtı); (2) rapor sonuç kodunu `?code=ContactRequestSent` yazar, adres `?notice=ContactRequestSent`'tir; (3) `12` Durum hücreleri yazılmamış, `VAL-A120`…`A122` (tarayıcı) D-1228'de yok (D-1313) |
+| Doğrulayıcı kanıtları (tur 1) | Derleme `-warnaserror` 0/0; `dotnet format --verify-no-changes` üç proje temiz; Unit 7226/7226; betik 4/4; Integration TAM 3833/3833 (Web 837; Administration+Catalog+Commands+Concurrency+CorporateContent+Security+SignedEndpoints+FileSecrets+Logging 535; Database+Disposal+Files+Jobs+Outages+Payment 406; Ordering 645; Model 1410); CI run 43115380835 yeşil; `12` Durum: A123 FAIL, A452/A558/A580/A634 PASS |
 
 ## Altyapı Değişiklikleri
 

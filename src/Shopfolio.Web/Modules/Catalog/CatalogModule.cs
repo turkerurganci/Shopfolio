@@ -163,6 +163,9 @@ internal sealed class CatalogModule : ICatalogModule
     public Task<ProductListPage?> SearchProductsAsync(string? search, ProductListFilter? filter, int page, CancellationToken ct)
         => _lists.SearchAsync(search, filter, page, ct);
 
+    public Task<IReadOnlyList<ProductListItem>> ListNewestProductsAsync(int count, CancellationToken ct)
+        => _lists.ListNewestAsync(count, ct);
+
     public Task<GallerySaveResult> SaveProductGalleryAsync(Guid productId, IReadOnlyList<GalleryEntry> entries, CancellationToken ct)
         => _gallery.SaveAsync(productId, entries, ct);
 

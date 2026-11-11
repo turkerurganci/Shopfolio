@@ -1,6 +1,6 @@
 # T503 — Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04)
 
-**Faz:** F5 | **Durum:** ✗ FAIL (tur 2) — eskalasyon | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** düzeltme 2 yapıldı — tur 3 doğrulaması bekliyor (tur 2: ✗ FAIL) | **Tarih:** 2026-11-11
 
 ---
 
@@ -16,14 +16,14 @@
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | Arama: büyük-küçük harf/Türkçe, `%` `_`, 150 kırpma | ✓ | `StorefrontSearchAndProductTests.TheSearchPage_IsBlindToCase…_KK1`, `ASearchWord_LongerThan150Characters_IsCutAt150_KK1`; katalog düzeyi `CategoryTreeAndListsTests.TheSearch_*` |
+| 1 | Arama: büyük-küçük harf/Türkçe, `%` `_`, 150 kırpma | ✓ | `StorefrontSearchAndProductTests.TheSearchPage_IsBlindToCase…_KK1`, `ASearchWord_LongerThan150Characters_IsCutAt150_KK1`; düzeltme 2: `TheSearchPage_SendsTheSameNumberOfCommands_WhateverTheNumberOfCards_T503_KK1`; katalog düzeyi `CategoryTreeAndListsTests.TheSearch_*` |
 | 2 | Boş arama yalnız alan; sonuçsuz boş hâl; arşiv yok; süzgeç; noindex | ✓ | `AnEmptyWord_ShowsOnlyTheSearchField…_KK2`, `ASearchWithNoProduct_IsTheEmptyStateLine_AndAnArchivedProduct…_KK2`, `TheFilters_TakeThePriceRange…_KK2`, `ProductPageModelTests.EmptyStateOf_*` |
 | 3 | Yayında E-04, taslakta panel önizlemesi, taslak/yok aynı 404 | ✓ | `APublishedProduct_IsE04_ADraftIsAPreview…_KK3`, `AnArchivedProduct_ShowsTheNoLongerSoldPage…_KK3` |
 | 4 | Seçim iki parametre; bozuk/tükenmiş → varsayılan | ✓ | `TheSelection_IsTheTwoOrders_AndAWrongOrMissing…_KK4`; `ProductPageModelTests.ParseOrder_*`, `Resolve_*`, `Default_*` |
-| 5 | Varyant fiyatı, tipe göre teslimat, Tükendi, ayrılmış adet, T501 logosu (betikli yol dahil) | ✓ | `TheDeliveryLine_IsByTheProductsType_AndTheLogoIsT501s_KK5`, `AVariantWhoseStockIsAllReserved_IsSoldOut…_KK5`, `ASoldOutValue_CarriesTukendiInTheSelection…_KK5`; düzeltme 1: `TheScriptData_HoldsEachCombinationsPlacesAndSoldOutMark_ForTheOtherOptionsChoices_KK5`, `TheScript_DrawsTheOtherOptionsChoicesAgainOnEachChange_WithTheServersRule_KK5`, `TheVariableLines_AreAlwaysDrawn_AndHiddenWhenEmpty_SoTheScriptCanFillThem_KK5`; `ProductPageModelTests.Fields_*`, `ModeOf_*`, `PriceBlockOf_*`, `DeliveryOf_*` |
+| 5 | Varyant fiyatı, tipe göre teslimat, Tükendi, ayrılmış adet, T501 logosu (betikli yol dahil) | ✓ | `TheDeliveryLine_IsByTheProductsType_AndTheLogoIsT501s_KK5`, `AVariantWhoseStockIsAllReserved_IsSoldOut…_KK5`, `ASoldOutValue_CarriesTukendiInTheSelection…_KK5`; düzeltme 1: `TheScriptData_HoldsEachCombinationsPlacesAndSoldOutMark_ForTheOtherOptionsChoices_KK5`, `TheScript_DrawsTheOtherOptionsChoicesAgainOnEachChange_WithTheServersRule_KK5`, `TheVariableLines_AreAlwaysDrawn_AndHiddenWhenEmpty_SoTheScriptCanFillThem_KK5`; düzeltme 2: `TheProductPage_SendsTheSameNumberOfCommands_WhateverTheNumberOfVariants_T503_KK5`; `ProductPageModelTests.Fields_*`, `ModeOf_*`, `PriceBlockOf_*`, `DeliveryOf_*` |
 | 6 | Betik verisi stok adedsiz; Paylaş | ✓ | `ThePageData_CarriesThePublishedVariantsWithNoStockCount_AndThereIsAShareButton_KK6`; `ProductPageModelTests.ScriptDataOf_*`, `ProductBuyAreaAndScriptRecords_HaveNoStockCountMember_KK6` |
 | 7 | 303: iki parametre, bildirim, sepet sayısı | ✓ | `AnAdd_Is303BackToThePageWithTheTwoPlacesAndTheNotice_AndTheCartHoldsTheLine_KK7` (düzeltme 1: çerçevenin sepet sayısı eklemeden önce 0, sonra 1 kalem okunur) |
-| 8 | Stok, P-9 (sınır önce), dijital tekrar, tükenmiş/seçilmemiş, kapalı satış, geçersiz adet 422; yayında olmayan ürün/`VariantId` 404 | ✓ | `EachRefusal_Is422_WithItsMessageInPlace…_KK8`, `ASalesClosedGate_RefusesTheAdd…_KK8`, `ADigitalVariantAlreadyInTheCart_IsRefused…_KK8`, `ANotPublishedProductOrAnUnknownVariant_Is404…_KK8`; `CartQuantity_*` |
+| 8 | Stok, P-9 (sınır önce), dijital tekrar, tükenmiş/seçilmemiş, kapalı satış, geçersiz adet 422; yayında olmayan ürün/`VariantId` 404 | ✓ | `EachRefusal_Is422_WithItsMessageInPlace…_KK8`, düzeltme 2: `EachNamedRefusal_WritesOneRejectionLineWithItsCode_AndTheFieldErrorsTheFieldLine_AndAnAddWritesNone_T503_KK8`, `ASalesClosedGate_RefusesTheAdd…_KK8`, `ADigitalVariantAlreadyInTheCart_IsRefused…_KK8`, `ANotPublishedProductOrAnUnknownVariant_Is404…_KK8`; `CartQuantity_*` |
 | 9 | Tekrar gönderim ikinci ekleme; betikli yolda düğme kilidi | ✓ | `ASecondSend_IsASecondAdd_AndTheQuantityGrows_KK9`; kilit `wwwroot/js/product.js` (`cartForm.addEventListener("submit"`, `button.disabled = true`, `event.preventDefault()`; `TheScript_DrawsTheOtherOptionsChoicesAgainOnEachChange_…_KK5` kaynak sınaması) |
 
 ## Koşular
@@ -33,6 +33,31 @@
 - Integration `Shopfolio.IntegrationTests.Web`: 720/720 geçti. Bu turda bulunan hata düzeltildi: T504'ün 404 çerçevesi nonce taşıyor; `StorefrontSearchAndProductTests` KK3 gizli/bilinmeyen 404 gövde karşılaştırması nonce ve returnUrl normalleştirilerek yapılıyor.
 - Integration `Catalog` ad alanı: 82/82 geçti. Web dışındaki öteki ad alanları (Administration, Commands, Concurrency, CorporateContent, Database, Disposal, FileSecrets, Files, Jobs, Logging, Model, Ordering, Outages, Pages, Payment, Security, SignedEndpoints) süre bütçesi yüzünden bu turda koşulmadı (Catalog tek başına 5m47); T503 bunlara dokunmaz (değişen kaynak Pages, Catalog okuyucusu, Settings/Ordering ek yöntemleri) — CI tam koşar.
 - Mimari taramalar (ModelBinding, NullForgiving, NoticeParameter, ModuleBoundary, Forgery, Cookie) Unit içinde yeşil.
+
+
+### Düzeltme 2 öz denetimi (push öncesi; kabul kriterleri, KK1–KK9, `09 §25`)
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1 / KK1 | ✓ | `TheSearchPage_IsBlindToCase…_KK1`, `ASearchWord_LongerThan150Characters_IsCutAt150_KK1`; arama sayfası komut sayısı kalem sayısından bağımsız: `TheSearchPage_SendsTheSameNumberOfCommands_WhateverTheNumberOfCards_T503_KK1` |
+| Kriter 2 / KK2 | ✓ | `AnEmptyWord_ShowsOnlyTheSearchField…_KK2`, `ASearchWithNoProduct_IsTheEmptyStateLine…_KK2`, `TheFilters_TakeThePriceRange…_KK2` |
+| Kriter 3 / KK3 | ✓ | `APublishedProduct_IsE04_ADraftIsAPreview…_KK3`, `AnArchivedProduct_ShowsTheNoLongerSoldPage…_KK3` |
+| Kriter 4 / KK4 | ✓ (kararlı) | `TheSelection_IsTheTwoOrders_AndAWrongOrMissing…_KK4`; tohum varyanta artan `CreatedAt` verir, varsayılan varyant belirlenimli |
+| Kriter 5 / KK5 | ✓ | `TheDeliveryLine_IsByTheProductsType_AndTheLogoIsT501s_KK5`, `AVariantWhoseStockIsAllReserved_IsSoldOut…_KK5`; ürün sayfası komut sayısı varyant sayısından bağımsız: `TheProductPage_SendsTheSameNumberOfCommands_WhateverTheNumberOfVariants_T503_KK5` |
+| Kriter 6 / KK6 | ✓ | `ThePageData_CarriesThePublishedVariantsWithNoStockCount_AndThereIsAShareButton_KK6` |
+| Kriter 7 / KK7 | ✓ | `AnAdd_Is303BackToThePageWithTheTwoPlacesAndTheNotice_AndTheCartHoldsTheLine_KK7` |
+| Kriter 8 / KK8 | ✓ | `EachRefusal_Is422_WithItsMessageInPlace…_KK8`; her adlı ret bir ret satırı yazar, kod `CartRefusalCodes.CodeOf` eşlemesinden, `AlreadyInCart` kendi koluyla; alan hataları süzgecin `FieldsRejected` satırını yazar, eklemede satır yok: `EachNamedRefusal_WritesOneRejectionLineWithItsCode_…_T503_KK8` |
+| Kriter 9 / KK9 | ✓ | `ASecondSend_IsASecondAdd_AndTheQuantityGrows_KK9`; kilit `product.js` |
+| `09 §25` Doküman uyumu ve kapsam | ✓ | Yeni ad yok; diff yalnız görevin ve bulguların kapsamında; yeni ayar/sabit yok (`CartQuantity.InvalidText` ve `CartAddMessages.SelectOptionText` silindi, metin `FieldMessageCatalog`'da) |
+| `09 §25` Mimari ve kod | ✓ | Sayfada `DbContext` yok, modül arayüz yöntemlerinde `SaveChanges` yok (`GetProductPriceLabelsAsync`, `GetProductVariantImagesAsync` okuma); ret eşlemesi tek yerde (`CartRefusalCodes`); `!` yok; zaman `TimeProvider`'dan; mimari taramalar Unit'te yeşil |
+| `09 §25` §8 (hata ve ret kaydı) | ✓ | Adlı ret `RejectionLog.Rejected(code)`; 404 yanıtları satır yazmaz (`07 §2.3.3`) |
+| `09 §25` §8.3 (işlem kapısı) | uygulanamaz | Sepete ekleme mevcut `AddToCartAsync` yazma yöntemini işlem sarmalıyla çağırır, bu task yeni işlem kuralı yazmaz (T508 sepet ucuyla aynı yol) |
+| `09 §25` Durum/olay/işlem izi, Veri ve göç | uygulanamaz | Durum geçişi, göç, tablo, paket, yük biçimi yok |
+| `09 §25` Güvenlik | ✓ | POST sahtecilik korumasında (liste genişlemedi); satır içi betik/stil yok; `Html.Raw` yok; yetki sunucuda; yeni giriş yüzeyi yok |
+| `09 §25` Test | ✓ | Üç yeni test; testler silinmedi/zayıflatılmadı; sahteler `UnitTests/Fakes`; `SitemapSourceTests.FakeCatalog` iki yeni yöntemle güncel |
+| `09 §25` Performans | ✓ | Döngüde sorgu yok: arama `ProductCards.Of(list.Items)` toplu `MainImageId`/`MainImageAltText`; ürün sayfası fiyat etiketi, varyant görseli toplu, ülke bir kez; sayfalı liste `Paging` ile; komut sayısı sınamaları |
+| `sik-fail-nedenleri.md` ilgili satırlar | ✓ | "Modül kurucusuna/arayüzüne yeni yöntem, elle kuran test düzenekleri" → Integration TAM koşu (aşağıda); "kural değişince öteki yerler" → rapor, changelog, backlog güncel |
+
 
 ## ⚠ Kararlar ve açık noktalar
 
@@ -115,3 +140,5 @@ Tur 2 dört ORTA bulgusu kapatıldı. (1) `AddCartItem` her adlı 422 reddinde `
 Yeni sınamalar: `EachNamedRefusal_WritesOneRejectionLineWithItsCode_AndTheFieldErrorsTheFieldLine_AndAnAddWritesNone_T503_KK8`, `TheProductPage_SendsTheSameNumberOfCommands_WhateverTheNumberOfVariants_T503_KK5`, `TheSearchPage_SendsTheSameNumberOfCommands_WhateverTheNumberOfCards_T503_KK1`.
 
 Koşular: build `-warnaserror` temiz; format ×3 temiz; Unit 7190/7190; betik testleri 4/4; Integration Web 779/779 (776 + 3 yeni). Öteki Integration ad alanları ve tam öz denetim süre bütçesi dolduğu için devir notunda.
+
+**Düzeltme 2 koşuları (tam):** build `-warnaserror` temiz; `dotnet format --verify-no-changes` Web, UnitTests, IntegrationTests temiz; Unit 7190/7190; betik testleri 4/4; Integration TAM: Web 779/779 + Ordering 638/638 + Catalog 82/82 + öteki ad alanları (Model, Pages, CorporateContent, Database, Jobs, Files, Disposal, Payment, Security, Concurrency, Commands, Administration, Logging, Outages, SignedEndpoints, FileSecrets) 2256/2256 (PostgreSQL 18, `track_commit_timestamp=on`). Not: öteki ad alanları ilk denemede başka bir koşuyla aynı anda çalıştığı için şablon veritabanı kurulumunda zaman aşımına düştü; tek başına yeniden koşuldu, hepsi geçti.

@@ -81,8 +81,8 @@ Derleme: Release `-warnaserror` 0 uyarı, 0 hata; `dotnet format --verify-no-cha
 ## Commit & PR
 
 - **Branch:** `task/T501-yerli-uretim-logosu`
-- **Commit:** (PR sonrası)
-- **PR:** (PR sonrası)
+- **Commit:** `bc3ae96e` — T501: Yerli üretim logosu: rapor, DV-34 kaydı ve backlog (PR açıldığındaki head)
+- **PR:** #535
 - **CI:** (yönetici izler)
 - **Post-merge run'lar:** *(validator doldurur)*
 

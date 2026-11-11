@@ -57,7 +57,7 @@
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
 | Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests` | Tam koşu 7139 yeşil (yeni testlerden önce); `LegalTextsModelTests` 8/8 |
-| Integration | ✓ | `dotnet test tests/Shopfolio.IntegrationTests --no-build --filter-namespace/--filter-class ...` (ad alanı parçaları) | Web 775, Model A–G,I,L 746, M,N,P,R 370, S* 294, Administration 69, Catalog 82, Commands 70, Concurrency 30, CorporateContent 185, Database 36, Disposal 49, FileSecrets 24, Files 69, Jobs 85, Logging 30; kalan ad alanları (aşağıda) |
+| Integration | ✓ | `dotnet test tests/Shopfolio.IntegrationTests --no-build --filter-namespace/--filter-class ...` (ad alanı parçaları) | Web 775, Model A–G,I,L 746, M,N,P,R 370, S* 294, Administration 69, Catalog 82, Commands 70, Concurrency 30, CorporateContent 185, Database 36, Disposal 49, FileSecrets 24, Files 69, Jobs 85, Logging 30; Ordering 638, Outages 53, Payment 59, Security 34, SignedEndpoints 11, Pages 0 (yalnız örnek sayfalar); hepsi 0 kırmızı, tam Integration kapsandı |
 | `dotnet format` | ✓ | src + iki test projesi | temiz |
 
 ## Doğrulama

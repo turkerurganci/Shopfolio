@@ -98,15 +98,15 @@ public abstract class OrderPageModel : PageModel
     /// <summary>The address the page was opened from - the member's root or the access-key root, as written (the key is case sensitive; 07 2.1.7): the forms and the screens hang under it.</summary>
     public string RootPath => Request.Path.Value ?? string.Empty;
 
-    public OrderPageSummary Summary { get; private set; } = null!;
+    public OrderPageSummary Summary { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
 
-    public OrderPageDetail Detail { get; private set; } = null!;
+    public OrderPageDetail Detail { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
 
-    public OrderOperationsView Operations { get; private set; } = null!;
+    public OrderOperationsView Operations { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
 
     public OrderShippingView? Shipping { get; private set; }
 
-    public OrderBadges Badges { get; private set; } = null!;
+    public OrderBadges Badges { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
 
     public string PreInformationFormText { get; private set; } = string.Empty;
 
@@ -173,7 +173,7 @@ public abstract class OrderPageModel : PageModel
         OrderRootResult root = await ResolveAsync(ct);
         if (root.OrderId is not Guid orderId)
         {
-            return root.Denial!;
+            return root.Denial ?? AccessDenial.NotFound();
         }
 
         return await LoadAsync(orderId, ct) ? Page() : AccessDenial.NotFound();
@@ -190,7 +190,7 @@ public abstract class OrderPageModel : PageModel
         OrderRootResult root = await ResolveAsync(ct);
         if (root.OrderId is not Guid orderId)
         {
-            return root.Denial!;
+            return root.Denial ?? AccessDenial.NotFound();
         }
 
         OrderPageDetail? detail = await _page.ReadAsync(orderId, ct);
@@ -213,7 +213,11 @@ public abstract class OrderPageModel : PageModel
             return FormResults.SeeOther(Endpoints.Files.DownloadEndpoint.Prefix + "/" + value);
         }
 
-        await LoadAsync(orderId, ct);
+        if (!await LoadAsync(orderId, ct))
+        {
+            return AccessDenial.NotFound();
+        }
+
         RefusedItemId = input.OrderItemId;
         RefusalText = outcome?.Refusal switch
         {

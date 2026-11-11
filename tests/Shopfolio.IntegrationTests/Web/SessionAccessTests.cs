@@ -434,7 +434,7 @@ public sealed class SessionAccessTests
         using HttpResponseMessage postMissing = await DownloadAsync(client, "/siparis/2026-ZZZZZZZZ", cookie);
         Assert.Equal(HttpStatusCode.NotFound, postOthers.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, postMissing.StatusCode);
-        Assert.Equal(await BodyOf(others), await BodyOf(postOthers));
+        Assert.Equal(await PageOf(others), await PageOf(postOthers));
         Assert.Empty(log.Snapshot());
     }
 

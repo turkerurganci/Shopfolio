@@ -46,6 +46,9 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.Administration.Contracts.PanelListTarget",
         "Shopfolio.Modules.Administration.Contracts.SetupChecklistItemKind",
         "Shopfolio.Modules.Ordering.Contracts.PendingWorkSet",
+        // T511: why a download was refused (UC-36's three 422 reasons) and which record stands on an order page item row - result codes and read shapes, never a column.
+        "Shopfolio.Modules.Ordering.Contracts.DownloadRefusal",
+        "Shopfolio.Modules.AfterSales.Contracts.ItemRecordFactKind",
     };
 
     /// <summary>All enums of the application assembly, by simple name; a name used twice is a failure of the naming rule (09 5.1).</summary>

@@ -285,3 +285,38 @@ public sealed class AdminEmailVerificationResult : IOperationResult
 
     internal static AdminEmailVerificationResult Taken() => new(null, null, null, null, true);
 }
+
+/// <summary>What the landing page of a new-address or revert link shows when it opens (07 UC-108; 05 6.4.6): only reads. The status is the link's state; a key of another type is missing.</summary>
+public sealed record AdminLinkReading(AccountLinkStatus Status);
+
+/// <summary>The outcome of the revert link's button (07 UC-187): the address went back, or the link was not valid, or the old address became another administrator's account (nothing is written).</summary>
+public sealed class AdminEmailRevertResult : IOperationResult
+{
+    private AdminEmailRevertResult(Guid? adminId, Guid? resetLinkId, AccountLinkStatus? status, bool taken)
+    {
+        AdminId = adminId;
+        ResetLinkId = resetLinkId;
+        LinkStatus = status;
+        IsTaken = taken;
+    }
+
+    public Guid? AdminId { get; }
+
+    /// <summary>The password reset link sent to the earlier address.</summary>
+    public Guid? ResetLinkId { get; }
+
+    public AccountLinkStatus? LinkStatus { get; }
+
+    /// <summary>The earlier address is another administrator account's (422): the revert is not applied and the link's consumption is rolled back.</summary>
+    public bool IsTaken { get; }
+
+    public bool IsReverted => AdminId is not null;
+
+    public bool IsRejected => IsTaken;
+
+    internal static AdminEmailRevertResult Reverted(Guid adminId, Guid resetLinkId) => new(adminId, resetLinkId, null, false);
+
+    internal static AdminEmailRevertResult LinkInvalid(AccountLinkStatus status) => new(null, null, status, false);
+
+    internal static AdminEmailRevertResult Taken() => new(null, null, null, true);
+}

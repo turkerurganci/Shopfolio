@@ -235,6 +235,18 @@ internal sealed class AdministrationModule : IAdministrationModule
 
     public Task<AdminEmailVerificationResult> VerifyNewEmailAsync(string key, CancellationToken ct) => _emailChanges.VerifyNewEmailAsync(key, ct);
 
+    public Task<AdminLinkReading> ReadNewEmailLinkAsync(string key, CancellationToken ct) => _emailChanges.ReadNewEmailLinkAsync(key, ct);
+
+    public Task<AdminLinkReading> ReadEmailRevertLinkAsync(string key, CancellationToken ct) => _emailChanges.ReadRevertLinkAsync(key, ct);
+
+    public Task<AdminEmailRevertResult> RevertPendingEmailChangeAsync(string key, CancellationToken ct) => _emailChanges.RevertAsync(key, ct);
+
+    public Task DropReauthenticationAsync(Guid adminId, Guid sessionId, CancellationToken ct)
+    {
+        RequireTransaction("The permission is dropped only inside a transaction (09 6 item 3).");
+        return _sessions.DropReauthenticationAsync(AccountType.Admin, adminId, sessionId, ct);
+    }
+
     private void RequireTransaction(string message)
     {
         if (_db.Database.CurrentTransaction is null)

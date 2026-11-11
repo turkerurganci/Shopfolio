@@ -35,6 +35,7 @@ internal sealed class AdminEmailChanges
     private readonly AttemptCounter _attempts;
     private readonly INotificationsModule _notifications;
     private readonly IAdminPendingEmailChanges _pending;
+    private readonly AdminPasswords _passwords;
     private readonly SessionStore _sessions;
     private readonly AuditTrail _trail;
     private readonly TimeProvider _time;
@@ -46,6 +47,7 @@ internal sealed class AdminEmailChanges
         AttemptCounter attempts,
         INotificationsModule notifications,
         IAdminPendingEmailChanges pending,
+        AdminPasswords passwords,
         SessionStore sessions,
         AuditTrail trail,
         TimeProvider time)
@@ -56,6 +58,7 @@ internal sealed class AdminEmailChanges
         ArgumentNullException.ThrowIfNull(attempts);
         ArgumentNullException.ThrowIfNull(notifications);
         ArgumentNullException.ThrowIfNull(pending);
+        ArgumentNullException.ThrowIfNull(passwords);
         ArgumentNullException.ThrowIfNull(sessions);
         ArgumentNullException.ThrowIfNull(trail);
         ArgumentNullException.ThrowIfNull(time);
@@ -65,6 +68,7 @@ internal sealed class AdminEmailChanges
         _attempts = attempts;
         _notifications = notifications;
         _pending = pending;
+        _passwords = passwords;
         _sessions = sessions;
         _trail = trail;
         _time = time;
@@ -237,6 +241,107 @@ internal sealed class AdminEmailChanges
             new AuditActor(adminId, account.Name, pending.NewEmail),
             new AuditEntry(AuditOperation.ChangeAdminEmail, nameof(Admin), adminId, new AuditDetails(account.Name, changes: [new AuditValueChange("Email", account.Email, pending.NewEmail)])));
         return AdminEmailVerificationResult.Verified(adminId, revert.Id, revertEnds);
+    }
+
+    /// <summary>What the new address's landing page shows (07 UC-108): reads only. A valid link whose pending change has ended or is gone reads as expired - the same view the button takes.</summary>
+    public async Task<AdminLinkReading> ReadNewEmailLinkAsync(string key, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+        LinkReading reading = await _links.ReadAsync(key, ct);
+        if (reading.Record is not { LinkType: LinkType.NewEmailVerification, AdminId: Guid adminId } || reading.State is not { } state)
+        {
+            return new AdminLinkReading(AccountLinkStatus.Missing);
+        }
+
+        if (state != LinkState.Valid)
+        {
+            return new AdminLinkReading(StatusOf(state));
+        }
+
+        AdminPendingEmailChange? pending = await _pending.FindAsync(adminId, ct);
+        return new AdminLinkReading(pending is null || IsEnded(pending.CreatedAt, _time.GetUtcNow()) ? AccountLinkStatus.Expired : AccountLinkStatus.Valid);
+    }
+
+    /// <summary>What the revert link's landing page shows (07 UC-108): reads only.</summary>
+    public async Task<AdminLinkReading> ReadRevertLinkAsync(string key, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+        LinkReading reading = await _links.ReadAsync(key, ct);
+        return reading.Record is not { LinkType: LinkType.EmailChangeRevert, AdminId: not null } || reading.State is not { } state
+            ? new AdminLinkReading(AccountLinkStatus.Missing)
+            : new AdminLinkReading(StatusOf(state));
+    }
+
+    /// <summary>
+    /// The revert link's button (07 UC-187; 02 10.2.4; K-1210, K-1218): under the account's row lock the earlier address must not be another administrator's (422, nothing consumed); the link is
+    /// consumed with one conditional update; the address goes back, every session of the account ends - the open one too -, the recognized browsers' marks end, the password becomes unusable, the
+    /// earlier address gets the panel's password reset link, and the trail row is written for the administrator whose address went back (the link opens no session).
+    /// </summary>
+    public async Task<AdminEmailRevertResult> RevertAsync(string key, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+        RequireTransaction("The revert is written only inside a transaction (09 6 item 3).");
+
+        LinkReading reading = await _links.ReadAsync(key, ct);
+        if (reading.Record is not { LinkType: LinkType.EmailChangeRevert, AdminId: Guid adminId, PreviousEmail: { } previousEmail } record || reading.State is not { } state)
+        {
+            return AdminEmailRevertResult.LinkInvalid(AccountLinkStatus.Missing);
+        }
+
+        if (state != LinkState.Valid)
+        {
+            return AdminEmailRevertResult.LinkInvalid(StatusOf(state));
+        }
+
+        if (!await AccountLocks.LockAsync(_db, AccountType.Admin, adminId, ct))
+        {
+            return AdminEmailRevertResult.LinkInvalid(AccountLinkStatus.Missing);
+        }
+
+        var account = await _db.Admins.AsNoTracking().Where(a => a.Id == adminId).Select(a => new { a.Name, a.Email, a.NormalizedEmail }).SingleAsync(ct);
+        string normalizedPrevious = TextNormalizer.NormalizeIdentity(previousEmail);
+        if (await _db.Admins.AsNoTracking().AnyAsync(a => a.NormalizedEmail == normalizedPrevious && a.Id != adminId, ct))
+        {
+            return AdminEmailRevertResult.Taken();
+        }
+
+        if (!await _links.TryConsumeAsync(record.Id, ct))
+        {
+            LinkReading again = await _links.ReadAsync(key, ct);
+            return AdminEmailRevertResult.LinkInvalid(again.State is { } current ? StatusOf(current) : AccountLinkStatus.Missing);
+        }
+
+        try
+        {
+            string currentNormalized = account.NormalizedEmail;
+            int changed = await _db.Admins
+                .Where(a => a.Id == adminId && a.NormalizedEmail == currentNormalized)
+                .ExecuteUpdateAsync(set => set.SetProperty(a => a.Email, previousEmail).SetProperty(a => a.NormalizedEmail, normalizedPrevious), ct);
+            if (changed != 1)
+            {
+                return AdminEmailRevertResult.LinkInvalid(AccountLinkStatus.Superseded);
+            }
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        {
+            return AdminEmailRevertResult.Taken();
+        }
+
+        await _pending.DeleteAsync(adminId, ct);
+        await _sessions.EndAllAsync(AccountType.Admin, adminId, null, ct);
+        await _sessions.InvalidateMarksAsync(AccountType.Admin, adminId, null, ct);
+        await _passwords.InvalidatePasswordAsync(adminId, ct);
+
+        DateTimeOffset now = _time.GetUtcNow();
+        LinkRecord reset = LinkRecord.ForAdmin(_keys, LinkType.PasswordReset, adminId, now.AddMinutes(ProductConstants.PasswordResetLinkMinutes), now);
+        _links.Add(reset);
+        await _links.SupersedeEarlierAsync(LinkType.PasswordReset, null, adminId, reset.Id, ct);
+        await _notifications.QueueAccountEmailAsync(new PasswordResetLinkEmail(DispatchRelatedRecordType.Admin, adminId, reset.Id, previousEmail, true), ct);
+
+        await _trail.WriteForAsync(
+            new AuditActor(adminId, account.Name, previousEmail),
+            new AuditEntry(AuditOperation.ChangeAdminEmail, nameof(Admin), adminId, new AuditDetails(account.Name, changes: [new AuditValueChange("Email", account.Email, previousEmail)])));
+        return AdminEmailRevertResult.Reverted(adminId, reset.Id);
     }
 
     // The life of a pending change is the first link's: P-12 hours from the request (the nightly deletion reads the same rule).

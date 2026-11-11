@@ -26,9 +26,9 @@ internal sealed partial class OrderTransitions
         }
 
         // The mark is a service item's, once, on its open quantity, while the payment is not Pending or Failed (02 3.20.9; K-536, K-671).
-        IReadOnlyDictionary<Guid, int> closed = await _afterSales.ClosedQuantitiesAsync([item!.Id], ct);
+        IReadOnlyDictionary<Guid, int> closed = await _afterSales.ClosedQuantitiesAsync([item!.Id], ct); // non-null: LockItemAsync returns the order and the item when it returns no refusal
         int open = item.Quantity - closed.GetValueOrDefault(item.Id);
-        if (!DeliveryMarkRules.IsServiceMarkOffered(item.ProductType, order!.PaymentStatus, open, item.DeliveryMarkedAt is not null))
+        if (!DeliveryMarkRules.IsServiceMarkOffered(item.ProductType, order!.PaymentStatus, open, item.DeliveryMarkedAt is not null)) // non-null: LockItemAsync returns the order and the item when it returns no refusal
         {
             return Refused(TransitionRefusal.ConditionNotMet);
         }
@@ -39,7 +39,7 @@ internal sealed partial class OrderTransitions
         item.DeliveryDate = TurkeyTime.DateOf(now);
 
         // The closure rule reads the mark just written (the same tracked item) and ends the line when this was the last open item; it raises the version itself when it writes a row.
-        ClosureResult closure = await EvaluateClosureAsync(order, actor!, ct);
+        ClosureResult closure = await EvaluateClosureAsync(order, actor, ct);
         RaiseVersionOnce(order);
         return new OrderTransitionResult(null, closure.TransitionRecordId is { } recordId ? [recordId] : [], closure.Code, [item.Id]);
     }

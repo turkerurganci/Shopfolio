@@ -37,7 +37,7 @@ internal sealed partial class OrderTransitions
             return Refused(TransitionRefusal.InvalidInput);
         }
 
-        string? note = request.Reason == CancellationReason.Other ? request.ReasonNote!.Trim() : null;
+        string? note = request.Reason == CancellationReason.Other ? request.ReasonNote!.Trim() : null; // non-null: FirmReasonRules.IsComplete above requires the note on Other
         (Order? order, OrderItem? item, TransitionRefusal? refusal) = await LockItemAsync(request.OrderId, request.OrderItemId, request.ExpectedVersion, ct);
         if (refusal is not null || order is null || item is null)
         {
@@ -92,7 +92,7 @@ internal sealed partial class OrderTransitions
         {
             // The order lives on: B-7 tells the customer the item, the units and the firm's reason (02 7.2.4; 08 2.2.6 B-7), and the closure rule decides the line.
             await QueueNoticeAsync(order.Id, new CancelledNotice(order.Id, ActorKind.Admin, request.Reason, note, null, cancelled), ct);
-            ClosureResult closure = await EvaluateClosureAsync(order, actor!, ct);
+            ClosureResult closure = await EvaluateClosureAsync(order, actor, ct);
             if (closure.TransitionRecordId is { } closureId)
             {
                 recordIds.Add(closureId);
@@ -119,8 +119,9 @@ internal sealed partial class OrderTransitions
         Order order = await _db.Orders.SingleAsync(o => o.Id == orderId, ct);
         List<OrderItem> items = await _db.OrderItems.Where(i => i.OrderId == orderId).OrderBy(i => i.CreatedAt).ThenBy(i => i.Id).ToListAsync(ct);
         IReadOnlyDictionary<Guid, int> closed = await _afterSales.UnavailableQuantitiesAsync([.. items.Select(i => i.Id)], ct);
-        ItemRecordAdmin admin = new(request.Admin!.AdminId, request.Admin.AdminName);
-        string? note = request.FirmReason == CancellationReason.Other ? request.ReasonNote!.Trim() : null;
+        TransitionAdmin firmAdmin = request.Admin ?? throw new InvalidOperationException("The firm's whole-order cancellation is an administrator's request.");
+        ItemRecordAdmin admin = new(firmAdmin.AdminId, firmAdmin.AdminName);
+        string? note = request.FirmReason == CancellationReason.Other ? request.ReasonNote!.Trim() : null; // non-null: the firm's cancellation passed TryCancellationActor, whose FirmReasonRules.IsComplete requires the note on Other
         DateTimeOffset now = _time.GetUtcNow();
         List<VariantQuantity> units = [];
         foreach (OrderItem item in items)
@@ -132,7 +133,7 @@ internal sealed partial class OrderTransitions
             }
 
             ItemRecordWriteResult written = await _afterSales.AddFirmCancellationAsync(
-                new FirmCancellationEntry(Subject(order, item), open, FrozenOf(item), admin, request.FirmReason!.Value, note, now), ct);
+                new FirmCancellationEntry(Subject(order, item), open, FrozenOf(item), admin, request.FirmReason!.Value, note, now), ct); // non-null: the firm's cancellation passed TryCancellationActor, which requires the firm's reason
             Guid cancellationId = written.RecordId ?? throw new InvalidOperationException("The whole-order cancellation's item record was refused under the order's lock.");
             await _afterSales.LinkClosingTransitionAsync(cancellationId, transitionRecordId, ct);
             await StartRefundOfRecordAsync(order, item, RefundType.Cancellation, cancellationId, false, request.Admin, RefundIbanRequestReason.CancellationOrRemoval, ct);

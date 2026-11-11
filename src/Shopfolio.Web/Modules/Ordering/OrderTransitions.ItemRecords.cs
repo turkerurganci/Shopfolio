@@ -33,14 +33,14 @@ internal sealed partial class OrderTransitions
         }
 
         DateTimeOffset now = _time.GetUtcNow();
-        ItemRecordWriteResult written = await _afterSales.OpenDefectClaimAsync(new DefectClaimOpening(Subject(order!, item!), request.Quantity, description, now), ct);
+        ItemRecordWriteResult written = await _afterSales.OpenDefectClaimAsync(new DefectClaimOpening(Subject(order!, item!), request.Quantity, description, now), ct); // non-null: the item lock returns the order and the item when it returns no refusal
         if (written.Refusal is { } refused)
         {
             return ItemRefused(Map(refused));
         }
 
-        RaiseVersionOnce(order!);
-        await QueueClaimNoticesAsync(order!, item!, written.Claim!, reopening: false, now, ct);
+        RaiseVersionOnce(order!); // non-null: the item lock returns the order and the item when it returns no refusal
+        await QueueClaimNoticesAsync(order!, item!, written.Claim!, reopening: false, now, ct); // non-null: the item lock returns both rows with no refusal; a write without a refusal carries the claim
         return new ItemRecordResult(null, written.RecordId);
     }
 
@@ -59,14 +59,14 @@ internal sealed partial class OrderTransitions
         }
 
         // The "resolved" mark goes to no one (03 1.9.1; 02 9.2).
-        DefectClaimStatusChange change = new(Subject(order!, item!), DefectClaimStatus.Resolved, ActorKind.Admin, null, _time.GetUtcNow());
+        DefectClaimStatusChange change = new(Subject(order!, item!), DefectClaimStatus.Resolved, ActorKind.Admin, null, _time.GetUtcNow()); // non-null: LockItemAsync returns the order and the item when it returns no refusal
         ItemRecordWriteResult written = await _afterSales.ChangeDefectClaimStatusAsync(change, ct);
         if (written.Refusal is { } refused)
         {
             return ItemRefused(Map(refused));
         }
 
-        RaiseVersionOnce(order!);
+        RaiseVersionOnce(order!); // non-null: LockItemAsync returns the order and the item when it returns no refusal
         return new ItemRecordResult(null, written.RecordId);
     }
 
@@ -92,19 +92,19 @@ internal sealed partial class OrderTransitions
         }
 
         DateTimeOffset now = _time.GetUtcNow();
-        DefectClaimStatusChange change = new(Subject(order!, item!), DefectClaimStatus.Open, request.Actor, request.Quantity, now);
+        DefectClaimStatusChange change = new(Subject(order!, item!), DefectClaimStatus.Open, request.Actor, request.Quantity, now); // non-null: the item lock returns the order and the item when it returns no refusal
         ItemRecordWriteResult written = await _afterSales.ChangeDefectClaimStatusAsync(change, ct);
         if (written.Refusal is { } refused)
         {
             return ItemRefused(Map(refused));
         }
 
-        RaiseVersionOnce(order!);
+        RaiseVersionOnce(order!); // non-null: the item lock returns the order and the item when it returns no refusal
 
         // The customer's reopening is told to both sides (K-681); the administrator's goes to no one (03 1.9.1; 02 9.2).
         if (request.Actor == ActorKind.Buyer)
         {
-            await QueueClaimNoticesAsync(order!, item!, written.Claim!, reopening: true, now, ct);
+            await QueueClaimNoticesAsync(order!, item!, written.Claim!, reopening: true, now, ct); // non-null: the item lock returns both rows with no refusal; a write without a refusal carries the claim
         }
 
         return new ItemRecordResult(null, written.RecordId);
@@ -136,7 +136,7 @@ internal sealed partial class OrderTransitions
         }
 
         ReturnRejectionEntry entry = new(
-            Subject(order!, item!), request.WithdrawalId, request.Quantity, request.ArrivalDate, new ItemRecordAdmin(request.Admin.AdminId, request.Admin.AdminName.Trim()), now);
+            Subject(order!, item!), request.WithdrawalId, request.Quantity, request.ArrivalDate, new ItemRecordAdmin(request.Admin.AdminId, request.Admin.AdminName.Trim()), now); // non-null: LockItemAsync returns the order and the item when it returns no refusal
         ItemRecordWriteResult written = await _afterSales.AddReturnRejectionAsync(entry, ct);
         if (written.Refusal is { } refused)
         {
@@ -145,12 +145,12 @@ internal sealed partial class OrderTransitions
 
         // No refund and no period for the rejected units, no stock (02 7.4.9): the declaration's IBAN goes with the rejection unless a pending refund still uses it
         // (Z-35; K-656, K-1127). The rejection is never taken back.
-        await DeleteUnusedIbansAsync(order!.Id, ct);
-        RaiseVersionOnce(order!);
+        await DeleteUnusedIbansAsync(order!.Id, ct); // non-null: LockItemAsync returns the order and the item when it returns no refusal
+        RaiseVersionOnce(order!); // non-null: LockItemAsync returns the order and the item when it returns no refusal
 
         // B-16 names the item, the rejected units and the conditional exemption the rejection rests on (08 2.2.6 B-16).
-        NoticeItem rejected = new(item!.ProductName, item.FirstOptionValue, item.SecondOptionValue, request.Quantity);
-        await QueueNoticeAsync(order!.Id, new ReturnRejectedNotice(order.Id, rejected, item.WithdrawalExemptionReason!.Value), ct);
+        NoticeItem rejected = new(item!.ProductName, item.FirstOptionValue, item.SecondOptionValue, request.Quantity); // non-null: LockItemAsync returns the order and the item when it returns no refusal
+        await QueueNoticeAsync(order!.Id, new ReturnRejectedNotice(order.Id, rejected, item.WithdrawalExemptionReason!.Value), ct); // non-null: LockItemAsync returns the order with no refusal; the rejection is written only for a conditional exemption reason
         return new ItemRecordResult(null, written.RecordId);
     }
 

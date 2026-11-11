@@ -58,7 +58,7 @@ internal sealed class UnpaidCancellationLimit
     // attempt record's rows (AttemptCounter.IsExceededAsync).
     private IQueryable<Order> CountedOrders(IQueryable<Order> axis)
     {
-        DateTimeOffset from = _time.GetUtcNow() - AttemptLimits.OrderCountedOf(AttemptLimit.L7).Window!.Value;
+        DateTimeOffset from = _time.GetUtcNow() - (AttemptLimits.OrderCountedOf(AttemptLimit.L7).Window ?? throw new InvalidOperationException("L7 counts the orders of a window."));
         TransitionReason[] counted = [.. CountedReasons];
         IQueryable<Guid> cancelled = _db.TransitionRecords.AsNoTracking()
             .Where(t => t.TransitionCode == TransitionCode.S3

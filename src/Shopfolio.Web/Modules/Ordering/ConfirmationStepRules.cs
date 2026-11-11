@@ -81,7 +81,7 @@ internal static class ConfirmationStepRules
 
         foreach (ConfirmationSummaryLine line in lines.Where(l => l.WithdrawalExemptionReason is not null))
         {
-            parts.Add($"{ConfirmationSummaryText.Name(line)}: {ConfirmationSummaryText.ExemptionNote(line.WithdrawalExemptionReason!.Value)}");
+            parts.Add($"{ConfirmationSummaryText.Name(line)}: {ConfirmationSummaryText.ExemptionNote(line.WithdrawalExemptionReason!.Value)}"); // non-null: the Where above keeps only lines with an exemption reason
         }
 
         return string.Join("\n", parts);

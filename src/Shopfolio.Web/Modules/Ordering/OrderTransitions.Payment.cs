@@ -300,7 +300,7 @@ internal sealed partial class OrderTransitions
 
         Guid[] variantIds = await _db.OrderItems.AsNoTracking()
             .Where(i => i.OrderId == order.Id && i.VariantId != null)
-            .Select(i => i.VariantId!.Value)
+            .Select(i => i.VariantId!.Value) // non-null: the Where above keeps only items with a variant
             .Distinct()
             .ToArrayAsync(ct);
         await _cartStatements.DeleteOrderedItemsAsync(cartId, variantIds, ct);

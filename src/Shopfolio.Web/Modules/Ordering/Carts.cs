@@ -45,7 +45,7 @@ internal sealed class Carts
             return [];
         }
 
-        string[] names = [.. marked.Select(i => i.RemovedProductName!)];
+        string[] names = [.. marked.Select(i => i.RemovedProductName!)]; // non-null: the Where above keeps only lines with a removed product name
         _db.CartItems.RemoveRange(marked);
         return names;
     }
@@ -89,17 +89,17 @@ internal sealed class Carts
             .Where(i => i.CartId == cartId && i.RemovedProductName == null && i.VariantId != null)
             .OrderBy(i => i.CreatedAt).ThenBy(i => i.Id)
             .ToListAsync(ct);
-        Dictionary<Guid, CartVariantFact> facts = (await _catalog.ListCartVariantFactsAsync([.. items.Select(i => i.VariantId!.Value)], ct)).ToDictionary(f => f.VariantId);
+        Dictionary<Guid, CartVariantFact> facts = (await _catalog.ListCartVariantFactsAsync([.. items.Select(i => i.VariantId!.Value)], ct)).ToDictionary(f => f.VariantId); // non-null: the Where above keeps only lines with a variant
 
         // The quantity of every line goes through the one stock and per-order-limit rule, the merged lines too; a quantity is never lowered here (02 3.16.8-3.16.10).
-        Dictionary<Guid, CartQuantityVerdict> verdicts = (await _catalog.JudgeCartQuantitiesAsync([.. items.Select(i => new CartQuantityLine(i.VariantId!.Value, i.Quantity))], ct))
+        Dictionary<Guid, CartQuantityVerdict> verdicts = (await _catalog.JudgeCartQuantitiesAsync([.. items.Select(i => new CartQuantityLine(i.VariantId!.Value, i.Quantity))], ct)) // non-null: items holds only lines with a variant (the Where above)
             .ToDictionary(v => v.VariantId);
 
         List<CartLine> lines = [];
         List<string> mergeAdded = [];
         foreach (CartItem item in items)
         {
-            if (!facts.TryGetValue(item.VariantId!.Value, out CartVariantFact? fact))
+            if (!facts.TryGetValue(item.VariantId!.Value, out CartVariantFact? fact)) // non-null: items holds only lines with a variant (the Where above)
             {
                 continue;
             }
@@ -177,7 +177,7 @@ internal sealed class Carts
         // The quantity the line would hold is judged under the cart's lock, from the lines as they stand now (02 3.16.8, 3.16.9).
         List<CartQuantityLine> held = [.. (await _db.CartItems.AsNoTracking()
             .Where(i => i.CartId == cartId && i.RemovedProductName == null && i.VariantId != null)
-            .Select(i => new { VariantId = i.VariantId!.Value, i.Quantity })
+            .Select(i => new { VariantId = i.VariantId!.Value, i.Quantity }) // non-null: the Where above keeps only lines with a variant
             .ToListAsync(ct)).Select(i => new CartQuantityLine(i.VariantId, i.Quantity))];
         if (await RefusalAsync(variantId, quantity, held, ct) is { } refusal)
         {
@@ -238,14 +238,14 @@ internal sealed class Carts
         List<CartItem> guestLive = [.. guestItems.Where(i => i.RemovedProductName == null && i.VariantId != null)];
 
         // What the customer did not see in the guest cart is marked first, from the member's lines as they stood before the merge (02 3.16.4).
-        Dictionary<Guid, int> seen = guestLive.ToDictionary(i => i.VariantId!.Value, i => i.Quantity);
+        Dictionary<Guid, int> seen = guestLive.ToDictionary(i => i.VariantId!.Value, i => i.Quantity); // non-null: guestLive holds only lines with a variant (the Where above)
         List<CartItem> memberItems = await _db.CartItems
             .Where(i => i.CartId == memberCartId && i.RemovedProductName == null && i.VariantId != null)
             .ToListAsync(ct);
         int unseen = 0;
         foreach (CartItem item in memberItems)
         {
-            if (CartRules.MergeShowsNew(seen.TryGetValue(item.VariantId!.Value, out int guestQuantity) ? guestQuantity : null, item.Quantity))
+            if (CartRules.MergeShowsNew(seen.TryGetValue(item.VariantId!.Value, out int guestQuantity) ? guestQuantity : null, item.Quantity)) // non-null: memberItems holds only lines with a variant (the Where above)
             {
                 item.IsMergeNoticePending = true;
                 unseen++;
@@ -255,7 +255,7 @@ internal sealed class Carts
         // The guest lines fall into the member's cart: the larger quantity stays, and the line added first sets the reference price (02 3.16.3, 3.16.5).
         foreach (CartItem item in guestLive)
         {
-            await _statements.MergeItemAsync(EntityIds.New(), memberCartId, item.VariantId!.Value, item.Quantity, item.FirstAddedUnitPrice, item.CreatedAt, ct);
+            await _statements.MergeItemAsync(EntityIds.New(), memberCartId, item.VariantId!.Value, item.Quantity, item.FirstAddedUnitPrice, item.CreatedAt, ct); // non-null: guestLive holds only lines with a variant (the Where above)
         }
 
         // The told-once marks of items taken off the showcase move with the cart, so the message is not lost; the rest of the guest cart goes with it (06 7.2).
@@ -287,7 +287,7 @@ internal sealed class Carts
             return await _db.Carts.AsNoTracking().Where(c => c.CustomerId == customerId).Select(c => (Guid?)c.Id).SingleOrDefaultAsync(ct);
         }
 
-        string hash = SecretKey.Hash(owner.GuestCartKey!);
+        string hash = SecretKey.Hash((owner.GuestCartKey ?? throw new InvalidOperationException("A cart owner without an account is a guest with a cart key.")));
         return await _db.Carts.AsNoTracking().Where(c => c.GuestCartKeyHash == hash).Select(c => (Guid?)c.Id).SingleOrDefaultAsync(ct);
     }
 
@@ -302,7 +302,7 @@ internal sealed class Carts
         }
         else
         {
-            await _statements.InsertGuestCartAsync(id, owner.GuestCartKey!, now, ct);
+            await _statements.InsertGuestCartAsync(id, (owner.GuestCartKey ?? throw new InvalidOperationException("A cart owner without an account is a guest with a cart key.")), now, ct);
         }
 
         return await FindCartIdAsync(owner, ct) ?? throw new InvalidOperationException("The cart that was just made is not found (06 4.15).");

@@ -66,7 +66,7 @@ internal sealed partial class OrderCorrections
         }
 
         // 1.11.24 on the locked order: a shipped order with a physical item.
-        OperationVerdict verdict = await _operations.CheckAsync(order!.Id, OrderOperation.CorrectCarrier, null, null, ct);
+        OperationVerdict verdict = await _operations.CheckAsync(order!.Id, OrderOperation.CorrectCarrier, null, null, ct); // non-null: LockAsync returns the order when it returns no refusal
         if (verdict.Decision != OperationDecision.Allowed)
         {
             return Refused(TransitionRefusal.ConditionNotMet);
@@ -79,7 +79,7 @@ internal sealed partial class OrderCorrections
             return Refused(TransitionRefusal.InvalidInput);
         }
 
-        order.RecordShipment(shipment!.Carrier, shipment.OtherCarrierName, shipment.TrackingNumber, shipment.IsOwnVehicleDelivery);
+        order.RecordShipment(shipment.Carrier, shipment.OtherCarrierName, shipment.TrackingNumber, shipment.IsOwnVehicleDelivery);
         OrderTransitions.RaiseVersionOnce(_db, order);
 
         // B-12 carries the corrected values in B-5's form (02 10.4.4; 08 2.2.6 B-12); the trail names the field only - the number and a company's name are free text.
@@ -115,7 +115,7 @@ internal sealed partial class OrderCorrections
             return Refused(lockRefusal);
         }
 
-        OperationVerdict verdict = await _operations.CheckAsync(order!.Id, OrderOperation.CorrectDeliveryOrArrivalDate, null, null, ct);
+        OperationVerdict verdict = await _operations.CheckAsync(order!.Id, OrderOperation.CorrectDeliveryOrArrivalDate, null, null, ct); // non-null: LockAsync returns the order when it returns no refusal
         List<OrderItem> delivered = await _db.OrderItems
             .Where(i => i.OrderId == order.Id && i.ProductType == ProductType.Physical && i.DeliveryDate != null)
             .ToListAsync(ct);
@@ -138,7 +138,7 @@ internal sealed partial class OrderCorrections
             return DateRefused(DeliveryDateObstacle.AfterReturnArrival);
         }
 
-        DateOnly oldDate = delivered.Select(i => i.DeliveryDate!.Value).Max();
+        DateOnly oldDate = delivered.Select(i => i.DeliveryDate!.Value).Max(); // non-null: delivered holds only items with a delivery date (the Where above)
         if (delivered.All(i => i.DeliveryDate == request.DeliveryDate))
         {
             return Refused(TransitionRefusal.InvalidInput);
@@ -153,7 +153,7 @@ internal sealed partial class OrderCorrections
 
         if (sameDay.Count > 0)
         {
-            await _afterSales.SetDeliveryOrderAsync(sameDay, request.IsDeliveredBeforeDeclaration!.Value, ct);
+            await _afterSales.SetDeliveryOrderAsync(sameDay, request.IsDeliveredBeforeDeclaration!.Value, ct); // non-null: the check above refuses a same-day correction without the answer
         }
 
         // The order-level date: every delivered physical item takes it (02 3.20.11); the windows run from it because they are read from it.
@@ -192,13 +192,13 @@ internal sealed partial class OrderCorrections
             return Refused(lockRefusal);
         }
 
-        OrderItem? item = await _db.OrderItems.SingleOrDefaultAsync(i => i.Id == request.OrderItemId && i.OrderId == order!.Id, ct);
+        OrderItem? item = await _db.OrderItems.SingleOrDefaultAsync(i => i.Id == request.OrderItemId && i.OrderId == order!.Id, ct); // non-null: LockAsync returns the order when it returns no refusal
         if (item is null)
         {
             return Refused(TransitionRefusal.InvalidInput);
         }
 
-        OperationVerdict verdict = await _operations.CheckAsync(order!.Id, OrderOperation.CorrectDeliveryOrArrivalDate, null, null, ct);
+        OperationVerdict verdict = await _operations.CheckAsync(order!.Id, OrderOperation.CorrectDeliveryOrArrivalDate, null, null, ct); // non-null: LockAsync returns the order when it returns no refusal
         if (verdict.Decision != OperationDecision.Allowed)
         {
             return Refused(TransitionRefusal.ConditionNotMet);
@@ -270,7 +270,7 @@ internal sealed partial class OrderCorrections
                 return SaveInternalNoteResult.DisplayedValueConflict(await CurrentNoteAsync(request.OrderId, ct));
             }
         }
-        else if (await SaveInternalNote.UpdateShownAsync(_db, request.OrderId, shown, text, request.Admin!.AdminId, request.Admin.AdminName.Trim(), ct) == 0)
+        else if (await SaveInternalNote.UpdateShownAsync(_db, request.OrderId, shown, text, request.Admin.AdminId, request.Admin.AdminName.Trim(), ct) == 0)
         {
             // No row with the shown text: a note shown empty is inserted while there is still none (a concurrent first write breaks the unique index and the
             // caller runs the write again - then the note exists and this is the conflict); any other case is the conflict (09 10.9 item 3.2).

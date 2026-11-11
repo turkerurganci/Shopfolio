@@ -15,7 +15,9 @@ using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.CorporateContent;
 using Shopfolio.Modules.CorporateContent.Contracts;
+using Shopfolio.Modules.Membership.Contracts;
 using Shopfolio.Modules.Ordering;
+using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
 
@@ -371,6 +373,36 @@ public sealed class StorefrontFrameTests : IAsyncLifetime
         Assert.Equal(2, first.GetProperty("Cart").GetProperty("ItemCount").GetInt32());
         Assert.Empty(second.GetProperty("MergeAddedProductNames").EnumerateArray());
         Assert.Equal(2, second.GetProperty("Cart").GetProperty("ItemCount").GetInt32());
+    }
+
+    // ---- The read ends of the modules the frame uses (T537) ----
+
+    [Fact]
+    public async Task TheCartBadge_CountsLiveLinesOnly_AndReadsZeroWithoutACart_AndTheMemberNameIsRead_T537_KK5()
+    {
+        (string _, Guid customerId) = await TestSessions.CustomerAsync(_database.Dsn);
+        List<Variant> variants = await SeedVariantsAsync(3);
+        Guid cartId = await SeedCartAsync(customerId, null, variants[0].Id, variants[1].Id, variants[2].Id);
+        await using (AppDbContext db = NewContext())
+        {
+            // A line whose product left the showcase: the link is empty and the name is kept; it is not live.
+            await db.CartItems.Where(i => i.CartId == cartId && i.VariantId == variants[2].Id).ExecuteUpdateAsync(i => i.SetProperty(x => x.VariantId, (Guid?)null).SetProperty(x => x.RemovedProductName, "Kalkan urun"), Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        await using AsyncServiceScope scope = factory.Services.CreateAsyncScope();
+        IOrderingModule ordering = scope.ServiceProvider.GetRequiredService<IOrderingModule>();
+
+        CartBadge member = await ordering.ReadCartBadgeAsync(CartOwner.ForMember(customerId), Ct);
+        CartBadge noCart = await ordering.ReadCartBadgeAsync(CartOwner.ForMember(Guid.NewGuid()), Ct);
+        CartBadge unknownGuest = await ordering.ReadCartBadgeAsync(CartOwner.ForGuest($"guest-{Guid.NewGuid():N}"), Ct);
+
+        Assert.Equal(2, member.ItemCount);
+        Assert.False(member.HasMergeNotice);
+        Assert.Equal(CartBadge.Empty, noCart);
+        Assert.Equal(CartBadge.Empty, unknownGuest);
+        Assert.False(string.IsNullOrWhiteSpace(await scope.ServiceProvider.GetRequiredService<IMembershipModule>().GetMemberNameAsync(customerId, Ct)));
+        Assert.Null(await scope.ServiceProvider.GetRequiredService<IMembershipModule>().GetMemberNameAsync(Guid.NewGuid(), Ct));
     }
 
     private async Task<List<Variant>> SeedVariantsAsync(int count)

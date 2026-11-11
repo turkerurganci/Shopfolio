@@ -63,7 +63,7 @@ internal sealed class Carts
             return CartBadge.Empty;
         }
 
-        var live = _db.CartItems.AsNoTracking().Where(i => i.CartId == id && i.RemovedProductName == null && i.VariantId != null);
+        IQueryable<CartItem> live = _db.CartItems.AsNoTracking().Where(i => i.CartId == id && i.RemovedProductName == null && i.VariantId != null);
         int count = await live.CountAsync(ct);
         bool hasMergeNotice = owner.CustomerId is not null && await live.AnyAsync(i => i.IsMergeNoticePending, ct);
         return new CartBadge(count, hasMergeNotice);

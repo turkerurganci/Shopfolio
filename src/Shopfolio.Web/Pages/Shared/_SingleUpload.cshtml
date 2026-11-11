@@ -1,0 +1,20 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@model SingleUploadView
+@*
+    The single file upload (T544; 04 OB-19, 2.12.8.5): the logo, the site icon and the digital file are one file each; a new file replaces the current one. The line under the label says what the field takes
+    - the format and the size limits come from the product constants. Only the panel draws this view (04 2.12.8.6). The form must be multipart.
+*@
+<div class="field single-upload" data-js="single-upload">
+    <label class="field__label" for="@Model.Id">@Model.Label</label>
+    @if (Model.Hint is not null)
+    {
+        <p class="field__hint">@Model.Hint</p>
+    }
+    @if (Model.CurrentFileName is not null)
+    {
+        <p class="single-upload__current">Yüklü dosya: @Model.CurrentFileName</p>
+    }
+    <input class="field__control" type="file" id="@Model.Id" name="@Model.Name" accept="@Model.Accept" aria-describedby="@(Model.Id)-limit">
+    <p class="field__hint" id="@(Model.Id)-limit">@Model.LimitText</p>
+</div>

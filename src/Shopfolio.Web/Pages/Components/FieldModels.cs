@@ -22,6 +22,9 @@ public enum FieldKind
     TextArea,
     ClosedList,
     Number,
+
+    /// <summary>A date (T544; 04 OB-16): the browser's date input, which sends <c>yyyy-MM-dd</c>.</summary>
+    Date,
 }
 
 /// <summary>One choice of a closed list: the value that is sent, the text that is shown, and - for a choice the screen shows but does not let be chosen - the reason beside it.</summary>
@@ -59,6 +62,12 @@ public sealed class FieldView
 
     /// <summary>The character limit written into <c>maxlength</c>; it is a product constant passed by the screen, never a number typed here (09 3.4 item 6).</summary>
     public int? MaxLength { get; internal init; }
+
+    /// <summary>The earliest date the browser's date input offers (<c>min</c>, <c>yyyy-MM-dd</c>); a hint only - the sent value is checked by <see cref="DateFields"/>.</summary>
+    public string? Min { get; internal init; }
+
+    /// <summary>The latest date the browser's date input offers (<c>max</c>, <c>yyyy-MM-dd</c>); a hint only.</summary>
+    public string? Max { get; internal init; }
 
     /// <summary>The options of a closed list; empty for the other kinds.</summary>
     public IReadOnlyList<FieldOption> Options { get; internal init; } = [];
@@ -101,6 +110,7 @@ public sealed class FieldView
     {
         FieldKind.Email => "email",
         FieldKind.Telephone => "tel",
+        FieldKind.Date => "date",
         _ => "text",
     };
 
@@ -159,6 +169,16 @@ public static class Fields
     public static FieldView Number(string name, string label, FieldRequirement requirement, string? value = null) =>
         new(name, label, FieldKind.Number, requirement) { Value = value };
 
+    /// <summary>A date field (T544; 04 OB-16): the value is the sent <c>yyyy-MM-dd</c> text; <paramref name="min"/> and <paramref name="max"/> are the browser's hints.</summary>
+    public static FieldView Date(string name, string label, FieldRequirement requirement, string? value = null, DateOnly? min = null, DateOnly? max = null, string? hint = null) =>
+        new(name, label, FieldKind.Date, requirement)
+        {
+            Value = value,
+            Min = min?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
+            Max = max?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
+            Hint = hint,
+        };
+
     /// <summary>A closed list (04 2.12.1.3): at least one option; the value is one of the options or empty.</summary>
     public static FieldView ClosedList(string name, string label, FieldRequirement requirement, IReadOnlyList<FieldOption> options, string? value = null, string? hint = null)
     {
@@ -195,6 +215,8 @@ public static class Fields
             MaxLength = field.MaxLength,
             Options = field.Options,
             Hint = field.Hint,
+            Min = field.Min,
+            Max = field.Max,
             Autocomplete = field.Autocomplete,
             ReadOnly = field.ReadOnly,
             Error = Messages.ForField(field.Id, error.Text),
@@ -219,6 +241,8 @@ public static class Fields
             MaxLength = field.MaxLength,
             Options = field.Options,
             Hint = field.Hint,
+            Min = field.Min,
+            Max = field.Max,
             Autocomplete = field.Autocomplete,
             ReadOnly = true,
             Error = field.Error,

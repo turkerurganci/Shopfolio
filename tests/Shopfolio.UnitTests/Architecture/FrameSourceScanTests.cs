@@ -18,6 +18,9 @@ public sealed partial class FrameSourceScanTests
     private static readonly string[] FrameViews =
     [
         "_StorefrontLayout", "_StorefrontHeader", "_StorefrontFooter", "_MenuTree", "_AdminStrip", "_DraftBand", "_PanelLayout", "_PanelBareLayout", "_NotFound",
+
+        // The list components (T545) are shared views of the two frames: the same view rules apply (no event attribute, inline script, style attribute or embedded content; BEM class names).
+        "_ProductCard", "_ContentCard", "_ProductGrid", "_ContentGrid", "_Pager", "_EmptyState", "_ListSearch", "_PanelTable",
     ];
 
     [GeneratedRegex(@"/\*.*?\*/", RegexOptions.Singleline | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

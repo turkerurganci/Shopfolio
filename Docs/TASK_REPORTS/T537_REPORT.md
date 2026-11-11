@@ -1,6 +1,6 @@
 # T537 — Vitrin çerçevesinin modeli: marka, menü, duyuru şeridi, hesap alanı, sepet sayısı
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-11
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -69,10 +69,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-11; dal ucu `b69ac697`; `origin/main` `1c23287a`, birleştirme gerekmedi) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 bu PR'da kapatıldı: D-1127'nin hedefi "ödeme adımı sayfalarını kuran task (E-16)" diyordu, ödeme adımı E-13'tür ve sahibi T509'dur; hedef düzeltildi. K2 forward: D-1132 — çerçeve birleşme işaretlerini tüketir, adları çizen düzen T540'ta (`VAL-A671`'in çizim payı) |
+
+**Tur 1 kanıtları (doğrulayıcı):** kriter 1–9 ve KK1–KK9 ✓. Kod okundu: `StorefrontFrame`, `StorefrontFrameBuilder`, `StorefrontFrameFilter` (sıra 100; yalnız `PageResult`/sonuçsuz, istisnasız ve `/Panel/` dışı yanıt), `FramePaths` (yollar `07 §3` ile birebir: `/odeme`, `/sepet`, `/arama` + `search`, `/giris` + `returnUrl`, `/cikis?handler=SignOut` + `ReturnUrl`, `/siparis-takibi`, `/hesap`, `/hesap/siparisler`, `/iletisim`, üç yasal metin yolu), beş yeni modül okuma ucu. Geri düşüş zinciri `BrandingSettings` (`DisplayName` = ad ya da alan adı) + `FrameBrand.ShowsLogo`; menü T361 okuyucusundan (`VisibleItems`, `Categories`, `IsInMenu` genel sayfalar); hesap alanı yalnız müşteri şemasından (`CustomerOf`), yönetici oturumu yalnız şerit ve taslak duyuru için (`HasAdminSessionAsync`); sepet sayacı canlı kalemler (kalkan ürün ve boş varyant sayılmaz); kapılar her istekte `GetSalesGateAsync`; birleşme mesajı danışma kilidiyle, `ITransactionRunner` içinde tüketilir. Testler: `StorefrontFrameTests` 11/11 ve dokunulan beş sınıf (toplam 193/193) yerelde PostgreSQL 18 üzerinde; Unit tam 6607/6607 (Consistency, Architecture dahil). `12` satırları `VAL-A125`…`VAL-A130` (KP-35), `VAL-A131`…`VAL-A135` (KP-36) ve `VAL-A671` (`07 §4.34.3`) tarayıcı gözlemi ve çizim ister; model payı kanıtlı, satırlar `BEKLEMEDE` kaldı (T540, T505, T506 ortak sahipler). CI (run 42941958445): Lint, Build, Unit, Integration, Contract, Migration ✓; Paketleme veritabanı imajının ilk kurulum adımında `database system is shutting down` ile düştü — dal dağıtım dosyalarına dokunmaz; kayıt commit'inin koşusu merge öncesi yeşil görülmeli.
 
 ## Altyapı Değişiklikleri
 
@@ -86,7 +88,7 @@
 - **Branch:** `task/T537-vitrin-cercevesi`
 - **Commit:** `3b1ba2ad` — T537: Vitrin çerçevesinin modeli (PR head son commit)
 - **PR:** #532
-- **CI:** yardımcı yürütür
+- **CI:** run 42941958445 (dal ucu `b69ac697`) — 6/7 iş yeşil, Paketleme ilk kurulum adımında altyapı hatası; kayıt commit'inin koşusu merge kapısıdır
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

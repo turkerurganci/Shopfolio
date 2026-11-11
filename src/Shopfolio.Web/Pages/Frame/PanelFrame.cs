@@ -57,6 +57,15 @@ internal static class PanelFramePaths
     /// <summary>E-50: the administrator's own account, "Hesabım" under the name.</summary>
     public const string MyAccount = "/panel/hesabim";
 
+    /// <summary>E-29, the sign-in step (UC-84, UC-110).</summary>
+    public const string SignIn = "/panel/giris";
+
+    /// <summary>E-29, the request step and - with the link's key after a slash - the setting step of the password reset (UC-84, UC-111, UC-112).</summary>
+    public const string PasswordReset = "/panel/sifre-sifirlama";
+
+    /// <summary>E-30, the invitation page - the link's key follows after a slash (UC-85, UC-113).</summary>
+    public const string Invitation = "/panel/davet";
+
     /// <summary>UC-109: the sign-out page; the form adds the handler.</summary>
     public const string SignOut = "/panel/cikis";
 

@@ -151,8 +151,11 @@ for (const button of document.querySelectorAll('[data-js="message-close"]')) {
 // The focus goes to the first wrong field of a submitted form (04 2.3.2, T541). The page marks that field with autofocus already; this covers a browser that ignores it on a page load,
 // and falls back to the summary itself when the field is not on the page.
 for (const summary of document.querySelectorAll('[data-js="error-summary"]')) {
+    // The first wrong field is the first one on the page, whatever order the list came in.
+    const fields = Array.from(summary.querySelectorAll('a[href^="#"]'), (link) => document.getElementById(link.getAttribute("href").slice(1))).filter(Boolean);
+    fields.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
     const firstFieldId = summary.dataset.firstField;
-    const field = firstFieldId ? document.getElementById(firstFieldId) : null;
+    const field = fields[0] ?? (firstFieldId ? document.getElementById(firstFieldId) : null);
     (field ?? summary).focus();
 }
 

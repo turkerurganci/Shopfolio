@@ -182,8 +182,8 @@ public sealed class FormErrorSummary
     /// <summary>The number of invalid fields; the heading says it.</summary>
     public int ErrorCount => _fields.Count;
 
-    /// <summary>True when the summary has something to say: a wrong field or a message of the action.</summary>
-    public bool HasContent => _fields.Count > 0 || FormMessages.Count > 0;
+    /// <summary>True when a field is wrong; the summary is drawn only then. The messages of the action are not part of the drawing: the screen puts each where the action's own button is (04 2.3.1.2, 2.3.5).</summary>
+    public bool HasContent => _fields.Count > 0;
 
     /// <summary>The element id of the first invalid field, where the focus goes (04 2.3.2); null when no field is wrong.</summary>
     public string? FirstFieldId => _fields.Count > 0 ? _fields[0].FieldId : null;
@@ -201,7 +201,12 @@ public sealed class FormErrorSummary
     /// The summary of a model state: the field entries with an error become the list (the first error of a field is its message), the empty-key entry becomes the action's messages. The element id of a
     /// field is the framework's id of its name (<c>Input.Name</c> to <c>Input_Name</c>), which the field's tag helper writes.
     /// </summary>
-    public static FormErrorSummary From(ModelStateDictionary modelState)
+    /// <param name="modelState">The state of the submitted form.</param>
+    /// <param name="formOrder">
+    /// The names of the form's fields in the order the form draws them. The framework walks a model state in the alphabetical order of the names, not in the order of the form, so a screen that wants
+    /// "the first wrong field" to be the first one on the page passes its field names; the fields not named keep their place after the named ones.
+    /// </param>
+    public static FormErrorSummary From(ModelStateDictionary modelState, IReadOnlyList<string>? formOrder = null)
     {
         ArgumentNullException.ThrowIfNull(modelState);
         List<FormFieldError> fields = [];
@@ -221,6 +226,16 @@ public sealed class FormErrorSummary
             }
 
             fields.Add(new FormFieldError(FieldIdOf(pair.Key), entry.Errors[0].ErrorMessage));
+        }
+
+        if (formOrder is { Count: > 0 })
+        {
+            // The model state is case-insensitive and a handler's parameter name may spell the prefix in lower case ("input.Name"); the form's own spelling is the element id's.
+            List<string> ids = [.. formOrder.Select(FieldIdOf)];
+            int RankOf(FormFieldError field) => ids.FindIndex(id => string.Equals(id, field.FieldId, StringComparison.OrdinalIgnoreCase)) is var index and >= 0 ? index : int.MaxValue;
+            FormFieldError InFormSpelling(FormFieldError field) => RankOf(field) is var rank and not int.MaxValue ? field with { FieldId = ids[rank] } : field;
+
+            fields = [.. fields.Select(InFormSpelling).OrderBy(RankOf)];
         }
 
         return new FormErrorSummary(fields, messages);

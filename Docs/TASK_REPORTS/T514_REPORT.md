@@ -74,9 +74,19 @@ Kriter 6'nın `/giris` yarısı: `/giris` sayfası T515'in inişidir (T515 k5 "y
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-11) |
-| Bulgu sayısı | 2 (S2 ×1, S1 ×1); K-notu 3 |
-| Düzeltme gerekli mi | Evet — aynı PR'da |
+| Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-12) — ikinci iterasyon, eskalasyon (`12 §8.5`) |
+| Bulgu sayısı | Tur 2: 1 (S1 ×1, DÜŞÜK); K-notu 3. Tur 1: 2 (S2 ×1, S1 ×1) — ikisi de kapandı |
+| Düzeltme gerekli mi | Evet — metinler (sahip kararıyla) |
+
+**Tur 2 bulgusu (bağımsız doğrulama, birleşik ağaç `5ed330f5` + `af7e91ff`):**
+
+1. **S1 — hitap ve sabit metinler.** `RegistrationTexts`/`VerificationLandings` metinleri "sen" hitabıyla yazılmış ("Hesabın…", "okuyabilirsin", "onaylıyor musun"); kod yorumu bunu K-772'ye dayandırır. Oysa `04 §8.2.9`: "ödeme adımı, formlar, hesap ve sipariş ekranları 'siz'"; K-779 (karar kaydı): "Altı mesajın metni sabitlenir; hitap 'siz'dir" — (1) gönderim sonrası hâli ve (2) yeniden gönderim metni ("Yeni bir bağlantı gönderdik; önceki bağlantılar artık geçersiz. Bağlantı {tarih} tarihine kadar geçerli."); `07 §4.20.3` yanıtı "K-779'un ikinci metni" diye bağlar. `04` 5.21.14 Google teyidinin cümlesini tırnakla ("…onaylıyor musunuz? Onaylarsanız hesabınıza…") verir; kod "sen"e çevirmiş. Aynı ekranda 5.21.4'ün "yeniden kayıt olun"u ise "siz" kalmış. Düzeltme: E-20 ve E-21 metinleri "siz"e; K-779 (2) birebir; 5.21.14 birebir; K-779 (1)'in "bağlantıyı açtığınızda" kısmı K-904'le (açılış doğrulamaz) çelişiyorsa uyarlama sahibe sorulur ya da karar kaydına yazılır.
+
+**Tur 2 K-notları:** K1 `/giris` yüzü D-1249, D-1277 ile T515'te (değişmedi). K2 `FieldKind.Concealed` T520 dalında (#549) aynı blob (`6c9fbc9a`); hangisi sonra girerse birleştirme tek tanım bırakır — eylem yok. K3 `VAL-A678`'in "bekleyen olmayan (doğrulanmış) kayıt değeriyle GET" durumu ve `VAL-A090`'ın uygulama kaydı kanıtı yok; satırlar BEKLEMEDE → düzeltme turunda bu PR'da.
+
+**`12` Durum (tur 2):** `VAL-A493`, `VAL-A502`, `VAL-A564`, `VAL-A677`, `VAL-A920` → PASS. Ayrıntı: `C:/Users/teknodeveloper/.claude/helper-state/shopfolio/impl/T514/dogrulama-raporu-r2.md`.
+
+**Tur 1 özeti:**
 
 **Tur 1 bulguları (bağımsız doğrulama):**
 

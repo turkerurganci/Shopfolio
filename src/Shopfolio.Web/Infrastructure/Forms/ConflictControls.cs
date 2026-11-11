@@ -67,6 +67,17 @@ internal static class ConflictControls
         return builder;
     }
 
+    /// <summary>
+    /// The save control of one section of a screen whose sections are saved apart (04 2.10.1; 02 3.31.1; K-752, K-800): the conflict shows only on the section that was saved against a changed
+    /// record - <paramref name="conflictedSection"/> is the name of that section, or null when the last save had no conflict. Every other section keeps its ordinary button with its own label.
+    /// </summary>
+    public static IHtmlContent SectionSaveControl(string section, string? conflictedSection, string currentPath, string saveLabel = SaveLabel)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(section);
+        ArgumentException.ThrowIfNullOrEmpty(saveLabel);
+        return string.Equals(section, conflictedSection, StringComparison.Ordinal) ? RecordSaveControl(true, currentPath) : Button(saveLabel);
+    }
+
     /// <summary>The message of the order variant, in the place the confirmation window or the operation's button was; there is no button to overwrite.</summary>
     public static IHtmlContent OrderNotice(string message)
     {

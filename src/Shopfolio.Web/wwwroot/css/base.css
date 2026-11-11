@@ -36,6 +36,15 @@
     --notice-duration: 6s;
     --color-pending: #b45309;
     --color-pending-text: #ffffff;
+    /* The tones of a badge (04 2.5; 02 6.1.6): an aid to the text, independent of the brand colour. */
+    --color-tone-info-bg: #dbe7fb;
+    --color-tone-info-text: #0b2a5e;
+    --color-tone-success-bg: #d4edda;
+    --color-tone-success-text: #0a3d1c;
+    --color-tone-warning-bg: #ffe8a3;
+    --color-tone-warning-text: #3d2d00;
+    --color-tone-danger-bg: #f8d7da;
+    --color-tone-danger-text: #5c1212;
     --brand-color: #1a56db;
     --brand-text-color: #ffffff;
     /* The primary action button's fill: neutral by default, the brand colour on the storefront only (storefront.css; 04 2.1.3). The panel never has the brand colour. */
@@ -63,6 +72,8 @@
 
     --content-max-width: 72rem;
     --touch-target: 2.75rem;
+    /* The domestic production logo's width (T501; 04 5.4.18): one size in every width class - the logo is never hidden or cut. */
+    --origin-logo-width: 7.5rem;
 }
 
 *,

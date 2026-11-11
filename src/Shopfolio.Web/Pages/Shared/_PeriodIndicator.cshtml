@@ -1,0 +1,12 @@
+@using Shopfolio.Pages.Components
+@model PeriodIndicator
+@* A running period (T542; 04 2.6.3, 2.6.4, 2.6.6; K-767): days left and the last day's date, in "iş günü" where the period counts business days; a period that has run out says the overrun in words.
+   No live countdown, no hour, minute or second. The legal interest line shows only on the panel's shipping and service periods once they have run out. *@
+<span class="period-indicator@(Model.IsOver ? " period-indicator--over" : string.Empty)">
+    <span class="period-indicator__label">@Model.Label:</span>
+    <span class="period-indicator__text">@Model.Text</span>
+    @if (Model.ShowsLegalInterest)
+    {
+        <span class="period-indicator__interest" role="alert">@PeriodIndicator.LegalInterestMessage</span>
+    }
+</span>

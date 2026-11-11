@@ -41,6 +41,11 @@
     <EmbeddedResource Include="Infrastructure/Security/CommonPasswords.txt" WithCulture="false" LogicalName="Shopfolio.Infrastructure.Security.CommonPasswords.txt" />
   </ItemGroup>
 
+  <!-- The Ministry's domestic production logo ships inside the application (08 4.3; 09 11.1 item 7); no setting reads or replaces it. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Modules/Catalog/Assets/DomesticProductionLogo.jpg" WithCulture="false" LogicalName="Shopfolio.Modules.Catalog.Assets.DomesticProductionLogo.jpg" />
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="Shopfolio.UnitTests" />
     <InternalsVisibleTo Include="Shopfolio.IntegrationTests" />

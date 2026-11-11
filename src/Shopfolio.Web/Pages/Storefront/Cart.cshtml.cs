@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Binding;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
@@ -118,6 +119,9 @@ internal sealed class CartModel : PageModel
                 return await RefuseAsync(input.CartItemId, null, ct);
             default:
                 CartQuantityProblem problem = result.Outcome == CartItemUpdateOutcome.OverOrderLimit ? CartQuantityProblem.OverOrderLimit : CartQuantityProblem.NoStock;
+
+                // The one rejection line of the named refusal, with 07's code (07 6.1.3, 6.2.3; D-638): the row tells the rule's text, the log keeps the code.
+                HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(CartRefusalCodes.CodeOf(result.Outcome));
                 return await RefuseAsync(input.CartItemId, CartTexts.QuantityProblem(problem, result.OrderLimit), ct);
         }
     }

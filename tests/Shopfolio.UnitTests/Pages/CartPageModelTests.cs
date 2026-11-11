@@ -1,4 +1,5 @@
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Pages.Components;
@@ -58,6 +59,34 @@ public sealed class CartPageModelTests
         Assert.True(empty.IsEmpty);
         Assert.Equal(CartPaymentBlock.NoOrderableItem, empty.PaymentStepBlock(salesPermitCheckout: false));
         Assert.False(ViewWith(CartPaymentBlock.None, lines: 1).IsEmpty);
+    }
+
+    [Fact]
+    public void TheCartsRefusals_AreWrittenWith07sCodes_AndAResultThatIsNoRefusalHasNone_D638()
+    {
+        Assert.Equal(ErrorCode.StockInsufficient, CartRefusalCodes.CodeOf(CartQuantityProblem.NoStock));
+        Assert.Equal(ErrorCode.MaxQuantityPerOrderExceeded, CartRefusalCodes.CodeOf(CartQuantityProblem.OverOrderLimit));
+        Assert.Throws<ArgumentOutOfRangeException>(() => CartRefusalCodes.CodeOf(CartQuantityProblem.None));
+
+        Assert.Equal(ErrorCode.StockInsufficient, CartRefusalCodes.CodeOf(CartItemUpdateOutcome.NoStock));
+        Assert.Equal(ErrorCode.MaxQuantityPerOrderExceeded, CartRefusalCodes.CodeOf(CartItemUpdateOutcome.OverOrderLimit));
+        Assert.Equal(ErrorCode.InvalidQuantity, CartRefusalCodes.CodeOf(CartItemUpdateOutcome.InvalidQuantity));
+        Assert.Equal(ErrorCode.NotFound, CartRefusalCodes.CodeOf(CartItemUpdateOutcome.NotInCart));
+        Assert.Throws<ArgumentOutOfRangeException>(() => CartRefusalCodes.CodeOf(CartItemUpdateOutcome.Updated));
+        Assert.Throws<ArgumentOutOfRangeException>(() => CartRefusalCodes.CodeOf(CartItemUpdateOutcome.TakenOffShowcase));
+
+        Assert.Equal(ErrorCode.StockInsufficient, CartRefusalCodes.CodeOf(CartAddOutcome.NoStock));
+        Assert.Equal(ErrorCode.MaxQuantityPerOrderExceeded, CartRefusalCodes.CodeOf(CartAddOutcome.OverOrderLimit));
+        Assert.Equal(ErrorCode.DigitalVariantAlreadyInCart, CartRefusalCodes.CodeOf(CartAddOutcome.AlreadyInCart));
+        Assert.Equal(ErrorCode.VariantUnavailable, CartRefusalCodes.CodeOf(CartAddOutcome.SoldOut));
+        Assert.Equal(ErrorCode.InvalidQuantity, CartRefusalCodes.CodeOf(CartAddOutcome.InvalidQuantity));
+        Assert.Equal(ErrorCode.NotFound, CartRefusalCodes.CodeOf(CartAddOutcome.VariantNotFound));
+        Assert.Equal(ErrorCode.NotFound, CartRefusalCodes.CodeOf(CartAddOutcome.NotOnSale));
+        Assert.Throws<ArgumentOutOfRangeException>(() => CartRefusalCodes.CodeOf(CartAddOutcome.Added));
+
+        // Every refusal of the three result codes has a code: a member added later fails here until it is mapped.
+        Assert.All(Enum.GetValues<CartAddOutcome>().Where(o => o != CartAddOutcome.Added), o => _ = CartRefusalCodes.CodeOf(o));
+        Assert.All(Enum.GetValues<CartItemUpdateOutcome>().Where(o => o is not (CartItemUpdateOutcome.Updated or CartItemUpdateOutcome.TakenOffShowcase)), o => _ = CartRefusalCodes.CodeOf(o));
     }
 
     private static CartView ViewWith(CartPaymentBlock block, int lines)

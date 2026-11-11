@@ -657,3 +657,75 @@
     color: var(--color-tone-warning-text);
     font-weight: 600;
 }
+
+/* The form field (T543; 04 OB-12, 2.12.1): one column in every width class; a wide class may pair the fields of an address (04 2.12.1.2). */
+.form-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+}
+
+.form-section {
+    margin: var(--space-5) 0;
+}
+
+.form-section__heading {
+    margin: 0 0 var(--space-3);
+    font-size: var(--font-size-large);
+}
+
+.form-section__save {
+    margin-top: var(--space-4);
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.field__label {
+    font-weight: 600;
+}
+
+.field__requirement {
+    font-weight: 400;
+    color: var(--color-text-muted);
+}
+
+.field__hint {
+    margin: 0;
+    font-size: var(--font-size-small);
+    color: var(--color-text-muted);
+}
+
+.field__control {
+    width: 100%;
+    min-height: var(--touch-target);
+}
+
+.field--invalid .field__control {
+    border-color: var(--color-error);
+    border-width: 2px;
+}
+
+.field--check {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.iban-field__notice {
+    margin: var(--space-1) 0 0;
+    font-size: var(--font-size-small);
+}
+
+@media (min-width: 768px) {
+    .form-fields--paired {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .form-fields--paired > .field:has(textarea) {
+        grid-column: 1 / -1;
+    }
+}

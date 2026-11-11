@@ -1,0 +1,22 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@model AddressFormView
+@*
+    The address form's fields (T543; 04 OB-13, 2.12.2): recipient, province from the closed list, district, one open-address text field and, by variant, the telephone and the address name. There is no postal
+    code and no national identity number. The screen's own <form> wraps these fields; the "teslimat adresimle aynı" box is the billing form's when the basket has a physical item (04 2.12.2.2).
+*@
+<div class="address-form address-form--@Model.Variant.ToString().ToLowerInvariant()" data-js="address-form">
+    @if (Model.OffersSameAsShipping)
+    {
+        <div class="field field--check">
+            <input type="checkbox" id="@Model.SameAsShippingId" name="@Model.SameAsShippingName" value="true" checked="@Model.SameAsShippingChecked">
+            <label for="@Model.SameAsShippingId">@AddressFormView.SameAsShippingLabel</label>
+        </div>
+    }
+    <div class="form-fields form-fields--paired">
+        @foreach (FieldView field in Model.Fields)
+        {
+            <partial name="_Field" model="field" />
+        }
+    </div>
+</div>

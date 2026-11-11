@@ -1,0 +1,11 @@
+@using Shopfolio.Infrastructure.Security
+@using Shopfolio.Pages.Legal
+@model LegalTextPageView
+@*
+    The skeleton of a firm-edited legal text page (T507; 04 5.11.3): the heading and the whole text, on one page, not behind a link or a window. The stored text goes through the display helper, which
+    cleans it with the closed format set again (09 15.3 item 4) - the only place a long text is printed as markup.
+*@
+<article class="legal-text">
+    <h1 class="legal-text__title">@Model.Title</h1>
+    <div class="legal-text__body">@RichText.Render(Model.Text)</div>
+</article>

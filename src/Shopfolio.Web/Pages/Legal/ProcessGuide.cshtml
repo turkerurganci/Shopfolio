@@ -1,0 +1,24 @@
+@page "/islem-rehberi"
+@using Shopfolio.Modules.Settings.Contracts
+@using Shopfolio.Pages.Legal
+@model ProcessGuideModel
+@*
+    The "İşlem rehberi" page (T507; 07 UC-18; 04 5.11.5; K-626): the four fixed sections of ProcessGuide, the same skeleton as the two legal texts (04 5.11.3). It is drawn in every state of the
+    sales gate, and it carries no form and no primary button.
+*@
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = Model.Title;
+}
+<article class="legal-text">
+    <h1 class="legal-text__title">@Model.Title</h1>
+    <div class="legal-text__body">
+        @foreach (ProcessGuideSection part in Model.Sections)
+        {
+            <section class="legal-text__section">
+                <h2 class="legal-text__heading">@part.Title</h2>
+                <p>@part.Text</p>
+            </section>
+        }
+    </div>
+</article>

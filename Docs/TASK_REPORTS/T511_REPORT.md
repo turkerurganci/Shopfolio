@@ -102,7 +102,7 @@ Yerelde koşulmayan ad alanları (Model, Database, Catalog, Commands, Concurrenc
 
 - **Branch:** `task/T511-siparis-takibi-sayfasi`
 - **Commit:** PR başlığına ve dal geçmişine bakınız
-- **PR:** *(PR açılınca)*
+- **PR:** #545
 - **CI:** *(validator doldurur)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası)*
 

@@ -200,7 +200,7 @@ public sealed class SessionAccessTests
             Assert.Equal($"/giris?returnUrl={Escaped(closed)}", response.Headers.Location?.OriginalString);
         }
 
-        foreach (string open in new[] { "/hesap/silindi", "/urun/ahsap-masa", "/sayfa/hakkinda", "/sistem/canlilik", $"/siparis/erisim/{accessKey}" })
+        foreach (string open in new[] { "/hesap/silindi", "/sss/urun-ornegi/ahsap-masa", "/sayfa/hakkinda", "/sistem/canlilik", $"/siparis/erisim/{accessKey}" })
         {
             using HttpResponseMessage response = await GetAsync(client, open);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

@@ -39,7 +39,7 @@ public sealed class SearchModel : PageModel, IListPage
         ArgumentNullException.ThrowIfNull(query);
 
         ListSearch search = new(ListKind.StorefrontProducts, Frame.FramePaths.Search, SearchPage.SearchLabel, query.Search);
-        bool applied = query.HasAppliedFilter;
+        bool applied = query.IsFilterApplied();
         string? rangeMessage = PriceRangeMessage();
         ProductListPage? list = await _catalog.SearchProductsAsync(query.Search, query.ToFilter(), query.RequestedPage(), ct);
         if (list is null)
@@ -73,7 +73,7 @@ public sealed class SearchModel : PageModel, IListPage
     private async Task<CardImage?> ImageOfAsync(ProductListItem item, CancellationToken ct)
     {
         IReadOnlyList<GalleryImage> gallery = await _catalog.GetProductGalleryAsync(item.Id, ct);
-        GalleryImage? main = gallery.FirstOrDefault(i => i.IsMain) ?? gallery.FirstOrDefault();
+        GalleryImage? main = gallery.FirstOrDefault(i => i.IsMain) ?? (gallery.Count > 0 ? gallery[0] : null);
         return main is null ? null : ProductCards.ImageOf(main.ImageId, string.IsNullOrWhiteSpace(main.EffectiveAltText) ? item.Name : main.EffectiveAltText);
     }
 

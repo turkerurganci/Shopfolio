@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
 using Shopfolio.Infrastructure.Binding;
@@ -17,10 +16,8 @@ public sealed class VariantQuery : IQueryModel
 
     public const string SecondParameter = "secondOptionValue";
 
-    [SpecAssignedName]
     public string? FirstOptionValue { get; init; }
 
-    [SpecAssignedName]
     public string? SecondOptionValue { get; init; }
 }
 
@@ -31,10 +28,8 @@ public sealed class VariantQuery : IQueryModel
 /// </summary>
 public sealed class AddCartItemInput : IFormInput
 {
-    [SpecAssignedName]
     public string? VariantId { get; set; }
 
-    [SpecAssignedName]
     public string? Quantity { get; set; }
 
     /// <summary>The variant the form names; null when the field is empty or not an identifier.</summary>
@@ -75,7 +70,7 @@ public static class VariantSelection
         ArgumentNullException.ThrowIfNull(variants);
         return variants.FirstOrDefault(v => v.Status == PublishStatus.Published && !v.IsSoldOut)
             ?? variants.FirstOrDefault(v => v.Status == PublishStatus.Published)
-            ?? variants.FirstOrDefault();
+            ?? (variants.Count > 0 ? variants[0] : null);
     }
 
     /// <summary>The variant the page shows for the two places; null only for a product with no variant to show.</summary>

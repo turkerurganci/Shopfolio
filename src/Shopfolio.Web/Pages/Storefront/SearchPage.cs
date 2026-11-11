@@ -37,13 +37,10 @@ public sealed class ProductQuery : PagedQuery, IValidatableObject
     }
 
     /// <summary>True when the request carries a filter that applies: a price bound that is an amount (and the range is not inverted) or the stock state.</summary>
-    public bool HasAppliedFilter
+    public bool IsFilterApplied()
     {
-        get
-        {
-            ProductListFilter filter = ToFilter();
-            return filter.InStockOnly || (!filter.IsPriceRangeInverted && (filter.MinPrice is not null || filter.MaxPrice is not null));
-        }
+        ProductListFilter filter = ToFilter();
+        return filter.InStockOnly || (!filter.IsPriceRangeInverted && (filter.MinPrice is not null || filter.MaxPrice is not null));
     }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext) => ListFilters.PriceRangeResults(MinPrice, MaxPrice, nameof(MinPrice));

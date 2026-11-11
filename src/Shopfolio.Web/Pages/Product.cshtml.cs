@@ -193,7 +193,7 @@ public sealed class ProductModel : PageModel
         if (page.Kind == ProductPageKind.Archived)
         {
             IReadOnlyList<GalleryImage> archivedGallery = page.ProductId is Guid archivedId ? await _catalog.GetProductGalleryAsync(archivedId, ct) : [];
-            ProductImage? main = ImageOf(archivedGallery.FirstOrDefault(i => i.IsMain) ?? archivedGallery.FirstOrDefault());
+            ProductImage? main = ImageOf(archivedGallery.FirstOrDefault(i => i.IsMain) ?? (archivedGallery.Count > 0 ? archivedGallery[0] : null));
             return new ProductView(page.Kind, name, slug, path, [], main, [], null, null, [], new ProductBuyArea(BuyMode.None, null, false, string.Empty, null, null, null, null), null, null, null, null, false, main?.Path, null);
         }
 
@@ -229,8 +229,8 @@ public sealed class ProductModel : PageModel
             }
         }
 
-        ProductImage? lead = shownVariantImage ?? ImageOf(gallery.FirstOrDefault(i => i.IsMain) ?? gallery.FirstOrDefault());
-        List<ProductImage> others = [.. gallery.Select(g => ImageOf(g)!).Where(i => lead is null || i.Path != lead.Path)];
+        ProductImage? lead = shownVariantImage ?? ImageOf(gallery.FirstOrDefault(i => i.IsMain) ?? (gallery.Count > 0 ? gallery[0] : null));
+        List<ProductImage> others = [.. gallery.Select(g => ImageOf(g)).OfType<ProductImage>().Where(i => lead is null || i.Path != lead.Path)];
 
         FrameSales sales = new(gate.ShowsClosedNotice, gate.IsTemporarilyClosed, gate.IsDataCollectionOpen);
         BuyMode mode = ProductViews.ModeOf(page, shown, sales.IsSalesClosed);

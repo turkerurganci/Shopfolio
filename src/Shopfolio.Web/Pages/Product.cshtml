@@ -25,9 +25,9 @@
 @section Head {
     @Search.Head(ViewContext.HttpContext, ProductHeads.Product(Search, frame, view, Model.ClosedToSearchEngines))
 }
-@if (Model.Notice is { } notice)
+@if (Model.Notice is { } addedMessage)
 {
-    <partial name="_Message" model="notice" />
+    <partial name="_Message" model="addedMessage" />
 }
 @if (view.Trail.Count > 0)
 {
@@ -189,4 +189,4 @@
         }
     </div>
 </div>
-<script type="module" src="@Context.StaticAsset("js/product.js")"></script>
+<script type="module" src="@ViewContext.HttpContext.StaticAsset("js/product.js")"></script>

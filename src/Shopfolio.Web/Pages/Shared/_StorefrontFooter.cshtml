@@ -1,0 +1,86 @@
+@using Shopfolio.Modules.Settings.Contracts
+@model StorefrontFrame
+@*
+    The footer (04 2.2.5, 2.2.6; T540): whole on every storefront screen - the payment step, the cart, the sign-in, the order page and "sayfa bulunamadı" included - never folded, long names
+    and addresses break into lines. The heading "İletişim" is the link to the contact page and stands in the same place on every page (WCAG 3.2.6; 04 2.1.4). The identity block shows the
+    set of the firm's type (the reader returns the fields of that type only) with no link around it. The legal links are the published texts only (K-770); the process guide always. The
+    ETBİS band is drawn only while the verification address is filled. The platform signature closes the page unless the firm switched it off. No brand colour here (04 2.1.3).
+*@
+@{
+    FrameFooter footer = Model.Footer;
+    LegalIdentity identity = footer.Identity;
+    string nameLabel = identity.CompanyType == CompanyType.Tradesman ? "Ad soyad" : "Ticaret unvanı";
+    (string Label, string? Value)[] rows =
+    [
+        (nameLabel, identity.LegalName),
+        ("İşletme adı", identity.BusinessName),
+        ("Vergi kimlik numarası", identity.TaxIdNumber),
+        ("MERSİS numarası", identity.MersisNumber),
+        ("Ticaret sicil numarası", identity.TradeRegistryNumber),
+        ("Adres", string.Join(" ", new[] { identity.AddressLine, identity.District, identity.ProvinceName }.Where(part => !string.IsNullOrWhiteSpace(part)))),
+        ("Telefon", identity.Phone),
+        ("E-posta", identity.Email),
+        ("KEP adresi", identity.KepAddress),
+        ("Meslek odası", identity.ChamberName),
+        ("Meslekle ilgili davranış kuralları", identity.ProfessionalConductRules),
+    ];
+}
+<footer class="site-footer">
+    <div class="container">
+        <div class="site-footer__grid">
+            <section class="site-footer__identity" aria-labelledby="footer-contact-heading">
+                <h2 class="site-footer__heading" id="footer-contact-heading"><a href="@footer.ContactPath">İletişim</a></h2>
+                @* The whole brand name: the header cuts a long one on the narrow class and says so here (04 2.2.4, 8.3.2 row 1). *@
+                <p class="site-footer__brand">@Model.Brand.BrandName</p>
+                <dl class="identity-block">
+                    @foreach (var row in rows)
+                    {
+                        if (!string.IsNullOrWhiteSpace(row.Value))
+                        {
+                            <div class="identity-block__row">
+                                <dt>@row.Label</dt>
+                                <dd>@row.Value</dd>
+                            </div>
+                        }
+                    }
+                </dl>
+                @if (footer.EtbisVerificationUrl is { } etbis)
+                {
+                    <a class="etbis-band" href="@etbis" rel="noopener noreferrer">ETBİS doğrulama</a>
+                }
+                @if (Model.Contact.SocialLinks.Count > 0 || Model.Contact.WhatsAppNumber is not null)
+                {
+                    <ul class="social-list" aria-label="Sosyal medya">
+                        @foreach (var link in Model.Contact.SocialLinks)
+                        {
+                            <li><a href="@link.Url" rel="noopener noreferrer">@FrameStyle.SocialName(link.Platform)</a></li>
+                        }
+                        @if (FrameStyle.WhatsAppLink(Model.Contact.WhatsAppNumber) is { } whatsApp)
+                        {
+                            <li><a href="@whatsApp" rel="noopener noreferrer">WhatsApp</a></li>
+                        }
+                    </ul>
+                }
+            </section>
+            @if (footer.GeneralPages.Count > 0)
+            {
+                <nav class="footer-links" aria-label="Sayfalar">
+                    @foreach (var page in footer.GeneralPages)
+                    {
+                        <a href="@page.Path">@page.Title</a>
+                    }
+                </nav>
+            }
+            <nav class="footer-links" aria-label="Yasal bağlantılar">
+                @foreach (var legal in footer.LegalLinks)
+                {
+                    <a href="@legal.Path">@legal.Title</a>
+                }
+            </nav>
+        </div>
+        @if (footer.ShowsPlatformSignature)
+        {
+            <p class="site-footer__signature">Shopfolio ile kuruldu</p>
+        }
+    </div>
+</footer>

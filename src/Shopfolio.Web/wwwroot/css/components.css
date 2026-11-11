@@ -1,0 +1,87 @@
+/* The components both frames share (09 section 16.1 item 1): the buttons, the skip link, the menu toggle and the pending mark. Only the variables of base.css; no raw colour
+   and no raw width. A width condition writes one of the two values of base.css. */
+
+/* Skip link: first in the tab order, visible only while focused (04 2.1.4 rule 3). */
+.skip-link {
+    position: absolute;
+    top: var(--space-2);
+    left: var(--space-2);
+    z-index: 100;
+    padding: var(--space-2) var(--space-4);
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 2px solid var(--color-text);
+    border-radius: var(--radius-1);
+    transform: translateY(-300%);
+}
+
+.skip-link:focus {
+    transform: translateY(0);
+}
+
+/* Buttons. The primary button is the one filled action of a screen; its fill is --button-primary-bg (the brand colour on the storefront, neutral in the panel). The secondary
+   button is outlined in the neutral border colour - never the brand colour (04 2.1.3). A long label breaks into lines and the button grows (04 8.3.4). */
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--touch-target);
+    padding: var(--space-2) var(--space-4);
+    border: 2px solid var(--color-text);
+    border-radius: var(--radius-1);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.button--primary {
+    border-color: var(--button-primary-bg);
+    background: var(--button-primary-bg);
+    color: var(--button-primary-text);
+}
+
+.button--secondary {
+    border-color: var(--color-border);
+}
+
+.button[aria-busy="true"] {
+    cursor: progress;
+}
+
+/* The menu toggle: hidden in the markup and shown by common.js, so a browser without JavaScript sees the whole menu instead of a button that does nothing (04 2.2.4; 05 3.8.1).
+   It exists on the narrow class only. */
+.menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+    padding: var(--space-2) var(--space-3);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-1);
+    background: var(--color-surface);
+    cursor: pointer;
+}
+
+.menu-toggle[hidden] {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .menu-toggle {
+        display: none;
+    }
+}
+
+/* The pending work mark of the panel menu (04 2.2.8, 2.5.3): a mark that carries text, never a colour alone. */
+.pending-mark {
+    display: inline-block;
+    margin-inline-start: var(--space-2);
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-2);
+    background: var(--color-pending);
+    color: var(--color-pending-text);
+    font-size: var(--font-size-small);
+    font-weight: 600;
+}

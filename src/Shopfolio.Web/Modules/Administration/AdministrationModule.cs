@@ -223,6 +223,9 @@ internal sealed class AdministrationModule : IAdministrationModule
 
     public Task<DeletionReapplyResult> ReapplyAdminRemovalAsync(Guid adminId, CancellationToken ct) => _admins.ReapplyRemovalAsync(adminId, ct);
 
+    public async Task<string?> GetAdminNameAsync(Guid adminId, CancellationToken ct) =>
+        await _db.Admins.AsNoTracking().Where(a => a.Id == adminId).Select(a => a.Name).SingleOrDefaultAsync(ct);
+
     public Task<AdminNameChangeResult> ChangeNameAsync(Guid adminId, string name, CancellationToken ct) => _admins.ChangeNameAsync(adminId, name, ct);
 
     public Task<AdminEmailChangeRequestResult> RequestEmailChangeAsync(Guid adminId, Guid sessionId, string newEmail, string? reauthenticationValue, IPAddress? ipAddress, CancellationToken ct) =>

@@ -87,6 +87,9 @@ public interface IAdministrationModule
     /// </summary>
     Task<DeletionReapplyResult> ReapplyAdminRemovalAsync(Guid adminId, CancellationToken ct);
 
+    /// <summary>The administrator's name for the panel frame's top row (T540; 07 5.5.1; 04 2.2.8); null when the account is gone. A plain read.</summary>
+    Task<string?> GetAdminNameAsync(Guid adminId, CancellationToken ct);
+
     /// <summary>The administrator's own name (07 UC-178; 02 10.2.4): no reauthentication.</summary>
     Task<AdminNameChangeResult> ChangeNameAsync(Guid adminId, string name, CancellationToken ct);
 

@@ -1,0 +1,112 @@
+@model StorefrontFrame
+@*
+    The top section and the menu (04 2.2.3, 2.2.4, 2.2.7, 3.1; T540). The payment step's reduced header carries the brand and "Sepete dön" only (04 2.2.7). Otherwise: the brand, the cart with
+    the count of lines, the menu toggle (shown by common.js on the narrow class) and the panel that folds on that class - the thin row of social links, the search, the account area, the menu.
+    Without JavaScript the panel stays open: nothing is hidden, only placed (04 2.1.2). The brand colour is the count's fill and the active item's thick mark, in the style sheet only (04 2.1.3).
+*@
+@{
+    string currentPath = Context.Request.Path.Value?.TrimEnd('/') ?? string.Empty;
+    FrameBrand brand = Model.Brand;
+}
+<header class="site-header@(Model.IsCheckoutStep ? " site-header--checkout" : string.Empty)">
+    <div class="container site-header__grid">
+        <div class="site-header__brand">
+            <a href="/">
+                @if (brand.LogoId is Guid logoId)
+                {
+                    <img class="site-header__logo" src="@FrameStyle.ImagePath(logoId)" alt="@brand.BrandName">
+                }
+                else
+                {
+                    <span class="u-single-line">@brand.BrandName</span>
+                }
+            </a>
+        </div>
+        @if (Model.IsCheckoutStep)
+        {
+            <a class="site-header__back" href="@Model.Cart.Path">Sepete dön</a>
+        }
+        else
+        {
+            <a class="cart-link site-header__cart" href="@Model.Cart.Path">
+                <span>Sepet</span>
+                <span class="cart-link__count" aria-label="@Model.Cart.ItemCount kalem">@Model.Cart.ItemCount</span>
+            </a>
+            <button type="button" class="menu-toggle" data-js="menu-toggle" aria-controls="site-header-panel" aria-expanded="false" hidden>Menü</button>
+            <div class="site-header__panel" id="site-header-panel">
+                @if (Model.Contact.SocialLinks.Count > 0 || Model.Contact.WhatsAppNumber is not null)
+                {
+                    <ul class="social-list site-header__social" aria-label="Sosyal medya">
+                        @foreach (var link in Model.Contact.SocialLinks)
+                        {
+                            <li><a href="@link.Url" rel="noopener noreferrer">@FrameStyle.SocialName(link.Platform)</a></li>
+                        }
+                        @if (FrameStyle.WhatsAppLink(Model.Contact.WhatsAppNumber) is { } whatsApp)
+                        {
+                            <li><a href="@whatsApp" rel="noopener noreferrer">WhatsApp</a></li>
+                        }
+                    </ul>
+                }
+                @if (Model.Search is { } search)
+                {
+                    <form class="site-search site-header__search" method="get" action="@search.Path" role="search">
+                        <label class="u-visually-hidden" for="site-search-input">Ürün ara</label>
+                        <input class="site-search__input" id="site-search-input" type="search" name="@search.ParameterName" autocomplete="off">
+                        <button type="submit" class="button button--secondary">Ara</button>
+                    </form>
+                }
+                <div class="account-area site-header__account">
+                    @if (Model.Account.IsMember)
+                    {
+                        <span class="account-area__name">@Model.Account.MemberName</span>
+                        <span class="account-area__links">
+                            <a href="@Model.Account.AccountPath">Hesabım</a>
+                            <a href="@Model.Account.OrdersPath">Siparişlerim</a>
+                            @if (Model.Account.SignOut is { } signOut)
+                            {
+                                <form method="post" action="@signOut.Action">
+                                    <input type="hidden" name="ReturnUrl" value="@signOut.ReturnUrl">
+                                    <button type="submit" class="account-area__sign-out">Çıkış</button>
+                                </form>
+                            }
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="account-area__links">
+                            <a href="@Model.Account.SignInPath">Giriş yap</a>
+                            <a href="@Model.Account.OrderTrackingPath">Sipariş takibi</a>
+                        </span>
+                    }
+                </div>
+                @if (Model.Menu is { } menu)
+                {
+                    <nav class="site-header__menu" aria-label="Menü">
+                        <ul class="site-menu">
+                            @foreach (var item in menu.Items)
+                            {
+                                if (item.Path is null)
+                                {
+                                    <li class="site-menu__item site-menu__item--group">
+                                        <span class="site-menu__group-title">@item.Name</span>
+                                        @{ var tree = FrameMenuTree.Build(menu.Categories); }
+                                        @if (tree.Count > 0)
+                                        {
+                                            <partial name="_MenuTree" model="tree" />
+                                        }
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="site-menu__item">
+                                        <a class="site-menu__link" href="@item.Path" aria-current="@(string.Equals(currentPath, item.Path, StringComparison.OrdinalIgnoreCase) ? "page" : null)">@item.Name</a>
+                                    </li>
+                                }
+                            }
+                        </ul>
+                    </nav>
+                }
+            </div>
+        }
+    </div>
+</header>

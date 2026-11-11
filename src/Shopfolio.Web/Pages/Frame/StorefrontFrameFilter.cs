@@ -67,7 +67,12 @@ internal static class StorefrontFrameSetup
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.Services.AddScoped<StorefrontFrameBuilder>();
-        builder.Services.Configure<MvcOptions>(options => options.Filters.Add<StorefrontFrameFilter>(StorefrontFrameFilter.FilterOrder));
+        builder.Services.AddScoped<PanelFrameBuilder>();
+        builder.Services.Configure<MvcOptions>(options =>
+        {
+            options.Filters.Add<StorefrontFrameFilter>(StorefrontFrameFilter.FilterOrder);
+            options.Filters.Add<PanelFrameFilter>(StorefrontFrameFilter.FilterOrder);
+        });
         return builder;
     }
 }

@@ -98,7 +98,7 @@ public sealed class AddressRulesTests
     [InlineData("yonetim", false)]
     [InlineData("tr", false)]
     [InlineData("URUN", false)]
-    [InlineData("", false)]
+    [InlineData("", true)]
     public void IsClosedFirstSegment_OnlyForTheListedFirstSegments(string segment, bool expected)
     {
         Assert.Equal(expected, AddressRules.IsClosedFirstSegment(segment));

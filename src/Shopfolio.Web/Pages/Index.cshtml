@@ -1,0 +1,75 @@
+@page "/"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Modules.CorporateContent.Contracts
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Storefront
+@model Shopfolio.Pages.IndexModel
+@inject SearchEngineData Search
+@*
+    The home page (E-01; T502; 04 5.1). Four blocks at most, in the order the firm's layout gives (04 5.1.3, 5.1.4): the corporate block, "Hizmetlerimiz", "Referanslarımız" and the product showcase.
+    The cards are the one product card and the one content card (T545); the blocks that have nothing to show are not in Model.Home.Blocks. The corporate block's fallback is the brand name and logo
+    (04 5.1.11). No banner, no campaign picture and no add-to-cart. The head carries the firm's structured data in the first response (05 3.7.2).
+*@
+@{
+    Layout = "_StorefrontLayout";
+    StorefrontFrame frame = ViewContext.HttpContext.GetStorefrontFrame()
+        ?? throw new InvalidOperationException("The home page needs the storefront frame (T537).");
+    HomePage home = Model.Home;
+}
+@section Head {
+    @Search.Head(ViewContext.HttpContext, StorefrontHeads.Home(Search, frame, home))
+}
+<h1 class="u-visually-hidden">@frame.Brand.BrandName</h1>
+@foreach (HomepageBlockKind block in home.Blocks)
+{
+    switch (block)
+    {
+        case HomepageBlockKind.CorporateIntro:
+            <section class="home-block home-intro @(home.IsCorporateBlockWide ? "home-intro--wide" : "home-intro--band")" aria-label="@frame.Brand.BrandName">
+                @if (home.Intro is { } intro)
+                {
+                    if (intro.Image is { } introImage)
+                    {
+                        <img class="home-intro__image" src="@introImage.Path" alt="@introImage.AltText" width="800" height="600" />
+                    }
+                    <div class="home-intro__text">
+                        <p class="home-intro__summary">@intro.ShortIntroduction</p>
+                        <a class="home-intro__link" href="@intro.Path">Hakkımızda</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="home-intro__brand">
+                        @if (frame.Brand.LogoId is Guid logoId)
+                        {
+                            <img class="home-intro__logo" src="@FrameStyle.ImagePath(logoId)" alt="@frame.Brand.BrandName" />
+                        }
+                        <p class="home-intro__name">@frame.Brand.BrandName</p>
+                    </div>
+                }
+            </section>
+            break;
+        case HomepageBlockKind.Offerings when home.Offerings is { } offerings:
+            <partial name="_HomeCardBlock" model="offerings" />
+            break;
+        case HomepageBlockKind.PortfolioItems when home.PortfolioItems is { } portfolio:
+            <partial name="_HomeCardBlock" model="portfolio" />
+            break;
+        case HomepageBlockKind.ProductShowcase when home.Showcase is { } showcase:
+            <section class="home-block home-showcase home-showcase--rows-@home.ShowcaseRows" aria-labelledby="home-showcase-title">
+                <h2 class="home-block__title" id="home-showcase-title">@showcase.Title</h2>
+                <partial name="_ProductGrid" model="showcase.Cards" />
+                @if (showcase.CategoryLinks.Count > 0)
+                {
+                    <ul class="home-showcase__categories" aria-label="Kategoriler">
+                        @foreach (HomeCategoryLink link in showcase.CategoryLinks)
+                        {
+                            <li><a class="home-showcase__category" href="@link.Path">@link.Name</a></li>
+                        }
+                    </ul>
+                }
+            </section>
+            break;
+    }
+}

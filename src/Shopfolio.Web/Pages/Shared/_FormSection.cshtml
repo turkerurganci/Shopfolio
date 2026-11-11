@@ -1,0 +1,19 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@model FormSectionView
+@*
+    One section of a screen that is saved by sections (T543; 04 2.12.1.5; K-752): its own form, so the other sections' fields are not sent, and its own save button. The form names the section's handler
+    (07 2.2.1), so a section saves its own fields and the others stay as they are. The fields are one column; a wide class may pair them (04 2.12.1.2).
+*@
+<section class="form-section" id="@Model.Id" aria-labelledby="@(Model.Id)-heading">
+    <form method="post" asp-antiforgery="true" asp-page-handler="@Model.Handler" class="form" data-js="submit-once">
+        <h2 class="form-section__heading" id="@(Model.Id)-heading">@Model.Heading</h2>
+        <div class="form-fields">
+            @foreach (FieldView field in Model.Fields)
+            {
+                <partial name="_Field" model="field" />
+            }
+        </div>
+        <button type="submit" class="button button--primary form-section__save" data-busy-label="@LoadingViews.BusyLabelOf(Model.SaveLabel)">@Model.SaveLabel</button>
+    </form>
+</section>

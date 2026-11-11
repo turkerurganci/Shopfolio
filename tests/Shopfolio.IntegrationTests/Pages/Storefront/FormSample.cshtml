@@ -1,0 +1,87 @@
+@page "/sss/form"
+@using Shopfolio.Infrastructure
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@model Shopfolio.IntegrationTests.Pages.FormSampleModel
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = "Form";
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, Model.FormOrder);
+    var input = Model.Input;
+    FieldView name = Fields.Bind(Fields.Text("Input.Name", "Ad", FieldRequirement.Required, input.Name, maxLength: ProductConstants.ProductNameMaxLength), summary);
+    FieldView topic = Fields.Bind(Fields.ClosedList("Input.Topic", "Konu", FieldRequirement.Required, Shopfolio.IntegrationTests.Pages.FormSampleModel.Topics, input.Topic), summary);
+    FieldView note = Fields.Text("Input.Note", "Not", FieldRequirement.Optional);
+    IReadOnlyList<FormSectionView> sections = FormSectionView.Sections(
+    [
+        new FormSectionView("brand", "Marka", [Fields.Text("Input.Brand", "Marka adı", FieldRequirement.Required, input.Brand)], "Markayı kaydet", "SaveBrand"),
+        new FormSectionView("social", "Sosyal", [Fields.Text("Input.Social", "Sosyal bağlantı", FieldRequirement.Optional, input.Social)], "Sosyali kaydet", "SaveSocial"),
+    ]);
+    AddressFormView address = AddressForms.Create(
+        AddressVariant.Delivery,
+        "Input.",
+        Shopfolio.IntegrationTests.Pages.FormSampleModel.Provinces,
+        new AddressValuesView(RecipientName: input.RecipientName, ProvinceId: input.ProvinceId, District: input.District, AddressLine: input.AddressLine, Phone: input.Phone)).Bind(summary);
+    ReasonSelectView reason = Reasons.Create(ReasonKind.FirmCancellation, "Input.", input.Reason, input.Explanation).Bind(summary);
+    IbanFieldView? iban = Model.Iban();
+}
+<p id="sample-content">Form ornegi</p>
+
+<partial name="_FormErrorSummary" model="summary" />
+
+<section id="fields">
+    <form method="post" asp-antiforgery="true" action="/sss/form?handler=Save" id="field-form">
+        <partial name="_Field" model="name" />
+        <partial name="_Field" model="topic" />
+        <partial name="_Field" model="note" />
+        <button type="submit">Kaydet</button>
+    </form>
+    @if (Model.SavedName is not null)
+    {
+        <p id="saved">Kaydedildi: [@Model.SavedName] [@Model.SavedTopic]</p>
+    }
+</section>
+
+<section id="sections">
+    @foreach (FormSectionView section in sections)
+    {
+        <partial name="_FormSection" model="section" />
+    }
+    @if (Model.SavedSection is not null)
+    {
+        <p id="saved-section">Kaydedilen bolum: @Model.SavedSection; marka [@Model.Input.Brand] sosyal [@Model.Input.Social]</p>
+    }
+</section>
+
+<section id="address">
+    <form method="post" asp-antiforgery="true" action="/sss/form?handler=Address" id="address-form">
+        <partial name="_AddressForm" model="address" />
+        <button type="submit">Adresi kaydet</button>
+    </form>
+</section>
+
+<section id="iban">
+    @if (iban is not null)
+    {
+        <partial name="_IbanField" model="iban" />
+    }
+</section>
+
+<section id="reason">
+    <form method="post" asp-antiforgery="true" action="/sss/form?handler=Cancel" id="reason-form">
+        <partial name="_ReasonSelect" model="reason" />
+        <button type="submit">Iptali onayla</button>
+    </form>
+    @if (Model.ReasonAccepted)
+    {
+        <p id="confirmation-open">Onay penceresi acildi</p>
+    }
+</section>
+
+<form method="post" asp-antiforgery="true" action="/sss/form?handler=Limit" id="limit-form">
+    <input name="Input.Name" value="@Model.Input.Name" />
+    <button type="submit">Giris yap</button>
+    @if (ViewData.ModelState.TryGetValue(string.Empty, out var limit) && limit.Errors.Count > 0)
+    {
+        <partial name="_Message" model='Messages.NeutralLimit("limit-message")' />
+    }
+</form>

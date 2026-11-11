@@ -467,7 +467,8 @@ internal sealed class Carts
         return new CartMergeResult(memberCartId, true, unseen);
     }
 
-    private async Task<Guid?> FindCartIdAsync(CartOwner owner, CancellationToken ct)
+    /// <summary>The id of the owner's cart, or null when the owner has none yet (a plain read).</summary>
+    public async Task<Guid?> FindCartIdAsync(CartOwner owner, CancellationToken ct)
     {
         if (owner.CustomerId is Guid customerId)
         {

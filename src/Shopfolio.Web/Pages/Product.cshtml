@@ -1,0 +1,187 @@
+@page "/urun/{slug}"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Modules.Catalog.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Storefront
+@model Shopfolio.Pages.ProductModel
+@inject SearchEngineData Search
+@*
+    The product page (E-04, E-05; T503; 04 5.4, 5.5). Order of the parts (04 5.4.3): the path from the category root, the gallery, the name, the price block, the variant selection, the quantity and the
+    add-to-cart button, the delivery information, the description and "Paylaş". There is no comment, no rating, no recommendation and no stock count (04 5.4.8). The variant selection works without script
+    (a GET form with the two parameters); with script the same page reads the variant data of the page (data-variants) and fills the form's variant field (07 4.4.1, 8.2.2). No inline script, no style
+    attribute. The add-to-cart answer's message stays beside the button (04 2.3.1.2); the "added" notice is short-lived (04 2.3.1.4).
+*@
+@{
+    Layout = "_StorefrontLayout";
+    StorefrontFrame frame = ViewContext.HttpContext.GetStorefrontFrame()
+        ?? throw new InvalidOperationException("The product page needs the storefront frame (T537).");
+    ProductView view = Model.View
+        ?? throw new InvalidOperationException("The product page is drawn only for a product that exists.");
+    ProductBuyArea buy = view.Buy;
+    FormErrorSummary errors = FormErrorSummary.From(ViewData.ModelState);
+    MessageView? optionError = ProductBuyArea.OptionMessageOf(errors) is { } optionText ? Messages.ForField(VariantQuery.FirstParameter, optionText) : null;
+    MessageView? quantityError = ProductBuyArea.QuantityMessageOf(errors) is { } quantityText ? Messages.ForField(ProductBuyArea.QuantityFieldId, quantityText) : null;
+    ViewData["Title"] = view.Name;
+}
+@section Head {
+    @Search.Head(ViewContext.HttpContext, ProductHeads.Product(Search, frame, view, Model.ClosedToSearchEngines))
+}
+@if (Model.Notice is { } addedMessage)
+{
+    <partial name="_Message" model="addedMessage" />
+}
+@if (view.Trail.Count > 0)
+{
+    <nav class="breadcrumb" aria-label="Kategori yolu">
+        <ol class="breadcrumb__list">
+            @foreach (ProductCrumb crumb in view.Trail)
+            {
+                <li class="breadcrumb__item"><a href="@crumb.Path">@crumb.Name</a></li>
+            }
+            <li class="breadcrumb__item" aria-current="page">@view.Name</li>
+        </ol>
+    </nav>
+}
+<div class="product" data-variants="@view.ScriptDataJson">
+    <div class="product__gallery">
+        @if (view.Lead is { } lead)
+        {
+            <img class="product__image" src="@lead.Path" alt="@lead.AltText" data-js="lead-image">
+        }
+        @if (view.Others.Count > 0)
+        {
+            <ul class="product__thumbs">
+                @foreach (ProductImage other in view.Others)
+                {
+                    <li class="product__thumb"><img src="@other.Path" alt="@other.AltText" loading="lazy"></li>
+                }
+            </ul>
+        }
+    </div>
+    <div class="product__info">
+        <h1 class="product__name">@view.Name</h1>
+        @if (view.Kind == ProductPageKind.Archived)
+        {
+            <p class="product__retired">@ProductView.NoLongerSoldText</p>
+        }
+        else
+        {
+            @if (view.Price is { } price)
+            {
+                <div class="price-block">
+                    <p class="price-block__row">
+                        <span class="price-block__price" data-js="price">@price.PriceText</span>
+                        @* The four variable lines are always drawn (hidden when empty) so the script can fill them for a variant the first one does not have (04 5.4.4). *@
+                        <del class="price-block__reference" data-js="reference" hidden="@(price.ReferencePriceText is null)">@price.ReferencePriceText</del>
+                        <span class="price-block__mark" data-js="mark" hidden="@(price.ReferencePriceText is null)">@price.DiscountMark</span>
+                    </p>
+                    <p class="price-block__dates" data-js="dates" hidden="@(price.DiscountDates is null)">@price.DiscountDates</p>
+                    <p class="price-block__unit" data-js="unit-price" hidden="@(price.UnitPriceText is null)">@price.UnitPriceText</p>
+                    @if (price.SinceText is not null)
+                    {
+                        <p class="price-block__since">@price.SinceText</p>
+                    }
+                    @if (price.Origin is { } origin)
+                    {
+                        <partial name="_OriginLabel" model="origin" />
+                    }
+                </div>
+            }
+            @if (view.Options.Count > 0)
+            {
+                <form class="variant-form" method="get" action="@view.Path" data-js="variant-form">
+                    @foreach (OptionField field in view.Options)
+                    {
+                        <div class="variant-form__field">
+                            <label for="@field.FieldName">@field.Name</label>
+                            <select id="@field.FieldName" name="@field.FieldName" data-js="option">
+                                @foreach (OptionChoice choice in field.Choices)
+                                {
+                                    <option value="@choice.Order" data-label="@choice.Text" selected="@choice.IsSelected" disabled="@(!choice.IsSelectable)">@choice.Text@(choice.IsSoldOut ? " (Tükendi)" : string.Empty)</option>
+                                }
+                            </select>
+                        </div>
+                    }
+                    @if (optionError is not null)
+                    {
+                        <partial name="_Message" model="optionError" />
+                    }
+                    <button class="button button--secondary" type="submit" data-js="apply-selection">Seçimi uygula</button>
+                </form>
+            }
+            @switch (buy.Mode)
+            {
+                case BuyMode.Form:
+                    <form class="buy-form" method="post" asp-page-handler="AddCartItem" asp-route-slug="@view.Slug" data-js="add-to-cart">
+                        <input type="hidden" name="VariantId" value="@buy.VariantId" data-js="variant-id" />
+                        @if (buy.ShowsQuantity)
+                        {
+                            <div class="buy-form__quantity">
+                                <label for="@ProductBuyArea.QuantityFieldId">Adet</label>
+                                <input id="@ProductBuyArea.QuantityFieldId" name="Quantity" type="text" inputmode="numeric" value="@buy.QuantityValue"
+                                       aria-invalid="@(quantityError is null ? "false" : "true")"
+                                       aria-describedby="@(quantityError is null ? null : Messages.FieldMessageId(ProductBuyArea.QuantityFieldId))" />
+                                @if (quantityError is not null)
+                                {
+                                    <partial name="_Message" model="quantityError" />
+                                }
+                            </div>
+                        }
+                        <button class="button button--primary" type="submit" data-js="add-button">Sepete ekle</button>
+                        @if (buy.Message is { } refusal)
+                        {
+                            <partial name="_Message" model="refusal" />
+                        }
+                        @if (buy.Warning is { } warning)
+                        {
+                            <partial name="_Message" model="warning" />
+                        }
+                    </form>
+                    break;
+                case BuyMode.SoldOut:
+                    <p class="buy-state buy-state--sold-out">@ProductView.SoldOutText</p>
+                    break;
+                case BuyMode.SalesClosed:
+                    @if (buy.Message is { } closed)
+                    {
+                        <partial name="_Message" model="closed" />
+                    }
+                    break;
+                case BuyMode.Preview:
+                    <p class="buy-state buy-state--preview">@ProductView.PreviewText</p>
+                    break;
+            }
+            @if (view.Delivery is { } delivery)
+            {
+                <div class="delivery">
+                    @if (delivery.Line is not null)
+                    {
+                        <p class="delivery__line">@delivery.Line</p>
+                    }
+                    @if (delivery.Restriction is { } restriction)
+                    {
+                        @if (restriction.FullList is null)
+                        {
+                            <p class="delivery__restriction">@restriction.Text</p>
+                        }
+                        else
+                        {
+                            <details class="delivery__restriction">
+                                <summary>@restriction.Text</summary>
+                                <p>@restriction.FullList</p>
+                            </details>
+                        }
+                    }
+                </div>
+            }
+            @if (view.Description is { } description)
+            {
+                <div class="product__description">@description</div>
+            }
+            <partial name="_ShareButton" />
+        }
+    </div>
+</div>
+<script type="module" src="@ViewContext.HttpContext.StaticAsset("js/product.js")"></script>

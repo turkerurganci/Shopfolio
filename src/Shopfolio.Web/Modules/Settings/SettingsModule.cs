@@ -166,6 +166,7 @@ internal static class SettingsModuleRegistration
         services.AddScoped<ISettingsModule, SettingsModule>();
         services.AddScoped<ISitemapSource, SitemapSource>();
         services.AddScoped<IProvinceList, ProvinceList>();
+        services.AddScoped<ICountryList, CountryList>();
         services.AddScoped<Shopfolio.Infrastructure.Security.ICookiePolicyPublication, CookiePolicyPublication>();
         services.AddHostedService<GeneratedLegalTextsStartup>();
         return services;

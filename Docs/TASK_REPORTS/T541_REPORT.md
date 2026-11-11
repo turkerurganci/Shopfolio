@@ -1,6 +1,6 @@
 # T541 — Mesaj, onay, boş ve hata hâlleri ve satış kapalı hâli (OB-03, OB-04, OB-07, OB-08)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı — doğrulama tur 1 ✓ PASS | **Tarih:** 2026-11-11
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -63,10 +63,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-11, head `8e7e4782`). Kriter 1–10 ve KK1–KK10 ✓ (validator kanıtı: kod okuması + `MessageComponentTests` 20, `MessageStateModelTests`, `MessageSourceScanTests`, `FrameSourceScanTests`, `UnexpectedErrorLayerTests` yeşil). Yerel: build `-warnaserror` 0 uyarı, format üç projede temiz, Unit 6848/6848 (Consistency ve Architecture dahil), betik testleri 4/4, Integration Web 643, Logging 30, SignedEndpoints 11, Security 34 (PostgreSQL 18, `track_commit_timestamp=on`), `restore --locked-mode` 0. Ana dal son 3 run yeşil (42964801854, 42964801839, 42951686078). Dal CI: `54a45d98` run 42971044507 success; head `8e7e4782` run 42975292161'de Integration koşuyordu, öteki işler yeşil. `12`: KP-38 (VAL-A136…A145) ve KP-69 (VAL-A337…A339, VAL-B030…) satırları BEKLEMEDE kaldı — uçtan uca satış kapısı ve tarayıcı kanıtı bu task'ın kapsamında değil. Birleştirme notu: `origin/main` `db7984ac` (T542) `components.css` ve `IMPLEMENTATION_STATUS.md`'de çakıştı; kod çakışması olduğu için birleştirme geri alındı, kayıt birleştirmesiz. |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 3 — **K1** (D-1173): `Confirmations`/`_ConfirmForm` onay işaretini (`Confirmed`, `07 §2.2.4`) kendisi yazmıyor, çağırana bırakıyor; panel örneği işaretsiz. **K2** (D-1174): işlem düzeyi yedek sayfa çerçeveye geçince "Yeniden dene" ve "Sayfa açılamadı" başlığı taşıyor (`04` 2.7.3.1); geçici kapatma + eksik koşul uyarısı "Geçici kapatma … tamamlanmadı" diyor (`04` 2.8.2). **K3** (bu PR'da kapatıldı): T541'e hedefli D-1134 ve D-1143 alınmamış, hedefi T541'de kalmıştı; dalın T542'ye yeniden hedeflediği D-138, D-141, D-1145, D-1146, D-1147 T542 merge edildiği için hedefsiz kaldı — hepsi F5 gate'e yeniden hedeflendi. |
 
 ## Altyapı Değişiklikleri
 
@@ -80,7 +80,7 @@
 - **Branch:** `task/T541-mesaj-onay-bos-hata-halleri`
 - **Commit:** bkz. PR
 - **PR:** #537
-- **CI:** bekliyor
+- **CI:** `54a45d98` run 42971044507 success; head `8e7e4782` run 42975292161 (doğrulama anında Integration koşuyordu, öteki işler yeşil)
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

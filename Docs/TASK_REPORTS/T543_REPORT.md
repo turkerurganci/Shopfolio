@@ -1,6 +1,6 @@
 # T543 — Form alanı ve düzeni, adres formu, IBAN alanı, sebep seçimi ve ortak alan kuralları (OB-12…OB-15)
 
-**Faz:** F5 | **Durum:** ⏳ Doğrulama bekliyor | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-11
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -63,10 +63,11 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⏳ Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu (tur 1) | ✓ PASS — tur 1 (2026-11-11, head `01411663`; `origin/main` `f40f3a9d` (T545 #538) birleşik ağaçta, birleştirme çakışmasız). Kriter 1–10 ve KK1–KK10 ✓; `09 §25` ilgili satırlar (adlar `06`/`03` listeleriyle birebir — `CancellationReason`, `CorrectionReason` metinleri `03 §8.3.1.1`, §8.4.5 ile aynı; `§16` betiksiz form kalıbı, formlarda antiforgery, `Html.Raw`/satır içi betik/stil niteliği yok, yeni bağımlılık yok, yeni kural için kaynak taraması ihlal örnekli) ✓. Yerel: derleme `-warnaserror` 0 uyarı, `dotnet format` üç proje temiz, Unit 7096/7096, betik testleri 4/4, Integration TAM (Web 706, Model 1407, Ordering 637, kalan ad alanları 931; hepsi 0 kırmızı; `track_commit_timestamp=on`), `restore --locked-mode` 0. Dal CI'ı (run 42999862098) bakışta Integration hariç sekiz iş yeşil, Integration koşuyordu. `12` task satırları (KP-12 VAL-A039…A042, KP-71 VAL-A340…A350, VAL-A785) tarayıcı gözlemi ya da ödeme ekranı uç kanıtı ister → BEKLEMEDE kaldı; `12_matris_denetle.py --kapsam 1-77` Hata 0. |
+| Bulgu sayısı (tur 1) | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (tur 1) | 2 — **K1** (D-1214'e forward): KK9 örnek sayfası limit reddini elle kurar (`ModelState.AddModelError` + 422); gerçek yol `FormResults.AttemptLimitExceeded` (429, red kaydı) bu testte sınanmıyor — o yolun kendi testi (`AttemptLimitPatternTests`) var. **K2** (bu PR'da kapatıldı): ilk tam Web koşusunda 3 kırmızı (makinede eşzamanlı dört Integration koşusu vardı), aynı ağaçta yeniden koşu 706/706 ve `FormComponentTests` tek başına 18/18; kod kaynaklı değil. |
+| Yapım raporu karşılaştırması (tur 1) | Kabul kriterlerinde tam uyum (1–10 ✓); öz denetim tablosu var, maddeler kanıtlı. Uyuşmazlık yok; yapımcı Integration'ı yalnız Web ad alanında koşmuştu, doğrulamada tam koşu temiz. Not: doğrulayıcı bu raporu adım 4'te dal diff'ini okurken (`git diff … -- Docs/`) erken gördü; kriter kanıtları rapordan değil kendi koşu ve okumalarından üretildi. |
 
 ## Altyapı Değişiklikleri
 
@@ -78,9 +79,9 @@
 ## Commit & PR
 
 - **Branch:** `task/T543-form-alani-adres-iban`
-- **Commit:** bkz. PR
+- **Commit:** `01411663` (yapım ucu); doğrulama kaydı bu dalda
 - **PR:** #539
-- **CI:** *(yönetici izler)*
+- **CI:** dal run 42999862098 — doğrulama bakışında Lint, Build, Unit, Contract, Migration, Paketleme, E2E yeşil; Integration koşuyordu (merge öncesi yardımcı denetler)
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

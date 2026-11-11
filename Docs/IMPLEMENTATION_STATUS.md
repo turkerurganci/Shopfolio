@@ -261,7 +261,7 @@
 | T502 | Vitrin: ana sayfa ve kategori sayfası (E-01, E-02) | ⬚ | — | — | — |
 | T503 | Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04) | ⬚ | — | — | — |
 | T504 | Hata sayfaları: bulunamayan adres ve beklenmeyen hata (E-06, 500) | ✓ | ✓ PASS (tur 1) | `e59bfa5f` | #540 |
-| T505 | İçerik liste ve içerik sayfaları (E-07, E-08) | ⬚ | — | — | — |
+| T505 | İçerik liste ve içerik sayfaları (E-07, E-08) | ⏳ Devam ediyor | — | — | — |
 | T506 | Sık sorulan sorular ve iletişim sayfası ve formu (E-09, E-10) | ⬚ | — | — | — |
 | T507 | Yasal metin sayfaları ve panelde yönetimi (E-11, E-47) | ⬚ | — | — | — |
 | T508 | Sepet (E-12) | ⬚ | — | — | — |

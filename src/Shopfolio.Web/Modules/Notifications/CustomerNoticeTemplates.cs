@@ -304,7 +304,7 @@ internal sealed partial class CustomerNoticeTemplates
     /// <summary>An item as it is written in a notice (08 2.2.6 item 4): the product name and, on a variant, the option values in brackets - "Ahşap Masa (Meşe, 120 cm)".</summary>
     private static string ItemText(CancelledItem item)
     {
-        string[] options = [.. new[] { item.FirstOptionValue, item.SecondOptionValue }.Where(o => !string.IsNullOrWhiteSpace(o)).Select(o => o!)];
+        string[] options = [.. new[] { item.FirstOptionValue, item.SecondOptionValue }.Where(o => !string.IsNullOrWhiteSpace(o)).Select(o => o!)]; // non-null: the Where on this line keeps only filled values
         return options.Length == 0 ? item.ProductName : $"{item.ProductName} ({string.Join(", ", options)})";
     }
 

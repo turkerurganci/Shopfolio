@@ -133,7 +133,7 @@ internal sealed partial class JobRunnerService : BackgroundService
 #pragma warning restore CA1031
         {
             // A cancelled host is not a failure of the row (the filter): the row stays pending with its count and the next runner takes it.
-            JobWork failed = current!;
+            JobWork failed = current;
             LogFailed(_logger, exception, LogEvents.UnexpectedError, failed.Id, failed.JobType);
             await WriteFailureAsync(runner, db, failed, exception, ct);
             return true;

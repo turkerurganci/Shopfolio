@@ -167,8 +167,8 @@ internal static class PayTrStartForm
     {
         address = string.Empty;
         // The parser also takes the short IPv4 forms ("203.0.113" is 203.0.0.113); a request's address is never one, so only the four-part form is an address here.
-        if (!IPAddress.TryParse(text, out IPAddress? parsed)
-            || (parsed.AddressFamily == AddressFamily.InterNetwork && text!.Count(c => c == '.') != 3))
+        if (text is null || !IPAddress.TryParse(text, out IPAddress? parsed)
+            || (parsed.AddressFamily == AddressFamily.InterNetwork && text.Count(c => c == '.') != 3))
         {
             return false;
         }

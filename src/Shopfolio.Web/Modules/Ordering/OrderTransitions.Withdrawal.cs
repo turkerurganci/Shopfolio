@@ -52,12 +52,12 @@ internal sealed partial class OrderTransitions
 
         // The decision of 1.11.5 / 1.11.6 on the locked order: shipped physical item or paid service item, the window open (Z-13, Z-14 - D-513), no absolute exemption,
         // the units at most the open ones. A digital item has no withdrawal (02 7.3.2).
-        if (OrderOperations.WithdrawalOperation(item!.ProductType) is not { } operation)
+        if (OrderOperations.WithdrawalOperation(item!.ProductType) is not { } operation) // non-null: the item lock returns the order and the item when it returns no refusal
         {
             return WithdrawalRefused(TransitionRefusal.ConditionNotMet);
         }
 
-        (OperationVerdict verdict, _) = await _operations.CheckWithFactsAsync(order!.Id, operation, item.Id, request.Quantity, ct);
+        (OperationVerdict verdict, _) = await _operations.CheckWithFactsAsync(order!.Id, operation, item.Id, request.Quantity, ct); // non-null: the item lock returns the order and the item when it returns no refusal
         if (VerdictRefusal(verdict) is { } closed)
         {
             return WithdrawalRefused(closed);
@@ -114,13 +114,13 @@ internal sealed partial class OrderTransitions
         // 1.11.34 on the locked order: a physical item once the order has shipped (before it the notice is a cancellation - 02 7.3.7), a paid service item; the window is
         // not a condition - a record outside it is the firm's to confirm (K-709).
         (OperationVerdict verdict, OrderOperationFacts? facts) =
-            await _operations.CheckWithFactsAsync(order!.Id, OrderOperation.RecordWithdrawalFromOtherChannel, item!.Id, request.Quantity, ct);
+            await _operations.CheckWithFactsAsync(order!.Id, OrderOperation.RecordWithdrawalFromOtherChannel, item!.Id, request.Quantity, ct); // non-null: LockItemAsync returns the order and the item when it returns no refusal
         if (VerdictRefusal(verdict) is { } closed)
         {
             return WithdrawalRefused(closed);
         }
 
-        OperationItemFacts itemFacts = facts!.Items.Single(i => i.ItemId == item.Id);
+        OperationItemFacts itemFacts = facts!.Items.Single(i => i.ItemId == item.Id); // non-null: a verdict that is not closed comes with the facts (CheckWithFactsAsync)
         WithdrawalNoticeWarnings warnings = WithdrawalNoticeRules.Warnings(itemFacts, request.NoticeDate);
 
         // On the item's delivery day the firm answers whether the delivery came first (K-608); on any other day the answer is not kept.
@@ -153,7 +153,7 @@ internal sealed partial class OrderTransitions
             Frozen(item),
             iban,
             now);
-        return await WriteWithdrawalAsync(order, item, declaration, actor!, warnings, ct);
+        return await WriteWithdrawalAsync(order, item, declaration, actor, warnings, ct);
     }
 
     /// <summary>The common core after the checks: the writer, the counters, the closure rule, the version and the notices.</summary>
@@ -185,7 +185,7 @@ internal sealed partial class OrderTransitions
         NoticeAddress? address = written.ReturnAddress is { } a ? new NoticeAddress(a.RecipientName, a.AddressLine, a.District, a.ProvinceId, a.Phone) : null;
         await QueueNoticeAsync(
             order.Id,
-            new DeclarationReceivedNotice(order.Id, DispatchRelatedRecordType.Withdrawal, written.RecordId!.Value, false, declaration.DeclarationDate, null, [withdrawn], address),
+            new DeclarationReceivedNotice(order.Id, DispatchRelatedRecordType.Withdrawal, written.RecordId!.Value, false, declaration.DeclarationDate, null, [withdrawn], address), // non-null: a write without a refusal carries the record id
             ct);
         if (declaration.Admin is null)
         {

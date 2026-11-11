@@ -229,7 +229,7 @@ internal sealed class OrderExport
         Dictionary<Guid, InvoiceItem> items = frozenOrders.SelectMany(i => i.Items).Where(i => i.ShippedAt is not null).ToDictionary(i => i.OrderItemId);
         IReadOnlyList<ClosingRecordMoment> moments = await AfterSales.ClosingRecordMomentsAsync(physical, ct);
         return [.. moments
-            .Where(m => items.TryGetValue(m.OrderItemId, out InvoiceItem? item) && m.At <= item.ShippedAt!.Value)
+            .Where(m => items.TryGetValue(m.OrderItemId, out InvoiceItem? item) && m.At <= item.ShippedAt!.Value) // non-null: items holds only items with a shipment moment (the Where above)
             .GroupBy(m => m.OrderItemId)
             .Where(g => g.Sum(m => m.Quantity) >= items[g.Key].Quantity)
             .Select(g => g.Key)];

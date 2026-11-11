@@ -115,7 +115,7 @@ internal sealed class ContentAuthoring
             return AuthoringResult.Refused(rejections);
         }
 
-        string name = ContentInputRules.Text(input.Name)!;
+        string name = ContentInputRules.Text(input.Name)!; // non-null: ContentInputRules.Check refuses an empty name, refused above
         string slug = await NewSlugAsync(_db.Offerings.Select(o => o.Slug), name, AddressRules.ServicePrefix, ct);
         int order = (await _db.Offerings.MaxAsync(o => (int?)o.SortOrder, ct) ?? 0) + 1;
         Offering offering = Offering.Create(name, slug, order, _time.GetUtcNow());
@@ -131,7 +131,7 @@ internal sealed class ContentAuthoring
         List<FieldRejection> rejections = ContentInputRules.Check(input);
         string? slug = offering is null || rejections.Count > 0
             ? null
-            : await SlugForSaveAsync(_db.Offerings.Select(o => o.Slug), ContentInputRules.Text(input.Name)!, AddressRules.ServicePrefix, offering, ct);
+            : await SlugForSaveAsync(_db.Offerings.Select(o => o.Slug), ContentInputRules.Text(input.Name)!, AddressRules.ServicePrefix, offering, ct); // non-null: read only when ContentInputRules.Check found nothing, and it refuses an empty name
         return await EditAsync(offering, formVersion, rejections, o => { ApplyOffering(o, input); WriteSlug(o, slug); }, ct);
     }
 
@@ -144,7 +144,7 @@ internal sealed class ContentAuthoring
             return AuthoringResult.Refused(rejections);
         }
 
-        string title = ContentInputRules.Text(input.Title)!;
+        string title = ContentInputRules.Text(input.Title)!; // non-null: ContentInputRules.Check refuses an empty title, refused above
         string slug = await NewSlugAsync(_db.PortfolioItems.Select(p => p.Slug), title, AddressRules.ReferencePrefix, ct);
         int order = (await _db.PortfolioItems.MaxAsync(p => (int?)p.SortOrder, ct) ?? 0) + 1;
         PortfolioItem item = PortfolioItem.Create(title, slug, order, _time.GetUtcNow());
@@ -160,7 +160,7 @@ internal sealed class ContentAuthoring
         List<FieldRejection> rejections = ContentInputRules.Check(input);
         string? slug = item is null || rejections.Count > 0
             ? null
-            : await SlugForSaveAsync(_db.PortfolioItems.Select(p => p.Slug), ContentInputRules.Text(input.Title)!, AddressRules.ReferencePrefix, item, ct);
+            : await SlugForSaveAsync(_db.PortfolioItems.Select(p => p.Slug), ContentInputRules.Text(input.Title)!, AddressRules.ReferencePrefix, item, ct); // non-null: read only when ContentInputRules.Check found nothing, and it refuses an empty title
         return await EditAsync(item, formVersion, rejections, p => { ApplyPortfolio(p, input); WriteSlug(p, slug); }, ct);
     }
 
@@ -174,7 +174,7 @@ internal sealed class ContentAuthoring
         }
 
         int order = (await _db.FaqItems.MaxAsync(f => (int?)f.SortOrder, ct) ?? 0) + 1;
-        FaqItem item = FaqItem.Create(ContentInputRules.Text(input.Question)!, order, _time.GetUtcNow());
+        FaqItem item = FaqItem.Create(ContentInputRules.Text(input.Question)!, order, _time.GetUtcNow()); // non-null: ContentInputRules.Check refuses an empty question, refused above
         item.SetAnswer(input.Answer);
         _db.FaqItems.Add(item);
         return AuthoringResult.Of(AuthoringOutcome.Created, item.Id, item.Version);
@@ -197,7 +197,7 @@ internal sealed class ContentAuthoring
         }
 
         int order = (await _db.Branches.MaxAsync(b => (int?)b.SortOrder, ct) ?? 0) + 1;
-        Branch branch = Branch.Create(ContentInputRules.Text(input.Name)!, order, _time.GetUtcNow());
+        Branch branch = Branch.Create(ContentInputRules.Text(input.Name)!, order, _time.GetUtcNow()); // non-null: CheckBranchAsync refuses an empty name, refused above
         ApplyBranch(branch, input);
         _db.Branches.Add(branch);
         return AuthoringResult.Of(AuthoringOutcome.Created, branch.Id, branch.Version);
@@ -219,7 +219,7 @@ internal sealed class ContentAuthoring
             return AuthoringResult.Refused(rejections);
         }
 
-        string title = ContentInputRules.Text(input.Title)!;
+        string title = ContentInputRules.Text(input.Title)!; // non-null: ContentInputRules.Check refuses an empty title, refused above
         string slug = await NewSlugAsync(_db.CustomPages.Select(c => c.Slug), title, AddressRules.GeneralPagePrefix, ct);
         int order = (await _db.CustomPages.MaxAsync(c => (int?)c.SortOrder, ct) ?? 0) + 1;
         CustomPage page = CustomPage.Create(title, slug, order, _time.GetUtcNow());
@@ -235,7 +235,7 @@ internal sealed class ContentAuthoring
         List<FieldRejection> rejections = ContentInputRules.Check(input);
         string? slug = page is null || rejections.Count > 0
             ? null
-            : await SlugForSaveAsync(_db.CustomPages.Select(c => c.Slug), ContentInputRules.Text(input.Title)!, AddressRules.GeneralPagePrefix, page, ct);
+            : await SlugForSaveAsync(_db.CustomPages.Select(c => c.Slug), ContentInputRules.Text(input.Title)!, AddressRules.GeneralPagePrefix, page, ct); // non-null: read only when ContentInputRules.Check found nothing, and it refuses an empty title
         return await EditAsync(page, formVersion, rejections, c => { ApplyCustomPage(c, input); WriteSlug(c, slug); }, ct);
     }
 
@@ -317,7 +317,7 @@ internal sealed class ContentAuthoring
 
     private static void ApplyOffering(Offering offering, OfferingInput input)
     {
-        offering.Name = ContentInputRules.Text(input.Name)!;
+        offering.Name = ContentInputRules.Text(input.Name)!; // non-null: called only after ContentInputRules.Check found nothing, and it refuses an empty name
         offering.ShortDescription = ContentInputRules.Text(input.ShortDescription);
         offering.SetText(input.Text);
         offering.IsShownOnHomepage = input.IsShownOnHomepage;
@@ -325,7 +325,7 @@ internal sealed class ContentAuthoring
 
     private static void ApplyPortfolio(PortfolioItem item, PortfolioItemInput input)
     {
-        item.Title = ContentInputRules.Text(input.Title)!;
+        item.Title = ContentInputRules.Text(input.Title)!; // non-null: called only after ContentInputRules.Check found nothing, and it refuses an empty title
         item.ShortDescription = ContentInputRules.Text(input.ShortDescription);
         item.SetText(input.Text);
         item.IsShownOnHomepage = input.IsShownOnHomepage;
@@ -333,13 +333,13 @@ internal sealed class ContentAuthoring
 
     private static void ApplyFaq(FaqItem item, FaqItemInput input)
     {
-        item.Question = ContentInputRules.Text(input.Question)!;
+        item.Question = ContentInputRules.Text(input.Question)!; // non-null: called only after ContentInputRules.Check found nothing, and it refuses an empty question
         item.SetAnswer(input.Answer);
     }
 
     private static void ApplyBranch(Branch branch, BranchInput input)
     {
-        branch.Name = ContentInputRules.Text(input.Name)!;
+        branch.Name = ContentInputRules.Text(input.Name)!; // non-null: called only after CheckBranchAsync found nothing, and it refuses an empty name
         branch.ProvinceId = StoredProvince(input);
         branch.District = ContentInputRules.Text(input.District);
         branch.AddressLine = ContentInputRules.Text(input.AddressLine);
@@ -350,7 +350,7 @@ internal sealed class ContentAuthoring
 
     private static void ApplyCustomPage(CustomPage page, CustomPageInput input)
     {
-        page.Title = ContentInputRules.Text(input.Title)!;
+        page.Title = ContentInputRules.Text(input.Title)!; // non-null: called only after ContentInputRules.Check found nothing, and it refuses an empty title
         page.SetText(input.Text);
         page.IsShownInMenu = input.IsShownInMenu;
     }

@@ -23,7 +23,7 @@ internal sealed class SecurityHeadersMiddleware
         ArgumentNullException.ThrowIfNull(context);
         string nonce = SecurityHeaders.NewNonce();
         context.Items[SecurityHeaders.NonceKey] = nonce;
-        context.Response.OnStarting(static state => Write((HttpContext)state, (string)((HttpContext)state).Items[SecurityHeaders.NonceKey]!), context);
+        context.Response.OnStarting(static state => Write((HttpContext)state, (string)((HttpContext)state).Items[SecurityHeaders.NonceKey]!), context); // non-null: InvokeAsync writes the nonce to Items before it registers this callback
         return _next(context);
     }
 

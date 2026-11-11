@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
@@ -86,7 +88,7 @@ internal sealed partial class OrderCorrections : IOrderCorrections
         }
 
         // 1.11.23 on the locked order: the shipping address until "Kargoya verildi", the billing address by the same line - or, with no physical item, until "Teslim edildi" (02 10.4.2).
-        OperationVerdict verdict = await _operations.CheckAsync(order!.Id, OrderOperation.CorrectAddress, null, null, ct);
+        OperationVerdict verdict = await _operations.CheckAsync(order!.Id, OrderOperation.CorrectAddress, null, null, ct); // non-null: LockAsync returns the order when it returns no refusal
         if (verdict.Decision != OperationDecision.Allowed)
         {
             return Refused(TransitionRefusal.ConditionNotMet);
@@ -119,8 +121,8 @@ internal sealed partial class OrderCorrections : IOrderCorrections
             ? (order.ShippingRecipientName ?? string.Empty, order.ShippingPhone, order.ShippingProvinceId ?? Guid.Empty, order.ShippingDistrict ?? string.Empty, order.ShippingAddressLine ?? string.Empty)
             : (order.BillingRecipientName ?? string.Empty, null, order.BillingProvinceId ?? Guid.Empty, order.BillingDistrict ?? string.Empty, order.BillingAddressLine ?? string.Empty);
         (string RecipientName, string? Phone, Guid ProvinceId, string District, string AddressLine) newValue = shipping
-            ? (resolution.Shipping!.RecipientName, resolution.Shipping.Phone, resolution.Shipping.ProvinceId, resolution.Shipping.District, resolution.Shipping.AddressLine)
-            : (resolution.Billing!.RecipientName, null, resolution.Billing.ProvinceId, resolution.Billing.District, resolution.Billing.AddressLine);
+            ? (resolution.Shipping!.RecipientName, resolution.Shipping.Phone, resolution.Shipping.ProvinceId, resolution.Shipping.District, resolution.Shipping.AddressLine) // non-null: the resolution is resolved (checked above) and the request asked only the shipping side
+            : (resolution.Billing!.RecipientName, null, resolution.Billing.ProvinceId, resolution.Billing.District, resolution.Billing.AddressLine); // non-null: the resolution is resolved (checked above) and the request asked only the billing side
         if (oldValue == newValue)
         {
             // Nothing to correct: a history row of two equal values would only be noise.
@@ -145,14 +147,14 @@ internal sealed partial class OrderCorrections : IOrderCorrections
         }
 
         // The old and the new value stay on the order's own record, with the administrator and the moment (02 10.4.2; K-1008); the trail's row names no value.
-        OrderAddressHistory history = OrderAddressHistory.Create(order.Id, request.AddressType, oldValue, newValue, request.Admin!.AdminId, request.Admin.AdminName, now);
+        OrderAddressHistory history = OrderAddressHistory.Create(order.Id, request.AddressType, oldValue, newValue, request.Admin.AdminId, request.Admin.AdminName, now);
         _db.OrderAddressHistories.Add(history);
         OrderTransitions.RaiseVersionOnce(_db, order);
 
         // B-10 goes to the order's e-mail with the new address; the old address is not a value (08 2.2.6 B-10).
         await _notifications.QueueCustomerNoticeAsync(
             new AddressCorrectedNotice(order.Id, request.AddressType, new NoticeAddress(newValue.RecipientName, newValue.AddressLine, newValue.District, newValue.ProvinceId, newValue.Phone)),
-            order.ContactEmail!,
+            order.ContactEmail!, // non-null: the operation is open only before the personal data's disposal, and only the disposal empties the contact email
             ct);
         await _trail.WriteAsync(
             new AuditEntry(AuditOperation.CorrectAddress, nameof(Order), order.Id, new AuditDetails(order.OrderNumber, values: [new AuditValue("Field", request.AddressType.ToString())])),
@@ -187,7 +189,7 @@ internal sealed partial class OrderCorrections : IOrderCorrections
         }
 
         // 1.11.35 on the locked order: a guest order whose personal data is not disposed - an account's order has the account's verified e-mail, which is not corrected (02 10.4.11).
-        OperationVerdict verdict = await _operations.CheckAsync(order!.Id, OrderOperation.CorrectGuestEmail, null, null, ct);
+        OperationVerdict verdict = await _operations.CheckAsync(order!.Id, OrderOperation.CorrectGuestEmail, null, null, ct); // non-null: LockAsync returns the order when it returns no refusal
         if (verdict.Decision != OperationDecision.Allowed)
         {
             return Refused(TransitionRefusal.ConditionNotMet);
@@ -200,7 +202,7 @@ internal sealed partial class OrderCorrections : IOrderCorrections
             return Refused(TransitionRefusal.ConfirmationRequired);
         }
 
-        string oldEmail = order.ContactEmail!;
+        string oldEmail = order.ContactEmail!; // non-null: the operation is open only before the personal data's disposal, and only the disposal empties the contact email
         if (TextNormalizer.NormalizeIdentity(newEmail) == order.NormalizedContactEmail)
         {
             return Refused(TransitionRefusal.InvalidInput);
@@ -223,7 +225,7 @@ internal sealed partial class OrderCorrections : IOrderCorrections
             }
         }
 
-        OrderEmailHistory history = OrderEmailHistory.Create(order.Id, oldEmail, newEmail, request.Admin!.AdminId, request.Admin.AdminName, now);
+        OrderEmailHistory history = OrderEmailHistory.Create(order.Id, oldEmail, newEmail, request.Admin.AdminId, request.Admin.AdminName, now);
         _db.OrderEmailHistories.Add(history);
         OrderTransitions.RaiseVersionOnce(_db, order);
 
@@ -256,7 +258,7 @@ internal sealed partial class OrderCorrections : IOrderCorrections
         };
     }
 
-    private static bool IsAdmin(TransitionAdmin? admin) => admin is not null && admin.AdminId != Guid.Empty && !string.IsNullOrWhiteSpace(admin.AdminName);
+    private static bool IsAdmin([NotNullWhen(true)] TransitionAdmin? admin) => admin is not null && admin.AdminId != Guid.Empty && !string.IsNullOrWhiteSpace(admin.AdminName);
 
     private static OrderCorrectionResult Refused(TransitionRefusal refusal) => new(refusal, [], null);
 }

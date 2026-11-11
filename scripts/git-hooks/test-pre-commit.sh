@@ -67,6 +67,15 @@ check 1 "sh --env quoted"            "scripts/e3.sh"       '  --env "DB_PASSWORD
 check 1 "sh --env= form"             "scripts/e4.sh"       '  --env=DB_PASSWORD=abc12345xyz \'
 check 0 "sh -e placeholder"          "scripts/e5.sh"       '  -e "API_KEY=<YOUR_KEY_HERE>"'
 check 0 "sh -e _FILE short path"     "scripts/e6.sh"       '  -e POSTGRES_DB=shopfolio'
+# Every -e / --env option on the line is its own candidate (D-1036): a second option on the same line and an option inside a
+# one-line command are caught; the same forms with a placeholder or on a comment line pass.
+check 1 "sh second -e on one line"   "scripts/e7.sh"       '  -e POSTGRES_DB=shopfolio -e API_KEY=sk_live_9f3a1b2c3d4e \'
+check 1 "sh docker run -e one line"  "scripts/e8.sh"       'docker run --rm -e "API_KEY=sk_live_9f3a1b2c3d4e" img'
+check 1 "sh second --env= one line"  "scripts/e9.sh"       'docker run --env=POSTGRES_DB=shopfolio --env=DB_PASSWORD=abc12345xyz img'
+check 1 "sh -e bare with quoted part" "scripts/e10.sh"     'docker run -e DB_PASSWORD="abc12345 xyz" img'
+check 0 "sh docker run -e placeholder" "scripts/e11.sh"    'docker run --rm -e "API_KEY=<YOUR_KEY_HERE>" img'
+check 0 "sh second -e placeholder"   "scripts/e12.sh"      '  -e POSTGRES_DB=shopfolio -e API_KEY=changeme \'
+check 0 "sh -e on a comment line"    "scripts/e13.sh"      '# docker run --rm -e "API_KEY=sk_live_9f3a1b2c3d4e" img'
 check 1 "cs $@ prefix"               "src/v3.cs"           'var Password = $@"abc12345xyz";'
 check 1 "cs @$ prefix"               "src/v4.cs"           'var Password = @$"abc12345xyz";'
 check 1 "cs raw literal"             "src/v5.cs"           'var Password = """abc12345xyz""";'

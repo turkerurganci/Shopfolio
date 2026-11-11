@@ -51,10 +51,10 @@ internal sealed class Coupons
         }
 
         DateTimeOffset now = _time.GetUtcNow();
-        string code = definition.Code!;
+        string code = definition.Code!; // non-null: CheckDefinition refuses an empty code (FieldRequired), refused above
         Coupon coupon = definition.Kind == CouponKind.Percentage
-            ? Coupon.CreatePercentage(code, definition.Value!.Value, definition.StartDate, definition.EndDate, definition.TotalUsageLimit, now)
-            : Coupon.CreateAmount(code, definition.Value!.Value, definition.MinimumBasketAmount!.Value, definition.StartDate, definition.EndDate, definition.TotalUsageLimit, now);
+            ? Coupon.CreatePercentage(code, definition.Value!.Value, definition.StartDate, definition.EndDate, definition.TotalUsageLimit, now) // non-null: CheckDefinition refuses a percentage coupon without a value, refused above
+            : Coupon.CreateAmount(code, definition.Value!.Value, definition.MinimumBasketAmount!.Value, definition.StartDate, definition.EndDate, definition.TotalUsageLimit, now); // non-null: CheckFixedAmount refuses an amount coupon without a value or a minimum, refused above
         if (definition.Kind == CouponKind.Percentage)
         {
             coupon.MinimumBasketAmount = definition.MinimumBasketAmount;

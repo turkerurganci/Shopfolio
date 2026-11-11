@@ -36,6 +36,6 @@ internal sealed class AnnouncementReader
         ContentShown shown = ContentVisibility.Decide(announcement, audience, today);
         return shown == ContentShown.Hidden
             ? null
-            : new AnnouncementView(announcement.Text!, announcement.LinkUrl, IsDraft: shown == ContentShown.ShownWithDraftBand);
+            : new AnnouncementView(announcement.Text!, announcement.LinkUrl, IsDraft: shown == ContentShown.ShownWithDraftBand); // non-null: the guard above returns early when the text is not filled
     }
 }

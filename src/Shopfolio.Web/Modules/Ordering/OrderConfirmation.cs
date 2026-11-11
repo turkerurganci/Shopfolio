@@ -247,8 +247,8 @@ internal sealed class OrderConfirmation
 
         order.FreezeShippingFeeVatBreakdown(_catalog.SplitShippingFee(order.ShippingFee, [.. items.Select(BasisLineOf)]));
         order.FreezeShippingPromise(current.ShippingPromise);
-        string formText = (await _settings.GetLegalTextVersionAsync(versions.PreInformationForm!.Value, ct))!.Text;
-        string contractText = (await _settings.GetLegalTextVersionAsync(versions.DistanceSalesContract!.Value, ct))!.Text;
+        string formText = (await _settings.GetLegalTextVersionAsync(versions.PreInformationForm!.Value, ct))!.Text; // non-null: the confirmation step's check is Ready, so both versions exist and are published
+        string contractText = (await _settings.GetLegalTextVersionAsync(versions.DistanceSalesContract!.Value, ct))!.Text; // non-null: the confirmation step's check is Ready, so both versions exist and are published
         (string form, string contract) = OrderDocuments.Produce(order, items, formText, contractText);
         order.FreezeDocuments(form, contract);
 

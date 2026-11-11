@@ -170,12 +170,12 @@ internal sealed class LegalTexts
 
         // The identity tokens stay in the published text: the reads fill them from the current identity (04 9.19.11), so a version is never frozen with a stale or empty value.
         LegalTextVersion row = LegalTextVersion.CreatePublished(type, (last ?? 0) + 1, now, draft.Text, now);
-        row.HostingLocation = type == LegalTextType.PrivacyNotice ? draft.HostingLocation!.Trim() : null;
+        row.HostingLocation = type == LegalTextType.PrivacyNotice ? draft.HostingLocation!.Trim() : null; // non-null: an empty hosting location of the privacy notice is refused above (FieldRequired)
         _db.LegalTextVersions.Add(row);
 
-        AuditDetails details = new(DisplayNameOf(type), values: [new AuditValue("versionNumber", row.VersionNumber!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))]);
+        AuditDetails details = new(DisplayNameOf(type), values: [new AuditValue("versionNumber", row.VersionNumber!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))]); // non-null: CreatePublished sets the version number
         await _trail.WriteAsync(new AuditEntry(AuditOperation.PublishLegalText, nameof(LegalTextVersion), row.Id, details), ct);
-        return LegalTextPublishResult.Published(row.VersionNumber!.Value, row.Id);
+        return LegalTextPublishResult.Published(row.VersionNumber!.Value, row.Id); // non-null: CreatePublished sets the version number
     }
 
     public async Task<LegalTextVersionIds> GetCurrentVersionIdsAsync(CancellationToken ct)
@@ -199,7 +199,7 @@ internal sealed class LegalTexts
     {
         LegalTextVersionInfo? info = await _db.LegalTextVersions.AsNoTracking()
             .Where(l => l.Id == versionId && l.PublishedAt != null)
-            .Select(l => new LegalTextVersionInfo(l.Id, l.LegalTextType, l.VersionNumber!.Value, l.PublishedAt!.Value, l.Text, l.HostingLocation))
+            .Select(l => new LegalTextVersionInfo(l.Id, l.LegalTextType, l.VersionNumber!.Value, l.PublishedAt!.Value, l.Text, l.HostingLocation)) // non-null: the Where above keeps only published rows, which carry a number and a time
             .SingleOrDefaultAsync(ct);
         return info is null ? null : await WithIdentityAsync(info, ct);
     }
@@ -209,7 +209,7 @@ internal sealed class LegalTexts
         LegalTextVersionInfo? info = await _db.LegalTextVersions.AsNoTracking()
             .Where(l => l.LegalTextType == type && l.PublishedAt != null)
             .OrderByDescending(l => l.VersionNumber)
-            .Select(l => new LegalTextVersionInfo(l.Id, l.LegalTextType, l.VersionNumber!.Value, l.PublishedAt!.Value, l.Text, l.HostingLocation))
+            .Select(l => new LegalTextVersionInfo(l.Id, l.LegalTextType, l.VersionNumber!.Value, l.PublishedAt!.Value, l.Text, l.HostingLocation)) // non-null: the Where above keeps only published rows, which carry a number and a time
             .FirstOrDefaultAsync(ct);
         return info is null ? null : await WithIdentityAsync(info, ct);
     }

@@ -180,11 +180,11 @@ internal static partial class CustomerNoticeValues
         List<(string Name, string Value)> entries = [];
         if (listed)
         {
-            entries.Add((Carrier, shipped.Carrier!));
+            entries.Add((Carrier, shipped.Carrier!)); // non-null: listed means the carrier is not null or white space
         }
         else
         {
-            entries.Add((OtherCarrierName, shipped.OtherCarrierName!));
+            entries.Add((OtherCarrierName, shipped.OtherCarrierName!)); // non-null: listed == other throws above, so here other holds and the name is filled
         }
 
         if (!string.IsNullOrWhiteSpace(shipped.TrackingNumber))

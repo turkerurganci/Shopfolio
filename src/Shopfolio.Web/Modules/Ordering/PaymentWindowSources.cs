@@ -63,7 +63,7 @@ internal sealed class TransferPaymentReminder : ScheduledOrderTransition
         return await services.GetRequiredService<AppDbContext>().Orders.AsNoTracking()
             .Where(PaymentWindowRules.TransferReminderDue(now))
             .OrderBy(o => o.PaymentReminderAt).ThenBy(o => o.Id)
-            .Select(o => new DueRecord(o.Id, o.PaymentReminderAt!.Value))
+            .Select(o => new DueRecord(o.Id, o.PaymentReminderAt!.Value)) // non-null: PaymentWindowRules.TransferReminderDue keeps only orders with a reminder time
             .ToListAsync(ct);
     }
 

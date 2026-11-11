@@ -383,7 +383,7 @@ internal sealed class PaymentModule : IPaymentModule
         await _db.Refunds.Where(r => r.RefundType == RefundType.DefectClaimRescission && r.OrderItemId != null && ids.Contains(r.OrderItemId.Value)).LoadAsync(ct);
         return _db.Refunds.Local
             .Where(r => r.RefundType == RefundType.DefectClaimRescission && r.VoidedAt is null && r.OrderItemId is { } item && ids.Contains(item))
-            .GroupBy(r => r.OrderItemId!.Value)
+            .GroupBy(r => r.OrderItemId!.Value) // non-null: the Where above keeps only refunds with an item (and Value throws on a null)
             .ToDictionary(
                 g => g.Key,
                 g => new RescindedShares(g.Sum(r => r.Quantity ?? 0), g.Sum(r => r.CouponShare ?? 0m), g.Sum(r => r.VatAmount ?? 0m)));

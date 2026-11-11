@@ -48,7 +48,7 @@ internal sealed class DigitalFileUploads
             return Task.FromResult(UploadStartResult.DiskFull);
         }
 
-        DigitalFile row = DigitalFile.Create(EntityIds.NewStorageKey(), fileName!, sizeBytes, _time.GetUtcNow());
+        DigitalFile row = DigitalFile.Create(EntityIds.NewStorageKey(), fileName!, sizeBytes, _time.GetUtcNow()); // non-null: IsValidName refuses an empty name, refused above
         _db.DigitalFiles.Add(row);
         return Task.FromResult(UploadStartResult.Started(row.Id));
     }

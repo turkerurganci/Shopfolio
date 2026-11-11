@@ -91,7 +91,7 @@ internal static class AddressFieldRules
             return null;
         }
 
-        return new AddressValues(recipient, provinceId!.Value, districtText, line);
+        return new AddressValues(recipient, provinceId!.Value, districtText, line); // non-null: a missing province adds an error, refused by the errors.Count check above
     }
 
     /// <summary>

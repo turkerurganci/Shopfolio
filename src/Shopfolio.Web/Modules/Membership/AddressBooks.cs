@@ -177,7 +177,7 @@ internal sealed class AddressBooks
             bool phoneOk = AddressFieldRules.TryStorePhone(nameof(OrderAddressRequest.ShippingPhone), phoneText, true, errors, out string? phone);
             if (shippingFour is not null && phoneOk)
             {
-                shipping = new ShippingAddressSnapshot(shippingFour.RecipientName, phone!, shippingFour.ProvinceId, shippingFour.District, shippingFour.AddressLine);
+                shipping = new ShippingAddressSnapshot(shippingFour.RecipientName, phone!, shippingFour.ProvinceId, shippingFour.District, shippingFour.AddressLine); // non-null: TryStorePhone with required true returns true only with a stored phone
             }
         }
 
@@ -207,9 +207,9 @@ internal sealed class AddressBooks
         if (need.AsksShipping && typedShipping && request.SaveToAddressBook && member is { } keeper)
         {
             // Never on its own (K-680): only the member's choice writes the typed address to the book, under the name given, or the recipient's name when none is given.
-            string name = AddressFieldRules.Text(request.SavedAddressName) ?? shipping!.RecipientName;
+            string name = AddressFieldRules.Text(request.SavedAddressName) ?? shipping!.RecipientName; // non-null: a requested shipping address that is missing is refused above (AsksShipping and shipping null)
             AddressBook saved = AddressBook.Create(
-                keeper, name, shipping!.RecipientName, shipping.ProvinceId, shipping.District, shipping.AddressLine, shipping.Phone, _time.GetUtcNow());
+                keeper, name, shipping!.RecipientName, shipping.ProvinceId, shipping.District, shipping.AddressLine, shipping.Phone, _time.GetUtcNow()); // non-null: a requested shipping address that is missing is refused above (AsksShipping and shipping null)
             _db.AddressBooks.Add(saved);
             savedEntryId = saved.Id;
         }

@@ -262,7 +262,7 @@ internal sealed class PayTrPaymentGateway : IPaymentGateway
         using HttpResponseMessage response = await client.PostAsync(PayTrStartForm.TokenAddress, content, ct);
         string body = await response.Content.ReadAsStringAsync(ct);
         PaymentStartResult? result = ReadAnswer((int)response.StatusCode, body, fields, SecondTokenReasonTexts, out ExternalCallFailure? failure);
-        return result ?? _runner.Failed<PaymentStartResult>(IntegrationOperation.PaymentStart, failure!);
+        return result ?? _runner.Failed<PaymentStartResult>(IntegrationOperation.PaymentStart, failure ?? throw new InvalidOperationException("A token answer read as no result names its failure."));
     }
 
     private async Task<PaymentQueryResult> PostQueryAsync(IReadOnlyList<KeyValuePair<string, string>> fields, string merchantOid, CancellationToken ct)

@@ -81,7 +81,7 @@ internal sealed partial class AfterSalesModule
         // A customer who still owes the firm an IBAN holds the work: the item waits for the customer, not the firm (02 10.6.1; K-525).
         HashSet<Guid> awaitingIban = [.. await _db.RefundIbanRequests.AsNoTracking()
             .Where(r => r.OrderItemId != null && itemIds.Contains(r.OrderItemId.Value) && r.FulfilledAt == null && r.ClosedAt == null)
-            .Select(r => r.OrderItemId!.Value).Distinct().ToListAsync(ct)];
+            .Select(r => r.OrderItemId!.Value).Distinct().ToListAsync(ct)]; // non-null: the Where above keeps only requests with an item
         Dictionary<Guid, RefundWorkItemFacts> facts = (await _ordering.FindRefundWorkItemFactsAsync(itemIds, ct)).ToDictionary(f => f.OrderItemId);
 
         // A cancellation whose closing transition was corrected is undone: nothing is owed for it (06 4.22; 02 10.4.6).
@@ -111,13 +111,13 @@ internal sealed partial class AfterSalesModule
 
         // An open request names the refund, or names the refund's item before any refund is linked (02 10.6.1; K-686).
         Guid[] ids = [.. refunds.Select(r => r.RefundId).Distinct()];
-        Guid[] items = [.. refunds.Where(r => r.OrderItemId != null).Select(r => r.OrderItemId!.Value).Distinct()];
+        Guid[] items = [.. refunds.Where(r => r.OrderItemId != null).Select(r => r.OrderItemId!.Value).Distinct()]; // non-null: the Where on this line keeps only requests with an item
         var open = await _db.RefundIbanRequests.AsNoTracking()
             .Where(r => r.FulfilledAt == null && r.ClosedAt == null
                 && ((r.RefundId != null && ids.Contains(r.RefundId.Value)) || (r.RefundId == null && r.OrderItemId != null && items.Contains(r.OrderItemId.Value))))
             .Select(r => new { r.RefundId, r.OrderItemId }).ToListAsync(ct);
-        HashSet<Guid> byRefund = [.. open.Where(r => r.RefundId != null).Select(r => r.RefundId!.Value)];
-        HashSet<Guid> byItem = [.. open.Where(r => r.RefundId == null && r.OrderItemId != null).Select(r => r.OrderItemId!.Value)];
+        HashSet<Guid> byRefund = [.. open.Where(r => r.RefundId != null).Select(r => r.RefundId!.Value)]; // non-null: the Where on this line keeps only requests with a refund
+        HashSet<Guid> byItem = [.. open.Where(r => r.RefundId == null && r.OrderItemId != null).Select(r => r.OrderItemId!.Value)]; // non-null: the Where on this line keeps only requests with an item
         HashSet<Guid> waiting = [.. refunds.Where(r => byRefund.Contains(r.RefundId) || (r.OrderItemId is { } item && byItem.Contains(item))).Select(r => r.RefundId)];
         return waiting;
     }

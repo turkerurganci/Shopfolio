@@ -109,7 +109,7 @@ internal sealed class DefectClaimConfiguration : IEntityTypeConfiguration<Defect
         builder.Property(d => d.Description).HasColumnType("text");
         builder.Property(d => d.DefectClaimStatus).HasDefaultValue(DefectClaimStatus.Open);
         // The payload mapping takes the nullable builder; the list itself is never null (the default is the empty list).
-        builder.Property(d => d.StatusHistory)!.HasPayloadConversion().HasDefaultValueSql("'[]'::jsonb");
+        builder.Property(d => d.StatusHistory)!.HasPayloadConversion().HasDefaultValueSql("'[]'::jsonb"); // non-null: the payload mapping takes the nullable builder of the same property
         builder.Property(d => d.ReturnRecipientName).HasColumnType("text");
         builder.Property(d => d.ReturnDistrict).HasColumnType("text");
         builder.Property(d => d.ReturnAddressLine).HasColumnType("text");

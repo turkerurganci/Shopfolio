@@ -122,7 +122,7 @@ internal sealed partial class OrderTransitions
         // The order's line: a preparing order with no open item left closes at once (S4, reason Closure, no B-7); a shipped or returned order waits for the return
         // and the firm's closing (K-592). The closure rule decides; the termination itself writes no transition.
         bool shipped = order.OrderStatus is not (OrderStatus.Placed or OrderStatus.Preparing);
-        ClosureResult closure = await EvaluateClosureAsync(order, actor!, ct);
+        ClosureResult closure = await EvaluateClosureAsync(order, actor, ct);
 
         // 1.4.4.5: an item not shipped gives its units back to stock at once; goods coming back from the carrier are added by the receipt step. The coupon right goes
         // back when the order is finished (OrderCounters.IsCouponReturnDueAsync).

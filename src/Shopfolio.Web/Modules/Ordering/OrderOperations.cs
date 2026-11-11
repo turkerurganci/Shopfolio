@@ -177,7 +177,7 @@ internal sealed class OrderOperations : IOrderOperations
     private async Task<bool> HasCorrectableTransitionAsync(Order order, List<OrderItem> items, CancellationToken ct)
     {
         List<TransitionRecord> records = await _db.TransitionRecords.AsNoTracking().Where(t => t.OrderId == order.Id).ToListAsync(ct);
-        HashSet<Guid> corrected = [.. records.Where(r => r.CorrectedTransitionRecordId is not null).Select(r => r.CorrectedTransitionRecordId!.Value)];
+        HashSet<Guid> corrected = [.. records.Where(r => r.CorrectedTransitionRecordId is not null).Select(r => r.CorrectedTransitionRecordId!.Value)]; // non-null: the Where before it keeps only records that correct another
         TransitionCode[] shipmentCorrectable = [TransitionCode.S3, TransitionCode.S4, TransitionCode.S5, TransitionCode.S6, TransitionCode.S7, TransitionCode.S8, TransitionCode.S9];
 
         TransitionRecord? latest = records
@@ -186,7 +186,7 @@ internal sealed class OrderOperations : IOrderOperations
             .FirstOrDefault();
         if (latest is not null
             && shipmentCorrectable.Contains(latest.TransitionCode)
-            && TransitionTable.FindShipment(latest.TransitionCode)!.To == order.OrderStatus
+            && TransitionTable.FindShipment(latest.TransitionCode)!.To == order.OrderStatus // non-null: the Where above keeps only records whose code is a shipment transition
             && (latest.TransitionCode is not (TransitionCode.S3 or TransitionCode.S4 or TransitionCode.S9) || latest.ActorKind == ActorKind.Admin))
         {
             return true;

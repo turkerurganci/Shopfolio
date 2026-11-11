@@ -82,7 +82,7 @@ internal sealed class InboundNotificationDisposalPart : IDisposalPart
             List<RowOfOrder> page = await db.InboundNotificationRecords.AsNoTracking()
                 .Where(n => n.OrderId != null && n.CreatedAt < before && !passed.Contains(n.Id))
                 .OrderBy(n => n.Id)
-                .Select(n => new RowOfOrder(n.Id, n.OrderId!.Value))
+                .Select(n => new RowOfOrder(n.Id, n.OrderId!.Value)) // non-null: the Where above keeps only records with an order
                 .Take(max)
                 .ToListAsync(ct);
             if (page.Count == 0)

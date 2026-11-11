@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
@@ -25,13 +27,13 @@ internal sealed partial class OrderTransitions
         ArgumentNullException.ThrowIfNull(request);
         if (!TryCancellationActor(request, out TransitionActor? actor, out TransitionReasons? reasons, out TransitionRefusal? refusal))
         {
-            return Refused(refusal!.Value);
+            return Refused(refusal.Value);
         }
 
         bool unpaid = false;
         TransitionOutcome outcome = await ApplyChosenAsync(
             request.OrderId,
-            actor!,
+            actor,
             reasons,
             request.ExpectedVersion,
             order =>
@@ -79,7 +81,7 @@ internal sealed partial class OrderTransitions
         // The closure's reason is the closing itself; the firm chooses none, and B-7 does not go (03 1.2 S9).
         TransitionOutcome outcome = await ApplyChosenAsync(
             request.OrderId,
-            actor!,
+            actor,
             TransitionReasons.OfKind(TransitionReason.Closure),
             request.ExpectedVersion,
             _ => new ChosenTransitions([TransitionCode.S9]),
@@ -111,7 +113,7 @@ internal sealed partial class OrderTransitions
         DeliveryDateObstacle? dateObstacle = null;
         TransitionOutcome outcome = await ApplyChosenAsync(
             request.OrderId,
-            actor!,
+            actor,
             null,
             request.ExpectedVersion,
             _ => new ChosenTransitions([TransitionCode.S6]),
@@ -158,7 +160,7 @@ internal sealed partial class OrderTransitions
         // The core reads the closure rule at the end: a returned shipment whose physical items are all closed and whose rest is delivered ends in S11 (03 1.2 S11).
         TransitionOutcome outcome = await ApplyChosenAsync(
             request.OrderId,
-            actor!,
+            actor,
             null,
             request.ExpectedVersion,
             _ => new ChosenTransitions([TransitionCode.S7]),
@@ -195,7 +197,7 @@ internal sealed partial class OrderTransitions
         List<OrderItem> sent = [];
         TransitionOutcome outcome = await ApplyChosenAsync(
             request.OrderId,
-            actor!,
+            actor,
             null,
             request.ExpectedVersion,
             _ => new ChosenTransitions([code]),
@@ -212,7 +214,7 @@ internal sealed partial class OrderTransitions
         }
 
         Order order = await _db.Orders.SingleAsync(o => o.Id == request.OrderId, ct);
-        order.RecordShipment(shipment!.Carrier, shipment.OtherCarrierName, shipment.TrackingNumber, shipment.IsOwnVehicleDelivery);
+        order.RecordShipment(shipment.Carrier, shipment.OtherCarrierName, shipment.TrackingNumber, shipment.IsOwnVehicleDelivery);
         await QueueNoticeAsync(
             request.OrderId,
             new ShippedNotice(request.OrderId, shipment.Carrier, shipment.OtherCarrierName, shipment.TrackingNumber, shipment.IsOwnVehicleDelivery),
@@ -298,9 +300,9 @@ internal sealed partial class OrderTransitions
     /// <summary>The actor and the reasons of a cancellation request (03 1.2; 06 4.19), checked before anything is read: the customer's has neither, the firm's both, the system's the kind.</summary>
     private static bool TryCancellationActor(
         CancelOrderRequest request,
-        out TransitionActor? actor,
+        [NotNullWhen(true)] out TransitionActor? actor,
         out TransitionReasons? reasons,
-        out TransitionRefusal? refusal)
+        [NotNullWhen(false)] out TransitionRefusal? refusal)
     {
         actor = null;
         reasons = null;
@@ -339,7 +341,7 @@ internal sealed partial class OrderTransitions
                     return false;
                 }
 
-                reasons = TransitionReasons.OfFirm(firmReason, firmReason == CancellationReason.Other ? request.ReasonNote!.Trim() : null);
+                reasons = TransitionReasons.OfFirm(firmReason, firmReason == CancellationReason.Other ? request.ReasonNote!.Trim() : null); // non-null: FirmReasonRules.IsComplete just above requires the note on Other
                 return true;
 
             case ActorKind.System:
@@ -366,7 +368,7 @@ internal sealed partial class OrderTransitions
         }
     }
 
-    private static bool TryAdminActor(TransitionAdmin? admin, out TransitionActor? actor)
+    private static bool TryAdminActor([NotNullWhen(true)] TransitionAdmin? admin, [NotNullWhen(true)] out TransitionActor? actor)
     {
         actor = null;
         if (admin is null || admin.AdminId == Guid.Empty || string.IsNullOrWhiteSpace(admin.AdminName))
@@ -383,7 +385,7 @@ internal sealed partial class OrderTransitions
     /// with the tracking number. A listed code is one of the catalog's active companies (08 2.4); the values are trimmed, and the trimmed tracking number and
     /// company name are within <see cref="ShipmentLimits"/> (09 3.5; K-1586).
     /// </summary>
-    internal static bool TryNormalizeShipment(ShipmentInfo info, out ShipmentInfo? normalized)
+    internal static bool TryNormalizeShipment(ShipmentInfo info, [NotNullWhen(true)] out ShipmentInfo? normalized)
     {
         normalized = null;
         string? carrier = Trimmed(info.Carrier);

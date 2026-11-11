@@ -17,7 +17,7 @@ internal readonly record struct ProtectedValueResult
     public bool IsValid { get; }
 
     /// <summary>The text that was protected. Reading it from an invalid result is a programming error.</summary>
-    public string Payload => IsValid ? _payload! : throw new InvalidOperationException("An invalid protected value has no payload.");
+    public string Payload => IsValid ? _payload! : throw new InvalidOperationException("An invalid protected value has no payload."); // non-null: a valid result is built only by the constructor that sets the payload
 
     public static ProtectedValueResult Valid(string payload)
     {

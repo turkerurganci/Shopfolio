@@ -21,7 +21,7 @@ internal static class ImageAltText
     {
         ArgumentNullException.ThrowIfNull(optionValues);
         string name = NameOf(productName);
-        List<string> values = [.. optionValues.Where(v => !string.IsNullOrWhiteSpace(v)).Select(v => v!.Trim())];
+        List<string> values = [.. optionValues.Where(v => !string.IsNullOrWhiteSpace(v)).Select(v => v!.Trim())]; // non-null: the Where on this line keeps only filled values
         return values.Count == 0 ? name : name + Dash + string.Join(ValueSeparator, values);
     }
 

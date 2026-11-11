@@ -115,7 +115,7 @@ internal sealed partial class AfterSalesModule
             .Select(w => new { w.Id, w.OrderItemId, w.Quantity, w.DeclarationDate, w.IsDeliveredBeforeDeclaration }).ToListAsync(ct);
         Guid[] withdrawalIds = [.. withdrawals.Select(w => w.Id)];
         Dictionary<Guid, int> received = await _db.Returns.AsNoTracking().Where(r => r.WithdrawalId != null && withdrawalIds.Contains(r.WithdrawalId.Value))
-            .GroupBy(r => r.WithdrawalId!.Value).Select(g => new { g.Key, Sum = g.Sum(r => r.Quantity) }).ToDictionaryAsync(g => g.Key, g => g.Sum, ct);
+            .GroupBy(r => r.WithdrawalId!.Value).Select(g => new { g.Key, Sum = g.Sum(r => r.Quantity) }).ToDictionaryAsync(g => g.Key, g => g.Sum, ct); // non-null: the Where above keeps only receipts with a withdrawal
         Dictionary<Guid, int> rejected = await _db.ReturnRejections.AsNoTracking().Where(r => withdrawalIds.Contains(r.WithdrawalId))
             .GroupBy(r => r.WithdrawalId).Select(g => new { g.Key, Sum = g.Sum(r => r.Quantity) }).ToDictionaryAsync(g => g.Key, g => g.Sum, ct);
         Dictionary<Guid, int> notReturned = await _db.NotReturnedClosures.AsNoTracking().Where(n => withdrawalIds.Contains(n.WithdrawalId) && n.ReopenedAt == null)
@@ -130,7 +130,7 @@ internal sealed partial class AfterSalesModule
         var rows = await _db.LateDeliveryTerminations.AsNoTracking().Where(t => itemIds.Contains(t.OrderItemId)).Select(t => new { t.Id, t.OrderItemId, t.Quantity }).ToListAsync(ct);
         Guid[] ids = [.. rows.Select(t => t.Id)];
         Dictionary<Guid, int> received = await _db.Returns.AsNoTracking().Where(r => r.LateDeliveryTerminationId != null && ids.Contains(r.LateDeliveryTerminationId.Value))
-            .GroupBy(r => r.LateDeliveryTerminationId!.Value).Select(g => new { g.Key, Sum = g.Sum(r => r.Quantity) }).ToDictionaryAsync(g => g.Key, g => g.Sum, ct);
+            .GroupBy(r => r.LateDeliveryTerminationId!.Value).Select(g => new { g.Key, Sum = g.Sum(r => r.Quantity) }).ToDictionaryAsync(g => g.Key, g => g.Sum, ct); // non-null: the Where above keeps only receipts with a termination
         return [.. rows.Select(t => new TerminationStanding(t.OrderItemId, t.Quantity, received.GetValueOrDefault(t.Id)))];
     }
 

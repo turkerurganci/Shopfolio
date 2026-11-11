@@ -104,7 +104,7 @@ internal sealed class SalesPeriodReader
                 _db.Orders.AsNoTracking().Where(o => o.ShippingPeriod != null),
                 t => t.OrderId,
                 o => o.Id,
-                (t, o) => new { OrderId = o.Id, Period = o.ShippingPeriod!.Value, ApprovedAt = t.CreatedAt })
+                (t, o) => new { OrderId = o.Id, Period = o.ShippingPeriod!.Value, ApprovedAt = t.CreatedAt }) // non-null: the joined orders are only those with a shipping period (the Where above)
             .ToListAsync(ct);
 
         var ending = approvals

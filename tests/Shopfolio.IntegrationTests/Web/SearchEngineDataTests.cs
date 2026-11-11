@@ -333,10 +333,10 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
         await using Host host = new(_database.Dsn, kestrel);
 
         Answer panel = await GetAsync(host, "/panel/urun-listesi", panel: true);
-        Answer filtered = await GetAsync(host, "/kategori/masalar?minPrice=1");
+        Answer filtered = await GetAsync(host, "/sss/kategori-listesi/masalar?minPrice=1");
         Answer search = await GetAsync(host, "/arama?search=masa");
-        Answer category = await GetAsync(host, "/kategori/masalar");
-        Answer secondPage = await GetAsync(host, "/kategori/masalar?page=2");
+        Answer category = await GetAsync(host, "/sss/kategori-listesi/masalar");
+        Answer secondPage = await GetAsync(host, "/sss/kategori-listesi/masalar?page=2");
 
         Assert.All([panel, filtered, search, category, secondPage], a => Assert.Equal(HttpStatusCode.OK, a.Status));
         foreach (Answer closed in new[] { panel, filtered, search })
@@ -377,7 +377,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.NotFound, notFound.Status);
         Assert.Equal("noindex", Assert.Single(notFound.Message.Headers.GetValues("X-Robots-Tag")));
         Assert.False(home.Message.Headers.Contains("X-Robots-Tag"));
-        Assert.False((await GetAsync(host, "/kategori/masalar")).Message.Headers.Contains("X-Robots-Tag"));
+        Assert.False((await GetAsync(host, "/sss/kategori-listesi/masalar")).Message.Headers.Contains("X-Robots-Tag"));
     }
 
     // ---- KK6: no firm field ----

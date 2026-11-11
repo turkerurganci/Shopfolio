@@ -280,7 +280,7 @@ public sealed class CorporateContentTypesTests
         Assert.Equal(["CompanyIdentity", "Branches", "ContactForm"], ContentPresentation.ContactPageParts);
         Assert.DoesNotContain(Enum.GetNames<ContentRecordKind>(), n => n.Contains("Contact", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(AddressRules.ContactPage, AddressRules.FixedPages);
-        Assert.Equal(typeof(ContactPageContent).GetProperties().Select(p => p.Name).Order(), ["Branches", "HasContactForm", "Identity"]);
+        Assert.Equal(typeof(ContactPageContent).GetProperties().Select(p => p.Name).Order(), ["Branches", "Identity"]);
     }
 
     // ---- KK9: the general page ----

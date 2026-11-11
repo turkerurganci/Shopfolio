@@ -36,9 +36,9 @@ internal sealed record FaqView(Guid Id, string Question, string? AnswerHtml, boo
 
 /// <summary>
 /// The contact page (02 3.27.8): not a record but a composition - the contact details and legal identity of the company, the published branches in the firm's order, and the contact form
-/// that is on the page. The firm enters no text of its own for it.
+/// that the page takes from the contact form reader (whether it is open is that reader's answer, D-812). The firm enters no text of its own for it.
 /// </summary>
-internal sealed record ContactPageContent(LegalIdentity Identity, IReadOnlyList<BranchView> Branches, bool HasContactForm);
+internal sealed record ContactPageContent(LegalIdentity Identity, IReadOnlyList<BranchView> Branches);
 
 /// <summary>
 /// The reads of the visitor-facing corporate lists (T358; 02 3.27.6, 3.27.7, 3.27.8, 3.27.11): the questions in one list in the firm's order - a heading to group them under does not
@@ -157,7 +157,7 @@ internal sealed class ContentReaders
                 r.ImageId,
                 r.ImageId is null ? null : GalleryText.Choose(r.ImageAltText, () => GalleryText.Generated(r.Name, 1, 1)))),
         ];
-        return new ContactPageContent(identity, branches, HasContactForm: true);
+        return new ContactPageContent(identity, branches);
     }
 
     /// <summary>The map link of a branch: the link with the fixed text when the firm gave an address of the form of a link, else nothing.</summary>

@@ -60,6 +60,8 @@
 
     --content-max-width: 72rem;
     --touch-target: 2.75rem;
+    /* The domestic production logo's width (T501; 04 5.4.18): one size in every width class - the logo is never hidden or cut. */
+    --origin-logo-width: 7.5rem;
 }
 
 *,

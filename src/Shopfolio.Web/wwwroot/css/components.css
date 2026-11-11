@@ -86,6 +86,22 @@
     font-weight: 600;
 }
 
+/* The origin line of the price block with the domestic production logo (T501; 02 3.8.5; 04 5.4.4, 5.4.18): the logo stands beside the text in every width class, wraps below it
+   when the line is too narrow, and is never hidden. */
+.origin-label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin: 0;
+}
+
+.origin-label__logo {
+    display: block;
+    width: var(--origin-logo-width);
+    height: auto;
+}
+
 /* ---- Badges, item records, panel marks, period indicator, threshold message (T542; 04 2.5, 2.6) ---- */
 
 /* A status badge always carries its text; the tone is an aid, never the meaning (02 6.1.6). The two axes of an order sit side by side and wrap on a narrow screen. */

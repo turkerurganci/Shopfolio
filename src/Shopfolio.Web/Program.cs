@@ -189,6 +189,9 @@ app.UseAuthorization();
 app.MapGroup(AddressRules.StaticArea).MapStaticAssets();
 app.MapRazorPages()
     .WithStaticAssets();
+
+// The domestic production logo (T501; 08 4.3): an asset that comes with the code, served from the assembly under /statik with a content hash in its name.
+app.MapDomesticProductionLogoEndpoint();
 app.MapLivenessEndpoint();
 app.MapStatusEndpoint();
 

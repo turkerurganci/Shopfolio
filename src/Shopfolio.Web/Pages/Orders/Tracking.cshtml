@@ -1,0 +1,62 @@
+@page "/siparis-takibi"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Orders
+@using Shopfolio.Infrastructure.SearchEngine
+@inject SearchEngineData Search
+@model Shopfolio.Pages.Orders.TrackingModel
+@*
+    E-15 (04 5.15; 07 UC-31, UC-32): heading, the two fields, the query button and the reminder of the two other ways. The neutral "not matched" message stands at the top of the form
+    (K-772), the limit message beside the button (04 5.15.4); the reminder stays where it is in both. One column in every class (04 5.15.8). Closed to search engines by its address; its head is the closed screen's (RecordPages.ClosedScreen; D-693).
+*@
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = "Sipariş takibi";
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, Model.FormOrder);
+    bool isLimited = ViewData.ModelState.TryGetValue(string.Empty, out var actionLevel) && actionLevel.Errors.Count > 0;
+    const string numberId = "Input_OrderNumber";
+    const string emailId = "Input_ContactEmail";
+}
+@section Head {
+    @Search.Head(HttpContext, RecordPages.ClosedScreen("Sipariş takibi", HttpContext.GetStorefrontFrame()?.Brand.BrandName, HttpContext.Request.Path))
+}
+<section class="order-tracking" aria-labelledby="order-tracking-title">
+    <h1 id="order-tracking-title">Sipariş takibi</h1>
+    <form method="post" asp-antiforgery="true" action="@(TrackingModel.Path)?handler=FindOrder" class="form" data-js="submit-once" novalidate>
+        @if (Model.IsNotMatched)
+        {
+            <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, TrackingModel.NotMatchedText, "order-lookup-message")' />
+        }
+        <partial name="_FormErrorSummary" model="summary" />
+        <div class="form__field">
+            <label for="@numberId">Sipariş numarası</label>
+            <input id="@numberId" name="Input.OrderNumber" value="@Model.Input.OrderNumber" autocomplete="off" required
+                   aria-invalid="@(summary.IsInvalid(numberId) ? "true" : null)" aria-describedby="@Messages.FieldMessageId(numberId)" autofocus="@(summary.AutofocusFor(numberId).Length > 0)" />
+            @foreach (FormFieldError error in summary.Fields.Where(f => f.FieldId == numberId))
+            {
+                <partial name="_Message" model='Messages.ForField(error.FieldId, error.Text)' />
+            }
+        </div>
+        <div class="form__field">
+            <label for="@emailId">E-posta</label>
+            <input id="@emailId" name="Input.ContactEmail" type="email" value="@Model.Input.ContactEmail" autocomplete="email" required
+                   aria-invalid="@(summary.IsInvalid(emailId) ? "true" : null)" aria-describedby="@Messages.FieldMessageId(emailId)" autofocus="@(summary.AutofocusFor(emailId).Length > 0)" />
+            @foreach (FormFieldError error in summary.Fields.Where(f => f.FieldId == emailId))
+            {
+                <partial name="_Message" model='Messages.ForField(error.FieldId, error.Text)' />
+            }
+        </div>
+        <div class="form__actions">
+            <button type="submit" class="button button--primary" data-busy-label="Sorgulanıyor">Siparişi göster</button>
+            @if (isLimited)
+            {
+                <partial name="_Message" model='Messages.NeutralLimit("order-lookup-limit")' />
+            }
+        </div>
+    </form>
+    <div class="order-tracking__reminder" id="order-tracking-reminder">
+        <p>Sipariş e-postanızdaki bağlantı, siparişinizi e-posta sormadan açar.</p>
+        <p>Üyeyseniz siparişinizi hesabınızdaki sipariş geçmişinden açabilirsiniz: <a href="@(HttpContext.GetStorefrontFrame()?.Account.SignInPath ?? FramePaths.SignIn)">Giriş yap</a></p>
+    </div>
+</section>

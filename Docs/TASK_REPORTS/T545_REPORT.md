@@ -1,6 +1,6 @@
 # T545 — Liste ve tablo, ürün kartı (OB-20, OB-11)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-11
 
 ---
 
@@ -60,10 +60,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-11); düzeltme 1 uygulandı, yeniden doğrulama bekliyor |
-| Bulgu sayısı | 1 (S1, KK3) |
-| Düzeltme gerekli mi | Evet — indirimli kartın ana fiyatı indirimli fiyat olmalı |
-| Bloke-etmeyen not (K) sayısı | 1 (K1: KK3 testleri gerçek okuyucunun verisiyle değil, LowestPrice = DiscountedPrice kurgusuyla) |
+| Doğrulama durumu | ✓ PASS (tur 2, 2026-11-11; head `3b867682`); tur 1 ✗ FAIL |
+| Bulgu sayısı | Tur 2: 0 (tur 1: 1 — S1, KK3; düzeltme 1 ile kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 2 — D-1177 (T534), D-1178 (T502); tur 1 K1 düzeltme 1 ile kapandı |
+
+**Tur 2 validator kanıtları (2026-11-11):** kriter 1–10 ve KK1–KK10 dalın kodundan yeniden denetlendi, hepsi ✓. İndirimli kart ana fiyatı `DiscountLine.DiscountedPrice` ("80 TL"), yanında `<s>` içinde referans ("100 TL") ve metinli işaret; tarihler fiyat satırının hemen altında tek öğe (`ListComponentPageTests.ADiscountedCard_…_KK3`). Yerel sınama: `dotnet restore` ✓, `dotnet build -warnaserror` 0 uyarı/0 hata, `dotnet format --verify-no-changes` (Web, Unit, Integration) çıkış 0, Unit 6857/6857 (Consistency ve Architecture dahil), betik testleri 4/4, Integration `ListComponentPageTests` 26/26 ve `Shopfolio.IntegrationTests.Web` 649/649 (Postgres 18, `track_commit_timestamp=on`). CI: head `3b867682` için run yok — PR main ile çakışmalı (`mergeable: CONFLICTING`; `components.css`, `admin.css`), `pull_request` tetiklenmedi; önceki head `eda1c624` run 42973551710 success. `12`'de task'a eşlenen satır yok (KP'siz ortak altyapı; `04 §2.13.4`/§2.11.5 atıflı satırlar ekran task'larının — KP-69, T502). K-notları: D-1177 — `ListCatalog.PageSizeOf(PanelContent)` 25 döner, oysa kurumsal içeriğin elle sıralı grupları sayfalanmaz (`04` 2.13.3, 9.13.3; `09 §10.5` madde 4) → T534; D-1178 — boş hâlin tek çıkış yolu birinci seviye kategori bağlantılarını taşıyamıyor (`04` 2.7.1.2) ve ana sayfa vitrininin `ShowcaseProduct` kaydı fiyat/indirim taşımıyor (kart `ProductListItem` ister) → T502.
 
 **Bulgu 1 (S1, KK3; `04` 2.11.2, `02 §3.9.2`):** `ProductCards.Of` kartın ana fiyatını `item.LowestPrice`'tan yazar; `ProductListReader` bu alana yayındaki varyantların **indirimsiz** liste fiyatını (`Min(v.Price)`) koyar, indirimli fiyat yalnız `DiscountLine.DiscountedPrice`'tadır. `_ProductCard.cshtml` `Discount.DiscountedPriceText`'i hiç çizmez. Sonuç: `DiscountAndReferenceTests.TheRunningDiscountsDates_…` verisinde (LowestPrice 50, indirimli 40, referans 50) kart "50 TL ~~50 TL~~ İndirim %20" gösterir; indirimli fiyat (40 TL) kartta yoktur. Birim ve entegrasyon testleri LowestPrice = DiscountedPrice = 80 kurgusuyla kurulduğu için hatayı göstermez. Düzeltme: indirim varken ana fiyat `DiscountedPriceText` olmalı; test gerçek okuyucu biçimindeki veriyle (LowestPrice ≠ DiscountedPrice) kurulmalı.
 
@@ -83,7 +85,7 @@
 - **Branch:** `task/T545-liste-tablo-urun-karti`
 - **Commit:** `f06b4a4b` — T545: örnek sayfa adresleri, tarama uyumu, rapor ve kayıtlar
 - **PR:** #538
-- **CI:** yapım işçisi izlemez; yardımcı yürütür
+- **CI:** yapım işçisi izlemez; yardımcı yürütür. Tur 2 doğrulamasında head `3b867682` için run yok (PR çakışmalı); merge öncesi çakışma çözülüp CI yeşili teyit edilir
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar
@@ -98,6 +100,8 @@
 |---|---|---|---|
 | 1 | Dar sınıfta panel kartında ikincil hücreler gizlenmez, etiketli satır olarak görünür (`04` 2.13.4 "ayrıntıda" der, 2.1.2 gizlemeyi yasaklar) | D-1155 | İlgili panel liste task'ı karar verir |
 | 2 | Ürün kartı görsel adresi çağıranın verdiği `CardImage`; veri katmanında görsel alanı yok | D-1156 | Sayfa task'ları doldurur |
+| 3 | `ListCatalog.PageSizeOf(PanelContent)` 25 döner; kurumsal içeriğin elle sıralı grupları sayfalanmaz (validator K-notu, tur 2) | D-1177 | Kullanan ekran yok; E-41'i çizen T534 düzeltir |
+| 4 | Boş hâlin tek çıkış yolu kategori bağlantılarını taşıyamıyor; ana sayfa vitrini kaydı (`ShowcaseProduct`) fiyat/indirim taşımıyor (validator K-notu, tur 2) | D-1178 | E-01/E-02'yi çizen T502 kapatır |
 
 ## Notlar
 

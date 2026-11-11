@@ -76,7 +76,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T544-tarih-kupon-onay-yukleme`
-- **PR:** *(PR no durum satırında)*
+- **PR:** #546
 - **CI:** yardımcı denetler
 - **Post-merge run'lar:** *(validator doldurur)*
 

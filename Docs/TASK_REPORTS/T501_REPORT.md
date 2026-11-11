@@ -85,7 +85,7 @@ Derleme: Release `-warnaserror` 0 uyarı, 0 hata; `dotnet format --verify-no-cha
 - **Commit:** `bc3ae96e` — T501: Yerli üretim logosu: rapor, DV-34 kaydı ve backlog (PR açıldığındaki head)
 - **PR:** #535
 - **CI:** run 42968341155 (head `131fe46b`) — 1–8 ve CI Gate yeşil
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** main `e7e5d3e1`: CI 42988154308 success, Publish 42988154253 success
 
 ## Dış Varsayımlar
 

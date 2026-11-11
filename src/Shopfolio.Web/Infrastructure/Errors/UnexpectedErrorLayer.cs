@@ -234,3 +234,59 @@ internal static class UnexpectedErrorAnswer
         await context.Response.WriteAsync(html, context.RequestAborted);
     }
 }
+
+/// <summary>
+/// The answer of a 404 that has no body (T504; 07 UC-06; 04 5.6; 09 15.7 item 1): the "page not found" page E-06 in the storefront's full frame. Every 404 - an address that matches nothing, a
+/// record that is not there or is closed to the visitor, a denied access (<see cref="Security.AccessDenial"/>), an invalid or past signed value - reaches it the same way and says nothing of why
+/// (07 2.3.3). It is no unexpected error: nothing is logged as an error and the status endpoint's counter does not move (07 2.7.5). The page is closed to the search engines (02 3.30.6). A machine
+/// endpoint's 404 stays empty unless the endpoint is a page a browser opens (<see cref="NotFoundPageMetadata"/>); a missing static file stays empty too (07 2.1.2). If the page cannot be drawn
+/// the answer is the plain empty 404 (05 10.3.6).
+/// </summary>
+internal static class NotFoundAnswer
+{
+    public static async Task WriteIfNotFoundAsync(HttpContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        HttpResponse response = context.Response;
+        if (response.StatusCode != StatusCodes.Status404NotFound || response.HasStarted || response.ContentLength > 0 || response.ContentType is not null)
+        {
+            return;
+        }
+
+        if (!IsPage(context))
+        {
+            return;
+        }
+
+        SearchEngine.SearchEngineClosure.MarkClosed(context);
+        if (context.RequestServices.GetService(typeof(INotFoundPageRenderer)) is not INotFoundPageRenderer renderer)
+        {
+            return;
+        }
+
+#pragma warning disable CA1031 // 09 8.1 item 6: this is inside the single catching layer, the first of the six places of the wide catch; the page's own failure is the plain 404 (05 10.3.6).
+        try
+        {
+            await renderer.RenderAsync(context);
+        }
+        catch (Exception) when (!response.HasStarted && !context.RequestAborted.IsCancellationRequested)
+        {
+            response.Clear();
+            response.StatusCode = StatusCodes.Status404NotFound;
+            response.Headers.CacheControl = Security.SecurityHeaders.NoStore;
+        }
+#pragma warning restore CA1031
+    }
+
+    // A page the browser opens: no machine endpoint (the download address excepted) and not the static files' area.
+    private static bool IsPage(HttpContext context)
+    {
+        Endpoint? endpoint = context.GetEndpoint();
+        if (endpoint?.Metadata.GetMetadata<MachineEndpointMetadata>() is not null && endpoint.Metadata.GetMetadata<NotFoundPageMetadata>() is null)
+        {
+            return false;
+        }
+
+        return !context.Request.Path.StartsWithSegments(Routing.AddressRules.StaticArea, StringComparison.OrdinalIgnoreCase);
+    }
+}

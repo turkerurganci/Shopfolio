@@ -116,7 +116,7 @@ internal sealed class SignInModel : PageModel
                     return new SignInOutcome(check, null);
                 }
 
-                return new SignInOutcome(check, await _administration.SignInAsync(adminId, input.RememberMe, presentedMark, token));
+                return new SignInOutcome(check, await _administration.SignInAsync(adminId, input.IsLongLived, presentedMark, token));
             },
             ct);
 
@@ -165,11 +165,13 @@ public sealed class SignInInput : IFormInput
     public string? Email { get; set; }
 
     [Display(Name = "Şifre")]
+    [SpecAssignedName]
     [PasswordField]
     [FieldRequired]
     public string? Password { get; set; }
 
-    public bool RememberMe { get; set; }
+    public bool IsLongLived { get; set; }
 
+    [SpecAssignedName]
     public string? ReturnUrl { get; set; }
 }

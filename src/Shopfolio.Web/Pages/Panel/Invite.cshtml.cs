@@ -125,6 +125,7 @@ public sealed class AcceptAdminInvitationInput : IFormInput
     public string? Name { get; set; }
 
     [Display(Name = "Şifre")]
+    [SpecAssignedName]
     [PasswordField]
     [FieldRequired]
     [PasswordTooWeak]

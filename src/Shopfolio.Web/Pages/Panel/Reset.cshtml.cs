@@ -204,6 +204,7 @@ public sealed class RequestPasswordResetInput : IFormInput
 public sealed class ResetPasswordInput : IFormInput
 {
     [Display(Name = "Yeni şifre")]
+    [SpecAssignedName]
     [PasswordField]
     [FieldRequired]
     [PasswordTooWeak]

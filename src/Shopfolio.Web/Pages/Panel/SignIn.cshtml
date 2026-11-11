@@ -30,8 +30,8 @@
         <partial name="_Field" model="email" />
         <partial name="_Field" model="concealedField" />
         <div class="field field--check">
-            <input type="checkbox" id="Input_RememberMe" name="Input.RememberMe" value="true" checked="@Model.Input.RememberMe">
-            <label for="Input_RememberMe">@PanelAccessTexts.RememberMeLabel</label>
+            <input type="checkbox" id="Input_IsLongLived" name="Input.IsLongLived" value="true" checked="@Model.Input.IsLongLived">
+            <label for="Input_IsLongLived">@PanelAccessTexts.RememberMeLabel</label>
         </div>
     </div>
     @if (Model.Input.ReturnUrl is not null)

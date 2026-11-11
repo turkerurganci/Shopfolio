@@ -72,7 +72,7 @@ public sealed class PanelAccessPagesTests : IAsyncLifetime
         (_, string expired, _) = await GetAsync(client, $"{SignInPath}?{NoticeParameter.ParameterName}={NoticeCode.SessionExpired}");
 
         Assert.Equal(HttpStatusCode.OK, plainStatus);
-        Assert.Contains("name=\"Input.RememberMe\"", plain, StringComparison.Ordinal);
+        Assert.Contains("name=\"Input.IsLongLived\"", plain, StringComparison.Ordinal);
         Assert.DoesNotContain("checked", RememberBoxOf(plain), StringComparison.Ordinal);
         Assert.DoesNotContain(PanelAccessTexts.SessionClosed, plain, StringComparison.Ordinal);
         Assert.Contains(PanelAccessTexts.SessionClosed, expired, StringComparison.Ordinal);
@@ -472,7 +472,7 @@ public sealed class PanelAccessPagesTests : IAsyncLifetime
 
     private static string RememberBoxOf(string html)
     {
-        int at = html.IndexOf("name=\"Input.RememberMe\"", StringComparison.Ordinal);
+        int at = html.IndexOf("name=\"Input.IsLongLived\"", StringComparison.Ordinal);
         Assert.True(at > 0, "The sign-in page has no remember-me box.");
         int start = html.LastIndexOf('<', at);
         return html[start..html.IndexOf('>', at)];

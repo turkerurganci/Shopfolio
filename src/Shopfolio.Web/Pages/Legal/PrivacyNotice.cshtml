@@ -1,0 +1,12 @@
+@page "/aydinlatma-metni"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Legal
+@model PrivacyNoticeModel
+@*
+    The privacy notice page (T507; 07 UC-16; 04 5.11): the heading and the whole text of the version in force, in the storefront frame. No form, no primary button, no message.
+*@
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = Model.View.Title;
+}
+<partial name="_LegalText" model="Model.View" />

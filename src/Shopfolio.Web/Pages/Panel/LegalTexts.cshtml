@@ -1,0 +1,58 @@
+@page "/panel/yasal-metinler"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model LegalTextsModel
+@*
+    E-47, the legal texts screen (T507; 04 9.19; 07 UC-102): the four texts' lines, the two firm-edited texts as one section each (its own form, so a conflict shows in that section only; 04 9.19.8), and
+    the two generated texts as read-only sections. No empty state: the two texts come with the product's draft (04 9.19.12). No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Yasal metinler";
+    string? typeError = ViewData.ModelState.TryGetValue("input.LegalTextType", out var typeEntry) && typeEntry.Errors.Count > 0 ? typeEntry.Errors[0].ErrorMessage : null;
+}
+<h1>Yasal metinler</h1>
+@if (Model.Notice is not null)
+{
+    <partial name="_Message" model="Model.Notice" />
+}
+@if (typeError is not null)
+{
+    MessageView typeMessage = Messages.InPlace(MessageMeaning.Error, typeError);
+    <partial name="_Message" model="typeMessage" />
+}
+<ul class="legal-texts__rows" id="legal-text-rows">
+    @foreach (LegalTextRowView row in Model.Rows)
+    {
+        <li class="legal-texts__row">
+            <span class="legal-texts__row-title">@row.Title</span>
+            <span class="legal-texts__row-state">@row.State</span>
+        </li>
+    }
+</ul>
+@if (Model.GateNote is not null)
+{
+    MessageView gateMessage = Messages.InPlace(MessageMeaning.Warning, Model.GateNote, "legal-texts-gate-note");
+    <partial name="_Message" model="gateMessage" />
+}
+<h2>Firmanın düzenlediği metinler</h2>
+@foreach (EditedLegalTextView section in Model.Edited)
+{
+    <partial name="_LegalTextSection" model="section" />
+}
+<h2>Ayarlardan üretilen metinler</h2>
+<p>Bu iki metin salt okunurdur; her biri aşağıdaki ayarlardan üretilir ve bir ayar ya da ürünün şablonu değiştiğinde yeni sürümü kendiliğinden açılır: @string.Join(", ", LegalTextsModel.FeedingSettings).</p>
+@for (int index = 0; index < Model.Generated.Count; index++)
+{
+    GeneratedLegalTextView generated = Model.Generated[index];
+    string headingId = $"generated-legal-text-{index}-heading";
+    <section class="legal-section" aria-labelledby="@headingId">
+        <h3 class="legal-section__heading" id="@headingId">@generated.Title</h3>
+        <p>@generated.VersionLine</p>
+        @if (generated.Text is not null)
+        {
+            <pre class="legal-section__generated">@generated.Text</pre>
+        }
+    </section>
+}

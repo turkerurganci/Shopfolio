@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Forms;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
@@ -92,11 +93,32 @@ internal sealed class LegalTexts
         return new LegalTextDraft(type, draft.Version, draft.Text, draft.HostingLocation);
     }
 
+    public async Task<LegalTextDraftPreview> GetDraftPreviewAsync(LegalTextType type, CancellationToken ct)
+    {
+        RequireFirmEdited(type);
+        LegalTextVersion draft = await ReadDraftAsync(type, tracked: false, ct);
+        var published = await _db.LegalTextVersions.AsNoTracking()
+            .Where(l => l.LegalTextType == type && l.PublishedAt != null)
+            .OrderByDescending(l => l.VersionNumber)
+            .Select(l => new { l.Text, l.HostingLocation })
+            .FirstOrDefaultAsync(ct);
+
+        // Raw against raw: the tokens stay in both rows, so a changed identity value alone is no difference of the draft.
+        bool differs = published is not null && (!string.Equals(published.Text, draft.Text, StringComparison.Ordinal) || !string.Equals(published.HostingLocation, draft.HostingLocation, StringComparison.Ordinal));
+        string filled = PlaceholderFiller.TokenNames(draft.Text).Any()
+            ? PlaceholderFiller.Fill(draft.Text, await IdentityValuesAsync(ct), requireAll: false)
+            : draft.Text;
+        return new LegalTextDraftPreview(filled, differs);
+    }
+
     public async Task<SettingsSaveResult> SaveDraftAsync(LegalTextType type, string text, string? hostingLocation, int formVersion, CancellationToken ct)
     {
         RequireFirmEdited(type);
         ArgumentNullException.ThrowIfNull(text);
         RequireTransaction();
+
+        // The write step cleans the long text with the closed format set (09 15.3 items 1, 4); the identity tokens are plain text and pass through. A text the cleaning empties is empty.
+        text = RichTextSanitizer.Sanitize(text);
         string? hosting = string.IsNullOrWhiteSpace(hostingLocation) ? null : hostingLocation.Trim();
         if (hosting is not null && type != LegalTextType.PrivacyNotice)
         {

@@ -781,6 +781,7 @@ public sealed partial class MembershipTests : IAsyncLifetime
         public Task<IReadOnlyList<LegalTextSummary>> GetLegalTextsAsync(CancellationToken ct) => throw new NotSupportedException();
 
         public Task<LegalTextDraft> GetLegalTextDraftAsync(LegalTextType type, CancellationToken ct) => throw new NotSupportedException();
+        public Task<LegalTextDraftPreview> GetLegalTextDraftPreviewAsync(LegalTextType type, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<SettingsSaveResult> SaveLegalTextDraftAsync(LegalTextType type, string text, string? hostingLocation, int formVersion, CancellationToken ct) => throw new NotSupportedException();
 

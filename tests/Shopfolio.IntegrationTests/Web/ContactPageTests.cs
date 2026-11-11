@@ -404,7 +404,7 @@ public sealed class ContactPageTests : IAsyncLifetime
         int start = html.IndexOf("""<ul class="error-summary__list">""", StringComparison.Ordinal);
         Assert.True(start >= 0, "The error summary is not on the page.");
         string list = html[start..html.IndexOf("</ul>", start, StringComparison.Ordinal)];
-        return [.. Regex.Matches(list, "href=\"#([^\"]+)\"",RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)).Select(m => m.Groups[1].Value)];
+        return [.. Regex.Matches(list, "href=\"#([^\"]+)\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)).Select(m => m.Groups[1].Value)];
     }
 
     // --- KK8: the limit L-4 ---

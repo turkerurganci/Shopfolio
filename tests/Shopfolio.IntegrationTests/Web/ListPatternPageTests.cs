@@ -21,7 +21,7 @@ namespace Shopfolio.IntegrationTests.Web;
 public sealed class ListPatternPageTests : IAsyncLifetime
 {
     private const string Category = "/sss/kategori-listesi/ornek";
-    private const string Search = "/arama";
+    private const string Search = "/sss/arama-listesi";
     private const string PanelList = "/panel/urun-listesi";
     private const string DateList = "/panel/tarih-araligi";
     private const string NoResult = "no-result-list";

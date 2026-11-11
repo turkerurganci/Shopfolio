@@ -75,7 +75,7 @@ public sealed partial class SecurityHeadersTests
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
 
-        string[] paths = ["/sistem/canlilik", "/urun/ornek", "/yok/boyle-bir-adres", "/statik/css/base.css", "/robots.txt", "/panel/ornek-form"];
+        string[] paths = ["/sistem/canlilik", "/sss/urun-ornegi/ornek", "/yok/boyle-bir-adres", "/statik/css/base.css", "/robots.txt", "/panel/ornek-form"];
         foreach (string path in paths)
         {
             using HttpResponseMessage response = await GetAsync(client, path, $"{CookieNames.AdminSession}={adminKey}");
@@ -181,7 +181,7 @@ public sealed partial class SecurityHeadersTests
 
         using HttpResponseMessage link = await GetAsync(client, "/geri-al/abc123");
         using HttpResponseMessage order = await GetAsync(client, $"/siparis/erisim/{accessKey}");
-        using HttpResponseMessage product = await GetAsync(client, "/urun/ornek");
+        using HttpResponseMessage product = await GetAsync(client, "/sss/urun-ornegi/ornek");
 
         Assert.Equal("no-referrer", Header(link, "Referrer-Policy"));
         Assert.Equal("no-referrer", Header(order, "Referrer-Policy"));
@@ -220,7 +220,7 @@ public sealed partial class SecurityHeadersTests
             Assert.Equal("no-store", Header(response, "Cache-Control"));
         }
 
-        foreach (string path in new[] { "/urun/ornek", "/statik/css/base.css" })
+        foreach (string path in new[] { "/sss/urun-ornegi/ornek", "/statik/css/base.css" })
         {
             using HttpResponseMessage response = await GetAsync(client, path);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

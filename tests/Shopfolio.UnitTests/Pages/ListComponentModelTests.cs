@@ -77,7 +77,7 @@ public sealed class ListComponentModelTests
     {
         DiscountLine line = new(80m, 100m, 20m, new DateOnly(2026, 11, 1), new DateOnly(2026, 11, 30));
 
-        ProductCard card = ProductCards.Of(Item(price: 80m, discount: line), null);
+        ProductCard card = ProductCards.Of(Item(price: 100m, discount: line), null);
 
         Assert.Equal("80 TL", card.PriceText);
         Assert.Equal("100 TL", card.Discount!.ReferencePriceText);
@@ -85,6 +85,28 @@ public sealed class ListComponentModelTests
         Assert.Equal("İndirim %20", card.Discount.MarkText);
         Assert.Equal("1 Kasım 2026 – 30 Kasım 2026", card.Discount.DateRangeText);
         Assert.DoesNotContain('\n', card.Discount.DateRangeText);
+    }
+
+    [Fact]
+    public void ADiscountedCard_ShowsTheDiscountedPriceAsTheMainPriceAndTheListPriceOnlyAsTheReference_KK3()
+    {
+        // The reader's shape: LowestPrice is the list price (100), the discount line carries the discounted price (80) and the reference (100).
+        DiscountLine line = new(80m, 100m, 20m, new DateOnly(2026, 11, 1), new DateOnly(2026, 11, 30));
+
+        ProductCard card = ProductCards.Of(Item(price: 100m, discount: line), null);
+
+        Assert.Equal("80 TL", card.PriceText);
+        Assert.Equal("100 TL", card.Discount!.ReferencePriceText);
+        Assert.NotEqual(card.PriceText, card.Discount.ReferencePriceText);
+    }
+
+    [Fact]
+    public void AProductWithoutADiscount_ShowsTheSinglePriceAndNoReference_KK3()
+    {
+        ProductCard card = ProductCards.Of(Item(price: 100m), null);
+
+        Assert.Equal("100 TL", card.PriceText);
+        Assert.Null(card.Discount);
     }
 
     [Fact]

@@ -27,7 +27,7 @@ public sealed class ProductGridSampleModel : PageModel
         ProductListItem[] items =
         [
             new(Guid.NewGuid(), "Düz ampul", "duz-ampul", 120m, true, null),
-            new(Guid.NewGuid(), "İndirimli lamba", "indirimli-lamba", 80m, true, line),
+            new(Guid.NewGuid(), "İndirimli lamba", "indirimli-lamba", 100m, true, line),
             new(Guid.NewGuid(), "Tükenmiş avize", "tukenmis-avize", 1500.5m, false, null),
             new(Guid.NewGuid(), "Çok uzun bir ürün adı ki kartta iki satırdan fazlasına yayılıp kesilmesi gereken bir ad", "uzun-ad", 99m, true, null),
         ];

@@ -111,6 +111,20 @@ public sealed class ListComponentPageTests
         Assert.True(row >= 0 && reference > row && mark > reference && dates > mark, "The price row holds the price, the reference and the mark; the dates line follows it.");
         Assert.Contains("class=\"product-card__price\">80 TL<", card, StringComparison.Ordinal);
         Assert.Equal(1, Regex.Count(card, "product-card__discount-dates", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
+        Assert.Equal(1, Regex.Count(card, "100 TL", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
+    }
+
+    [Fact]
+    public async Task AProductWithoutADiscount_ShowsOneStruckFreePrice_T545_KK3()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = factory.CreateClient();
+
+        string card = Cards(GridOf(await GetAsync(client, Grid)), "product-card")[0];
+
+        Assert.Contains("class=\"product-card__price\">120 TL<", card, StringComparison.Ordinal);
+        Assert.DoesNotContain("<s ", card, StringComparison.Ordinal);
+        Assert.DoesNotContain("product-card__discount", card, StringComparison.Ordinal);
     }
 
     [Fact]

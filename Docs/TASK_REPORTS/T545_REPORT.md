@@ -20,7 +20,7 @@
 |---|---|---|---|
 | 1 | Kart: görsel, ad, KDV dahil fiyat; tek eylem; sepet ve stok yok | ✓ | `ListComponentPageTests.TheGrid_DrawsOneCardPerProduct_…_KK1_KK2`, `ACard_CarriesTheImageTheNameAndThePrice_…_KK1`; `ListSourceScanTests.TheCardViews_AreOneLink_…_KK1`; `ListComponentModelTests.TheCardRecords_HaveNoCartAndNoStockCountAndNoRatingMember_KK1` |
 | 2 | Ürün başına tek kart | ✓ | `ListComponentModelTests.TheCards_AreOnePerListItem_InTheListsOrder_KK2`; `CategoryTreeAndListsTests` (varyant başına satır yok) |
-| 3 | İndirim satırı, Tükendi kalır | ✓ | `ADiscountedCard_ShowsTheReferencePriceBesideThePriceAndTheDatesInOneLine…_KK3`, `ASoldOutProduct_StaysInTheListAndSaysTukendi_…_KK3` |
+| 3 | İndirim satırı, Tükendi kalır | ✓ | `ADiscountedCard_ShowsTheReferencePriceBesideThePriceAndTheDatesInOneLine…_KK3` (gerçek okuyucu biçimi: LowestPrice 100, indirimli 80, referans 100; ana fiyat "80 TL"), `ADiscountedCard_ShowsTheDiscountedPriceAsTheMainPrice…_KK3`, `AProductWithoutADiscount_*_KK3`, `ASoldOutProduct_StaysInTheListAndSaysTukendi_…_KK3` |
 | 4 | İçerik kartı; görselsiz yalnız metin; fiyat/sepet yok | ✓ | `TheContentList_FollowsTheGivenOrder_ARecordWithoutAnImageIsTextOnly_…_KK4_KK6`; `ListComponentModelTests.AContentCard_CarriesTheImage…_NoPriceMember_KK4` |
 | 5 | Izgara 2/3/4; ortak kart | ✓ | `ListSourceScanTests.TheCardGrid_IsTwoColumnsNarrow_ThreeMedium_FourWide_KK5`, `TheRelatedProductsAndTheShowcase_UseTheGridAndTheCard…_KK5` |
 | 6 | Sabit düzen, sıralama yok; içerik panel sırası | ✓ | `ListSourceScanTests.TheListViews_HaveNoSortControl_KK6`; `ListComponentPageTests.TheGrid_KeepsTheListsOrder_AndThePageHasNoSortControl_…_KK6`; veri katmanı `CategoryTreeAndListsTests.TheLists_HaveNoSortParameter…` |
@@ -60,12 +60,16 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-11) |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-11); düzeltme 1 uygulandı, yeniden doğrulama bekliyor |
 | Bulgu sayısı | 1 (S1, KK3) |
 | Düzeltme gerekli mi | Evet — indirimli kartın ana fiyatı indirimli fiyat olmalı |
 | Bloke-etmeyen not (K) sayısı | 1 (K1: KK3 testleri gerçek okuyucunun verisiyle değil, LowestPrice = DiscountedPrice kurgusuyla) |
 
 **Bulgu 1 (S1, KK3; `04` 2.11.2, `02 §3.9.2`):** `ProductCards.Of` kartın ana fiyatını `item.LowestPrice`'tan yazar; `ProductListReader` bu alana yayındaki varyantların **indirimsiz** liste fiyatını (`Min(v.Price)`) koyar, indirimli fiyat yalnız `DiscountLine.DiscountedPrice`'tadır. `_ProductCard.cshtml` `Discount.DiscountedPriceText`'i hiç çizmez. Sonuç: `DiscountAndReferenceTests.TheRunningDiscountsDates_…` verisinde (LowestPrice 50, indirimli 40, referans 50) kart "50 TL ~~50 TL~~ İndirim %20" gösterir; indirimli fiyat (40 TL) kartta yoktur. Birim ve entegrasyon testleri LowestPrice = DiscountedPrice = 80 kurgusuyla kurulduğu için hatayı göstermez. Düzeltme: indirim varken ana fiyat `DiscountedPriceText` olmalı; test gerçek okuyucu biçimindeki veriyle (LowestPrice ≠ DiscountedPrice) kurulmalı.
+
+### Düzeltme 1 (2026-11-11)
+
+`ProductCards.Of` indirim varken ana fiyatı `DiscountLine.DiscountedPrice`'tan yazar (indirimsiz üründe `LowestPrice`); referans fiyat `ReferencePrice`, üstü çizili. Kartı kullanan başka yer yok (`git grep`: yalnız `_ProductGrid` ve örnek sayfa). K1: birim ve Integration örnekleri okuyucu biçimine çevrildi (LowestPrice 100, indirimli 80, referans 100) ve "80 TL" ana fiyat, "100 TL" yalnız referans olarak sınandı; indirimsiz örnek (tek fiyat, `<s>` yok) eklendi. Yeni testler: `ADiscountedCard_ShowsTheDiscountedPriceAsTheMainPriceAndTheListPriceOnlyAsTheReference_KK3`, `AProductWithoutADiscount_ShowsTheSinglePriceAndNoReference_KK3` (Unit); `AProductWithoutADiscount_ShowsOneStruckFreePrice_T545_KK3` (Integration). Öz denetim: kriter 1-10 ve KK1-KK10 yeniden denetlendi, hepsi ✓ (yukarıdaki tablolar güncel); sık FAIL listesinin T545 r1 satırı (okuyucu biçimli örnek) uygulandı. Sınama: build `-warnaserror` 0/0, format temiz (3 proje), Unit 6857/6857, Integration `ListComponentPageTests` 26/26 ve `StorefrontFrameTests` 23/23.
 
 ## Altyapı Değişiklikleri
 

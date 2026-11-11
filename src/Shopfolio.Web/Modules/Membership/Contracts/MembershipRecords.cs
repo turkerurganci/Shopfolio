@@ -9,7 +9,10 @@ namespace Shopfolio.Modules.Membership.Contracts;
 /// The registration form's three values (02 3.13.21): the name, the e-mail and the password, and nothing else. There is no marketing consent field here or in the account
 /// (02 3.13.18). The password is never written to a record, a log or a message (09 18.2).
 /// </summary>
-public sealed record RegisterInput(string Name, string Email, string Password)
+public sealed record RegisterInput(string Name, string Email, string Password);
+
+/// <summary>The unique index of the registration (kept apart from the form's record, which holds the three values and nothing else; 02 3.13.21).</summary>
+public static class RegistrationIndexes
 {
     /// <summary>The unique index of the e-mail (06 4.36): the caller runs the registration with it, so a second registration of the same address at the same moment is answered as the first's duplicate (09 9.4 item 3).</summary>
     public static IReadOnlyCollection<string> RetryOnUniqueIndexes { get; } = ["ix_customers_normalized_email"];

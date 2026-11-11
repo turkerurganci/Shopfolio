@@ -145,7 +145,7 @@ public sealed class RegistrationPageTests : IAsyncLifetime
         Assert.Contains(RegistrationTexts.ResendLabel, html, StringComparison.Ordinal);
         Assert.DoesNotContain("type=\"password\"", html, StringComparison.Ordinal);
         Assert.DoesNotContain("id=\"registration-sent\"", tampered, StringComparison.Ordinal);
-        Assert.Contains(RegistrationTexts.NoLongerPending, tampered, StringComparison.Ordinal);
+        Assert.Contains("id=\"registration-form\"", tampered, StringComparison.Ordinal);
         Assert.DoesNotContain("id=\"registration-sent\"", noCode, StringComparison.Ordinal);
 
         // The value is a function of the key ring and the id: no column of the account or of the links holds it (06 4.36).
@@ -293,10 +293,10 @@ public sealed class RegistrationPageTests : IAsyncLifetime
         foreach (HttpResponseMessage response in new[] { garbage, empty, late })
         {
             Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
-            Assert.DoesNotContain("notice=", response.Headers.Location!.OriginalString, StringComparison.Ordinal);
+            Assert.Equal(FramePaths.Register, response.Headers.Location!.OriginalString);
         }
 
-        Assert.Contains(RegistrationTexts.NoLongerPending, html, StringComparison.Ordinal);
+        Assert.Contains("id=\"registration-form\"", html, StringComparison.Ordinal);
         await using AppDbContext db = NewContext();
         Assert.Equal(1, await db.LinkRecords.CountAsync(Ct));
         Assert.Equal(1, await db.DispatchRecords.CountAsync(Ct));
@@ -367,6 +367,54 @@ public sealed class RegistrationPageTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.OK, unknown);
         Assert.Contains(VerificationLandings.Unrecognized.Sentence, unknownHtml, StringComparison.Ordinal);
         Assert.DoesNotContain("?handler=VerifyEmail", expiredHtml + usedHtml + supersededHtml + unknownHtml, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ThePress_OnALinkThatDoesNotHold_ShowsItsOwnState_AndWritesNothing_T514_KK7()
+    {
+        await using WebApplicationFactory<Program> factory = Open(gateOpen: true);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        (Guid expiredId, string expired) = await SeedLinkedCustomerAsync(factory, "a1@example.com", LinkType.EmailVerification, verified: false, linkEnds: DateTimeOffset.UtcNow.AddHours(-1));
+        (Guid usedId, string used) = await SeedLinkedCustomerAsync(factory, "a2@example.com", LinkType.EmailVerification, verified: false, used: true);
+        (Guid supersededId, string superseded) = await SeedLinkedCustomerAsync(factory, "a3@example.com", LinkType.EmailVerification, verified: false, superseded: true);
+        await using AppDbContext before = NewContext();
+        DateTimeOffset?[] usedBefore = await before.LinkRecords.OrderBy(l => l.CreatedAt).Select(l => l.UsedAt).ToArrayAsync(Ct);
+
+        using HttpResponseMessage expiredPost = await PostAsync(client, $"{FramePaths.Verification}/{expired}", "VerifyEmail", []);
+        using HttpResponseMessage usedPost = await PostAsync(client, $"{FramePaths.Verification}/{used}", "VerifyEmail", []);
+        using HttpResponseMessage supersededPost = await PostAsync(client, $"{FramePaths.Verification}/{superseded}", "VerifyEmail", []);
+
+        foreach (HttpResponseMessage post in new[] { expiredPost, usedPost, supersededPost })
+        {
+            Assert.Equal(HttpStatusCode.OK, post.StatusCode);
+        }
+
+        Assert.Contains(VerificationLandings.Unrecognized.Sentence, await BodyOf(expiredPost), StringComparison.Ordinal);
+        Assert.Contains("zaten doğrulandı", await BodyOf(usedPost), StringComparison.Ordinal);
+        Assert.Contains("en son gönderilen bağlantıyı kullan", await BodyOf(supersededPost), StringComparison.Ordinal);
+        await using AppDbContext db = NewContext();
+        Assert.Equal(0, await db.Customers.CountAsync(c => c.EmailVerifiedAt != null, Ct));
+        Assert.Equal(usedBefore, await db.LinkRecords.OrderBy(l => l.CreatedAt).Select(l => l.UsedAt).ToArrayAsync(Ct));
+        Assert.Equal(3, await db.Customers.CountAsync(c => c.Id == expiredId || c.Id == usedId || c.Id == supersededId, Ct));
+    }
+
+    [Fact]
+    public async Task OpeningTheLinkManyTimes_DoesNotVerify_NorBindsTheGuestOrdersOfTheAddress_T514_KK7_KK9()
+    {
+        await using WebApplicationFactory<Program> factory = Open(gateOpen: true);
+        (Guid orderId, _, _) = await TestSessions.OrderAsync(_database.Dsn, null);
+        (Guid customerId, string key) = await SeedLinkedCustomerAsync(factory, "alici@example.com", LinkType.EmailVerification, verified: false);
+
+        for (int i = 0; i < 3; i++)
+        {
+            (HttpStatusCode status, _, _) = await GetAsync(factory, $"{FramePaths.Verification}/{key}");
+            Assert.Equal(HttpStatusCode.OK, status);
+        }
+
+        await using AppDbContext db = NewContext();
+        Assert.Null(await db.Customers.Where(c => c.Id == customerId).Select(c => c.EmailVerifiedAt).SingleAsync(Ct));
+        Assert.Null(await db.LinkRecords.Select(l => l.UsedAt).SingleAsync(Ct));
+        Assert.Null(await db.Orders.Where(o => o.Id == orderId).Select(o => o.CustomerId).SingleAsync(Ct));
     }
 
     [Fact]

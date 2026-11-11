@@ -47,10 +47,6 @@ else if (!Model.IsOpen)
 }
 else
 {
-    @if (Model.PendingGone)
-    {
-        <partial name="_Message" model="Messages.InPlace(MessageMeaning.Info, RegistrationTexts.NoLongerPending)" />
-    }
     <partial name="_FormErrorSummary" model="summary" />
     <form method="post" asp-antiforgery="true" action="@(FramePaths.Register)?handler=Register" id="registration-form" data-js="submit-once">
         <partial name="_Field" model="nameField" />

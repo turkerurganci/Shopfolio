@@ -68,9 +68,6 @@ internal sealed class RegisterModel : PageModel
     /// <summary>The protected value of the pending registration, as the resend form carries it.</summary>
     public string? PendingValue { get; private set; }
 
-    /// <summary>True when a value came but it no longer names a pending registration (04 5.20.12): the form is shown with a sentence.</summary>
-    public bool PendingGone { get; private set; }
-
     /// <summary>True when the result code of the request is the resend's (03 9.1.3).</summary>
     public bool LinkWasResent { get; private set; }
 
@@ -133,7 +130,7 @@ internal sealed class RegisterModel : PageModel
 
                 return new RegistrationOutcome(result);
             },
-            MembershipRegisterInput.RetryOnUniqueIndexes,
+            RegistrationIndexes.RetryOnUniqueIndexes,
             ct);
 
         RegistrationResult registration = outcome.Result;
@@ -177,7 +174,7 @@ internal sealed class RegisterModel : PageModel
         string sent = input.PendingRegistration ?? string.Empty;
         if (!TryResolve(sent, out Guid customerId))
         {
-            return GoneAddress(sent);
+            return GoneAddress();
         }
 
         System.Net.IPAddress? ip = ClientAddress.Of(HttpContext);
@@ -203,7 +200,7 @@ internal sealed class RegisterModel : PageModel
 
         if (outcome.Result is null)
         {
-            return GoneAddress(sent);
+            return GoneAddress();
         }
 
         if (outcome.Result.IsIssued)
@@ -218,7 +215,7 @@ internal sealed class RegisterModel : PageModel
             return FormResults.AttemptLimitExceeded(this, ErrorCode.VerificationLinkLimitExceeded);
         }
 
-        return GoneAddress(sent);
+        return GoneAddress();
     }
 
     // The value is read again at every request: nothing of the registration is trusted from the address but the id the value protects.
@@ -229,7 +226,6 @@ internal sealed class RegisterModel : PageModel
         IsOpen = gate.RefusalOf(DataCollectionEntry.AccountRegistration) is null;
         PendingValue = null;
         Pending = null;
-        PendingGone = false;
         if (string.IsNullOrEmpty(pendingValue))
         {
             return;
@@ -238,7 +234,7 @@ internal sealed class RegisterModel : PageModel
         PendingRegistrationReading? pending = TryResolve(pendingValue, out Guid customerId) ? await _membership.ReadPendingRegistrationAsync(customerId, ct) : null;
         if (pending is null)
         {
-            PendingGone = true;
+            // A value that names nothing pending is ignored: the form in its empty state (07 4.20.1).
             return;
         }
 
@@ -253,9 +249,8 @@ internal sealed class RegisterModel : PageModel
         return unprotected.IsValid && Guid.TryParseExact(unprotected.Payload, "N", out customerId);
     }
 
-    // A value that names nothing pending: back to the screen, which says so and shows the form again (04 5.20.12).
-    private static IActionResult GoneAddress(string sent) =>
-        FormResults.SeeOther(FramePaths.Register + (sent.Length == 0 ? string.Empty : "?" + PendingParameter + "=" + Uri.EscapeDataString(sent)));
+    // A value that names nothing pending: back to the screen the 303 came from, without the value - the form in its empty state (07 4.20.1, 4.20.3).
+    private static IActionResult GoneAddress() => FormResults.SeeOther(FramePaths.Register);
 
     private void RememberSent(RegisterInput? input)
     {

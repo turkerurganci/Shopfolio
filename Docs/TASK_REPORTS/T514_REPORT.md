@@ -1,6 +1,6 @@
 # T514 — Kayıt ve doğrulama bağlantısının inişi (E-20, E-21)
 
-**Faz:** F5 | **Durum:** Doğrulama tur 1 ✗ FAIL, düzeltme bekliyor | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** Düzeltme 1 yapıldı, doğrulama tur 2 bekliyor | **Tarih:** 2026-11-11
 
 ---
 
@@ -8,7 +8,7 @@
 
 - Kayıt sayfası `Pages/Storefront/Register.cshtml(.cs)`: `GET /kayit` ad, e-posta, şifre formunu çizer (Google düğmesi yok, T515); kapı kapalıyken form yerine cümle. `Register` (UC-48) doğrulanmamış bekleyen kaydı açar, doğrulama e-postası satırı aynı işlemde yazılır (D-252), 303 `/kayit?pendingRegistration=...`; oturum açılmaz. `ResendVerificationLink` (UC-49, `/kayit`) yeni bağlantı gönderir.
 - Doğrulama sayfası `Pages/Storefront/Verification.cshtml(.cs)`: `GET /dogrulama/{anahtar}` yalnız okur (`ReadEmailLinkAsync`), altı hâlden birini çizer; `POST VerifyEmail` bağlantı türüne göre tüketir, 303 sonuç koduyla döner, oturum açmaz. `[NoStore]`, Referer göndermez.
-- Üye modülü: `IMembershipModule.ReadPendingRegistrationAsync` + `PendingRegistrationReading`; `RegisterInput.RetryOnUniqueIndexes` (aynı e-postayla eş zamanlı iki kayıtta tekil dizin ihlali yeniden denenir).
+- Üye modülü: `IMembershipModule.ReadPendingRegistrationAsync` + `PendingRegistrationReading`; `RegistrationIndexes.RetryOnUniqueIndexes` (aynı e-postayla eş zamanlı iki kayıtta tekil dizin ihlali yeniden denenir).
 - Bileşen: `FieldKind.Concealed` + `Fields.Concealed` (şifre alanı, değeri hiç taşımaz); `FramePaths.Register`, `FramePaths.Verification`; `RegistrationTexts`, `VerificationLandings` (`Pages/Components/RegistrationTexts.cs`).
 - Form modeli adları `07 §5.1.5`'e göre: `RegisterInput` (UC-48) ve `ResendVerificationLinkInput` (UC-49); `Password` ve `PendingRegistration` `07`'nin adlarıdır (`[SpecAssignedName]`).
 
@@ -60,6 +60,15 @@ Kriter 6'nın `/giris` yarısı: `/giris` sayfası T515'in inişidir (T515 k5 "y
 | Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | tam koşu 7154: 2 kırmızı (model adı, `!`) düzeltildi; ilgili sınıflar (`ModelBindingRuleTests`, `NullForgivingSourceScanTests`, `RegistrationTextsTests`) 72/72 yeşil |
 | Integration | ✓ | `--filter-class`, Postgres 18 (`track_commit_timestamp=on`) | `RegistrationPageTests` 25/25; sayfa/uç tarayan sınıflar (Forgery, FormComponent, PageFormPattern, SecurityHeaders, SessionAccess, SitemapEndpoint, WritingEndpointAudit) 120/120. Tam Integration süre bütçesi yüzünden koşulmadı (doğrulayıcı birleşik ağaçta koşar) |
 | Biçim | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` | Web, Unit temiz; Integration koşulmadı |
+
+| Düzeltme 1 | ✓ | restore, `build -warnaserror`, `dotnet format` ×3 temiz; Unit TAM; Integration TAM ad alanı parçalarıyla (Postgres 18, `track_commit_timestamp=on`) | Unit 7173/7173; Web 802/802; Model 1410: ilk koşuda 3, yeniden koşuda 1 kırmızı, hepsi bağlantı kopması (`Npgsql: Exception while reading from stream`, `SchedulerBackupDisposalAndKeyTablesTests` migrasyon testi; aynı anda başka Integration koşuları vardı), sınıf tek başına 55/55; Ordering 645/645; kalan 941/941; `MembershipTests.TheFormAndTheAccount_HaveNoMarketingConsentField` yeşil |
+
+## Düzeltme 1 (2026-11-12)
+
+- **Bulgu 1 (S2):** dizin adı `RegisterInput`'tan çıkarıldı; `RegistrationIndexes.RetryOnUniqueIndexes` (aynı dosya, ayrı statik sınıf). Form kaydı yine yalnız Name, Email, Password; T341 sınaması gevşetilmedi.
+- **Bulgu 2 (S1):** `GoneAddress()` 303'ü her durumda değersiz `/kayit` verir (UC-49); çözülmeyen değerde GET formu boş hâliyle çizer (UC-47). Belgede olmayan `RegistrationTexts.NoLongerPending` cümlesi ve `PendingGone` kaldırıldı (belgeye yazma yolu seçilmedi). `TheResend_OfAValueOrARegistrationThatIsNotPending_SendsNothing_T514_KK6` 303'ün tam `/kayit` olduğunu ve formun boş geldiğini, `TheAfterSendState_…_KK2` bozuk değerde formun geldiğini sınar.
+- **K3:** eklendi: `ThePress_OnALinkThatDoesNotHold_ShowsItsOwnState_AndWritesNothing_T514_KK7` (VAL-A677: süresi dolmuş, kullanılmış, yenilenmiş bağlantıya POST, hâl + yazma yok) ve `OpeningTheLinkManyTimes_DoesNotVerify_NorBindsTheGuestOrdersOfTheAddress_T514_KK7_KK9` (VAL-A920). `12` Durum hücreleri doğrulayıcının işidir, dokunulmadı.
+- **Öz denetim:** kriter 1–10 ve KK1–KK10 yeniden denetlendi; kriter 6 ve `/giris` yüzü değişmedi (D-1249, D-1277). Önceki tablo geçerli. `sik-fail-nedenleri` taraması: yeni bağımlılık/şema yok; kurucu bağımlılığı eklenmedi; Integration TAM koşuldu; `dotnet format` test projesi dahil temiz; belgede olmayan metin kaldırıldı.
 
 ## Doğrulama
 

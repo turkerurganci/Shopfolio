@@ -37,9 +37,6 @@ public static class RegistrationTexts
     /// <summary>03 9.1.3: told in place after the link was asked for again.</summary>
     public const string LinkResent = "Yeni doğrulama bağlantısını gönderdik; öncekiler geçersiz oldu.";
 
-    /// <summary>04 5.20.12; 03 10.1.2.5: the registration sent but the pending value no longer names a pending registration (its link ended or it was verified).</summary>
-    public const string NoLongerPending = "Bu kayıt artık beklemede değil. Yeniden kayıt olabilir ya da giriş yapabilirsin.";
-
     /// <summary>04 5.20.3 item 3: the hint of the secret field - the minimum length P-17 (02 3.13.15); no other rule is imposed (04 5.20.5).</summary>
     public static string ConcealedHint => "En az " + DisplayFormat.Number(ProductConstants.PasswordMinLength) + " karakter";
 

@@ -55,8 +55,8 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ (tam) | `dotnet test tests/Shopfolio.UnitTests --no-build` | 6848 test; tek kırmızı (`SearchEngineSourceScanTests`, yerel işlev adı `Canonical`) giderildi, 59 testlik ilgili alt küme yeşil |
-| Integration | ~ (kısmi) | `--filter-class "*MessageComponentTests"` | 20 testin 19'u yeşil, kırmızı olan `ASubmittedFormWithTwoWrongFields` düzeltmeden sonra tekil koşuda yeşil; `UnexpectedErrorLayerTests` 24/25 idi (tag helper hatası), düzeltmeden sonra yeniden koşulamadı (bağlam sınırı); tam Integration CI'da koşulmalı |
+| Unit | ✓ (tam) | `dotnet test --project tests/Shopfolio.UnitTests` | 6848 test, 0 kırmızı (devam turunda yeniden koşuldu; önceki tek kırmızı `SearchEngineSourceScanTests` `Canonical` adı giderilmişti) |
+| Integration | ✓ (tam, ad alanı parçalarıyla) | `--filter-namespace Shopfolio.IntegrationTests.<Alan>` (Postgres 18, `track_commit_timestamp=on`) | Web 643, Model 1407, Ordering 637, CorporateContent 185, Files 102, Jobs 85, Catalog 82, Commands 70, Administration 69, Disposal 61, Payment 59, Outages 53, Database 36, Security 34, Logging 30, Concurrency 30, FileSecrets 24, SignedEndpoints 11; 0 kırmızı. `UnexpectedErrorLayerTests` 25/25 ve `MessageComponentTests` 20/20 (tag helper düzeltmesinden sonra) |
 | Format | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` | Web, UnitTests, IntegrationTests temiz |
 
 ## Doğrulama
@@ -79,7 +79,7 @@
 
 - **Branch:** `task/T541-mesaj-onay-bos-hata-halleri`
 - **Commit:** bkz. PR
-- **PR:** bkz. PR
+- **PR:** #537
 - **CI:** bekliyor
 - **Post-merge run'lar:** *(validator doldurur)*
 

@@ -96,7 +96,7 @@
 - **Branch:** `task/T540-tasarim-tabani-cerceve`
 - **PR:** #534
 - **CI:** yeşil — run 42960747674 (head `0fddab5e`, doğrulama tur 2)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** main `06057bf9`: CI 42964801839 success, Publish 42964801854 success
 
 ## Dış Varsayımlar
 

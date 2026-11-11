@@ -86,7 +86,7 @@
 - **Commit:** `f06b4a4b` — T545: örnek sayfa adresleri, tarama uyumu, rapor ve kayıtlar
 - **PR:** #538
 - **CI:** yapım işçisi izlemez; yardımcı yürütür. Tur 2 doğrulamasında head `3b867682` için run yok (PR çakışmalı); merge öncesi çakışma çözülüp CI yeşili teyit edilir
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** main `f40f3a9d`: CI 42994459582 success, Publish 42994459437 success
 
 ## Dış Varsayımlar
 

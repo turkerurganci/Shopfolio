@@ -276,7 +276,7 @@
 | T517 | Hesap — profil ve güvenlik (E-25) | ⬚ | — | — | — |
 | T518 | Adres defteri ve sipariş geçmişi (E-26, E-27) | ⬚ | — | — | — |
 | T519 | E-posta değişikliğini geri alma ve müşteri çıkışı (E-28) | ⬚ | — | — | — |
-| T520 | Panel girişi, şifre sıfırlama, davet kabulü ve yönetici çıkışı (E-29, E-30) | ⏳ | — | — | — |
+| T520 | Panel girişi, şifre sıfırlama, davet kabulü ve yönetici çıkışı (E-29, E-30) | ✓ | ✓ PASS (tur 1) | `fd6c275e` | #549 |
 | T521 | Panel ana sayfası ve yönetici hesabının doğrulama ekranları (E-31, E-54) | ⬚ | — | — | — |
 | T522 | Yönetici hesapları ve işlem izi (E-49, E-52) | ⬚ | — | — | — |
 | T523 | Yöneticinin kendi hesabı (E-50) | ⬚ | — | — | — |

@@ -1,6 +1,6 @@
 # T520 — Panel girişi, şifre sıfırlama, davet kabulü ve yönetici çıkışı (E-29, E-30)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-11
 
 ---
 
@@ -64,6 +64,16 @@ Test adlarındaki KK ekleri yapım sırasındaki numaradır; plandaki KK1…KK10
 | Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests` | 7158 testten 2 kırmızı (alan adı kuralı, düzeltildi; regex zaman aşımı yük kararsızlığı, tek başına yeşil 15/15); sonra `ModelBindingRuleTests` 27/27, `PanelAccessTextsTests` 3/3 |
 | Integration | ✓ | `Shopfolio.IntegrationTests.exe -maxthreads 3 -class …` | PanelAccessPagesTests, SessionAccessTests, StorefrontFrameTests 94/94; öteki Web sınıfları (form, forgery, güvenlik başlıkları, çerez, hata katmanı, vitrin, sepet, yasal metin) 221/221 |
 | Format | ✓ | `dotnet format --verify-no-changes` | Web, UnitTests, IntegrationTests temiz |
+
+## Doğrulama
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu (tur 1) | ✓ PASS — tur 1 (2026-11-12, head `fd6c275e`; `origin/main` `5ed330f5` (T503 #542) birleşik ağaçta, birleştirme çakışmasız). Kriter 1–10 ve KK1–KK10 ✓ (kanıtlar: `PanelAccessPagesTests` 22 test, `SessionAccessTests` çıkış, `PanelAccessTextsTests`; kod okuması `SignIn`/`Reset`/`Invite`/`SignOut` sayfa modelleri, `AdministrationModule.CheckCredentialsAsync`; doğrulayıcının 7 geçici sınaması — yaygın şifre 422, sıfırlamada tanınan tarayıcı çerezi, L-1'de engellenen denemenin giriş kaydı, K-1085 hâlinde davet sayfası, çıkışta vitrin oturumu, `VAL-A306`, `VAL-A308`). Yerel: derleme `-warnaserror` 0 uyarı, format temiz, Unit 295 + 6866, betik testleri 4/4, Integration tam koşu (ad alanı parçaları, `-maxthreads 3`) 3793/3793; birleştirmeden sonra derleme, format, Unit `Architecture`/`Pages`/`Consistency` ve dört Web sınıfı (118) yeşil. Dal CI'ı doğrulama anında kuyrukta (`43097196742`). `FieldKind.Concealed` tanımı T514 dalındakiyle (#548) aynı blob (`6c9fbc9a`); sır bekçisi ve tarama betikleri değişmedi. |
+| Bulgu sayısı (tur 1) | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (tur 1) | 3 — **K1** (forward D-1288): D-464'ün T520 payı metni davet için sınanmamış "yenilenmiş" durumu sayar; kalan sayfa sınaması T522'ye. **K2** (forward D-1289): yaygın şifre, sıfırlama işareti, engellenen denemenin giriş kaydı ve çıkışta vitrin oturumu için kalıcı sayfa testi yok (doğrulayıcı geçici sınamayla yeşil gördü). **K3** (bu PR'da kapatıldı): test adlarındaki KK ekleri plan numarasından farklı; öz denetim tablosundaki eşleme yeterli. |
+| Yapım raporu karşılaştırması (tur 1) | Kabul kriterlerinde tam uyum (1–10 ✓); öz denetim tablosu var. Uyuşmazlık 2: KK5 "hesap kilitlenmez, giriş kaydı" ve KK7 "işaretler" maddelerinin kanıtı testte değil (biri deneme kaydına bakar, öteki kod okumasıdır) — K2; D-464 payı metni — K1. |
 
 ## Altyapı Değişiklikleri
 

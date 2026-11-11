@@ -1,6 +1,6 @@
 # T549 — Vitrin: arşivlenmiş ürün sayfası (E-05)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-12
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -63,10 +63,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu (tur 1) | ✓ PASS — tur 1 (2026-11-12, head `7973b482`; `origin/main` `9f5b8ac8` (T503 #542, T520 #549) birleşik ağaçta, birleştirme çakışmasız). Kriter 1–8 ve KK1–KK8 ✓ (kanıtlar: `StorefrontSearchAndProductTests.ArchivedPage.cs` 8 test, `ArchivedProductPageTests` 3 test; kod okuması `Product.cshtml` arşiv dalı, `ProductModel.BuildAsync` arşiv kolu ve `OnPostAddCartItemAsync`'in yayında olmayan ürüne 404'ü, `ProductHeads` kapalı sayfada yapılandırılmış veri yok, `FramedNotFoundPageRenderer` ile aynı `FrameMenuTree.Build`). Yerel: derleme `-warnaserror` 0 uyarı, format üç projede temiz, Unit 7215/7215 (Consistency ve Architecture dahil), betik testleri 4/4, Integration tam koşu ad alanı parçalarıyla yeşil (`StorefrontSearchAndProductTests` 32, Catalog 82, Administration–Files 551, Database–SignedEndpoints ve kök 308, Model 1410, Ordering 645, Web'in kalanı 797); `restore --locked-mode` 0. Dal CI'ı `43114110038` success. `12`: VAL-A021, VAL-A023 → PASS; KP-7'nin VAL-A022 (PASS, T503), VAL-D001 ve VAL-A024 (T549 kriterine bağlı değil) değişmedi. |
+| Bulgu sayısı (tur 1) | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (tur 1) | 2 — **K1** (bu PR'da kapatıldı): D-1207 kapanışı yalnız `DEFERRED_BACKLOG.d/T549.md` notuna yazılmış, satır `DEFERRED_BACKLOG.d/T503.md`'de ⚪ açık kalmıştı (`DEFERRED_BACKLOG.d/README.md`: kapatma yerinde yapılır); satır ✅ yapıldı. **K2** (forward D-1311): yerel Integration `Model` ad alanının ilk koşusunda 1 test başarısız, iki yeniden koşu 1410/1410 yeşil; testin adı yakalanamadı, T549 o koda dokunmaz. |
+| D-357 hedef değişikliği | Kurala uygun: kalem T549'un kabul kriterlerinde yok (hedefi T363 vermişti), erteleme backlog satırına gerekçesiyle yazıldı (`GUARDRAILS` "backlog'a yazmadan erteleme" yasağı karşılandı) ve üst sınır faz kapısıdır (`DEFERRED_BACKLOG.md` kayıt kuralı 5). Kapı kod yazmaz; kalemi yeni bir task'a hedefler. |
+| Yapım raporu karşılaştırması (tur 1) | Kabul kriterlerinde tam uyum (1–8 ✓); öz denetim tablosu var, her madde kanıtlı. Uyuşmazlık 2: D-1207 "kapandı" denmiş ama satır yerinde kapatılmamış (K1); kriter 8 kanıtında "OB-07, T2xx" yer tutucusu — genel hata katmanı `UnexpectedErrorLayer` (T541) olarak doğrulandı. |
 
 ## Altyapı Değişiklikleri
 
@@ -78,9 +80,9 @@
 ## Commit & PR
 
 - **Branch:** `task/T549-arsiv-urun-sayfasi`
-- **Commit:** *(PR açıklamasında)*
-- **PR:** *(PR açıklamasında)*
-- **CI:** yardımcı izler
+- **Commit:** `7973b482`
+- **PR:** #550
+- **CI:** `43114110038` success (doğrulama anında)
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

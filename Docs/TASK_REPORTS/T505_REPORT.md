@@ -62,6 +62,20 @@ Tur 1 FAIL'i (B1) kapatıldı: `_ContentRecordBody.cshtml` kısa metin paragraf�
 | KK1–KK3, KK5–KK8 | ✓ | `ContentPagesTests` yeşil |
 | `09 §25` | ✓ | kısa metin sayfada yok; modül sınırı ve süzme değişmedi |
 
+### Düzeltme 2 (B2) — öz denetim
+
+Tur 2 FAIL'i (B2) kapatıldı: "Paylaş" `</article>` ve "İlgili ürünler" bölümünden sonra, ayrı bir `content-page__actions content-page__share` satırında çizilir; "Bize ulaşın" makale içinde kalır. Sıra (`04` 5.8.3, 5.8.4, 5.8.11): ad, görseller, metin, "Bize ulaşın", "İlgili ürünler", "Paylaş". T505 kabul kriterlerinin ve KK1–KK8'in tamamı yeniden denetlendi; `sik-fail-nedenleri.md` tarandı (son satır: sayfa bölge sırası — bu düzeltmenin konusu; test artık sırayı sınar).
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1–3, 5, 7, 8 | ✓ | değişmedi; `ContentPagesTests` 195/195 |
+| Kriter 4 / KK4 | ✓ | `…_T505_KK4` ×2; yeni test hizmette `h1 → görsel → metin → Bize ulaşın → İlgili ürünler → data-share`, referansta `h1 → İlgili ürünler → data-share` sırasını ve referansta "Bize ulaşın" yokluğunu `<main>` içinde sınar |
+| Kriter 5 / KK5 | ✓ | `…_T505_KK5` yeşil; bölge görünürlüğü değişmedi |
+| Kriter 6 / KK6 | ✓ | bağlantı hizmette var, `<form` ve POST yok; yeşil |
+| KK1–KK3, KK7, KK8 | ✓ | `ContentPagesTests` yeşil |
+| `09 §25` | ✓ | yalnız işaretleme sırası; modül sınırı, süzme, stil/betik kuralları değişmedi |
+| Kayıt | ✓ | yeni backlog kalemi yok; D-1256, D-1257 dokunulmadı |
+
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
@@ -69,6 +83,7 @@ Tur 1 FAIL'i (B1) kapatıldı: `_ContentRecordBody.cshtml` kısa metin paragraf�
 | Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests -c Release` (main birleştirmesinden sonra) | 7032/7032 |
 | Integration | ✓ | Parçalı (namespace bayraklarıyla), Postgres 18 `track_commit_timestamp=on`. Birleştirmeden önce TAM: Web 636, CorporateContent+Catalog+Administration 345, Security+SignedEndpoints+Commands+Concurrency+Disposal+Files+FileSecrets 332, Jobs+Logging+Ordering+Outages+Payment+Database 900, Model 1407. Birleştirmeden sonra: `ContentPagesTests` 9/9; `NotFoundPageTests`, `SessionAccessTests`, `SearchEngineDataTests`, `StorefrontFrameTests`, `DomesticProductionLogoTests` 110/110 | Birleştirmeyle gelen T504 değişiklikleri yalnız 404 çizimi ve bu testlerle ilgiliydi |
 | Düzeltme 1 (birleşik ağaç) | ✓ | restore, `build -warnaserror` (0 uyarı), `dotnet format --verify-no-changes` ×3; Unit TAM 7131/7131; Integration TAM ad alanı parçalarıyla (`shopfolio-t505-fix1-pg`, `track_commit_timestamp=on`, 127.0.0.1:58905): CorporateContent 194, Web 733, Ordering 637, Model 1407, Pages+Administration+Catalog+Files+Payment+Security+SignedEndpoints+Outages+FileSecrets 434, Database+Jobs+Disposal+Commands+Logging+Concurrency 312 | Model parçası paralel koşuda 3 kırmızı verdi, tek başına yeniden koşuldu 1407/1407 (makinede eşzamanlı koşu) |
+| Düzeltme 2 | ✓ | restore, `build -warnaserror` (0 uyarı), `dotnet format --verify-no-changes` ×3; Unit TAM 7142/7142; Integration (`shopfolio-t505-fix2-pg`, `track_commit_timestamp=on`, 127.0.0.1:58321): CorporateContent 195/195 (yeni test dahil), Web+Pages+Administration 824/824 | Süre bütçesi doldu: kalan ad alanı parçaları (Catalog, Commands, Concurrency, Ordering, Payment, Database, Disposal, FileSecrets, Files, Model, Jobs, Logging, Outages, Security, SignedEndpoints, kök) bu turda koşulmadı; değişiklik yalnız bir ortak görünüm ve bir test, devir notunda |
 | Contract | — | — | Yok |
 | Derleme / biçim | ✓ | `dotnet build -c Release` (Unit ve Integration derlemeleri); `dotnet format` üç projede birleştirme öncesi koşuldu (tek değişiklik using sırası, commit'li); birleştirmeden sonra C# kaynağı değişmedi | 0 hata |
 

@@ -194,6 +194,42 @@ public sealed partial class ContentPagesTests : IAsyncLifetime
         Assert.Contains("data-share", html, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task ARecordPage_DrawsItsRegionsInTheDocumentsOrder_NameGalleryTextContactRelatedProductsShare_T505_KK4()
+    {
+        Guid category = await SeedCategoryAsync();
+        Guid product = await SeedProductAsync("Bağlı ürün", PublishStatus.Published, category);
+        string service = await SeedOfferingAsync("Bakım", 1, PublishStatus.Published, "<p>Hizmet metni.</p>");
+        string reference = await SeedPortfolioAsync("Otel", 1, PublishStatus.Published);
+        Guid serviceImage = await SeedImageAsync();
+        Guid serviceId = await IdOfOfferingAsync(service);
+        await SaveAsync(c => c.Set<OfferingImage>().Add(OfferingImage.Create(serviceId, serviceImage, 1, true, Now)));
+        await LinkAsync(ContentLinkOwner.Offering, serviceId, [product]);
+        await LinkAsync(ContentLinkOwner.PortfolioItem, await IdOfPortfolioAsync(reference), [product]);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = factory.CreateClient();
+
+        string offering = await HtmlAsync(client, $"/hizmet/{service}");
+        string portfolio = await HtmlAsync(client, $"/referans/{reference}");
+
+        // Offering: name, gallery, text, "Bize ulaşın", "İlgili ürünler", "Paylaş" (04 5.8.3, 5.8.4; the same single column on the narrow class, 5.8.11).
+        AssertInOrder(MainOf(offering), "<h1 class=\"content-heading\">", $"/gorsel/{serviceImage:D}", "Hizmet metni.", "Bize ulaşın", "İlgili ürünler", "data-share");
+        // Reference: no contact link; the related products still come before "Paylaş".
+        AssertInOrder(MainOf(portfolio), "<h1 class=\"content-heading\">", "İlgili ürünler", "data-share");
+        Assert.DoesNotContain("Bize ulaşın", MainOf(portfolio), StringComparison.Ordinal);
+    }
+
+    private static void AssertInOrder(string html, params string[] markers)
+    {
+        int previous = -1;
+        foreach (string marker in markers)
+        {
+            int at = html.IndexOf(marker, StringComparison.Ordinal);
+            Assert.True(at > previous, $"'{marker}' must come after the previous region (at {previous}); found at {at}.");
+            previous = at;
+        }
+    }
+
     // ---- KK5: related products - only the published ones; no heading when none ----
 
     [Fact]

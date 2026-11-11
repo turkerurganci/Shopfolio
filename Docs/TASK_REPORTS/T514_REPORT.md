@@ -1,6 +1,6 @@
 # T514 — Kayıt ve doğrulama bağlantısının inişi (E-20, E-21)
 
-**Faz:** F5 | **Durum:** Düzeltme 1 yapıldı, doğrulama tur 2 bekliyor | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** Düzeltme 2 yapıldı, doğrulama tur 3 bekliyor | **Tarih:** 2026-11-11
 
 ---
 
@@ -62,6 +62,7 @@ Kriter 6'nın `/giris` yarısı: `/giris` sayfası T515'in inişidir (T515 k5 "y
 | Biçim | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` | Web, Unit temiz; Integration koşulmadı |
 
 | Düzeltme 1 | ✓ | restore, `build -warnaserror`, `dotnet format` ×3 temiz; Unit TAM; Integration TAM ad alanı parçalarıyla (Postgres 18, `track_commit_timestamp=on`) | Unit 7173/7173; Web 802/802; Model 1410: ilk koşuda 3, yeniden koşuda 1 kırmızı, hepsi bağlantı kopması (`Npgsql: Exception while reading from stream`, `SchedulerBackupDisposalAndKeyTablesTests` migrasyon testi; aynı anda başka Integration koşuları vardı), sınıf tek başına 55/55; Ordering 645/645; kalan 941/941; `MembershipTests.TheFormAndTheAccount_HaveNoMarketingConsentField` yeşil |
+| Düzeltme 2 | ~ | restore, `build -warnaserror` (0 uyarı), `dotnet format` ×3 temiz; Unit TAM; Integration ad alanı parçalarıyla (Postgres 18, `track_commit_timestamp=on`) | Unit 7232/7232; Web (Panel dahil) 848/848. Model, Ordering ve kalan parçalar süre bütçesi (45 dk) yüzünden bu turda koşulmadı (metin değişikliği o ad alanlarına değmez); doğrulayıcı birleşik ağaçta koşar |
 
 ## Düzeltme 1 (2026-11-12)
 
@@ -69,6 +70,15 @@ Kriter 6'nın `/giris` yarısı: `/giris` sayfası T515'in inişidir (T515 k5 "y
 - **Bulgu 2 (S1):** `GoneAddress()` 303'ü her durumda değersiz `/kayit` verir (UC-49); çözülmeyen değerde GET formu boş hâliyle çizer (UC-47). Belgede olmayan `RegistrationTexts.NoLongerPending` cümlesi ve `PendingGone` kaldırıldı (belgeye yazma yolu seçilmedi). `TheResend_OfAValueOrARegistrationThatIsNotPending_SendsNothing_T514_KK6` 303'ün tam `/kayit` olduğunu ve formun boş geldiğini, `TheAfterSendState_…_KK2` bozuk değerde formun geldiğini sınar.
 - **K3:** eklendi: `ThePress_OnALinkThatDoesNotHold_ShowsItsOwnState_AndWritesNothing_T514_KK7` (VAL-A677: süresi dolmuş, kullanılmış, yenilenmiş bağlantıya POST, hâl + yazma yok) ve `OpeningTheLinkManyTimes_DoesNotVerify_NorBindsTheGuestOrdersOfTheAddress_T514_KK7_KK9` (VAL-A920). `12` Durum hücreleri doğrulayıcının işidir, dokunulmadı.
 - **Öz denetim:** kriter 1–10 ve KK1–KK10 yeniden denetlendi; kriter 6 ve `/giris` yüzü değişmedi (D-1249, D-1277). Önceki tablo geçerli. `sik-fail-nedenleri` taraması: yeni bağımlılık/şema yok; kurucu bağımlılığı eklenmedi; Integration TAM koşuldu; `dotnet format` test projesi dahil temiz; belgede olmayan metin kaldırıldı.
+
+## Düzeltme 2 (2026-11-12)
+
+- **Bulgu 1 (S1, tur 2): hitap ve sabit metinler.** `RegistrationTexts` ve `VerificationLandings` bütün metinleri "siz" yapıldı (`04 §8.2.9`): aydınlatma bağlantısı, kayıt/yeni adres/Google hâlleri, kullanılmış ve geçersiz hâller. `Submitted` K-779 (1)'in cümlesini birebir verir ("Doğrulama bağlantısını {e-posta} adresine gönderdik. Hesabınız, bağlantıyı {tarih} tarihine kadar açtığınızda kullanıma açılır."). `LinkResent` sabit metinden `LinkResent(DateTimeOffset linkEndsAt)` yöntemine döndü ve K-779 (2)'yi birebir verir ("Yeni bir bağlantı gönderdik; önceki bağlantılar artık geçersiz. Bağlantı {tarih} tarihine kadar geçerli."); tarih ilk gönderimin ömrüdür (`Pending.LinkEndsAt`), yeniden istek onu uzatmaz (K-659). Google teyit cümlesi `04` 5.21.14'ün tırnaklı cümlesidir. Sınıf yorumu artık "sen"i K-772.ye dayandırmaz: "formlar ve hesap ekranları siz (04 §8.2.9; K-779)".
+- **Tarama:** aynı tür sapma için `Register.cshtml(.cs)`, `Verification.cshtml(.cs)`, `FieldModels.cs` ve Membership modül değişiklikleri `grep` ile tarandı; başka "sen" metni yok (kalan etiketler "Ad", "E-posta", "Şifre", "Kayıt ol", "Giriş yap").
+- **Testler:** `RegistrationTextsTests.TheSubmittedState_NamesTheAddress_AndTheLastDayOfTheLink_KK3` (K-779 (1) tam eşitlik), yeni `TheResentState_IsTheSecondTextOfK779_WithTheFirstSendsLastDay_KK6`, `TheGoogleConfirmationStep_IsTheSentenceOf5_21_14_KK7`, `EveryLandingSentence_SpeaksSiz_NeverSen_KK7` (3 bağlantı türü × bütün durumlar; "sen" kalıpları yok). `RegistrationPageTests.TheResend_SendsANewLink_…_KK6` K-779 (2) cümlesini ve ilk gönderimin tarihini sayfada arar; hâl metni beklentileri ("Hesabınız açıldı", "Yeni e-posta adresiniz doğrulandı", "Google girişi hesabınıza bağlandı") güncellendi.
+- **⚠ K-779 (1) ↔ K-904:** K-779 (1) "bağlantıyı … açtığınızda kullanıma açılır" der; K-904 doğrulamanın açılışla değil düğmeyle olduğunu söyler. Cümle K-779'dan birebir uygulandı, belge değiştirilmedi; çelişki karar kaydında sahibin kararına kalır.
+- **K3 (VAL-A678 doğrulanmış kayıt değeriyle GET; VAL-A090 uygulama kaydı kanıtı):** bu turda eklenmedi — talimatın tek bulgusu metin; iki kanıt ayrı yeni test düzeneği ister (uygulama kaydı yakalayıcısı) ve `12` Durum hücreleri doğrulayıcının işidir. Satırlar BEKLEMEDE kalır; ⚠ sahibe.
+- **Öz denetim:** kriter 1–10 ve KK1–KK10 yeniden denetlendi (yukarıdaki tablo; kriter 2, 6 ve 7'nin metin kanıtı bu düzeltmeyle K-779/`04` 5.21.14 birebir). `sik-fail-nedenleri.md` okundu: (1) hitap/sabit karar metni — bütün T514 metinleri tarandı; (2) yeni bağımlılık, şema, kurucu bağımlılığı yok; (3) Integration TAM parçalı koşuldu; (4) `dotnet format` üç projede temiz; (5) belgede olmayan metin yok; (6) kriter 6'nın `/giris` yüzü değişmedi (D-1249, D-1277). `git grep -nE "^(<{7}|>{7}) "` boş.
 
 ## Doğrulama
 

@@ -6,7 +6,7 @@ using Shopfolio.Pages.Frame;
 namespace Shopfolio.Pages.Components;
 
 /// <summary>
-/// The registration screen's texts (T514; 04 5.20; 03 9.1). The screen speaks "sen" like the other customer screens (K-772). Written here once; the page and its tests read them from here.
+/// The registration screen's texts (T514; 04 5.20; 03 9.1). Forms and account screens speak "siz" (04 8.2.9; K-779, K-772's form rule). Written here once; the page and its tests read them from here.
 /// </summary>
 public static class RegistrationTexts
 {
@@ -32,10 +32,11 @@ public static class RegistrationTexts
     public const string ResendLabel = "Bağlantıyı yeniden gönder";
 
     /// <summary>04 5.20.3 item 4: the link of the privacy notice beside the form (02 3.33.5).</summary>
-    public const string PrivacyNoticeLabel = "Kişisel verilerinin nasıl işlendiğini aydınlatma metninde okuyabilirsin.";
+    public const string PrivacyNoticeLabel = "Kişisel verilerinizin nasıl işlendiğini aydınlatma metninde okuyabilirsiniz.";
 
-    /// <summary>03 9.1.3: told in place after the link was asked for again.</summary>
-    public const string LinkResent = "Yeni doğrulama bağlantısını gönderdik; öncekiler geçersiz oldu.";
+    /// <summary>03 9.1.3 (K-779, second text): told in place after the link was asked for again; the date is the first send's last day - asking again does not extend it (K-659).</summary>
+    public static string LinkResent(DateTimeOffset linkEndsAt) =>
+        "Yeni bir bağlantı gönderdik; önceki bağlantılar artık geçersiz. Bağlantı " + DisplayFormat.Date(linkEndsAt) + " tarihine kadar geçerli.";
 
     /// <summary>04 5.20.3 item 3: the hint of the secret field - the minimum length P-17 (02 3.13.15); no other rule is imposed (04 5.20.5).</summary>
     public static string ConcealedHint => "En az " + DisplayFormat.Number(ProductConstants.PasswordMinLength) + " karakter";
@@ -44,8 +45,8 @@ public static class RegistrationTexts
     public static string Submitted(string email, DateTimeOffset linkEndsAt)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(email);
-        return "Doğrulama bağlantısını " + email + " adresine gönderdik. Hesabın, e-postanı doğruladığında açılır; bağlantı "
-            + DisplayFormat.Date(linkEndsAt) + " tarihine kadar geçerlidir.";
+        return "Doğrulama bağlantısını " + email + " adresine gönderdik. Hesabınız, bağlantıyı " + DisplayFormat.Date(linkEndsAt)
+            + " tarihine kadar açtığınızda kullanıma açılır.";
     }
 }
 
@@ -93,10 +94,10 @@ public static class VerificationLandings
 
     private static VerificationLanding Registration(VerificationLinkStatus status, bool justDone) => status switch
     {
-        VerificationLinkStatus.Valid => new("E-posta adresini doğrulamak için düğmeye bas.", MessageMeaning.Info, "E-postamı doğrula", null, null),
-        VerificationLinkStatus.Used when justDone => new("Hesabın açıldı. E-postana ait önceki misafir siparişlerin varsa Siparişlerim'de görünür. Doğrulama oturum açmaz; giriş yapabilirsin.", MessageMeaning.Success, null, SignInNext, FramePaths.SignIn),
-        VerificationLinkStatus.Used => new("Hesabın zaten doğrulandı.", MessageMeaning.Info, null, SignInNext, FramePaths.SignIn),
-        VerificationLinkStatus.Superseded => new("Bu bağlantı geçerliliğini yitirdi; en son gönderilen bağlantıyı kullan. Doğrulanmamış hesapla girişte bağlantıyı yeniden isteyebilirsin.", MessageMeaning.Warning, null, SignInNext, FramePaths.SignIn),
+        VerificationLinkStatus.Valid => new("E-posta adresinizi doğrulamak için düğmeye basın.", MessageMeaning.Info, "E-postamı doğrula", null, null),
+        VerificationLinkStatus.Used when justDone => new("Hesabınız açıldı. E-postanıza ait önceki misafir siparişleriniz varsa Siparişlerim'de görünür. Doğrulama oturum açmaz; giriş yapabilirsiniz.", MessageMeaning.Success, null, SignInNext, FramePaths.SignIn),
+        VerificationLinkStatus.Used => new("Hesabınız zaten doğrulandı.", MessageMeaning.Info, null, SignInNext, FramePaths.SignIn),
+        VerificationLinkStatus.Superseded => new("Bu bağlantı geçerliliğini yitirdi; en son gönderilen bağlantıyı kullanın. Doğrulanmamış hesapla girişte bağlantıyı yeniden isteyebilirsiniz.", MessageMeaning.Warning, null, SignInNext, FramePaths.SignIn),
         _ => Unrecognized,
     };
 
@@ -104,21 +105,21 @@ public static class VerificationLandings
     {
         if (addressTaken)
         {
-            return new("Bu adres başka bir hesaba ait. Değişiklik bu bağlantıyla geçerli olmadı; hesabın önceki adresiyle çalışır, değişikliği hesap ekranından yeniden başlatabilirsin.", MessageMeaning.Error, null, accountLabel, accountPath);
+            return new("Bu adres başka bir hesaba ait. Değişiklik bu bağlantıyla geçerli olmadı; hesabınız önceki adresiyle çalışır, değişikliği hesap ekranından yeniden başlatabilirsiniz.", MessageMeaning.Error, null, accountLabel, accountPath);
         }
 
         return status switch
         {
-            VerificationLinkStatus.Valid => new("Hesabının e-posta adresini bu yeni adresle değiştirmek için düğmeye bas.", MessageMeaning.Info, "Yeni adresi doğrula", null, null),
-            VerificationLinkStatus.Used when justDone => new("Yeni e-posta adresin doğrulandı; hesabın bundan sonra bu adresle çalışır ve önceki adrese bildirim gitti. Yeni adrese ait önceki misafir siparişlerin varsa hesabına düştü.", MessageMeaning.Success, null, accountLabel, accountPath),
-            _ => new("Değişiklik bu bağlantıyla geçerli olmadı; hesabın önceki adresiyle çalışır. Değişikliği hesap ekranından yeniden başlatabilirsin.", MessageMeaning.Warning, null, accountLabel, accountPath),
+            VerificationLinkStatus.Valid => new("Hesabınızın e-posta adresini bu yeni adresle değiştirmek için düğmeye basın.", MessageMeaning.Info, "Yeni adresi doğrula", null, null),
+            VerificationLinkStatus.Used when justDone => new("Yeni e-posta adresiniz doğrulandı; hesabınız bundan sonra bu adresle çalışır ve önceki adrese bildirim gitti. Yeni adrese ait önceki misafir siparişleriniz varsa hesabınıza düştü.", MessageMeaning.Success, null, accountLabel, accountPath),
+            _ => new("Değişiklik bu bağlantıyla geçerli olmadı; hesabınız önceki adresiyle çalışır. Değişikliği hesap ekranından yeniden başlatabilirsiniz.", MessageMeaning.Warning, null, accountLabel, accountPath),
         };
     }
 
     private static VerificationLanding Google(VerificationLinkStatus status, bool justDone) => status switch
     {
-        VerificationLinkStatus.Valid => new("Bu hesaba Google ile girişi onaylıyor musun? Onaylarsan hesabına bundan sonra Google ile de girilebilir; Google ile giriş yapmayı sen denemediysen onaylama.", MessageMeaning.Info, "Google girişini onayla", null, null),
-        VerificationLinkStatus.Used when justDone => new("Google girişi hesabına bağlandı; artık Google ile giriş yapabilirsin.", MessageMeaning.Success, null, SignInNext, FramePaths.SignIn),
+        VerificationLinkStatus.Valid => new("Bu hesaba Google ile girişi onaylıyor musunuz? Onaylarsanız hesabınıza bundan sonra Google ile de girilebilir; Google ile giriş yapmayı siz denemediyseniz onaylamayın.", MessageMeaning.Info, "Google girişini onayla", null, null),
+        VerificationLinkStatus.Used when justDone => new("Google girişi hesabınıza bağlandı; artık Google ile giriş yapabilirsiniz.", MessageMeaning.Success, null, SignInNext, FramePaths.SignIn),
         VerificationLinkStatus.Used => new("Google girişi bu bağlantıyla zaten onaylandı.", MessageMeaning.Info, null, SignInNext, FramePaths.SignIn),
         _ => new("Bu bağlantı geçerli değil; hesap Google'a bağlanmadı. Google ile yeniden girişte yeni bir bağlantı gönderilir.", MessageMeaning.Warning, null, SignInNext, FramePaths.SignIn),
     };

@@ -28,7 +28,7 @@
     <section class="registration-sent" id="registration-sent">
         @if (Model.LinkWasResent)
         {
-            <partial name="_Message" model="Messages.InPlace(MessageMeaning.Success, RegistrationTexts.LinkResent)" />
+            <partial name="_Message" model="Messages.InPlace(MessageMeaning.Success, RegistrationTexts.LinkResent(Model.Pending.LinkEndsAt))" />
         }
         <partial name="_Message" model="Messages.InPlace(MessageMeaning.Info, RegistrationTexts.Submitted(Model.Pending.Email, Model.Pending.LinkEndsAt))" />
         <form method="post" asp-antiforgery="true" action="@(FramePaths.Register)?handler=ResendVerificationLink" data-js="submit-once">

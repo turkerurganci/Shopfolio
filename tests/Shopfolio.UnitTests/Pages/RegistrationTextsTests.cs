@@ -44,9 +44,46 @@ public sealed class RegistrationTextsTests
     {
         string sentence = RegistrationTexts.Submitted("ali@example.com", new DateTimeOffset(2026, 11, 20, 10, 0, 0, TimeSpan.Zero));
 
-        Assert.Contains("ali@example.com", sentence, StringComparison.Ordinal);
-        Assert.Contains("tarihine kadar geçerlidir", sentence, StringComparison.Ordinal);
+        Assert.Equal("Doğrulama bağlantısını ali@example.com adresine gönderdik. Hesabınız, bağlantıyı 20 Kasım 2026 tarihine kadar açtığınızda kullanıma açılır.", sentence);
         Assert.Throws<ArgumentException>(() => RegistrationTexts.Submitted(" ", DateTimeOffset.UtcNow));
+    }
+
+    [Fact]
+    public void TheResentState_IsTheSecondTextOfK779_WithTheFirstSendsLastDay_KK6()
+    {
+        string sentence = RegistrationTexts.LinkResent(new DateTimeOffset(2026, 11, 20, 10, 0, 0, TimeSpan.Zero));
+
+        Assert.Equal("Yeni bir bağlantı gönderdik; önceki bağlantılar artık geçersiz. Bağlantı 20 Kasım 2026 tarihine kadar geçerli.", sentence);
+    }
+
+    [Fact]
+    public void TheGoogleConfirmationStep_IsTheSentenceOf5_21_14_KK7()
+    {
+        VerificationLanding landing = VerificationLandings.Of(Reading(EmailLinkKind.GoogleConfirmation, VerificationLinkStatus.Valid), done: false, addressTaken: false, isMember: false);
+
+        Assert.Equal("Bu hesaba Google ile girişi onaylıyor musunuz? Onaylarsanız hesabınıza bundan sonra Google ile de girilebilir; Google ile giriş yapmayı siz denemediyseniz onaylamayın.", landing.Sentence);
+    }
+
+    [Theory]
+    [InlineData(EmailLinkKind.Registration)]
+    [InlineData(EmailLinkKind.NewAddress)]
+    [InlineData(EmailLinkKind.GoogleConfirmation)]
+    public void EveryLandingSentence_SpeaksSiz_NeverSen_KK7(EmailLinkKind kind)
+    {
+        foreach (VerificationLinkStatus status in Enum.GetValues<VerificationLinkStatus>())
+        {
+            foreach (bool done in new[] { false, true })
+            {
+                foreach (bool taken in new[] { false, true })
+                {
+                    string sentence = VerificationLandings.Of(Reading(kind, status), done, taken, isMember: false).Sentence;
+
+                    Assert.False(System.Text.RegularExpressions.Regex.IsMatch(sentence, @"(?i)\b(?:sen|senin|musun|abilirsin|bas|kullan|onaylama|hesabın|hesabına|adresin|siparişlerin|e-postana)\b"), sentence);
+                }
+            }
+        }
+
+        Assert.False(System.Text.RegularExpressions.Regex.IsMatch(RegistrationTexts.PrivacyNoticeLabel, @"\b(?:okuyabilirsin|verilerinin)\b"), RegistrationTexts.PrivacyNoticeLabel);
     }
 
     // ---- KK7: six states ----

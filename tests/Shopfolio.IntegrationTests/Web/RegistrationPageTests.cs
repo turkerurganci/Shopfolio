@@ -262,7 +262,8 @@ public sealed class RegistrationPageTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.SeeOther, resent.StatusCode);
         Assert.EndsWith($"&notice={NoticeCode.LinkResent}", resent.Headers.Location.OriginalString, StringComparison.Ordinal);
-        Assert.Contains(RegistrationTexts.LinkResent, html, StringComparison.Ordinal);
+        Assert.Contains(RegistrationTexts.LinkResent(firstEnd), html, StringComparison.Ordinal);
+        Assert.Contains("Yeni bir bağlantı gönderdik; önceki bağlantılar artık geçersiz. Bağlantı " + DisplayFormat.Date(firstEnd) + " tarihine kadar geçerli.", html, StringComparison.Ordinal);
         await using AppDbContext db = NewContext();
         List<LinkRecord> links = await db.LinkRecords.AsNoTracking().OrderBy(l => l.CreatedAt).ToListAsync(Ct);
         Assert.Equal(2, links.Count);
@@ -425,7 +426,7 @@ public sealed class RegistrationPageTests : IAsyncLifetime
 
         (_, string html, _) = await GetAsync(factory, $"{FramePaths.Verification}/{key}?notice={NoticeCode.EmailVerified}");
 
-        Assert.DoesNotContain("Hesabın açıldı", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("Hesabınız açıldı", html, StringComparison.Ordinal);
         Assert.Contains("E-postamı doğrula", html, StringComparison.Ordinal);
     }
 
@@ -471,7 +472,7 @@ public sealed class RegistrationPageTests : IAsyncLifetime
         Assert.DoesNotContain(CookieNames.Session, string.Join(";", SetCookies(first)), StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.OK, second.StatusCode);
         Assert.Contains("zaten doğrulandı", await BodyOf(second), StringComparison.Ordinal);
-        Assert.Contains("Hesabın açıldı", done, StringComparison.Ordinal);
+        Assert.Contains("Hesabınız açıldı", done, StringComparison.Ordinal);
         await using AppDbContext db = NewContext();
         Assert.NotNull(await db.Customers.Where(c => c.Id == customerId).Select(c => c.EmailVerifiedAt).SingleAsync(Ct));
         Assert.Equal(customerId, await db.Orders.Where(o => o.Id == orderId).Select(o => o.CustomerId).SingleAsync(Ct));
@@ -511,7 +512,7 @@ public sealed class RegistrationPageTests : IAsyncLifetime
 
         Assert.Contains("Yeni adresi doğrula", html, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.SeeOther, post.StatusCode);
-        Assert.Contains("Yeni e-posta adresin doğrulandı", done, StringComparison.Ordinal);
+        Assert.Contains("Yeni e-posta adresiniz doğrulandı", done, StringComparison.Ordinal);
         await using AppDbContext db = NewContext();
         Assert.Equal("yeni@example.com", await db.Customers.Where(c => c.Id == customerId).Select(c => c.Email).SingleAsync(Ct));
         Assert.False(await db.Customers.AnyAsync(c => c.Id == pendingId, Ct));
@@ -549,7 +550,7 @@ public sealed class RegistrationPageTests : IAsyncLifetime
         Assert.Contains("Google girişini onayla", html, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.SeeOther, post.StatusCode);
         Assert.EndsWith($"?notice={NoticeCode.GoogleLinkConfirmed}", post.Headers.Location!.OriginalString, StringComparison.Ordinal);
-        Assert.Contains("Google girişi hesabına bağlandı", done, StringComparison.Ordinal);
+        Assert.Contains("Google girişi hesabınıza bağlandı", done, StringComparison.Ordinal);
         await using AppDbContext db = NewContext();
         Assert.NotNull(await db.Customers.Where(c => c.Id == customerId).Select(c => c.GoogleLinkedAt).SingleAsync(Ct));
         Assert.Equal(0, await db.Sessions.CountAsync(Ct));

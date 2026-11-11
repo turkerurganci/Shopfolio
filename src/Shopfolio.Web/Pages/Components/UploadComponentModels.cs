@@ -46,7 +46,7 @@ public enum UploadState
 /// <summary>The limits of a surface, read from the product constants (P-22…P-26; 04 2.12.8.3) - the component types no number.</summary>
 public static class UploadLimits
 {
-    private const long BytesPerMegabyte = 1024L * 1024;
+    private const long BytesPerMegabyte = 1 << 20;
 
     /// <summary>True for the surfaces that take images (the two galleries, the logo and the site icon); the digital file is any file.</summary>
     public static bool IsImage(UploadSurface surface) => surface != UploadSurface.DigitalFile;

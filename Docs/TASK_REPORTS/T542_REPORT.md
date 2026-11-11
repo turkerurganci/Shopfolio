@@ -91,7 +91,7 @@
 - **Branch:** `task/T542-rozet-sayac-eszamanli-uyari`
 - **PR:** #536
 - **CI:** dal run 42970856849 yeşil (Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E, CI Gate)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** main `db7984ac`: CI 42976026333 success, Publish 42976026259 success
 
 ## Dış Varsayımlar
 

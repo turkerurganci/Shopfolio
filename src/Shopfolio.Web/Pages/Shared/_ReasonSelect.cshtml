@@ -1,0 +1,11 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@model ReasonSelectView
+@*
+    The reason selection (T543; 04 OB-15, 2.12.4): the closed list of the kind and the explanation that "diğer" makes required. The list is a select - free text is no reason (04 2.12.4.1). The confirmation
+    does not open and the correction is not sent without a reason: the screen asks Reasons.Check before it builds either (04 2.12.4.1).
+*@
+<div class="reason-select reason-select--@Model.Kind.ToString().ToLowerInvariant()" data-js="reason-select" data-legal-warning="@(Model.LegalWarningBeforeConfirmation ? "true" : null)">
+    <partial name="_Field" model="Model.Reason" />
+    <partial name="_Field" model="Model.Explanation" />
+</div>

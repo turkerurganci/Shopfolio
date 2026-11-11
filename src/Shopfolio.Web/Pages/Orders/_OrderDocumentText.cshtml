@@ -1,0 +1,8 @@
+@model string
+@* One frozen document's text, paragraph by paragraph (04 5.16.9): the text is shown as it was frozen, encoded, never as markup. *@
+<div class="order-document__text">
+    @foreach (string paragraph in Model.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+    {
+        <p>@paragraph</p>
+    }
+</div>

@@ -1,6 +1,6 @@
 # T502 — Vitrin: ana sayfa ve kategori sayfası (E-01, E-02)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-11
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -71,6 +71,19 @@
 
 | Alan | Sonuç |
 |---|---|
+| Doğrulama durumu | ✓ PASS (tur 2, 2026-11-11; dal ucu `f42d8a56` + `origin/main` birleştirmesi `038a972f`, T543 #539 dahil) |
+| Bulgu sayısı | 0 (S1/S2/S3 yok); tur 1'in B1 ve B2'si kapandı (B1: `AddressRules.IsClosedFirstSegment("")` ana sayfa, `PageFormPatternTests` yeşil; B2: `.home-intro--band` orta sınıftan iki sütun) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 — K1: D-1184 (T504 parçası, hedef T502 KK8) `ACategoryWithoutAPublishedProduct_IsAnEmptyPage_NotA404_…_KK8` ile karşılandı → bu PR'da ✅ kapatıldı |
+| Task satırları (`12 §7.5`) | VAL-A002 PASS (değişmedi; KK5 uç yanıtı); VAL-A001 (tarayıcı gözlemi) ve VAL-A003 (menü, uç yanıtı; T502 kriterine eşlenmez) BEKLEMEDE |
+| Yerel sınama | restore ✓, build `-warnaserror` 0 uyarı ✓, format üç proje ✓, Unit tam 7128/7128 (ilk koşuda 1 kararsız kırık, yeniden koşuda yeşil) ✓, betik testleri 4/4 ✓, Integration TAM 3708/3708 (Web 733, Pages+Catalog+CorporateContent+Administration 336, Model 1407, Ordering 637, kalan ad alanları 595; konteyner `shopfolio-t502-val-pg`, `track_commit_timestamp=on`) ✓, `restore --locked-mode` 0 ✓ |
+| Dal CI'ı | run 43026186737 (head `f42d8a56`) success — 9 iş yeşil |
+| Ana dal CI (son 3) | 43011159643, 43011159636, 42994459437 success |
+
+**Tur 1 kaydı:**
+
+| Alan | Sonuç |
+|---|---|
 | Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-11) |
 | Bulgu sayısı | 2 — **B1** (S2, ORTA; kriter 1 / KK1, `07 §2.1.2`): yeni `/` sayfası `PageFormPatternTests.EveryMappedEndpoint_StartsWithAFirstSegmentOfTheClosedList`'i kırıyor — `AddressRules.IsClosedFirstSegment("")` yanlış döner, kapalı listede ana sayfa yok; yerelde tek başına koşuda da kırmızı, dal CI'ı Integration adımında 3675'te 1 kırık (run 43006706756). **B2** (S1, DÜŞÜK; kriter 1 / KK1, `04` 5.1.4, 5.1.13; komşu satır VAL-A112): `home-intro--band` için stil yok, `storefront.css` yorumu "band layout stacks"; dar hâl her genişlikte alt alta, `04` 5.1.4 orta ve geniş sınıfta "kısa tanıtım ile ana görsel yan yana, tek bant" ister (alt alta yalnız dar sınıfta) |
 | Düzeltme gerekli mi | Evet — B1: ana sayfanın kökü kapalı listede sayılır (`AddressRules` ya da sınamanın kökü `07 §2.1.2` uyarınca kabul etmesi); B2: `.home-intro--band` orta sınıftan itibaren iki sütun (görsel ve metin yan yana), dar sınıfta alt alta; yorum düzeltilir |
@@ -88,9 +101,9 @@
 ## Commit & PR
 
 - **Branch:** `task/T502-vitrin-ana-kategori`
-- **Commit:** PR açılışında yardımcıya döndürülür
-- **PR:** yardımcıya döndürülür
-- **CI:** yardımcı yürütür
+- **Commit:** doğrulanan ağaç `038a972f` (dal ucu `f42d8a56` + `origin/main`)
+- **PR:** #541
+- **CI:** run 43026186737 success (head `f42d8a56`)
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

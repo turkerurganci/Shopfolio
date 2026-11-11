@@ -270,7 +270,7 @@
 | T511 | Sipariş takibi girişi, sipariş sayfası ve indirme bağlantısı (E-15, E-16) | ✓ | ✓ PASS (tur 1) | `20c8bbcc` | #545 |
 | T512 | İptal ve gecikme feshi ekranı, geri ödeme IBAN girişi (E-17, E-16 IBAN formu) | ⬚ | — | — | — |
 | T513 | Cayma beyanı ve ayıp talebi ekranları (E-18, E-19) | ⬚ | — | — | — |
-| T514 | Kayıt ve doğrulama bağlantısının inişi (E-20, E-21) | ✓ | ⏳ | — | PR |
+| T514 | Kayıt ve doğrulama bağlantısının inişi (E-20, E-21) | ✗ | ✗ FAIL (tur 1) | — | #548 |
 | T515 | Müşteri girişi ve Google ile giriş (E-22) | ⬚ | — | — | — |
 | T516 | Şifre sıfırlama ve yeniden doğrulama (E-23, E-24) | ⬚ | — | — | — |
 | T517 | Hesap — profil ve güvenlik (E-25) | ⬚ | — | — | — |

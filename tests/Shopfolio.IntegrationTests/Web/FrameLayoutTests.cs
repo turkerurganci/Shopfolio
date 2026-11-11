@@ -90,6 +90,10 @@ public sealed partial class StorefrontFrameTests
         Assert.DoesNotContain("admin-strip", visitor, StringComparison.Ordinal);
         Assert.DoesNotContain("Panele dön", customer, StringComparison.Ordinal);
         Assert.Contains("Duyuru metni", visitor, StringComparison.Ordinal);
+
+        // The firm has not entered an ETBIS verification address: no band on any screen (VAL-A128).
+        Assert.DoesNotContain("etbis-band", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("etbis-band", visitor, StringComparison.Ordinal);
     }
 
     [Fact]

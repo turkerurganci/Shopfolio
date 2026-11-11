@@ -1,0 +1,47 @@
+@page "/panel/giris"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Panel
+@model Shopfolio.Pages.Panel.SignInModel
+@*
+    The panel's sign-in (T520; 04 9.1.3, E-29): no frame (04 2.2.9). Order: the title, the lasting message of the result state, the form (e-mail, password, "beni hatırla" unticked), the button - the neutral
+    limit sentence beside it after a 429 - and the link of the password reset. The password is never written back into the page. There is no Google sign-in and no registration link (04 9.1.6).
+*@
+@{
+    Layout = "_PanelBareLayout";
+    ViewData["Title"] = PanelAccessTexts.SignInTitle;
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, ["Input.Email", "Input.Password"]);
+    FieldView email = Fields.Bind(Fields.Email("Input.Email", "E-posta", FieldRequirement.Required, Model.Input.Email, "username"), summary);
+    FieldView concealedField = Fields.Bind(Fields.Concealed("Input.Password", "Şifre", FieldRequirement.Required, "current-password"), summary);
+}
+<h2>@PanelAccessTexts.SignInTitle</h2>
+@if (Model.ResultMessage is not null)
+{
+    <partial name="_Message" model="Model.ResultMessage" />
+}
+<partial name="_FormErrorSummary" model="summary" />
+<form method="post" asp-antiforgery="true" action="@(PanelFramePaths.SignIn)?handler=SignIn" class="form" data-js="submit-once">
+    @if (Model.CredentialsRefused)
+    {
+        <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, PanelAccessTexts.InvalidCredentials, "sign-in-refused")' />
+    }
+    <div class="form-fields">
+        <partial name="_Field" model="email" />
+        <partial name="_Field" model="concealedField" />
+        <div class="field field--check">
+            <input type="checkbox" id="Input_RememberMe" name="Input.RememberMe" value="true" checked="@Model.Input.RememberMe">
+            <label for="Input_RememberMe">@PanelAccessTexts.RememberMeLabel</label>
+        </div>
+    </div>
+    @if (Model.Input.ReturnUrl is not null)
+    {
+        <input type="hidden" name="Input.ReturnUrl" value="@Model.Input.ReturnUrl">
+    }
+    <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(PanelAccessTexts.SignInButton)">@PanelAccessTexts.SignInButton</button>
+    @if (Model.LimitReached)
+    {
+        <partial name="_Message" model='Messages.NeutralLimit("sign-in-limit")' />
+    }
+</form>
+<p><a href="@PanelFramePaths.PasswordReset">@PanelAccessTexts.ForgotLink</a></p>

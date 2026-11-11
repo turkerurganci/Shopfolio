@@ -56,11 +56,6 @@ public sealed class PanelOrdersModel(AccessWriteLog log) : AccessSamplePage(log)
     protected override string Label => "panel-orders";
 }
 
-public sealed class PanelResetModel(AccessWriteLog log) : AccessSamplePage(log)
-{
-    protected override string Label => "panel-reset";
-}
-
 public sealed class AccountHomeModel(AccessWriteLog log) : AccessSamplePage(log)
 {
     protected override string Label => "account-home";
@@ -85,19 +80,6 @@ public sealed class ProductSampleModel(AccessWriteLog log) : AccessSamplePage(lo
 public sealed class CustomerSignInSampleModel : PageModel
 {
     public IActionResult OnGet() => Content(ReturnPath.Resolve(Request.Query[ReturnPath.ParameterName], ReturnArea.Storefront));
-}
-
-/// <summary>The sample sign-in page of the panel.</summary>
-public sealed class PanelSignInSampleModel : PageModel
-{
-    public IActionResult OnGet() => Content(ReturnPath.Resolve(Request.Query[ReturnPath.ParameterName], ReturnArea.Panel));
-}
-
-/// <summary>A sign-out page of the panel (UC-109): it writes in <c>Save</c> only when a session reached it; the challenge sends a request without one to the sign-out's redirect.</summary>
-[SignOutPage]
-public sealed class PanelSignOutModel(AccessWriteLog log) : AccessSamplePage(log)
-{
-    protected override string Label => "panel-signout";
 }
 
 /// <summary>A sign-out page of the account folder, to try the storefront's sign-out redirect (UC-77).</summary>

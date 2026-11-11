@@ -195,6 +195,10 @@ public sealed class OrderTrackingPageTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.TooManyRequests, limited.StatusCode);
         Assert.Null(limited.Headers.Location);
 
+        // The limit's answer (D-801; 12 A353): the neutral limit message, no Retry-After.
+        Assert.Null(limited.Headers.RetryAfter);
+        Assert.Contains(Encoded(Shopfolio.Infrastructure.Security.NeutralMessages.LimitExceeded), await limited.Content.ReadAsStringAsync(Ct), StringComparison.Ordinal);
+
         // The address's own count is below its threshold: another e-mail from the same address is still looked up.
         Assert.Equal(HttpStatusCode.UnprocessableEntity, otherEmail.StatusCode);
     }

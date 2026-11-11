@@ -97,6 +97,13 @@ internal static partial class ForgeryProtectionSourceScan
         return [.. findings.Distinct().OrderBy(f => f.Line).ThenBy(f => f.Rule, StringComparer.Ordinal)];
     }
 
+    // The common layout of the brand variables: the storefront frame's layout (T540; 09 16.1 item 6) or a layout named _Layout. The panel's layouts carry no style block at all.
+    private static bool IsCommonLayout(string path)
+    {
+        string normalized = path.Replace('\\', '/');
+        return normalized.Contains("/Pages/Shared/_Layout", StringComparison.Ordinal) || normalized.EndsWith("/Pages/Shared/_StorefrontLayout.cshtml", StringComparison.Ordinal);
+    }
+
     private static void CheckTag(List<(string Rule, int Line)> findings, string path, string clean, Match tag)
     {
         string text = tag.Value;
@@ -136,7 +143,7 @@ internal static partial class ForgeryProtectionSourceScan
             findings.Add((ScriptWithoutSource, line));
         }
 
-        if (name == "STYLE" && !(path.Contains("/Pages/Shared/_Layout", StringComparison.Ordinal) && NonceAttr().IsMatch(text)))
+        if (name == "STYLE" && !(IsCommonLayout(path) && NonceAttr().IsMatch(text)))
         {
             findings.Add((StyleBlockOutsideLayout, line));
         }

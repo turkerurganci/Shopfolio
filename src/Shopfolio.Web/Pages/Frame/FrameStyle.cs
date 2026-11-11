@@ -47,14 +47,7 @@ public static partial class FrameStyle
     public static string? WhatsAppLink(string? number) => number is not null && TenDigitsPattern().IsMatch(number) ? WhatsAppPrefix + number : null;
 
     /// <summary>The name a social platform is shown with.</summary>
-    public static string SocialName(SocialPlatform platform) => platform switch
-    {
-        SocialPlatform.Instagram => "Instagram",
-        SocialPlatform.Facebook => "Facebook",
-        SocialPlatform.X => "X",
-        SocialPlatform.LinkedIn => "LinkedIn",
-        SocialPlatform.YouTube => "YouTube",
-        SocialPlatform.TikTok => "TikTok",
-        _ => throw new ArgumentOutOfRangeException(nameof(platform), platform, "A social platform of the closed list (06 4.55)."),
-    };
+    public static string SocialName(SocialPlatform platform) => Enum.IsDefined(platform)
+        ? platform.ToString()
+        : throw new ArgumentOutOfRangeException(nameof(platform), platform, "A social platform of the closed list (06 4.55).");
 }

@@ -1,3 +1,5 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@inject SearchEngineData Search
 @using Shopfolio.Pages.Frame
 @using Shopfolio.Infrastructure.SearchEngine
 @*
@@ -23,8 +25,7 @@
     }
     else
     {
-        <title>@title</title>
-        <meta name="robots" content="@SearchEngineClosure.Directive">
+        @Search.Head(Context, new PageSearchData(title, null, Context.Request.Path, null, null, null, true, []))
     }
     <link rel="stylesheet" href="@Context.StaticAsset("css/base.css")">
     <link rel="stylesheet" href="@Context.StaticAsset("css/components.css")">
@@ -42,7 +43,7 @@
                 <span class="panel-top__name u-single-line">@frame.Admin.Name</span>
                 <div class="panel-top__links">
                     <a href="@frame.Admin.AccountPath">Hesabım</a>
-                    <form method="post" action="@frame.Admin.SignOut.Action">
+                    <form method="post" action="@(frame.Admin.SignOut.Path)?handler=SignOut" asp-antiforgery="true">
                         <button type="submit" class="panel-top__sign-out">Çıkış</button>
                     </form>
                 </div>

@@ -19,8 +19,8 @@ public sealed record PanelSalesIndicator(bool IsOpen, string Text, string Path);
 /// <summary>The administrator area of the top row: the name (cut short by the layout when long, 04 2.2.8), "Hesabım" and the sign-out form (UC-109).</summary>
 public sealed record PanelAdminArea(string Name, string AccountPath, PanelSignOutForm SignOut);
 
-/// <summary>The panel's sign-out form (UC-109; 07 4.34): POST to <paramref name="Action"/>.</summary>
-public sealed record PanelSignOutForm(string Action);
+/// <summary>The panel's sign-out form (UC-109; 07 4.34): POST to <paramref name="Path"/> with the SignOut handler.</summary>
+public sealed record PanelSignOutForm(string Path);
 
 /// <summary>
 /// One entry of the panel menu (04 2.2.8, 3.2). An entry either leads to a screen (<paramref name="Path"/>, no <paramref name="Items"/>) or is a group of screens (no path, items). The menu does not
@@ -57,8 +57,8 @@ internal static class PanelFramePaths
     /// <summary>E-50: the administrator's own account, "Hesabım" under the name.</summary>
     public const string MyAccount = "/panel/hesabim";
 
-    /// <summary>UC-109: the sign-out form's action.</summary>
-    public const string SignOut = "/panel/cikis?handler=SignOut";
+    /// <summary>UC-109: the sign-out page; the form adds the handler.</summary>
+    public const string SignOut = "/panel/cikis";
 
     /// <summary>The "Satış durumu" section of E-44 (04 3.2.19).</summary>
     public const string SalesStateSection = "/panel/firma-kimligi-ve-satis#satis-durumu";

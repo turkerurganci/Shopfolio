@@ -12,37 +12,34 @@ namespace Shopfolio.Pages.Frame;
 /// </summary>
 public sealed class StaticAssetResolver
 {
-    private readonly Lazy<Dictionary<string, string>> _fingerprinted;
+    private readonly EndpointDataSource _endpoints;
 
     internal StaticAssetResolver(EndpointDataSource endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
-        _fingerprinted = new Lazy<Dictionary<string, string>>(() => Read(endpoints), LazyThreadSafetyMode.ExecutionAndPublication);
+        _endpoints = endpoints;
     }
 
     /// <summary>The address of <paramref name="file"/> (a path under <c>wwwroot</c>, for example <c>css/base.css</c>).</summary>
     public string AddressOf(string file)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(file);
-        string plain = $"{AddressRules.StaticArea}/{file.TrimStart('/')}";
-        return _fingerprinted.Value.TryGetValue(plain, out string? address) ? address : plain;
-    }
-
-    private static Dictionary<string, string> Read(EndpointDataSource endpoints)
-    {
-        Dictionary<string, string> map = new(StringComparer.Ordinal);
-        foreach (RouteEndpoint endpoint in endpoints.Endpoints.OfType<RouteEndpoint>())
+        string wanted = file.TrimStart('/');
+        string plain = $"{AddressRules.StaticArea}/{wanted}";
+        foreach (RouteEndpoint endpoint in _endpoints.Endpoints.OfType<RouteEndpoint>())
         {
             StaticAssetDescriptor? descriptor = endpoint.Metadata.GetMetadata<StaticAssetDescriptor>();
             string? label = descriptor?.Properties.FirstOrDefault(p => string.Equals(p.Name, "label", StringComparison.Ordinal))?.Value;
             string? pattern = endpoint.RoutePattern.RawText;
-            if (label is not null && pattern is not null && !string.Equals(pattern.TrimStart('/'), label.TrimStart('/'), StringComparison.Ordinal))
+            if (label is not null && pattern is not null
+                && string.Equals(label.TrimStart('/'), wanted, StringComparison.Ordinal)
+                && !string.Equals("/" + pattern.TrimStart('/'), plain, StringComparison.Ordinal))
             {
-                map[$"{AddressRules.StaticArea}/{label.TrimStart('/')}"] = "/" + pattern.TrimStart('/');
+                return "/" + pattern.TrimStart('/');
             }
         }
 
-        return map;
+        return plain;
     }
 }
 

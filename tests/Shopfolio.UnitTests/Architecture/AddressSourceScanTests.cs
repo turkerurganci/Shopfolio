@@ -98,6 +98,7 @@ public sealed partial class AddressSourceScanTests
     [InlineData("var u = \"https://x.com/intent/post?url=\" + link;")]
     [InlineData("var u = \"https://wa.me/?text=\" + link;")]
     [InlineData("var u = \"https://api.whatsapp.com/send?text=\" + link;")]
+    [InlineData("var u = \"https://wa.me/\" + link;")]
     [InlineData("var u = \"https://www.linkedin.com/sharing/share-offsite/?url=\" + link;")]
     [InlineData("var u = \"https://t.me/share/url?url=\" + link;")]
     [InlineData("<script src=\"//s7.addthis.com/js/300/addthis_widget.js\"></script>")]
@@ -117,6 +118,14 @@ public sealed partial class AddressSourceScanTests
         const string code = "await navigator.share({ title: document.title, url: link }); await navigator.clipboard.writeText(link);";
 
         Assert.DoesNotContain(AddressSourceScan.Scan("src/Shopfolio.Web/wwwroot/js/common.js", code), f => f.Rule == AddressSourceScan.PlatformShare);
+    }
+
+    [Fact]
+    public void Scan_OfTheWhatsAppChatLinkOfTheFirmsOwnNumber_IsQuiet()
+    {
+        const string code = "internal const string WhatsAppPrefix = \"https://wa.me/90\";";
+
+        Assert.DoesNotContain(AddressSourceScan.Scan("src/Shopfolio.Web/Pages/Frame/FrameStyle.cs", code), f => f.Rule == AddressSourceScan.PlatformShare);
     }
 
     [Theory]

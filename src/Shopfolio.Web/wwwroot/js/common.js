@@ -97,10 +97,10 @@ for (const group of document.querySelectorAll('[data-js="menu-group"]')) {
 }
 
 // The sign-in merge message can be closed (07 4.34.3; 04 2.7): the close button is hidden in the markup and shown here.
-for (const button of document.querySelectorAll('[data-js="notice-close"]')) {
+for (const button of document.querySelectorAll('[data-js="merge-notice-close"]')) {
     button.hidden = false;
     button.addEventListener("click", () => {
-        const notice = button.closest('[data-js="notice"]');
+        const notice = button.closest('[data-js="merge-notice"]');
         if (notice) {
             notice.hidden = true;
         }

@@ -31,6 +31,9 @@ public sealed partial class StorefrontFrameTests
     private static async Task<(HttpStatusCode Status, string Html, HttpResponseMessage Response)> GetHtmlAsync(HttpClient client, string path, params string[] cookies)
     {
         HttpRequestMessage request = new(HttpMethod.Get, path);
+
+        // The sign-out form carries the forgery token, which needs the secure scheme the reverse proxy reports (05 6.3.3).
+        request.Headers.TryAddWithoutValidation("X-Forwarded-Proto", "https");
         if (cookies.Length > 0)
         {
             request.Headers.Add("Cookie", string.Join("; ", cookies));
@@ -202,10 +205,10 @@ public sealed partial class StorefrontFrameTests
         string first = (await GetHtmlAsync(client, "/sss", Customer(customerKey))).Html;
         string second = (await GetHtmlAsync(client, "/sss", Customer(customerKey))).Html;
 
-        Assert.Contains("role=\"status\" data-js=\"notice\"", first, StringComparison.Ordinal);
+        Assert.Contains("role=\"status\" data-js=\"merge-notice\"", first, StringComparison.Ordinal);
         Assert.Contains("Giriş yapmadan önce sepetinize eklediğiniz ürünler hesabınızın sepetine eklendi", first, StringComparison.Ordinal);
         Assert.Contains("Urun ", first, StringComparison.Ordinal);
-        Assert.DoesNotContain("data-js=\"notice\"", second, StringComparison.Ordinal);
+        Assert.DoesNotContain("data-js=\"merge-notice\"", second, StringComparison.Ordinal);
     }
 
     // ---- KK3, KK4: one style block with the nonce; no style attribute, inline script or event attribute; the head ----

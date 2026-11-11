@@ -212,6 +212,8 @@ public sealed partial class FrameSourceScanTests
     private static HashSet<int> DefinedLimits(string baseCss) =>
         [.. BreakpointDefinition().Matches(StripStyleComments(baseCss)).Select(m => int.Parse(m.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture))];
 
+    private static string MediaRuleOf(string condition) => "@media " + condition + " { a { margin: 0; } }";
+
     private static List<string> WidthConditionViolations(string css, HashSet<int> limits)
     {
         List<string> found = [];
@@ -250,16 +252,22 @@ public sealed partial class FrameSourceScanTests
     }
 
     [Theory]
-    [InlineData("@media (min-width: 800px) { a { margin: 0; } }")]
-    [InlineData("@media (max-width: 768px) { a { margin: 0; } }")]
-    [InlineData("@media (min-width: 768px) and (max-width: 1023px) { a { margin: 0; } }")]
-    [InlineData("@media screen and (min-width: 1024px) { a { margin: 0; } }")]
-    public void AWidthConditionOutsideTheTwoLimits_IsFound_KK1(string css) => Assert.NotEmpty(WidthConditionViolations(css, [768, 1024]));
+    [InlineData("(min-width: 800px)")]
+    [InlineData("(max-width: 768px)")]
+    [InlineData("(min-width: 768px) and (max-width: 1023px)")]
+    [InlineData("screen and (min-width: 1024px)")]
+    public void AWidthConditionOutsideTheTwoLimits_IsFound_KK1(string condition)
+    {
+        Assert.NotEmpty(WidthConditionViolations(MediaRuleOf(condition), [768, 1024]));
+    }
 
     [Theory]
-    [InlineData("@media (min-width: 768px) { a { margin: 0; } }")]
-    [InlineData("@media (min-width: 1024px) { a { margin: 0; } }")]
-    public void AWidthConditionAtALimit_IsLeftAlone_KK1(string css) => Assert.Empty(WidthConditionViolations(css, [768, 1024]));
+    [InlineData("(min-width: 768px)")]
+    [InlineData("(min-width: 1024px)")]
+    public void AWidthConditionAtALimit_IsLeftAlone_KK1(string condition)
+    {
+        Assert.Empty(WidthConditionViolations(MediaRuleOf(condition), [768, 1024]));
+    }
 
     // ---- The class names (09 16.1 item 5) ----
 

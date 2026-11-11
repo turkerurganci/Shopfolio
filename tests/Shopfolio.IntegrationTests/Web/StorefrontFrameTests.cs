@@ -79,6 +79,7 @@ public sealed partial class StorefrontFrameTests : IAsyncLifetime
     private static async Task<JsonElement> FrameOfAsync(HttpClient client, string path, params string[] cookies)
     {
         using HttpRequestMessage request = new(HttpMethod.Get, path);
+        request.Headers.TryAddWithoutValidation("X-Forwarded-Proto", "https");
         if (cookies.Length > 0)
         {
             request.Headers.Add("Cookie", string.Join("; ", cookies));
@@ -175,7 +176,7 @@ public sealed partial class StorefrontFrameTests : IAsyncLifetime
 
         JsonElement member = (await FrameOfAsync(client, "/hakkimizda?a=1", Customer(customerKey))).GetProperty("Account");
         Assert.Equal("Test musteri", member.GetProperty("MemberName").GetString());
-        Assert.Equal("/cikis?handler=SignOut", member.GetProperty("SignOut").GetProperty("Action").GetString());
+        Assert.Equal("/cikis", member.GetProperty("SignOut").GetProperty("Path").GetString());
         Assert.Equal("/hakkimizda?a=1", member.GetProperty("SignOut").GetProperty("ReturnUrl").GetString());
         Assert.Equal("/hesap", member.GetProperty("AccountPath").GetString());
         Assert.Equal("/hesap/siparisler", member.GetProperty("OrdersPath").GetString());

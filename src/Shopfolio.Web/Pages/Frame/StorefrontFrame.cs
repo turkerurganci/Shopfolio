@@ -67,8 +67,8 @@ public sealed record FrameAccount(string? MemberName, string SignInPath, string 
     public bool IsMember => MemberName is not null;
 }
 
-/// <summary>The sign-out form (UC-77; 07 4.34.1): POST to <paramref name="Action"/> with the page the request came from as the hidden <c>ReturnUrl</c>, a local address.</summary>
-public sealed record FrameSignOutForm(string Action, string ReturnUrl);
+/// <summary>The sign-out form (UC-77; 07 4.34.1): POST to <paramref name="Path"/> with the SignOut handler with the page the request came from as the hidden <c>ReturnUrl</c>, a local address.</summary>
+public sealed record FrameSignOutForm(string Path, string ReturnUrl);
 
 /// <summary>The cart in the top section: the link and the number of live lines in this browser's cart (06 4.16); zero for no cart. At the payment step the link is "Sepete dön" (04 2.2.7).</summary>
 public sealed record FrameCart(string Path, int ItemCount);

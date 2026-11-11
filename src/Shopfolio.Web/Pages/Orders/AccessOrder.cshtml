@@ -1,4 +1,9 @@
 @page "/siparis/erisim/{accessKey:regex(^[A-Za-z0-9_-]+\z)}"
 @model Shopfolio.Pages.Orders.AccessOrderModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = "Sipariş " + Model.Summary.OrderNumber;
+}
 @* UC-34 - the access-key root (07 4.16.1); the page itself is the shared E-16 view. *@
 <partial name="_OrderPage" model="Model" />

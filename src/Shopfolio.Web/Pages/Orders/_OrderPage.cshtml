@@ -11,10 +11,6 @@
     addresses and e-mail, documents. Every value comes from the page model; the view decides nothing - no status name, no date sum (09 8.3 item 2c). A closed operation has no button
     at all (04 5.16.6). No meta refresh and no script refreshes the page while a card result is awaited (04 5.16.4). The documents open in place (04 5.16.9).
 *@
-@{
-    Layout = "_StorefrontLayout";
-    ViewData["Title"] = "Sipariş " + Model.Summary.OrderNumber;
-}
 <article class="order-page" aria-labelledby="order-page-title">
     <header class="order-page__heading">
         <h1 id="order-page-title">Sipariş @Model.Summary.OrderNumber</h1>
@@ -83,6 +79,10 @@
                         <span class="order-items__exemption">@exemption</span>
                     }
                     <partial name="_ItemRecords" model="Model.RecordsOf(item)" />
+                    @if (OrderPageModel.DeliveryDateText(item) is string deliveredOn)
+                    {
+                        <span class="order-items__delivery-date">Teslim tarihi: @deliveredOn</span>
+                    }
                     @if (Model.RefusedItemId == item.OrderItemId && Model.RefusalText is string refusal)
                     {
                         <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, refusal, "order-download-message")' />
@@ -146,7 +146,7 @@
                 {
                     <li>
                         @OrderPageModel.RefundDateText(refund) · @DisplayFormat.Amount(refund.Amount) ·
-                        @(refund.Way == Shopfolio.Modules.Payment.Contracts.PaymentMethod.Card ? "Karta" : "IBAN'a")
+                        @OrderPageModel.RefundWayText(refund)
                         · @(refund.ItemName is string name ? name + (refund.Quantity is int units ? " (" + DisplayFormat.Number(units) + " adet)" : string.Empty) : "Tutar bazlı")
                     </li>
                 }

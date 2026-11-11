@@ -14,7 +14,7 @@
     FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, Model.FormOrder);
     bool isLimited = ViewData.ModelState.TryGetValue(string.Empty, out var actionLevel) && actionLevel.Errors.Count > 0;
     const string numberId = "Input_OrderNumber";
-    const string emailId = "Input_Email";
+    const string emailId = "Input_ContactEmail";
 }
 <section class="order-tracking" aria-labelledby="order-tracking-title">
     <h1 id="order-tracking-title">Sipariş takibi</h1>
@@ -35,7 +35,7 @@
         </div>
         <div class="form__field">
             <label for="@emailId">E-posta</label>
-            <input id="@emailId" name="Input.Email" type="email" value="@Model.Input.Email" autocomplete="email" required
+            <input id="@emailId" name="Input.ContactEmail" type="email" value="@Model.Input.ContactEmail" autocomplete="email" required
                    aria-invalid="@(summary.IsInvalid(emailId) ? "true" : null)" aria-describedby="@Messages.FieldMessageId(emailId)" autofocus="@(summary.AutofocusFor(emailId).Length > 0)" />
             @foreach (FormFieldError error in summary.Fields.Where(f => f.FieldId == emailId))
             {

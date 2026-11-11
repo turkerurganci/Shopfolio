@@ -37,17 +37,17 @@ public sealed class TrackingModel : PageModel
         _ordering = ordering;
     }
 
-    public OrderLookupInput Input { get; private set; } = new();
+    public FindOrderInput Input { get; private set; } = new();
 
     /// <summary>The fields in the order of the form, for the error summary.</summary>
-    public IReadOnlyList<string> FormOrder { get; } = [$"{nameof(Input)}.{nameof(OrderLookupInput.OrderNumber)}", $"{nameof(Input)}.{nameof(OrderLookupInput.Email)}"];
+    public IReadOnlyList<string> FormOrder { get; } = [$"{nameof(Input)}.{nameof(FindOrderInput.OrderNumber)}", $"{nameof(Input)}.{nameof(FindOrderInput.ContactEmail)}"];
 
     /// <summary>True after a well-formed query that matched no order: the neutral message stands at the top of the form.</summary>
     public bool IsNotMatched { get; private set; }
 
     public IActionResult OnGet() => Page();
 
-    public async Task<IActionResult> OnPostFindOrderAsync([Bind(Prefix = nameof(Input))] OrderLookupInput input)
+    public async Task<IActionResult> OnPostFindOrderAsync([Bind(Prefix = nameof(Input))] FindOrderInput input)
     {
         ArgumentNullException.ThrowIfNull(input);
         Input = input;
@@ -58,7 +58,7 @@ public sealed class TrackingModel : PageModel
 
         CancellationToken ct = HttpContext.RequestAborted;
         AttemptCounter counter = HttpContext.RequestServices.GetRequiredService<AttemptCounter>();
-        AttemptSubject byEmail = AttemptSubject.Email(input.Email);
+        AttemptSubject byEmail = AttemptSubject.Email(input.ContactEmail);
         AttemptSubject byIp = AttemptSubject.Ip(HttpContext);
         Guid emailAttempt = await counter.RecordAsync(AttemptLimit.L5, byEmail, ct);
         Guid ipAttempt = await counter.RecordAsync(AttemptLimit.L5, byIp, ct);
@@ -71,7 +71,7 @@ public sealed class TrackingModel : PageModel
             return FormResults.AttemptLimitExceeded(this, ErrorCode.OrderLookupLimitExceeded);
         }
 
-        OrderAccessLookup? found = await _ordering.FindOrderByNumberAndEmailAsync(input.OrderNumber, input.Email, ct);
+        OrderAccessLookup? found = await _ordering.FindOrderByNumberAndEmailAsync(input.OrderNumber, input.ContactEmail, ct);
         if (found is null)
         {
             // The failed query stays in the attempt record (L-5); the rejection line names the code, the page names nothing (09 8.2 item 3).
@@ -87,7 +87,7 @@ public sealed class TrackingModel : PageModel
 }
 
 /// <summary>The query of the tracking form (04 7.1.6): both fields required, the e-mail in its form (7.3.2.1). The number is matched without regard to letter case by the lookup.</summary>
-public sealed class OrderLookupInput : IFormInput
+public sealed class FindOrderInput : IFormInput
 {
     [Display(Name = "Sipariş numarası")]
     [FieldRequired]
@@ -96,5 +96,5 @@ public sealed class OrderLookupInput : IFormInput
     [Display(Name = "E-posta")]
     [FieldRequired]
     [InvalidEmail]
-    public string Email { get; set; } = string.Empty;
+    public string ContactEmail { get; set; } = string.Empty;
 }

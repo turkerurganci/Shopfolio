@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
-using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Infrastructure.Binding;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
@@ -147,9 +148,25 @@ public abstract class OrderPageModel : PageModel
     /// <summary>The download button of an item, or null when the item has none (not digital, or the payment is not confirmed; 02 3.12.1).</summary>
     public OrderDownloadButton? DownloadOf(Guid orderItemId) => Summary.Downloads.FirstOrDefault(d => d.OrderItemId == orderItemId);
 
-    public static string DateText(OrderPageItem item) => item.DeliveryDate is { } date ? DisplayFormat.Date(date) : item.DeliveryMarkedAt is { } at ? DisplayFormat.Date(at) : string.Empty;
+    /// <summary>The delivery date the firm wrote with the item's delivery mark (04 5.16.5), or null when there is none; the mark's own moment stands in the records.</summary>
+    public static string? DeliveryDateText(OrderPageItem item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        return item.DeliveryDate is { } date ? DisplayFormat.Date(date) : null;
+    }
 
-    public static string RefundDateText(OrderPageRefund refund) => DisplayFormat.Date(refund.At);
+    public static string RefundDateText(OrderPageRefund refund)
+    {
+        ArgumentNullException.ThrowIfNull(refund);
+        return DisplayFormat.Date(refund.At);
+    }
+
+    /// <summary>The way a refund went (04 5.16.7): back to the card, or to the IBAN the customer gave.</summary>
+    public static string RefundWayText(OrderPageRefund refund)
+    {
+        ArgumentNullException.ThrowIfNull(refund);
+        return refund.Way == PaymentMethod.Card ? "Karta" : "IBAN'a";
+    }
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
@@ -204,7 +221,7 @@ public abstract class OrderPageModel : PageModel
             DownloadRefusal.NoFile => NoFileText,
             _ => PaymentNotConfirmedText,
         };
-        HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(Infrastructure.Errors.ErrorCode.DownloadNotAvailable);
+        HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.DownloadNotAvailable);
         return FormResults.Redisplay(this);
     }
 

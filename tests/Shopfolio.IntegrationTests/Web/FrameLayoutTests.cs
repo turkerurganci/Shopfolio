@@ -111,7 +111,7 @@ public sealed partial class StorefrontFrameTests
         Assert.True(toggle < panelStart && panelStart < search && panelStart < account);
         Assert.Contains("aria-controls=\"site-header-panel\"", html, StringComparison.Ordinal);
         Assert.Matches(new Regex("<button[^>]*data-js=\"menu-toggle\"[^>]*\\shidden", RegexOptions.CultureInvariant, PatternTimeout), html);
-        Assert.Contains("href=\"/giris?returnUrl=%2Fsss\"", html, StringComparison.Ordinal);
+        Assert.Contains("href=\"/giris?returnUrl=%2Fsss%2Fcerceve-ornegi\"", html, StringComparison.Ordinal);
     }
 
     [Fact]

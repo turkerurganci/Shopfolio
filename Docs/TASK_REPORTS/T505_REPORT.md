@@ -1,6 +1,6 @@
 # T505 — İçerik liste ve içerik sayfaları (E-07, E-08)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 3 PASS) | **Tarih:** 2026-11-11
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -91,6 +91,18 @@ Tur 2 FAIL'i (B2) kapatıldı: "Paylaş" `</article>` ve "İlgili ürünler" bö
 
 | Alan | Sonuç |
 |---|---|
+| Doğrulama durumu (tur 3) | ✓ PASS — tur 3 (2026-11-11, head `e70eac37`; dal main `25f1f1ee` ile birleşikti, doğrulama sonunda `origin/main` `a9270c02` (T511 #545) birleştirildi: yalnız `DEFERRED_BACKLOG.md`'de kayıt çakışması — satır satır, her satırda değiştiren taraf alındı (D-668, D-693 main; D-671, D-672, D-690 dal); `SessionAccessTests.cs` ve `ApplicationEnums.cs` kendiliğinden birleşti). Kriter 1–8 ve KK1–KK8 ✓; B2 kapandı |
+| Bulgu sayısı (tur 3) | 0 |
+| Düzeltme gerekli mi (tur 3) | Hayır |
+| Bloke-etmeyen not (K) sayısı (tur 3) | 1 — **K1** (forward → D-1273): `ContentProductLinks.ListRelatedAsync` (`ShowcaseProduct`) T505'ten sonra üretim kodunda çağrılmıyor, yalnız `ContentRelationsTests`; sayfa `ListRelatedCardsAsync`'i okur — aynı işin iki okuyucusu (`09 §24` madde 4), D-1257 ile birlikte |
+| `12` satırları (tur 3) | `VAL-A115`…`A119` (KP-32) `BEKLEMEDE` kalır: kanıt türleri tarayıcı gözlemi ister (A118, A119 yalnız tarayıcı gözlemi; A115–A117 uç yanıtı + tarayıcı gözlemi); `A117`'nin SSS yarısı T506'nındır. Uç yanıtı yarıları Integration testleriyle uyumlu (KK3, KK5). `12_matris_denetle.py --kapsam 1-77` Hata 0 |
+
+**Validator kanıtları (tur 3):** kriter 1 ✓ (`StorefrontContentPages.ListAsync` → `ContentReaders.ListOfferingsAsync`/`ListPortfolioItemsAsync`: yalnız `Published`, `SortOrder`→`CreatedAt`→`Id`, `PageSizes.ContentList`; başlık menünün adı (`K-851`); `…_KK1` iki test: 26 kayıt elle ters sırada 24 + 2, `page=99` son sayfa, ad değişikliği, `?x=1` noindex) · 2 ✓ (`StorefrontMenuReader` yayında kaydı olmayan tipi gizler; `…_KK2`: taslak yok, boş hâl + `/` dönüşü, menüde `/referanslar` yok; `04` 6.2.7.1 yöneticiye de listede taslak yok — liste okuması kitleden bağımsız) · 3 ✓ (dört `@page`; `/hakkimizda/baska` 404; `07 §4.8.1`) · 4 ✓ (`_ContentRecordBody.cshtml` sırası ad → galeri → metin → "Bize ulaşın" (yalnız hizmet) → "İlgili ürünler" → "Paylaş" = `04` 5.8.3/5.8.4; kısa metin `<main>`'de yok, yalnız `description`; galeri firmanın sırası ve etkin alt metin; `RichText.Render` `<script>`'i süzer; `…_KK4` iki test) · 5 ✓ (`ContentProductLinks.ListRelatedCardsAsync` → `ProductListReader.ListCardsAsync` `Published()`, bağ sırası korunur; `LinkedProducts.Count > 0` başlığı da kapsar; `…_KK5` taslak/arşiv yok, hiçbiri yayında değilken ve bağsızken başlık yok, referans yolu) · 6 ✓ (`ContactPath` yalnız hizmette `/iletisim`, birincil düğme; sayfalarda `OnPost` yok; `…_KK6`: altı adreste `<form` yok, POST 200/303 değil; çapa D-1209) · 7 ✓ (`HasAdminSessionAsync` sunucuda; `RecordPages.Content/FixedContent` `open = !IsDraft`; `SetDraftPreview` `/panel/kurumsal-icerik/{tip}/{iç anahtar}` — `07 §3.1.1` `{tip}` listesiyle birebir; `…_KK7` dört tipte ziyaretçi 404, yönetici 200 + bant + noindex) · 8 ✓ (`IsValidSegment` + tip başına okuma; `…_KK8` bilinmeyen, başka tipin slug'ı, taslak, boşluk, geçersiz bölüm 404; büyük harf 200 — `07 §2.1.7`). `09 §25`: modül sınırı (`Contracts` üzerinden), arama motoru verisi `Infrastructure/SearchEngine`, sayfalı liste `Id` ile biten sıra + `ToPageAsync` + sınır testi, satır içi stil/betik yok, yeni POST yok — evet. Yerel (dal ucu `e70eac37`): restore ✓, `build -warnaserror` 0/0, `dotnet format --verify-no-changes` üç proje 0, Unit 7142/7142, betik testleri 4/4, Integration TAM ad alanı parçalarıyla 3741/3741 (CorporateContent+Pages+Catalog+Administration 346, Web 755, Ordering 638, Model 1407, kök+Commands+Concurrency+Database+Disposal+FileSecrets+Files+Jobs+Logging+Outages+Payment+Security+SignedEndpoints 595; Postgres 18 `track_commit_timestamp=on`, 127.0.0.1:58517), `restore --locked-mode` 0. Birleştirmeden sonra (`f7a356a7`): `build -warnaserror` 0/0, Unit 7153/7153, Integration CorporateContent+Pages+Ordering 840/840, `SessionAccessTests`+`StorefrontFrameTests`+`SearchEngineDataTests` 90/90. CI: PR #543 run 43078205427 (head `e70eac37`) dokuz iş yeşil. Ana dal son 3: 43046780915, 43046780990, 43038133909 success. Güvenlik: yeni POST yok, yetki sunucuda, metin süzülüyor, iç anahtar yalnız yöneticinin bandında, yeni paket/sır yok.
+
+**Yapım raporu karşılaştırması (tur 3):** öz denetim tabloları var ve kanıtlı; verdict'le uyumlu. Uyuşmazlık 2 (bloke etmez): "Düzeltme 2" test satırı Integration'ı kısmi koştuğunu yazar (CorporateContent, Web+Pages+Administration) — doğrulama TAM koştu, 3741/3741; Notlar'daki "panel kayıt adresi tip adları teyitsiz" kararı tur 1'de teyit edilip D-1210 ile kapanmıştı, not eskidir.
+
+| Alan | Sonuç |
+|---|---|
 | Doğrulama durumu (tur 2) | ✗ FAIL — tur 2 (2026-11-11, head `e9e7f73f`; `origin/main` `25f1f1ee` (T508 #544) birleştirildi, yalnız `DEFERRED_BACKLOG.md`'de kayıt çakışması — satır satır iki tarafın değişikliği korundu; doğrulama birleşik ağaçta). Kriter 1–3, 5–8 ve KK1–KK3, KK5–KK8 ✓; B1 kapandı (kısa metin `<main>`'de yok); kriter 4 / KK4 ~ (B2) |
 | Bulgu sayısı (tur 2) | 1 — **B2** (S1, DÜŞÜK; kriter 4 / KK4; satırsız bulgu): `04` 5.8.3'ün bilgi hiyerarşisi yukarıdan aşağıya (`04` §1 konvansiyonu: "yukarıdan aşağıya numaralı bölgeler; vitrinde dar sınıfın sırasıyla") (1) ad, (2) görseller, (3) metin, (4) türe özgü bölge, (5) "Paylaş"tır; hizmet ve referansta türe özgü bölge "İlgili ürünler"i de kapsar (5.8.4). `_ContentRecordBody.cshtml` "Paylaş"ı (`_ShareButton`) `content-page__actions` içinde makalenin sonunda, "İlgili ürünler" bölümünü ise `</article>`'dan sonra çizer — "Paylaş" (5) türe özgü bölgenin (4) bir parçasının üstünde kalır; tek sütunlu dar sınıfta (5.8.11) da sıra budur. KK4 testi bu sırayı sınamıyor. Düzeltme: "Paylaş" "İlgili ürünler"in altına alınır (sıra: ad, görseller, metin, "Bize ulaşın", "İlgili ürünler", "Paylaş") ve KK4 testi sırayı sınar |
 | Düzeltme gerekli mi (tur 2) | Evet — B2. İkinci iterasyonun FAIL'i: `12 §8.5` iterasyon sınırı, eskalasyon (`INSTRUCTIONS.md` §3.3) |
@@ -123,7 +135,7 @@ Tur 2 FAIL'i (B2) kapatıldı: "Paylaş" `</article>` ve "İlgili ürünler" bö
 
 - **Branch:** `task/T505-icerik-sayfalari`
 - **Commit:** PR'ın head'i (yardımcı dönüşte bildirir) — T505: İçerik liste ve içerik sayfaları (E-07, E-08)
-- **PR:** açıldığında dönüşte bildirilir
+- **PR:** #543
 - **CI:** yapım işçisi izlemez; yardımcı yürütür
 - **Post-merge run'lar:** *(validator doldurur)*
 

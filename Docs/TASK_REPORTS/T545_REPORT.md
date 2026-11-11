@@ -60,10 +60,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-11) |
+| Bulgu sayısı | 1 (S1, KK3) |
+| Düzeltme gerekli mi | Evet — indirimli kartın ana fiyatı indirimli fiyat olmalı |
+| Bloke-etmeyen not (K) sayısı | 1 (K1: KK3 testleri gerçek okuyucunun verisiyle değil, LowestPrice = DiscountedPrice kurgusuyla) |
+
+**Bulgu 1 (S1, KK3; `04` 2.11.2, `02 §3.9.2`):** `ProductCards.Of` kartın ana fiyatını `item.LowestPrice`'tan yazar; `ProductListReader` bu alana yayındaki varyantların **indirimsiz** liste fiyatını (`Min(v.Price)`) koyar, indirimli fiyat yalnız `DiscountLine.DiscountedPrice`'tadır. `_ProductCard.cshtml` `Discount.DiscountedPriceText`'i hiç çizmez. Sonuç: `DiscountAndReferenceTests.TheRunningDiscountsDates_…` verisinde (LowestPrice 50, indirimli 40, referans 50) kart "50 TL ~~50 TL~~ İndirim %20" gösterir; indirimli fiyat (40 TL) kartta yoktur. Birim ve entegrasyon testleri LowestPrice = DiscountedPrice = 80 kurgusuyla kurulduğu için hatayı göstermez. Düzeltme: indirim varken ana fiyat `DiscountedPriceText` olmalı; test gerçek okuyucu biçimindeki veriyle (LowestPrice ≠ DiscountedPrice) kurulmalı.
 
 ## Altyapı Değişiklikleri
 

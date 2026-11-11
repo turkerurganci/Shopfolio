@@ -400,7 +400,7 @@ public sealed partial class StorefrontFrameTests
         string html = (await GetHtmlAsync(client, "/panel/davet/abc")).Html;
 
         Assert.Contains("<h1 class=\"panel-bare__title\">Shopfolio Panel</h1>", html, StringComparison.Ordinal);
-        Assert.Contains("id=\"sample-content\"", html, StringComparison.Ordinal);
+        Assert.Contains("id=\"invitation-invalid\"", html, StringComparison.Ordinal); // the invitation page (T520), not a sample
         foreach (string absent in new[] { "panel-top", "panel-menu", "Siteyi görüntüle", "Hesabım", "Çıkış", "brand-color", "site-header" })
         {
             Assert.DoesNotContain(absent, html, StringComparison.Ordinal);

@@ -259,7 +259,7 @@
 |---|---|---|---|---|---|
 | T501 | Yerli üretim logosu varlığı ve gösterimi | ✓ | ✓ PASS (tur 1) | `e7e5d3e1` | #535 |
 | T502 | Vitrin: ana sayfa ve kategori sayfası (E-01, E-02) | ✓ | ✓ PASS (tur 2) | `038a972f` | #541 |
-| T503 | Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04) | ⬚ | — | — | — |
+| T503 | Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04) | ✓ | ✓ PASS (tur 3) | `2f131820` | #542 |
 | T504 | Hata sayfaları: bulunamayan adres ve beklenmeyen hata (E-06, 500) | ✓ | ✓ PASS (tur 1) | `e59bfa5f` | #540 |
 | T505 | İçerik liste ve içerik sayfaları (E-07, E-08) | ⬚ | — | — | — |
 | T506 | Sık sorulan sorular ve iletişim sayfası ve formu (E-09, E-10) | ⏳ | — | — | — |
@@ -276,7 +276,7 @@
 | T517 | Hesap — profil ve güvenlik (E-25) | ⬚ | — | — | — |
 | T518 | Adres defteri ve sipariş geçmişi (E-26, E-27) | ⬚ | — | — | — |
 | T519 | E-posta değişikliğini geri alma ve müşteri çıkışı (E-28) | ⬚ | — | — | — |
-| T520 | Panel girişi, şifre sıfırlama, davet kabulü ve yönetici çıkışı (E-29, E-30) | ⬚ | — | — | — |
+| T520 | Panel girişi, şifre sıfırlama, davet kabulü ve yönetici çıkışı (E-29, E-30) | ✓ | ✓ PASS (tur 1) | `fd6c275e` | #549 |
 | T521 | Panel ana sayfası ve yönetici hesabının doğrulama ekranları (E-31, E-54) | ⬚ | — | — | — |
 | T522 | Yönetici hesapları ve işlem izi (E-49, E-52) | ⬚ | — | — | — |
 | T523 | Yöneticinin kendi hesabı (E-50) | ⬚ | — | — | — |

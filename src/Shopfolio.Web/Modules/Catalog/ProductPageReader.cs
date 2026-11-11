@@ -44,10 +44,57 @@ internal sealed class ProductPageReader
             .OrderByDescending(i => i.IsMain).ThenBy(i => i.SortOrder).ThenBy(i => i.Id)
             .Select(i => (Guid?)i.ImageId)
             .FirstOrDefaultAsync(ct);
-        return new ProductPage(kind, product.Id, product.Name, product.Description, image, await ListVariantsAsync(product, kind, isAdministrator, ct));
+        Guid? primaryCategory = await _db.ProductCategories.AsNoTracking()
+            .Where(l => l.ProductId == product.Id && l.IsPrimaryCategory)
+            .Select(l => (Guid?)l.CategoryId)
+            .FirstOrDefaultAsync(ct);
+        (IReadOnlyList<ProductPageOption> options, Dictionary<Guid, (int Order, int Slot)> valueSlots) = kind == ProductPageKind.Archived
+            ? ([], [])
+            : await ReadOptionsAsync(product.Id, ct);
+        IReadOnlyList<ProductPageVariant> variants = await ListVariantsAsync(product, kind, isAdministrator, valueSlots, ct);
+        return new ProductPage(kind, product.Id, product.Name, product.Description, image, variants)
+        {
+            Type = product.ProductType,
+            Slug = product.Slug,
+            ShippingPeriod = product.ShippingPeriod,
+            FulfilmentPeriod = product.FulfilmentPeriod,
+            PrimaryCategoryId = primaryCategory,
+            Options = options,
+        };
     }
 
-    private async Task<IReadOnlyList<ProductPageVariant>> ListVariantsAsync(Product product, ProductPageKind kind, bool isAdministrator, CancellationToken ct)
+    // The option dimensions in the firm's order (Option.SortOrder 1 is the first, 2 the second) with their values in their own order; and the place of every value by its id, which the variants'
+    // two bindings are turned into (07 4.4.1: the selection parameters are the values' orders, never their keys).
+    private async Task<(IReadOnlyList<ProductPageOption> Options, Dictionary<Guid, (int Order, int Slot)> Slots)> ReadOptionsAsync(Guid productId, CancellationToken ct)
+    {
+        var options = await _db.Options.AsNoTracking()
+            .Where(o => o.ProductId == productId)
+            .OrderBy(o => o.SortOrder)
+            .Select(o => new { o.Id, o.Name })
+            .ToListAsync(ct);
+        List<ProductPageOption> result = [];
+        Dictionary<Guid, (int Order, int Slot)> slots = [];
+        foreach (var option in options)
+        {
+            var values = await _db.OptionValues.AsNoTracking()
+                .Where(v => v.OptionId == option.Id)
+                .OrderBy(v => v.SortOrder).ThenBy(v => v.Id)
+                .Select(v => new { v.Id, v.Value, v.SortOrder })
+                .ToListAsync(ct);
+            int slot = result.Count;
+            foreach (var value in values)
+            {
+                slots[value.Id] = (value.SortOrder, slot);
+            }
+
+            result.Add(new ProductPageOption(option.Name, [.. values.Select(v => new ProductPageOptionValue(v.SortOrder, v.Value))]));
+        }
+
+        return (result, slots);
+    }
+
+    private async Task<IReadOnlyList<ProductPageVariant>> ListVariantsAsync(
+        Product product, ProductPageKind kind, bool isAdministrator, Dictionary<Guid, (int Order, int Slot)> valueSlots, CancellationToken ct)
     {
         // The archived page is not a sales page: it carries no variant, so no price and nothing to add to the cart (02 3.7.6).
         if (kind == ProductPageKind.Archived)
@@ -61,9 +108,29 @@ internal sealed class ProductPageReader
         variants = isAdministrator
             ? variants.Where(v => v.PublishStatus != PublishStatus.Archived)
             : variants.InOptionList(_db.Products.AsNoTracking());
-        return await variants
+        var rows = await variants
             .OrderBy(v => v.CreatedAt).ThenBy(v => v.Id)
-            .Select(v => new ProductPageVariant(v.Id, v.SKU, v.Price, v.StockQuantity != null && v.StockQuantity - v.ReservedQuantity <= 0, v.PublishStatus))
+            .Select(v => new
+            {
+                v.Id,
+                v.SKU,
+                v.Price,
+                SoldOut = v.StockQuantity != null && v.StockQuantity - v.ReservedQuantity <= 0,
+                v.PublishStatus,
+                v.FirstOptionValueId,
+                v.SecondOptionValueId,
+            })
             .ToListAsync(ct);
+        return
+        [
+            .. rows.Select(v => new ProductPageVariant(v.Id, v.SKU, v.Price, v.SoldOut, v.PublishStatus)
+            {
+                FirstValueOrder = OrderOf(valueSlots, v.FirstOptionValueId),
+                SecondValueOrder = OrderOf(valueSlots, v.SecondOptionValueId),
+            }),
+        ];
     }
+
+    private static int? OrderOf(Dictionary<Guid, (int Order, int Slot)> valueSlots, Guid? valueId) =>
+        valueId is Guid id && valueSlots.TryGetValue(id, out (int Order, int Slot) place) ? place.Order : null;
 }

@@ -27,9 +27,4 @@ public sealed class PanelLayoutSampleModel : PageModel
     public IActionResult OnGet() => Page();
 }
 
-/// <summary>A panel page of the screens without the frame (04 2.2.9): the invitation landing, drawn with the bare layout (T540 KK8).</summary>
-public sealed class PanelBareSampleModel : PageModel
-{
-    public IActionResult OnGet() => Page();
-}
 

@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
 
+using Shopfolio.Infrastructure.Routing;
+
 namespace Shopfolio.Modules.Catalog.Contracts.Pricing;
 
 /// <summary>
@@ -31,7 +33,7 @@ public static class DomesticProductionLogo
     /// The address of the file: under the static area with ten characters of its content hash in the name, like the static files (07 2.1.2, 2.10.3), so a replaced file gets a
     /// new address and the old one can be cached for good.
     /// </summary>
-    public static string Address { get; } = $"/statik/yerli-uretim-logosu.{FileHash[..10]}.jpg";
+    public static string Address { get; } = $"{AddressRules.StaticArea}/yerli-uretim-logosu.{FileHash[..10]}.jpg";
 
     /// <summary>
     /// Whether a product shows the logo: it is a physical product and its place of origin is Turkey (02 3.8.5). A digital product and a service never show it; another country

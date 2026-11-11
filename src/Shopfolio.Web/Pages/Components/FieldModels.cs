@@ -22,6 +22,9 @@ public enum FieldKind
     TextArea,
     ClosedList,
     Number,
+
+    /// <summary>A secret typed by the user (T514; 04 7.3.2.2): the input hides it and the form never shows a sent one again.</summary>
+    Concealed,
 }
 
 /// <summary>One choice of a closed list: the value that is sent, the text that is shown, and - for a choice the screen shows but does not let be chosen - the reason beside it.</summary>
@@ -101,6 +104,7 @@ public sealed class FieldView
     {
         FieldKind.Email => "email",
         FieldKind.Telephone => "tel",
+        FieldKind.Concealed => "password",
         _ => "text",
     };
 
@@ -155,6 +159,10 @@ public static class Fields
 
     public static FieldView TextArea(string name, string label, FieldRequirement requirement, string? value = null, int? maxLength = null, string? autocomplete = null, string? hint = null) =>
         new(name, label, FieldKind.TextArea, requirement) { Value = value, MaxLength = CheckedLimit(maxLength), Autocomplete = autocomplete, Hint = hint };
+
+    /// <summary>A secret field (T514): no value is ever put in it, so a form drawn again after a refusal does not show the secret that was sent (04 7.3.2.2; 09 15.1).</summary>
+    public static FieldView Concealed(string name, string label, FieldRequirement requirement, string? autocomplete = "new-password", string? hint = null) =>
+        new(name, label, FieldKind.Concealed, requirement) { Autocomplete = autocomplete, Hint = hint };
 
     public static FieldView Number(string name, string label, FieldRequirement requirement, string? value = null) =>
         new(name, label, FieldKind.Number, requirement) { Value = value };

@@ -86,7 +86,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T542-rozet-sayac-eszamanli-uyari`
-- **PR:** *(PR açılınca doldurulur)*
+- **PR:** #536
 - **CI:** *(yönetici izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

@@ -1,6 +1,6 @@
 # T544 — Tarih alanı, kupon alanı, onay kutuları, görsel ve dosya yükleme arayüzü (OB-16…OB-19)
 
-**Faz:** F5 | **Durum:** ⏳ Yapım tamam, doğrulama bekliyor | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-11
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -63,8 +63,18 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | *(validator doldurur)* |
+| Doğrulama durumu | Tur 1 (2026-11-11): ✗ FAIL — kriter 10 ~ Kısmi (KK10 "reddedilen dosya") |
+| Bulgu sayısı | 2 (ORTA 1, DÜŞÜK 1) + 1 K-notu |
+| Düzeltme gerekli mi | Evet — yeni yapım turu |
+
+**Validator kanıtları (tur 1):**
+
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1–9 | ✓ | Kod okuması (`DateModels`, `CouponModels`, `ConsentModels`, `UploadComponentModels`, görünümler); Unit 7265/7265, `ControlComponentTests` 9/9 yerel (postgres:18, `track_commit_timestamp=on`); CI run 43072832924 yeşil |
+| 10 | ~ | Kurallar ve mesaj metinleri var (`UploadChecks.CheckImage/CheckDigitalFile/CheckCount`), ilerleme ve kapalı kayıt düğmesi ✓, tek dosya ✓, müşteride yükleme yok ✓; ama `_GalleryUpload` ve `_SingleUpload` alanın mesajını çizmez (görünüm modelinde `Error` yok), `AddRefusal` yalnız model durumuna yazar; galerinin dosya girişi `id="gallery-files"`, özetin bağlantısı `FieldIdOf("Input.Gallery.Files")` = `Input_Gallery_Files` — eşleşmez. Sebep alan mesajı olarak görünmez (`04` 2.12.8.3, 2.3.2 "her alan kendi mesajını taşır"; 2.12.8.7 `UploadMissing` aynı boşluk) |
+
+**Bulgular:** (1) ORTA S1 — yükleme bileşenlerinde alan mesajı yok (yukarıda). (2) DÜŞÜK S1 — `CouponFields.BlankField` kupon kodunu `FieldRequirement.Required` ile kurar, etiket "zorunlu" der; `04` 7.1.5.7 kupon kodu "İsteğe bağlı". **K1:** `CouponFieldView.TakesACode` yorumu "yalnız açık hâl" der, kod `Mode != LimitClosed` döner — düzeltme turunda bu PR'da kapatılır.
 
 ## Altyapı Değişiklikleri
 

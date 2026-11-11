@@ -19,6 +19,8 @@ using Shopfolio.Pages.Components;
 using Shopfolio.Pages.Frame;
 using Shopfolio.Pages.Storefront;
 
+using GalleryImage = Shopfolio.Modules.Catalog.Contracts.GalleryImage;
+
 namespace Shopfolio.Pages;
 
 /// <summary>

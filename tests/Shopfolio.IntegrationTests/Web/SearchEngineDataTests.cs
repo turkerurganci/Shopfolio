@@ -375,7 +375,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
         Assert.Equal("text/csv", csv.Content.Headers.ContentType?.MediaType);
         Assert.Equal("noindex", Assert.Single(csv.Headers.GetValues("X-Robots-Tag")));
         Assert.Equal(HttpStatusCode.NotFound, notFound.Status);
-        Assert.Equal("noindex", Assert.Single(notFound.Message.Headers.GetValues("X-Robots-Tag")));
+        Assert.Equal("noindex", Metas(notFound.Body)["robots"]);
         Assert.False(home.Message.Headers.Contains("X-Robots-Tag"));
         Assert.False((await GetAsync(host, "/kategori/masalar")).Message.Headers.Contains("X-Robots-Tag"));
     }

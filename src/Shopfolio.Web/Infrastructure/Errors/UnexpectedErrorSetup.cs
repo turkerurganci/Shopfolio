@@ -122,7 +122,11 @@ internal sealed class UnexpectedErrorMiddleware
         {
             ErrorResolution resolution = _layer.Resolve(context, exception);
             await UnexpectedErrorAnswer.WriteAsync(context, resolution);
+            return;
         }
+
+        // A 404 with no body of its own is the "page not found" page (T504; 07 UC-06): no unexpected error, so neither a line nor the counter.
+        await NotFoundAnswer.WriteIfNotFoundAsync(context);
     }
 #pragma warning restore CA1031
 }

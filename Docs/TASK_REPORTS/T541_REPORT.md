@@ -81,7 +81,7 @@
 - **Commit:** bkz. PR
 - **PR:** #537
 - **CI:** `54a45d98` run 42971044507 success; head `8e7e4782` run 42975292161 success
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** main `8ac3b828`: CI 42991019267 success, Publish 42991019324 success
 
 ## Dış Varsayımlar
 

@@ -1,0 +1,20 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Storefront
+@model HomeCardBlock
+@* A block of content cards on the home page (04 5.1.5; K-755): the title is the firm's menu name and links to the type's list page; at most three cards, a single record is a single card and the row is
+   not filled; "Tümünü gör" is there only when more records are flagged than the cards show. *@
+<section class="home-block home-cards" aria-labelledby="home-cards-@Model.ListPath.Trim('/')">
+    <h2 class="home-block__title" id="home-cards-@Model.ListPath.Trim('/')"><a href="@Model.ListPath">@Model.Title</a></h2>
+    <ul class="card-grid home-cards__grid">
+        @foreach (var card in Model.Cards)
+        {
+            <li class="card-grid__item">
+                <partial name="_ContentCard" model="card" />
+            </li>
+        }
+    </ul>
+    @if (Model.HasMore)
+    {
+        <a class="home-block__more" href="@Model.ListPath">Tümünü gör</a>
+    }
+</section>

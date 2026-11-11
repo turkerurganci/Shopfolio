@@ -79,7 +79,7 @@ Model, Database, Catalog, Commands, Concurrency, Disposal, Logging, Ordering ad 
 
 - **Branch:** `task/T504-hata-sayfalari`
 - **Commit:** PR başlığına ve dal geçmişine bakınız (kod: `bdfba2d3`, devam: `51d4ffa5`, birleştirme `0f94d56b`)
-- **PR:** PR açıldığında eklenir
+- **PR:** #540
 - **CI:** yoklanmadı (yönetici izler)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası)*
 

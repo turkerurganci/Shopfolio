@@ -86,8 +86,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T550-f4-kapanis-duzeltmeleri`
-- **Commit:** `5a9572af` (sır bekçisi), `001debe2` (Ordering + tarama), `39c269af` (kalan satırlar, tarama biçimleri, 09/K-1614), kayıt commit'i
-- **PR:** #(açılınca yazılır)
+- **Commit:** `5a9572af` (sır bekçisi), `001debe2` (Ordering + tarama), `39c269af` (kalan satırlar, tarama biçimleri, 09/K-1614), `fce20fb6` (kayıtlar)
+- **PR:** #533
 - **CI:** yönetici izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

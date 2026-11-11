@@ -1,0 +1,11 @@
+@page "/referans/{slug}"
+@model Shopfolio.IntegrationTests.Pages.OriginLabelSampleModel
+@{
+    Layout = null;
+}
+<div id="price-block">
+    @if (Model.Label is { } label)
+    {
+        <partial name="_OriginLabel" model="label" />
+    }
+</div>

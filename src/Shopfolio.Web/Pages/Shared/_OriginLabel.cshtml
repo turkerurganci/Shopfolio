@@ -1,0 +1,11 @@
+@using Shopfolio.Modules.Catalog.Contracts.Pricing
+@model OriginLabel
+@* The one component that draws the domestic production logo (T501; 02 3.8.5; 04 5.4.4, 5.4.18): the origin line of the price block - the country's name is written with the logo and without it -
+   and, when the product is a physical one made in Turkey, the Ministry's logo beside it. No class of the width hides it, no setting or panel field closes it (K-610). The price block calls this component. *@
+<p class="origin-label">
+    <span class="origin-label__text">Üretim yeri: @Model.CountryName</span>
+    @if (Model.ShowsLogo)
+    {
+        <img class="origin-label__logo" src="@DomesticProductionLogo.Address" alt="Yerli üretim logosu" width="120" height="52">
+    }
+</p>

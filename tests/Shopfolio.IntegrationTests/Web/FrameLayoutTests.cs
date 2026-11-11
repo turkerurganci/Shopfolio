@@ -240,7 +240,7 @@ public sealed partial class StorefrontFrameTests
         string second = (await GetHtmlAsync(client, "/sss", Customer(customerKey))).Html;
 
         Assert.Contains("role=\"status\" data-js=\"merge-notice\"", first, StringComparison.Ordinal);
-        Assert.Contains("Giriş yapmadan önce sepetinize eklediğiniz ürünler hesabınızın sepetine eklendi", first, StringComparison.Ordinal);
+        Assert.Contains("Önceki ziyaretinden sepetine 1 ürün eklendi: Urun ", first, StringComparison.Ordinal);
         Assert.Contains("Urun ", first, StringComparison.Ordinal);
         Assert.DoesNotContain("data-js=\"merge-notice\"", second, StringComparison.Ordinal);
     }

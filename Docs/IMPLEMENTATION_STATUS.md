@@ -264,7 +264,7 @@
 | T505 | İçerik liste ve içerik sayfaları (E-07, E-08) | ⏳ Devam ediyor | — | — | — |
 | T506 | Sık sorulan sorular ve iletişim sayfası ve formu (E-09, E-10) | ⬚ | — | — | — |
 | T507 | Yasal metin sayfaları ve panelde yönetimi (E-11, E-47) | ⬚ | — | — | — |
-| T508 | Sepet (E-12) | ⬚ | — | — | — |
+| T508 | Sepet (E-12) | ✓ | ✓ PASS (tur 1) | `6a8e61a0` | #544 |
 | T509 | Ödeme adımı (E-13) | ⬚ | — | — | — |
 | T510 | Sipariş teyit ve bekleme ekranı, ödeme sağlayıcısına geçiş ve dönüş (E-14) | ⬚ | — | — | — |
 | T511 | Sipariş takibi girişi, sipariş sayfası ve indirme bağlantısı (E-15, E-16) | ⬚ | — | — | — |

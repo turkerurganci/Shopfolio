@@ -499,6 +499,17 @@
     margin-block: var(--space-5);
 }
 
+.not-found {
+    margin-block: var(--space-5);
+}
+
+.not-found__list {
+    display: grid;
+    gap: var(--space-3);
+    padding: 0;
+    list-style: none;
+}
+
 .error-page__actions {
     display: flex;
     flex-wrap: wrap;

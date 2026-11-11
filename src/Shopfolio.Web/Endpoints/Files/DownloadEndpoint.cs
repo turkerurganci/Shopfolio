@@ -11,7 +11,7 @@ namespace Shopfolio.Endpoints.Files;
 /// <summary>
 /// UC-37: <c>GET /indir/{signed value}</c> (07 4.31.1; 09 15.7 items 1 to 3; 05 7.7.4; 02 3.12.5, 3.12.7). An open machine endpoint: the signed value carries the order item's id and
 /// the end of its life, and no session or order root is looked up. The value, the item and the item's file are read in this order; a value that is not valid (bad
-/// signature or past its life), an item that cannot be downloaded and an item whose file is missing or whose upload did not complete are all the same 404 with no body
+/// signature or past its life), an item that cannot be downloaded and an item whose file is missing or whose upload did not complete are all the same 404 (the page E-06, drawn by the catching layer, T504)
 /// (E-06) - the answer does not say which. The life is checked once, when the request is accepted, and never while the file is sent. The endpoint writes nothing: not the
 /// download counter (the right dropped at the order page's button), not the trace. The answer is the framework's file result with range processing (K-884): a strong
 /// <c>ETag</c> and <c>Last-Modified</c> made from the file row, an attachment under the safe name, a general binary type and <c>no-store</c>; the other headers are the
@@ -25,7 +25,7 @@ internal static class DownloadEndpoint
 
     public static IEndpointRouteBuilder MapDownloadEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet(Pattern, HandleAsync).WithMetadata(MachineEndpointMetadata.Instance);
+        endpoints.MapGet(Pattern, HandleAsync).WithMetadata(MachineEndpointMetadata.Instance, NotFoundPageMetadata.Instance);
         return endpoints;
     }
 

@@ -1,0 +1,29 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@model NotFoundPageView
+@*
+    The "page not found" page E-06 (T504; 04 5.6; 07 UC-06): drawn inside the storefront's full frame - brand, menu, footer - with the title, the way home and, while a product is published, the way to the
+    products (the first-level categories of the home page). No primary button (04 5.6.2), no form, no word about why the address was not found (04 5.6.4), no code or technical detail (07 2.7.3). The page is
+    closed to the search engines by the layout's head (the catching layer marked the answer closed, 02 3.30.6). Not the unexpected error page (04 5.6.8).
+*@
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = NotFoundTexts.Title;
+}
+<section class="not-found">
+    <h1 class="not-found__title">@NotFoundTexts.Title</h1>
+    <p class="not-found__message">@NotFoundTexts.Message</p>
+    <p class="not-found__home"><a class="button button--secondary" href="@Model.HomePath">@NotFoundTexts.HomeLabel</a></p>
+    @if (Model.ProductLinks.Count > 0)
+    {
+        <nav class="not-found__products" aria-labelledby="not-found-products">
+            <h2 class="not-found__products-title" id="not-found-products">@NotFoundTexts.ProductsLabel</h2>
+            <ul class="not-found__list">
+                @foreach (var category in Model.ProductLinks)
+                {
+                    <li><a href="@category.Path">@category.Name</a></li>
+                }
+            </ul>
+        </nav>
+    }
+</section>

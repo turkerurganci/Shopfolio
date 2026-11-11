@@ -75,8 +75,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T545-liste-tablo-urun-karti`
-- **Commit:** son commit PR gövdesinde
-- **PR:** PR_NO
+- **Commit:** `f06b4a4b` — T545: örnek sayfa adresleri, tarama uyumu, rapor ve kayıtlar
+- **PR:** #538
 - **CI:** yapım işçisi izlemez; yardımcı yürütür
 - **Post-merge run'lar:** *(validator doldurur)*
 

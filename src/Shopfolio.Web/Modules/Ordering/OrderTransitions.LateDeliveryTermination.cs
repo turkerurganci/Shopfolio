@@ -99,11 +99,24 @@ internal sealed partial class OrderTransitions
             return Refused(TransitionRefusal.ConditionNotMet);
         }
 
+        // The customer's own termination on the transfer line takes the refund's IBAN with it, as the cancellation does (T512; 02 7.2.3, 7.4.5; D-873): format and check
+        // digits. The card line asks for none and an IBAN given there is not kept; the firm's record of a notice from another channel asks with B-14 below.
+        string? iban = null;
+        if (admin is null && order.PaymentMethod == PaymentMethod.BankTransfer && order.PaymentStatus is PaymentStatus.Paid or PaymentStatus.PartiallyRefunded)
+        {
+            if (string.IsNullOrWhiteSpace(request.Iban) || !IbanRule.Allows(request.Iban))
+            {
+                return Refused(TransitionRefusal.InvalidInput);
+            }
+
+            iban = RequestFormat.CompactIban(request.Iban);
+        }
+
         List<Guid> recordIds = [];
         foreach ((OrderItem item, int open) in terminated)
         {
             ItemRecordWriteResult written = await _afterSales.AddLateDeliveryTerminationAsync(
-                new LateDeliveryTerminationEntry(Subject(order, item), open, FrozenOf(item), admin, declarationDate, now), ct);
+                new LateDeliveryTerminationEntry(Subject(order, item), open, FrozenOf(item), admin, declarationDate, now, iban), ct);
             if (written.Refusal is { } refused)
             {
                 return Refused(Map(refused));
@@ -113,8 +126,9 @@ internal sealed partial class OrderTransitions
             recordIds.Add(terminationId);
 
             // The refund starts with the record (T370; 02 7.2.3, 7.2.8): on the card by the system; on the transfer the firm processes it, and the firm's record
-            // of a notice from another channel asks for the IBAN with B-14 (03 8.4.8); the IBAN field of the customer's own termination form is D-817's.
-            await StartRefundOfRecordAsync(order, item, RefundType.LateDeliveryTermination, terminationId, false, request.Admin, RefundIbanRequestReason.NoticeWithoutIban, ct);
+            // of a notice from another channel asks for the IBAN with B-14 (03 8.4.8); the customer's own termination brought its IBAN (D-873).
+            await StartRefundOfRecordAsync(
+                order, item, RefundType.LateDeliveryTermination, terminationId, iban is not null, request.Admin, RefundIbanRequestReason.NoticeWithoutIban, ct);
         }
 
         RaiseVersionOnce(order);

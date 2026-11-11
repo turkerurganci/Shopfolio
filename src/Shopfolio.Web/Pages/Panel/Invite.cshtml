@@ -1,0 +1,36 @@
+@page "/panel/davet/{key}"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Panel
+@model Shopfolio.Pages.Panel.InviteModel
+@*
+    The invitation page (T520; 04 9.2.3, 9.2.4; E-30): no frame (04 2.2.9). A valid invitation: the title, the address (read only), the name and the password, the button. Any other state: the one sentence that does
+    not tell the reason (K-799) and the link to the panel's sign-in under it. The password is never written back into the page.
+*@
+@{
+    Layout = "_PanelBareLayout";
+    ViewData["Title"] = PanelAccessTexts.InvitationTitle;
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, ["Input.Name", "Input.Password"]);
+}
+<h2>@PanelAccessTexts.InvitationTitle</h2>
+@if (Model.IsValid)
+{
+    FieldView email = Fields.AsReadOnly(Fields.Email("Email", "E-posta", FieldRequirement.Required, Model.InvitedEmail, null));
+    FieldView name = Fields.Bind(Fields.Text("Input.Name", "Ad", FieldRequirement.Required, Model.SentName, autocomplete: "name"), summary);
+    FieldView concealedField = Fields.Bind(Fields.Concealed("Input.Password", "Şifre", FieldRequirement.Required, "new-password", PanelAccessTexts.PasswordHint()), summary);
+    <partial name="_FormErrorSummary" model="summary" />
+    <form method="post" asp-antiforgery="true" action="@(PanelFramePaths.Invitation)/@(Uri.EscapeDataString(Model.Key ?? string.Empty))?handler=AcceptAdminInvitation" class="form" data-js="submit-once">
+        <div class="form-fields">
+            <partial name="_Field" model="email" />
+            <partial name="_Field" model="name" />
+            <partial name="_Field" model="concealedField" />
+        </div>
+        <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(PanelAccessTexts.AcceptButton)">@PanelAccessTexts.AcceptButton</button>
+    </form>
+}
+else
+{
+    <partial name="_Message" model='Messages.InPlace(MessageMeaning.Warning, PanelAccessTexts.InvitationInvalid, "invitation-invalid")' />
+    <p><a href="@PanelFramePaths.SignIn">@PanelAccessTexts.ToSignInLink</a></p>
+}

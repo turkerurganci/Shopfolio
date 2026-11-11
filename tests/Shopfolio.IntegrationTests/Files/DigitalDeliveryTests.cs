@@ -91,7 +91,8 @@ public sealed class DigitalDeliveryTests
         Assert.Same(DownloadLinkIssue.NotAvailable, issue);
         Assert.Null(await FindAsync(host, item));
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Empty(await response.Content.ReadAsByteArrayAsync(Ct));
+        Assert.StartsWith("text/html", response.Content.Headers.ContentType?.ToString(), StringComparison.Ordinal);
+        Assert.Contains("<h1 class=\"not-found__title\">Sayfa bulunamadı</h1>", System.Net.WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct)), StringComparison.Ordinal);
         Assert.Equal(0, await CountOfAsync(host, item));
     }
 

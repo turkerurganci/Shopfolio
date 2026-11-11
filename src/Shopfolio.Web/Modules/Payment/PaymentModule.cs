@@ -231,6 +231,16 @@ internal sealed class PaymentModule : IPaymentModule
             .Sum(r => r.Amount);
     }
 
+    public async Task<IReadOnlyList<SentRefund>> ListSentRefundsAsync(Guid orderId, CancellationToken ct)
+    {
+        return await _db.Refunds.AsNoTracking()
+            .Where(r => r.OrderId == orderId && r.SentAt != null && r.VoidedAt == null)
+            .OrderBy(r => r.SentAt).ThenBy(r => r.Id)
+            // The filter keeps sent rows only, so the fallback never applies; it spares the null-forgiving operator.
+            .Select(r => new SentRefund(r.SentAt ?? r.CreatedAt, r.Amount, r.PaymentMethod, r.OrderItemId, r.Quantity))
+            .ToListAsync(ct);
+    }
+
     public async Task<RefundMarks> ReadRefundMarksAsync(Guid orderId, CancellationToken ct)
     {
         await _db.Refunds.Where(r => r.OrderId == orderId).LoadAsync(ct);

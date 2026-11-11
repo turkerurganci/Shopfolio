@@ -298,12 +298,13 @@ public sealed class ProductPageModelTests
     [Fact]
     public void ScriptDataOf_CarriesThePurchasableFlagAndNeverAStockCount_T503_KK6()
     {
-        VariantScriptData data = new(Guid.NewGuid(), 0, 1, "10,00 TL", null, null, null, null, "/gorsel/a", "Ad", true);
+        VariantScriptData data = new(Guid.NewGuid(), 0, 1, "10,00 TL", null, null, null, null, "/gorsel/a", "Ad", true, false);
 
         using JsonDocument json = JsonDocument.Parse(ProductViews.ScriptDataOf([data]));
         JsonElement item = json.RootElement[0];
 
         Assert.True(item.GetProperty("purchasable").GetBoolean());
+        Assert.False(item.GetProperty("soldOut").GetBoolean());
         Assert.False(item.TryGetProperty("stock", out _));
         Assert.False(item.TryGetProperty("stockQuantity", out _));
         Assert.DoesNotContain("stock", json.RootElement.GetRawText(), StringComparison.OrdinalIgnoreCase);

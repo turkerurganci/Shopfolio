@@ -19,6 +19,7 @@ using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.Modules.Settings.Contracts.Gates;
 using Shopfolio.Pages.Components;
 using Shopfolio.Pages.Storefront;
+using Shopfolio.UnitTests.Support;
 
 namespace Shopfolio.IntegrationTests.Web;
 
@@ -459,6 +460,90 @@ public sealed partial class StorefrontSearchAndProductTests : IAsyncLifetime
         Assert.Matches(new Regex("<option[^>]*disabled[^>]*>[^<]*Renk 2", RegexOptions.Singleline), page.Body);
     }
 
+    [Fact]
+    public async Task TheScriptData_HoldsEachCombinationsPlacesAndSoldOutMark_ForTheOtherOptionsChoices_T503_KK5()
+    {
+        // Red-S, Blue-S and Blue-M are open, Red-M is not (04 5.4.6): the first sight (Red-S) lists M as a combination that cannot be chosen, and the script data holds what the script needs
+        // to draw the choices again when the colour turns Blue (Blue-M open; here sold out in the second product).
+        SeededProduct open = await SeedAsync(
+            "Masa ucgen",
+            variants:
+            [
+                new VariantSpec(First: 1, Second: 1),
+                new VariantSpec(First: 2, Second: 1),
+                new VariantSpec(First: 2, Second: 2),
+            ]);
+        SeededProduct partlySoldOut = await SeedAsync(
+            "Masa ucgen tukenmis",
+            variants:
+            [
+                new VariantSpec(First: 1, Second: 1),
+                new VariantSpec(First: 2, Second: 1),
+                new VariantSpec(Stock: 0, First: 2, Second: 2),
+            ]);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        Reply openPage = await GetAsync(client, $"/urun/{open.Slug}");
+        Reply soldOutPage = await GetAsync(client, $"/urun/{partlySoldOut.Slug}");
+
+        Assert.Matches(new Regex("<option[^>]*value=\"2\"[^>]*data-label=\"Beden 2\"[^>]*disabled", RegexOptions.Singleline), openPage.Body);
+        Assert.Contains("data-label=\"Renk 2\"", openPage.Body, StringComparison.Ordinal);
+        JsonElement[] openData = ScriptVariantsOf(openPage);
+        Assert.Equal([(1, 1), (2, 1), (2, 2)], openData.Select(v => (v.GetProperty("first").GetInt32(), v.GetProperty("second").GetInt32())).Order());
+        Assert.All(openData, v => Assert.True(v.GetProperty("purchasable").GetBoolean()));
+        Assert.All(openData, v => Assert.False(v.GetProperty("soldOut").GetBoolean()));
+        JsonElement[] soldOutData = ScriptVariantsOf(soldOutPage);
+        JsonElement blueMedium = Assert.Single(soldOutData, v => v.GetProperty("first").GetInt32() == 2 && v.GetProperty("second").GetInt32() == 2);
+        Assert.True(blueMedium.GetProperty("soldOut").GetBoolean());
+        Assert.False(blueMedium.GetProperty("purchasable").GetBoolean());
+        Assert.Equal(2, soldOutData.Count(v => !v.GetProperty("soldOut").GetBoolean()));
+    }
+
+    [Fact]
+    public async Task TheScript_DrawsTheOtherOptionsChoicesAgainOnEachChange_WithTheServersRule_T503_KK5()
+    {
+        string script = await File.ReadAllTextAsync(Path.Combine(RepositoryRoot.Find(), "src", "Shopfolio.Web", "wwwroot", "js", "product.js"), Ct);
+
+        // The choices are drawn again inside show(), which the change listener calls for every selection that can be bought.
+        int showStart = script.IndexOf("function show(variant)", StringComparison.Ordinal);
+        Assert.True(showStart > 0);
+        Assert.Contains("refreshChoices();", script[showStart..], StringComparison.Ordinal);
+        Assert.Contains("function refreshChoices()", script, StringComparison.Ordinal);
+        // The rule of VariantSelection.Fields: a value is chosen, or a combination that exists and is not sold out; a sold-out one carries the mark.
+        Assert.Contains("candidate.soldOut === true", script, StringComparison.Ordinal);
+        Assert.Contains("option.disabled = !(value === places[dimension] || (candidate !== undefined && !soldOut))", script, StringComparison.Ordinal);
+        Assert.Contains("(Tükendi)", script, StringComparison.Ordinal);
+        Assert.Contains("show(variant);", script, StringComparison.Ordinal);
+        // KK9: the add-to-cart button is locked after the first send (the listener stops a send while it is locked).
+        Assert.Contains("cartForm.addEventListener(\"submit\"", script, StringComparison.Ordinal);
+        Assert.Contains("button.disabled = true;", script, StringComparison.Ordinal);
+        Assert.Contains("event.preventDefault();", script, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TheVariableLines_AreAlwaysDrawn_AndHiddenWhenEmpty_SoTheScriptCanFillThem_T503_KK5()
+    {
+        SeededProduct plain = await SeedAsync("Masa duz", variants: [new VariantSpec(First: 1), new VariantSpec(First: 2)]);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        Reply page = await GetAsync(client, $"/urun/{plain.Slug}");
+
+        foreach (string name in new[] { "unit-price", "reference", "mark", "dates" })
+        {
+            Assert.Matches(new Regex($"<[a-z]+ [^>]*data-js=\"{name}\"[^>]*hidden", RegexOptions.Singleline), page.Body);
+        }
+    }
+
+    private static JsonElement[] ScriptVariantsOf(Reply page)
+    {
+        Match data = Regex.Match(page.Body, "data-variants=\"([^\"]*)\"");
+        Assert.True(data.Success);
+        using JsonDocument json = JsonDocument.Parse(WebUtility.HtmlDecode(data.Groups[1].Value));
+        return [.. json.RootElement.EnumerateArray().Select(e => e.Clone())];
+    }
+
     // ---- KK6: the page's data has no stock count; "Paylaş" ----
 
     [Fact]
@@ -513,6 +598,10 @@ public sealed partial class StorefrontSearchAndProductTests : IAsyncLifetime
         Reply page = await GetAsync(client, added.Location!, cookie);
         Assert.Contains(CartAddMessages.AddedText, page.Text, StringComparison.Ordinal);
         Assert.True(IsClosed(page));
+        // The frame's cart count is the number of live lines: one line of two pieces reads 1 (T537; K4 of the first validation round).
+        Assert.Contains("class=\"cart-link__count\" aria-label=\"1 kalem\"", page.Body, StringComparison.Ordinal);
+        Reply before = await GetAsync(client, $"/urun/{product.Slug}");
+        Assert.Contains("class=\"cart-link__count\" aria-label=\"0 kalem\"", before.Body, StringComparison.Ordinal);
     }
 
     [Fact]

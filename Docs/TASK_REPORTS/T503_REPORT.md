@@ -1,6 +1,6 @@
 # T503 — Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04)
 
-**Faz:** F5 | **Durum:** ✗ Doğrulama FAIL (tur 1) | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ⏳ Düzeltme 1 yapıldı, tur 2 doğrulaması bekliyor | **Tarih:** 2026-11-11
 
 ---
 
@@ -20,11 +20,11 @@
 | 2 | Boş arama yalnız alan; sonuçsuz boş hâl; arşiv yok; süzgeç; noindex | ✓ | `AnEmptyWord_ShowsOnlyTheSearchField…_KK2`, `ASearchWithNoProduct_IsTheEmptyStateLine_AndAnArchivedProduct…_KK2`, `TheFilters_TakeThePriceRange…_KK2`, `ProductPageModelTests.EmptyStateOf_*` |
 | 3 | Yayında E-04, taslakta panel önizlemesi, taslak/yok aynı 404 | ✓ | `APublishedProduct_IsE04_ADraftIsAPreview…_KK3`, `AnArchivedProduct_ShowsTheNoLongerSoldPage…_KK3` |
 | 4 | Seçim iki parametre; bozuk/tükenmiş → varsayılan | ✓ | `TheSelection_IsTheTwoOrders_AndAWrongOrMissing…_KK4`; `ProductPageModelTests.ParseOrder_*`, `Resolve_*`, `Default_*` |
-| 5 | Varyant fiyatı, tipe göre teslimat, Tükendi, ayrılmış adet, T501 logosu | ✓ | `TheDeliveryLine_IsByTheProductsType_AndTheLogoIsT501s_KK5`, `AVariantWhoseStockIsAllReserved_IsSoldOut…_KK5`, `ASoldOutValue_CarriesTukendiInTheSelection…_KK5`; `ProductPageModelTests.Fields_*`, `ModeOf_*`, `PriceBlockOf_*`, `DeliveryOf_*` |
+| 5 | Varyant fiyatı, tipe göre teslimat, Tükendi, ayrılmış adet, T501 logosu (betikli yol dahil) | ✓ | `TheDeliveryLine_IsByTheProductsType_AndTheLogoIsT501s_KK5`, `AVariantWhoseStockIsAllReserved_IsSoldOut…_KK5`, `ASoldOutValue_CarriesTukendiInTheSelection…_KK5`; düzeltme 1: `TheScriptData_HoldsEachCombinationsPlacesAndSoldOutMark_ForTheOtherOptionsChoices_KK5`, `TheScript_DrawsTheOtherOptionsChoicesAgainOnEachChange_WithTheServersRule_KK5`, `TheVariableLines_AreAlwaysDrawn_AndHiddenWhenEmpty_SoTheScriptCanFillThem_KK5`; `ProductPageModelTests.Fields_*`, `ModeOf_*`, `PriceBlockOf_*`, `DeliveryOf_*` |
 | 6 | Betik verisi stok adedsiz; Paylaş | ✓ | `ThePageData_CarriesThePublishedVariantsWithNoStockCount_AndThereIsAShareButton_KK6`; `ProductPageModelTests.ScriptDataOf_*`, `ProductBuyAreaAndScriptRecords_HaveNoStockCountMember_KK6` |
-| 7 | 303: iki parametre, bildirim, sepet sayısı | ✓ | `AnAdd_Is303BackToThePageWithTheTwoPlacesAndTheNotice_AndTheCartHoldsTheLine_KK7` |
+| 7 | 303: iki parametre, bildirim, sepet sayısı | ✓ | `AnAdd_Is303BackToThePageWithTheTwoPlacesAndTheNotice_AndTheCartHoldsTheLine_KK7` (düzeltme 1: çerçevenin sepet sayısı eklemeden önce 0, sonra 1 kalem okunur) |
 | 8 | Stok, P-9 (sınır önce), dijital tekrar, tükenmiş/seçilmemiş, kapalı satış, geçersiz adet 422; yayında olmayan ürün/`VariantId` 404 | ✓ | `EachRefusal_Is422_WithItsMessageInPlace…_KK8`, `ASalesClosedGate_RefusesTheAdd…_KK8`, `ADigitalVariantAlreadyInTheCart_IsRefused…_KK8`, `ANotPublishedProductOrAnUnknownVariant_Is404…_KK8`; `CartQuantity_*` |
-| 9 | Tekrar gönderim ikinci ekleme; betikli yolda düğme kilidi | ✓ | `ASecondSend_IsASecondAdd_AndTheQuantityGrows_KK9`; kilit `wwwroot/js/product.js` (`data-js="add-to-cart"`, `submit-once`) |
+| 9 | Tekrar gönderim ikinci ekleme; betikli yolda düğme kilidi | ✓ | `ASecondSend_IsASecondAdd_AndTheQuantityGrows_KK9`; kilit `wwwroot/js/product.js` (`cartForm.addEventListener("submit"`, `button.disabled = true`, `event.preventDefault()`; `TheScript_DrawsTheOtherOptionsChoicesAgainOnEachChange_…_KK5` kaynak sınaması) |
 
 ## Koşular
 
@@ -66,3 +66,13 @@
 **K-notları:** K1 tükenmiş ret metni "Bu ürün tükendi" belgede yok (`07` 4.4.2 "stok mesajı") → D-1243 · K2 yalnız taslak/arşiv varyantın değeri ziyaretçide devre dışı değer olarak görünür (VAL-A024 okuması) → D-1244 · K3 betik verisinde fiyat tarihi yok, betikli seçimde varsayılan varyantın tarihi kalır (`07` 4.4.1 listesi) → D-1243 · K4 KK7 testi çerçevenin yeni sepet sayısını sınamıyor → bu PR'da (düzeltme turu) · K5 yapım raporu kriter 9 kanıtında `product.js`'te olmayan `submit-once` adını anıyor → bu PR'da.
 
 **Yapım raporu karşılaştırması:** 2 uyuşmazlık — rapor kriter 5'i ✓ veriyor (betikli yolun seçilebilirlik ve birim fiyat güncellemesi denenmemiş); kriter 9 kanıtı var olmayan `submit-once` adını anıyor. Rapor "Web dışı ad alanları koşulmadı" diyor; bu turda tam koşuldu, hepsi geçti. Öz denetim tablosu var, her satırda kanıt adı var.
+
+## Düzeltme 1 (2026-11-11)
+
+**Bulgu 1 (kriter 5; VAL-A009, VAL-A011):** `product.js` her seçim değişiminde (`show`) `refreshChoices` ile iki boyutun seçilebilirliğini ve "(Tükendi)" işaretini sunucu kuralıyla (`VariantSelection.Fields`: değer ya seçili ya da diğer boyut yerinde kalırken var olan ve tükenmemiş kombinasyon) sayfa verisinden yeniden hesaplar. Sayfa verisine yalnız bayrak `soldOut` eklendi (`VariantScriptData.SoldOut`; yayında ve ayrılmış adet düşülünce tükenmiş; stok adedi yok), seçenekler `data-label` taşır. Rapordaki örnek (Kırmızı-S, Mavi-S, Mavi-M açık; Kırmızı-M yok) `TheScriptData_HoldsEachCombinationsPlacesAndSoldOutMark_…_KK5` ile sayfa verisi ve ilk açılış durumu olarak, betik kuralı `TheScript_DrawsTheOtherOptionsChoicesAgainOnEachChange_…_KK5` ile kaynak olarak kilitlendi (betiği çalıştıran test yok → D-1247).
+
+**Bulgu 2 (kriter 5; VAL-A017):** `Product.cshtml` birim fiyat, indirim satırı (`reference`, `mark`) ve tarih (`dates`) öğelerini her zaman çizer, boşken `hidden`; betik seçilen varyantın değerini yazar ya da gizler. Sınama: `TheVariableLines_AreAlwaysDrawn_AndHiddenWhenEmpty_SoTheScriptCanFillThem_KK5`.
+
+**K-notları:** K4 kapandı (KK7 testi çerçevenin sepet sayısını 0 → 1 kalem olarak sınar); K5 kapandı (kriter 9 kanıtı `product.js`teki gerçek adlara bağlandı, `submit-once` anılmıyor); K1, K3 → D-1243 ve K2 → D-1244 (bu PR dışı, belgeye hizalama; değişmedi).
+
+**Öz denetim:** T503 kriter 1–9 ve KK1–KK9 yeniden denetlendi; tablodaki her satırın kanıt testi mevcut ve yeşil (kriter 5 betikli yol ✓, 7 ✓, 9 ✓). `sik-fail-nedenleri.md` iki T503 satırı (betikli yol yeniden hesabı, değişken alanın yer tutucusu) kapandı; aynı kalıp ürün sayfasının öteki değişken satırlarında (`reference`, `mark`, `dates`) da düzeltildi.

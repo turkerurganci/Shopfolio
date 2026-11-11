@@ -42,7 +42,26 @@ function findVariant() {
     return variants.find((v) => (v.first ?? null) === first && (v.second ?? null) === second);
 }
 
+// The selection's choices drawn again for the shown variant, with the server's rule (VariantSelection.Fields; 04 5.4.6, 5.4.9): each value of one option is read as the variant it would give while the
+// other option keeps its place; a value whose combination does not exist cannot be chosen, a sold-out one carries "Tükendi" and cannot be chosen, the value now shown is always the chosen one.
+function refreshChoices() {
+    const selects = selectionForm ? Array.from(selectionForm.querySelectorAll("[data-js='option']")) : [];
+    const places = selects.map((select) => Number.parseInt(select.value, 10));
+    selects.forEach((select, dimension) => {
+        const placeOf = (variant, d) => (d === 0 ? variant.first : variant.second) ?? null;
+        for (const option of select.options) {
+            option.dataset.label ??= option.textContent.replace(/ \(Tükendi\)$/, "");
+            const value = Number.parseInt(option.value, 10);
+            const candidate = variants.find((v) => placeOf(v, dimension) === value && (selects.length < 2 || placeOf(v, 1 - dimension) === places[1 - dimension]));
+            const soldOut = candidate !== undefined && candidate.soldOut === true;
+            option.disabled = !(value === places[dimension] || (candidate !== undefined && !soldOut));
+            option.textContent = soldOut ? `${option.dataset.label} (Tükendi)` : option.dataset.label;
+        }
+    });
+}
+
 function show(variant) {
+    refreshChoices();
     setText("price", variant.price);
     setText("reference", variant.reference);
     setText("mark", variant.mark);

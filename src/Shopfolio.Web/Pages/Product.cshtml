@@ -70,20 +70,12 @@
                 <div class="price-block">
                     <p class="price-block__row">
                         <span class="price-block__price" data-js="price">@price.PriceText</span>
-                        @if (price.ReferencePriceText is not null)
-                        {
-                            <del class="price-block__reference" data-js="reference">@price.ReferencePriceText</del>
-                            <span class="price-block__mark" data-js="mark">@price.DiscountMark</span>
-                        }
+                        @* The four variable lines are always drawn (hidden when empty) so the script can fill them for a variant the first one does not have (04 5.4.4). *@
+                        <del class="price-block__reference" data-js="reference" hidden="@(price.ReferencePriceText is null)">@price.ReferencePriceText</del>
+                        <span class="price-block__mark" data-js="mark" hidden="@(price.ReferencePriceText is null)">@price.DiscountMark</span>
                     </p>
-                    @if (price.DiscountDates is not null)
-                    {
-                        <p class="price-block__dates" data-js="dates">@price.DiscountDates</p>
-                    }
-                    @if (price.UnitPriceText is not null)
-                    {
-                        <p class="price-block__unit" data-js="unit-price">@price.UnitPriceText</p>
-                    }
+                    <p class="price-block__dates" data-js="dates" hidden="@(price.DiscountDates is null)">@price.DiscountDates</p>
+                    <p class="price-block__unit" data-js="unit-price" hidden="@(price.UnitPriceText is null)">@price.UnitPriceText</p>
                     @if (price.SinceText is not null)
                     {
                         <p class="price-block__since">@price.SinceText</p>
@@ -104,7 +96,7 @@
                             <select id="@field.FieldName" name="@field.FieldName" data-js="option">
                                 @foreach (OptionChoice choice in field.Choices)
                                 {
-                                    <option value="@choice.Order" selected="@choice.IsSelected" disabled="@(!choice.IsSelectable)">@choice.Text@(choice.IsSoldOut ? " (Tükendi)" : string.Empty)</option>
+                                    <option value="@choice.Order" data-label="@choice.Text" selected="@choice.IsSelected" disabled="@(!choice.IsSelectable)">@choice.Text@(choice.IsSoldOut ? " (Tükendi)" : string.Empty)</option>
                                 }
                             </select>
                         </div>

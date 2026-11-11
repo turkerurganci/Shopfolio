@@ -1,0 +1,12 @@
+@page "/cerez-politikasi"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Legal
+@model CookiePolicyModel
+@*
+    The cookie policy page (T507; 07 UC-17; 04 5.11): the same skeleton as the privacy notice's page.
+*@
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = Model.View.Title;
+}
+<partial name="_LegalText" model="Model.View" />

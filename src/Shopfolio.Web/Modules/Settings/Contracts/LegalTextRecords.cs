@@ -15,6 +15,13 @@ public sealed record LegalTextSummary(LegalTextType Type, int? LastVersionNumber
 /// <summary>The draft row of a firm-edited text (02 3.33.1): the text the firm is editing, the hosting location section of the privacy notice, and the form's version.</summary>
 public sealed record LegalTextDraft(LegalTextType Type, int FormVersion, string Text, string? HostingLocation);
 
+/// <summary>
+/// What the panel shows next to the draft of a firm-edited text (T507; 04 9.19.3, 9.19.11): the draft's text with the identity placeholders filled from the current company identity
+/// (HTML-encoded values; the stored draft keeps the tokens) and whether the draft - its text or its hosting location - differs from the last published version (K-818). A text that has no
+/// published version does not "differ".
+/// </summary>
+public sealed record LegalTextDraftPreview(string FilledText, bool DiffersFromPublished);
+
 /// <summary>A published version of a legal text, readable for as long as an order holds it (02 3.33.3).</summary>
 public sealed record LegalTextVersionInfo(Guid Id, LegalTextType Type, int VersionNumber, DateTimeOffset PublishedAt, string Text, string? HostingLocation);
 

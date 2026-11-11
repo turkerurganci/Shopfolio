@@ -313,6 +313,56 @@ public sealed class LegalTextTests : IAsyncLifetime
         Assert.DoesNotContain(SalesGateCondition.PrivacyNotice, after.UnmetConditions);
     }
 
+    // ---- T507: the draft preview and the cleaning of the draft ----
+
+    [Fact]
+    public async Task TheDraftPreview_FillsThePlaceholdersWithTheCurrentIdentity_AndDiffersOnlyAfterAPublicationWhenTheDraftChanged()
+    {
+        await RunAsync(m => m.SaveCompanyIdentityAsync(CompleteInput(), 1, Ct));
+
+        LegalTextDraftPreview unpublished = await RunAsync(m => m.GetLegalTextDraftPreviewAsync(LegalTextType.PrivacyNotice, Ct));
+        Assert.Equal("<p>Yılmaz Ticaret aydınlatma metni</p>", unpublished.FilledText);
+        Assert.False(unpublished.DiffersFromPublished);
+
+        await PublishAsync(LegalTextType.PrivacyNotice, "<p>{{LegalName}} aydınlatma metni</p>", "Avrupa");
+        Assert.False((await RunAsync(m => m.GetLegalTextDraftPreviewAsync(LegalTextType.PrivacyNotice, Ct))).DiffersFromPublished);
+
+        // An identity change alone is no difference of the draft: the tokens stay in both rows.
+        await ExecuteAsync("UPDATE companies SET legal_name = 'Başka Unvan'");
+        LegalTextDraftPreview renamed = await RunAsync(m => m.GetLegalTextDraftPreviewAsync(LegalTextType.PrivacyNotice, Ct));
+        Assert.Equal("<p>Başka Unvan aydınlatma metni</p>", renamed.FilledText);
+        Assert.False(renamed.DiffersFromPublished);
+
+        LegalTextDraft draft = await RunAsync(m => m.GetLegalTextDraftAsync(LegalTextType.PrivacyNotice, Ct));
+        Assert.True((await RunAsync(m => m.SaveLegalTextDraftAsync(LegalTextType.PrivacyNotice, "<p>değişti</p>", "Avrupa", draft.FormVersion, Ct))).IsSaved);
+        Assert.True((await RunAsync(m => m.GetLegalTextDraftPreviewAsync(LegalTextType.PrivacyNotice, Ct))).DiffersFromPublished);
+    }
+
+    [Fact]
+    public async Task TheDraftPreview_IsRefusedForAGeneratedText()
+    {
+        await Assert.ThrowsAnyAsync<ArgumentException>(() => RunAsync(m => m.GetLegalTextDraftPreviewAsync(LegalTextType.PreInformationForm, Ct)));
+    }
+
+    [Fact]
+    public async Task TheDraftSave_CleansTheTextWithTheClosedFormatSet_KeepsTheIdentityTokens_AndAnEmptiedByCleaningTextIsRefused()
+    {
+        LegalTextDraft draft = await RunAsync(m => m.GetLegalTextDraftAsync(LegalTextType.CookiePolicy, Ct));
+
+        SettingsSaveResult saved = await RunAsync(m => m.SaveLegalTextDraftAsync(LegalTextType.CookiePolicy, "<p onclick=\"x()\">{{LegalName}} <b>kalın</b></p><script>alert(1)</script>", null, draft.FormVersion, Ct));
+
+        Assert.True(saved.IsSaved);
+        LegalTextDraft after = await RunAsync(m => m.GetLegalTextDraftAsync(LegalTextType.CookiePolicy, Ct));
+        Assert.DoesNotContain("script", after.Text, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("onclick", after.Text, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("{{LegalName}}", after.Text, StringComparison.Ordinal);
+        Assert.Equal(draft.FormVersion + 1, after.FormVersion);
+
+        SettingsSaveResult emptied = await RunAsync(m => m.SaveLegalTextDraftAsync(LegalTextType.CookiePolicy, "<script>alert(1)</script>", null, after.FormVersion, Ct));
+        Assert.Equal([new FieldRejection("Text", FieldCodes.FilledFieldCleared)], emptied.Rejections);
+        Assert.Equal(after, await RunAsync(m => m.GetLegalTextDraftAsync(LegalTextType.CookiePolicy, Ct)));
+    }
+
     // ---- helpers ----
 
     private CompanyIdentityInput CompleteInput() =>

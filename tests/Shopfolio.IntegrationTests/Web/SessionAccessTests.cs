@@ -406,7 +406,7 @@ public sealed class SessionAccessTests
     {
         (string aliKey, Guid aliId) = await TestSessions.CustomerAsync(_database.Dsn);
         (_, Guid veliId) = await TestSessions.CustomerAsync(_database.Dsn);
-        (Guid aliOrder, string aliNumber, _) = await TestSessions.OrderAsync(_database.Dsn, aliId);
+        (_, string aliNumber, _) = await TestSessions.OrderAsync(_database.Dsn, aliId);
         (_, string veliNumber, _) = await TestSessions.OrderAsync(_database.Dsn, veliId);
         (_, string guestNumber, _) = await TestSessions.OrderAsync(_database.Dsn, customerId: null);
         await using WebApplicationFactory<Program> factory = Open(out AccessWriteLog log);
@@ -415,7 +415,7 @@ public sealed class SessionAccessTests
 
         using HttpResponseMessage own = await GetAsync(client, $"/siparis/{aliNumber}", cookie);
         Assert.Equal(HttpStatusCode.OK, own.StatusCode);
-        Assert.Equal($"order:{aliOrder}", await BodyOf(own));
+        Assert.Contains($"Sipariş {aliNumber}", await BodyOf(own), StringComparison.Ordinal);
 
         using HttpResponseMessage others = await GetAsync(client, $"/siparis/{veliNumber}", cookie);
         using HttpResponseMessage missing = await GetAsync(client, "/siparis/2026-ZZZZZZZZ", cookie);
@@ -429,16 +429,18 @@ public sealed class SessionAccessTests
             Assert.Equal(HeaderNames(others), HeaderNames(denied));
         }
 
-        using HttpResponseMessage postOthers = await PostAsync(client, $"/siparis/{veliNumber}?handler=Cancel", cookie);
-        using HttpResponseMessage postMissing = await PostAsync(client, "/siparis/2026-ZZZZZZZZ?handler=Cancel", cookie);
+        // The page's one write (UC-36) finds the order by the root first: another account's order and a missing number are the same 404, and nothing is written.
+        using HttpResponseMessage postOthers = await DownloadAsync(client, $"/siparis/{veliNumber}", cookie);
+        using HttpResponseMessage postMissing = await DownloadAsync(client, "/siparis/2026-ZZZZZZZZ", cookie);
         Assert.Equal(HttpStatusCode.NotFound, postOthers.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, postMissing.StatusCode);
+        Assert.Equal(await PageOf(others), await PageOf(postOthers));
         Assert.Empty(log.Snapshot());
-
-        using HttpResponseMessage postOwn = await PostAsync(client, $"/siparis/{aliNumber}?handler=Cancel", cookie);
-        Assert.Equal(HttpStatusCode.SeeOther, postOwn.StatusCode);
-        Assert.Equal([$"cancel:{aliOrder}"], log.Snapshot());
     }
+
+    /// <summary>The order page's download form for an item that is not on the order: the root decides first, then the item (07 4.16.3).</summary>
+    private static Task<HttpResponseMessage> DownloadAsync(HttpClient client, string root, string? cookie) =>
+        PostAsync(client, $"{root}?handler=DownloadDigitalFile", cookie, ("OrderItemId", Guid.NewGuid().ToString()));
 
     [Fact]
     public async Task AWrongOrRenewedAccessKeyAndAMissingPanelRecord_GetTheSame404_AsAnotherCustomersOrder()
@@ -487,37 +489,42 @@ public sealed class SessionAccessTests
     public async Task AGuestOrder_OpensWithItsAccessKeyOnly()
     {
         (string customerKey, _) = await TestSessions.CustomerAsync(_database.Dsn);
-        (Guid orderId, string number, string accessKey) = await TestSessions.OrderAsync(_database.Dsn, customerId: null);
+        (_, string number, string accessKey) = await TestSessions.OrderAsync(_database.Dsn, customerId: null);
         await using WebApplicationFactory<Program> factory = Open(out AccessWriteLog log);
         using HttpClient client = ClientOf(factory);
 
         using HttpResponseMessage byKey = await GetAsync(client, $"/siparis/erisim/{accessKey}");
         using HttpResponseMessage byNumberAnonymous = await GetAsync(client, $"/siparis/{number}");
         using HttpResponseMessage byNumberAsCustomer = await GetAsync(client, $"/siparis/{number}", CustomerCookie(customerKey));
-        using HttpResponseMessage cancelByNumber = await PostAsync(client, $"/siparis/{number}?handler=Cancel", CustomerCookie(customerKey));
-        using HttpResponseMessage cancelByKey = await PostAsync(client, $"/siparis/erisim/{accessKey}?handler=Cancel");
+        using HttpResponseMessage postByNumber = await DownloadAsync(client, $"/siparis/{number}", CustomerCookie(customerKey));
 
         Assert.Equal(HttpStatusCode.OK, byKey.StatusCode);
-        Assert.Equal($"order:{orderId}", await BodyOf(byKey));
-        Assert.Equal(HttpStatusCode.NotFound, byNumberAnonymous.StatusCode);
+        Assert.Contains($"Sipariş {number}", await BodyOf(byKey), StringComparison.Ordinal);
+
+        // The member's root without any session asks for the sign-in (07 2.3.2; UC-33); with a customer's session a guest order is the one 404.
+        Assert.Equal(HttpStatusCode.Found, byNumberAnonymous.StatusCode);
+        Assert.Equal($"/giris?returnUrl={Escaped($"/siparis/{number}")}", byNumberAnonymous.Headers.Location?.OriginalString);
         Assert.Equal(HttpStatusCode.NotFound, byNumberAsCustomer.StatusCode);
-        Assert.Equal(HttpStatusCode.NotFound, cancelByNumber.StatusCode);
-        Assert.Equal(HttpStatusCode.SeeOther, cancelByKey.StatusCode);
-        Assert.Equal([$"cancel:{orderId}"], log.Snapshot());
+        Assert.Equal(HttpStatusCode.NotFound, postByNumber.StatusCode);
+        Assert.Empty(log.Snapshot());
     }
 
     [Fact]
     public async Task AMembersOrder_AlsoOpensWithItsAccessKey()
     {
-        (_, Guid customerId) = await TestSessions.CustomerAsync(_database.Dsn);
-        (Guid orderId, _, string accessKey) = await TestSessions.OrderAsync(_database.Dsn, customerId);
+        (string customerKey, Guid customerId) = await TestSessions.CustomerAsync(_database.Dsn);
+        (_, string number, string accessKey) = await TestSessions.OrderAsync(_database.Dsn, customerId);
         await using WebApplicationFactory<Program> factory = Open(out _);
         using HttpClient client = ClientOf(factory);
 
-        using HttpResponseMessage response = await GetAsync(client, $"/siparis/erisim/{accessKey}");
+        using HttpResponseMessage anonymous = await GetAsync(client, $"/siparis/erisim/{accessKey}");
+        using HttpResponseMessage signedIn = await GetAsync(client, $"/siparis/erisim/{accessKey}", CustomerCookie(customerKey));
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal($"order:{orderId}", await BodyOf(response));
+        foreach (HttpResponseMessage response in new[] { anonymous, signedIn })
+        {
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Contains($"Sipariş {number}", await BodyOf(response), StringComparison.Ordinal);
+        }
     }
 
     // --- criterion 9, KK9: an administrator session is no customer ---

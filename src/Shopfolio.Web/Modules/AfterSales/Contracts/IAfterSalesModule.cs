@@ -129,6 +129,12 @@ public interface IAfterSalesModule
     Task<IReadOnlyList<ClosingRecordMoment>> ClosingRecordMomentsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
 
     /// <summary>
+    /// The records on the items' rows of the customer's order page (04 5.16.5; T511), oldest first: cancellations, removals and late delivery terminations as
+    /// <see cref="ClosingRecordMomentsAsync"/> reads them, withdrawals, return receipts, return rejections, "mal dönmedi" closures that were not reopened and defect claims. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<ItemRecordFact>> ListItemRecordsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
     /// Links the cancellation the caller added a moment ago to the transition that closed the order with it (06 4.22 <c>TransitionRecordId</c>: the S3, S4 or S9 of
     /// the cancellation of the order's last open units), so the correction of a wrong cancellation finds it (<see cref="FindCancellationsOfTransitionAsync"/>).
     /// Writes through the caller's change tracker and saves nothing.

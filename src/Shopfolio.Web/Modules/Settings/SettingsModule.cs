@@ -104,6 +104,8 @@ internal sealed class SettingsModule : ISettingsModule
 
     public Task<LegalTextDraft> GetLegalTextDraftAsync(LegalTextType type, CancellationToken ct) => _legalTexts.GetDraftAsync(type, ct);
 
+    public Task<LegalTextDraftPreview> GetLegalTextDraftPreviewAsync(LegalTextType type, CancellationToken ct) => _legalTexts.GetDraftPreviewAsync(type, ct);
+
     public Task<SettingsSaveResult> SaveLegalTextDraftAsync(LegalTextType type, string text, string? hostingLocation, int formVersion, CancellationToken ct) =>
         _legalTexts.SaveDraftAsync(type, text, hostingLocation, formVersion, ct);
 

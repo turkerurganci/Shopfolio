@@ -440,6 +440,8 @@ internal static class OrderingModuleRegistration
         // The operation decision (T323; 03 1.11): the forty-one operations in one table; the screen reads it and every POST asks it again.
         services.AddScoped<OrderOperations>();
         services.AddScoped<IOrderOperations>(provider => provider.GetRequiredService<OrderOperations>());
+        // The lists of the customer's order page (T511; 04 5.16.3): read from the frozen columns, the open quantity from the decision above.
+        services.AddScoped<IOrderPage, OrderPageReader>();
         services.AddDisposalPart<GuestCartDisposalPart>();
         services.AddDisposalPart<OrderDisposalPart>();
 

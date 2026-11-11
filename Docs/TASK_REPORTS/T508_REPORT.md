@@ -1,6 +1,6 @@
 # T508 — Sepet (E-12)
 
-**Faz:** F5 | **Durum:** ✓ Yapım bitti, PR açıldı | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-11
 
 ---
 
@@ -60,6 +60,16 @@
 | Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build --max-threads 3` | 7122/7122 (origin/main `157e7ec3` T543 birleştirmesinden sonra) |
 | Integration | ✓ | parçalı, `--filter-namespace`, `SHOPFOLIO_TEST_DATABASE` Postgres 18 (`track_commit_timestamp=on`) | TAM, bütün ad alanları yeşil. T543 birleştirmesinden sonra: Web 734 (tek koşuda 730 + `StartupSettingsCheckTests`'in 4 durumu makine yükünde kırmızı; sınıf tek başına 17/17), Model 1407/1407 (`--max-threads 3`), Administration+Catalog+Commands+Concurrency+CorporateContent+Database 472/472, Disposal+FileSecrets+Files+Jobs+Logging+Outages+Payment+Security+SignedEndpoints+kök 459/459. Birleştirmeden önce: Ordering 638/638 (T543 Ordering'e dokunmuyor) |
 | Biçim | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` | Web, Unit temiz (değişen dosyalar); Integration devir 4'te temiz |
+
+## Doğrulama
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu (tur 1) | ✓ PASS — tur 1 (2026-11-11, head `6a8e61a0`; `origin/main` `d2bc2d33` (T502 #541) birleşik ağaçta, birleştirme çakışmasız). Kriter 1–10 ve KK1–KK10 ✓ (kanıtlar: `CartPageTests` 22 durum + `CartTests` dijital ekleme, kod okuması `Carts.UpdateItemAsync`/`RemoveItemAsync`/`OpenCoreAsync`, `CartModel`); `09 §25` ilgili satırlar ✓ (sahiplik modülde kilit altında, POST'lar sahtecilik süzgecinde, `[NoStore]`, `Html.Raw`/satır içi betik yok, ret satırı `07` koduyla, yeni bağımlılık/şema/sır yok). Para: tutarlar modülün görünümünden (`OrderableSubtotal`, `Shipping.Fee`, eşik metinleri `ShippingAssessment`'ten); yuvarlama yok, kalem tutarı `02 §3.8.3` gereği yuvarlanmaz; görünümdeki çarpma/toplama K2. Yerel: derleme `-warnaserror` 0 uyarı (birleştirmeden önce ve sonra), `dotnet format` üç proje temiz, Unit 7139/7139, betik testleri 4/4, Integration TAM (birleştirmeden önce Web 742, Ordering 638, Model 1407, kalan 931; birleştirmeden sonra Web 755, kalan 931; hepsi 0 kırmızı; `track_commit_timestamp=on`). Dal CI run 43033057523 success (9 iş). `12` satırları PASS: `VAL-A029` (KK2), `VAL-A638` (KK8), `VAL-A639` (KK10), `VAL-A640` (KK9, KK10), `VAL-A641` (KK8), `VAL-A642` (KK4), `VAL-A643` (KK5), `VAL-A644` (KK6), `VAL-A668` (KK4); KP-9/KP-10/KP-38'in öteki satırları (ekleme ucu, birleşme, satış kapısının uçtan uca ve tarayıcı kanıtı) bu task'ın kriterlerine bağlı değil, BEKLEMEDE. |
+| Bulgu sayısı (tur 1) | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (tur 1) | 3 — **K1** (D-1245'e forward): `04` 5.12.3 (3) teslimat il kısıtı satırı sepette yok; UC-19'un görünümü 5.12.3–5.12.7'dir, kriterler anmaz. **K2** (D-1246'ya forward): satır tutarı ve ödenecek toplam görünümde çarpma/toplamayla kuruluyor; bugün değer modülün kuralıyla aynı, kaynak ikiye bölünüyor. **K3** (bu PR'da kapatıldı): yapım raporu "`12`'de VAL satırı yok" diyordu; satırlar `07 §4.12` ve KP-9 aramasıyla bulundu, `Durum` hücreleri bu commit'te yazıldı. |
+| Yapım raporu karşılaştırması (tur 1) | Kabul kriterlerinde tam uyum (1–10 ✓); öz denetim tablosu var, maddeler kanıtlı. Uyuşmazlık 2: (1) "`12`: bu task için VAL satırı yok" yanlış (K3); (2) "sayfa kendi hesabını yapmaz" cümlesi görünümdeki satır tutarı ve toplam için tam doğru değil (K2). D-1189 (görsel, seçenek değerleri, ürün bağlantısı) ve D-1190 (400 yeniden gösteriminde boş sepet hâli) kriter dışı, backlog'da gerekçeli. |
 
 ## Altyapı Değişiklikleri
 

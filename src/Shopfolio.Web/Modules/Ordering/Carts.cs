@@ -91,12 +91,12 @@ internal sealed class Carts
             return [];
         }
 
-        Dictionary<Guid, CartVariantFact> facts = (await _catalog.ListCartVariantFactsAsync([.. marked.Select(i => i.VariantId!.Value)], ct)).ToDictionary(f => f.VariantId);
+        Dictionary<Guid, CartVariantFact> facts = (await _catalog.ListCartVariantFactsAsync([.. marked.Select(i => i.VariantId!.Value)], ct)).ToDictionary(f => f.VariantId); // non-null: the Where above keeps only lines with a variant
         List<string> names = [];
         foreach (CartItem item in marked)
         {
             item.IsMergeNoticePending = false;
-            if (facts.TryGetValue(item.VariantId!.Value, out CartVariantFact? fact))
+            if (facts.TryGetValue(item.VariantId!.Value, out CartVariantFact? fact)) // non-null: marked holds only lines with a variant (the Where above)
             {
                 names.Add(fact.ProductName);
             }

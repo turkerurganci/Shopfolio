@@ -126,13 +126,6 @@ public sealed class ReauthenticationInput
     public string ReauthenticationToken { get; set; } = string.Empty;
 }
 
-/// <summary>The sample cart page (07 2.5.6): a guest's cart is personal, so the response is not stored.</summary>
-[NoStore]
-public sealed class CartSampleModel : PageModel
-{
-    public IActionResult OnGet() => Content("cart");
-}
-
 /// <summary>The sample account link page (09 15.1 item 4): the address holds a key, so no referrer is sent and the response is not stored.</summary>
 [KeyedLinkPage]
 [NoStore]

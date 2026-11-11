@@ -77,14 +77,59 @@ public sealed record CartView(
     IReadOnlyList<string> MergeAddedProductNames,
     CartPaymentBlock PaymentBlock,
     decimal OrderableSubtotal,
-    ShippingAssessment Shipping)
+    ShippingAssessment Shipping,
+    bool ShowsPaymentUnavailableNotice = false)
 {
     /// <summary>True when the payment step may open: at least one line enters the order.</summary>
     public bool CanOpenPayment => PaymentBlock == CartPaymentBlock.None;
 
     /// <summary>The lines that enter the order and the amounts, in the cart's order.</summary>
     public IEnumerable<CartLine> OrderingLines => Lines.Where(l => l.EntersOrder);
+
+    /// <summary>True when the cart holds no line at all - not even a sold-out one: the page shows the empty state and the checkout step's cookie goes (04 5.12.16; 05 6.7.7).</summary>
+    public bool IsEmpty => Lines.Count == 0;
+
+    /// <summary>
+    /// The state of the cart's way to the payment step as the cart page shows it (07 UC-19; 04 5.12.10, 5.12.14): a closed sale is told in the button's place first - the cart stays visible -, then the
+    /// cart's own block. <paramref name="salesPermitCheckout"/> is the sales gate's verdict on <c>SalesGateOperation.ProceedToCheckout</c>, read in the same request.
+    /// </summary>
+    public CartPaymentBlock PaymentStepBlock(bool salesPermitCheckout) => !salesPermitCheckout && !IsEmpty ? CartPaymentBlock.SalesClosed : PaymentBlock;
 }
+
+/// <summary>What the change of a cart line's quantity came to (07 UC-20). It is the <see cref="CartItemUpdateResult.Outcome"/>; a result code, never stored.</summary>
+public enum CartItemUpdateOutcome
+{
+    /// <summary>The quantity was written; a quantity equal to the one held writes the same value (the quantity is absolute).</summary>
+    Updated,
+
+    /// <summary>The line is not a line of this owner's cart: another cart's, one that never was, or one just removed (07 UC-20 404; K-1179 (2)).</summary>
+    NotInCart,
+
+    /// <summary>The quantity is under one, or a digital line's quantity is other than one (04 7.1.4.1; 02 3.12.4).</summary>
+    InvalidQuantity,
+
+    /// <summary>The raised quantity is above what can be bought now ("Bu adette stok yok", no number); nothing was written (03 2.3.3; 02 3.16.8).</summary>
+    NoStock,
+
+    /// <summary>The raised quantity passes the product's per-order limit; the result carries the limit; nothing was written (02 3.16.9).</summary>
+    OverOrderLimit,
+
+    /// <summary>The line was taken off the showcase (<c>RemovedProductName</c>): no quantity is written in either direction; the cart's read tells it once and deletes it (K-1179 (3)).</summary>
+    TakenOffShowcase,
+}
+
+/// <summary>The result of a quantity change (07 UC-20): the outcome and, exactly for <see cref="CartItemUpdateOutcome.OverOrderLimit"/>, the product's limit.</summary>
+public sealed record CartItemUpdateResult(CartItemUpdateOutcome Outcome, int? OrderLimit = null)
+{
+    /// <summary>True when nothing may be written: a refusal of 07 UC-20, or a line taken off the showcase.</summary>
+    public bool WritesNothing => Outcome != CartItemUpdateOutcome.Updated;
+}
+
+/// <summary>
+/// The result of the removal of a cart line (07 UC-21): whether the line was this owner's and is gone, and whether the cart holds no line after it - the response then deletes the checkout step's
+/// cookie (05 6.7.7).
+/// </summary>
+public sealed record CartItemRemovalResult(bool Removed, bool CartIsEmpty);
 
 /// <summary>
 /// The result of an add: the outcome, and the cart the line was written to when it was added. <see cref="OrderLimit"/> is the product's per-order limit and is filled exactly when the outcome

@@ -63,6 +63,19 @@ internal sealed class MachineEndpointMetadata
 }
 
 /// <summary>
+/// The mark of a machine endpoint that a browser opens as a page (T504; 07 UC-06; 09 15.7 item 1): its 404 is the "page not found" page E-06 and not an empty answer - the signed
+/// download address is the one such endpoint. Every other machine endpoint answers a 404 without a body (07 2.7.2).
+/// </summary>
+internal sealed class NotFoundPageMetadata
+{
+    public static NotFoundPageMetadata Instance { get; } = new();
+
+    private NotFoundPageMetadata()
+    {
+    }
+}
+
+/// <summary>
 /// Marks a page handler whose outcome is uncertain when anything goes wrong (09 8.1 item 4; 07 6.4.2): wherever the error falls - inside the operation,
 /// after the commit, while the answer is made - the answer is a 303 to the screen that shows the result. The set of marked handlers equals the list of
 /// 07 6.4.2 (the equality check is part of the consistency tests of the tasks that add a marked handler).

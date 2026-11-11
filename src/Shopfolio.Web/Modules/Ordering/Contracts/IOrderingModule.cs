@@ -150,6 +150,27 @@ public interface IOrderingModule
     Task<CartView> OpenCartAsync(CartOwner owner, ShippingFeeSection shippingTerms, CancellationToken ct);
 
     /// <summary>
+    /// The cart page's read (T508; 07 UC-19): <see cref="OpenCartAsync"/>, and the cart's once-told "no payment method" mark (06 4.15; K-1183, K-1200) is taken - the view carries
+    /// <see cref="CartView.ShowsPaymentUnavailableNotice"/> and the mark is cleared in the same call, so a reload does not tell it again. The confirmation's reads do not take the mark.
+    /// Takes the cart's advisory lock first and joins the caller's transaction; it does not save.
+    /// </summary>
+    Task<CartView> OpenCartPageAsync(CartOwner owner, ShippingFeeSection shippingTerms, CancellationToken ct);
+
+    /// <summary>
+    /// Writes a cart line's quantity (T508; 07 UC-20; 03 2.3.3): the quantity is absolute - a repeat writes the same value - and the price of the first add does not move (02 3.16.5). A raise goes
+    /// through the add's check under the cart's lock: a quantity the stock less the reserved units does not hold is NoStock, one past the product's limit over all its lines is OverOrderLimit (the
+    /// limit wins); nothing is written then (02 3.16.8, 3.16.9). A lower quantity is always written. A line taken off the showcase writes nothing in either direction (K-1179 (3)); a line that is not
+    /// this owner's is NotInCart. A digital line's quantity is one (02 3.12.4). Takes the cart's advisory lock first, joins the caller's transaction and does not save.
+    /// </summary>
+    Task<CartItemUpdateResult> UpdateCartItemAsync(CartOwner owner, Guid cartItemId, int quantity, CancellationToken ct);
+
+    /// <summary>
+    /// Removes a line from the owner's cart (T508; 07 UC-21): a line taken off the showcase too - the removal does not depend on the showcase (K-1209 (2)). A line that is not this owner's removes
+    /// nothing. The result says whether the cart holds no line afterwards. Takes the cart's advisory lock first, joins the caller's transaction and does not save.
+    /// </summary>
+    Task<CartItemRemovalResult> RemoveCartItemAsync(CartOwner owner, Guid cartItemId, CancellationToken ct);
+
+    /// <summary>
     /// Adds a variant to the owner's cart (02 3.16.1, 3.16.5): a new line remembers the unit price of this moment; the same variant again raises the quantity and leaves that price alone. The cart is
     /// made when it does not exist. A variant that is not on the showcase or is sold out is not added. A quantity the stock less the reserved units does not hold is refused as NoStock without a number; one that passes the product's per-order limit over all its variants is refused as OverOrderLimit with the limit, and the limit wins when both are broken (T347; 02 3.16.8, 3.16.9). Joins the caller's transaction and
     /// does not save.

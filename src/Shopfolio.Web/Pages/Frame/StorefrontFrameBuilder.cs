@@ -111,18 +111,29 @@ internal sealed class StorefrontFrameBuilder
 
     private async Task<CartBadge> ReadBadgeAsync(HttpContext context, Guid? customerId, CancellationToken ct)
     {
+        CartOwner? owner = CartOwnerOf(context, customerId);
+        return owner is null ? CartBadge.Empty : await _ordering.ReadCartBadgeAsync(owner, ct);
+    }
+
+    /// <summary>
+    /// Whose cart the request is about (02 3.16.1; 04 2.9.4; T508): the signed-in customer's account, otherwise the guest browser's cart cookie; null for a guest without a usable cookie - the cart
+    /// is empty and nothing is opened for it (07 UC-19). The panel's session is no session of the storefront. The one rule the frame's badge and the cart page both read.
+    /// </summary>
+    public static CartOwner? CartOwnerOf(HttpContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        return CartOwnerOf(context, CustomerOf(context));
+    }
+
+    private static CartOwner? CartOwnerOf(HttpContext context, Guid? customerId)
+    {
         if (customerId is Guid memberId)
         {
-            return await _ordering.ReadCartBadgeAsync(CartOwner.ForMember(memberId), ct);
+            return CartOwner.ForMember(memberId);
         }
 
         string? key = BrowserCookies.Read(context, CookieNames.Cart);
-        if (string.IsNullOrWhiteSpace(key) || key.Length > CartCookieValueLimit)
-        {
-            return CartBadge.Empty;
-        }
-
-        return await _ordering.ReadCartBadgeAsync(CartOwner.ForGuest(key), ct);
+        return string.IsNullOrWhiteSpace(key) || key.Length > CartCookieValueLimit ? null : CartOwner.ForGuest(key);
     }
 
     private static FrameAccount AccountOf(HttpContext context, string? memberName)

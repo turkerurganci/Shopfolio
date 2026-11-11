@@ -77,14 +77,37 @@ public sealed record CartView(
     IReadOnlyList<string> MergeAddedProductNames,
     CartPaymentBlock PaymentBlock,
     decimal OrderableSubtotal,
-    ShippingAssessment Shipping)
+    ShippingAssessment Shipping,
+    bool ShowsPaymentUnavailableNotice = false)
 {
     /// <summary>True when the payment step may open: at least one line enters the order.</summary>
     public bool CanOpenPayment => PaymentBlock == CartPaymentBlock.None;
 
     /// <summary>The lines that enter the order and the amounts, in the cart's order.</summary>
     public IEnumerable<CartLine> OrderingLines => Lines.Where(l => l.EntersOrder);
+
+    /// <summary>True when the cart holds no line at all - not even a sold-out one: the page shows the empty state and the checkout step's cookie goes (04 5.12.16; 05 6.7.7).</summary>
+    public bool IsEmpty => Lines.Count == 0;
+
+    /// <summary>
+    /// The state of the cart's way to the payment step as the cart page shows it (07 UC-19; 04 5.12.10, 5.12.14): a closed sale is told in the button's place first - the cart stays visible -, then the
+    /// cart's own block. <paramref name="salesPermitCheckout"/> is the sales gate's verdict on <c>SalesGateOperation.ProceedToCheckout</c>, read in the same request.
+    /// </summary>
+    public CartPaymentBlock PaymentStepBlock(bool salesPermitCheckout) => !salesPermitCheckout && !IsEmpty ? CartPaymentBlock.SalesClosed : PaymentBlock;
 }
+
+/// <summary>The result of a quantity change (07 UC-20): the outcome and, exactly for <see cref="CartItemUpdateOutcome.OverOrderLimit"/>, the product's limit.</summary>
+public sealed record CartItemUpdateResult(CartItemUpdateOutcome Outcome, int? OrderLimit = null)
+{
+    /// <summary>True when nothing may be written: a refusal of 07 UC-20, or a line taken off the showcase.</summary>
+    public bool WritesNothing => Outcome != CartItemUpdateOutcome.Updated;
+}
+
+/// <summary>
+/// The result of the removal of a cart line (07 UC-21): whether the line was this owner's and is gone, and whether the cart holds no line after it - the response then deletes the checkout step's
+/// cookie (05 6.7.7).
+/// </summary>
+public sealed record CartItemRemovalResult(bool Removed, bool CartIsEmpty);
 
 /// <summary>
 /// The result of an add: the outcome, and the cart the line was written to when it was added. <see cref="OrderLimit"/> is the product's per-order limit and is filled exactly when the outcome

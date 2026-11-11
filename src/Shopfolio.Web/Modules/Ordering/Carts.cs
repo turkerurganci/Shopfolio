@@ -105,13 +105,125 @@ internal sealed class Carts
         return [.. names.Distinct()];
     }
 
-    public Task<CartView> OpenAsync(CartOwner owner, ShippingFeeSection shippingTerms, CancellationToken ct) => OpenAsync(owner, shippingTerms, null, ct);
+    public Task<CartView> OpenAsync(CartOwner owner, ShippingFeeSection shippingTerms, CancellationToken ct) => OpenCoreAsync(owner, shippingTerms, null, false, ct);
+
+    /// <summary>
+    /// The cart page's read (T508; 07 UC-19): the read of <see cref="OpenAsync(CartOwner, ShippingFeeSection, CancellationToken)"/> that also takes the cart's once-told "no payment method" mark
+    /// (06 4.15; K-1183, K-1200): the view tells it and the mark is cleared in the same transaction, under the cart's lock.
+    /// </summary>
+    public Task<CartView> OpenPageAsync(CartOwner owner, ShippingFeeSection shippingTerms, CancellationToken ct) => OpenCoreAsync(owner, shippingTerms, null, true, ct);
 
     /// <summary>
     /// The cart's read with a step between the cart's lock and the read of its lines (T348; 02 3.17.7): the confirmation cancels the cart's earlier unpaid order there, so the lines are
     /// judged against the stock without the reservation the customer's own earlier order held. The step runs after the cart's lock, which heads the transaction (05 7.3.5).
     /// </summary>
-    public async Task<CartView> OpenAsync(CartOwner owner, ShippingFeeSection shippingTerms, Func<Guid, CancellationToken, Task>? afterLock, CancellationToken ct)
+    public Task<CartView> OpenAsync(CartOwner owner, ShippingFeeSection shippingTerms, Func<Guid, CancellationToken, Task>? afterLock, CancellationToken ct) =>
+        OpenCoreAsync(owner, shippingTerms, afterLock, false, ct);
+
+    /// <summary>
+    /// Writes a line's quantity (T508; 07 UC-20). The line is looked up in the owner's cart only, under the cart's lock; a raise is judged as the add judges it, from the other lines as they stand
+    /// now (02 3.16.8, 3.16.9), and a refusal writes nothing. A lower quantity is never refused: it is the customer's way out of a line the stock or the limit does not hold (02 3.16.10).
+    /// </summary>
+    public async Task<CartItemUpdateResult> UpdateItemAsync(CartOwner owner, Guid cartItemId, int quantity, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(owner);
+        if (quantity < 1)
+        {
+            return new CartItemUpdateResult(CartItemUpdateOutcome.InvalidQuantity);
+        }
+
+        if (await LockedItemAsync(owner, cartItemId, ct) is not CartItem item)
+        {
+            return new CartItemUpdateResult(CartItemUpdateOutcome.NotInCart);
+        }
+
+        if (item.RemovedProductName is not null || item.VariantId is not Guid variantId)
+        {
+            return new CartItemUpdateResult(CartItemUpdateOutcome.TakenOffShowcase);
+        }
+
+        IReadOnlyList<CartVariantFact> facts = await _catalog.ListCartVariantFactsAsync([variantId], ct);
+        if (facts.Count == 0)
+        {
+            return new CartItemUpdateResult(CartItemUpdateOutcome.TakenOffShowcase);
+        }
+
+        CartVariantFact fact = facts[0];
+        if (fact.ProductType == ProductType.Digital && quantity != 1)
+        {
+            return new CartItemUpdateResult(CartItemUpdateOutcome.InvalidQuantity);
+        }
+
+        if (quantity > item.Quantity)
+        {
+            if (!fact.IsOnShowcase || fact.IsSoldOut)
+            {
+                return new CartItemUpdateResult(CartItemUpdateOutcome.NoStock);
+            }
+
+            List<CartQuantityLine> others = [.. (await _db.CartItems.AsNoTracking()
+                .Where(i => i.CartId == item.CartId && i.Id != item.Id && i.RemovedProductName == null && i.VariantId != null)
+                .Select(i => new { VariantId = i.VariantId!.Value, i.Quantity }) // non-null: the Where above keeps only lines with a variant
+                .ToListAsync(ct)).Select(i => new CartQuantityLine(i.VariantId, i.Quantity))];
+            CartQuantityVerdict verdict = await _catalog.JudgeCartAddAsync(new CartQuantityLine(variantId, quantity), others, ct);
+            switch (verdict.Problem)
+            {
+                case CartQuantityProblem.NoStock:
+                    return new CartItemUpdateResult(CartItemUpdateOutcome.NoStock);
+                case CartQuantityProblem.OverOrderLimit:
+                    return new CartItemUpdateResult(CartItemUpdateOutcome.OverOrderLimit, verdict.OrderLimit);
+            }
+        }
+
+        // The quantity is absolute; the price of the first add and its moment stay (02 3.16.5).
+        item.Quantity = quantity;
+        await RenewGuestAccessAsync(item.CartId, ct);
+        return new CartItemUpdateResult(CartItemUpdateOutcome.Updated);
+    }
+
+    /// <summary>
+    /// Removes a line from the owner's cart (T508; 07 UC-21): a marked line too - the removal does not depend on the showcase (K-1209 (2)). A line of another cart, one that never was or one just
+    /// removed is not found and nothing is written.
+    /// </summary>
+    public async Task<CartItemRemovalResult> RemoveItemAsync(CartOwner owner, Guid cartItemId, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(owner);
+        if (await LockedItemAsync(owner, cartItemId, ct) is not CartItem item)
+        {
+            return new CartItemRemovalResult(false, false);
+        }
+
+        _db.CartItems.Remove(item);
+        await RenewGuestAccessAsync(item.CartId, ct);
+        // Empty as the cart page counts it: no live line is left - a marked line is told once and goes at the next read (07 UC-19).
+        bool empty = !await _db.CartItems.AnyAsync(i => i.CartId == item.CartId && i.Id != item.Id && i.RemovedProductName == null && i.VariantId != null, ct);
+        return new CartItemRemovalResult(true, empty);
+    }
+
+    // The owner's line, read under the cart's lock (09 10.2 item 5); null when the owner has no cart or the line is not in it (07 2.1.6 ownership; K-1011).
+    private async Task<CartItem?> LockedItemAsync(CartOwner owner, Guid cartItemId, CancellationToken ct)
+    {
+        if (await FindCartIdAsync(owner, ct) is not Guid cartId)
+        {
+            return null;
+        }
+
+        await _locks.LockAsync(AdvisoryLockScope.Cart, cartId, ct);
+        return await _db.CartItems.SingleOrDefaultAsync(i => i.Id == cartItemId && i.CartId == cartId, ct);
+    }
+
+    // A guest cart that is written lives again for the full cookie life (06 9.4.3); a member's cart has no access moment.
+    private async Task RenewGuestAccessAsync(Guid cartId, CancellationToken ct)
+    {
+        Cart? cart = await _db.Carts.SingleOrDefaultAsync(c => c.Id == cartId, ct);
+        if (cart?.GuestCartKeyHash is not null)
+        {
+            cart.LastAccessedAt = _time.GetUtcNow();
+        }
+    }
+
+    private async Task<CartView> OpenCoreAsync(
+        CartOwner owner, ShippingFeeSection shippingTerms, Func<Guid, CancellationToken, Task>? afterLock, bool takesPaymentNotice, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(owner);
         Guid? found = await FindCartIdAsync(owner, ct);
@@ -181,8 +293,15 @@ internal sealed class Carts
             }
         }
 
+        // Told once: the mark goes in the request that tells it (06 4.15; K-1183, K-1200).
+        bool paymentNotice = takesPaymentNotice && cart.IsPaymentUnavailableNoticePending;
+        if (paymentNotice)
+        {
+            cart.IsPaymentUnavailableNoticePending = false;
+        }
+
         ShippingAssessment shipping = CartRules.AssessShipping(lines, shippingTerms);
-        return new CartView(cartId, lines, removed, [.. mergeAdded.Distinct()], CartRules.PaymentBlockOf(lines, shipping), CartRules.OrderableSubtotal(lines), shipping);
+        return new CartView(cartId, lines, removed, [.. mergeAdded.Distinct()], CartRules.PaymentBlockOf(lines, shipping), CartRules.OrderableSubtotal(lines), shipping, paymentNotice);
     }
 
     public async Task<CartAddResult> AddAsync(CartOwner owner, Guid variantId, int quantity, CancellationToken ct)
@@ -210,6 +329,12 @@ internal sealed class Carts
             return new CartAddResult(CartAddOutcome.SoldOut, null);
         }
 
+        // A digital variant is bought one at a time (02 3.12.4; D-637): the rule of CheckDigitalAddAsync, refused before a cart is opened.
+        if (!DownloadRules.IsQuantityAllowed(fact.ProductType, quantity))
+        {
+            return new CartAddResult(CartAddOutcome.InvalidQuantity, null);
+        }
+
         // A cart that does not exist yet holds nothing else: a refusal on the first add must not leave an empty cart behind.
         Guid? existingCartId = await FindCartIdAsync(owner, ct);
         if (existingCartId is null && await RefusalAsync(variantId, quantity, [], ct) is { } firstRefusal)
@@ -234,6 +359,13 @@ internal sealed class Carts
             .Where(i => i.CartId == cartId && i.RemovedProductName == null && i.VariantId != null)
             .Select(i => new { VariantId = i.VariantId!.Value, i.Quantity }) // non-null: the Where above keeps only lines with a variant
             .ToListAsync(ct)).Select(i => new CartQuantityLine(i.VariantId, i.Quantity))];
+
+        // The same digital variant a second time is refused, not raised (02 3.12.4 "Bu ürün zaten sepetinde"; D-637); a marked line is no line of the cart (06 4.16).
+        if (fact.ProductType == ProductType.Digital && held.Any(l => l.VariantId == variantId))
+        {
+            return new CartAddResult(CartAddOutcome.AlreadyInCart, null);
+        }
+
         if (await RefusalAsync(variantId, quantity, held, ct) is { } refusal)
         {
             return refusal;

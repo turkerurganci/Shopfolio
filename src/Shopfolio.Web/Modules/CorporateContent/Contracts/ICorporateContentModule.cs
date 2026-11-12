@@ -72,6 +72,18 @@ public interface ICorporateContentModule
     Task<IReadOnlyList<SocialLinkItem>> ListSocialLinksAsync(CancellationToken ct);
 
     /// <summary>
+    /// The FAQ page's list (T506; 02 3.27.6; 04 5.9): the published questions in the firm's order, one list, no grouping. <paramref name="asAdministrator"/> is true for a browser that holds a
+    /// panel session: the draft questions then stand in their place, marked (02 3.27.25). A plain read.
+    /// </summary>
+    Task<IReadOnlyList<FaqQuestionView>> GetFaqAsync(bool asAdministrator, CancellationToken ct);
+
+    /// <summary>
+    /// The contact page's content (T506; 02 3.27.8; 04 5.10): the company's legal identity - the footer's set - and the published branches in the firm's order; an administrator's browser adds the
+    /// draft branches, marked. The form is read with <see cref="GetContactFormAsync"/>. A plain read.
+    /// </summary>
+    Task<ContactPageView> GetContactPageAsync(bool asAdministrator, CancellationToken ct);
+
+    /// <summary>
     /// The contact form as the page shows it (T365; 02 3.32.1, 3.32.3, 3.32.8): open or closed by the gate of the data-collecting entries (with the refusal when closed), the five topics,
     /// and the starting values - the signed-in member's name and e-mail, which can be changed, or empty values. The form needs no sign-in. A plain read.
     /// </summary>
@@ -89,6 +101,33 @@ public interface ICorporateContentModule
     /// request and About an order are not the storefront's output and are left out. A plain read that counts; nothing is kept.
     /// </summary>
     Task<int> CountSummaryContactRequestsAsync(DateTimeOffset periodStart, DateTimeOffset periodEnd, CancellationToken ct);
+
+    /// <summary>
+    /// The number of contact requests the panel's requests list takes (T532; 07 UC-93): the requests in one of <paramref name="statuses"/> - none named means any status - that are still kept; a request
+    /// past its retention is not counted although the night's disposal has not reached it. A plain read that counts.
+    /// </summary>
+    Task<int> CountPanelContactRequestsAsync(IReadOnlyCollection<ContactRequestStatus> statuses, CancellationToken ct);
+
+    /// <summary>
+    /// The first <paramref name="take"/> contact requests of the panel's requests list (T532; 07 UC-93), newest first - the moment the request reached the firm, equal moments by the id as the database
+    /// sorts it - in one of <paramref name="statuses"/> (none named: any status), past-retention requests left out. The caller merges them with the defect claims. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<PanelContactRequestRow>> ListPanelContactRequestsAsync(IReadOnlyCollection<ContactRequestStatus> statuses, int take, CancellationToken ct);
+
+    /// <summary>The contact request's detail (T532; 07 UC-94); null when there is no such request or it was destroyed at the end of its retention (K-1192). A plain read.</summary>
+    Task<ContactRequestDetail?> FindContactRequestAsync(Guid requestId, CancellationToken ct);
+
+    /// <summary>
+    /// Closes a contact request (T532; 07 UC-155; 03 1.9.2), in the caller's open transaction, which the method joins and never opens: an open request becomes closed and the closing moment is written; a closed
+    /// one stays as it is (<see cref="ContactRequestChangeOutcome.Unchanged"/>); a request that is not there is <see cref="ContactRequestChangeOutcome.NotFound"/>. No notice is made.
+    /// </summary>
+    Task<ContactRequestChangeResult> CloseContactRequestAsync(Guid requestId, Guid adminId, CancellationToken ct);
+
+    /// <summary>
+    /// Reopens a contact request (T532; 07 UC-156), in the caller's open transaction: a closed request becomes open; the last closing moment is kept, so the retention keeps running from it (K-1099).
+    /// An open one stays as it is; a request that is not there is <see cref="ContactRequestChangeOutcome.NotFound"/>. No notice is made.
+    /// </summary>
+    Task<ContactRequestChangeResult> ReopenContactRequestAsync(Guid requestId, Guid adminId, CancellationToken ct);
 
     /// <summary>The panel home's contact request count (T382; 02 10.6.1): the requests still open, whatever their topic. A plain read that counts; nothing is kept.</summary>
     Task<int> CountOpenContactRequestsAsync(CancellationToken ct);

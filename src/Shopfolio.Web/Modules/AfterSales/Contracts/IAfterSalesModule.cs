@@ -303,6 +303,19 @@ public interface IAfterSalesModule
     Task<int> CountOpenDefectClaimsAsync(CancellationToken ct);
 
     /// <summary>
+    /// The number of defect claims the panel's requests list takes (T532; 07 UC-93): the claims in one of <paramref name="statuses"/>, none named meaning any status. A claim is kept until the disposal deletes it
+    /// with its order's data (06 9.1 Z-29), so every row is a kept one. A plain read that counts.
+    /// </summary>
+    Task<int> CountPanelDefectClaimsAsync(IReadOnlyCollection<DefectClaimStatus> statuses, CancellationToken ct);
+
+    /// <summary>
+    /// The first <paramref name="take"/> defect claims of the panel's requests list (T532; 07 UC-93), newest opening first, in one of <paramref name="statuses"/> (none named: any status): a claim is ordered by
+    /// its last "Open" entry of the status history - a reopened claim by its last reopening -, or by its creation moment when it was never reopened; equal moments by the id as the database sorts it. The caller
+    /// merges them with the contact requests. A plain read; the whole set is never taken.
+    /// </summary>
+    Task<IReadOnlyList<PanelDefectClaimRow>> ListPanelDefectClaimsAsync(IReadOnlyCollection<DefectClaimStatus> statuses, int take, CancellationToken ct);
+
+    /// <summary>
     /// The orders whose returned goods the firm still awaits (T382; 02 10.6.1, 10.4.9, 7.4.9): a shipped physical item with units of a withdrawal or a late delivery termination that
     /// are neither received, rejected nor closed as "mal dönmedi". A closure that was reopened (the goods arrived) counts again. A plain read.
     /// </summary>

@@ -58,6 +58,32 @@ internal static class StorefrontHeads
         return page with { Closed = closed };
     }
 
+    /// <summary>
+    /// The FAQ page (E-09; 05 3.7.2): the page's name with the brand name as the title and the structured data of every question in the first response (the answers as plain text). A page that shows a
+    /// draft question - the administrator's preview - is closed to the search engines and carries no structured data: the draft must not reach them.
+    /// </summary>
+    public static PageSearchData Faq(SearchEngineData search, StorefrontFrame frame, FaqPage page)
+    {
+        ArgumentNullException.ThrowIfNull(search);
+        ArgumentNullException.ThrowIfNull(frame);
+        ArgumentNullException.ThrowIfNull(page);
+
+        bool closed = page.HasDraft;
+        JsonLdBlock? faq = closed ? null : SearchEngineData.Faq([.. page.Questions.Select(q => new FaqEntry(q.Question, q.AnswerHtml ?? string.Empty))]);
+        return new PageSearchData(page.Title, null, FramePaths.Faq, null, LogoPathOf(frame.Brand), frame.Brand.BrandName, closed, faq is null ? [] : [faq]);
+    }
+
+    /// <summary>
+    /// The contact page (E-10): the page's name and the brand name; the telephone and e-mail of the identity are already in the firm's structured data of the home page. A page that shows a draft
+    /// branch - the administrator's preview - is closed to the search engines.
+    /// </summary>
+    public static PageSearchData Contact(StorefrontFrame frame, string title, bool hasDraftBranch)
+    {
+        ArgumentNullException.ThrowIfNull(frame);
+        ArgumentException.ThrowIfNullOrWhiteSpace(title);
+        return new PageSearchData(title, null, FramePaths.Contact, null, LogoPathOf(frame.Brand), frame.Brand.BrandName, hasDraftBranch, []);
+    }
+
     private static string? LogoPathOf(FrameBrand brand) => brand.LogoId is Guid logoId ? FrameStyle.ImagePath(logoId) : null;
 }
 

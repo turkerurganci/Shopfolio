@@ -426,8 +426,16 @@ public sealed partial class MemberRecordPageTests : IAsyncLifetime
     public async Task AnUncertainOutcome_Answers303ToTheSearchOfTheEmail_AndSaysNotDone_Never_KK9()
     {
         Guid id = await SeedCustomerAsync("ali@example.com", "Ali Veli", verified: true);
-        await using WebApplicationFactory<Program> factory = Open().WithWebHostBuilder(b => b.ConfigureServices(s => s.AddScoped<ITransactionRunner, FailingTransactionRunner>()));
+        FailureSwitch failure = new();
+        await using WebApplicationFactory<Program> factory = Open().WithWebHostBuilder(b => b.ConfigureServices(s =>
+        {
+            s.AddScoped<TransactionRunner>();
+            s.AddScoped<ITransactionRunner>(sp => new FailingTransactionRunner(sp.GetRequiredService<TransactionRunner>(), failure));
+        }));
         using HttpClient client = ClientOf(factory);
+
+        // The application started with the real runner; from here the transaction of the request fails.
+        failure.Armed = true;
 
         using HttpResponseMessage response = await client.PostAsync(DeletePath, Form(id, "Ali@Example.com", confirmed: true), Ct);
 
@@ -544,15 +552,30 @@ public sealed partial class MemberRecordPageTests : IAsyncLifetime
         return values;
     }
 
-    /// <summary>A runner whose transaction always fails: the deletion's outcome is unknown to the browser (09 8.1 item 4).</summary>
+    /// <summary>Tells the failing runner when to start failing, so the application starts with the real one.</summary>
+    private sealed class FailureSwitch
+    {
+        public bool Armed { get; set; }
+    }
+
+    /// <summary>A runner whose transaction fails once armed: the deletion's outcome is unknown to the browser (09 8.1 item 4). Before that it is the real runner.</summary>
     private sealed class FailingTransactionRunner : ITransactionRunner
     {
+        private readonly ITransactionRunner _real;
+        private readonly FailureSwitch _failure;
+
+        public FailingTransactionRunner(ITransactionRunner real, FailureSwitch failure)
+        {
+            _real = real;
+            _failure = failure;
+        }
+
         public Task<T> RunAsync<T>(Func<CancellationToken, Task<T>> work, CancellationToken ct)
             where T : IOperationResult =>
-            throw new InvalidOperationException("The test transaction fails.");
+            _failure.Armed ? throw new InvalidOperationException("The test transaction fails.") : _real.RunAsync(work, ct);
 
         public Task<T> RunAsync<T>(Func<CancellationToken, Task<T>> work, IReadOnlyCollection<string> retryOnUniqueIndexes, CancellationToken ct)
             where T : IOperationResult =>
-            throw new InvalidOperationException("The test transaction fails.");
+            _failure.Armed ? throw new InvalidOperationException("The test transaction fails.") : _real.RunAsync(work, retryOnUniqueIndexes, ct);
     }
 }

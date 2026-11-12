@@ -20,13 +20,18 @@ internal sealed class CustomerOrderReader
 
     public async Task<CustomerOrderPage> ListAsync(Guid customerId, int page, CancellationToken ct)
     {
-        PagedList<CustomerOrderRow> paged = await _db.Orders.AsNoTracking()
+        // The page is cut on the entity query ordered ending with the inner key (09 10.5 item 1); the narrow rows are made from the page's records.
+        PagedList<Order> paged = await _db.Orders.AsNoTracking()
             .Where(o => o.CustomerId == customerId)
-            .Select(o => new CustomerOrderRow(o.Id, o.OrderNumber, o.CreatedAt, o.Total, o.OrderStatus, o.PaymentStatus))
-            .OrderByDescending(r => r.CreatedAt)
-            .ThenByDescending(r => r.OrderId)
+            .OrderByDescending(o => o.CreatedAt)
+            .ThenByDescending(o => o.Id)
             .ToPageAsync(page, PageSizes.Panel, ct);
 
-        return new CustomerOrderPage([.. paged.Items], paged.PageNumber, paged.PageSize, paged.TotalCount, paged.PageCount);
+        return new CustomerOrderPage(
+            [.. paged.Items.Select(o => new CustomerOrderRow(o.Id, o.OrderNumber, o.CreatedAt, o.Total, o.OrderStatus, o.PaymentStatus))],
+            paged.PageNumber,
+            paged.PageSize,
+            paged.TotalCount,
+            paged.PageCount);
     }
 }

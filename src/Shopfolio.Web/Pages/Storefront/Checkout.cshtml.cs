@@ -249,7 +249,7 @@ internal sealed class CheckoutModel : PageModel
             {
                 ModelState.AddFieldError(nameof(PlaceOrderInput.ContactEmail), FieldCodes.FieldRequired);
             }
-            else if (!EmailRule.IsValid(input.ContactEmail.Trim()))
+            else if (!EmailRule.Allows(input.ContactEmail.Trim()))
             {
                 ModelState.AddFieldError(nameof(PlaceOrderInput.ContactEmail), FieldCodes.InvalidEmail);
             }
@@ -431,7 +431,7 @@ internal sealed class CheckoutModel : PageModel
         }
 
         // 02 3.13.3; 07 UC-25: the reminder of a guest e-mail that is a verified account's. It is no attempt of L-3.
-        if (!IsMember && !string.IsNullOrWhiteSpace(form.ContactEmail) && EmailRule.IsValid(form.ContactEmail.Trim()))
+        if (!IsMember && !string.IsNullOrWhiteSpace(form.ContactEmail) && EmailRule.Allows(form.ContactEmail.Trim()))
         {
             OrderAccountResolution account = await _membership.ResolveOrderAccountAsync(null, form.ContactEmail.Trim(), ct);
             ShowsRegisteredEmailReminder = account.Kind == OrderAccountKind.GuestBoundToAccount;

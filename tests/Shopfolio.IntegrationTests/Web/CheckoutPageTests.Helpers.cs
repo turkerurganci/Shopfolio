@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.RegularExpressions;
 
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +32,16 @@ public sealed partial class CheckoutPageTests
     private WebApplicationFactory<Program> Open(bool salesOpen) =>
         new ShopfolioWebApplicationFactory(_database.Dsn).WithWebHostBuilder(b => b.ConfigureServices(s =>
         {
-            s.AddRazorPages().AddApplicationPart(typeof(FrameSampleModel).Assembly);
+            // The sample pages give the forgery token page; their frame sample at the step's own address is put after the real step.
+            s.AddRazorPages(o => o.Conventions.AddPageRouteModelConvention(
+                "/Storefront/FrameCheckoutSample",
+                model =>
+                {
+                    foreach (SelectorModel selector in model.Selectors)
+                    {
+                        selector.AttributeRouteModel!.Order = 1;
+                    }
+                })).AddApplicationPart(typeof(FrameSampleModel).Assembly);
             s.RemoveAll<ISettingsModule>();
             s.AddScoped(sp => GateSettings.Create(ActivatorUtilities.CreateInstance<SettingsModule>(sp), salesOpen));
         }));

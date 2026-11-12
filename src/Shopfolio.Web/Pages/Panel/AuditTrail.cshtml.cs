@@ -17,10 +17,8 @@ namespace Shopfolio.Pages.Panel;
 /// </summary>
 public sealed class AuditLogQuery : PagedQuery
 {
-    [SpecAssignedName]
     public string? StartDate { get; init; }
 
-    [SpecAssignedName]
     public string? EndDate { get; init; }
 
     public string? AdminId { get; init; }

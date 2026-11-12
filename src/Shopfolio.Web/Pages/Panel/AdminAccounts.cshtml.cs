@@ -38,6 +38,7 @@ public sealed class RemoveAdminInput : IFormInput
 {
     public Guid AdminId { get; set; }
 
+    [SpecAssignedName]
     public bool Confirmed { get; set; }
 }
 

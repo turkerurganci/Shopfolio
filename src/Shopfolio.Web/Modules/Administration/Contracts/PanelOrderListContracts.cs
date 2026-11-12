@@ -3,21 +3,6 @@ using Shopfolio.Modules.Payment.Contracts;
 
 namespace Shopfolio.Modules.Administration.Contracts;
 
-/// <summary>
-/// The pending work and mark filter of the panel's order list (T527; 07 5.3.2 <c>OrderQuery.pendingWork</c>; 04 9.8.4): one value at a time. The first five filter the scope of the home's counters of
-/// the same name (02 10.6.1) - the counter and the list share one rule -; the last two are the order's marks. The names are the parameter's values (07 5.3.2).
-/// </summary>
-public enum PanelOrderWork
-{
-    AwaitingPayment,
-    AwaitingShipment,
-    AwaitingDeliveryMark,
-    AwaitingServiceCompletion,
-    AwaitingReturnOrRefund,
-    IbanPendingMark,
-    EmailUndeliveredMark,
-}
-
 /// <summary>The panel's order list query (T527; 07 UC-91): the search, the two status axes (none named: no filter on that axis) and at most one pending work filter, applied together.</summary>
 public sealed record PanelOrderListQuery(
     string? Search,

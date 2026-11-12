@@ -199,7 +199,7 @@
         <dd>@DisplayFormat.Amount(Model.Detail.Breakdown.ItemsTotal)</dd>
         @if (Model.Detail.Breakdown.CouponShare != 0)
         {
-            <dt>Kupon@(Model.Detail.Breakdown.CouponCode is { } code ? $" ({code})" : string.Empty)</dt>
+            <dt>Kupon@(Model.Detail.Breakdown.CouponCode is { } coupon ? $" ({coupon})" : string.Empty)</dt>
             <dd>@DisplayFormat.Amount(Model.Detail.Breakdown.CouponShare)</dd>
         }
         <dt>KDV</dt>

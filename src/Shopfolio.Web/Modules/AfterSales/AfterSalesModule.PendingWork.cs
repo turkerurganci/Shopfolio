@@ -24,8 +24,8 @@ internal sealed partial class AfterSalesModule
             .Select(r => new { r.OrderItemId, r.RefundId })
             .ToListAsync(ct);
         return new OpenIbanRequestSubjects(
-            [.. open.Where(r => r.OrderItemId is not null).Select(r => r.OrderItemId!.Value).Distinct()],
-            [.. open.Where(r => r.OrderItemId is null && r.RefundId is not null).Select(r => r.RefundId!.Value).Distinct()]);
+            [.. open.Where(r => r.OrderItemId is not null).Select(r => r.OrderItemId!.Value).Distinct()], // non-null: the Where on this line keeps only requests with an item
+            [.. open.Where(r => r.OrderItemId is null && r.RefundId is not null).Select(r => r.RefundId!.Value).Distinct()]); // non-null: the Where on this line keeps only requests with a refund
     }
 
     public Task<int> CountOpenDefectClaimsAsync(CancellationToken ct) =>

@@ -116,11 +116,11 @@ public sealed class OrderDetailModel : PageModel
 
     public OrderPageSummary Summary { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page(); a missing order answers 404 first
 
-    public OrderPageDetail Detail { get; private set; } = null!; // non-null: as above
+    public OrderPageDetail Detail { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
 
-    public OrderOperationsView Operations { get; private set; } = null!; // non-null: as above
+    public OrderOperationsView Operations { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
 
-    public OrderBadges Badges { get; private set; } = null!; // non-null: as above
+    public OrderBadges Badges { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
 
     public OrderShippingView? Shipping { get; private set; }
 
@@ -283,7 +283,7 @@ public sealed class OrderDetailModel : PageModel
     }
 
     /// <summary>UC-127: the returned shipment's mark (S7; S11 when a delivered item leaves no open item).</summary>
-    public async Task<IActionResult> OnPostMarkDeliveryFailedAsync(Guid id, OrderVersionInput input, CancellationToken ct)
+    public async Task<IActionResult> OnPostMarkDeliveryFailedAsync(Guid id, MarkDeliveryFailedInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
         TransitionAdmin admin = await AdminAsync(ct);
@@ -292,7 +292,7 @@ public sealed class OrderDetailModel : PageModel
     }
 
     /// <summary>UC-128: the reasonless closing of a returned order; no cancellation record, no refund, no B-7 (K-717).</summary>
-    public async Task<IActionResult> OnPostCloseDeliveryFailedAsync(Guid id, OrderVersionInput input, CancellationToken ct)
+    public async Task<IActionResult> OnPostCloseDeliveryFailedAsync(Guid id, CloseDeliveryFailedInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
         TransitionAdmin admin = await AdminAsync(ct);
@@ -515,8 +515,14 @@ public sealed class OrderDetailModel : PageModel
     private static string PathOf(Guid id) => $"{PanelFramePaths.Orders}/{id:D}";
 }
 
-/// <summary>UC-127, UC-128: the order's version only (07 9.9.6, 9.9.7).</summary>
-public sealed class OrderVersionInput : IFormInput
+/// <summary>UC-127 <c>MarkDeliveryFailedInput</c>: the order's version only (07 9.9.6).</summary>
+public sealed class MarkDeliveryFailedInput : IFormInput
+{
+    public int Version { get; set; }
+}
+
+/// <summary>UC-128 <c>CloseDeliveryFailedInput</c>: the order's version only (07 9.9.7).</summary>
+public sealed class CloseDeliveryFailedInput : IFormInput
 {
     public int Version { get; set; }
 }
@@ -526,6 +532,8 @@ public sealed class MarkPaidInput : IFormInput
 {
     public int Version { get; set; }
 
+    /// <summary>The confirmation mark of the second send (07 2.2.4); not a field of 06.</summary>
+    [SpecAssignedName]
     public bool Confirmed { get; set; }
 }
 
@@ -542,6 +550,8 @@ public sealed class MarkShippedInput : IFormInput
 
     public int Version { get; set; }
 
+    /// <summary>The confirmation mark of the second send (07 2.2.4); not a field of 06.</summary>
+    [SpecAssignedName]
     public bool Confirmed { get; set; }
 }
 

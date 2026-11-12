@@ -62,6 +62,9 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.Administration.Contracts.PanelRequestKind",
         "Shopfolio.Modules.Administration.Contracts.PanelRequestStatus",
         "Shopfolio.Modules.CorporateContent.Contracts.ContactRequestChangeOutcome",
+        // T527: the order list's one pending work and mark filter (the parameter's closed list, 07 5.3.2 pendingWork) and the two order sets of the home's counts it filters by - read shapes, never a column.
+        "Shopfolio.Modules.Administration.Contracts.PanelOrderWork",
+        "Shopfolio.Modules.Ordering.Contracts.PendingOrderKind",
     };
 
     /// <summary>All enums of the application assembly, by simple name; a name used twice is a failure of the naming rule (09 5.1).</summary>

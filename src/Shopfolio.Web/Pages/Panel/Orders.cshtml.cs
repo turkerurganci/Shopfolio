@@ -22,10 +22,8 @@ public sealed class OrderQuery : PagedQuery
     [SpecAssignedName]
     public string? Search { get; init; }
 
-    [SpecAssignedName]
     public string[]? OrderStatus { get; init; }
 
-    [SpecAssignedName]
     public string[]? PaymentStatus { get; init; }
 
     [SpecAssignedName]

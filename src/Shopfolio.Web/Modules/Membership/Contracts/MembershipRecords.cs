@@ -142,10 +142,11 @@ public sealed class VerificationResendResult : IOperationResult
 /// <summary>The outcome of the sign-in's credential check: the customer who may be given a session, or the refusal's code (<c>InvalidCredentials</c> or <c>EmailNotVerified</c>).</summary>
 public sealed class CredentialCheckResult : IOperationResult
 {
-    private CredentialCheckResult(Guid? customerId, ErrorCode? code)
+    private CredentialCheckResult(Guid? customerId, ErrorCode? code, Guid? unverifiedCustomerId)
     {
         CustomerId = customerId;
         Code = code;
+        UnverifiedCustomerId = unverifiedCustomerId;
     }
 
     public bool Succeeded => CustomerId is not null;
@@ -154,11 +155,17 @@ public sealed class CredentialCheckResult : IOperationResult
 
     public ErrorCode? Code { get; }
 
+    /// <summary>
+    /// The account whose right e-mail and password met an unverified address (<c>EmailNotVerified</c> only): the sign-in page reads its pending registration to tell that the verification is
+    /// awaited (07 UC-55; 04 5.22.8). It is no grant - no session is opened for it.
+    /// </summary>
+    public Guid? UnverifiedCustomerId { get; }
+
     public bool IsRejected => !Succeeded;
 
-    internal static CredentialCheckResult Granted(Guid customerId) => new(customerId, null);
+    internal static CredentialCheckResult Granted(Guid customerId) => new(customerId, null, null);
 
-    internal static CredentialCheckResult Refused(ErrorCode code) => new(null, code);
+    internal static CredentialCheckResult Refused(ErrorCode code, Guid? unverifiedCustomerId = null) => new(null, code, unverifiedCustomerId);
 }
 
 /// <summary>The account an order is placed under: the kind and, for the two bound kinds, the customer.</summary>

@@ -4628,7 +4628,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   3. `Register` doğrulanmamış bekleyen kaydı açar: bağlantı Z-1 ömürlü, doğrulama e-postası; oturum açılmaz; 303 `/kayit` (`07 UC-48`; `02 §3.13.4`, §3.13.5).
   4. UC-48 422: ad boş, e-posta geçersiz, şifre P-17 altı ya da yaygın, e-posta kayıtlı, kapı kapalı; 429 (L-3) (`07 UC-48`; `03 §3.4.6`).
   5. Tekrar gönderim 422 alır; ikinci kayıt açılmaz (`07 UC-48`; `06 §4.36`).
-  6. `ResendVerificationLink` (`/kayit`, `/giris`) yeni bağlantı gönderir, değer ya da kayıt geçersizse göndermez; öncekiler `SupersededAt` alır, kaydın ömrü uzamaz; 429 (L-9) (`07 UC-49`; `05 §6.4.6`).
+  6. `ResendVerificationLink` (`/kayit`; `/giris` yüzü T515 kriter 5) yeni bağlantı gönderir, değer ya da kayıt geçersizse göndermez; öncekiler `SupersededAt` alır, kaydın ömrü uzamaz; 429 (L-9) (`07 UC-49`; `05 §6.4.6`).
   7. `GET /dogrulama/{anahtar}` altı hâlden birini verir; geçerli bağlantıda doğrulama adımıdır, açılış doğrulamaz (`07 UC-52`; K-904, K-780).
   8. Başka türün ya da yönetici hesabının bağlantısı tanınmaz, tüketilmez (`07 UC-52`).
   9. `VerifyEmail` bağlantıyı tek koşullu güncellemeyle tüketir, 303 sonuç koduyla döner, oturum açmaz; kayıtta `EmailVerifiedAt` yazılır ve misafir siparişleri bağlanır, Google teyidinde `GoogleLinkedAt` (`07 UC-53`; K-1186 (1)).
@@ -4655,7 +4655,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   2. `returnUrl` yerel yol denetiminden geçerse dönüş yeridir; giriş, kayıt, sıfırlama, iniş ekranıysa ya da yoksa ana sayfadır (`07 UC-55`; `04` 3.6.1…3.6.3).
   3. `SignIn` her girişte yeni oturum anahtarı açar, sepetler birleşir, dönülen sayfa eklenenleri bir kez söyler; "beni hatırla" ile Z-5, değilse Z-4 oturum açar (`07 UC-55`; `05 §6.1.1`).
   4. UC-55 422: boş alan, biçim; yanlış e-posta ya da şifre hesabı ele vermeyen tek mesaj, hesap yokken sahte özetle doğrulanır; 429 (L-1) nötr, hesap kilitlenmez; tanınan tarayıcı e-posta ekseninde engellenmez (`07 UC-55`).
-  5. Şifresi doğru, ömrü dolmamış doğrulanmamış hesapta oturum açılmaz; doğrulama beklenir, yeniden gönderim T514'tedir (`07 UC-55`, UC-49).
+  5. Şifresi doğru, ömrü dolmamış doğrulanmamış hesapta oturum açılmaz; doğrulama beklenir; `/giris` sayfasının `ResendVerificationLink` işleyicisi T514 mantığını ortak yerden çağırır (`07 UC-55`, UC-49).
   6. `StartSocialLogin` (`/giris`, `/kayit`) 303 → Google adresi verir; akış çerezi `state`, `nonce` ve PKCE taşır; Google tanımsızsa 422 (`07 UC-50`; `05 §6.7.12`).
   7. `GET /giris/google`: doğrulanmış e-posta eşleşen hesaba girer, bağ yazılır (adres için yetkili ya da hesap bağlıysa); eşleşme yoksa kapı açıkken şifresiz hesap açılır, bekleyen kayıt silinir; yetkisizde `GoogleLinkConfirmation` teyidi gider, oturum açılmaz (`07 UC-51`; `06 §4.36`).
   8. Doğrulanmamış Google e-postası 303 → `/kayit`, kapı kapalıyken yeni hesap gerekirse 303 → `/giris` kodla döner (`07 UC-51`).

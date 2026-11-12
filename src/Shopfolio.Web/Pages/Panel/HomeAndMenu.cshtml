@@ -48,17 +48,18 @@
                     <p class="menu-reason" id="@(row.Field.Id)-reason">@row.HiddenReason</p>
                 }
             }
+            @if (Model.MenuPages.Count > 0)
+            {
+                <h3>Menüde gösterilen genel sayfalar</h3>
+                <ul class="menu-pages" id="menu-pages">
+                    @foreach (GeneralPageLink general in Model.MenuPages)
+                    {
+                        <li>@general.Title</li>
+                    }
+                </ul>
+            }
+            <partial name="_Field" model="Model.ContactRow.Field" />
         </div>
-        @if (Model.MenuPages.Count > 0)
-        {
-            <h3>Menüde gösterilen genel sayfalar</h3>
-            <ul class="menu-pages" id="menu-pages">
-                @foreach (GeneralPageLink general in Model.MenuPages)
-                {
-                    <li>@general.Title</li>
-                }
-            </ul>
-        }
     </section>
     <section class="form-section" aria-labelledby="social-heading">
         <h2 id="social-heading">Sosyal bağlantılar</h2>

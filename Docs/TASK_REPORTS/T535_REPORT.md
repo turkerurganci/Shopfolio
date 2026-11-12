@@ -25,7 +25,7 @@
 |---|---|---|---|
 | 1 | Ana sayfa ekranı düzen, ad, bağlantı, görünmeme sebebi, varsayılanlar | ✓ | `HomeAndFirmPageTests.TheHomeScreen_ShowsLayoutNamesDefaultsAndTheReasonsItemsAreHidden_…_KK1` |
 | 2 | SaveHomepage yazar; boş bağlantı siler; iz | ✓ | `TheSave_WritesLayoutNamesNumberAndLinks_…_KK2`; `HomepageAndIdentityTrailTests.SaveHomepage_WritesOneTrailRow_…`, `SaveSocialLinks_AddsChangesAndDeletes_…` |
-| 3 | 422 (ad, bağlantı, numara); 409 | ✓ | `TheSave_RefusesAnEmptyName…_KK3`; `SaveHomepage_WithAnEmptyMenuName_…`, `…WhatsApp…`, `…WithAStaleVersion_IsAConflict_…` |
+| 3 | 422 (ad, bağlantı, numara); 409 | ✓ | `TheSave_RefusesAnEmptyName…_KK3` (düzeltme 1: alan mesajı K-813 metnini sınar); `SaveHomepage_WithAnEmptyMenuName_…`, `…WhatsApp…`, `…WithAStaleVersion_IsAConflict_…` |
 | 4 | Firma ekranı koşullar, bağlantı, e-posta uyarısı | ✓ | `TheFirmScreen_ReadsTheSalesState…_KK4_KK5`; `TheEmailField_Warns…_KK4` (tek başına yeşil) |
 | 5 | Anahtar etiketi değere göre; kimlik formundan ayrı | ✓ | `TheFirmScreen_ReadsTheSalesState…_KK4_KK5` |
 | 6 | SaveCompany 422 sebepleri; tip değişimi serbest; iz | ✓ | `TheIdentitySave_Refuses…_KK6_KK7`; `SaveCompanyIdentity_WritesOneRow…` |
@@ -72,6 +72,13 @@
 | Bloke-etmeyen not (K) sayısı (tur 1) | 1 — K1 → D-1363 (task "Unit, Integration" bekliyor; diff'te yeni birim testi yok) |
 | Yapım raporu karşılaştırması (tur 1) | Kriter 1, 2, 4–10 kanıtları uyumlu. Uyuşmazlık: kriter 3 ✓ yazılmış ama alan mesajı varsayılan adı taşımıyor (B1); öz denetim `04` 9.14.4 sırasını kapsamıyor (B2) |
 | Doğrulayıcı kanıtları (tur 1) | Derleme `-warnaserror` 0/0; `dotnet format --verify-no-changes` üç proje temiz; Unit 7402/7402; betik 4/4; Integration değişen/dokunan sınıflar 263/263 + yasal metin, içerik ve çerçeve sınıfları 177/177 (postgres:18, `track_commit_timestamp=on`); CI run 43165022158 yeşil (Integration TAM dahil); `12` Durum: A287, A747 PASS, öteki satırlar BEKLEMEDE |
+
+## Düzeltme 1 (tur 1 FAIL sonrası)
+
+- **B1 (kriter 3, KK3; K-813):** boş menü adının alan mesajı artık "Menü adı boş olamaz; varsayılan ad: {ad}." (`HomeAndMenuModel.EmptyNameMessagePrefix`); görünmeme sebepleri K-813'teki gibi "Menüde görünmüyor — yayında kaydı yok." / "— yayında ürünü olan kategori yok.". `TheSave_RefusesAnEmptyName…_KK3` mesajı sınar, `TheHomeScreen_…_KK1` iki sebep metnini değişmez dizgiyle sınar.
+- **B2 (`04` 9.14.4, 2.2.3; UC-97):** menü adı alanları `StorefrontMenu.Items` sırasıyla (tanıtım öncelikli: Hakkımızda, Hizmetlerimiz, Referanslarımız, SSS, Ürünler; mağaza öncelikli: Ürünler önce) çizilir; "menüde göster" işaretli genel sayfalar İletişim'den önce, salt okunur; hata özeti de aynı sırayı izler. Yeni test: `TheMenuNameFields_FollowTheSelectedLayoutsMenuOrder_AndTheGeneralPagesComeBeforeContact_KK1` (iki düzen, 2 satır).
+- **Öz denetim (düzeltme 1):** kriter 1–10 ve KK1–KK10 yeniden denetlendi; yukarıdaki tablo geçerli, değişen yalnız kriter 3 (mesaj) ve kriter 1 (alan sırası). K1 (birim testi yok) D-1363'te kalır. Şema/bağımlılık değişmedi.
+- **Test:** `HomeAndFirmPageTests` 11/11 (önceki 9 + yeni 2).
 
 ## Altyapı Değişiklikleri
 

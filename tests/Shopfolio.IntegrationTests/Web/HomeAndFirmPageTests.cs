@@ -12,6 +12,8 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages;
+using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.CorporateContent;
 using Shopfolio.Modules.CorporateContent.Contracts;
 using Shopfolio.Modules.Notifications;
 using Shopfolio.Modules.Notifications.Contracts;
@@ -63,7 +65,7 @@ public sealed partial class HomeAndFirmPageTests : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        await ExecuteAsync("TRUNCATE provinces, companies, company_settings, legal_text_versions, audit_logs, social_links, dispatch_records CASCADE");
+        await ExecuteAsync("TRUNCATE provinces, companies, company_settings, legal_text_versions, audit_logs, social_links, dispatch_records, custom_pages CASCADE");
         Province province = Province.Create("06", "Ankara", Now);
         _provinceId = province.Id;
         CompanySettings settings = CompanySettings.Create(Now);
@@ -117,6 +119,8 @@ public sealed partial class HomeAndFirmPageTests : IAsyncLifetime
         Assert.Contains(HomeAndMenuModel.DefaultNamePrefix + MenuNameDefaults.Offerings, html, StringComparison.Ordinal);
         Assert.Contains(HomeAndMenuModel.NoPublishedRecordText, html, StringComparison.Ordinal);
         Assert.Contains(HomeAndMenuModel.NoPublishedProductText, html, StringComparison.Ordinal);
+        Assert.Contains("Menüde görünmüyor — yayında kaydı yok.", html, StringComparison.Ordinal);
+        Assert.Contains("Menüde görünmüyor — yayında ürünü olan kategori yok.", html, StringComparison.Ordinal);
         Assert.Equal("1", FieldValue(html, "Input.Version"));
         Assert.Matches(new Regex("id=\"layout-content-first\"[^>]*checked", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), html);
         foreach (SocialPlatform platform in Enum.GetValues<SocialPlatform>())
@@ -124,6 +128,36 @@ public sealed partial class HomeAndFirmPageTests : IAsyncLifetime
             Assert.Equal(string.Empty, FieldValue(html, HomeAndMenuModel.SocialFieldName(platform)));
             Assert.Equal(platform.ToString(), FieldValue(html, HomeAndMenuModel.SocialPlatformFieldName(platform)));
         }
+    }
+
+    [Theory]
+    [InlineData("ContentFirst", new[] { "AboutPage", "Offerings", "PortfolioItems", "FaqItems", "Products" })]
+    [InlineData("StoreFirst", new[] { "Products", "Offerings", "PortfolioItems", "AboutPage", "FaqItems" })]
+    public async Task TheMenuNameFields_FollowTheSelectedLayoutsMenuOrder_AndTheGeneralPagesComeBeforeContact_KK1(string layout, string[] order)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+        await ExecuteAsync($"UPDATE company_settings SET homepage_layout = '{layout}'");
+        await using (AppDbContext db = NewContext())
+        {
+            CustomPage page = CustomPage.Create("Teslimat bilgisi", "teslimat-bilgisi", 1, Now);
+            page.PublishStatus = PublishStatus.Published;
+            page.IsShownInMenu = true;
+            db.CustomPages.Add(page);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        (HttpStatusCode status, string html) = await GetAsync(client, HomePath);
+
+        Assert.Equal(HttpStatusCode.OK, status);
+        List<int> positions = [.. order.Select(kind => html.IndexOf($"name=\"Input.MenuName{kind}\"", StringComparison.Ordinal))];
+        positions.Add(html.IndexOf("id=\"menu-pages\"", StringComparison.Ordinal));
+        positions.Add(html.IndexOf("name=\"Input.MenuNameContact\"", StringComparison.Ordinal));
+        Assert.All(positions, p => Assert.True(p >= 0));
+        Assert.Equal(positions.Order().ToList(), positions);
+        Assert.Contains("Teslimat bilgisi", html[positions[^2]..positions[^1]], StringComparison.Ordinal);
     }
 
     // ---- KK2: the save writes the section and the links, an emptied link deletes the row, the changes go to the trail (criterion 2) ----
@@ -175,6 +209,8 @@ public sealed partial class HomeAndFirmPageTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, refused.StatusCode);
         Assert.Contains(HomeAndMenuModel.DefaultNamePrefix + MenuNameDefaults.Offerings, html, StringComparison.Ordinal);
+        Assert.Contains("Menü adı boş olamaz; varsayılan ad: " + MenuNameDefaults.Offerings + ".", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("Hizmetler menü adı boş olamaz", html, StringComparison.Ordinal);
         Assert.Contains("field--invalid", html, StringComparison.Ordinal);
         Assert.Equal("ContentFirst", await ScalarAsync<string>("SELECT homepage_layout FROM company_settings"));
         Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM social_links"));

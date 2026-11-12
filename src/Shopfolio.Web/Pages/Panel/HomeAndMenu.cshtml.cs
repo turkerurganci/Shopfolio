@@ -79,11 +79,14 @@ public sealed class HomeAndMenuModel : PageModel
 
     public const string LayoutNote = "İki düzende de kurumsal tanıtım ve ürün vitrini birlikte durur.";
 
-    public const string NoPublishedRecordText = "Menüde görünmüyor: yayında kaydı yok.";
+    public const string NoPublishedRecordText = "Menüde görünmüyor — yayında kaydı yok.";
 
-    public const string NoPublishedProductText = "Menüde görünmüyor: yayında ürünü olan kategori yok.";
+    public const string NoPublishedProductText = "Menüde görünmüyor — yayında ürünü olan kategori yok.";
 
     public const string DefaultNamePrefix = "Varsayılan ad: ";
+
+    /// <summary>The field message of an empty menu name is this, the item's default name and a full stop (K-813).</summary>
+    public const string EmptyNameMessagePrefix = "Menü adı boş olamaz; varsayılan ad: ";
 
     public const string SocialNote = "Bağlantılar sitenin üst bölümünün ince satırında ve altbilgide görünür. Boş bıraktığınız platformun bağlantısı kaldırılır.";
 
@@ -105,7 +108,10 @@ public sealed class HomeAndMenuModel : PageModel
 
     public HomepageLayout Layout { get; private set; }
 
+    /// <summary>The menu name fields in the selected layout's menu order, without İletişim (04 9.14.4): the general pages shown in the menu come after them and before <see cref="ContactRow"/>.</summary>
     public IReadOnlyList<MenuNameRowView> MenuRows { get; private set; } = [];
+
+    public MenuNameRowView ContactRow { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
 
     public IReadOnlyList<SocialLinkRowView> SocialRows { get; private set; } = [];
 
@@ -122,11 +128,34 @@ public sealed class HomeAndMenuModel : PageModel
 
     public MessageView? Notice { get; private set; }
 
-    public static IReadOnlyList<string> FormOrder { get; } =
+    /// <summary>The fields in the order the screen draws them: the menu names in the menu's order, then the links and the number.</summary>
+    private static List<string> FormOrderOf(IEnumerable<MenuItemKind> kinds) =>
     [
-        "Input.MenuNameProducts", "Input.MenuNameOfferings", "Input.MenuNamePortfolioItems", "Input.MenuNameAboutPage", "Input.MenuNameFaqItems", "Input.MenuNameContact",
+        .. kinds.Select(kind => "Input." + PropertyOf(kind)),
         .. Platforms.Select(SocialFieldName), "Input.WhatsAppNumber",
     ];
+
+    private static string PropertyOf(MenuItemKind kind) => kind switch
+    {
+        MenuItemKind.Products => nameof(SaveHomepageInput.MenuNameProducts),
+        MenuItemKind.Offerings => nameof(SaveHomepageInput.MenuNameOfferings),
+        MenuItemKind.PortfolioItems => nameof(SaveHomepageInput.MenuNamePortfolioItems),
+        MenuItemKind.AboutPage => nameof(SaveHomepageInput.MenuNameAboutPage),
+        MenuItemKind.FaqItems => nameof(SaveHomepageInput.MenuNameFaqItems),
+        MenuItemKind.Contact => nameof(SaveHomepageInput.MenuNameContact),
+        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "The kind has no name field."),
+    };
+
+    private static string DefaultNameOf(string property) => property switch
+    {
+        nameof(SaveHomepageInput.MenuNameProducts) => MenuNameDefaults.Products,
+        nameof(SaveHomepageInput.MenuNameOfferings) => MenuNameDefaults.Offerings,
+        nameof(SaveHomepageInput.MenuNamePortfolioItems) => MenuNameDefaults.PortfolioItems,
+        nameof(SaveHomepageInput.MenuNameAboutPage) => MenuNameDefaults.AboutPage,
+        nameof(SaveHomepageInput.MenuNameFaqItems) => MenuNameDefaults.FaqItems,
+        nameof(SaveHomepageInput.MenuNameContact) => MenuNameDefaults.Contact,
+        _ => string.Empty,
+    };
 
     public override async Task OnPageHandlerSelectionAsync(PageHandlerSelectedContext context)
     {
@@ -182,6 +211,14 @@ public sealed class HomeAndMenuModel : PageModel
         {
             foreach (FieldRejection rejection in outcome.Settings.Rejections)
             {
+                string defaultName = DefaultNameOf(rejection.Field);
+                if (rejection.Code == FieldCodes.FieldRequired && defaultName.Length > 0)
+                {
+                    // K-813: an empty menu name's message reminds the default name; it is no catalog text, so the page filter leaves it as written.
+                    ModelState.AddModelError("Input." + rejection.Field, EmptyNameMessagePrefix + defaultName + ".");
+                    continue;
+                }
+
                 ModelState.AddFieldError("Input." + rejection.Field, rejection.Code);
             }
 
@@ -202,19 +239,24 @@ public sealed class HomeAndMenuModel : PageModel
         StorefrontMenu menu = await _content.GetMenuAsync(ct);
         IReadOnlyList<SocialLinkItem> links = await _content.ListSocialLinksAsync(ct);
         SaveHomepageInput? sent = _posted;
-        Summary = FormErrorSummary.From(ModelState, FormOrder);
+        // The name fields follow the menu's own order (the layout's, 04 9.14.4); the menu carries it, so the screen does not restate it.
+        List<MenuItemKind> kinds = [.. menu.Items.Where(i => i.Kind != MenuItemKind.GeneralPage).Select(i => i.Kind)];
+        Summary = FormErrorSummary.From(ModelState, FormOrderOf(kinds));
         FormVersion = IsConflicted || sent is null ? section.Version : _formVersion;
         Layout = sent is not null && Enum.TryParse(sent.HomepageLayout, ignoreCase: false, out HomepageLayout chosen) && Enum.IsDefined(chosen) ? chosen : section.Layout;
 
-        MenuRows =
-        [
-            Row(menu, MenuItemKind.Products, nameof(SaveHomepageInput.MenuNameProducts), "Ürünler", MenuNameDefaults.Products, sent?.MenuNameProducts, section.MenuNames.Products, sent is not null),
-            Row(menu, MenuItemKind.Offerings, nameof(SaveHomepageInput.MenuNameOfferings), "Hizmetler", MenuNameDefaults.Offerings, sent?.MenuNameOfferings, section.MenuNames.Offerings, sent is not null),
-            Row(menu, MenuItemKind.PortfolioItems, nameof(SaveHomepageInput.MenuNamePortfolioItems), "Referanslar", MenuNameDefaults.PortfolioItems, sent?.MenuNamePortfolioItems, section.MenuNames.PortfolioItems, sent is not null),
-            Row(menu, MenuItemKind.AboutPage, nameof(SaveHomepageInput.MenuNameAboutPage), "Hakkımızda", MenuNameDefaults.AboutPage, sent?.MenuNameAboutPage, section.MenuNames.AboutPage, sent is not null),
-            Row(menu, MenuItemKind.FaqItems, nameof(SaveHomepageInput.MenuNameFaqItems), "Sık sorulan sorular", MenuNameDefaults.FaqItems, sent?.MenuNameFaqItems, section.MenuNames.FaqItems, sent is not null),
-            Row(menu, MenuItemKind.Contact, nameof(SaveHomepageInput.MenuNameContact), "İletişim", MenuNameDefaults.Contact, sent?.MenuNameContact, section.MenuNames.Contact, sent is not null),
-        ];
+        MenuNameRowView RowOf(MenuItemKind kind) => kind switch
+        {
+            MenuItemKind.Products => Row(menu, kind, "Ürünler", MenuNameDefaults.Products, sent?.MenuNameProducts, section.MenuNames.Products, sent is not null),
+            MenuItemKind.Offerings => Row(menu, kind, "Hizmetler", MenuNameDefaults.Offerings, sent?.MenuNameOfferings, section.MenuNames.Offerings, sent is not null),
+            MenuItemKind.PortfolioItems => Row(menu, kind, "Referanslar", MenuNameDefaults.PortfolioItems, sent?.MenuNamePortfolioItems, section.MenuNames.PortfolioItems, sent is not null),
+            MenuItemKind.AboutPage => Row(menu, kind, "Hakkımızda", MenuNameDefaults.AboutPage, sent?.MenuNameAboutPage, section.MenuNames.AboutPage, sent is not null),
+            MenuItemKind.FaqItems => Row(menu, kind, "Sık sorulan sorular", MenuNameDefaults.FaqItems, sent?.MenuNameFaqItems, section.MenuNames.FaqItems, sent is not null),
+            _ => Row(menu, MenuItemKind.Contact, "İletişim", MenuNameDefaults.Contact, sent?.MenuNameContact, section.MenuNames.Contact, sent is not null),
+        };
+
+        MenuRows = [.. kinds.Where(kind => kind != MenuItemKind.Contact).Select(RowOf)];
+        ContactRow = RowOf(MenuItemKind.Contact);
 
         string? Link(SocialPlatform platform) => sent is not null
             ? sent.SocialLinks.FirstOrDefault(l => l.SocialPlatform == platform)?.Url
@@ -228,8 +270,9 @@ public sealed class HomeAndMenuModel : PageModel
         Notice = notice is { } code && NoticeTexts.TryShortLived(code, out string? noticeText) ? Messages.ShortLivedSuccess(noticeText) : null;
     }
 
-    private MenuNameRowView Row(StorefrontMenu menu, MenuItemKind kind, string property, string label, string defaultName, string? sentName, string storedName, bool wasSent)
+    private MenuNameRowView Row(StorefrontMenu menu, MenuItemKind kind, string label, string defaultName, string? sentName, string storedName, bool wasSent)
     {
+        string property = PropertyOf(kind);
         MenuItem? item = menu.Items.FirstOrDefault(i => i.Kind == kind);
         string? reason = item is { IsVisible: false, HiddenReason: { } why } ? (why == MenuHiddenReason.NoPublishedProduct ? NoPublishedProductText : NoPublishedRecordText) : null;
         FieldView field = Fields.Bind(

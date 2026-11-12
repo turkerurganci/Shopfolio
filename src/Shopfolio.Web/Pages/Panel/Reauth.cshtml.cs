@@ -163,6 +163,5 @@ public sealed class ReauthenticateInput : IFormInput
     [FieldRequired]
     public string? Password { get; set; }
 
-    [SpecAssignedName]
     public string? ReauthenticatedOperation { get; set; }
 }

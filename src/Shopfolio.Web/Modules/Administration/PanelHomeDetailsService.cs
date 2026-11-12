@@ -65,7 +65,7 @@ internal sealed class PanelHomeDetailsService : IPanelHomeDetails
             return [];
         }
 
-        IReadOnlyList<OrderOfItem> ofItems = await _ordering.FindOrdersOfItemsAsync([.. lines.Where(l => l.OrderItemId is not null).Select(l => l.OrderItemId!.Value).Distinct()], ct);
+        IReadOnlyList<OrderOfItem> ofItems = await _ordering.FindOrdersOfItemsAsync([.. lines.Select(l => l.OrderItemId).OfType<Guid>().Distinct()], ct);
         Dictionary<Guid, Guid> orderOfItem = ofItems.ToDictionary(o => o.OrderItemId, o => o.OrderId);
         Dictionary<Guid, Guid> orderOfRefund = (await _payment.ListOpenRefundWorkAsync(ct)).ToDictionary(r => r.RefundId, r => r.OrderId);
 

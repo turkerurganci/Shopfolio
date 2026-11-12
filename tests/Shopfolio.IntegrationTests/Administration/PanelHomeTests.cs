@@ -543,6 +543,65 @@ public sealed class PanelHomeTests : IAsyncLifetime
         Assert.Equal(missingBefore - 1, after.SetupChecklist!.Count(i => !i.IsDone));
     }
 
+    // ---- T521: the reads behind the home page's order warnings and its "IBAN bekleniyor" lines ----
+
+    [Fact]
+    public async Task TheCardRefundProblems_CountOrdersWithAFailedOrAwaitedCardRefund_OnceEach_AndNotTheSentOrSucceededOnes_T521_KK2()
+    {
+        CardRefundProblems none = await ProblemsAsync();
+        Assert.Equal(new CardRefundProblems(0, 0), none);
+
+        Guid failed = await CardRefundOrderAsync(RefundRecordState.Failed, sent: false);
+        await CardRefundOrderAsync(RefundRecordState.OutcomePending, sent: false);
+        await CardRefundOrderAsync(RefundRecordState.OutcomePending, sent: false);
+        await CardRefundOrderAsync(RefundRecordState.Succeeded, sent: true);
+
+        Assert.Equal(new CardRefundProblems(1, 2), await ProblemsAsync());
+
+        // Sending the refund (the firm moved it to the transfer way and sent it) takes the order out of the count.
+        await ExecuteAsync($"UPDATE refunds SET sent_at = now() WHERE id = '{RefundIdOf(failed)}'");
+        Assert.Equal(new CardRefundProblems(0, 2), await ProblemsAsync());
+    }
+
+    [Fact]
+    public async Task TheAwaitingIbanLines_AreTheOpenRequests_WithARefundLastDayOnlyForTheCancellationRemovalAndNoticeReasons_T521_KK3()
+    {
+        Assert.Empty(await AwaitingLinesAsync());
+
+        Guid withPeriod = await SaveOrderAsync(PaymentMethod.BankTransfer, (_lamp, 1));
+        Guid withoutPeriod = await SaveOrderAsync(PaymentMethod.BankTransfer, (_lamp, 1));
+        Guid fulfilled = await SaveOrderAsync(PaymentMethod.BankTransfer, (_lamp, 1));
+        RefundIbanRequest cancelled = RefundIbanRequest.ForItem(ItemOf(withPeriod), RefundIbanRequestReason.CancellationOrRemoval, null, _admin!.Id, _admin.Name, DayStart.AddHours(1));
+        RefundIbanRequest asked = RefundIbanRequest.ForItem(ItemOf(withoutPeriod), RefundIbanRequestReason.AdminRequest, null, _admin.Id, _admin.Name, DayStart.AddHours(2));
+        RefundIbanRequest done = RefundIbanRequest.ForItem(ItemOf(fulfilled), RefundIbanRequestReason.NoticeWithoutIban, null, _admin.Id, _admin.Name, DayStart.AddHours(3));
+        await SaveAsync(c => c.RefundIbanRequests.AddRange(cancelled, asked, done));
+        await ExecuteAsync($"UPDATE refund_iban_requests SET fulfilled_at = now() WHERE id = '{done.Id}'");
+
+        IReadOnlyList<AwaitingIbanLine> lines = await AwaitingLinesAsync();
+
+        Assert.Equal(2, lines.Count);
+        Assert.Equal(new AwaitingIbanLine(ItemOf(withPeriod), null, AfterSalesPeriodRules.RefundLastDay(Day)), lines[0]);
+        Assert.Equal(new AwaitingIbanLine(ItemOf(withoutPeriod), null, null), lines[1]);
+
+        // A closed request is no longer awaited.
+        await ExecuteAsync($"UPDATE refund_iban_requests SET closed_at = now() WHERE id = '{asked.Id}'");
+        Assert.Single(await AwaitingLinesAsync());
+    }
+
+    private async Task<CardRefundProblems> ProblemsAsync()
+    {
+        await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn, new FixedTime(Now), _cardLineOpen);
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<IPaymentModule>().CountCardRefundProblemsAsync(Ct);
+    }
+
+    private async Task<IReadOnlyList<AwaitingIbanLine>> AwaitingLinesAsync()
+    {
+        await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn, new FixedTime(Now), _cardLineOpen);
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<IAfterSalesModule>().ListAwaitingIbanLinesAsync(Ct);
+    }
+
     // ---- Harness ----
 
     private async Task<PanelHome> HomeAsync()

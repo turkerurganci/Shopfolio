@@ -138,7 +138,7 @@ public sealed class OrderPageTests
     }
 
     [Fact]
-    public async Task AnUnpaidTransferOrder_ShowsTheTransferDetails_AndNoDownloadButton_KK6_KK7()
+    public async Task AnUnpaidTransferOrder_ShowsTheTransferDetails_WithTheScriptShownCopyButton_AndNoDownloadButton_KK6_KK7_D1258()
     {
         await using FileEndpointsHost host = new(_database.Dsn);
         (_, string number, string key, _) = await SeedAsync(host, PaymentStatus.Pending);
@@ -148,6 +148,10 @@ public sealed class OrderPageTests
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("id=\"order-transfer\"", body, StringComparison.Ordinal);
+
+        // The copy button is hidden in the markup and shown by the script only where the clipboard can be written; the IBAN stays selectable text (04 5.16.14).
+        Assert.Matches("<button type=\"button\" class=\"[^\"]*copy-button\" data-copy=\"TR\\d{24}\" hidden>", body);
+        Assert.Contains("data-copy-result", body, StringComparison.Ordinal);
         Assert.Contains(number, body, StringComparison.Ordinal);
         Assert.DoesNotContain("handler=DownloadDigitalFile", body, StringComparison.Ordinal);
     }

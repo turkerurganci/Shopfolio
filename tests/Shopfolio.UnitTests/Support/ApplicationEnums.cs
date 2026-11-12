@@ -54,6 +54,10 @@ internal static class ApplicationEnums
         // T511: why a download was refused (UC-36's three 422 reasons) and which record stands on an order page item row - result codes and read shapes, never a column.
         "Shopfolio.Modules.Ordering.Contracts.DownloadRefusal",
         "Shopfolio.Modules.AfterSales.Contracts.ItemRecordFactKind",
+        // T512: E-17's two addresses, the operation the screen carries and why a customer's write was not applied - read shapes and result codes, never a column.
+        "Shopfolio.Modules.Ordering.Contracts.CustomerScreen",
+        "Shopfolio.Modules.Ordering.Contracts.CustomerScreenOperation",
+        "Shopfolio.Modules.Ordering.Contracts.CustomerOperationOutcome",
         // T532: the requests list's two kinds and three filter statuses (the parameter's closed lists, not the stored statuses) and what a close or a reopening of a contact request came to - read shapes and a result code, never a column.
         "Shopfolio.Modules.Administration.Contracts.PanelRequestKind",
         "Shopfolio.Modules.Administration.Contracts.PanelRequestStatus",

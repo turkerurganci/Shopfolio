@@ -40,9 +40,11 @@ public sealed class DeleteCustomerInput : IFormInput
     public Guid CustomerId { get; set; }
 
     /// <summary>The e-mail the screen was searched with; the screen returns to the search of it.</summary>
+    [SpecAssignedName]
     public string? SearchEmail { get; set; }
 
     /// <summary>False asks for the confirmation state; true is the confirmed operation (04 2.4.4).</summary>
+    [SpecAssignedName]
     public bool Confirmed { get; set; }
 }
 

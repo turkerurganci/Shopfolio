@@ -524,7 +524,7 @@
     gap: var(--space-5);
 }
 
-@media (min-width: 64rem) {
+@media (min-width: 1024px) {
     .member-record__top {
         flex-direction: row;
         align-items: flex-start;

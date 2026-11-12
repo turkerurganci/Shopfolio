@@ -72,6 +72,14 @@ public interface ICorporateContentModule
     Task<IReadOnlyList<SocialLinkItem>> ListSocialLinksAsync(CancellationToken ct);
 
     /// <summary>
+    /// The social links of the home page and menu form (T535; 02 3.27.12; 07 UC-162; 06 4.55), in the caller's open transaction, which the method joins and never opens: <paramref name="links"/> maps a
+    /// platform name to the typed address. A filled address is checked for the form of a link and written, an emptied one deletes the platform's row, a platform the form leaves out stays. A platform
+    /// outside the closed list or an address of the wrong form refuses the whole save and writes nothing. The rows are tracked, not saved: the transaction's owner saves them with the Settings module's
+    /// section save, which takes the returned changes into the section's trail row and version. A save that changes nothing returns no change.
+    /// </summary>
+    Task<SocialLinksSaveResult> SaveSocialLinksAsync(IReadOnlyDictionary<string, string?> links, CancellationToken ct);
+
+    /// <summary>
     /// The FAQ page's list (T506; 02 3.27.6; 04 5.9): the published questions in the firm's order, one list, no grouping. <paramref name="asAdministrator"/> is true for a browser that holds a
     /// panel session: the draft questions then stand in their place, marked (02 3.27.25). A plain read.
     /// </summary>

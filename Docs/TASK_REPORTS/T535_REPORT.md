@@ -1,0 +1,123 @@
+# T535 — Ana sayfa ve menü, firma kimliği ve satış (E-42, E-44)
+
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-12
+
+> Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
+
+---
+
+## Yapılan İşler
+
+- Panel "Ana sayfa ve menü" (UC-97, UC-162) ve "Firma kimliği ve satış" (UC-99, UC-164, UC-165, UC-166) ekranları ve yazma yolları: düzen, altı menü adı, WhatsApp numarası, sosyal bağlantılar (boş bağlantı satırı siler), kimlik kaydı, satışı kapatma ve yeniden açma.
+- Değişen ayar eski ve yeni değerle ize girer; kimlik değişince iki yasal metnin yeni sürümü aynı işlemde, ayar satırı kilitliyken yazılır ve `PublishLegalText` izine girer.
+- Firma bildirimi son ulaşmayan e-postaya gittiyse e-posta alanı uyarır; sonraki gönderilen bildirimle uyarı kalkar.
+- Testler: `HomepageAndIdentityTrailTests` (Model, 26 test), `HomeAndFirmPageTests` (Web, 9 test; bu turda e-posta uyarısı testi eklendi).
+- Bu turda: `origin/main` (T532 #552) birleştirildi; `admin.css` iki tarafın eklemesi korunarak çözüldü.
+
+## Etkilenen Modüller / Dosyalar
+
+- `src/Shopfolio.Web` (CorporateContent, Settings, Panel sayfaları, `wwwroot/css/admin.css`), CorporateContent ve Settings modülleri, `tests/Shopfolio.IntegrationTests/Model/HomepageAndIdentityTrailTests.cs`, `tests/Shopfolio.IntegrationTests/Web/HomeAndFirmPageTests.cs`.
+- Kayıtlar: `Docs/STATUS_CHANGELOG.d/T535.md`, `Docs/DEFERRED_BACKLOG.d/T535.md` (D-1328…D-1332), `Docs/DEFERRED_BACKLOG.md` (D-501 ✅; D-165, D-220, D-199, D-502 yerinde), `Docs/IMPLEMENTATION_STATUS.md` T535 satırı.
+
+## Kabul Kriterleri Kontrolü
+
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Ana sayfa ekranı düzen, ad, bağlantı, görünmeme sebebi, varsayılanlar | ✓ | `HomeAndFirmPageTests.TheHomeScreen_ShowsLayoutNamesDefaultsAndTheReasonsItemsAreHidden_…_KK1` |
+| 2 | SaveHomepage yazar; boş bağlantı siler; iz | ✓ | `TheSave_WritesLayoutNamesNumberAndLinks_…_KK2`; `HomepageAndIdentityTrailTests.SaveHomepage_WritesOneTrailRow_…`, `SaveSocialLinks_AddsChangesAndDeletes_…` |
+| 3 | 422 (ad, bağlantı, numara); 409 | ✓ | `TheSave_RefusesAnEmptyName…_KK3` (düzeltme 1: alan mesajı K-813 metnini sınar); `SaveHomepage_WithAnEmptyMenuName_…`, `…WhatsApp…`, `…WithAStaleVersion_IsAConflict_…` |
+| 4 | Firma ekranı koşullar, bağlantı, e-posta uyarısı | ✓ | `TheFirmScreen_ReadsTheSalesState…_KK4_KK5`; `TheEmailField_Warns…_KK4` (tek başına yeşil) |
+| 5 | Anahtar etiketi değere göre; kimlik formundan ayrı | ✓ | `TheFirmScreen_ReadsTheSalesState…_KK4_KK5` |
+| 6 | SaveCompany 422 sebepleri; tip değişimi serbest; iz | ✓ | `TheIdentitySave_Refuses…_KK6_KK7`; `SaveCompanyIdentity_WritesOneRow…` |
+| 7 | İki yasal metin yeni sürüm, kilit, iz, 409 | ✓ | `TheIdentitySave_…_KK6_KK7`; `SaveCompanyIdentity_ThatCausesGeneratedVersions_…`; `CompanyIdentityTests` (`SettingsRowLock_*`) |
+| 8 | SuspendSales onaysız 200, onaylı yazar; iz | ✓ | `Closing_AsksFirst_…_KK8_KK9`; `SalesGateTests` |
+| 9 | Değişmiş/zaten istenen hâl 303, yazı yok, 409 yok | ✓ | `Closing_AsksFirst_…_KK8_KK9` |
+| 10 | ResumeSales koşulsuz açmaz, koşulu söyler, iz | ✓ | `Reopening_ClosesTheSwitchButLeavesSalesClosed…_KK10` |
+
+### Öz denetim (bitiş kapısı 2)
+
+Önceki işçilerin yaptıkları dahil bütün kriterler ve KK1–KK10 diff'te yeniden denetlendi (yukarıdaki tablo her madde için testi adlandırır; KK sayısı kriter sayısıyla birebir).
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1–10 / KK1–KK10 | ✓ | Yukarıdaki tablo; Web 9 + Model 26 test |
+| `09 §25` ilgili satırlar, mimari kurallar | ✓ | Unit TAM 7402/7402 (mimari testler dahil) |
+| Güvenlik taraması | ✓ | Unit TAM içindeki kaynak taramaları; yeni yazma yolları modül arayüzünden, işlemi sahibi açıyor |
+| FAIL nedeni 1: bekçi/tarama istisnası geniş | ✓ | Yeni istisna eklenmedi; `VersionedSideBulkWriteScan` için yerel değişken geçici çözümü (D-1329), istisna genişletilmedi |
+| FAIL nedeni 2: tarama bir çağrı biçimini kaçırıyor | ✓ | Yeni tarama yazılmadı |
+| FAIL nedeni 3: 06 "Varsayılan" / FK dizini | ✓ | Şema/migration değişikliği yok |
+| FAIL nedeni 4: kural değişince aynı sayıyı anan yerler | ✓ | Kural/sayı değişmedi; kayıt parçaları ve D kalemleri tutarlı |
+| FAIL nedeni 5: belge kuralını değiştiren 09 metni | ✓ | 09/05/07 metnine dokunulmadı |
+| `dotnet format` test dosyalarında | ✓ | Web ve IntegrationTests (Model, Administration, HomeAndFirmPageTests) temiz |
+| Main birleşince yeni zorunlu alan / kurucu bağımlılığı | ✓ | Birleşik ağaçta derleme yeşil |
+
+12'deki Durum hücreleri BEKLEMEDE kalır (doğrulayıcı PASS yapar); ilgili satırlar VAL-A449, VAL-A541, VAL-A747.
+
+## Test Sonuçları
+
+| Tür | Sonuç | Komut | Çıktı özeti |
+|---|---|---|---|
+| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 7402/7402 (main birleşik) |
+| Integration (yeni) | ✓ | `--filter-class HomepageAndIdentityTrailTests` ; `--filter-method *TheEmailField_Warns*` | 26/26 ; 1/1 |
+| Integration TAM | ✓ | `--filter-namespace` parçalarıyla | Hepsi yeşil: Administration 69, Catalog 82, Commands 70, Concurrency 30, CorporateContent 195, Database 36, Disposal 61, FileSecrets 24, Files 112, Jobs 85, Logging 30, Ordering 645, Outages 53, Payment 59, Security 34, SignedEndpoints 11, Web 914, Model 1436 (Pages ad alanında test yok, yalnız örnek sınıflar) |
+| Contract | — | — | Bu task'ta yok |
+
+## Doğrulama
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu (tur 1) | ✗ FAIL (2026-11-12; dal ucu `3a637e5c`, origin/main `29562ee9` ile güncel — birleştirme gerekmedi) |
+| Bulgu sayısı (tur 1) | 2 (ikisi DÜŞÜK, S1) |
+| Düzeltme gerekli mi | Evet — B1 (kriter 3/KK3, `04` 7.2.17.2, 9.14.9; K-813): boş menü adının alan mesajı K-813'ün metni "Menü adı boş olamaz; varsayılan ad: {ad}." değil, genel "{etiket} boş olamaz." (`FieldMessageCatalog`); varsayılan ad yalnız her zaman görünen ipucunda. KK3 testi her çizimde bulunan ipucunu arıyor, mesajı sınamıyor. Aynı karardaki görünmeme sebebi metinleri de K-813'ün "Menüde görünmüyor — …" biçiminden ayrışıyor (iki nokta). B2 (`04` 9.14.4, 2.2.3): menü adı alanları seçili düzenin menü sırasıyla değil sabit (mağaza öncelikli) sırayla çiziliyor; tanıtım öncelikli düzende Hakkımızda başta, Ürünler sonda olmalı; "menüde göster" işaretli genel sayfalar İletişim'den önce durmalı, ekranda altı adın arkasında listeleniyor (`StorefrontMenu.Items` düzen sırasını zaten taşıyor). |
+| Bloke-etmeyen not (K) sayısı (tur 1) | 1 — K1 → D-1363 (task "Unit, Integration" bekliyor; diff'te yeni birim testi yok) |
+| Yapım raporu karşılaştırması (tur 1) | Kriter 1, 2, 4–10 kanıtları uyumlu. Uyuşmazlık: kriter 3 ✓ yazılmış ama alan mesajı varsayılan adı taşımıyor (B1); öz denetim `04` 9.14.4 sırasını kapsamıyor (B2) |
+| Doğrulayıcı kanıtları (tur 1) | Derleme `-warnaserror` 0/0; `dotnet format --verify-no-changes` üç proje temiz; Unit 7402/7402; betik 4/4; Integration değişen/dokunan sınıflar 263/263 + yasal metin, içerik ve çerçeve sınıfları 177/177 (postgres:18, `track_commit_timestamp=on`); CI run 43165022158 yeşil (Integration TAM dahil); `12` Durum: A287, A747 PASS, öteki satırlar BEKLEMEDE |
+| Doğrulama durumu (tur 2) | ✓ PASS (2026-11-12; dal ucu `5e42c12b`, origin/main `a56a1735` — T533 #556, T512 #553, T521 #554 — çakışmasız birleştirildi, birleşik ağaçta doğrulandı) |
+| Bulgu sayısı (tur 2) | 0. Tur 1'in B1'i (K-813 alan mesajı) ve B2'si (menü adı sırası düzeni izler) kapandı: `TheSave_RefusesAnEmptyName…_KK3` ve `TheEmptyMenuNameRefusal_…_KK3` mesajı ve ret günlüğünü, `TheMenuNameFields_FollowTheSelectedLayoutsMenuOrder_…_KK1` iki düzenin sırasını sınıyor |
+| Düzeltme gerekli mi (tur 2) | Hayır |
+| Bloke-etmeyen not (K) sayısı (tur 2) | 1 — K1 → D-1387 (`FieldMessageCatalog` parametreli `FieldRequired`'ı her yerde K-813 metnine çeviriyor; bugün tek çağıran ana sayfa ekranı, yeni dalın birim testi yok) |
+| Yapım raporu karşılaştırması (tur 2) | Tam uyumlu: kriter 1–10 kanıtları ve öz denetim tablosu doğrulayıcının bulgularıyla aynı; düzeltme 1b'nin "öteki ad alanları koşulmadı" boşluğunu bu tur Integration TAM kapattı |
+| Doğrulayıcı kanıtları (tur 2) | Ana dal CI son 3 run yeşil (43200154761, 43200154794, 43195110409); derleme `-warnaserror` 0/0; `dotnet format --verify-no-changes` Web, UnitTests, IntegrationTests temiz; Unit 7425/7425 (Consistency ve Architecture dahil, birleşik ağaç); betik 4/4; Integration TAM 4020/4020 (Web 950 + öteki ad alanları 3070; postgres:18, `track_commit_timestamp=on`); PR #555 CI run 43204870533 yeşil; `12_matris_denetle.py --kapsam 1-77` hata 0; `12` Durum değişmedi (A287, A747 PASS; tarayıcı gözlemi, vitrin ya da eşzamanlı koşu isteyen öteki satırlar BEKLEMEDE) |
+
+## Düzeltme 1 (tur 1 FAIL sonrası)
+
+- **B1 (kriter 3, KK3; K-813):** boş menü adının alan mesajı artık "Menü adı boş olamaz; varsayılan ad: {ad}." (düzeltme 1b: ortak alan hatası kalıbıyla — `AddFieldError(FieldRequired, varsayılan ad)`; `FieldMessageCatalog` bu biçimi K-813 metnine çevirir, süzgeç ret satırını yazar); görünmeme sebepleri K-813'teki gibi "Menüde görünmüyor — yayında kaydı yok." / "— yayında ürünü olan kategori yok.". `TheSave_RefusesAnEmptyName…_KK3` mesajı sınar, `TheHomeScreen_…_KK1` iki sebep metnini değişmez dizgiyle sınar.
+- **B2 (`04` 9.14.4, 2.2.3; UC-97):** menü adı alanları `StorefrontMenu.Items` sırasıyla (tanıtım öncelikli: Hakkımızda, Hizmetlerimiz, Referanslarımız, SSS, Ürünler; mağaza öncelikli: Ürünler önce) çizilir; "menüde göster" işaretli genel sayfalar İletişim'den önce, salt okunur; hata özeti de aynı sırayı izler. Yeni test: `TheMenuNameFields_FollowTheSelectedLayoutsMenuOrder_AndTheGeneralPagesComeBeforeContact_KK1` (iki düzen, 2 satır).
+- **Öz denetim (düzeltme 1):** kriter 1–10 ve KK1–KK10 yeniden denetlendi; yukarıdaki tablo geçerli, değişen yalnız kriter 3 (mesaj) ve kriter 1 (alan sırası). K1 (birim testi yok) D-1363'te kalır. Şema/bağımlılık değişmedi.
+- **Düzeltme 1b:** (a) K-813 mesajı ortak alan hatası kalıbına alındı (sabit metin ve elle `AddModelError` kalktı); yeni test `TheEmptyMenuNameRefusal_WritesTheRejectionLine_…_KK3` ret günlüğü satırını (alan + `FieldRequired`, değersiz) sınar. (b) Kök bulgu: iki ekran (ana sayfa ve menü, firma kimliği) alan görünümlerini ve özeti işleyici içinde kuruyordu; süzgeç kodları katalog metnine işleyici döndükten sonra çevirdiği için sayfada ham kod (`InvalidUrl`, `FieldRequired:…`) çıkıyordu — görünümler ilk okumada (çizimde) kurulur. (c) Girdi sınıflarına `[Display(Name)]` eklendi, katalog mesajları alan etiketiyle ("E-posta …", "Hizmetler menü adı …") çıkar. Sınanır: KK3 iki test, KK6_KK7 firma ekranı katalog metni.
+- **Öz denetim (1b):** kriter 1–10 ve KK1–KK10 yeniden denetlendi (sık FAIL listesi okundu: alan hatası ortak kalıp, Integration TAM, format); değişen yalnız kriter 3 mesaj yolu ve iki ekranın hata gösterimi. Çakışma işareti taraması boş.
+- **Test (1b):** Unit 7402/7402; Integration `HomeAndFirmPageTests` 12/12, `PanelHomeTests` + `StorefrontFrameTests` ile birlikte 71/71, Web ad alanı 931/931; öteki ad alanları koşulmadı (süre bütçesi; değişiklik Web katmanıyla sınırlı) — tur 2 doğrulayıcı ya da CI tamamlar. Build `-warnaserror` 0/0; format Web, IntegrationTests, UnitTests temiz.
+
+## Altyapı Değişiklikleri
+
+- **Şema/migration:** Yok
+- **Config / ortam değişkeni:** Yok
+- **Paketleme / dağıtım:** Yok
+- **Yeni bağımlılık:** Yok
+
+## Commit & PR
+
+- **Branch:** `task/T535-ana-sayfa-firma`
+- **PR:** STATUS satırında
+- **CI:** merge öncesi doğrulayıcı/yardımcı izler
+
+## Dış Varsayımlar
+
+Dış varsayım: yok.
+
+## Known Limitations / Follow-up
+
+| # | Kalem | Backlog ID | Neden ertelendi |
+|---|---|---|---|
+| 1 | `UpdateSettings` izi sosyal bağlantıyı `CompanySettings` hedefli tek satırda taşıyor | D-1328 | Ayrı hedef satırı ayrı iz modeli gerektirir |
+| 2 | `VersionedSideBulkWriteScan` `names.Products` yanlış pozitifi (yerel değişken geçici çözümü) | D-1329 | Tarama inceltmesi ayrı iş |
+| 3 | Tip değişimi alan işaretleri betiksiz yolda sunucuda | D-1330 | Betikli arayüz sonrası |
+| 4 | ResumeSales sonrası ileti yok, koşul bölümde | D-1331 | Kriter 10 koşulu adıyla söylüyor, karşılandı |
+| 5 | WhatsApp kuralı Settings ve CorporateContent'te ayrı satırlar | D-1332 | Tek kural evine toplama ayrı iş |
+
+## Notlar
+
+- **⚠ (f):** kimlik kaydı sürümü değişmeyen kayıtta da artıyor (RecordSave her zaman BumpVersion; T330 davranışı, değişmedi).
+- **Yük:** Makine yüklü; `HomeAndFirmPageTests` sınıfı tek çağrıda 330 sn zaman aşımına girdi, testler tek başına koşuldu.
+- **Integration TAM:** bütün ad alanları yeşil; Database, Files ve Ordering ilk koşuda kendi `timeout` kesintisiyle (yük) hata verdi, 590 sn ile tek başına yeniden koşuldu ve yeşil.
+- **Repo memory (bitiş kapısı 9):** güncellendi (parça dosyaları).

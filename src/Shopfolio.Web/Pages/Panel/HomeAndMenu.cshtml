@@ -66,6 +66,7 @@
         <div class="form-fields">
             @foreach (SocialLinkRowView row in Model.SocialRows)
             {
+                <input type="hidden" name="@HomeAndMenuModel.SocialPlatformFieldName(row.Platform)" value="@row.Platform" />
                 <partial name="_Field" model="row.Field" />
             }
             <partial name="_Field" model="Model.WhatsApp" />

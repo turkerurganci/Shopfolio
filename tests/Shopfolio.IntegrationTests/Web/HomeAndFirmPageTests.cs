@@ -119,7 +119,8 @@ public sealed partial class HomeAndFirmPageTests : IAsyncLifetime
         Assert.Matches(new Regex("id=\"layout-content-first\"[^>]*checked", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), html);
         foreach (SocialPlatform platform in Enum.GetValues<SocialPlatform>())
         {
-            Assert.Equal(string.Empty, FieldValue(html, "Input." + platform));
+            Assert.Equal(string.Empty, FieldValue(html, HomeAndMenuModel.SocialFieldName(platform)));
+            Assert.Equal(platform.ToString(), FieldValue(html, HomeAndMenuModel.SocialPlatformFieldName(platform)));
         }
     }
 
@@ -342,12 +343,18 @@ public sealed partial class HomeAndFirmPageTests : IAsyncLifetime
             ("Input.MenuNameFaqItems", MenuNameDefaults.FaqItems),
             ("Input.MenuNameContact", MenuNameDefaults.Contact),
             ("Input.WhatsAppNumber", whatsApp),
-            ("Input.Instagram", instagram),
-            ("Input.Facebook", string.Empty),
-            ("Input.X", string.Empty),
-            ("Input.LinkedIn", string.Empty),
-            ("Input.YouTube", string.Empty),
-            ("Input.TikTok", string.Empty),
+            ("Input.SocialLinks[0].SocialPlatform", "Instagram"),
+            ("Input.SocialLinks[0].Url", instagram),
+            ("Input.SocialLinks[1].SocialPlatform", "Facebook"),
+            ("Input.SocialLinks[1].Url", string.Empty),
+            ("Input.SocialLinks[2].SocialPlatform", "X"),
+            ("Input.SocialLinks[2].Url", string.Empty),
+            ("Input.SocialLinks[3].SocialPlatform", "LinkedIn"),
+            ("Input.SocialLinks[3].Url", string.Empty),
+            ("Input.SocialLinks[4].SocialPlatform", "YouTube"),
+            ("Input.SocialLinks[4].Url", string.Empty),
+            ("Input.SocialLinks[5].SocialPlatform", "TikTok"),
+            ("Input.SocialLinks[5].Url", string.Empty),
             ("Input.Version", version.ToString(System.Globalization.CultureInfo.InvariantCulture)));
 
     private FormUrlEncodedContent CompanyForm(string legalName, string email, int version, string type = "Tradesman") =>

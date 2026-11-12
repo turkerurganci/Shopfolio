@@ -40,20 +40,20 @@ public sealed class SaveHomepageInput : IFormInput
 
     public string? WhatsAppNumber { get; set; }
 
-    public string? Instagram { get; set; }
-
-    public string? Facebook { get; set; }
-
-    public string? X { get; set; }
-
-    public string? LinkedIn { get; set; }
-
-    public string? YouTube { get; set; }
-
-    public string? TikTok { get; set; }
+    /// <summary>One entry per platform of the closed list, in its order: the platform and the address typed for it (07 9.14.2 <c>SocialLinks</c>; 06 4.55).</summary>
+    [SpecAssignedName]
+    public List<SocialLinkValue> SocialLinks { get; set; } = [];
 
     /// <summary>The version of the home page section the form was opened with (06 4.2; 07 2.4.1).</summary>
     public int Version { get; set; }
+}
+
+/// <summary>One entry of the form's social links: the platform and its address; an empty address removes the platform's link.</summary>
+public sealed class SocialLinkValue
+{
+    public SocialPlatform SocialPlatform { get; set; }
+
+    public string? Url { get; set; }
 }
 
 /// <summary>One menu name field of the screen with the item's state: the field, the default name under it and the reason the item is not on the site, when it is not (04 9.14.4).</summary>
@@ -109,7 +109,7 @@ public sealed class HomeAndMenuModel : PageModel
 
     public IReadOnlyList<SocialLinkRowView> SocialRows { get; private set; } = [];
 
-    public FieldView WhatsApp { get; private set; } = null!;
+    public FieldView WhatsApp { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
 
     /// <summary>The general pages the firm shows in the menu, read only (04 9.14.4).</summary>
     public IReadOnlyList<GeneralPageLink> MenuPages { get; private set; } = [];
@@ -118,14 +118,14 @@ public sealed class HomeAndMenuModel : PageModel
 
     public bool IsConflicted { get; private set; }
 
-    public FormErrorSummary Summary { get; private set; } = null!;
+    public FormErrorSummary Summary { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
 
     public MessageView? Notice { get; private set; }
 
     public static IReadOnlyList<string> FormOrder { get; } =
     [
         "Input.MenuNameProducts", "Input.MenuNameOfferings", "Input.MenuNamePortfolioItems", "Input.MenuNameAboutPage", "Input.MenuNameFaqItems", "Input.MenuNameContact",
-        "Input.Instagram", "Input.Facebook", "Input.X", "Input.LinkedIn", "Input.YouTube", "Input.TikTok", "Input.WhatsAppNumber",
+        .. Platforms.Select(SocialFieldName), "Input.WhatsAppNumber",
     ];
 
     public override async Task OnPageHandlerSelectionAsync(PageHandlerSelectedContext context)
@@ -139,15 +139,12 @@ public sealed class HomeAndMenuModel : PageModel
     public async Task<IActionResult> OnPostSaveHomepageAsync(SaveHomepageInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
-        Dictionary<string, string?> links = new(StringComparer.Ordinal)
+        Dictionary<string, string?> links = new(StringComparer.Ordinal);
+        foreach (SocialLinkValue link in input.SocialLinks)
         {
-            [nameof(SocialPlatform.Instagram)] = input.Instagram,
-            [nameof(SocialPlatform.Facebook)] = input.Facebook,
-            [nameof(SocialPlatform.X)] = input.X,
-            [nameof(SocialPlatform.LinkedIn)] = input.LinkedIn,
-            [nameof(SocialPlatform.YouTube)] = input.YouTube,
-            [nameof(SocialPlatform.TikTok)] = input.TikTok,
-        };
+            links[link.SocialPlatform.ToString()] = link.Url;
+        }
+
         HomepageLayout? layout = Enum.TryParse(input.HomepageLayout, ignoreCase: false, out HomepageLayout parsed) && Enum.IsDefined(parsed) ? parsed : null;
         ITransactionRunner runner = HttpContext.RequestServices.GetRequiredService<ITransactionRunner>();
         SaveOutcome outcome = await runner.RunAsync(
@@ -190,7 +187,7 @@ public sealed class HomeAndMenuModel : PageModel
 
             foreach (SocialLinkRejection rejection in outcome.Social.Rejections)
             {
-                ModelState.AddFieldError("Input." + rejection.Field, rejection.Code);
+                ModelState.AddFieldError(SocialFieldName(Enum.TryParse(rejection.Field, out SocialPlatform platform) ? platform : Platforms[0]), rejection.Code);
             }
         }
 
@@ -219,16 +216,10 @@ public sealed class HomeAndMenuModel : PageModel
             Row(menu, MenuItemKind.Contact, nameof(SaveHomepageInput.MenuNameContact), "İletişim", MenuNameDefaults.Contact, sent?.MenuNameContact, section.MenuNames.Contact, sent is not null),
         ];
 
-        string? Link(SocialPlatform platform, string? typed) => sent is not null ? typed : links.FirstOrDefault(l => l.Platform == platform)?.Url;
-        SocialRows =
-        [
-            SocialRow(SocialPlatform.Instagram, Link(SocialPlatform.Instagram, sent?.Instagram)),
-            SocialRow(SocialPlatform.Facebook, Link(SocialPlatform.Facebook, sent?.Facebook)),
-            SocialRow(SocialPlatform.X, Link(SocialPlatform.X, sent?.X)),
-            SocialRow(SocialPlatform.LinkedIn, Link(SocialPlatform.LinkedIn, sent?.LinkedIn)),
-            SocialRow(SocialPlatform.YouTube, Link(SocialPlatform.YouTube, sent?.YouTube)),
-            SocialRow(SocialPlatform.TikTok, Link(SocialPlatform.TikTok, sent?.TikTok)),
-        ];
+        string? Link(SocialPlatform platform) => sent is not null
+            ? sent.SocialLinks.FirstOrDefault(l => l.SocialPlatform == platform)?.Url
+            : links.FirstOrDefault(l => l.Platform == platform)?.Url;
+        SocialRows = [.. Platforms.Select(platform => SocialRow(platform, Link(platform)))];
         WhatsApp = Fields.Bind(
             Fields.Telephone("Input.WhatsAppNumber", "WhatsApp numarası", FieldRequirement.Optional, sent is not null ? sent.WhatsAppNumber : whatsApp),
             Summary);
@@ -248,17 +239,15 @@ public sealed class HomeAndMenuModel : PageModel
     }
 
     private SocialLinkRowView SocialRow(SocialPlatform platform, string? value) =>
-        new(platform, Fields.Bind(Fields.Text("Input." + platform, PlatformLabel(platform), FieldRequirement.Optional, value), Summary));
+        new(platform, Fields.Bind(Fields.Text(SocialFieldName(platform), platform.ToString(), FieldRequirement.Optional, value), Summary));
 
-    /// <summary>The platform's name as the form shows it.</summary>
-    public static string PlatformLabel(SocialPlatform platform) => platform switch
-    {
-        SocialPlatform.X => "X",
-        SocialPlatform.LinkedIn => "LinkedIn",
-        SocialPlatform.YouTube => "YouTube",
-        SocialPlatform.TikTok => "TikTok",
-        _ => platform.ToString(),
-    };
+    /// <summary>The name of a platform's address field: its entry's place in the closed list.</summary>
+    public static string SocialFieldName(SocialPlatform platform) =>
+        $"Input.{nameof(SaveHomepageInput.SocialLinks)}[{Platforms.ToList().IndexOf(platform)}].{nameof(SocialLinkValue.Url)}";
+
+    /// <summary>The name of a platform's hidden field that tells the entry's platform.</summary>
+    public static string SocialPlatformFieldName(SocialPlatform platform) =>
+        $"Input.{nameof(SaveHomepageInput.SocialLinks)}[{Platforms.ToList().IndexOf(platform)}].{nameof(SocialLinkValue.SocialPlatform)}";
 
     /// <summary>The result of the save's one transaction: either part refusing rolls both back.</summary>
     private sealed class SaveOutcome : IOperationResult

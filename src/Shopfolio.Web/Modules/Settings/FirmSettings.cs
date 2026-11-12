@@ -135,7 +135,7 @@ internal sealed class FirmSettings
         TrackText(changes, nameof(CompanySettings.WhatsAppNumber), currentWhatsApp, whatsApp);
         foreach (SocialLinkChange link in input.SocialLinkChanges ?? [])
         {
-            changes.Add(new AuditValueChange(SocialLinkFieldPrefix + link.Platform, link.OldUrl, link.NewUrl));
+            changes.Add(new AuditValueChange(SocialLinkFieldPrefix + link.Platform, link.Before, link.After));
         }
 
         if (changes.Count == 0)

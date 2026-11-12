@@ -3,7 +3,7 @@ using Shopfolio.Infrastructure;
 namespace Shopfolio.Modules.CorporateContent.Contracts;
 
 /// <summary>One social link the save changed (07 UC-162): the platform's name and the old and new address; an emptied link has no new address, a new one no old. It reaches the trail row of the home page section.</summary>
-public sealed record SocialLinkChange(string Platform, string? OldUrl, string? NewUrl);
+public sealed record SocialLinkChange(string Platform, string? Before, string? After);
 
 /// <summary>One refused field of the social links save: the platform's name as the form sent it and the field code (07 6.2).</summary>
 public sealed record SocialLinkRejection(string Field, string Code);

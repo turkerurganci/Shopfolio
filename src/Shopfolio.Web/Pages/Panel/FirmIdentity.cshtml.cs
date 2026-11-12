@@ -56,16 +56,26 @@ public sealed class SaveCompanyInput : IFormInput
 }
 
 /// <summary>
-/// The input of the temporary closure switch's two forms (E-44; 07 9.16.3, 9.16.4): the value the switch had on the screen (<see cref="Original"/>; 07 2.4.3) and, for closing, the confirmation
+/// The input of the temporary closure switch's closing form (E-44; 07 9.16.3): the value the switch had on the screen (<see cref="Original"/>; 07 2.4.3) and the confirmation
 /// the window sends. The switch carries no version.
 /// </summary>
-public sealed class SalesSwitchInput : IFormInput
+public sealed class SuspendSalesInput : IFormInput
 {
     /// <summary>The switch as the screen showed it: true when sales were closed temporarily.</summary>
+    [SpecAssignedName]
     public bool Original { get; set; }
 
     /// <summary>True when the confirmation window's button sent the form (the first send has none).</summary>
+    [SpecAssignedName]
     public bool Confirmed { get; set; }
+}
+
+/// <summary>The input of the temporary closure switch's reopening form (E-44; 07 9.16.4): the value the switch had on the screen (07 2.4.3). The switch carries no version and needs no confirmation.</summary>
+public sealed class ResumeSalesInput : IFormInput
+{
+    /// <summary>The switch as the screen showed it: true when sales were closed temporarily.</summary>
+    [SpecAssignedName]
+    public bool Original { get; set; }
 }
 
 /// <summary>One line of the "Satış durumu" section: a condition by its name (the same names as the setup checklist; K-815), whether it is met and, when not, the screen that meets it (04 3.4.15).</summary>
@@ -147,7 +157,7 @@ public sealed class FirmIdentityModel : PageModel
 
     public IReadOnlyList<FieldView> IdentityFields { get; private set; } = [];
 
-    public FormErrorSummary Summary { get; private set; } = null!;
+    public FormErrorSummary Summary { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
 
     public int FormVersion { get; private set; }
 
@@ -210,7 +220,7 @@ public sealed class FirmIdentityModel : PageModel
     }
 
     /// <summary>UC-165: the first send answers 200 with the confirmation; the confirmed send writes the switch against the shown value and answers 303 - also when the switch was changed meanwhile or is already closed (K-1194).</summary>
-    public async Task<IActionResult> OnPostSuspendSalesAsync(SalesSwitchInput input, CancellationToken ct)
+    public async Task<IActionResult> OnPostSuspendSalesAsync(SuspendSalesInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
         if (!input.Confirmed)
@@ -232,7 +242,7 @@ public sealed class FirmIdentityModel : PageModel
     }
 
     /// <summary>UC-166: opens the switch again against the shown value; the gate's other conditions may keep sales closed, which the section tells by name. 303 in every case (K-1194).</summary>
-    public async Task<IActionResult> OnPostResumeSalesAsync(SalesSwitchInput input, CancellationToken ct)
+    public async Task<IActionResult> OnPostResumeSalesAsync(ResumeSalesInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
         ITransactionRunner runner = HttpContext.RequestServices.GetRequiredService<ITransactionRunner>();

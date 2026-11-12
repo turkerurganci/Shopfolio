@@ -141,6 +141,12 @@ public interface IMembershipModule
     /// </summary>
     Task<string?> GetMemberNameAsync(Guid customerId, CancellationToken ct);
 
+    /// <summary>
+    /// The signed-in member's verified e-mail (T509; 07 UC-22; 04 5.13.5): the payment step shows it as the order's contact e-mail and the order is placed with it. Empty when no account holds
+    /// the id or its address is not verified - such an account places no order (02 3.13.1). A plain read.
+    /// </summary>
+    Task<string?> GetVerifiedEmailAsync(Guid customerId, CancellationToken ct);
+
     /// <summary>The member changes the account's name (02 3.13.21): an empty name is refused; no verification is asked again and no order's recipient name is touched.</summary>
     Task<NameChangeResult> ChangeNameAsync(Guid customerId, string name, CancellationToken ct);
 

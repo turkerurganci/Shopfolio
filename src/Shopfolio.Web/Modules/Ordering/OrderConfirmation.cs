@@ -13,6 +13,7 @@ using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Ordering.Documents;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
+using Shopfolio.Modules.Settings.Contracts.Gates;
 
 namespace Shopfolio.Modules.Ordering;
 
@@ -31,7 +32,9 @@ internal sealed record OrderConfirmationRequest(
     string ContactEmail,
     PartyAddress? Shipping,
     PartyAddress Billing,
-    IPAddress IpAddress)
+    IPAddress IpAddress,
+    string? ConfirmationKey = null,
+    Guid? BoundCustomerId = null)
 {
     /// <summary>The values the summary is made of: the same ones <see cref="OrderConfirmation.SummarizeAsync"/> made the confirmed summary from.</summary>
     public OrderSummaryInput SummaryInput => new(Owner, ConfirmedSummary.PaymentMethod, CouponCode, ContactEmail, Shipping, Billing);
@@ -44,7 +47,7 @@ internal sealed record OrderSummaryInput(
     string? CouponCode,
     string ContactEmail,
     PartyAddress? Shipping,
-    PartyAddress Billing);
+    PartyAddress? Billing);
 
 /// <summary>Why the confirmation did not make an order (02 3.17.2; T346 k7). A result code, never stored.</summary>
 internal enum OrderConfirmationRefusal
@@ -70,6 +73,18 @@ internal enum OrderConfirmationRefusal
     /// <see cref="OrderConfirmationResult.ExceededLimit"/> for the log line only.
     /// </summary>
     AttemptLimitExceeded,
+
+    /// <summary>The sales gate closed while the step was open (T509; 05 4.2.2 (1); 04 5.13.27): nothing is born and the cart stays.</summary>
+    SalesClosed,
+
+    /// <summary>A physical order's basis fell under the firm's minimum order amount (T509; 02 3.18.1; K-1229): nothing is born and the customer goes back to the cart.</summary>
+    MinimumOrderAmountNotMet,
+
+    /// <summary>
+    /// An order was already born with the request's confirmation key (T509; 05 4.2.2 (0), 4.5.1; 07 2.5.1; K-1199): the transaction writes nothing and the customer goes to that order's
+    /// confirmation screen - <see cref="OrderConfirmationResult.OrderNumber"/> and <see cref="OrderConfirmationResult.OrderAccessKey"/> are the existing order's.
+    /// </summary>
+    AlreadyPlaced,
 }
 
 /// <summary>
@@ -83,11 +98,20 @@ internal sealed record OrderConfirmationResult(
     ConfirmationSummary? CurrentSummary,
     IReadOnlyList<SummaryChange> Changes,
     ConfirmationStepCheck? StepCheck,
-    AttemptLimit? ExceededLimit = null) : IOperationResult
+    AttemptLimit? ExceededLimit = null,
+    string? OrderAccessKey = null,
+    bool IsGuestOrder = false) : IOperationResult
 {
     public bool IsRejected => Refusal is not null;
 
     public static OrderConfirmationResult Placed(Guid orderId, string orderNumber) => new(null, orderId, orderNumber, null, [], null);
+
+    /// <summary>The order born: its number, its access key and whether it is a guest's, which pick the confirmation screen's root (07 2.1.3).</summary>
+    public static OrderConfirmationResult Placed(Order order) => new(null, order.Id, order.OrderNumber, null, [], null, null, order.OrderAccessKey, order.IsGuestOrder);
+
+    /// <summary>The order an earlier submission with the same key made (05 4.2.2 (0)); a refusal for the transaction, so nothing this request did is kept.</summary>
+    public static OrderConfirmationResult Existing(Guid orderId, string orderNumber, string? accessKey, bool isGuestOrder) =>
+        new(OrderConfirmationRefusal.AlreadyPlaced, orderId, orderNumber, null, [], null, null, accessKey, isGuestOrder);
 
     public static OrderConfirmationResult Refused(OrderConfirmationRefusal refusal, ConfirmationSummary? current = null, IReadOnlyList<SummaryChange>? changes = null, ConfirmationStepCheck? check = null) =>
         new(refusal, null, null, current, changes ?? [], check);
@@ -158,12 +182,49 @@ internal sealed class OrderConfirmation
         // 02 3.17.2: the cart is evaluated again, under the cart's lock (Carts.OpenAsync takes it first). 02 3.17.7: between the lock and the read the cart's earlier
         // unpaid order is cancelled and its reservation freed, so the customer is not stopped by the stock or the coupon right it held; a refusal below rolls the
         // cancellation back with the rest. A merged guest cart's order carries the deleted guest cart's id and is not found (the exception of 3.17.7).
+        // 05 4.2.2 (0) (T509; K-970, K-1199): under the cart's lock, before anything else, the confirmation key is looked up among the orders; an order already born with it ends the
+        // transaction with nothing written - the earlier unpaid order the key made is not cancelled - and the customer goes to that order's confirmation screen.
+        string confirmationKey = request.ConfirmationKey ?? SecretKey.Create();
+        OrderConfirmationResult? existing = null;
+        bool keyLookedUp = false;
+        async Task AfterLockAsync(Guid lockedCartId, CancellationToken token)
+        {
+            keyLookedUp = true;
+            existing = await FindByConfirmationKeyAsync(confirmationKey, token);
+            if (existing is null)
+            {
+                await CancelEarlierUnpaidOrdersAsync(lockedCartId, token);
+            }
+        }
+
         ShippingFeeSection shippingTerms = await _settings.GetShippingFeeAsync(ct);
-        CartView cart = await _carts.OpenAsync(request.Owner, shippingTerms, CancelEarlierUnpaidOrdersAsync, ct);
+        CartView cart = await _carts.OpenAsync(request.Owner, shippingTerms, AfterLockAsync, ct);
+        if (!keyLookedUp)
+        {
+            existing = await FindByConfirmationKeyAsync(confirmationKey, ct);
+        }
+
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        // 05 4.2.2 (1) (T509; 04 5.13.27): the sales gate is asked in the transaction; a sale closed while the step was open makes no order.
+        if (!(await _settings.GetSalesGateAsync(ct)).Permits(SalesGateOperation.ConfirmOrder))
+        {
+            return OrderConfirmationResult.Refused(OrderConfirmationRefusal.SalesClosed);
+        }
+
         List<CartLine> lines = [.. cart.OrderingLines];
         if (cart.CartId is not Guid cartId || lines.Count == 0)
         {
             return OrderConfirmationResult.Refused(OrderConfirmationRefusal.NoOrderableItem);
+        }
+
+        // K-1229 (T509; 02 3.18.1; 07 4.13.6): a physical cart whose basis fell under the minimum order amount goes back to the cart, which tells the missing amount.
+        if (cart.PaymentBlock == CartPaymentBlock.MinimumOrderAmountNotMet)
+        {
+            return OrderConfirmationResult.Refused(OrderConfirmationRefusal.MinimumOrderAmountNotMet);
         }
 
         // 02 3.21.2, 3.21.4 (T352): only an open method makes an order - the gates come before the cart's evaluation (07 4.13.6). The card without the provider's keys is not
@@ -181,7 +242,7 @@ internal sealed class OrderConfirmation
             return OrderConfirmationResult.LimitExceeded(exceeded);
         }
 
-        Evaluation current = await EvaluateAsync(lines, cart.Shipping, request.SummaryInput, ct);
+        Evaluation current = await EvaluateAsync(lines, cart.Shipping, request.SummaryInput, null, ct);
         List<SummaryChange> changes = [.. SummaryComparison.Compare(request.ConfirmedSummary, current.Summary)];
         if (cart.PaymentBlock != CartPaymentBlock.None || current.CouponRefused)
         {
@@ -214,7 +275,7 @@ internal sealed class OrderConfirmation
         Order order = Order.Create(
             identifiers.OrderNumber,
             identifiers.OrderAccessKey,
-            SecretKey.Create(),
+            confirmationKey,
             method,
             request.Owner.CustomerId is null,
             request.ContactEmail,
@@ -222,7 +283,9 @@ internal sealed class OrderConfirmation
             current.Summary.ShippingFee,
             window.EndsAt,
             now);
-        order.CustomerId = request.Owner.CustomerId;
+
+        // 02 3.13.3 (T509): a guest order whose e-mail belongs to a verified account is bound to that account at once and stays a guest order.
+        order.CustomerId = request.Owner.CustomerId ?? request.BoundCustomerId;
         order.CartId = cartId;
         order.IpAddress = request.IpAddress;
         order.PaymentReminderAt = window.ReminderAt;
@@ -281,7 +344,16 @@ internal sealed class OrderConfirmation
             await _notifications.QueueCustomerNoticeAsync(new TransferChosenNotice(order.Id, order.PaymentWindowEndsAt), request.ContactEmail, ct);
         }
 
-        return OrderConfirmationResult.Placed(order.Id, order.OrderNumber);
+        return OrderConfirmationResult.Placed(order);
+    }
+
+    private async Task<OrderConfirmationResult?> FindByConfirmationKeyAsync(string confirmationKey, CancellationToken ct)
+    {
+        var placed = await _db.Orders.AsNoTracking()
+            .Where(o => o.ConfirmationKey == confirmationKey)
+            .Select(o => new { o.Id, o.OrderNumber, o.OrderAccessKey, o.IsGuestOrder })
+            .SingleOrDefaultAsync(ct);
+        return placed is null ? null : OrderConfirmationResult.Existing(placed.Id, placed.OrderNumber, placed.OrderAccessKey, placed.IsGuestOrder);
     }
 
     private async Task CancelEarlierUnpaidOrdersAsync(Guid cartId, CancellationToken ct)
@@ -306,10 +378,34 @@ internal sealed class OrderConfirmation
         ArgumentNullException.ThrowIfNull(input);
         CartView cart = await _carts.OpenAsync(input.Owner, await _settings.GetShippingFeeAsync(ct), ct);
         List<CartLine> lines = [.. cart.OrderingLines];
-        return lines.Count == 0 ? null : (await EvaluateAsync(lines, cart.Shipping, input, ct)).Summary;
+        return lines.Count == 0 ? null : (await EvaluateAsync(lines, cart.Shipping, input, null, ct)).Summary;
     }
 
-    private async Task<Evaluation> EvaluateAsync(List<CartLine> lines, ShippingAssessment shipping, OrderSummaryInput request, CancellationToken ct)
+    /// <summary>
+    /// The payment step's read (T509; 07 UC-22…UC-25): the cart under its lock, the way to the step (<see cref="CartView.PaymentBlock"/>), the summary as <see cref="SummarizeAsync"/> makes it, the
+    /// coupon's verdict and the cart's earlier unpaid order the confirmation would cancel (K-837). <paramref name="appliesCoupon"/> is UC-23's application: the code is judged behind L-6 and a code
+    /// that is not accepted keeps its attempt (07 4.13.2) - the only write of the read besides the cart's read marks; no coupon right is reserved.
+    /// </summary>
+    public async Task<CheckoutStepRead> ReadStepAsync(OrderSummaryInput input, bool appliesCoupon, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        CartView cart = await _carts.OpenAsync(input.Owner, await _settings.GetShippingFeeAsync(ct), ct);
+        List<CartLine> lines = [.. cart.OrderingLines];
+        if (cart.CartId is not Guid cartId || lines.Count == 0)
+        {
+            return new CheckoutStepRead(cart, null, null, null);
+        }
+
+        Evaluation evaluation = await EvaluateAsync(lines, cart.Shipping, input, appliesCoupon ? cartId : null, ct);
+        string? earlier = await _db.Orders.AsNoTracking()
+            .Where(o => o.CartId == cartId && o.OrderStatus == OrderStatus.Placed && o.PaymentStatus == PaymentStatus.Pending)
+            .OrderBy(o => o.Id)
+            .Select(o => o.OrderNumber)
+            .FirstOrDefaultAsync(ct);
+        return new CheckoutStepRead(cart, evaluation.Summary, evaluation.Coupon, earlier);
+    }
+
+    private async Task<Evaluation> EvaluateAsync(List<CartLine> lines, ShippingAssessment shipping, OrderSummaryInput request, Guid? countsCouponOnCart, CancellationToken ct)
     {
         PaymentMethod method = request.PaymentMethod;
         Dictionary<Guid, OrderItemSource> byVariant = (await _catalog.ListOrderItemSourcesAsync([.. lines.Select(l => l.VariantId)], ct)).ToDictionary(s => s.VariantId);
@@ -319,13 +415,17 @@ internal sealed class OrderConfirmation
         List<ItemAmounts> amounts;
         Guid? couponId = null;
         bool couponRefused = false;
+        CouponApplication? application = null;
         if (string.IsNullOrWhiteSpace(request.CouponCode))
         {
             amounts = [.. couponLines.Select(c => _catalog.PriceItem(new ItemPriceInput(c.UnitPrice, c.Quantity, 0m, c.VatRate)))];
         }
         else
         {
-            CouponApplication coupon = await _catalog.EvaluateCouponAsync(request.CouponCode, couponLines, ct);
+            CouponApplication coupon = countsCouponOnCart is Guid cartId
+                ? await _catalog.ApplyCouponAsync(cartId, request.CouponCode, couponLines, ct)
+                : await _catalog.EvaluateCouponAsync(request.CouponCode, couponLines, ct);
+            application = coupon;
             couponRefused = coupon.IsRejected;
             couponId = coupon.IsRejected ? null : coupon.CouponId;
             amounts = coupon.IsRejected
@@ -340,7 +440,7 @@ internal sealed class OrderConfirmation
         List<ConfirmationSummaryLine> summaryLines = [.. sources.Select((s, i) => ConfirmationSummaryText.LineOf(s, lines[i].Quantity, amounts[i]))];
         decimal total = _catalog.SumOrderTotal(amounts, shipping.Fee);
         ConfirmationSummary summary = new(summaryLines, shipping.Fee, total, method, promise, request.ContactEmail, request.Shipping, request.Billing);
-        return new Evaluation(summary, sources, amounts, couponId, request.CouponCode, couponRefused, shipping.HasPhysicalItem, promise);
+        return new Evaluation(summary, sources, amounts, couponId, request.CouponCode, couponRefused, shipping.HasPhysicalItem, promise, application);
     }
 
     private static decimal AppliedPrice(OrderItemSource source) => source.Discount?.DiscountedPrice ?? source.UnitPrice;
@@ -356,5 +456,16 @@ internal sealed class OrderConfirmation
         string? CouponCode,
         bool CouponRefused,
         bool HasPhysicalItem,
-        int? ShippingPromise);
+        int? ShippingPromise,
+        CouponApplication? Coupon);
+}
+
+/// <summary>
+/// The payment step's read (T509): the cart as it stands, the summary - empty when no line enters an order -, the coupon's verdict - empty without a code - and the number of the cart's earlier
+/// unpaid order the confirmation would cancel (K-837).
+/// </summary>
+internal sealed record CheckoutStepRead(CartView Cart, ConfirmationSummary? Summary, CouponApplication? Coupon, string? EarlierUnpaidOrderNumber) : IOperationResult
+{
+    // The read writes the cart's marks and, on UC-23, the coupon's attempt: both are kept.
+    public bool IsRejected => false;
 }

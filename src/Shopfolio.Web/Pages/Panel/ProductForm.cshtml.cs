@@ -86,6 +86,9 @@ internal sealed class ProductFormModel : PageModel
     /// <summary>07 5.2.3: the upload target of the gallery.</summary>
     public const string GalleryTarget = "Images";
 
+    /// <summary>07 5.2.3: the member the upload's one image file is sent as (<c>ImageFile</c>), read through the upload component.</summary>
+    public const string ImageFileName = "Input.ImageFile";
+
     /// <summary>The refusal of an image whose pixel size is over the decoder's ceiling (07 UC-117; 05 6.6.1).</summary>
     public const string PixelLimitText = "Görselin boyutları çok büyük; daha küçük bir görsel yükleyin.";
 
@@ -129,7 +132,7 @@ internal sealed class ProductFormModel : PageModel
     }
 
     /// <summary>The record the form shows; null on the new product's form.</summary>
-    public PanelProductForm? Record { get; private set; }
+    public PanelProductRecord? Record { get; private set; }
 
     /// <summary>
     /// The form's entries: the record's values when the form opens (07 UC-88), the sent values when it is shown again (UC-114 422, UC-117) - with the record's <c>Version</c> as the form
@@ -220,7 +223,8 @@ internal sealed class ProductFormModel : PageModel
         Form = input;
         int? variantRow = VariantRowOf(input.ImageTarget, input.Variants.Count);
         bool gallery = string.Equals(input.ImageTarget, GalleryTarget, StringComparison.Ordinal);
-        if (input.ImageFile is not { Length: > 0 } file || (!gallery && variantRow is null))
+        byte[]? content = await UploadRequests.ReadFileAsync(Request, ImageFileName, ct);
+        if (content is null || (!gallery && variantRow is null))
         {
             return RefuseUpload(input.ImageTarget, ErrorCode.InvalidImage, NoImageText);
         }
@@ -236,22 +240,13 @@ internal sealed class ProductFormModel : PageModel
             return RefuseUpload(input.ImageTarget, ErrorCode.ImageLimitExceeded, UploadChecks.CountMessage(UploadSurface.Logo));
         }
 
-        byte[] content;
-        await using (Stream stream = file.OpenReadStream())
-        using (MemoryStream buffer = new())
-        {
-            await stream.CopyToAsync(buffer, ct);
-            content = buffer.ToArray();
-        }
-
         // The unlinked image row and its derivative job are one transaction the module joins (05 7.7.2); the record is not touched.
         ImageUploadResult result = await _transactions.RunAsync(inner => _catalog.UploadImageAsync(content, inner), ct);
-        if (result.IsRejected)
+        if (result.IsRejected || result.ImageId is not { } imageId)
         {
             return RefuseUpload(input.ImageTarget, ErrorCode.InvalidImage, UploadRefusalText(result));
         }
 
-        Guid imageId = result.ImageId!.Value;
         if (gallery)
         {
             input.Images.Add(new SaveProductImageRow
@@ -261,9 +256,9 @@ internal sealed class ProductFormModel : PageModel
                 IsMain = input.Images.Count == 0,
             });
         }
-        else
+        else if (variantRow is { } variantTarget)
         {
-            input.Variants[variantRow!.Value].ImageId = imageId;
+            input.Variants[variantTarget].ImageId = imageId;
         }
 
         // The form is drawn from Form, not from the posted model state: the new image's id reaches its hidden field.
@@ -348,12 +343,12 @@ internal sealed class ProductFormModel : PageModel
         if (!input.Confirmed)
         {
             RemovalImpact? impact = await _removal.GetProductImpactAsync(productId, ct);
-            if (impact is null || !await LoadAsync(productId, ct))
+            if (impact is null || !await LoadAsync(productId, ct) || Record is not { } loaded)
             {
                 return NotFound();
             }
 
-            Confirmation = DeletionConfirmation(Record!.Name, impact.OpenOrderCount, "DeleteProduct", [new("Input.Confirmed", "true")], returnUrl);
+            Confirmation = DeletionConfirmation(loaded.Name, impact.OpenOrderCount, "DeleteProduct", [new("Input.Confirmed", "true")], returnUrl);
             return Page();
         }
 
@@ -371,7 +366,7 @@ internal sealed class ProductFormModel : PageModel
     {
         ArgumentNullException.ThrowIfNull(input);
         _ran = true;
-        if (id is not { } productId || !await LoadAsync(productId, ct) || Record!.Variants.All(v => v.Id != input.VariantId))
+        if (id is not { } productId || !await LoadAsync(productId, ct) || Record is not { } loaded || loaded.Variants.All(v => v.Id != input.VariantId))
         {
             return NotFound();
         }
@@ -506,7 +501,7 @@ internal sealed class ProductFormModel : PageModel
             return FormResults.SeeOther(FormAddress(productId, returnUrl));
         }
 
-        ErrorCode code = result.Code!.Value;
+        ErrorCode code = result.Code ?? throw new InvalidOperationException("A rejected publish change carries its code.");
         if (code == ErrorCode.NotFound || !await LoadAsync(productId, ct))
         {
             return NotFound();
@@ -538,17 +533,17 @@ internal sealed class ProductFormModel : PageModel
     }
 
     private ConfirmView DeletionConfirmation(string name, int openOrderCount, string handler, IReadOnlyList<KeyValuePair<string, string>> fields, string? returnUrl) =>
-        Confirmations.ForPermanentDeletion(DeletionSentence(name, openOrderCount), DeleteLabel, FormPath, handler, FormAddress(Record!.Id, returnUrl), fields);
+        Confirmations.ForPermanentDeletion(DeletionSentence(name, openOrderCount), DeleteLabel, FormPath, handler, FormAddress((Record ?? throw new InvalidOperationException("The confirmation is drawn for a loaded record.")).Id, returnUrl), fields);
 
     private static string FormAddress(Guid productId, string? returnUrl)
     {
         string path = PathOf(productId);
-        return Shopfolio.Infrastructure.Security.ReturnPath.IsLocalPath(returnUrl) ? ListReturn.LinkTo(path, returnUrl!) : path;
+        return returnUrl is { } back && Shopfolio.Infrastructure.Security.ReturnPath.IsLocalPath(back) ? ListReturn.LinkTo(path, back) : path;
     }
 
     private async Task<bool> LoadAsync(Guid productId, CancellationToken ct)
     {
-        PanelProductForm? record = await _form.GetAsync(productId, ct);
+        PanelProductRecord? record = await _form.GetAsync(productId, ct);
         if (record is null)
         {
             return false;
@@ -575,7 +570,7 @@ internal sealed class ProductFormModel : PageModel
     }
 
     /// <summary>The form's entries of a record as it stands (07 UC-88): its fields, variants with the shown stock value, gallery and <c>Version</c>.</summary>
-    public static SaveProductInput InputOf(PanelProductForm record)
+    public static SaveProductInput InputOf(PanelProductRecord record)
     {
         ArgumentNullException.ThrowIfNull(record);
         return new SaveProductInput

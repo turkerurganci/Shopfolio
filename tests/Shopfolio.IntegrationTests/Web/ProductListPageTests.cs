@@ -143,8 +143,9 @@ public sealed partial class ProductListPageTests : IAsyncLifetime
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = ClientOf(factory);
 
-        (_, string html) = await GetAsync(client, ListPath);
+        (HttpStatusCode status, string html) = await GetAsync(client, ListPath);
 
+        Assert.Equal(HttpStatusCode.OK, status);
         AssertRow(html, range, "Fiziksel", "2", $"{DisplayFormat.Amount(10m)} – {DisplayFormat.Amount(30m)}", "10");
         AssertRow(html, single, "Fiziksel", "2", DisplayFormat.Amount(15m), "4");
         AssertRow(html, soldOut, "Fiziksel", "1", DisplayFormat.Amount(20m), ProductsModel.SoldOutText);

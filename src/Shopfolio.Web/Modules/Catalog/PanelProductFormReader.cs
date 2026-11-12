@@ -31,7 +31,7 @@ internal sealed class PanelProductFormReader : IPanelProductForm
         return await _db.Products.AsNoTracking().Where(p => p.Id == productId).Select(p => (int?)p.Version).SingleOrDefaultAsync(ct);
     }
 
-    public async Task<PanelProductForm?> GetAsync(Guid productId, CancellationToken ct)
+    public async Task<PanelProductRecord?> GetAsync(Guid productId, CancellationToken ct)
     {
         Product? product = await _db.Products.AsNoTracking().SingleOrDefaultAsync(p => p.Id == productId, ct);
         if (product is null)
@@ -72,7 +72,7 @@ internal sealed class PanelProductFormReader : IPanelProductForm
                 v.ImageId)),
         ];
 
-        return new PanelProductForm(
+        return new PanelProductRecord(
             product.Id,
             product.Name,
             product.Description,

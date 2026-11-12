@@ -1,4 +1,5 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper Shopfolio.Pages.Components.Upload*, Shopfolio.Web
 @using Shopfolio.Infrastructure.Forms
 @using Shopfolio.Infrastructure.Routing
 @using Shopfolio.Modules.Catalog.Contracts
@@ -11,7 +12,7 @@
     version (K-1189 (1)). No inline style, no inline script.
 *@
 @{
-    PanelProductForm? record = Model.Record;
+    PanelProductRecord? record = Model.Record;
 }
 <div class="product-form__heading">
     <h1>@Model.Title</h1>
@@ -36,7 +37,7 @@
     string Decimal(decimal? value) => value is { } d ? Shopfolio.Infrastructure.RequestFormat.FormatDecimal(d) : string.Empty;
     string Whole(int? value) => value?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty;
 }
-<form method="post" asp-antiforgery="true" action="@(Model.FormPath)?handler=SaveProduct" enctype="multipart/form-data" class="product-form__entries" id="product-save">
+<form method="post" asp-antiforgery="true" action="@(Model.FormPath)?handler=SaveProduct" upload-form="ProductGallery" class="product-form__entries" id="product-save">
     @if (entries.Version is { } version)
     {
         @VersionFields.Version(version, "Input")
@@ -63,7 +64,7 @@
             <partial name="_Message" model="Model.UploadRefusal" />
         }
         <label for="product-image-file">Görsel dosyası</label>
-        <input type="file" id="product-image-file" name="Input.ImageFile" accept="@UploadLimits.Accept(UploadSurface.ProductGallery)" />
+        <input upload-file="ProductGallery" id="product-image-file" name="@ProductFormModel.ImageFileName" />
         <button type="submit" class="button button--secondary" formaction="@uploadAction" name="Input.ImageTarget" value="@ProductFormModel.GalleryTarget">Galeriye yükle</button>
     </fieldset>
     <fieldset class="product-form__variant-entries">

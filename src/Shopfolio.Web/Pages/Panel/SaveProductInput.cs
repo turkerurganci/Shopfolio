@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Http;
-
 using Shopfolio.Infrastructure.Binding;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.AfterSales.Contracts;
@@ -9,8 +7,8 @@ namespace Shopfolio.Pages.Panel;
 
 /// <summary>
 /// The product form's model (07 5.1.5 <c>SaveProductInput</c>; UC-114, UC-117): the product's fields of 06 4.5, its categories, options, variants, gallery, product-level file and discount,
-/// the record's <c>Version</c> and UC-117's two fields (07 5.2.3). The publish status is not in the form (K-1189 (1)). The image upload binds the same model and reads only
-/// <see cref="ImageFile"/> and <see cref="ImageTarget"/>; the save reads neither (K-1171 (5)).
+/// the record's <c>Version</c> and UC-117's target field (07 5.2.3). The publish status is not in the form (K-1189 (1)). The image upload binds the same model, reads the file
+/// <c>ImageFile</c> through the upload component (<see cref="Shopfolio.Pages.Components.UploadRequests"/>) and <see cref="ImageTarget"/>; the save reads neither (K-1171 (5)).
 /// </summary>
 public sealed class SaveProductInput : IFormInput
 {
@@ -53,10 +51,6 @@ public sealed class SaveProductInput : IFormInput
     public SaveProductDiscountRow? Discount { get; set; }
 
     public int? Version { get; set; }
-
-    /// <summary>UC-117: the one image file of an upload (07 5.2.3).</summary>
-    [SpecAssignedName]
-    public IFormFile? ImageFile { get; set; }
 
     /// <summary>UC-117: the form's image field the upload goes to - <c>Images</c> (the gallery) or <c>Variants[n].ImageId</c> (07 5.2.3).</summary>
     [SpecAssignedName]
@@ -112,6 +106,7 @@ public sealed class SaveProductVariantRow
 
     public int? StockQuantity { get; set; }
 
+    [SpecAssignedName]
     public string? OriginalStockQuantity { get; set; }
 
     public Guid? ImageId { get; set; }

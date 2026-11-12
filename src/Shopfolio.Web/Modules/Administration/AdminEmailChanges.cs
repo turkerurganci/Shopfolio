@@ -267,7 +267,7 @@ internal sealed class AdminEmailChanges
         }
 
         bool listed = operation is ReauthenticationOperation.PasswordChange or ReauthenticationOperation.EmailChange;
-        bool held = listed && await _sessions.HoldsReauthenticationAsync(AccountType.Admin, adminId, sessionId, operation!.Value, reauthenticationValue, ct);
+        bool held = listed && await _sessions.HoldsReauthenticationAsync(AccountType.Admin, adminId, sessionId, operation.GetValueOrDefault(), reauthenticationValue, ct);
         if (!held)
         {
             await _sessions.DropReauthenticationAsync(AccountType.Admin, adminId, sessionId, ct);
@@ -275,10 +275,10 @@ internal sealed class AdminEmailChanges
 
         DateTimeOffset now = _time.GetUtcNow();
         AdminPendingEmailChange? pending = await _pending.FindAsync(adminId, ct);
-        bool pendingLives = pending is not null && !EmailChangeRules.IsEnded(pending.CreatedAt, now);
+        AdminPendingEmailChange? live = pending is not null && !EmailChangeRules.IsEnded(pending.CreatedAt, now) ? pending : null;
         DateTimeOffset? revertEnds = await EmailChangeRules.OpenRevertEndAsync(_db, AccountType.Admin, adminId, now, ct);
         ReauthenticationOperation? open = held && !(operation == ReauthenticationOperation.EmailChange && revertEnds is not null) ? operation : null;
-        return new AdminOwnAccount(account.Name, account.Email, pendingLives ? pending!.NewEmail : null, pendingLives ? EmailChangeRules.LinkEnd(pending!.CreatedAt) : null, revertEnds, open);
+        return new AdminOwnAccount(account.Name, account.Email, live?.NewEmail, live is null ? null : EmailChangeRules.LinkEnd(live.CreatedAt), revertEnds, open);
     }
 
     /// <summary>What the new address's landing page shows (07 UC-108): reads only. A valid link whose pending change has ended or is gone reads as expired - the same view the button takes.</summary>

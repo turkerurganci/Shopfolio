@@ -121,7 +121,7 @@ internal sealed class MyAccountModel : PageModel
             && operations[0] is nameof(ReauthenticationOperation.PasswordChange) or nameof(ReauthenticationOperation.EmailChange)
             && Request.Query.TryGetValue(HeldValueParameter, out Microsoft.Extensions.Primitives.StringValues tokens) && tokens.Count == 1)
         {
-            operation = Enum.Parse<ReauthenticationOperation>(operations[0]!);
+            operation = Enum.Parse<ReauthenticationOperation>(operations.ToString());
             held = tokens[0];
         }
 
@@ -331,6 +331,7 @@ public sealed class ChangeEmailInput : IFormInput
     [InvalidEmail]
     public string? NewEmail { get; set; }
 
+    [SpecAssignedName]
     public string? ReauthenticationToken { get; set; }
 }
 
@@ -344,5 +345,6 @@ public sealed class ChangePasswordInput : IFormInput
     [PasswordTooWeak]
     public string? NewPassword { get; set; }
 
+    [SpecAssignedName]
     public string? ReauthenticationToken { get; set; }
 }

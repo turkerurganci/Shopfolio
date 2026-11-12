@@ -1,6 +1,6 @@
 # T506 — Sık sorulan sorular ve iletişim sayfası ve formu (E-09, E-10)
 
-**Faz:** F5 | **Durum:** ⏳ Yapım tamam, doğrulama bekliyor | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ⏳ Düzeltme 1 tamam, doğrulama (tur 2) bekliyor | **Tarih:** 2026-11-12
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -10,7 +10,7 @@
 ## Yapılan İşler
 
 - **SSS sayfası (E-09):** `Pages/Storefront/Faq.cshtml(.cs)`, `FaqPage.cs`; yayındaki sorular elle sırayla tek listede, sayfalama ve arama yok, soru yoksa boş hâl satırı ve ana sayfaya yol; sayfa adı menüdeki SSS öğesinin adıdır; panel oturumunda taslak sorular yerinde "Taslak" etiketiyle görünür ve sayfa arama motorlarına kapalıdır; SSS yapılandırılmış verisi ilk yanıtın `<head>`'indedir ve yalnız yayındaki soruları taşır (`StorefrontHeads.cs`).
-- **İletişim sayfası ve formu (E-10):** `Contact.cshtml(.cs)`, `ContactTopicLabels.cs`; kimlik bloğu, form ve şubeler (firmanın sırasıyla, harita bağlantılı); üyede ad ve e-posta ön dolu, düzenlenebilir; kapı kapalıyken form kapalı hâli (düğme yok, kimlik bloğu ve şubeler kalır); `?code=ContactRequestSent` ile gönderim sonrası hâli, yeni form bağlantısı kodsuz `/iletisim`.
+- **İletişim sayfası ve formu (E-10):** `Contact.cshtml(.cs)`, `ContactTopicLabels.cs`; kimlik bloğu, form ve şubeler (firmanın sırasıyla, harita bağlantılı); üyede ad ve e-posta ön dolu, düzenlenebilir; kapı kapalıyken form kapalı hâli (düğme yok, kimlik bloğu ve şubeler kalır); `?notice=ContactRequestSent` ile gönderim sonrası hâli, yeni form bağlantısı kodsuz `/iletisim`.
 - **`POST ?handler=SendContactRequest`:** model adı `SendContactRequestInput` (D-824); talep Açık yazılır, 303 → kodlu `/iletisim`, gönderene alındı e-postası gitmez; 422 (boş zorunlu alan, geçersiz e-posta/telefon, beş değer dışı konu; hatalar birlikte); kapı kapalıysa kapalı hâliyle 422; 429 (L-4) nötr mesaj düğmenin yanında, yazılanlar korunur, her deneme kaydedilir; `Website` tuzağı doluysa kayıt, deneme kaydı ve L-4 sayımı yok, yanıt başarıyla aynı; ikinci gönderim ikinci talep açar, L-4'e sayılır, firmaya F-2 gider.
 - **Kimlik bloğu:** `_IdentityBlock.cshtml` altbilgi ile iletişim sayfasında ortak partial; altbilgi buna taşındı (`_StorefrontFooter.cshtml`).
 - **Modül yüzü:** `ICorporateContentModule` / `CorporatePageViews` (SSS ve iletişim okuyucuları), `IMembershipModule` üyenin ad ve e-postasını verir; sabit `ContactPageContent.HasContactForm` kaldırıldı, form açıklığı `GetContactFormAsync` sonucundan okunur (D-812).
@@ -34,7 +34,7 @@
 | 4 | Kapı kapalıyken form kapalı, düğme yok; kimlik bloğu ve şubeler kalır | ✓ | `ContactPageTests.WhileTheGateOfTheDataCollectingEntriesIsClosed_TheFormIsClosed_NoButton_*_KK4` |
 | 5 | `ContactRequestSent` kodunda gönderim sonrası hâli; yeni form bağlantısı kodsuz | ✓ | `ContactPageTests.AnAddressWithTheContactRequestSentCode_ShowsTheStateAfterTheSend_*_KK5` |
 | 6 | POST Açık talep yazar, 303 → kodlu `/iletisim`, alındı e-postası yok | ✓ | `ContactPageTests.ASend_Is303ToTheContactPageWithTheCode_WritesTheRequestOpen_*_KK6` |
-| 7 | 422: boş zorunlu alan, geçersiz e-posta/telefon, beş değer dışı konu; birlikte işaretlenir; kapalı kapıda kapalı hâl | ✓ | `ContactPageTests.EmptyRequiredFields_AnInvalidEmailAndPhone_*_KK7`, `WhileTheGateIsClosed_ASendIs422_*_KK7`; `FaqAndContactPageModelTests` (`TheTopicOptions_*_KK7`, `ATopicsText_*_KK7`, `ATopicOutsideTheEnum_*_KK7`, `ThePagesInput_*_KK7`, `TheSummarysOrder_*_KK7`) |
+| 7 | 422: boş zorunlu alan, geçersiz e-posta/telefon, beş değer dışı konu; birlikte işaretlenir; kapalı kapıda kapalı hâl | ✓ | `ContactPageTests.EmptyRequiredFields_AnInvalidEmailAndPhone_*_KK7`, `WhileTheGateIsClosed_ASendIs422_*_KK7`, `EachRefusalOfTheSend_WritesItsOneRejectionLine_*_KK7` (kapalı kapı `DataCollectionClosed`, alan redi alan satırı, 429 `ContactRequestLimitExceeded`); `FaqAndContactPageModelTests` (`TheTopicOptions_*_KK7`, `ATopicsText_*_KK7`, `ATopicOutsideTheEnum_*_KK7`, `ThePagesInput_*_KK7`, `TheSummarysOrder_*_KK7`) |
 | 8 | 429 (L-4): nötr mesaj düğmenin yanında, yazılanlar korunur, her deneme kaydedilir | ✓ | `ContactPageTests.TheSendOverTheLimitL4_Is429_WithTheNeutralMessageBesideTheButton_*_KK8` |
 | 9 | `Website` tuzağı doluysa kayıt, deneme kaydı ve L-4 sayımı yok; yanıt başarıyla aynı | ✓ | `ContactPageTests.ASendWithTheTrapFieldFilled_AnswersAsASuccess_LeavesNoRequestNoNoticeNoAttemptRow_*_KK9` |
 | 10 | Tekrar gönderim ikinci talep açar, L-4'e sayılır; firmaya F-2 tuzak boşken gider | ✓ | `ContactPageTests.ASecondSend_OpensASecondRequest_CountsForL4_AndTheFirmGetsTheNoticeF2ForEach_KK10` |
@@ -72,6 +72,13 @@
 | Düzeltme gerekli mi | Evet — B1: kapı kapalıyken `SendContactRequest` 422'si `DataCollectionClosed` ret satırını yazmıyor (`Contact.cshtml.cs` `default` dalı yalnız `FormResults.Redisplay`; `RejectionLog.Rejected(result.Code)` yok; `09 §8.2` m.3, K-1198; `VAL-A123` kanıtı "Uygulama kaydı"). Düzeltme: dal ret satırını `result.Code` ile yazar; test kapalı kapı POST'unda kayıt satırını (`code=DataCollectionClosed`) doğrular |
 | Yapım raporu karşılaştırması (tur 1) | KK1–KK10 kanıtları uyumlu; uyuşmazlıklar: (1) öz denetimin `09 §25` satırı "red uygulama kaydında mı" sorusunu kapsamıyor (B1 kaçtı); (2) rapor sonuç kodunu `?code=ContactRequestSent` yazar, adres `?notice=ContactRequestSent`'tir; (3) `12` Durum hücreleri yazılmamış, `VAL-A120`…`A122` (tarayıcı) D-1228'de yok (D-1313) |
 | Doğrulayıcı kanıtları (tur 1) | Derleme `-warnaserror` 0/0; `dotnet format --verify-no-changes` üç proje temiz; Unit 7226/7226; betik 4/4; Integration TAM 3833/3833 (Web 837; Administration+Catalog+Commands+Concurrency+CorporateContent+Security+SignedEndpoints+FileSecrets+Logging 535; Database+Disposal+Files+Jobs+Outages+Payment 406; Ordering 645; Model 1410); CI run 43115380835 yeşil; `12` Durum: A123 FAIL, A452/A558/A580/A634 PASS |
+
+### Düzeltme 1 (tur 1 FAIL sonrası)
+
+- **B1 (ORTA, S1; VAL-A123, KK7, `09 §25`):** `ContactModel.OnPostSendContactRequestAsync` `default:` (kapalı kapı) dalı artık `RejectionLog.Rejected(result.Code)` yazar (`DataCollectionClosed`). Aynı sayfadaki öteki ret dalları tarandı: alan redi `ValidationPageFilter`'in işleyici sonrası çevirisiyle alan satırını, 429 `FormResults.AttemptLimitExceeded` ile `ContactRequestLimitExceeded` satırını zaten yazıyor; yalnız kapı dalı eksikti. Yeni test: `ContactPageTests.EachRefusalOfTheSend_WritesItsOneRejectionLine_TheClosedGateWithDataCollectionClosed_TheFieldsWithTheirNames_TheLimitWithItsCode_KK7` (üç ret türünün her biri tek satır).
+- **K2:** rapordaki sonuç kodu `?notice=ContactRequestSent` olarak düzeltildi. **K1:** D-1313 ileri atıldı (doğrulayıcı kaydı), bu turda iş yok.
+- **Öz denetim:** KK1–KK10 ve plandaki 10 kabul kriteri yeniden denetlendi; tablo ✓. `09 §25` "red uygulama kaydında mı" satırı artık üç ret türü için ✓. Çakışma işareti taraması boş.
+- **Sınama:** restore, build `-warnaserror` 0/0, format üç proje temiz, Unit 7226/7226, Integration Web 838/838 (ContactPageTests 12/12). Integration'ın öteki ad alanı parçaları süre bütçesi nedeniyle bu turda koşulmadı (değişiklik yalnız `Contact.cshtml.cs` ret satırı); doğrulayıcı TAM koşar.
 
 ## Altyapı Değişiklikleri
 

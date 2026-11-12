@@ -8,7 +8,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
@@ -398,6 +401,42 @@ public sealed class ContactPageTests : IAsyncLifetime
         Assert.Equal(0L, await CountAsync("attempt_records"));
         Assert.Equal(0L, await CountAsync("dispatch_records"));
     }
+
+    [Fact]
+    public async Task EachRefusalOfTheSend_WritesItsOneRejectionLine_TheClosedGateWithDataCollectionClosed_TheFieldsWithTheirNames_TheLimitWithItsCode_KK7()
+    {
+        await SeedFirmAsync(open: true);
+        CollectingLoggerProvider logs = new();
+        await using WebApplicationFactory<Program> open = new ShopfolioWebApplicationFactory(_database.Dsn, loggerProvider: logs).WithWebHostBuilder(b => b.ConfigureServices(s =>
+            s.AddRazorPages().AddApplicationPart(typeof(AttemptSampleModel).Assembly)));
+        using HttpClient client = ForgeryTokenHandler.CreateClient(open);
+
+        int beforeFields = RejectionLines(logs).Count;
+        await PostAsync(client, new Dictionary<string, string>(Fields()) { ["Input.Email"] = "gecersiz" });
+        string fieldLine = Assert.Single(RejectionLines(logs).Skip(beforeFields));
+        Assert.Contains("Email", fieldLine, StringComparison.Ordinal);
+        Assert.Contains(FieldCodes.InvalidEmail, fieldLine, StringComparison.Ordinal);
+
+        int threshold = AttemptLimits.Of(AttemptLimit.L4, AttemptAxis.Ip).Threshold;
+        for (int i = 0; i < threshold; i++)
+        {
+            await PostAsync(client, Fields());
+        }
+
+        int beforeLimit = RejectionLines(logs).Count;
+        (HttpStatusCode limited, _, _) = await PostAsync(client, Fields());
+        Assert.Equal(HttpStatusCode.TooManyRequests, limited);
+        Assert.EndsWith(" " + ErrorCode.ContactRequestLimitExceeded, Assert.Single(RejectionLines(logs).Skip(beforeLimit)), StringComparison.Ordinal);
+
+        await ExecuteAsync("TRUNCATE legal_text_versions CASCADE");
+        int beforeGate = RejectionLines(logs).Count;
+        (HttpStatusCode closed, _, _) = await PostAsync(client, Fields());
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, closed);
+        Assert.EndsWith(" " + ErrorCode.DataCollectionClosed, Assert.Single(RejectionLines(logs).Skip(beforeGate)), StringComparison.Ordinal);
+    }
+
+    private static List<string> RejectionLines(CollectingLoggerProvider logs) =>
+        [.. logs.Lines.Where(l => l.Contains("RejectionLog|", StringComparison.Ordinal) && l.Contains(LogEvents.ValidationRejected, StringComparison.Ordinal))];
 
     private static string[] SummaryTargets(string html)
     {

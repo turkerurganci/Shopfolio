@@ -92,7 +92,8 @@ public sealed class ContactModel : PageModel
             case ContactFormOutcome.LimitExceeded:
                 return FormResults.AttemptLimitExceeded(this, ErrorCode.ContactRequestLimitExceeded);
             default:
-                // The gate is closed: the page answers with its closed state (04 5.10.12) and nothing of the form.
+                // The gate is closed: the page answers with its closed state (04 5.10.12) and nothing of the form; the one rejection line keeps the gate's code (09 8.2 item 3; K-1198).
+                HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(result.Code ?? ErrorCode.DataCollectionClosed);
                 return FormResults.Redisplay(this);
         }
     }

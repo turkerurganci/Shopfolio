@@ -112,11 +112,15 @@ public sealed record CancelItemByFirmRequest(
 /// The late delivery termination (03 1.11.8, 1.11.41; 02 7.2.3, 10.4.10; T368): no item and no unit is chosen - every undelivered physical item's open units are
 /// terminated. The customer's from the order page carries nothing else; the firm's record of a notice that came by another channel carries the administrator, the
 /// screen's version, the irreversible-action confirmation (03 1.6.1.7) and <paramref name="NoticeArrivalDate"/>, the day the notice reached the firm - in the past or
-/// today, never later - from which the refund's fourteen days run.
+/// today, never later - from which the refund's fourteen days run. The customer's on an order paid by transfer carries the IBAN the refund goes to (T512; 02 7.2.3, 7.4.5;
+/// D-873): format and check digits, else <see cref="TransitionRefusal.InvalidInput"/>; on the card line it is not kept.
 /// </summary>
 public sealed record TerminateForLateDeliveryRequest(Guid OrderId, TransitionAdmin? Admin, int? ExpectedVersion, bool Confirmed, DateOnly? NoticeArrivalDate)
 {
-    public static TerminateForLateDeliveryRequest ByCustomer(Guid orderId) => new(orderId, null, null, false, null);
+    /// <summary>The IBAN of the customer's termination on the transfer line (T512); null on the card line and on the firm's record.</summary>
+    public string? Iban { get; init; }
+
+    public static TerminateForLateDeliveryRequest ByCustomer(Guid orderId, string? iban = null) => new(orderId, null, null, false, null) { Iban = iban };
 
     public static TerminateForLateDeliveryRequest FromOtherChannel(Guid orderId, TransitionAdmin admin, int expectedVersion, bool confirmed, DateOnly noticeArrivalDate) =>
         new(orderId, admin, expectedVersion, confirmed, noticeArrivalDate);

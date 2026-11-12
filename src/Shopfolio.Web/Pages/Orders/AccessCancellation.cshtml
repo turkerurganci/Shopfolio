@@ -1,0 +1,9 @@
+@page "/siparis/erisim/{accessKey:regex(^[A-Za-z0-9_-]+\z)}/iptal"
+@model Shopfolio.Pages.Orders.AccessCancellationModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = "İptal";
+}
+@* UC-38…UC-40 under the access-key root (07 4.17); the screen itself is the shared E-17 view. *@
+<partial name="_OperationScreen" model="Model" />

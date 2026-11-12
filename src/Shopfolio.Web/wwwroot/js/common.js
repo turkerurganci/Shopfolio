@@ -45,6 +45,23 @@ for (const button of document.querySelectorAll("button[data-share]")) {
     button.addEventListener("click", () => share(button));
 }
 
+// The "IBAN'ı kopyala" button of the order page's transfer block (04 5.16.14; T512, D-1258): the same script-free pattern as the share button - hidden in the markup,
+// shown here only when the clipboard can be written, the result said in the line next to it. The text copied is the button's own data value.
+for (const button of document.querySelectorAll("button[data-copy]")) {
+    if (!navigator.clipboard || typeof navigator.clipboard.writeText !== "function") {
+        continue;
+    }
+
+    button.hidden = false;
+    button.addEventListener("click", async () => {
+        const message = button.parentElement.querySelector("[data-copy-result]");
+        const copied = await copyLink(button.dataset.copy);
+        if (message) {
+            message.textContent = copied ? message.dataset.copied : message.dataset.failed;
+        }
+    });
+}
+
 // The fold-out menu of the narrow class, in both frames (04 2.2.4, 2.2.8; T540). The toggle button is hidden in the markup and shown here, and the panel it controls starts folded;
 // without JavaScript the toggle never shows and the whole menu stays open, so nothing is lost. The medium and wide classes never fold the panel: the style sheet shows it whatever
 // state it is in, and the toggle is not drawn there. State lives in aria-expanded and data-collapsed (09 16.1 item 4); Escape folds the menu and gives the focus back to the toggle.

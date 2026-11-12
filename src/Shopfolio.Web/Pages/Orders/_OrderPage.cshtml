@@ -18,17 +18,34 @@
         <partial name="_OrderBadges" model="Model.Badges" />
     </header>
 
-    @if (Model.ShowsTransferDetails || Model.Detail.IsCardPaymentAwaited || Model.Detail.IsCardPaymentFailed)
+    @if (Model.SavedText is string saved)
+    {
+        <partial name="_Message" model='Messages.ShortLivedSuccess(saved)' />
+    }
+    @{
+        IReadOnlyList<RefundIbanFieldView> itemlessIbans = [.. Model.RefundIbanFields.Where(f => f.OrderItemId is null)];
+    }
+    @if (Model.ShowsTransferDetails || Model.Detail.IsCardPaymentAwaited || Model.Detail.IsCardPaymentFailed || itemlessIbans.Count > 0)
     {
         <section class="order-page__expected" aria-labelledby="order-expected-title">
             <h2 id="order-expected-title">Sizden beklenen</h2>
+            @foreach (RefundIbanFieldView field in itemlessIbans)
+            {
+                <partial name="_OrderIbanForm" model="(Model, field)" />
+            }
             @if (Model.ShowsTransferDetails)
             {
                 <div class="order-page__transfer" id="order-transfer">
                     <p>Ödemenizi aşağıdaki IBAN'a havale ile yapın; açıklamaya sipariş numaranızı yazın.</p>
                     <dl>
                         <dt>IBAN</dt>
-                        <dd class="order-page__iban">@Model.TransferIbanText</dd>
+                        <dd class="order-page__iban">
+                            @Model.TransferIbanText
+                            <span class="copy">
+                                <button type="button" class="button button--secondary copy-button" data-copy="@Model.Summary.TransferIban" hidden>IBAN'ı kopyala</button>
+                                <span class="copy-result" role="status" aria-live="polite" data-copy-result data-copied="IBAN kopyalandı." data-failed="IBAN kopyalanamadı."></span>
+                            </span>
+                        </dd>
                         <dt>Ödenecek toplam</dt>
                         <dd>@DisplayFormat.Amount(Model.Detail.Breakdown.Total)</dd>
                         <dt>Sipariş numarası</dt>
@@ -83,6 +100,10 @@
                     {
                         <span class="order-items__delivery-date">Teslim tarihi: @deliveredOn</span>
                     }
+                    @foreach (RefundIbanFieldView field in Model.RefundIbanFields.Where(f => f.OrderItemId == item.OrderItemId))
+                    {
+                        <partial name="_OrderIbanForm" model="(Model, field)" />
+                    }
                     @if (Model.RefusedItemId == item.OrderItemId && Model.RefusalText is string refusal)
                     {
                         <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, refusal, "order-download-message")' />
@@ -103,10 +124,14 @@
         </ul>
     </section>
 
-    @if (Model.ScreenLinks.Count > 0)
+    @if (Model.ScreenLinks.Count > 0 || Model.OperationReasonText is not null)
     {
         <section class="order-page__operations" aria-labelledby="order-operations-title">
             <h2 id="order-operations-title">İşlemler</h2>
+            @if (Model.OperationReasonText is string reason)
+            {
+                <partial name="_Message" model='Messages.InPlace(MessageMeaning.Warning, reason, "order-operation-reason")' />
+            }
             <ul class="order-operations">
                 @foreach (OrderScreenLink link in Model.ScreenLinks)
                 {

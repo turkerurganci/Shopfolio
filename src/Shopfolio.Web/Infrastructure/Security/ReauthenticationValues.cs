@@ -47,6 +47,16 @@ internal sealed class ReauthenticationValues
         return updated == 1 ? value : null;
     }
 
+    /// <summary>Drops the session's permission and its value (the re-verification page opens: the earlier form's value is void, 05 6.1.5); a session without one is left as it is.</summary>
+    public async Task DropAsync(Guid sessionId, CancellationToken ct)
+    {
+        await _db.Sessions
+            .Where(s => s.Id == sessionId && (s.ReauthenticatedOperation != null || s.ReauthenticationTokenHash != null))
+            .ExecuteUpdateAsync(
+                s => s.SetProperty(x => x.ReauthenticatedOperation, (ReauthenticationOperation?)null).SetProperty(x => x.ReauthenticationTokenHash, (string?)null),
+                ct);
+    }
+
     /// <summary>
     /// Consumes the permission with one conditional update: only while the session exists, holds the permission for <paramref name="operation"/> and
     /// its digest is the digest of <paramref name="value"/>. True means this call took it and the operation may run; false means it must not.

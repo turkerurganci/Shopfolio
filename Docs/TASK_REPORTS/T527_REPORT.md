@@ -72,7 +72,7 @@
 
 - **Branch:** `task/T527-siparis-listesi`
 - **Commit:** "T527: Sipariş listesi, sipariş ayrıntısı ve durum geçişleri (E-36, E-37)" (dalın son commit'i; öncekiler WIP)
-- **PR:** *(açılacak)*
+- **PR:** #565
 - **CI:** yönetici izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

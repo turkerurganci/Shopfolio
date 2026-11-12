@@ -75,12 +75,6 @@ public sealed class ProductSampleModel(AccessWriteLog log) : AccessSamplePage(lo
     protected override string Label => "product";
 }
 
-/// <summary>The sample sign-in page of the storefront: it shows where the return address would lead (07 2.3.2; 05 6.5.6).</summary>
-public sealed class CustomerSignInSampleModel : PageModel
-{
-    public IActionResult OnGet() => Content(ReturnPath.Resolve(Request.Query[ReturnPath.ParameterName], ReturnArea.Storefront));
-}
-
 /// <summary>A sign-out page of the account folder, to try the storefront's sign-out redirect (UC-77).</summary>
 [SignOutPage]
 public sealed class AccountSignOutModel(AccessWriteLog log) : AccessSamplePage(log)

@@ -99,6 +99,26 @@ internal sealed class CorporateContentModule : ICorporateContentModule
 
     public Task<int> CountOpenContactRequestsAsync(CancellationToken ct) => _requests.CountOpenAsync(ct);
 
+    public Task<int> CountPanelContactRequestsAsync(IReadOnlyCollection<ContactRequestStatus> statuses, CancellationToken ct) => _requests.CountAsync(statuses, ct);
+
+    public Task<IReadOnlyList<PanelContactRequestRow>> ListPanelContactRequestsAsync(IReadOnlyCollection<ContactRequestStatus> statuses, int take, CancellationToken ct) =>
+        _requests.ListAsync(statuses, take, ct);
+
+    public Task<ContactRequestDetail?> FindContactRequestAsync(Guid requestId, CancellationToken ct) => _requests.FindAsync(requestId, ct);
+
+    public async Task<ContactRequestChangeResult> CloseContactRequestAsync(Guid requestId, Guid adminId, CancellationToken ct) =>
+        ChangeOf(await _requests.CloseAsync(requestId, adminId, ct));
+
+    public async Task<ContactRequestChangeResult> ReopenContactRequestAsync(Guid requestId, Guid adminId, CancellationToken ct) =>
+        ChangeOf(await _requests.ReopenAsync(requestId, adminId, ct));
+
+    private static ContactRequestChangeResult ChangeOf(ContactRequestResult result) => new(result.Outcome switch
+    {
+        ContactRequestOutcome.Done => ContactRequestChangeOutcome.Changed,
+        ContactRequestOutcome.Unchanged => ContactRequestChangeOutcome.Unchanged,
+        _ => ContactRequestChangeOutcome.NotFound,
+    });
+
     public Task<int> WriteContactRequestExportAsync(Stream destination, long maxBytes, CancellationToken ct) => _contactRequestExport.WriteAsync(destination, maxBytes, ct);
 }
 

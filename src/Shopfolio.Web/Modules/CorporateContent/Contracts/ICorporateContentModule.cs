@@ -110,6 +110,33 @@ public interface ICorporateContentModule
     /// </summary>
     Task<int> CountSummaryContactRequestsAsync(DateTimeOffset periodStart, DateTimeOffset periodEnd, CancellationToken ct);
 
+    /// <summary>
+    /// The number of contact requests the panel's requests list takes (T532; 07 UC-93): the requests in one of <paramref name="statuses"/> - none named means any status - that are still kept; a request
+    /// past its retention is not counted although the night's disposal has not reached it. A plain read that counts.
+    /// </summary>
+    Task<int> CountPanelContactRequestsAsync(IReadOnlyCollection<ContactRequestStatus> statuses, CancellationToken ct);
+
+    /// <summary>
+    /// The first <paramref name="take"/> contact requests of the panel's requests list (T532; 07 UC-93), newest first - the moment the request reached the firm, equal moments by the id as the database
+    /// sorts it - in one of <paramref name="statuses"/> (none named: any status), past-retention requests left out. The caller merges them with the defect claims. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<PanelContactRequestRow>> ListPanelContactRequestsAsync(IReadOnlyCollection<ContactRequestStatus> statuses, int take, CancellationToken ct);
+
+    /// <summary>The contact request's detail (T532; 07 UC-94); null when there is no such request or it was destroyed at the end of its retention (K-1192). A plain read.</summary>
+    Task<ContactRequestDetail?> FindContactRequestAsync(Guid requestId, CancellationToken ct);
+
+    /// <summary>
+    /// Closes a contact request (T532; 07 UC-155; 03 1.9.2), in the caller's open transaction, which the method joins and never opens: an open request becomes closed and the closing moment is written; a closed
+    /// one stays as it is (<see cref="ContactRequestChangeOutcome.Unchanged"/>); a request that is not there is <see cref="ContactRequestChangeOutcome.NotFound"/>. No notice is made.
+    /// </summary>
+    Task<ContactRequestChangeResult> CloseContactRequestAsync(Guid requestId, Guid adminId, CancellationToken ct);
+
+    /// <summary>
+    /// Reopens a contact request (T532; 07 UC-156), in the caller's open transaction: a closed request becomes open; the last closing moment is kept, so the retention keeps running from it (K-1099).
+    /// An open one stays as it is; a request that is not there is <see cref="ContactRequestChangeOutcome.NotFound"/>. No notice is made.
+    /// </summary>
+    Task<ContactRequestChangeResult> ReopenContactRequestAsync(Guid requestId, Guid adminId, CancellationToken ct);
+
     /// <summary>The panel home's contact request count (T382; 02 10.6.1): the requests still open, whatever their topic. A plain read that counts; nothing is kept.</summary>
     Task<int> CountOpenContactRequestsAsync(CancellationToken ct);
 

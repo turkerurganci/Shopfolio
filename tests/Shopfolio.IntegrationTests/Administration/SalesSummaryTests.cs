@@ -522,6 +522,16 @@ public sealed class SalesSummaryTests : IAsyncLifetime
 
         public Task<int> CountOpenContactRequestsAsync(CancellationToken ct) => requests.CountOpenAsync(ct);
 
+        public Task<int> CountPanelContactRequestsAsync(IReadOnlyCollection<ContactRequestStatus> statuses, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<PanelContactRequestRow>> ListPanelContactRequestsAsync(IReadOnlyCollection<ContactRequestStatus> statuses, int take, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<ContactRequestDetail?> FindContactRequestAsync(Guid requestId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<ContactRequestChangeResult> CloseContactRequestAsync(Guid requestId, Guid adminId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<ContactRequestChangeResult> ReopenContactRequestAsync(Guid requestId, Guid adminId, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<IReadOnlyList<string>> ListSitemapPathsAsync(CancellationToken ct) => throw new NotSupportedException();
 
         public Task<StorefrontMenu> GetMenuAsync(CancellationToken ct) => throw new NotSupportedException();

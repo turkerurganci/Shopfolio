@@ -575,3 +575,89 @@
     border-inline-start: 4px solid var(--color-border);
     background: var(--color-surface-alt);
 }
+
+/* The requests list's filter (T532; 04 9.10.3, 9.10.8): chosen values as chips above, the two groups of options in a disclosure. */
+.request-filter {
+    margin-bottom: var(--space-3);
+}
+
+.request-filter__summary {
+    cursor: pointer;
+}
+
+.request-filter__form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: flex-start;
+}
+
+.request-filter__group {
+    border: 1px solid var(--color-border);
+    padding: var(--space-2) var(--space-3);
+}
+
+.request-filter__option {
+    display: block;
+}
+
+.request-filter__chosen {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-3);
+    padding: 0;
+    list-style: none;
+}
+
+.request-filter__chip {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    border: 1px solid var(--color-border);
+    padding: var(--space-1) var(--space-2);
+}
+
+.request-filter__chip-label {
+    font-weight: 600;
+}
+
+.request-filter__chip-remove {
+    text-decoration: underline;
+}
+
+/* The contact request's screen (T532; 04 9.11): wide class puts the facts and the sender side by side; narrow classes stack them in the order of the sections (9.11.13). */
+.request-detail__header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+}
+
+.request-detail__facts {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: var(--space-1) var(--space-3);
+    margin: 0 0 var(--space-3);
+}
+
+.request-detail__facts dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.request-detail__selectable {
+    user-select: all;
+}
+
+.request-detail__searches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+.request-detail__message {
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}

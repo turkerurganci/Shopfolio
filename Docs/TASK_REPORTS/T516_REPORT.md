@@ -50,7 +50,7 @@ Test sınıfı `CustomerPasswordResetAndReauthenticationPageTests` (kısaltma: S
 | "siz" hitabı, bölge sırası (04 5.23.3 / 5.24.3) | ✓ | `ReauthenticationTextsTests`; sayfalarda başlık, işlem satırı, alanlar, düğme sırası 04'e göre |
 | N+1 | ✓ | sayfalar tek hesap okur; liste yok |
 | Biçim (`dotnet format`) | ✓ | aşağıda |
-| `09 §25` / güvenlik | ✓ | `[NoStore]`; POST'lar `ForgeryToken`; nötr yanıt (hesabı ele vermez); yeni bağımlılık, sır, şema yok |
+| `09 §25` / güvenlik | ✓ | `[NoStore]`; POST sahte istek belirteci ister (genel; `Forgery` sınıfları); nötr yanıt (hesabı ele vermez); yeni bağımlılık, sır, şema yok |
 
 `12`: Durum hücreleri doğrulayıcının işidir, dokunulmadı. Kanıt testleri: VAL-A097 (sıfırlama: KK2, KK3, KK6), VAL-A352 (L-2 429: KK4), VAL-A362 (yeniden doğrulamada L-1: KK9), VAL-A451 (KK7), VAL-A498, VAL-A499, VAL-A500, VAL-A501, VAL-A506, VAL-A561, VAL-A562 (KK2, KK4, KK5–KK9), VAL-A680 (ret tüketmez: KK9). VAL-B078 (320 genişlik) tarayıcı gözlemidir, D-1418.
 
@@ -60,9 +60,9 @@ Backlog payı: D-1351 ✅ (yerinde kapatıldı); D-109, D-572, D-801 (A352 payı
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | SONUC_UNIT | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | SONUC_UNIT_OZET |
-| Integration | SONUC_INT | `--filter-class` ile ilgili sınıflar, Postgres 18 (`track_commit_timestamp=on`) | SONUC_INT_OZET. **TAM: CI** (sahip kararı 2026-11-12: tam Integration koşusunu CI'ın Integration işi yapar) |
-| Biçim | SONUC_FMT | `dotnet format <proje> --verify-no-changes` | SONUC_FMT_OZET |
+| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | TAM 7486/7486 |
+| Integration | ✓ (parçalı) | `--filter-class` ile ilgili sınıflar, Postgres 18 (`track_commit_timestamp=on`) | `CustomerPasswordResetAndReauthenticationPageTests` 34/34; `CustomerSignInPageTests` + `SessionAccessTests` (girişsiz yönlendirme) 60/60; SecurityHeaders, Forgery, WritingEndpointAudit, SitemapEndpoint, PageFormPattern, FormComponent 84/84. **TAM: CI** (sahip kararı 2026-11-12: tam Integration koşusunu CI'ın Integration işi yapar) |
+| Biçim | ✓ | `dotnet format <proje> --verify-no-changes` | Web, IntegrationTests, UnitTests temiz (derleme `-warnaserror` temiz) |
 
 ## Doğrulama
 

@@ -86,7 +86,8 @@ public sealed record FirmCancellationEntry(
 /// The late delivery termination of one undelivered physical item (06 4.24; 02 7.2.3; T368): the customer's from the order page (<paramref name="Admin"/> null) or the
 /// firm's record of a notice that came by another channel (02 10.4.10). <paramref name="Quantity"/> is the item's whole open quantity - units are never chosen (02 7.1.6;
 /// K-796) and the writer refuses any other number. <paramref name="DeclarationDate"/> is the termination's date stamp: the day of the button, or the day the notice reached
-/// the firm; the refund's fourteen days run from it.
+/// the firm; the refund's fourteen days run from it. <paramref name="Iban"/> is the IBAN the customer gave with the termination on the transfer line (T512; 02 7.2.3,
+/// 7.4.5; D-873), already checked by the order module; null on the card line and on the firm's record.
 /// </summary>
 public sealed record LateDeliveryTerminationEntry(
     ItemRecordSubject Subject,
@@ -94,7 +95,8 @@ public sealed record LateDeliveryTerminationEntry(
     ItemFrozenAmounts Frozen,
     ItemRecordAdmin? Admin,
     DateOnly DeclarationDate,
-    DateTimeOffset At);
+    DateTimeOffset At,
+    string? Iban = null);
 
 /// <summary>
 /// The firm's removal of a paid item's units from the panel, or the reduction of its quantity (06 4.23; 02 10.4.3; T386): a correction with the administrator and no reason.

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
@@ -9,6 +10,7 @@ using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -53,6 +55,7 @@ public abstract class OrderPageModel : PageModel
     private readonly IAfterSalesModule _afterSales;
     private IReadOnlyList<ItemRecordFact> _records = [];
     private IReadOnlyList<ProvinceInfo> _provinces = [];
+    private bool _loaded;
 
     protected OrderPageModel(IOrderingModule ordering, IOrderPage page, IOrderOperations operations, IOrderDocuments documents, ISettingsModule settings, IAfterSalesModule afterSales)
     {
@@ -183,13 +186,37 @@ public abstract class OrderPageModel : PageModel
             return root.Denial ?? AccessDenial.NotFound();
         }
 
-        // The reason of a return from an operation screen (07 6.3.3; K-1170 (1), (4)): said in the operations' place over the order as it is now (04 5.17.11, 5.18.11, 5.19.10).
-        ReasonText = OrderScreenTexts.ReasonOf(NoticeParameter.Read(Request, NoticeKind.Reason));
         return await LoadAsync(orderId, ct) ? Page() : AccessDenial.NotFound();
     }
 
-    /// <summary>The reason an operation screen sent the customer back with, in the operations' place; null when the request carried none.</summary>
-    public string? ReasonText { get; private set; }
+    /// <summary>
+    /// The validation filter answers a form whose fields break their rules itself, 422 without the handler (09 3.4 item 3; UC-35's IBAN format): the page it shows again still needs the
+    /// root's check and the order, and the refused field its message.
+    /// </summary>
+    public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        PageHandlerExecutedContext executed = await next();
+        if (_loaded || executed.Exception is not null || executed.Result is not PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
+        {
+            return;
+        }
+
+        OrderRootResult root = await ResolveAsync(HttpContext.RequestAborted);
+        if (root.OrderId is not Guid orderId || !await LoadAsync(orderId, HttpContext.RequestAborted))
+        {
+            executed.Result = root.Denial ?? AccessDenial.NotFound();
+            return;
+        }
+
+        if (context.HandlerArguments.Values.OfType<SaveRefundIbanInput>().FirstOrDefault() is { } input)
+        {
+            IsIbanRefused = true;
+            RefusedIbanItemId = input.OrderItemId;
+            SentIban = input.Iban;
+        }
+    }
 
     /// <summary>
     /// UC-36 (07 4.16.3): the root first (404 like the GET), then the item - a digital item of this order, else 404 (07 2.3.3) - then the module's write in one transaction. Issued: 303
@@ -241,11 +268,114 @@ public abstract class OrderPageModel : PageModel
         return FormResults.Redisplay(this);
     }
 
+    /// <summary>
+    /// UC-35 (07 4.16.2): the root first (404 like the GET), then the item - an item not of this order is 404 (07 2.3.3) - then the module's write in one transaction. Saved: 303 to the root
+    /// with "Kaydedildi" (the result stands in the field). A value that fails format or check digits, or a field that is not open now, is 422 with the field's message; no e-mail (K-710).
+    /// </summary>
+    [GatedOperation]
+    public async Task<IActionResult> OnPostSaveRefundIbanAsync(SaveRefundIbanInput input, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        OrderRootResult root = await ResolveAsync(ct);
+        if (root.OrderId is not Guid orderId)
+        {
+            return root.Denial ?? AccessDenial.NotFound();
+        }
+
+        if (string.IsNullOrWhiteSpace(input.Iban))
+        {
+            ModelState.AddFieldError(nameof(SaveRefundIbanInput.Iban), FieldCodes.FieldRequired);
+            return await RedisplayIbanAsync(orderId, input, ct);
+        }
+
+        CustomerOperationResult? outcome = null;
+        ICustomerOperations customer = HttpContext.RequestServices.GetRequiredService<ICustomerOperations>();
+        OperationRunner runner = HttpContext.RequestServices.GetRequiredService<OperationRunner>();
+        GatedOperationResult result = await runner.RunAsync(
+            async stepCt =>
+            {
+                outcome = await customer.SaveRefundIbanAsync(orderId, input.OrderItemId, input.Iban, stepCt);
+                return outcome.Gate;
+            },
+            ct);
+        if (!result.IsRejected)
+        {
+            return FormResults.SeeOther(RootPath, NoticeCode.Saved);
+        }
+
+        switch (outcome?.Outcome)
+        {
+            case CustomerOperationOutcome.NotFound:
+                return AccessDenial.NotFound();
+            case CustomerOperationOutcome.InvalidIban:
+                ModelState.AddFieldError(nameof(SaveRefundIbanInput.Iban), FieldCodes.InvalidIban);
+                break;
+            default:
+                // The field closed meanwhile - the refund was processed or the request is gone (07 4.16.2: 422, 8.1.3); UC-35's code for a field that is not open (07 6.2.4).
+                HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.RefundIbanNotRequested);
+                ModelState.AddModelError(string.Empty, IbanFieldClosedText);
+                break;
+        }
+
+        return await RedisplayIbanAsync(orderId, input, ct);
+    }
+
+    /// <summary>The 422 message when the IBAN field is no longer open (07 4.16.2): the refund was processed or the request was closed meanwhile.</summary>
+    public const string IbanFieldClosedText = "Bu IBAN alanı artık açık değil; geri ödeme işlenmiş ya da istek kapanmış olabilir. Siparişin güncel hâli aşağıda.";
+
+    /// <summary>The field whose save was refused (the 422 page draws its message there) and the value as typed.</summary>
+    public Guid? RefusedIbanItemId { get; private set; }
+
+    public string? SentIban { get; private set; }
+
+    public bool IsIbanRefused { get; private set; }
+
+    private async Task<IActionResult> RedisplayIbanAsync(Guid orderId, SaveRefundIbanInput input, CancellationToken ct)
+    {
+        if (!await LoadAsync(orderId, ct))
+        {
+            return AccessDenial.NotFound();
+        }
+
+        IsIbanRefused = true;
+        RefusedIbanItemId = input.OrderItemId;
+        SentIban = input.Iban;
+        return FormResults.Redisplay(this);
+    }
+
+    /// <summary>The open IBAN fields of the order (04 5.16.12): the item's field on its row, the late payment's itemless field in "müşteriden beklenen" (D-1194).</summary>
+    public IReadOnlyList<RefundIbanFieldView> RefundIbanFields { get; private set; } = [];
+
+    /// <summary>The reason a screen of the order returned with (07 4.16.1; K-1170 (1), (4)), said in the operations' place.</summary>
+    public string? OperationReasonText { get; private set; }
+
+    /// <summary>The short-lived "Kaydedildi" of UC-35 (07 6.3.1).</summary>
+    public string? SavedText { get; private set; }
+
+    /// <summary>The IBAN field of a place with the 422 message bound when it was the refused one.</summary>
+    public IbanFieldView? IbanFieldOf(RefundIbanFieldView field)
+    {
+        ArgumentNullException.ThrowIfNull(field);
+        // On the card line an IBAN exists only through one of the two exceptions (04 2.12.3.1): its correction keeps the exception's field.
+        IbanOpening opening = field.Reason == RefundIbanRequestReason.CardRefundFailed || (field.IsCorrection && Detail.PaymentMethod == PaymentMethod.Card) ? IbanOpening.CardRefundNotRealized
+            : field.OrderItemId is null && !field.IsCorrection ? IbanOpening.LatePayment
+            : IbanOpening.Standard;
+        bool refused = IsIbanRefused && RefusedIbanItemId == field.OrderItemId;
+        IbanFieldView? view = Components.IbanFields.Create(
+            IbanFieldPlace.OrderPage,
+            Detail.PaymentMethod,
+            opening,
+            nameof(SaveRefundIbanInput.Iban),
+            refused ? SentIban : field.Iban is { } stored ? DisplayFormat.Iban(stored) : null);
+        return view is null || !refused ? view : view with { Field = Fields.Bind(view.Field, FormErrorSummary.From(ModelState)) };
+    }
+
     /// <summary>Finds the order of the root: the order's id, or the denial the root answers with (302 to the sign-in or the one 404).</summary>
     protected abstract Task<OrderRootResult> ResolveAsync(CancellationToken ct);
 
     private async Task<bool> LoadAsync(Guid orderId, CancellationToken ct)
     {
+        _loaded = true;
         OrderPageSummary? summary = await _ordering.GetOrderPageSummaryAsync(orderId, ct);
         OrderPageDetail? detail = await _page.ReadAsync(orderId, ct);
         OrderOperationsView? operations = await _operations.ReadAsync(orderId, ActorKind.Buyer, ct);
@@ -265,6 +395,10 @@ public abstract class OrderPageModel : PageModel
         ScreenLinks = OrderScreenLink.From(operations, RootPath);
         _records = await _afterSales.ListItemRecordsAsync([.. detail.Items.Select(i => i.OrderItemId)], ct);
         _provinces = _records.Any(r => r.ReturnAddress is not null) ? await _settings.GetProvincesAsync(ct) : [];
+        RefundIbanFields = await HttpContext.RequestServices.GetRequiredService<ICustomerOperations>().ReadRefundIbanFieldsAsync(orderId, ct);
+        // The reason of a return from an operation screen (07 6.3.3; K-1170 (1), (4)): one home of the words for E-17, E-18 and E-19 (04 5.17.11, 5.18.11, 5.19.10).
+        OperationReasonText = OrderScreenTexts.ReasonOf(NoticeParameter.Read(Request, NoticeKind.Reason));
+        SavedText = NoticeParameter.Read(Request, NoticeKind.ShortLived) is { } saved && NoticeTexts.TryShortLived(saved, out string? text) ? text : null;
         return true;
     }
 }
@@ -352,4 +486,14 @@ public sealed record OrderScreenLink(string Text, string Href)
 public sealed class DownloadDigitalFileInput : IFormInput
 {
     public Guid OrderItemId { get; set; }
+}
+
+/// <summary>UC-35's form (07 5): the IBAN (blanks ignored; 07 2.9.5) and the item - empty on the late payment's itemless refund (06 4.29; K-1075).</summary>
+public sealed class SaveRefundIbanInput : IFormInput
+{
+    [System.ComponentModel.DataAnnotations.Display(Name = Components.IbanFields.Label)]
+    [InvalidIban]
+    public string Iban { get; set; } = string.Empty;
+
+    public Guid? OrderItemId { get; set; }
 }

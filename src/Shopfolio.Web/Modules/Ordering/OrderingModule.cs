@@ -59,6 +59,9 @@ internal sealed class OrderingModule : IOrderingModule
     public Task<SalesPeriodFacts> ReadSalesPeriodAsync(DateTimeOffset periodStart, DateTimeOffset periodEnd, DateTimeOffset now, CancellationToken ct) =>
         new SalesPeriodReader(_db).ReadAsync(periodStart, periodEnd, now, ct);
 
+    public Task<CustomerOrderPage> ListCustomerOrdersAsync(Guid customerId, int page, CancellationToken ct) =>
+        new CustomerOrderReader(_db).ListAsync(customerId, page, ct);
+
     public Task<IReadOnlyList<OrderOfItem>> FindPaidOrdersOfItemsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct) =>
         new SalesPeriodReader(_db).FindPaidOrdersOfItemsAsync(orderItemIds, ct);
 
@@ -455,6 +458,7 @@ internal static class OrderingModuleRegistration
         // The operation decision (T323; 03 1.11): the forty-one operations in one table; the screen reads it and every POST asks it again.
         services.AddScoped<OrderOperations>();
         services.AddScoped<IOrderOperations>(provider => provider.GetRequiredService<OrderOperations>());
+        services.AddScoped<ICustomerOperations, CustomerOperations>();
         // The lists of the customer's order page (T511; 04 5.16.3): read from the frozen columns, the open quantity from the decision above.
         services.AddScoped<IOrderPage, OrderPageReader>();
         services.AddDisposalPart<GuestCartDisposalPart>();

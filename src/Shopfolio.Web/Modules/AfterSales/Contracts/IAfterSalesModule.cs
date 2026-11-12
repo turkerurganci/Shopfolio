@@ -243,6 +243,23 @@ public interface IAfterSalesModule
     /// <summary>The open IBAN request with the given id, or null when it is fulfilled, closed or gone. A plain read; the caller checks that its item or refund is the order's.</summary>
     Task<OpenRefundIbanRequest?> FindOpenRefundIbanRequestAsync(Guid requestId, CancellationToken ct);
 
+    /// <summary>
+    /// The order page's IBAN fields (T512; 04 5.16.12; 02 7.4.5): the open requests of <paramref name="orderItemIds"/>, the open itemless requests of a late payment's
+    /// refund (K-1075; the caller keeps those whose refund is the order's) and the order's IBANs still on file - an IBAN lives only while a pending refund uses it, so
+    /// one on file is not processed yet and is corrected in place (K-575). A plain read.
+    /// </summary>
+    Task<IReadOnlyList<RefundIbanField>> ListRefundIbanFieldsAsync(Guid orderId, IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
+    /// Whether a cancellation of <paramref name="selectedUnits"/> before the carrier took the order pays the shipping fee back (T512; 02 7.2.9; 04 5.17.5; K-789): the
+    /// shipping fee rule's trigger (1) over the order's physical items' open units, read for the screen before the last step so the page works it out not itself (09 3.4
+    /// item 1). A pure answer; reads and writes nothing.
+    /// </summary>
+    bool CancellationRefundsShippingFee(IReadOnlyDictionary<Guid, int> openPhysicalUnits, IReadOnlyDictionary<Guid, int> selectedUnits);
+
+    /// <summary>The refund period of a cancellation and of a late delivery termination in calendar days (T512; 02 4.2 Z-17; 02 7.2.3): the period rule's own value.</summary>
+    int RefundPeriodDays { get; }
+
     /// <summary>True when an IBAN request on the refund was fulfilled: the customer chose the transfer path, so the card refund is not retried (02 7.2.8; K-569).</summary>
     Task<bool> IsRefundIbanEnteredForRefundAsync(Guid refundId, CancellationToken ct);
 
@@ -337,6 +354,13 @@ public interface IAfterSalesModule
     Task<IReadOnlySet<Guid>> FindRefundsAwaitingIbanAsync(IReadOnlyCollection<RefundOfItem> refunds, CancellationToken ct);
 
     /// <summary>
+    /// The open IBAN requests - neither fulfilled nor closed - as the panel home's "Müşteriden beklenenler" list reads them (T521; 02 10.6.1; 04 2.6.2; K-716): the item or the refund the request is on
+    /// and the last day of the refund period when the line has one. The period belongs to the cancellation, the removal and the withdrawal lines; the defect remedy, the amount-based and the late payment's
+    /// lines run without one. A plain read; nothing is written.
+    /// </summary>
+    Task<IReadOnlyList<AwaitingIbanLine>> ListAwaitingIbanLinesAsync(CancellationToken ct);
+
+    /// <summary>
     /// The firm's removal record (06 4.23; 02 10.4.3; T386): the unit rule of the cancellation (at most the units open to an operation), then one row with the administrator
     /// and no reason; the amounts set aside as on the cancellation (02 7.1.7). Whether the operation is open is the order module's decision (03 1.11.22); the writer joins the
     /// caller's transaction under the order's row lock and saves nothing.
@@ -362,6 +386,9 @@ public interface IAfterSalesModule
     /// </summary>
     Task<(ItemRecordRefusal? Refusal, DateOnly? OldDate)> CorrectArrivalDateAsync(ItemRecordSubject subject, Guid recordId, DateOnly arrivalDate, CancellationToken ct);
 }
+
+/// <summary>One open IBAN request of the panel home's list (T521; 04 9.3.6): the item it is on (null on the refund of a late payment), the refund it names (null before a refund is linked), the reason it was opened for, the instant it was opened, the last day of its refund period (null when it has none).</summary>
+public sealed record AwaitingIbanLine(Guid? OrderItemId, Guid? RefundId, RefundIbanRequestReason Reason, DateTimeOffset CreatedAt, DateOnly? RefundLastDay);
 
 /// <summary>A refund and the item it is for, null when it is for no one item (T382): the pair the IBAN wait is read by.</summary>
 public sealed record RefundOfItem(Guid RefundId, Guid? OrderItemId);

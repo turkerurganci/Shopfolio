@@ -428,6 +428,18 @@
     margin-block: 0 var(--space-2);
 }
 
+.confirm__items {
+    margin-block: 0 var(--space-3);
+    padding-inline-start: var(--space-4);
+    overflow-wrap: anywhere;
+}
+
+/* E-17's quantity field opens on the item's row once the item is chosen (04 2.12.1.8; K-795); an unchosen row is not sent, and without :has() the field stays open. */
+.operation-screen__item:has(.operation-screen__choice input:not(:checked)) > .field,
+.operation-screen__item:has(.operation-screen__choice input:not(:checked)) > .operation-screen__limit {
+    display: none;
+}
+
 .confirm__buttons {
     display: flex;
     flex-wrap: wrap;

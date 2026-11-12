@@ -115,7 +115,7 @@ internal sealed partial class OrderTransitions
     }
 
     /// <summary>The customer's cancellation row of 03 1.11 the item's type names: 1.11.2 physical, 1.11.3 service, 1.11.4 digital (always closed).</summary>
-    private static OrderOperation CancellationOperationOf(ProductType type) => type switch
+    internal static OrderOperation CancellationOperationOf(ProductType type) => type switch
     {
         ProductType.Physical => OrderOperation.CancelPhysicalItem,
         ProductType.Service => OrderOperation.CancelServiceItem,

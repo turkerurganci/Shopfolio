@@ -93,7 +93,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
+| Doğrulama durumu (tur 1) | ✗ FAIL (2026-11-12; dal ucu `43fad73f`, birleşik ağaç origin/main `bc915800` ile çakışmasız) — build, format, Unit 7395/7395, Integration TAM 3922/3922, dal CI yeşil |
+| Bulgu sayısı (tur 1) | 3 (1 ORTA, 2 DÜŞÜK; hepsi S1) + 1 K-notu |
+| Düzeltme gerekli mi | Evet — B1 (ORTA): onaysız POST'un 200 son adımı seçilen kalemleri adıyla ve adetle yazmıyor, yalnız sonuç cümlesi (`04` 5.17.6, 2.4.5, 5.17.15; `07` 4.17.3; K-795; kriter 4). B2 (DÜŞÜK): `AfterSalesModule.ListRefundIbanFieldsAsync` IBAN başına döngüde dört sorgu (`09 §20` m.4). B3 (DÜŞÜK): alan kapalıyken 422 ret satırının kodu `OperationNotAvailable`, `07 §6.2.4` UC-35 `RefundIbanNotRequested` ister. K1: onaysız kalem iptalinde aşan/eski adet son adımı gösteriyor, ret ancak onaylı gönderimde |
+| Yapım raporu karşılaştırması (tur 1) | 3 uyuşmazlık: kriter 4 ✓ sayılmış (B1); öz denetimin "Döngüde sorgu ✓" satırı B2'yi atlamış; VAL-A490 ✓ sayılmış (B3) |
 
 ## Altyapı Değişiklikleri
 

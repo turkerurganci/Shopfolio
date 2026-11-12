@@ -278,12 +278,12 @@ internal sealed class MembershipModule : IMembershipModule
         {
             // A blocked attempt is written as a failed one: the record keeps every attempt (02 3.13.19).
             await _logins.RecordAsync(ipAddress, AccountType.Customer, email, LoginOutcome.Failed, ct);
-            return CredentialCheckResult.Refused(check.Outcome switch
+            return check.Outcome switch
             {
-                VerdictKind.Blocked => ErrorCode.SignInLimitExceeded,
-                VerdictKind.NotEligible => ErrorCode.EmailNotVerified,
-                _ => ErrorCode.InvalidCredentials,
-            });
+                VerdictKind.Blocked => CredentialCheckResult.Refused(ErrorCode.SignInLimitExceeded),
+                VerdictKind.NotEligible => CredentialCheckResult.Refused(ErrorCode.EmailNotVerified, check.AccountId),
+                _ => CredentialCheckResult.Refused(ErrorCode.InvalidCredentials),
+            };
         }
 
         await _logins.RecordAsync(ipAddress, AccountType.Customer, email, LoginOutcome.Succeeded, ct);

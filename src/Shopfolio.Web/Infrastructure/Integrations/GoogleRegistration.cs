@@ -20,6 +20,7 @@ internal static class GoogleRegistration
             new OpenIdConnectConfigurationRetriever(),
             new GoogleDocumentRetriever(provider.GetRequiredService<IHttpClientFactory>(), provider.GetRequiredService<TimeProvider>())));
         services.AddSingleton<IGoogleIdentityGateway, GoogleIdentityGateway>();
+        services.AddSingleton<GoogleSignInFlow>();
         return services;
     }
 }

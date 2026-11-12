@@ -84,6 +84,19 @@ internal static class LockSequence
         }
     }
 
+    /// <summary>
+    /// Takes a lock off the record once its row was deleted in the same transaction (T515: a pending registration is replaced by the account of the Google sign-in, whose own row lock follows).
+    /// Nothing can lock a deleted row, so the order rule has nothing left to protect for it; the database keeps the lock to the transaction's end.
+    /// </summary>
+    public static void Forget(DbContext context, LockKind kind, Guid? key)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        if (context.Database.CurrentTransaction?.TransactionId is { } transactionId && States.TryGetValue(context, out State? state) && state.TransactionId == transactionId)
+        {
+            state.Taken.RemoveAll(t => t.Kind == kind && t.Key == key);
+        }
+    }
+
     /// <summary>True when the context's open transaction has already taken this lock (so it is not taken twice).</summary>
     public static bool Holds(DbContext context, LockKind kind, Guid? key)
     {

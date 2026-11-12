@@ -54,6 +54,9 @@ internal sealed class NotificationsModule : INotificationsModule
 
     public Task<bool> OrderHasUndeliveredMarkAsync(Guid orderId, CancellationToken ct) => DispatchMarks.HasMarkAsync(_db, orderId, ct);
 
+    public Task<IReadOnlySet<Guid>> FindClaimsWithUndeliveredMarkAsync(IReadOnlyCollection<Guid> claimIds, CancellationToken ct) =>
+        DispatchMarks.ClaimsWithMarkAsync(_db, claimIds, ct);
+
     public Task<bool> ClaimHasUndeliveredMarkAsync(DispatchRelatedRecordType recordType, Guid recordId, CancellationToken ct) =>
         DispatchMarks.ClaimHasMarkAsync(_db, recordType, recordId, ct);
 

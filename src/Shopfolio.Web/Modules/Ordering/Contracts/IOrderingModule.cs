@@ -105,6 +105,12 @@ public interface IOrderingModule
     Task<IReadOnlyList<OrderOfItem>> FindOrdersOfItemsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
 
     /// <summary>
+    /// What names each of the given items and its order in the panel's requests list (T532; 04 9.10.4): the order's id and number, the product name as the order recorded it and the item's option values.
+    /// One read for all the items, whatever their number; an item that does not exist is not in the answer. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<OrderItemLabel>> FindItemLabelsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
     /// The unpaid orders that failed before <paramref name="failedBefore"/> (06 9.1 Z-41), except the ones in <paramref name="exclude"/>, at most
     /// <paramref name="max"/>: the disposal part of a record that is kept ten years from the moment the order failed asks for them page by page.
     /// </summary>
@@ -311,6 +317,9 @@ public sealed record OrderForPayment(Guid OrderId, decimal Total, Shopfolio.Modu
 
 /// <summary>The order of an order item.</summary>
 public sealed record OrderOfItem(Guid OrderItemId, Guid OrderId);
+
+/// <summary>The labels of an order item for a list that names it (T532): the item's order and its number, the product name the order recorded and the option values the item was bought with (06 4.18).</summary>
+public sealed record OrderItemLabel(Guid OrderItemId, Guid OrderId, string OrderNumber, string ProductName, string? FirstOptionValue, string? SecondOptionValue);
 
 /// <summary>An order that holds units of a variant's stock or capacity: its id, its number and the reserved units.</summary>
 public sealed record ReservationHolder(Guid OrderId, string OrderNumber, int Quantity);

@@ -157,8 +157,15 @@ public sealed record ListSearch(ListKind Kind, string ListRoot, string Label, st
 /// <summary>A column of a panel table (04 2.13.4): the title and whether it is primary - the primary columns stay in the row on the medium class; the secondary ones go under it.</summary>
 public sealed record PanelTableColumn(string Title, bool IsPrimary);
 
-/// <summary>A row of a panel table: the text of every cell in the column order, and the address of the record the first primary cell links to (null for a row that opens nothing).</summary>
-public sealed record PanelTableRow(IReadOnlyList<string> Cells, string? RecordPath);
+/// <summary>
+/// A row of a panel table: the text of every cell in the column order, and the address of the record the first primary cell links to (null for a row that opens nothing). A cell that stands for a status
+/// is drawn as its badge (04 2.5.1) when <paramref name="Badges"/> names the column's index; the cell's text stays the badge's text, so the table is complete without the badge's tone (02 6.1.6).
+/// </summary>
+public sealed record PanelTableRow(IReadOnlyList<string> Cells, string? RecordPath, IReadOnlyDictionary<int, Shopfolio.Pages.Components.Badge>? Badges = null)
+{
+    /// <summary>The badge the cell at <paramref name="column"/> is drawn as, or null for a plain text cell.</summary>
+    public Shopfolio.Pages.Components.Badge? BadgeAt(int column) => Badges is not null && Badges.TryGetValue(column, out Shopfolio.Pages.Components.Badge? badge) ? badge : null;
+}
 
 /// <summary>
 /// A panel list (04 2.13.4; T545): a table on the wide class, the secondary columns under the row on the medium class and a card list on the narrow class - one markup, three layouts by the style
@@ -180,6 +187,11 @@ public sealed record PanelTable
         if (rows.Any(r => r.Cells.Count != columns.Count))
         {
             throw new ArgumentException("Every row has one cell for every column.", nameof(rows));
+        }
+
+        if (rows.Any(r => r.Badges is not null && r.Badges.Keys.Any(k => k < 0 || k >= columns.Count)))
+        {
+            throw new ArgumentException("A badge belongs to a column of the table.", nameof(rows));
         }
 
         Caption = caption;

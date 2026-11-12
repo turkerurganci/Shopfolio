@@ -1,3 +1,4 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @using Shopfolio.Pages.Lists
 @model PanelTable
 @* The panel list (04 2.13.4, 2.13.6; T545): one table markup, three layouts by the style sheet - a table on the wide class, the secondary columns under the row on the medium class, a card list on the
@@ -23,6 +24,10 @@
                         @if (i == Model.LinkColumn && row.RecordPath is not null)
                         {
                             <a href="@row.RecordPath">@row.Cells[i]</a>
+                        }
+                        else if (row.BadgeAt(i) is { } badge)
+                        {
+                            <partial name="_Badge" model="badge" />
                         }
                         else
                         {

@@ -1,0 +1,54 @@
+@page "/panel/talepler"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Panel
+@model RequestsModel
+@*
+    E-38, the requests list (T532; 04 9.10; 07 UC-93): the contact requests and the defect claims in one list, newest first, with the kind and status filters (several values each) and the page navigation. There is no
+    search, no topic filter, no sort and no operation of its own (04 9.10.7, 9.10.9). A row opens the request; the list's address travels in returnUrl. No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Talepler";
+}
+<h1>Talepler</h1>
+@if (Model.Chips.Count > 0)
+{
+    <ul class="request-filter__chosen" id="request-filter-chosen" aria-label="Seçili süzgeçler">
+        @foreach (RequestFilterChip chip in Model.Chips)
+        {
+            <li class="request-filter__chip">
+                <span class="request-filter__chip-label">@chip.Label</span>
+                <a class="request-filter__chip-remove" href="@chip.RemovePath" aria-label="@chip.Label süzgecini kaldır">Kaldır</a>
+            </li>
+        }
+    </ul>
+}
+<details class="request-filter" open="@Model.IsFilterApplied">
+    <summary class="request-filter__summary">Süzgeçler</summary>
+    <form class="request-filter__form" method="get" action="@Model.ListRoot">
+        <fieldset class="request-filter__group">
+            <legend>Tür</legend>
+            @foreach (RequestFilterOption option in Model.TypeOptions)
+            {
+                <label class="request-filter__option"><input type="checkbox" name="requestType" value="@option.Value" checked="@option.IsSelected" /> @option.Label</label>
+            }
+        </fieldset>
+        <fieldset class="request-filter__group">
+            <legend>Durum</legend>
+            @foreach (RequestFilterOption option in Model.StatusOptions)
+            {
+                <label class="request-filter__option"><input type="checkbox" name="requestStatus" value="@option.Value" checked="@option.IsSelected" /> @option.Label</label>
+            }
+        </fieldset>
+        <button class="button button--secondary" type="submit">Süz</button>
+    </form>
+</details>
+@if (Model.Table is not null)
+{
+    <partial name="_PanelTable" model="Model.Table" />
+    <partial name="_Pager" model="Model.Pager" />
+}
+else if (Model.Empty is not null)
+{
+    <partial name="_EmptyRow" model="Model.Empty" />
+}

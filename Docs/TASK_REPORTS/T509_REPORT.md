@@ -15,12 +15,13 @@
 - Onay `05 §4.2.2`'nin tek işleminde (`ITransactionRunner.RunAsync(work, PlaceOrderRequest.RetryOnUniqueIndexes, ct)`; D-563 tek ev); sonuç eşlemesi: teyit 303, 422 (eksik alan/kutu, il, özet farkı, kapanan satış, yöntem), 429 (L-7, L-8; adressiz istek de nötr 429 — D-805), 404 (yabancı defter girdisi), 303'ler (kalem yok / asgari tutar → `/sepet`, oluşmuş sipariş → teyit, belirsiz sonuç → `IOutcomeTarget` sonuç ekranı `[OutcomeUncertain("UC-27")]`, kapanan oturum → giriş).
 - Modül yüzü: `ICheckout` (okuma, onay, `MarkPaymentUnavailableAsync`), `OrderConfirmation.ReadStepAsync` (kilitli okuma, kupon kararı, önceki ödenmemiş sipariş), `SummaryChanges` (değişiklik satırları), `Carts.MarkPaymentUnavailableAsync` (UC-26).
 - Bu tur: cayma özetinde iki fiziksel cümle yalnız fiziksel kalemde (D-743); hesabı silinen oturumun siparişi misafir yoluna düşer ve doğrulanmış hesaba bağlanır (D-385); hedefi T509 olan backlog kalemleri kapatıldı ya da gerekçeyle ileri atıldı.
+- Tarama kuralları gevşetilmeden kod kurala uyduruldu: enum başına dosya (`PlaceOrderOutcome.cs`, `SummaryChangeKind.cs` + `SummaryChange.cs`), iki enum saklanmayan değer listesinde (`ApplicationEnums.NotStored`; sütun değil, sonuç kodu ve okuma biçimi), form `asp-antiforgery` + sayfa yoluyla `action`, gerekçesiz `!` gerekçe aldı, `07 §5.2` kalın alan adları ve dört kutu alanı `[SpecAssignedName]`, erişim anahtarı parametresi varsayılansız (ölü `OrderConfirmationResult.Placed` silindi), KK2 testi iddiayı testin kendisinde yapar.
 
 ## Etkilenen Modüller / Dosyalar
 
 - `src/Shopfolio.Web/Pages/Storefront/Checkout.cshtml(.cs)`, `CheckoutForms.cs`, `PlaceOrderInput.cs`
-- `src/Shopfolio.Web/Modules/Ordering/` (`Checkout.cs`, `Contracts/CheckoutContracts.cs`, `Contracts/SummaryChanges.cs`, `OrderConfirmation.cs`, `OrderIdentifiers.cs`, `Carts.cs`, `ConfirmationStepRules.cs`, `OrderingModule.cs`; `SummaryComparison.cs` kaldırıldı), `Modules/Membership/` (`IMembershipModule`, `MembershipModule`)
-- Testler: `tests/Shopfolio.IntegrationTests/Web/CheckoutPageTests.cs` + `.Helpers.cs`, `Web/StorefrontFrameTests.cs`, `Model/MembershipTests.cs`, `Ordering/MainFlowTests.cs`, `Ordering/OrderConfirmationTests.cs`, `OutcomeUncertainConsistencyTests.cs`; `tests/Shopfolio.UnitTests/Pages/CheckoutFormsTests.cs`, `Ordering/ConfirmationStepTests.cs`
+- `src/Shopfolio.Web/Modules/Ordering/` (`Checkout.cs`, `Contracts/CheckoutContracts.cs`, `Contracts/PlaceOrderOutcome.cs`, `Contracts/SummaryChangeKind.cs`, `Contracts/SummaryChange.cs`, `OrderConfirmation.cs`, `OrderIdentifiers.cs`, `Carts.cs`, `ConfirmationStepRules.cs`, `OrderingModule.cs`; `SummaryComparison.cs` kaldırıldı), `Modules/Membership/` (`IMembershipModule`, `MembershipModule`)
+- Testler: `tests/Shopfolio.IntegrationTests/Web/CheckoutPageTests.cs` + `.Helpers.cs`, `Web/StorefrontFrameTests.cs`, `Model/MembershipTests.cs`, `Ordering/MainFlowTests.cs`, `Ordering/OrderConfirmationTests.cs`, `OutcomeUncertainConsistencyTests.cs`; `tests/Shopfolio.UnitTests/Pages/CheckoutFormsTests.cs`, `Ordering/ConfirmationStepTests.cs`, `Support/ApplicationEnums.cs`
 - Kayıt: `Docs/DEFERRED_BACKLOG.md` (yerinde kapatma/ileri atma), `Docs/DEFERRED_BACKLOG.d/T508.md`, `T537.md`, `T544.md`, `T509.md` (D-1333, D-1334), `Docs/STATUS_CHANGELOG.d/T509.md`, `Docs/IMPLEMENTATION_STATUS.md` T509 satırı
 
 ## Kabul Kriterleri Kontrolü
@@ -67,11 +68,17 @@
 | Sık FAIL 5: belge kuralını değiştiren 09 metni karar kaydısız | ✓ | `09` değişmedi |
 | Hedefi T509 olan backlog kalemleri | ✓ | Kapandı: D-385, D-563, D-626, D-729, D-743, D-785, D-805, D-807; T509 payı kapandı: D-254, D-437, D-801, D-1077, D-1225 (D-1080: `VAL-E061` doğrulamanın); ileri atıldı (gerekçeli): D-435, D-650, D-769, D-853, D-1189, D-1190, D-1245, D-1246 → F5 gate; D-1127 → T510 |
 | Modül kurucusuna yeni bağımlılık, elle kuran test düzenekleri | ✓ | `Checkout` kurucusuna `Carts`; Integration TAM ile denetlenir (Test Sonuçları) |
+| `09 §25` doküman uyumu: yeni adlar `07`/`06`'dan; diff yalnız görev; yeni ayar/sabit yok | ✓ | Model alanları `07 §5.2` (sapma ⚠ (a), D-1333); `appsettings`/`.env.example` değişmedi; diff `Pages/Storefront`, `Modules/Ordering`, `Modules/Membership` ve testlerle sınırlı |
+| `09 §25` mimari: modül sınırı, `SaveChanges` yok, tek işlev, `!`, `TimeProvider` | ✓ | Sayfa yalnız `Contracts`'a başvurur; modül diff'inde `SaveChanges`/işlem açma yok (işlem sayfada `RunAsync`); `OrderConfirmation` zamanı `TimeProvider`'dan; gerekçesiz `!` taraması yeşil (Unit TAM) |
+| `09 §25` hata katmanı ve ret kaydı | ✓ | Adlı 422 retleri `RejectionLog.Rejected(code)` (`RefuseAsync`, `ApplyCoupon`); belirsiz sonuç `[OutcomeUncertain("UC-27")]`; geniş `catch` yok |
+| `09 §25` `[GatedOperation]` | — | Uygulanmaz: ödeme adımı `OrderOperationCatalog` işlemi değil (kapı panel sipariş işlemlerinin); geçiş kapısı `ConfirmationStepRules` (KK2) |
+| `09 §25` eşzamanlılık, para, veri/göç, sayfalı liste | ✓ | Yeni kilit yok: onay var olan sepet kilidini `Carts.OpenAsync` ile alır (KK10 testi); yeni para hesabı yok, tutarlar var olan sepet/sipariş hesabından; göç, yeni tablo, yeni sayfalı liste, yeni enum değeri yok (iki yeni enum saklanmaz, `ApplicationEnums.NotStored`) |
+| `09 §25` güvenlik: `NoStore`, sahtecilik, hız sınırı, anahtar `SecretKey`'den | ✓ | `[NoStore]` + noindex; form `asp-antiforgery` (`Forgery` taraması yeşil); L-6/L-7/L-8; `ConfirmationKeys.NewKey()` → `SecretKey.Create()` |
 | Güvenlik taraması | ✓ | Beş POST sahtecilik süzgecinden geçer; yabancı defter girdisi 404 (sahiplik); çerez yalnız belgeli alanlar, parmak izi e-posta/adres taşımaz ve sunucu özeti yeniden hesaplar; L-6/L-7/L-8 429 nötr mesaj; sayfa `[NoStore]` + noindex |
 
 ### ⚠ Kararlar (kurala en uygun seçenekle verildi)
 
-- (a) `07 §5.2` `AcceptedCheckboxes` yerine T544 bileşeninin dört kutu adı (`AcceptPreInformation`, `AcceptDistanceSales`, `AcceptDigital`, `AcceptService`) kullanıldı → D-1333.
+- (a) `07 §5.2` `AcceptedCheckboxes` yerine T544 bileşeninin dört kutu adı (`AcceptPreInformation`, `AcceptDistanceSales`, `AcceptDigital`, `AcceptService`) kullanıldı → D-1333. Model bağlama adı taraması için bu dört alan ve `07 §5.2`'de kalın yazılan `SaveToAddressBook`, `IsBillingSameAsShipping`, `SummaryFingerprint`, `LeaveTarget` `[SpecAssignedName]` ile işaretlendi; kutu adları `07`'nin adı değil, bileşenin adıdır — D-1333 kapanınca işaret de kalkar ya da `07` adına döner (`PlaceOrderInput` sınıf özetinde not).
 - (b) Çereze `AddressBookId` yazılıyor (teslimat adresi alanı sayıldı).
 - (c) `SavedAddressName` `07`'de yok → boş verilir, defter adı alıcı adı olur (D-435 F5 gate'e).
 - (d) Oturum kapandı tespiti: formda `ContactEmail` anahtarı yok ve üye yok.
@@ -85,10 +92,10 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Integration (T509 sınıfları) | ✓ | `--filter-class "Shopfolio.IntegrationTests.Web.CheckoutPageTests"`, `"*OrderAccessTests"`, `"*OutcomeUncertainConsistencyTests"`, `"*MembershipTests"` | 17/17; üçü birlikte 35/35; Membership 137/137 |
-| Unit | ⏳ | `dotnet test --project tests/Shopfolio.UnitTests` | *(TAM koşu sonrası yazılır)* |
+| Integration (T509 sınıfları) | ✓ | `--filter-class "Shopfolio.IntegrationTests.Web.CheckoutPageTests"`, `"*OrderAccessTests"`, `"*OutcomeUncertainConsistencyTests"`, `"*MembershipTests"` | 17/17; üçü birlikte 35/35; Membership 137/137; tarama düzeltmelerinden ve `main` birleştirmesinden sonra `CheckoutPageTests` yeniden 17/17 |
+| Unit TAM | ✓ | `dotnet test --project tests/Shopfolio.UnitTests` (`main` birleştirmesinden sonra) | 7412/7412 (önceki 7414: iki enum saklanmayan listeye girince kilit veri satırları düştü); `CheckoutFormsTests` dahil |
 | Integration TAM | ⏳ | ad alanı parçaları | *(TAM koşu sonrası yazılır)* |
-| `dotnet format` | ⏳ | `dotnet format <proje> --no-restore --verify-no-changes` (Web, Unit, Integration) | *(koşu sonrası)* |
+| `dotnet format` | ⏳ | `dotnet format <proje> --no-restore --verify-no-changes` (Web, Unit, Integration) | Üçü de temiz (çıkış 0) |
 
 ## Doğrulama
 

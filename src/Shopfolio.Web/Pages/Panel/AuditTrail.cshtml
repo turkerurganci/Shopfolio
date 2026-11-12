@@ -1,0 +1,50 @@
+@page "/panel/islem-izi"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model AuditTrailModel
+@*
+    E-52, the operation trail (T522; 04 9.23; 07 UC-106): a flat list newest first, 25 rows a page, with the date range and the administrator filters (applied together) and the page navigation. There is no
+    search, no grouping, no sort and no operation of its own; a row opens no other screen (K-822). No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "İşlem izi";
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, [AuditTrailModel.StartFieldName, AuditTrailModel.EndFieldName]);
+}
+<h1>İşlem izi</h1>
+@if (Model.Chips.Count > 0)
+{
+    <ul class="request-filter__chosen" id="audit-filter-chosen" aria-label="Seçili süzgeçler">
+        @foreach (AuditFilterChip chip in Model.Chips)
+        {
+            <li class="request-filter__chip">
+                <span class="request-filter__chip-label">@chip.Label</span>
+                <a class="request-filter__chip-remove" href="@chip.RemovePath" aria-label="@chip.Label süzgecini kaldır">Kaldır</a>
+            </li>
+        }
+    </ul>
+}
+<details class="request-filter" open="@(Model.IsFilterApplied || summary.HasContent)">
+    <summary class="request-filter__summary">Süzgeçler</summary>
+    <partial name="_FormErrorSummary" model="summary" />
+    <form class="request-filter__form" method="get" action="@Model.ListRoot">
+        <div class="form-fields">
+            @foreach (FieldView field in Model.RangeFieldViews)
+            {
+                <partial name="_Field" model="field" />
+            }
+            <partial name="_Field" model="Model.AdminField" />
+        </div>
+        <button class="button button--secondary" type="submit">Süz</button>
+    </form>
+</details>
+@if (Model.Table is not null)
+{
+    <partial name="_PanelTable" model="Model.Table" />
+    <partial name="_Pager" model="Model.Pager" />
+}
+else if (Model.Empty is not null)
+{
+    <partial name="_EmptyRow" model="Model.Empty" />
+}

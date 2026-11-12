@@ -1,0 +1,110 @@
+@page "/panel/kategoriler"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model CategoriesModel
+@*
+    E-34, the category tree (T526; 04 9.6; 07 UC-89, UC-118...UC-121): the "Yeni kategori" form, then the tree depth first - each node with its name, counts, the menu line when no published
+    product is in its branch, and its operations in its own menu: add a sub-category (not on the third level), rename, move by a select list, delete. A refusal stands in place on its node
+    (K-799). Nothing is dragged; every operation is a form and works with the keyboard (04 9.6.6, 9.6.11). No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Kategoriler";
+}
+<h1>Kategoriler</h1>
+@if (Model.Notice is not null)
+{
+    <partial name="_Message" model="Model.Notice" />
+}
+<form method="post" asp-antiforgery="true" asp-page-handler="CreateCategory" class="form category-new" id="@CategoriesModel.NewCategoryFormId" data-js="submit-once">
+    <div class="field">
+        <label class="field__label" for="category-new-name">Ad</label>
+        <input class="field__control" type="text" id="category-new-name" name="Input.Name" value="@Model.NewCategoryValue" maxlength="@ProductConstants.ShortTextMaxLength" aria-required="true"
+               aria-invalid="@(Model.NewCategoryMessage is null ? "false" : "true")" aria-describedby="@(Model.NewCategoryMessage is null ? null : Messages.FieldMessageId("category-new-name"))">
+        @if (Model.NewCategoryMessage is not null)
+        {
+            <partial name="_Message" model='Messages.ForField("category-new-name", Model.NewCategoryMessage)' />
+        }
+    </div>
+    <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(CategoriesModel.NewCategoryLabel)">@CategoriesModel.NewCategoryLabel</button>
+</form>
+@if (Model.Empty is not null)
+{
+    <partial name="_EmptyRow" model="Model.Empty" />
+}
+else
+{
+    <ul class="category-tree" id="category-tree" aria-label="Kategori ağacı">
+        @foreach (CategoryNodeView node in Model.Nodes)
+        {
+            string id = node.Id.ToString("D");
+            <li class="category-tree__node category-tree__node--level-@node.Level" id="category-@id">
+                <div class="category-tree__head">
+                    <span class="category-tree__name">@node.Name</span>
+                    <span class="category-tree__counts">@node.CountsText</span>
+                    @if (node.MenuHiddenText is not null)
+                    {
+                        <span class="category-tree__menu-hidden">@node.MenuHiddenText</span>
+                    }
+                </div>
+                @if (node.Message is not null)
+                {
+                    MessageView refusal = Messages.InPlace(MessageMeaning.Error, node.Message, "category-refusal-" + id);
+                    <partial name="_Message" model="refusal" />
+                }
+                <details class="category-tree__actions" open="@(node.Message is not null || node.RenameMessage is not null || node.ChildMessage is not null)">
+                    <summary class="category-tree__actions-label">İşlemler — @node.Name</summary>
+                    @if (node.CanAddChild)
+                    {
+                        <form method="post" asp-antiforgery="true" asp-page-handler="CreateCategory" class="form category-tree__form" data-js="submit-once">
+                            <input type="hidden" name="Input.ParentCategoryId" value="@id">
+                            <div class="field">
+                                <label class="field__label" for="category-child-@id">Alt kategorinin adı</label>
+                                <input class="field__control" type="text" id="category-child-@id" name="Input.Name" value="@node.ChildValue" maxlength="@ProductConstants.ShortTextMaxLength" aria-required="true"
+                                       aria-invalid="@(node.ChildMessage is null ? "false" : "true")" aria-describedby="@(node.ChildMessage is null ? null : Messages.FieldMessageId("category-child-" + id))">
+                                @if (node.ChildMessage is not null)
+                                {
+                                    <partial name="_Message" model='Messages.ForField("category-child-" + id, node.ChildMessage)' />
+                                }
+                            </div>
+                            <button type="submit" class="button button--secondary">@CategoriesModel.AddChildLabel</button>
+                        </form>
+                    }
+                    <form method="post" asp-antiforgery="true" asp-page-handler="RenameCategory" class="form category-tree__form" data-js="submit-once">
+                        <input type="hidden" name="Input.CategoryId" value="@id">
+                        <div class="field">
+                            <label class="field__label" for="category-name-@id">Yeni ad</label>
+                            <input class="field__control" type="text" id="category-name-@id" name="Input.Name" value="@(node.RenameValue ?? node.Name)" maxlength="@ProductConstants.ShortTextMaxLength" aria-required="true"
+                                   aria-invalid="@(node.RenameMessage is null ? "false" : "true")" aria-describedby="@(node.RenameMessage is null ? null : Messages.FieldMessageId("category-name-" + id))">
+                            @if (node.RenameMessage is not null)
+                            {
+                                <partial name="_Message" model='Messages.ForField("category-name-" + id, node.RenameMessage)' />
+                            }
+                        </div>
+                        <button type="submit" class="button button--secondary">@CategoriesModel.RenameLabel</button>
+                    </form>
+                    <form method="post" asp-antiforgery="true" asp-page-handler="MoveCategory" class="form category-tree__form" data-js="submit-once">
+                        <input type="hidden" name="Input.CategoryId" value="@id">
+                        <div class="field">
+                            <label class="field__label" for="category-parent-@id">Yeni üst kategori</label>
+                            <select class="field__control" id="category-parent-@id" name="Input.ParentCategoryId">
+                                @foreach (CategoryMoveOption option in node.MoveOptions)
+                                {
+                                    <option value="@option.Value" selected="@option.IsCurrent">@option.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" class="button button--secondary">@CategoriesModel.MoveLabel</button>
+                    </form>
+                    <form method="post" asp-antiforgery="true" asp-page-handler="DeleteCategory" class="form category-tree__form" data-js="submit-once">
+                        <input type="hidden" name="Input.CategoryId" value="@id">
+                        <button type="submit" class="button button--secondary">@CategoriesModel.DeleteLabel</button>
+                    </form>
+                </details>
+            </li>
+        }
+    </ul>
+}

@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
@@ -40,7 +41,7 @@ public sealed class SaveCouponInput : IFormInput, IValidatableObject
     [Display(Name = "Tür")]
     [FieldRequired]
     [InvalidListValue(typeof(CouponKind))]
-    public string? Kind { get; set; }
+    public string? CouponType { get; set; }
 
     [Display(Name = "Yüzde")]
     [InvalidPercentage]
@@ -72,7 +73,7 @@ public sealed class SaveCouponInput : IFormInput, IValidatableObject
     public int Version { get; set; }
 
     /// <summary>The kind as a value; null when the field is empty or no kind.</summary>
-    public CouponKind? KindValue => Enum.TryParse(Kind, ignoreCase: false, out CouponKind kind) && Enum.IsDefined(kind) ? kind : null;
+    public CouponKind? ParsedKind() => Enum.TryParse(CouponType, ignoreCase: false, out CouponKind kind) && Enum.IsDefined(kind) ? kind : null;
 
     /// <summary>
     /// The fields the kind makes required (04 7.2.6.3, 7.2.6.4; 09 3.4 item 2): the value of the chosen kind, and on a fixed amount the minimum basket amount. The order of the
@@ -80,25 +81,22 @@ public sealed class SaveCouponInput : IFormInput, IValidatableObject
     /// </summary>
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        if (KindValue == CouponKind.Percentage && Percentage is null)
+        if (ParsedKind() == CouponKind.Percentage && Percentage is null)
         {
             yield return FieldError.Result(FieldCodes.FieldRequired, nameof(Percentage));
         }
 
-        if (KindValue == CouponKind.Amount && Amount is null)
+        if (ParsedKind() == CouponKind.Amount && Amount is null)
         {
             yield return FieldError.Result(FieldCodes.FieldRequired, nameof(Amount));
         }
 
-        if (KindValue == CouponKind.Amount && MinimumBasketAmount is null)
+        if (ParsedKind() == CouponKind.Amount && MinimumBasketAmount is null)
         {
             yield return FieldError.Result(FieldCodes.FieldRequired, nameof(MinimumBasketAmount));
         }
     }
 }
-
-/// <summary>One row of the coupon list (04 9.7.3): code, kind and value, minimum basket amount, date range, use - used, reserved and total - and the validity line.</summary>
-public sealed record CouponRowView(string Code, string KindAndValue, string? MinimumBasketAmount, string DateRange, string Usage, string Validity, string Path);
 
 /// <summary>
 /// E-35, the coupons screen (T526; 04 9.7; 07 UC-90, UC-122): the list, newest first, and the coupon's form on the same screen - "Yeni kupon" (<c>/panel/kuponlar/yeni</c>) or a row
@@ -106,8 +104,7 @@ public sealed record CouponRowView(string Code, string KindAndValue, string? Min
 /// never deleted: the campaign is stopped by moving the end earlier (04 9.7.5). When both a version conflict and a field problem arise, the conflict answers first and the
 /// field rules are not looked at (07 2.4.8): the version is compared before the page filter runs.
 /// </summary>
-[NoStore]
-public sealed class CouponsModel : PageModel
+internal sealed class CouponsModel : PageModel
 {
     public const string NewKey = "yeni";
 
@@ -142,22 +139,40 @@ public sealed class CouponsModel : PageModel
 
     public const string AmountNotAboveZeroText = "Tutar sıfırdan büyük olmalı.";
 
-    public const string UsageBelowRightsTextFormat = "Kullanım adedi, kullanılmış ve ayrılmış {0} hakkın altına indirilemez. Kampanyayı durdurmak için bitiş tarihini öne çekin.";
-
     private static readonly string[] FormOrder =
     [
-        "Input.Code", "Input.Kind", "Input.Percentage", "Input.Amount", "Input.MinimumBasketAmount", "Input.StartDate", "Input.EndDate", "Input.TotalUsageLimit",
+        "Input.Code", "Input.CouponType", "Input.Percentage", "Input.Amount", "Input.MinimumBasketAmount", "Input.StartDate", "Input.EndDate", "Input.TotalUsageLimit",
     ];
 
     private static readonly InvalidAmountAttribute AmountRule = new() { AllowZero = true };
 
     private static readonly InvalidPercentageAttribute PercentageRule = new();
 
+    private const decimal Hundred = 100m;
+
+    private const string PercentageField = "Input." + nameof(SaveCouponInput.Percentage);
+
+    /// <summary>The cell of a coupon without a minimum basket amount (a percentage coupon may have none; 02 3.10.4).</summary>
+    public const string NoMinimumText = "Yok";
+
+    private static readonly PanelTableColumn[] Columns =
+    [
+        new("Kod", true),
+        new("Tür ve değer", true),
+        new("Asgari sepet tutarı", false),
+        new("Geçerlilik aralığı", false),
+        new("Kullanım", true),
+        new("Hâl", true),
+    ];
+
     private readonly ICatalogModule _catalog;
     private readonly ITransactionRunner _transactions;
     private readonly RejectionLog _rejections;
 
     private bool _posted;
+    private bool _loaded;
+    private CouponRecord? _formCoupon;
+    private (FormErrorSummary Summary, IReadOnlyList<FieldView> Fields)? _built;
 
     public CouponsModel(ICatalogModule catalog, ITransactionRunner transactions, RejectionLog rejections)
     {
@@ -169,7 +184,8 @@ public sealed class CouponsModel : PageModel
         _rejections = rejections;
     }
 
-    public IReadOnlyList<CouponRowView> Rows { get; private set; } = [];
+    /// <summary>The list (04 9.7.3; 2.13.4): a table on the wide class and a card list on the narrow one; null when there is no coupon - the empty row stands instead.</summary>
+    public PanelTable? Table { get; private set; }
 
     public Pager Pager { get; private set; } = new(null, null, []);
 
@@ -193,26 +209,41 @@ public sealed class CouponsModel : PageModel
     /// <summary>The used and the reserved rights, read only (04 9.7.4; K-654); null on a new coupon.</summary>
     public string? RightsText { get; private set; }
 
-    public IReadOnlyList<FieldView> FormFields { get; private set; } = [];
+    // The views carry the model state's messages, and the page filter turns a handler's rule codes into the catalog texts only after the handler returns; so they are drawn on the first read.
+    public IReadOnlyList<FieldView> FormFields => Built().Fields;
 
-    public FormErrorSummary Summary { get; private set; } = FormErrorSummary.From(new Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary());
+    public FormErrorSummary Summary => Built().Summary;
 
     public MessageView? Notice { get; private set; }
 
     /// <summary>
     /// The coupon save's version is compared before the page filter checks the fields (07 2.4.8): a coupon that is gone is 404 and a changed version is 409 with the current
-    /// version in the form, whatever the fields hold. The module compares again under its save (09 10.2 item 2); this is only the order of the answers.
+    /// version in the form, whatever the fields hold. The module compares again under its save (09 10.2 item 2); this is only the order of the answers. The page model's own
+    /// filter runs before the project's page filter (the framework orders it first), so a 422 of the field rules reaches here after the filter answered without the handler:
+    /// the screen is loaded then, and the percentage that reaches one hundred gets K-799's text in place of the catalog's (04 7.2.6.3).
     /// </summary>
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(next);
-        if (string.Equals(context.HandlerMethod?.Name, "SaveCoupon", StringComparison.Ordinal)
-            && Guid.TryParse(RouteKey(), out Guid couponId)
-            && context.HandlerArguments.TryGetValue("input", out object? argument)
-            && argument is SaveCouponInput input)
+        if (!string.Equals(context.HandlerMethod?.Name, "SaveCoupon", StringComparison.Ordinal))
         {
-            CancellationToken ct = HttpContext.RequestAborted;
+            await next();
+            return;
+        }
+
+        CancellationToken ct = HttpContext.RequestAborted;
+        string? key = RouteKey();
+        if (key != NewKey && !Guid.TryParse(key, out _))
+        {
+            context.Result = NotFound();
+            return;
+        }
+
+        _posted = true;
+        SaveCouponInput? input = context.HandlerArguments.Values.OfType<SaveCouponInput>().FirstOrDefault();
+        if (Guid.TryParse(key, out Guid couponId))
+        {
             CouponRecord? current = await _catalog.GetCouponAsync(couponId, ct);
             if (current is null)
             {
@@ -220,19 +251,31 @@ public sealed class CouponsModel : PageModel
                 return;
             }
 
-            if (current.Version != input.Version)
+            if (current.Version != (input?.Version ?? 0))
             {
                 ModelState.Clear();
                 _rejections.Rejected(ErrorCode.RecordVersionConflict);
                 IsConflicted = true;
-                _posted = true;
                 await LoadAsync(ct);
                 context.Result = FormResults.Conflict(this);
                 return;
             }
         }
 
-        await next();
+        PageHandlerExecutedContext executed = await next();
+        if (executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
+        {
+            if (input?.ParsedKind() == CouponKind.Percentage && input.Percentage >= Hundred && ModelState.TryGetValue(PercentageField, out ModelStateEntry? entry) && entry.Errors.Count > 0)
+            {
+                entry.Errors.Clear();
+                ModelState.AddModelError(PercentageField, PercentageReachesHundredText);
+            }
+
+            if (!_loaded)
+            {
+                await LoadAsync(ct);
+            }
+        }
     }
 
     public async Task<IActionResult> OnGetAsync(CouponListQuery query, CancellationToken ct)
@@ -253,7 +296,7 @@ public sealed class CouponsModel : PageModel
     {
         ArgumentNullException.ThrowIfNull(input);
         string? key = RouteKey();
-        CouponKind kind = input.KindValue ?? CouponKind.Percentage; // non-null: the field's rules refuse an empty or unknown kind before the handler
+        CouponKind kind = input.ParsedKind() ?? CouponKind.Percentage; // non-null: the field's rules refuse an empty or unknown kind before the handler
         CouponDefinition definition = new(
             input.Code,
             kind,
@@ -264,17 +307,14 @@ public sealed class CouponsModel : PageModel
             input.TotalUsageLimit ?? 0); // non-null: FieldRequired refuses an empty count before the handler
 
         CouponWriteResult result;
-        if (key == NewKey)
-        {
-            result = await _transactions.RunAsync(token => _catalog.CreateCouponAsync(definition, token), ct);
-        }
-        else if (Guid.TryParse(key, out Guid couponId))
+        if (Guid.TryParse(key, out Guid couponId))
         {
             result = await _transactions.RunAsync(token => _catalog.UpdateCouponAsync(couponId, definition, input.Version, token), ct);
         }
         else
         {
-            return NotFound();
+            // The filter let only "yeni" and an inner key through.
+            result = await _transactions.RunAsync(token => _catalog.CreateCouponAsync(definition, token), ct);
         }
 
         if (result.IsNotFound)
@@ -287,7 +327,6 @@ public sealed class CouponsModel : PageModel
             return FormResults.SeeOther(PanelFramePaths.Coupons + "/" + written.ToString("D"), NoticeCode.Saved);
         }
 
-        _posted = true;
         if (result.IsVersionConflict)
         {
             _rejections.Rejected(ErrorCode.RecordVersionConflict);
@@ -296,10 +335,9 @@ public sealed class CouponsModel : PageModel
             return FormResults.Conflict(this);
         }
 
-        CouponRecord? current = Guid.TryParse(key, out Guid id) ? await _catalog.GetCouponAsync(id, ct) : null;
         foreach (CouponProblem problem in result.Problems)
         {
-            AddProblem(problem, kind, input, current?.UsedAndReserved ?? 0);
+            AddProblem(problem, kind, result.UsedAndReserved);
         }
 
         await LoadAsync(ct);
@@ -310,17 +348,13 @@ public sealed class CouponsModel : PageModel
     /// One problem of the module on its field: a code of the field rules (07 6.2.2) goes through the page filter's catalog with the rule's limit; a code of the coupon's own rules
     /// (07 6.2.6) carries K-799's text and its rejection line here (09 8.2 item 3).
     /// </summary>
-    private void AddProblem(CouponProblem problem, CouponKind kind, SaveCouponInput input, int usedAndReserved)
+    private void AddProblem(CouponProblem problem, CouponKind kind, int usedAndReserved)
     {
         string field = problem.Field == nameof(CouponDefinition.Value)
             ? "Input." + (kind == CouponKind.Percentage ? nameof(SaveCouponInput.Percentage) : nameof(SaveCouponInput.Amount))
             : "Input." + problem.Field;
         switch (problem.Code)
         {
-            case ErrorCode.InvalidPercentage when input.Percentage >= 100m:
-                _rejections.Rejected(problem.Code);
-                ModelState.AddModelError(field, PercentageReachesHundredText);
-                break;
             case ErrorCode.InvalidPercentage:
                 ModelState.AddFieldError(field, FieldCodes.InvalidPercentage, PercentageRule.ParameterText);
                 break;
@@ -337,7 +371,7 @@ public sealed class CouponsModel : PageModel
                 break;
             case ErrorCode.CouponUsageBelowUsed:
                 _rejections.Rejected(problem.Code);
-                ModelState.AddModelError(field, string.Format(System.Globalization.CultureInfo.InvariantCulture, UsageBelowRightsTextFormat, DisplayFormat.Number(usedAndReserved)));
+                ModelState.AddModelError(field, UsageBelowRightsText(usedAndReserved));
                 break;
             default:
                 ModelState.AddFieldError(field, problem.Code.ToString());
@@ -350,8 +384,9 @@ public sealed class CouponsModel : PageModel
     /// <summary>Loads the list and, when the address names one, the form; false when the address names a coupon that does not exist.</summary>
     private async Task<bool> LoadAsync(CancellationToken ct, int page = PageNumber.First)
     {
+        _loaded = true;
         CouponListPage list = await _catalog.ListCouponsAsync(page, ct);
-        Rows = [.. list.Items.Select(RowOf)];
+        Table = list.Items.Count == 0 ? null : new PanelTable("Kuponlar", Columns, [.. list.Items.Select(RowOf)]);
         Pager = Pager.Of(PanelFramePaths.Coupons, new CouponListQuery(), list.PageNumber, list.PageCount);
         Empty = list.Items.Count == 0
             ? EmptyStates.WithFirstRecordButton(EmptySentence, NewCouponLabel, PanelFramePaths.Coupons + "/" + NewKey)
@@ -368,7 +403,7 @@ public sealed class CouponsModel : PageModel
         CouponRecord? coupon = null;
         if (key != NewKey)
         {
-            coupon = await _catalog.GetCouponAsync(Guid.Parse(key), ct);
+            coupon = Guid.TryParse(key, out Guid couponId) ? await _catalog.GetCouponAsync(couponId, ct) : null;
             if (coupon is null)
             {
                 return false;
@@ -381,10 +416,26 @@ public sealed class CouponsModel : PageModel
         FormHeading = coupon is null ? NewCouponLabel : coupon.Code;
         FormVersion = coupon is null ? 0 : IsConflicted || !_posted ? coupon.Version : PostedVersion(coupon.Version);
         RightsText = coupon is null ? null : $"Kullanılmış: {DisplayFormat.Number(coupon.UsedCount)} · Ayrılmış: {DisplayFormat.Number(coupon.ReservedCount)}";
-        Summary = FormErrorSummary.From(ModelState, FormOrder);
-        FormFields = Fields.BindAll(FieldsOf(coupon), Summary);
+        _formCoupon = coupon;
+        _built = null;
         return true;
     }
+
+    private (FormErrorSummary Summary, IReadOnlyList<FieldView> Fields) Built()
+    {
+        if (_built is { } built)
+        {
+            return built;
+        }
+
+        FormErrorSummary summary = FormErrorSummary.From(ModelState, FormOrder);
+        _built = (summary, ShowsForm ? Fields.BindAll(FieldsOf(_formCoupon), summary) : []);
+        return _built.Value;
+    }
+
+    /// <summary>K-799's text of a usage count under the used and reserved rights (04 7.2.6.6, 9.7.6): the floor is the server's number.</summary>
+    public static string UsageBelowRightsText(int usedAndReserved) =>
+        $"Kullanım adedi, kullanılmış ve ayrılmış {DisplayFormat.Number(usedAndReserved)} hakkın altına indirilemez. Kampanyayı durdurmak için bitiş tarihini öne çekin.";
 
     private int PostedVersion(int current) => int.TryParse(Request.Form["Input.Version"], out int sent) ? sent : current;
 
@@ -392,12 +443,12 @@ public sealed class CouponsModel : PageModel
     private List<FieldView> FieldsOf(CouponRecord? coupon)
     {
         string? Value(string name, string? stored) => _posted ? Request.Form["Input." + name].ToString() : stored;
-        string? kind = Value(nameof(SaveCouponInput.Kind), coupon?.Kind.ToString());
+        string? kind = Value(nameof(SaveCouponInput.CouponType), coupon?.Kind.ToString());
         List<FieldOption> kinds = [new(nameof(CouponKind.Percentage), PercentageKindText), new(nameof(CouponKind.Amount), AmountKindText)];
         return
         [
             Fields.Text("Input.Code", "Kod", FieldRequirement.Required, Value(nameof(SaveCouponInput.Code), coupon?.Code)),
-            Fields.ClosedList("Input.Kind", "Tür", FieldRequirement.Required, kinds, kind),
+            Fields.ClosedList("Input.CouponType", "Tür", FieldRequirement.Required, kinds, kind),
             Fields.Text("Input.Percentage", "Yüzde — yüzdesel kuponda", FieldRequirement.Optional, Value(nameof(SaveCouponInput.Percentage), coupon?.Kind == CouponKind.Percentage ? RequestFormat.FormatDecimal(coupon.Value) : null)),
             Fields.Text("Input.Amount", "Tutar — sabit tutarlı kuponda", FieldRequirement.Optional, Value(nameof(SaveCouponInput.Amount), coupon?.Kind == CouponKind.Amount ? RequestFormat.FormatDecimal(coupon.Value) : null)),
             Fields.Text(
@@ -411,13 +462,16 @@ public sealed class CouponsModel : PageModel
         ];
     }
 
-    private static CouponRowView RowOf(CouponRecord coupon) => new(
+    /// <summary>One row of the list (04 9.7.3): code, kind and value, minimum basket amount, date range, use - used, reserved and total - and the validity line.</summary>
+    public static PanelTableRow RowOf(CouponRecord coupon) => new(
+        [
         coupon.Code,
         coupon.Kind == CouponKind.Percentage ? $"{PercentageKindText} · {DisplayFormat.Percent(coupon.Value)}" : $"{AmountKindText} · {DisplayFormat.Amount(coupon.Value)}",
-        coupon.MinimumBasketAmount is { } minimum ? DisplayFormat.Amount(minimum) : null,
+        coupon.MinimumBasketAmount is { } minimum ? DisplayFormat.Amount(minimum) : NoMinimumText,
         DisplayFormat.DateRange(coupon.StartDate, coupon.EndDate),
         $"{DisplayFormat.Number(coupon.UsedCount)} kullanıldı · {DisplayFormat.Number(coupon.ReservedCount)} ayrıldı · {DisplayFormat.Number(coupon.TotalUsageLimit)} toplam",
         ValidityText(coupon.Validity),
+        ],
         PanelFramePaths.Coupons + "/" + coupon.Id.ToString("D"));
 
     /// <summary>The validity line (04 9.7.3): text, not a badge - a coupon has no state machine (03 1.10.2).</summary>

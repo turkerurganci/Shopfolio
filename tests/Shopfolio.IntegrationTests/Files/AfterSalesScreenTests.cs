@@ -48,42 +48,51 @@ public sealed class AfterSalesScreenTests : IAsyncLifetime
 
     private static Uri At(string path) => new(path, UriKind.Relative);
 
-    /// <summary>The firm's settings row with a return address and the company row with its e-mail, once per database.</summary>
+    /// <summary>
+    /// The firm's settings row with a return address and the company row with its e-mail. The startup data of the migrations already holds both rows without these values, so
+    /// the rows are filled in place (and created only when a database lacks them); every test starts from the same return address.
+    /// </summary>
     public async ValueTask InitializeAsync()
     {
         await using FileEndpointsHost host = new(_database.Dsn);
         await using AppDbContext db = host.NewContext();
-        if (await db.CompanySettings.AnyAsync(Ct))
-        {
-            return;
-        }
-
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        Province province = await db.Provinces.FirstOrDefaultAsync(Ct) ?? Province.Create("06", "Ankara", now);
-        if (db.Entry(province).State == EntityState.Detached)
+        Province? province = await db.Provinces.FirstOrDefaultAsync(Ct);
+        if (province is null)
         {
+            province = Province.Create("06", "Ankara", now);
             db.Provinces.Add(province);
         }
 
-        CompanySettings settings = CompanySettings.Create(now);
-        settings.BankTransferPaymentWindow = 1;
-        settings.DownloadAllowance = 1;
-        settings.HomepageLayout = Shopfolio.Modules.CorporateContent.Contracts.HomepageLayout.StoreFirst;
-        settings.MenuNameProducts = "Ürünler";
-        settings.MenuNameOfferings = "Hizmetler";
-        settings.MenuNamePortfolioItems = "Çalışmalar";
-        settings.MenuNameAboutPage = "Hakkımızda";
-        settings.MenuNameFaqItems = "Sıkça Sorulanlar";
-        settings.MenuNameContact = "İletişim";
+        CompanySettings? settings = await db.CompanySettings.FirstOrDefaultAsync(Ct);
+        if (settings is null)
+        {
+            settings = CompanySettings.Create(now);
+            settings.BankTransferPaymentWindow = 1;
+            settings.DownloadAllowance = 1;
+            settings.HomepageLayout = Shopfolio.Modules.CorporateContent.Contracts.HomepageLayout.StoreFirst;
+            settings.MenuNameProducts = "Ürünler";
+            settings.MenuNameOfferings = "Hizmetler";
+            settings.MenuNamePortfolioItems = "Çalışmalar";
+            settings.MenuNameAboutPage = "Hakkımızda";
+            settings.MenuNameFaqItems = "Sıkça Sorulanlar";
+            settings.MenuNameContact = "İletişim";
+            db.CompanySettings.Add(settings);
+        }
+
         settings.ReturnRecipientName = "Örnek Ticaret İade";
         settings.ReturnProvinceId = province.Id;
         settings.ReturnDistrict = "Yenimahalle";
         settings.ReturnAddressLine = "Depo Sokak 3";
         settings.ReturnPhone = "3125550000";
-        db.CompanySettings.Add(settings);
-        Company company = Company.Create(now);
+        Company? company = await db.Companies.FirstOrDefaultAsync(Ct);
+        if (company is null)
+        {
+            company = Company.Create(now);
+            db.Companies.Add(company);
+        }
+
         company.Email = FirmEmail;
-        db.Companies.Add(company);
         await db.SaveChangesAsync(Ct);
     }
 

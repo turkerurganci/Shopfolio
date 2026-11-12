@@ -1,6 +1,6 @@
 # T514 — Kayıt ve doğrulama bağlantısının inişi (E-20, E-21)
 
-**Faz:** F5 | **Durum:** Düzeltme 2 yapıldı, doğrulama tur 3 bekliyor | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 3 PASS) | **Tarih:** 2026-11-11
 
 ---
 
@@ -84,9 +84,15 @@ Kriter 6'nın `/giris` yarısı: `/giris` sayfası T515'in inişidir (T515 k5 "y
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-12) — ikinci iterasyon, eskalasyon (`12 §8.5`) |
-| Bulgu sayısı | Tur 2: 1 (S1 ×1, DÜŞÜK); K-notu 3. Tur 1: 2 (S2 ×1, S1 ×1) — ikisi de kapandı |
-| Düzeltme gerekli mi | Evet — metinler (sahip kararıyla) |
+| Doğrulama durumu | ✓ PASS (tur 3, 2026-11-12) |
+| Bulgu sayısı | Tur 3: 0; K-notu 3. Tur 2: 1 (S1 ×1, DÜŞÜK) — kapandı. Tur 1: 2 (S2 ×1, S1 ×1) — ikisi de kapandı |
+| Düzeltme gerekli mi | Hayır |
+
+**Tur 3 özeti (bağımsız doğrulama, uç `34a477dc` + origin/main `33a9d21a` birleşik, çakışmasız):** Kabul kriterleri 1–10 ✓ (kriter 6 T514'te uygulanabilir kapsamda; `/giris` yüzü D-1249, D-1277). Derleme `-warnaserror` ve format temiz; Unit 295 + 6937; betik 4/4; Integration 3844 (önceki birleşik ağaçta), main birleştirmesinden sonra Web parçası yeniden koşuldu (856/856); dal CI'ı (run 43121210650) yeşil. Tur 2'nin S1'i kapandı (metinler "siz", K-779 ve 5.21.14 birebir).
+
+**Tur 3 K-notları:** K1 `09 §8.2` madde 3: UC-53 422 `EmailTakenByOtherAccount`, 200 `LinkNoLongerValid` ve UC-49 303 `PendingRegistrationUnresolved` redleri uygulama kaydına yazılmıyor; aynı kalıp T520 panel sayfalarında da var → D-1317. K2 K-779 (1) "bağlantıyı açtığınızda" ↔ K-904 (açılış doğrulamaz) metin çelişkisi → D-1318 (sahip). K3 kriter 6 `/giris` yüzü → D-1249, D-1277.
+
+**`12` Durum (tur 3):** `VAL-A090`, `VAL-A678` → PASS (geçici testlerle kanıtlandı); öteki task satırları PASS kalır. Ayrıntı: `C:/Users/teknodeveloper/.claude/helper-state/shopfolio/impl/T514/dogrulama-raporu-r3.md`.
 
 **Tur 2 bulgusu (bağımsız doğrulama, birleşik ağaç `5ed330f5` + `af7e91ff`):**
 

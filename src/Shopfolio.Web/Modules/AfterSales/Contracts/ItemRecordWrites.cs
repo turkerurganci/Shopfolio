@@ -162,6 +162,20 @@ public sealed record ItemReturnAddress(string RecipientName, Guid ProvinceId, st
 public sealed record DefectClaimInfo(Guid Id, Guid OrderItemId, DefectClaimStatus Status, int Quantity, DateTimeOffset CreatedAt, ItemReturnAddress? ReturnAddress);
 
 /// <summary>
+/// A defect claim on the panel's order screen (04 9.9.7): its defective units, the customer's description, the opening moment, the latest reopening (null when never reopened), the
+/// status and the return address it copied (a digital item's claim has none; K-793).
+/// </summary>
+public sealed record OrderDefectClaim(
+    Guid Id,
+    Guid OrderItemId,
+    DefectClaimStatus Status,
+    int Quantity,
+    string Description,
+    DateTimeOffset OpenedAt,
+    DateTimeOffset? ReopenedAt,
+    ItemReturnAddress? ReturnAddress);
+
+/// <summary>
 /// The outcome of an AfterSales writer: a refusal, or the written record's id (and the claim as it now stands, on a claim's write). <paramref name="ReturnAddress"/> is the
 /// return address a withdrawal copied - what B-9 writes.
 /// </summary>

@@ -196,6 +196,33 @@ public sealed class OrderDetailModel : PageModel
         return [.. Facts.PendingRefunds.Where(r => r.OrderItemId == item.OrderItemId)];
     }
 
+    /// <summary>The order's defect claims (04 9.9.7; K-751, K-764), oldest first; no section when there is none.</summary>
+    public IReadOnlyList<OrderDefectClaim> Claims { get; private set; } = [];
+
+    /// <summary>The claims whose B-9 ended in an "undelivered" row: the mark shows on the claim's row too (04 2.5.3.1; K-760).</summary>
+    public IReadOnlySet<Guid> MarkedClaimIds { get; private set; } = new HashSet<Guid>();
+
+    /// <summary>
+    /// The undelivered e-mails under the order's "e-posta ulaşmadı" mark (04 9.9.4, 2.5.3.1): the notice's name, the first sending's date and the address. The re-sending (UC-153) is T531's, so no
+    /// row offers its button yet.
+    /// </summary>
+    public UndeliveredEmailList UndeliveredEmails { get; private set; } = new(string.Empty, string.Empty, string.Empty, [], false);
+
+    private Dictionary<Guid, string> _provinceNames = [];
+
+    /// <summary>The claimed item's name (04 9.9.7).</summary>
+    public string ItemNameOf(Guid orderItemId) => Detail.Items.FirstOrDefault(i => i.OrderItemId == orderItemId)?.Name ?? string.Empty;
+
+    /// <summary>The province's name of a claim's return address.</summary>
+    public string ProvinceNameOf(Guid provinceId) => _provinceNames.TryGetValue(provinceId, out string? name) ? name : string.Empty;
+
+    /// <summary>The claim's own mark (04 2.5.3.1; K-760): "e-posta ulaşmadı" when its B-9 did not arrive.</summary>
+    public IReadOnlyList<PanelMark> ClaimMarksOf(OrderDefectClaim claim)
+    {
+        ArgumentNullException.ThrowIfNull(claim);
+        return PanelMarks.Of(new PanelMarkConditions(EmailNotDelivered: MarkedClaimIds.Contains(claim.Id)), PanelMarkPlace.OrderDetail);
+    }
+
     /// <summary>The pending refunds that name no item (an amount based refund, a late payment's refund).</summary>
     public IReadOnlyList<PanelPendingRefund> OrderPendingRefunds => [.. Facts.PendingRefunds.Where(r => r.OrderItemId is null)];
 
@@ -421,12 +448,37 @@ public sealed class OrderDetailModel : PageModel
         Badges = StatusBadges.ForOrder(summary.OrderStatus, summary.PaymentStatus);
         Shipping = await _ordering.GetShippingViewAsync(id, ct);
         Records = await _afterSales.ListItemRecordsAsync([.. detail.Items.Select(i => i.OrderItemId)], ct);
+        await LoadClaimsAndUndeliveredAsync(id, ct);
         PreInformationFormText = await _documents.GetTextAsync(id, LegalTextType.PreInformationForm, ct);
         DistanceSalesContractText = await _documents.GetTextAsync(id, LegalTextType.DistanceSalesContract, ct);
         PagePath = PathOf(id);
         BackPath = ListReturn.Target(HttpContext.Request.Query[ReturnPath.ParameterName], PanelFramePaths.Orders);
         PrimaryStep = PrimaryOf(operations);
         return true;
+    }
+
+    // 04 9.9.7 and 9.9.4: the claims with their marks, and the undelivered e-mails under the order's mark; each a read for the whole order.
+    private async Task LoadClaimsAndUndeliveredAsync(Guid id, CancellationToken ct)
+    {
+        Shopfolio.Modules.Notifications.Contracts.INotificationsModule notifications = HttpContext.RequestServices.GetRequiredService<Shopfolio.Modules.Notifications.Contracts.INotificationsModule>();
+        Claims = await _afterSales.ListDefectClaimsAsync([.. Detail.Items.Select(i => i.OrderItemId)], ct);
+        if (Claims.Count > 0)
+        {
+            MarkedClaimIds = await notifications.FindClaimsWithUndeliveredMarkAsync([.. Claims.Select(c => c.Id)], ct);
+            if (Claims.Any(c => c.ReturnAddress is not null))
+            {
+                IReadOnlyList<ProvinceInfo> provinces = await HttpContext.RequestServices.GetRequiredService<ISettingsModule>().GetProvincesAsync(ct);
+                _provinceNames = provinces.ToDictionary(p => p.Id, p => p.Name);
+            }
+        }
+
+        IReadOnlyList<Shopfolio.Modules.Notifications.Contracts.UndeliveredNotice> undelivered = Facts.Marks.EmailNotDelivered ? await notifications.FindUndeliveredNoticesAsync(id, ct) : [];
+        UndeliveredEmails = new UndeliveredEmailList(
+            PathOf(id),
+            string.Empty,
+            string.Empty,
+            [.. undelivered.Select(n => new UndeliveredEmailRow(n.LatestDispatchId.ToString("D"), NoticeNameOf(n.Type), n.FirstAt, n.RecipientEmail ?? string.Empty, false))],
+            false);
     }
 
     // 04 9.9.5 (K-803): the line's next required step. The delivery failure, the re-sending and the closing are in "Sipariş işlemleri", never primary.

@@ -83,6 +83,12 @@ public interface IAfterSalesModule
     Task<DefectClaimInfo?> FindDefectClaimAsync(Guid orderItemId, CancellationToken ct);
 
     /// <summary>
+    /// The defect claims of the given items as the panel's order screen shows them (T527; 04 9.9.7; K-751, K-764): the description, the opening and the latest reopening moment, the
+    /// status and the return address the claim copied; oldest first. One query for the whole order. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<OrderDefectClaim>> ListDefectClaimsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
     /// The item record writers (03 1.7.1, 1.7.4, 1.9.1; T320). Each adds its own row in the caller's context - two declarations are two rows, two partial
     /// arrivals two receipts (K-790, K-794) - after the unit rule (at least one, at most the quantity open to the operation; a larger value is refused). They join the
     /// caller's transaction and require the order's row lock in it (05 7.3.2): the caller is the transition unit, which checks the order's own conditions, raises the

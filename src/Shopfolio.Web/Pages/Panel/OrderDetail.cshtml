@@ -38,6 +38,7 @@
 </header>
 <section class="order-detail__section" id="isaretler" aria-label="İşaretler">
     <partial name="_PanelMarks" model="Model.Marks" />
+    <partial name="_UndeliveredEmails" model="Model.UndeliveredEmails" />
     @foreach (PeriodIndicator period in Model.RunningPeriods)
     {
         <partial name="_PeriodIndicator" model="period" />
@@ -169,6 +170,28 @@
         }
     </ul>
 </section>
+@if (Model.Claims.Count > 0)
+{
+    <section class="order-detail__section" id="ayip-talepleri" aria-labelledby="order-claims-heading">
+        <h2 id="order-claims-heading">Ayıp talepleri</h2>
+        <ul class="order-detail__claims">
+            @foreach (OrderDefectClaim claim in Model.Claims)
+            {
+                <li class="order-detail__claim" id="ayip-talebi-@claim.Id.ToString("D")">
+                    <p class="order-detail__item-name">@Model.ItemNameOf(claim.OrderItemId) · Ayıplı adet: @claim.Quantity</p>
+                    <partial name="_Badge" model="StatusBadges.For(claim.Status)" />
+                    <p class="order-detail__claim-text">@claim.Description</p>
+                    <p>Açılış: @DisplayFormat.Date(claim.OpenedAt)@(claim.ReopenedAt is { } reopened ? $" · Yeniden açılış: {DisplayFormat.Date(reopened)}" : string.Empty)</p>
+                    @if (claim.ReturnAddress is { } returnAddress)
+                    {
+                        <p>İade adresi: @returnAddress.RecipientName · @returnAddress.AddressLine · @returnAddress.District / @Model.ProvinceNameOf(returnAddress.ProvinceId)</p>
+                    }
+                    <partial name="_PanelMarks" model="Model.ClaimMarksOf(claim)" />
+                </li>
+            }
+        </ul>
+    </section>
+}
 <section class="order-detail__section" id="tutar" aria-labelledby="order-amount-heading">
     <h2 id="order-amount-heading">Tutar ve ödeme kaydı</h2>
     <dl class="order-detail__facts">

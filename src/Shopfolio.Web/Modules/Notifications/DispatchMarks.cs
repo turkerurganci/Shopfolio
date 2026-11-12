@@ -118,10 +118,10 @@ internal static class DispatchMarks
         ArgumentNullException.ThrowIfNull(rowsOfTheOrder);
         return [.. rowsOfTheOrder
             .GroupBy(r => r.OriginalDispatchId ?? r.Id)
-            .Select(group => (GroupId: group.Key, Latest: group.Aggregate((a, b) => UuidOrder.IsBefore(a.CreatedAt, a.Id, b.CreatedAt, b.Id) ? b : a)))
+            .Select(group => (GroupId: group.Key, FirstAt: group.Min(r => r.CreatedAt), Latest: group.Aggregate((a, b) => UuidOrder.IsBefore(a.CreatedAt, a.Id, b.CreatedAt, b.Id) ? b : a)))
             .Where(g => g.Latest.State == DispatchState.Undelivered && !g.Latest.ClosedUnsent)
             .OrderBy(g => g.Latest.CreatedAt).ThenBy(g => g.Latest.Id)
-            .Select(g => new UndeliveredNotice(g.GroupId, g.Latest.Id, g.Latest.Type, g.Latest.RelatedRecordType, g.Latest.RelatedRecordId))];
+            .Select(g => new UndeliveredNotice(g.GroupId, g.Latest.Id, g.Latest.Type, g.Latest.RelatedRecordType, g.Latest.RelatedRecordId, g.FirstAt, g.Latest.RecipientEmail))];
     }
 
     /// <summary>The customer notices of an order, B-1…B-16, as the groups read them; a firm notice or an account e-mail has no order link and is never among them.</summary>
@@ -130,7 +130,7 @@ internal static class DispatchMarks
         ArgumentNullException.ThrowIfNull(db);
         return await db.DispatchRecords.AsNoTracking()
             .Where(d => d.OrderId == orderId)
-            .Select(d => new NoticeRow(d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState, d.DispatchType, d.RelatedRecordType, d.RelatedRecordId, d.AttemptCount == 0 && d.LastOutcome == null))
+            .Select(d => new NoticeRow(d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState, d.DispatchType, d.RelatedRecordType, d.RelatedRecordId, d.AttemptCount == 0 && d.LastOutcome == null, d.RecipientEmail))
             .ToListAsync(ct);
     }
 
@@ -237,7 +237,8 @@ internal static class DispatchMarks
         DispatchType Type,
         DispatchRelatedRecordType? RelatedRecordType,
         Guid? RelatedRecordId,
-        bool ClosedUnsent = false);
+        bool ClosedUnsent = false,
+        string? RecipientEmail = null);
 
     /// <summary>A row as the mark reads it.</summary>
     internal readonly record struct Row(Guid Id, Guid? OriginalDispatchId, DateTimeOffset CreatedAt, DispatchState State, bool ClosedUnsent = false);

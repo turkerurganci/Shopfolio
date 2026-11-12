@@ -3,13 +3,16 @@ namespace Shopfolio.Modules.Notifications.Contracts;
 /// <summary>
 /// A customer notice whose latest row is "undelivered" (02 9.1.6; 06 4.58 "İşaretlerin ve uyarıların okunuşu"): the group's first row id (the group is the first row and its re-sendings),
 /// the group's latest row - the one a re-sending names - and what the notice is. B-9 also names its withdrawal, termination or claim, whose row in the panel shows the mark too.
+/// The panel's list under the mark (04 2.5.3.1) names the group's first sending moment and the address the latest row went to (empty once Z-43 emptied it).
 /// </summary>
 public sealed record UndeliveredNotice(
     Guid GroupId,
     Guid LatestDispatchId,
     DispatchType Type,
     DispatchRelatedRecordType? RelatedRecordType,
-    Guid? RelatedRecordId);
+    Guid? RelatedRecordId,
+    DateTimeOffset FirstAt = default,
+    string? RecipientEmail = null);
 
 /// <summary>
 /// One row of an order's e-mail history (T527; 04 9.9.12; K-804): the customer notice (B-1…B-16), the moment it went - its creation while it waits -, the address it went to (empty once

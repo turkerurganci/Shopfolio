@@ -27,7 +27,7 @@ public sealed class OrderDetailPageTestsDefinition : ICollectionFixture<Collecti
 /// version's 409, the closed step's 422 and the audit row of a done step. Orders, accounts and sessions are real rows of the collection database.
 /// </summary>
 [Collection(OrderDetailPageTestsDefinition.Name)]
-public sealed class OrderDetailPageTests
+public sealed partial class OrderDetailPageTests
 {
     private const string OrdersPath = "/panel/siparisler";
 

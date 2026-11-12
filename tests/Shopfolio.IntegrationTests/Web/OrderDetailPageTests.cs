@@ -301,7 +301,7 @@ public sealed partial class OrderDetailPageTests
         Assert.Equal(oneCommands, threeCommands);
     }
 
-    private static string ConflictControlsText =>Shopfolio.Infrastructure.Forms.ConflictControls.OrderMessage;
+    private static string ConflictControlsText => Shopfolio.Infrastructure.Forms.ConflictControls.OrderMessage;
 
     private static string AdminCookie(string key) => $"{CookieNames.AdminSession}={key}";
 

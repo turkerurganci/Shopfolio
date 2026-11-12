@@ -57,9 +57,9 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | (devirde) | `dotnet test tests/Shopfolio.UnitTests` | TAM koşusu sonraki adımda |
-| Integration | ✓ (parçalı) | `--filter-class`, Postgres 18 (`track_commit_timestamp=on`) | koşulan: `OrderDetailPageTests` 13/13, `OrderListPageTests` 4/4 (main 73e36672 birleşimi sonrası), `Files.OrderPageTests` 10/10 (önceki tur). **TAM: CI** |
-| Biçim | (devirde) | `dotnet format <proje> --verify-no-changes` | sonraki adımda |
+| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests` | TAM: 7477/7477 |
+| Integration | ✓ (ilgili sınıflar) | `--filter-class`, Postgres 18 (`track_commit_timestamp=on`), main 73e36672 birleşik | koşulan: `OrderDetailPageTests` 15/15, `OrderListPageTests` 5/5, `PanelHomeTests` + `SessionAccessTests` 52/52; `Files.OrderPageTests` 10/10 (önceki tur). **TAM: CI** |
+| Biçim | ✓ | `dotnet format <proje> --verify-no-changes` | Web, IntegrationTests, UnitTests: temiz (çıkış 0) |
 
 ## Altyapı Değişiklikleri
 
@@ -71,7 +71,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T527-siparis-listesi`
-- **Commit:** *(PR açılınca)*
+- **Commit:** "T527: Sipariş listesi, sipariş ayrıntısı ve durum geçişleri (E-36, E-37)" (dalın son commit'i; öncekiler WIP)
 - **PR:** *(açılacak)*
 - **CI:** yönetici izler
 - **Post-merge run'lar:** *(validator doldurur)*

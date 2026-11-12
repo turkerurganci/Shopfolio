@@ -66,10 +66,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu (tur 1) | ✗ FAIL (2026-11-12; dal ucu `3a637e5c`, origin/main `29562ee9` ile güncel — birleştirme gerekmedi) |
+| Bulgu sayısı (tur 1) | 2 (ikisi DÜŞÜK, S1) |
+| Düzeltme gerekli mi | Evet — B1 (kriter 3/KK3, `04` 7.2.17.2, 9.14.9; K-813): boş menü adının alan mesajı K-813'ün metni "Menü adı boş olamaz; varsayılan ad: {ad}." değil, genel "{etiket} boş olamaz." (`FieldMessageCatalog`); varsayılan ad yalnız her zaman görünen ipucunda. KK3 testi her çizimde bulunan ipucunu arıyor, mesajı sınamıyor. Aynı karardaki görünmeme sebebi metinleri de K-813'ün "Menüde görünmüyor — …" biçiminden ayrışıyor (iki nokta). B2 (`04` 9.14.4, 2.2.3): menü adı alanları seçili düzenin menü sırasıyla değil sabit (mağaza öncelikli) sırayla çiziliyor; tanıtım öncelikli düzende Hakkımızda başta, Ürünler sonda olmalı; "menüde göster" işaretli genel sayfalar İletişim'den önce durmalı, ekranda altı adın arkasında listeleniyor (`StorefrontMenu.Items` düzen sırasını zaten taşıyor). |
+| Bloke-etmeyen not (K) sayısı (tur 1) | 1 — K1 → D-1363 (task "Unit, Integration" bekliyor; diff'te yeni birim testi yok) |
+| Yapım raporu karşılaştırması (tur 1) | Kriter 1, 2, 4–10 kanıtları uyumlu. Uyuşmazlık: kriter 3 ✓ yazılmış ama alan mesajı varsayılan adı taşımıyor (B1); öz denetim `04` 9.14.4 sırasını kapsamıyor (B2) |
+| Doğrulayıcı kanıtları (tur 1) | Derleme `-warnaserror` 0/0; `dotnet format --verify-no-changes` üç proje temiz; Unit 7402/7402; betik 4/4; Integration değişen/dokunan sınıflar 263/263 + yasal metin, içerik ve çerçeve sınıfları 177/177 (postgres:18, `track_commit_timestamp=on`); CI run 43165022158 yeşil (Integration TAM dahil); `12` Durum: A287, A747 PASS, öteki satırlar BEKLEMEDE |
 
 ## Altyapı Değişiklikleri
 

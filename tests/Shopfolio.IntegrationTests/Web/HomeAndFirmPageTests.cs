@@ -13,6 +13,8 @@ using Shopfolio.Infrastructure.Security;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages;
 using Shopfolio.Modules.CorporateContent.Contracts;
+using Shopfolio.Modules.Notifications;
+using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.Modules.Settings.Contracts.Gates;
@@ -61,7 +63,7 @@ public sealed partial class HomeAndFirmPageTests : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        await ExecuteAsync("TRUNCATE provinces, companies, company_settings, legal_text_versions, audit_logs, social_links CASCADE");
+        await ExecuteAsync("TRUNCATE provinces, companies, company_settings, legal_text_versions, audit_logs, social_links, dispatch_records CASCADE");
         Province province = Province.Create("06", "Ankara", Now);
         _provinceId = province.Id;
         CompanySettings settings = CompanySettings.Create(Now);
@@ -223,6 +225,44 @@ public sealed partial class HomeAndFirmPageTests : IAsyncLifetime
         Assert.Contains(FirmIdentityModel.ReopenLabel, closed, StringComparison.Ordinal);
         Assert.DoesNotContain(FirmIdentityModel.CloseLabel, closed, StringComparison.Ordinal);
         Assert.Equal("true", FieldValue(closed, "Input.Original"));
+    }
+
+    [Fact]
+    public async Task TheEmailField_WarnsWhenTheLastSettledFirmNoticeWentUndeliveredToTheCurrentEmail_AndTheWarningLiftsWithTheNextSentNotice_KK4()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        (_, string quiet) = await GetAsync(client, FirmPath);
+
+        DispatchRecord undelivered = DispatchRecord.Queue(DispatchType.F2, "Iletisim@Firma.com.tr", null, DispatchRelatedRecordType.ContactRequest, Guid.NewGuid(), Now.AddHours(-2));
+        undelivered.DispatchState = DispatchState.Undelivered;
+        undelivered.LastOutcome = DispatchOutcome.RecipientError;
+        undelivered.AttemptCount = 3;
+        await using (AppDbContext db = NewContext())
+        {
+            db.DispatchRecords.Add(undelivered);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        (_, string warned) = await GetAsync(client, FirmPath);
+        DispatchRecord sent = DispatchRecord.Queue(DispatchType.F4, "iletisim@firma.com.tr", null, DispatchRelatedRecordType.Refund, Guid.NewGuid(), Now.AddHours(-1));
+        sent.DispatchState = DispatchState.Sent;
+        sent.SentAt = Now.AddHours(-1);
+        sent.LastOutcome = DispatchOutcome.Sent;
+        sent.AttemptCount = 1;
+        await using (AppDbContext db = NewContext())
+        {
+            db.DispatchRecords.Add(sent);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        (_, string lifted) = await GetAsync(client, FirmPath);
+
+        Assert.DoesNotContain("firm-notices-warning", quiet, StringComparison.Ordinal);
+        Assert.Contains("id=\"firm-notices-warning\"", warned, StringComparison.Ordinal);
+        Assert.Contains("Firma bildirimleri ulaşmıyor", warned, StringComparison.Ordinal);
+        Assert.Contains("iletisim@firma.com.tr", warned, StringComparison.Ordinal);
+        Assert.DoesNotContain("firm-notices-warning", lifted, StringComparison.Ordinal);
     }
 
     // ---- KK6, KK7: the identity save - 422 reasons, the type change, the trail, the two new text versions, 409 (criteria 6, 7) ----

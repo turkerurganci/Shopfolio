@@ -95,3 +95,14 @@
 ## Dış Varsayımlar
 
 Dış varsayım: yok.
+
+## Doğrulama
+
+| Alan | Değer |
+|---|---|
+| Doğrulama durumu (tur 1) | ✗ FAIL (2026-11-12; dal ucu `cafe1466`, origin/main `bc915800` ile birleşik ağaçta) |
+| Bulgu sayısı (tur 1) | 4 (1 ORTA, 3 DÜŞÜK; hepsi S1) + 3 K-notu |
+| Düzeltme gerekli mi | Evet — B1 (ORTA, `VAL-A261`): "Müşteriden beklenenler" satırı `04` 9.3.6'nın içeriğini taşımıyor — kalemin adı (geç gelen ödemenin geri ödemesinde "geç gelen ödemenin geri ödemesi"), isteğin sebebi ve tarihi yok, `Text` her satırda sabit "IBAN bekleniyor"; süresiz satırlar istek tarihine göre değil sipariş numarasına göre sıralı (`AwaitingCustomerList.Of`). D-1297 kapsam içi işi ertelemiş; kabul edilmiş risk onayı yok. B2 (DÜŞÜK): kanal uyarısı "Ekrana git" ile E-44'e bağlanıyor; `04` 9.3.3 ve 3.4.3 "geçiş taşımaz" der. B3 (DÜŞÜK): geri alma inişinin "bağlantı geçersiz" ve "geri alma uygulanmadı" hâllerinde sonraki adımın bağlantısı yok, "geri alındı" hâli oturuma bakmadan girişe gider (`04` 9.25.2, 3.4.23); ayrıca başarıda tarayıcıdaki panel çerezi kimin olursa olsun siliniyor (K3). B4 (DÜŞÜK): aydınlatma metni maddesinin altında iletişim formu, hesap kaydı ve yeni hesap açan Google girişinin de kapalı olduğunu söyleyen satır yok (`04` 9.3.4; K-850) |
+| Yapım raporu karşılaştırması (tur 1) | KK2, KK4–KK10 kanıtları uyumlu. Uyuşmazlıklar: (1) kriter 1/KK1 ✓ yazılmış ama `04` 9.3.6'nın satır içeriği eksik ve D-1297 ile ertelenmiş (B1); (2) öz denetim `04` 3.4.3 / 9.25.2 / 9.3.4 ayrıntılarını kapsamıyor (B2–B4); (3) "Etkilenen modüller" eski adları (`RevertPendingEmailChangeAsync`) yazıyor, koddaki ad `RestorePreviousEmailAsync`; (4) `12` Durum hücreleri yazılmamış |
+| Doğrulayıcı kanıtları (tur 1) | Derleme `-warnaserror` 0/0; `dotnet format --verify-no-changes` üç proje temiz; Unit 7092/7092 + Consistency 295/295; betik 4/4; Integration TAM 3909/3909 (Web 901 = 229+387+285; Ordering 645; Model 1410; Administration+Catalog+Commands+Concurrency+CorporateContent+Database+Disposal+FileSecrets+Files+Jobs+Logging+Outages+Payment+Security+SignedEndpoints 953) — postgres:18, `track_commit_timestamp=on`; `restore --locked-mode` 0; CI run 43150388572 yeşil; undo bekçisi (`IrreversibleConfirmationTests.UndoWord`) değişmemiş, istisna yok; `12` Durum: A257, A259, A260, A262, A263, A316, D043 PASS · A261 FAIL · A258, A264 BEKLEMEDE (E-36 yok; D-1348) |
+| Birleştirme notu (tur 1) | origin/main `29562ee9` (T532) ile `src/Shopfolio.Web/Modules/Administration/AdministrationModule.cs` (DI kayıt satırı: `IPanelHomeDetails` ↔ `IPanelRequestList`) kod çakışması — birleştirme geri alındı; kayıt commit'i birleştirmesiz |

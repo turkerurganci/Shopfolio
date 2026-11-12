@@ -20,12 +20,14 @@ internal sealed class Coupons
 {
     private readonly AppDbContext _db;
     private readonly AttemptCounter _attempts;
+    private readonly CouponLocks _locks;
     private readonly TimeProvider _time;
 
-    public Coupons(AppDbContext db, AttemptCounter attempts, TimeProvider time)
+    public Coupons(AppDbContext db, AttemptCounter attempts, CouponLocks locks, TimeProvider time)
     {
         _db = db;
         _attempts = attempts;
+        _locks = locks;
         _time = time;
     }
 
@@ -71,18 +73,14 @@ internal sealed class Coupons
             throw new InvalidOperationException("A coupon is changed only inside the caller's transaction (09 9.1 item 3).");
         }
 
-        // The coupon row lock (05 7.3.5), the one the counters take: an order that reserves a right in between waits, so the floor below is read after it and holds
+        // The coupon row lock (05 7.3.5), the row the counters write: an order that reserves a right in between waits, so the floor below is read after it and holds
         // until the save is committed - the usage count never goes under the used and reserved rights (02 3.10.6).
-        LockSequence.Enter(_db, LockKind.Coupon, couponId);
-        List<Guid> locked = await _db.Database
-            .SqlQuery<Guid>($"SELECT id AS \"Value\" FROM coupons WHERE id = {couponId} FOR UPDATE")
-            .ToListAsync(ct);
-        if (locked.Count == 0)
+        Coupon? coupon = await _locks.LockForUpdateAsync(couponId, ct);
+        if (coupon is null)
         {
             return CouponWriteResult.NotFound;
         }
 
-        Coupon coupon = await _db.Coupons.SingleAsync(c => c.Id == couponId, ct);
         if (coupon.Version != formVersion)
         {
             return CouponWriteResult.VersionConflict(couponId);

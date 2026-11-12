@@ -299,6 +299,7 @@ internal static class CatalogModuleRegistration
 
         // The coupon (T338): its application counts the cart's invalid attempts (L-6). The counter is infrastructure that Program.cs registers first; a host that builds
         // the module alone (the tests) gets it here, and the application's own registration is never doubled.
+        services.AddScoped<CouponLocks>();
         services.AddScoped<Coupons>();
         services.TryAddScoped<AttemptCounter>();
 

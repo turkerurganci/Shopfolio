@@ -77,8 +77,8 @@ Backlog payı: D-81, D-556, D-558, D-577, D-619, D-1070 ✅ (yerinde kapatıldı
 ## Commit & PR
 
 - **Branch:** `task/T515-musteri-girisi`
-- **Commit:** PR açıklamasındaki son commit
-- **PR:** PR açıklamasında
+- **Commit:** `4b193057` (+ main birleşimi `9bcd0e3d`)
+- **PR:** #560
 - **CI:** yönetici izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

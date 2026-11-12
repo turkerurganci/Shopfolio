@@ -271,7 +271,7 @@
 | T512 | İptal ve gecikme feshi ekranı, geri ödeme IBAN girişi (E-17, E-16 IBAN formu) | ✓ | ✓ PASS (tur 2) | `f76de0e3` | #553 |
 | T513 | Cayma beyanı ve ayıp talebi ekranları (E-18, E-19) | ⬚ | — | — | — |
 | T514 | Kayıt ve doğrulama bağlantısının inişi (E-20, E-21) | ✓ | ✓ PASS (tur 3) | `34a477dc` | #548 |
-| T515 | Müşteri girişi ve Google ile giriş (E-22) | ⏳ | — | — | — |
+| T515 | Müşteri girişi ve Google ile giriş (E-22) | ⏳ | — | — | #560 |
 | T516 | Şifre sıfırlama ve yeniden doğrulama (E-23, E-24) | ⬚ | — | — | — |
 | T517 | Hesap — profil ve güvenlik (E-25) | ⬚ | — | — | — |
 | T518 | Adres defteri ve sipariş geçmişi (E-26, E-27) | ⬚ | — | — | — |

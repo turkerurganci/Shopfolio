@@ -164,6 +164,9 @@ public interface IPaymentModule
     /// <summary>The order's refund as the refund line reads it, the open transaction's changes included; null when the refund is not the order's.</summary>
     Task<CardRefundLine?> ReadRefundLineAsync(Guid orderId, Guid refundId, CancellationToken ct);
 
+    /// <summary>Of the given refunds, the ones that are the order's (K-1075), in one query - the order's itemless IBAN fields are read with it (T512; 09 20 item 4).</summary>
+    Task<IReadOnlySet<Guid>> OrderRefundIdsAsync(Guid orderId, IReadOnlyCollection<Guid> refundIds, CancellationToken ct);
+
     /// <summary>
     /// The firm's retry of a failed card refund (02 7.2.8; 06 4.34; K-569): a new card refund job row for the same refund - its request is a new refund record.
     /// Only when <see cref="RefundLineRules"/> opens the retry; otherwise nothing is written and the result is false.

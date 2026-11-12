@@ -242,18 +242,12 @@ internal sealed class CustomerOperations : ICustomerOperations
     private async Task<IReadOnlyList<RefundIbanField>> ReadFieldsAsync(Guid orderId, CancellationToken ct)
     {
         Guid[] itemIds = [.. await _db.OrderItems.AsNoTracking().Where(i => i.OrderId == orderId).Select(i => i.Id).ToListAsync(ct)];
-        List<RefundIbanField> fields = [];
-        foreach (RefundIbanField field in await _afterSales.ListRefundIbanFieldsAsync(orderId, itemIds, ct))
-        {
-            if (field.OrderItemId is null && field.RefundId is { } refundId && await _payment.ReadRefundLineAsync(orderId, refundId, ct) is null)
-            {
-                continue;
-            }
+        IReadOnlyList<RefundIbanField> all = await _afterSales.ListRefundIbanFieldsAsync(orderId, itemIds, ct);
 
-            fields.Add(field);
-        }
-
-        return fields;
+        // One read for every itemless field's refund, not one per field (09 20 item 4).
+        Guid[] itemlessRefunds = [.. all.Where(f => f.OrderItemId is null && f.RefundId is not null).Select(f => f.RefundId!.Value)]; // non-null: filtered just before
+        IReadOnlySet<Guid> ordersRefunds = await _payment.OrderRefundIdsAsync(orderId, itemlessRefunds, ct);
+        return [.. all.Where(f => f.OrderItemId is not null || f.RefundId is not { } refundId || ordersRefunds.Contains(refundId))];
     }
 
     private static CustomerOperationResult Applied() =>

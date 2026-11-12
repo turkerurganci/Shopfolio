@@ -13,6 +13,7 @@ using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Pages.Components;
 
 namespace Shopfolio.IntegrationTests.Web;
 
@@ -30,6 +31,8 @@ public sealed class AdminAccountsPageTestsDefinition : ICollectionFixture<Collec
 public sealed class AdminAccountsPageTests : IAsyncLifetime
 {
     private const string Path = "/panel/yonetici-hesaplari";
+
+    private static readonly string[] ExpectedOrder = ["Ahmet", "Ayşe", "Çağlar", "Zeynep"];
 
     private readonly CollectionDatabaseFixture _database;
 
@@ -63,7 +66,7 @@ public sealed class AdminAccountsPageTests : IAsyncLifetime
         (HttpStatusCode status, string html) = await GetAsync(client, Path);
 
         Assert.Equal(HttpStatusCode.OK, status);
-        int[] positions = [.. new[] { "Ahmet", "Ayşe", "Çağlar", "Zeynep" }.Select(name => html.IndexOf(name, StringComparison.Ordinal))];
+        int[] positions = [.. ExpectedOrder.Select(name => html.IndexOf(name, StringComparison.Ordinal))];
         Assert.All(positions, p => Assert.True(p > 0));
         Assert.Equal(positions.Order(), positions);
         Assert.Contains("(siz)", html, StringComparison.Ordinal);
@@ -143,15 +146,33 @@ public sealed class AdminAccountsPageTests : IAsyncLifetime
     {
         using HttpClient client = ClientOf(Open());
         using HttpResponseMessage sent = await PostAsync(client, "SendAdminInvitation", ("Input.Email", "var@example.com"));
-        await AddAdminAsync("Diğer");
+        await AddAdminIdAsync("Sonradan", "var@example.com");
 
-        // The same address typed with the wrong form of the second try is not the case; the redisplay of a refusal carries the hint only for the address that has a valid invitation.
-        using HttpResponseMessage refused = await PostAsync(client, "SendAdminInvitation", ("Input.Email", "diger@example.com"));
+        using HttpResponseMessage refused = await PostAsync(client, "SendAdminInvitation", ("Input.Email", "var@example.com"));
         string html = WebUtility.HtmlDecode(await refused.Content.ReadAsStringAsync(Ct));
+        using HttpResponseMessage other = await PostAsync(client, "SendAdminInvitation", ("Input.Email", "bu-bir-adres-degil"));
+        string otherHtml = WebUtility.HtmlDecode(await other.Content.ReadAsStringAsync(Ct));
 
         Assert.Equal(HttpStatusCode.SeeOther, sent.StatusCode);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, refused.StatusCode);
-        Assert.DoesNotContain("yeni davet onu geçersiz kılar", html, StringComparison.Ordinal);
+        Assert.Contains("yeni davet onu geçersiz kılar", html, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, other.StatusCode);
+        Assert.DoesNotContain("yeni davet onu geçersiz kılar", otherHtml, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task OnlyTheInvitationWhoseEmailEndedUndelivered_CarriesTheMark_KK2()
+    {
+        using HttpClient client = ClientOf(Open());
+        (await PostAsync(client, "SendAdminInvitation", ("Input.Email", "ulasti@example.com"))).Dispose();
+        (await PostAsync(client, "SendAdminInvitation", ("Input.Email", "ulasmadi@example.com"))).Dispose();
+        await ExecuteAsync("UPDATE dispatch_records SET dispatch_state = 'Undelivered', attempt_count = 1 WHERE dispatch_type = 'AdminInvitation' AND related_record_id = (SELECT id FROM admin_invitations WHERE email = 'ulasmadi@example.com')");
+
+        (_, string html) = await GetAsync(client, Path);
+
+        Assert.Equal(1, Count(html, RequestTexts.EmailNotDeliveredMark));
+        int mark = html.IndexOf(RequestTexts.EmailNotDeliveredMark, StringComparison.Ordinal);
+        Assert.InRange(mark, html.IndexOf("ulasmadi@example.com", StringComparison.Ordinal), html.IndexOf("ulasti@example.com", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -171,7 +192,7 @@ public sealed class AdminAccountsPageTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.SeeOther, first.StatusCode);
         Assert.Equal(Path, first.Headers.Location?.OriginalString);
         Assert.Equal(1L, trailAfterFirst);
-        Assert.NotNull(await ScalarAsync<DateTimeOffset?>("SELECT withdrawn_at FROM admin_invitations"));
+        Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM admin_invitations WHERE withdrawn_at IS NOT NULL"));
         Assert.Equal(HttpStatusCode.SeeOther, second.StatusCode);
         Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM audit_logs WHERE operation = 'WithdrawAdminInvitation'"));
         Assert.Equal(mailsAfterFirst, await ScalarAsync<long>("SELECT count(*) FROM dispatch_records"));
@@ -283,7 +304,12 @@ public sealed class AdminAccountsPageTests : IAsyncLifetime
 
         Task<HttpResponseMessage> a = PostAsync(first, "RemoveAdmin", ("Input.AdminId", other.ToString("D")), ("Input.Confirmed", "true"));
         Task<HttpResponseMessage> b = PostAsync(second, "RemoveAdmin", ("Input.AdminId", _adminId.ToString("D")), ("Input.Confirmed", "true"));
-        using HttpResponseMessage[] responses = await Task.WhenAll(a, b);
+        HttpResponseMessage[] responses = await Task.WhenAll(a, b);
+        foreach (HttpResponseMessage response in responses)
+        {
+            response.Dispose();
+        }
+
 
         Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM admins"));
         Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM audit_logs WHERE operation = 'RemoveAdminAccount'"));
@@ -291,7 +317,7 @@ public sealed class AdminAccountsPageTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task TheListReadsAreFewAndDoNotGrowWithTheRows_ThroughTheService()
+    public async Task TheListService_ReturnsAllAdministratorsAndOnlyTheValidInvitations()
     {
         for (int i = 0; i < 12; i++)
         {
@@ -299,15 +325,15 @@ public sealed class AdminAccountsPageTests : IAsyncLifetime
         }
 
         await using WebApplicationFactory<Program> factory = Open();
-        using HttpClient warm = ClientOf(factory);
         using HttpClient client = ClientOf(factory);
-        await GetAsync(warm, Path);
+        (await PostAsync(client, "SendAdminInvitation", ("Input.Email", "liste@example.com"))).Dispose();
         await using AsyncServiceScope scope = factory.Services.CreateAsyncScope();
 
         AdminAccountList list = await scope.ServiceProvider.GetRequiredService<IAdminAccountList>().ListAsync(Ct);
 
         Assert.Equal(13, list.Admins.Count);
-        Assert.Empty(list.Invitations);
+        Assert.Single(list.Invitations);
+        Assert.Equal("liste@example.com", list.Invitations[0].Email);
     }
 
     // ---- helpers ----

@@ -277,6 +277,7 @@ public sealed class MainFlowTests : IAsyncLifetime
         {
             services.AddSingleton<IReadOnlyList<ConditionalLine>>([new ConditionalLine(ConditionalLine.CardPayment, [])]);
             services.AddScoped<IBankTransferCondition, ClosedBankTransferCondition>();
+            OpenSalesGate.Register(services);
         });
         _client = _app.GetTestClient();
     }

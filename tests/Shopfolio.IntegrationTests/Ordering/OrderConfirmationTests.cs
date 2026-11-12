@@ -564,7 +564,7 @@ public sealed partial class OrderConfirmationTests : IAsyncLifetime
         Guid cartId = await SeedCartAsync(owner, (variantId, 1));
 
         IReadOnlyList<PaymentMethod> open = await RunAsync(sp => sp.GetRequiredService<IPaymentMethods>().ListOpenAsync(Ct));
-        SalesGate gate = await RunAsync(sp => sp.GetRequiredService<ISettingsModule>().GetSalesGateAsync(Ct));
+        SalesGate gate = await RunAsync(sp => ActivatorUtilities.CreateInstance<SettingsModule>(sp).GetSalesGateAsync(Ct)); // the real gate, not OpenSalesGate's (T509)
         OrderSummaryInput byCard = Input(owner, PaymentMethod.Card, null);
         OrderConfirmationResult card = await ConfirmAsync(byCard, (await SummarizeAsync(byCard))!);
 
@@ -597,7 +597,7 @@ public sealed partial class OrderConfirmationTests : IAsyncLifetime
 
         _cardLineOpen = false;
         IReadOnlyList<PaymentMethod> none = await RunAsync(sp => sp.GetRequiredService<IPaymentMethods>().ListOpenAsync(Ct));
-        SalesGate gate = await RunAsync(sp => sp.GetRequiredService<ISettingsModule>().GetSalesGateAsync(Ct));
+        SalesGate gate = await RunAsync(sp => ActivatorUtilities.CreateInstance<SettingsModule>(sp).GetSalesGateAsync(Ct)); // the real gate, not OpenSalesGate's (T509)
         Assert.Empty(none);
         Assert.Contains(SalesGateCondition.PaymentMethod, gate.UnmetConditions);
 

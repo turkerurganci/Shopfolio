@@ -217,6 +217,67 @@ function bindSubmitOnce(form) {
     });
 }
 
+// A form whose answer is a file (the panel's exports, 04 9.24.7; T524): the screen does not change, so the form is sent in the background, the button says the file is being prepared and can not be
+// pressed twice, and the file is handed to the browser's download when it comes; the button is ready again after it. Any other answer (a field message, an empty set, an error) is the page itself:
+// the form is then sent the plain way, which draws the page the server answers - those answers write nothing, so the second sending changes nothing.
+function bindDownloadOnce(form) {
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (form.getAttribute("aria-busy") === "true") {
+            return;
+        }
+
+        const button = event.submitter ?? form.querySelector('button[type="submit"]');
+        const label = button ? button.textContent : "";
+        form.setAttribute("aria-busy", "true");
+        if (button && button.dataset.busyLabel) {
+            button.textContent = button.dataset.busyLabel;
+        }
+
+        try {
+            const response = await fetch(form.action, { method: "POST", body: new FormData(form), credentials: "same-origin" });
+            const disposition = response.headers.get("Content-Disposition") ?? "";
+            if (!response.ok || !disposition.startsWith("attachment")) {
+                form.submit();
+                return;
+            }
+
+            const name = /filename=("?)([^";]+)\1/.exec(disposition)?.[2] ?? "dosya.csv";
+            const address = URL.createObjectURL(await response.blob());
+            const link = document.createElement("a");
+            link.href = address;
+            link.download = name;
+            document.body.append(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(address);
+        } catch {
+            form.submit();
+            return;
+        } finally {
+            form.removeAttribute("aria-busy");
+            if (button) {
+                button.textContent = label;
+            }
+        }
+    });
+}
+
+// A reading form whose choice applies at once (the sales summary's period, 04 9.22.8): a change of the closed list sends the form, unless the choice is the custom range, whose two dates are sent by
+// the form's button. Without a script the button sends the form.
+for (const form of document.querySelectorAll('[data-js="submit-on-change"]')) {
+    const choice = form.querySelector("select");
+    choice?.addEventListener("change", () => {
+        if (choice.value !== "Custom") {
+            form.submit();
+        }
+    });
+}
+
+for (const form of document.querySelectorAll('[data-js="download-once"]')) {
+    bindDownloadOnce(form);
+}
+
 for (const form of document.querySelectorAll('[data-js="submit-once"]')) {
     bindSubmitOnce(form);
 }

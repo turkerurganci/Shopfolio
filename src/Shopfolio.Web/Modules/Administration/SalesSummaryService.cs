@@ -66,6 +66,9 @@ internal sealed class SalesSummaryService : ISalesSummary
             SalesSummaryRules.CancellationAndReturn(facts.PaidItems, cohortLoss));
     }
 
+    // WIP (T524): the derivation from the operation trail follows in this task; until then the window is not offered.
+    public Task<DateOnly?> FindSalesOpenDayAsync(CancellationToken ct) => Task.FromResult<DateOnly?>(null);
+
     public async Task<int> CountDailyOrdersAsync(DateOnly day, CancellationToken ct)
     {
         SalesSummary summary = await GetAsync(SalesSummaryPeriod.OfDay(day), ct);

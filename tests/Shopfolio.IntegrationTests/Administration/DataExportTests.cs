@@ -51,7 +51,7 @@ public sealed class DataExportDefinition : ICollectionFixture<CollectionDatabase
 /// are the unit tests' (CsvExportWriterTests, OrderExportTests, DataExportRulesTests).
 /// </summary>
 [Collection(DataExportDefinition.Name)]
-public sealed class DataExportTests : IAsyncLifetime
+public sealed partial class DataExportTests : IAsyncLifetime
 {
     private static readonly DateOnly Today = TurkeyTime.DateOf(DateTimeOffset.UtcNow);
 

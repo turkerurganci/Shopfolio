@@ -43,7 +43,7 @@ public sealed class SalesSummaryDefinition : ICollectionFixture<CollectionDataba
 /// real contact request store. The pure rules and the surface are the unit tests' (SalesSummaryRulesTests).
 /// </summary>
 [Collection(SalesSummaryDefinition.Name)]
-public sealed class SalesSummaryTests : IAsyncLifetime
+public sealed partial class SalesSummaryTests : IAsyncLifetime
 {
     private static readonly DateOnly Day = new(2026, 11, 10);
     private static readonly DateTimeOffset DayStart = TurkeyTime.StartOf(Day);

@@ -14,6 +14,7 @@ using Shopfolio.IntegrationTests.Pages;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Pages.Components;
+using Shopfolio.Pages.Frame;
 
 namespace Shopfolio.IntegrationTests.Web;
 
@@ -317,6 +318,36 @@ public sealed class AdminAccountsPageTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task WhenTheActingSessionIsNoLongerAnAdministrator_EveryHandlerWritesNothing_AndRedirectsToThePanelSignIn_KK7()
+    {
+        Guid target = await AddAdminIdAsync("Hedef", "hedef@example.com");
+        await using WebApplicationFactory<Program> factory = new ShopfolioWebApplicationFactory(_database.Dsn)
+            .WithWebHostBuilder(b => b.ConfigureServices(s =>
+            {
+                s.AddRazorPages().AddApplicationPart(typeof(ForgeryTokenSampleModel).Assembly);
+                s.AddScoped<IAuditActorSource, NoAdministratorActorSource>();
+            }));
+        using HttpClient client = ClientOf(factory);
+        Guid invitationId = Guid.NewGuid();
+
+        using HttpResponseMessage send = await PostAsync(client, "SendAdminInvitation", ("Input.Email", "yeni@example.com"));
+        using HttpResponseMessage revoke = await PostAsync(client, "RevokeAdminInvitation", ("Input.AdminInvitationId", invitationId.ToString("D")));
+        using HttpResponseMessage remove = await PostAsync(client, "RemoveAdmin", ("Input.AdminId", target.ToString("D")), ("Input.Confirmed", "true"));
+
+        foreach (HttpResponseMessage response in new[] { send, revoke, remove })
+        {
+            Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
+            Assert.Equal(PanelFramePaths.SignIn, response.Headers.Location?.OriginalString);
+        }
+
+        Assert.Equal(2L, await ScalarAsync<long>("SELECT count(*) FROM admins"));
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM admin_invitations"));
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM audit_logs"));
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM dispatch_records"));
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM disposal_records"));
+    }
+
+    [Fact]
     public async Task TheListService_ReturnsAllAdministratorsAndOnlyTheValidInvitations()
     {
         for (int i = 0; i < 12; i++)
@@ -352,6 +383,12 @@ public sealed class AdminAccountsPageTests : IAsyncLifetime
     {
         using HttpResponseMessage response = await client.GetAsync(new Uri(path, UriKind.Relative), Ct);
         return (response.StatusCode, WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct)));
+    }
+
+    /// <summary>The acting administrator whose row is gone: the session still opens the page, the module's read of the actor finds nobody.</summary>
+    private sealed class NoAdministratorActorSource : IAuditActorSource
+    {
+        public Task<AuditActor?> CurrentAsync(CancellationToken ct) => Task.FromResult<AuditActor?>(null);
     }
 
     private static Task<HttpResponseMessage> PostAsync(HttpClient client, string handler, params (string Name, string Value)[] fields) =>

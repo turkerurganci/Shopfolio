@@ -9,7 +9,7 @@ namespace Shopfolio.Modules.Administration;
 /// <summary>
 /// The accounts screen's read side (T522; 07 UC-103; 04 9.20; 05 3.3.9): the administrators in the alphabetical order of their names (the database orders in the Turkish collation, 06 2.8), and the valid
 /// invitations, newest first. An invitation is valid when none of its three closing moments is filled and a link of it still lives - used, replaced and run-out links are not live; this is the reading the
-/// removal's confirmation counts with (<c>AdminAccounts.ValidInvitationOf</c>). The marks of the page's invitations are one read of the Notifications module, so the number of reads does not grow with the list (09 20 item 4).
+/// removal's confirmation counts with (<c>AdminAccounts.LiveLink</c>, the same link reading as the removal's confirmation and <c>LinkRecords.StateOf</c>). The marks of the page's invitations are one read of the Notifications module, so the number of reads does not grow with the list (09 20 item 4).
 /// </summary>
 internal sealed class AdminAccountListService : IAdminAccountList
 {
@@ -37,7 +37,7 @@ internal sealed class AdminAccountListService : IAdminAccountList
 
         var invitations = await _db.AdminInvitations.AsNoTracking()
             .Where(i => i.WithdrawnAt == null && i.InvalidatedAt == null && i.AcceptedAt == null
-                && _db.LinkRecords.Any(l => l.AdminInvitationId == i.Id && l.UsedAt == null && l.SupersededAt == null && l.ExpiresAt > now))
+                && _db.LinkRecords.Where(AdminAccounts.LiveLink(now)).Any(l => l.AdminInvitationId == i.Id))
             .OrderByDescending(i => i.CreatedAt).ThenBy(i => i.Id)
             .Select(i => new
             {
@@ -45,7 +45,7 @@ internal sealed class AdminAccountListService : IAdminAccountList
                 i.Email,
                 i.SenderAdminName,
                 i.CreatedAt,
-                LinkEndsAt = _db.LinkRecords.Where(l => l.AdminInvitationId == i.Id && l.UsedAt == null && l.SupersededAt == null && l.ExpiresAt > now).Max(l => l.ExpiresAt),
+                LinkEndsAt = _db.LinkRecords.Where(AdminAccounts.LiveLink(now)).Where(l => l.AdminInvitationId == i.Id).Max(l => l.ExpiresAt),
             })
             .ToListAsync(ct);
 

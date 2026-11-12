@@ -1,6 +1,6 @@
 # T506 — Sık sorulan sorular ve iletişim sayfası ve formu (E-09, E-10)
 
-**Faz:** F5 | **Durum:** ⏳ Düzeltme 1 tamam, doğrulama (tur 2) bekliyor | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ Doğrulama tur 2 PASS (merge yardımcıda; main çakışması önce çözülür) | **Tarih:** 2026-11-12
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -72,6 +72,10 @@
 | Düzeltme gerekli mi | Evet — B1: kapı kapalıyken `SendContactRequest` 422'si `DataCollectionClosed` ret satırını yazmıyor (`Contact.cshtml.cs` `default` dalı yalnız `FormResults.Redisplay`; `RejectionLog.Rejected(result.Code)` yok; `09 §8.2` m.3, K-1198; `VAL-A123` kanıtı "Uygulama kaydı"). Düzeltme: dal ret satırını `result.Code` ile yazar; test kapalı kapı POST'unda kayıt satırını (`code=DataCollectionClosed`) doğrular |
 | Yapım raporu karşılaştırması (tur 1) | KK1–KK10 kanıtları uyumlu; uyuşmazlıklar: (1) öz denetimin `09 §25` satırı "red uygulama kaydında mı" sorusunu kapsamıyor (B1 kaçtı); (2) rapor sonuç kodunu `?code=ContactRequestSent` yazar, adres `?notice=ContactRequestSent`'tir; (3) `12` Durum hücreleri yazılmamış, `VAL-A120`…`A122` (tarayıcı) D-1228'de yok (D-1313) |
 | Doğrulayıcı kanıtları (tur 1) | Derleme `-warnaserror` 0/0; `dotnet format --verify-no-changes` üç proje temiz; Unit 7226/7226; betik 4/4; Integration TAM 3833/3833 (Web 837; Administration+Catalog+Commands+Concurrency+CorporateContent+Security+SignedEndpoints+FileSecrets+Logging 535; Database+Disposal+Files+Jobs+Outages+Payment 406; Ordering 645; Model 1410); CI run 43115380835 yeşil; `12` Durum: A123 FAIL, A452/A558/A580/A634 PASS |
+| Doğrulama durumu (tur 2) | ✓ PASS (2026-11-12; dal ucu `fd92dbcd`) |
+| Bulgu sayısı (tur 2) | 0 bulgu, 0 K-notu; birleştirme notu 1 |
+| Doğrulayıcı kanıtları (tur 2) | Ana dal CI son 3 run yeşil (43128171608, 43128171584, 43125378261); derleme `-warnaserror` 0/0; `dotnet format --verify-no-changes` üç proje temiz; Unit 7226/7226; betik 4/4; Integration TAM 3834/3834 (Web 838, Model 1410, Ordering 645, öteki ad alanları 941); `restore --locked-mode` 0; KK1–KK10 ✓; B1 kapandı: kapalı kapı POST'u 422 + tek `DataCollectionClosed` ret satırı (`ContactPageTests.EachRefusalOfTheSend_*_KK7`); `12` Durum: A123 FAIL → PASS, A487 BEKLEMEDE → PASS |
+| Birleştirme notu (tur 2) | `git merge origin/main` (`33a9d21a`; T505 #543, T549 #550) kod çakışması verdi: `src/Shopfolio.Web/Modules/CorporateContent/CorporateContentModule.cs` (kurucu: dalın `ContentReaders readers` alanı ↔ main'in `StorefrontContentPages contentPages` alanı; ikisi de korunmalı) ve kayıt belgesi `Docs/IMPLEMENTATION_STATUS.md`. Birleştirme geri alındı; doğrulama dalın kendi ucunda yapıldı. PR #551 `CONFLICTING` olduğu için `fd92dbcd` üzerinde CI koşmadı (son dal run'ı 43122758392 `12ab2810` yeşil); çakışma çözülüp CI yeşil olmadan merge edilmez |
 
 ### Düzeltme 1 (tur 1 FAIL sonrası)
 
@@ -92,7 +96,7 @@
 - **Branch:** `task/T506-sss-iletisim`
 - **Commit:** `50b7486e` (yapım ucu; birleştirme `e07bdf75`)
 - **PR:** #551
-- **CI:** *(yardımcı denetler)*
+- **CI:** dal ucu `fd92dbcd`'de run yok (PR çakışmalı); önceki uç `12ab2810` run 43122758392 yeşil — çakışma çözümünden sonra yardımcı denetler
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

@@ -142,7 +142,10 @@ public sealed partial class CheckoutPageTests : IAsyncLifetime
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
         using HttpResponseMessage recalculated = await PostAsync(client, "Recalculate", [.. Fields(first, guest: true, email: "misafir@example.com")], GuestCart(guest));
         Assert.Equal(HttpStatusCode.OK, recalculated.StatusCode);
-        Assert.Contains("misafir@example.com", await BodyOf(recalculated), StringComparison.Ordinal);
+        string recalculatedHtml = await BodyOf(recalculated);
+        Assert.Contains("misafir@example.com", recalculatedHtml, StringComparison.Ordinal);
+        Assert.Contains("class=\"checkout__email-line\">", recalculatedHtml, StringComparison.Ordinal);
+        Assert.Contains("href=\"#ContactEmail\"", recalculatedHtml, StringComparison.Ordinal); // D-729: the summary's e-mail line links to the field it is corrected in
     }
 
     // ---- KK2: three reasons, four ends ----

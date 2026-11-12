@@ -153,6 +153,9 @@ public static class CheckoutTexts
 
     public const string BackToCart = "Sepete dön";
 
+    /// <summary>The guest e-mail line's link to the e-mail field (02 3.24.5; D-729): the address is corrected before the confirmation.</summary>
+    public const string CorrectEmail = "E-postayı düzelt";
+
     public const string SignInPrompt = "Hesabınız var mı? Giriş yapın";
 
     public const string RegisteredEmailReminder = "Bu e-posta kayıtlı, giriş yaparsanız adresleriniz dolu gelir.";

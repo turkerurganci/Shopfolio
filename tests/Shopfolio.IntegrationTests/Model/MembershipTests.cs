@@ -471,6 +471,19 @@ public sealed partial class MembershipTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ASessionWhoseAccountIsGone_IsAGuestOrder_ThatAVerifiedAccountOfTheAddressStillTakes_D385()
+    {
+        Guid verified = await SeedCustomerAsync("ali@example.com", verified: true);
+
+        OrderAccountResolution bound = await ResolveAsync(Guid.NewGuid(), "ali@example.com");
+        OrderAccountResolution guest = await ResolveAsync(Guid.NewGuid(), "yeni@example.com");
+
+        Assert.Equal(new OrderAccountResolution(OrderAccountKind.GuestBoundToAccount, verified), bound);
+        Assert.True(bound.IsGuestOrder);
+        Assert.Equal(new OrderAccountResolution(OrderAccountKind.Guest, null), guest);
+    }
+
+    [Fact]
     public async Task AnUnverifiedAccount_IsRefusedAtTheSignIn_EvenWithTheRightPassword_AndTheAttemptIsAFailedOne()
     {
         await SeedCustomerAsync("ali@example.com", verified: false);

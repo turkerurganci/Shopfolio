@@ -187,7 +187,7 @@
         <partial name="_ConsentBoxes" model="boxes" />
         @if (confirmation.ContactEmailLine is not null)
         {
-            <p>@confirmation.ContactEmailLine</p>
+            <p class="checkout__email-line">@confirmation.ContactEmailLine <a href="#@FormErrorSummary.FieldIdOf(nameof(PlaceOrderInput.ContactEmail))">@CheckoutTexts.CorrectEmail</a></p>
         }
         <p class="checkout__total">Ödenecek toplam: <strong>@DisplayFormat.Amount(summary.Total)</strong></p>
         @if (Model.ActionMessage is not null)

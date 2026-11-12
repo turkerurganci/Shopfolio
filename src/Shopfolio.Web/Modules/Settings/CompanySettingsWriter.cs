@@ -106,6 +106,26 @@ internal sealed class CompanySettingsWriter
         return Written(written);
     }
 
+    /// <summary>Writes the home page and menu section (layout, six menu names, WhatsApp number; 06 4.2) by one update conditional on the section's version; same contract as <see cref="WriteShippingFeeAsync"/>.</summary>
+    public async Task<bool> WriteHomepageAsync(CorporateContent.Contracts.HomepageLayout layout, MenuNames names, string? whatsApp, int formVersion, CancellationToken ct)
+    {
+        int written = await _db.CompanySettings
+            .Where(s => s.HomepageVersion == formVersion)
+            .ExecuteUpdateAsync(
+                set => set
+                    .SetProperty(s => s.HomepageLayout, layout)
+                    .SetProperty(s => s.MenuNameProducts, names.Products)
+                    .SetProperty(s => s.MenuNameOfferings, names.Offerings)
+                    .SetProperty(s => s.MenuNamePortfolioItems, names.PortfolioItems)
+                    .SetProperty(s => s.MenuNameAboutPage, names.AboutPage)
+                    .SetProperty(s => s.MenuNameFaqItems, names.FaqItems)
+                    .SetProperty(s => s.MenuNameContact, names.Contact)
+                    .SetProperty(s => s.WhatsAppNumber, whatsApp)
+                    .SetProperty(s => s.HomepageVersion, s => s.HomepageVersion + 1),
+                ct);
+        return Written(written);
+    }
+
     /// <summary>Writes the payment methods section (the bank transfer switch and its IBAN; 02 3.21.5) by one update conditional on the section's version; same contract as <see cref="WriteShippingFeeAsync"/>.</summary>
     public async Task<bool> WritePaymentMethodsAsync(bool isBankTransferEnabled, string? bankTransferIban, int formVersion, CancellationToken ct)
     {

@@ -809,6 +809,8 @@ public sealed class PanelHomeTests : IAsyncLifetime
 
         public Task<IReadOnlyList<SocialLinkItem>> ListSocialLinksAsync(CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<SocialLinksSaveResult> SaveSocialLinksAsync(IReadOnlyDictionary<string, string?> links, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<ContactFormView> GetContactFormAsync(string? memberName, string? memberEmail, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<ContactFormResult> SendContactRequestAsync(ContactFormInput input, IPAddress? ipAddress, CancellationToken ct) => throw new NotSupportedException();

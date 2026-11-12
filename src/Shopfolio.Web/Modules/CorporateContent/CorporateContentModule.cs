@@ -65,6 +65,14 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     public async Task<IReadOnlyList<SocialLinkItem>> ListSocialLinksAsync(CancellationToken ct) =>
         [.. (await _socialLinks.ListAsync(ct)).Select(l => new SocialLinkItem(l.Platform, l.Url))];
 
+    public async Task<SocialLinksSaveResult> SaveSocialLinksAsync(IReadOnlyDictionary<string, string?> links, CancellationToken ct)
+    {
+        SocialLinksResult result = await _socialLinks.SaveAsync(links, ct);
+        return result.IsRejected
+            ? SocialLinksSaveResult.Refused([.. result.Rejections.Select(r => new SocialLinkRejection(r.Field, r.Code))])
+            : SocialLinksSaveResult.Saved(result.Changes ?? []);
+    }
+
     public Task<ContactFormView> GetContactFormAsync(string? memberName, string? memberEmail, CancellationToken ct) => _contactForm.ReadAsync(memberName, memberEmail, ct);
 
     public Task<ContactFormResult> SendContactRequestAsync(ContactFormInput input, System.Net.IPAddress? ipAddress, CancellationToken ct) => _contactForm.SendAsync(input, ipAddress, ct);

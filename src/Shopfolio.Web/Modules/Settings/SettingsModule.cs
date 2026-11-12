@@ -59,7 +59,8 @@ internal sealed class SettingsModule : ISettingsModule
         if (result.IsSaved)
         {
             // The identity feeds the two generated texts (02 3.33.3): the new versions are made under the row lock this save still holds (09 11.4 item 6; K-1088).
-            await _generator.RegenerateAsync(ct);
+            IReadOnlyList<GeneratedVersion> versions = await _generator.RegenerateAsync(ct);
+            await _generator.WriteTrailAsync(versions, ct);
         }
 
         return result;
@@ -70,6 +71,8 @@ internal sealed class SettingsModule : ISettingsModule
     public Task<ShippingFeeSection> GetShippingFeeAsync(CancellationToken ct) => _firm.ReadShippingFeeAsync(ct);
 
     public Task<HomepageSection> GetHomepageAsync(CancellationToken ct) => _firm.ReadHomepageAsync(ct);
+
+    public Task<SettingsSaveResult> SaveHomepageAsync(HomepageInput input, int formVersion, CancellationToken ct) => _firm.SaveHomepageAsync(input, formVersion, ct);
 
     public Task<SettingsSaveResult> SaveShippingFeeAsync(ShippingFeeInput input, int formVersion, CancellationToken ct) =>
         _firm.SaveShippingFeeAsync(input, formVersion, ct);

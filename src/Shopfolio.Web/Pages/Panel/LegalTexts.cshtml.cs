@@ -384,7 +384,7 @@ public sealed class LegalTextsModel : PageModel
         return items;
     }
 
-    private static string LabelOf(string identityField) => IdentityFieldLabels.TryGetValue(identityField, out string? label) ? label : identityField;
+    internal static string LabelOf(string identityField) => IdentityFieldLabels.TryGetValue(identityField, out string? label) ? label : identityField;
 
     /// <summary>What the last POST sent, so the form can show it again (07 2.2.2).</summary>
     private sealed record Posted(LegalTextType Type, string Text, string? HostingLocation, int Version, bool IsConflict, bool IdentityWaits);

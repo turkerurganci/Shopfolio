@@ -161,6 +161,16 @@ internal sealed class SessionStore
         return await OwnsAsync(type, accountId, sessionId, ct) ? await _reauthentication.GrantAsync(sessionId, operation, ct) : null;
     }
 
+    /// <summary>Drops the permission the session holds (the account's own session only); the account's row lock is asked first like every write of the session rows (09 15.1 item 3).</summary>
+    public async Task DropReauthenticationAsync(AccountType type, Guid accountId, Guid sessionId, CancellationToken ct)
+    {
+        await AccountLocks.LockAsync(_db, type, accountId, ct);
+        if (await OwnsAsync(type, accountId, sessionId, ct))
+        {
+            await _reauthentication.DropAsync(sessionId, ct);
+        }
+    }
+
     /// <summary>Takes the permission with one conditional update (the session must be the account's); false means the operation must not run.</summary>
     public async Task<bool> TryRedeemReauthenticationAsync(AccountType type, Guid accountId, Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct)
     {

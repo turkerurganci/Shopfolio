@@ -66,6 +66,15 @@ internal static class PanelFramePaths
     /// <summary>E-30, the invitation page - the link's key follows after a slash (UC-85, UC-113).</summary>
     public const string Invitation = "/panel/davet";
 
+    /// <summary>E-54, the new address's landing screen - the link's key follows after a slash (UC-108, UC-186).</summary>
+    public const string EmailVerification = "/panel/dogrulama";
+
+    /// <summary>E-54, the revert link's landing screen - the link's key follows after a slash (UC-108, UC-187).</summary>
+    public const string EmailRevert = "/panel/geri-al";
+
+    /// <summary>E-54, the re-verification step in the frame (UC-108, UC-185).</summary>
+    public const string Reauthentication = "/panel/yeniden-dogrulama";
+
     /// <summary>UC-109: the sign-out page; the form adds the handler.</summary>
     public const string SignOut = "/panel/cikis";
 

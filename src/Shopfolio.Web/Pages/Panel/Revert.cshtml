@@ -1,0 +1,37 @@
+@page "/panel/geri-al/{key}"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Panel
+@model Shopfolio.Pages.Panel.RevertModel
+@*
+    The revert link's landing screen (T521; 04 9.25.5; E-54): no frame, independent of a session (04 2.2.9). A valid link: the sentence that says the result of the revert and the one button, no question and no
+    confirmation window (K-839). Done, invalid and not applied: one sentence; the way back is another administrator, or the one who set the product up. No password field: the password is set through the
+    reset link of the earlier address (E-29).
+*@
+@{
+    Layout = "_PanelBareLayout";
+    ViewData["Title"] = PanelAccessTexts.RevertEmailTitle;
+}
+<h2>@PanelAccessTexts.RevertEmailTitle</h2>
+@switch (Model.Step)
+{
+    case LandingStep.Valid:
+        <partial name="_Message" model='Messages.InPlace(MessageMeaning.Info, PanelAccessTexts.RevertValid, "revert-valid")' />
+        <form method="post" asp-antiforgery="true" action="@(PanelFramePaths.EmailRevert)/@(Uri.EscapeDataString(Model.Key))?handler=RevertPendingEmailChange" class="form" data-js="submit-once">
+            <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(PanelAccessTexts.RevertButton)">@PanelAccessTexts.RevertButton</button>
+        </form>
+        break;
+    case LandingStep.Done:
+        <partial name="_Message" model='Messages.InPlace(MessageMeaning.Success, PanelAccessTexts.EmailReverted, "revert-done")' />
+        <p><a href="@Model.NextPath">@Model.NextText</a></p>
+        break;
+    case LandingStep.Rejected:
+        <partial name="_Message" model='Messages.InPlace(MessageMeaning.Warning, PanelAccessTexts.RevertNotApplied, "revert-not-applied")' />
+        <p><a href="@Model.NextPath">@Model.NextText</a></p>
+        break;
+    default:
+        <partial name="_Message" model='Messages.InPlace(MessageMeaning.Warning, PanelAccessTexts.RevertInvalid, "revert-invalid")' />
+        <p><a href="@Model.NextPath">@Model.NextText</a></p>
+        break;
+}

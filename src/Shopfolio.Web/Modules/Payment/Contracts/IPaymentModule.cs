@@ -164,6 +164,9 @@ public interface IPaymentModule
     /// <summary>The order's refund as the refund line reads it, the open transaction's changes included; null when the refund is not the order's.</summary>
     Task<CardRefundLine?> ReadRefundLineAsync(Guid orderId, Guid refundId, CancellationToken ct);
 
+    /// <summary>Of the given refunds, the ones that are the order's (K-1075), in one query - the order's itemless IBAN fields are read with it (T512; 09 20 item 4).</summary>
+    Task<IReadOnlySet<Guid>> OrderRefundIdsAsync(Guid orderId, IReadOnlyCollection<Guid> refundIds, CancellationToken ct);
+
     /// <summary>
     /// The firm's retry of a failed card refund (02 7.2.8; 06 4.34; K-569): a new card refund job row for the same refund - its request is a new refund record.
     /// Only when <see cref="RefundLineRules"/> opens the retry; otherwise nothing is written and the result is false.
@@ -201,7 +204,16 @@ public interface IPaymentModule
     /// AfterSales module's (K-525). Read by the database; a plain read.
     /// </summary>
     Task<IReadOnlyList<OpenRefundWork>> ListOpenRefundWorkAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The orders whose card refund did not go through, for the panel home's warnings (T521; 02 10.6.1; 04 3.4.3; K-940): the orders with a card refund, neither sent nor voided, whose latest request failed,
+    /// and - apart - those whose latest request awaits its result. An order counts once in each. A plain read by the database.
+    /// </summary>
+    Task<CardRefundProblems> CountCardRefundProblemsAsync(CancellationToken ct);
 }
+
+/// <summary>The count of orders with a failed card refund and of orders with a card refund whose result is awaited (T521).</summary>
+public sealed record CardRefundProblems(int FailedOrders, int OutcomePendingOrders);
 
 /// <summary>One refund the firm still has a step on (T382): the refund, its order and the item it is for (null when it is for no one item).</summary>
 public sealed record OpenRefundWork(Guid RefundId, Guid OrderId, Guid? OrderItemId);

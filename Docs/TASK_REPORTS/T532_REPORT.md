@@ -96,7 +96,7 @@
 
 - **Branch:** `task/T532-talepler`
 - **Commit:** son baş SHA PR açıklamasında
-- **PR:** *(açılınca)*
+- **PR:** #552
 - **CI:** yoklanmadı (yapım işçisi CI izlemez)
 - **Post-merge run'lar:** *(validator doldurur)*
 

@@ -321,6 +321,13 @@ public interface IAfterSalesModule
     Task<IReadOnlySet<Guid>> FindRefundsAwaitingIbanAsync(IReadOnlyCollection<RefundOfItem> refunds, CancellationToken ct);
 
     /// <summary>
+    /// The open IBAN requests - neither fulfilled nor closed - as the panel home's "Müşteriden beklenenler" list reads them (T521; 02 10.6.1; 04 2.6.2; K-716): the item or the refund the request is on
+    /// and the last day of the refund period when the line has one. The period belongs to the cancellation, the removal and the withdrawal lines; the defect remedy, the amount-based and the late payment's
+    /// lines run without one. A plain read; nothing is written.
+    /// </summary>
+    Task<IReadOnlyList<AwaitingIbanLine>> ListAwaitingIbanLinesAsync(CancellationToken ct);
+
+    /// <summary>
     /// The firm's removal record (06 4.23; 02 10.4.3; T386): the unit rule of the cancellation (at most the units open to an operation), then one row with the administrator
     /// and no reason; the amounts set aside as on the cancellation (02 7.1.7). Whether the operation is open is the order module's decision (03 1.11.22); the writer joins the
     /// caller's transaction under the order's row lock and saves nothing.
@@ -346,6 +353,9 @@ public interface IAfterSalesModule
     /// </summary>
     Task<(ItemRecordRefusal? Refusal, DateOnly? OldDate)> CorrectArrivalDateAsync(ItemRecordSubject subject, Guid recordId, DateOnly arrivalDate, CancellationToken ct);
 }
+
+/// <summary>One open IBAN request of the panel home's list (T521): the item it is on (null on the refund of a late payment), the refund it names (null before a refund is linked), the last day of its refund period (null when it has none).</summary>
+public sealed record AwaitingIbanLine(Guid? OrderItemId, Guid? RefundId, DateOnly? RefundLastDay);
 
 /// <summary>A refund and the item it is for, null when it is for no one item (T382): the pair the IBAN wait is read by.</summary>
 public sealed record RefundOfItem(Guid RefundId, Guid? OrderItemId);

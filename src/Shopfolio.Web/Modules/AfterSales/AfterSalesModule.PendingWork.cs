@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
+using Shopfolio.Infrastructure;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -120,6 +121,25 @@ internal sealed partial class AfterSalesModule
         HashSet<Guid> byItem = [.. open.Where(r => r.RefundId == null && r.OrderItemId != null).Select(r => r.OrderItemId!.Value)]; // non-null: the Where on this line keeps only requests with an item
         HashSet<Guid> waiting = [.. refunds.Where(r => byRefund.Contains(r.RefundId) || (r.OrderItemId is { } item && byItem.Contains(item))).Select(r => r.RefundId)];
         return waiting;
+    }
+
+    public async Task<IReadOnlyList<AwaitingIbanLine>> ListAwaitingIbanLinesAsync(CancellationToken ct)
+    {
+        var open = await _db.RefundIbanRequests.AsNoTracking()
+            .Where(r => r.FulfilledAt == null && r.ClosedAt == null)
+            .OrderBy(r => r.CreatedAt).ThenBy(r => r.Id)
+            .Select(r => new { r.OrderItemId, r.RefundId, r.Reason, r.CreatedAt }).ToListAsync(ct);
+
+        // The refund period runs from the cancellation's, the removal's or the withdrawal's record; the other reasons have no period (04 2.6.2; K-716).
+        return
+        [
+            .. open.Select(r => new AwaitingIbanLine(
+                r.OrderItemId,
+                r.RefundId,
+                r.Reason is RefundIbanRequestReason.CancellationOrRemoval or RefundIbanRequestReason.NoticeWithoutIban or RefundIbanRequestReason.ReturnAfterIbanDeleted
+                    ? AfterSalesPeriodRules.RefundLastDay(TurkeyTime.DateOf(r.CreatedAt))
+                    : null)),
+        ];
     }
 
     /// <summary>The next subjects after the cursor, by id across the five record kinds: each kind gives its next <paramref name="max"/> and the merge keeps the first <paramref name="max"/>.</summary>

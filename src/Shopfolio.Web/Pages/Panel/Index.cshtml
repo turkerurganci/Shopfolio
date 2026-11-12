@@ -1,0 +1,40 @@
+@page "/panel"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model Shopfolio.Pages.Panel.PanelHomeModel
+@*
+    E-31, the panel home (T521; 04 3.4; 07 UC-86): warnings, the setup checklist, the six counters, "Müşteriden beklenenler" - in that order; a section with nothing in it is not drawn (the counters always
+    are: a zero counter says zero, 04 2.6.1). Computed in this request; no form, no script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = PanelHomeTexts.Title;
+}
+<h1>@PanelHomeTexts.Title</h1>
+@if (Model.Warnings.Count > 0)
+{
+    <section class="home-warnings" id="home-warnings" aria-label="Uyarılar">
+        @foreach (HomeWarningView warning in Model.Warnings)
+        {
+            <div class="home-warnings__item">
+                <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, warning.Text, warning.Id)" />
+                <a class="home-warnings__link" href="@warning.Href">Ekrana git</a>
+            </div>
+        }
+    </section>
+}
+@if (Model.Checklist.Count > 0)
+{
+    <section class="setup-checklist" id="setup-checklist" aria-labelledby="setup-checklist-title">
+        <h2 id="setup-checklist-title">@PanelHomeTexts.ChecklistTitle</h2>
+        <ul class="setup-checklist__list">
+            @foreach (HomeChecklistView item in Model.Checklist)
+            {
+                <li class="setup-checklist__item"><a href="@item.Href">@item.Text</a></li>
+            }
+        </ul>
+    </section>
+}
+<partial name="_PendingCounters" model="Model.Counters" />
+<partial name="_AwaitingCustomerList" model="Model.Awaiting" />

@@ -446,6 +446,23 @@ internal sealed class PaymentModule : IPaymentModule
             select new OpenRefundWork(r.Id, r.OrderId, r.OrderItemId)).ToListAsync(ct);
     }
 
+    public async Task<CardRefundProblems> CountCardRefundProblemsAsync(CancellationToken ct)
+    {
+        var latest = await (
+            from r in _db.Refunds.AsNoTracking()
+            where r.SentAt == null && r.VoidedAt == null && r.PaymentMethod == PaymentMethod.Card
+            let state = _db.RefundRecords
+                .Where(rr => rr.RefundId == r.Id)
+                .OrderByDescending(rr => rr.CreatedAt).ThenByDescending(rr => rr.Id)
+                .Select(rr => (RefundRecordState?)rr.State)
+                .FirstOrDefault()
+            where state == RefundRecordState.Failed || state == RefundRecordState.OutcomePending
+            select new { r.OrderId, State = state }).ToListAsync(ct);
+        int failed = latest.Where(x => x.State == RefundRecordState.Failed).Select(x => x.OrderId).Distinct().Count();
+        int pending = latest.Where(x => x.State == RefundRecordState.OutcomePending).Select(x => x.OrderId).Distinct().Count();
+        return new CardRefundProblems(failed, pending);
+    }
+
     public async Task<IReadOnlyList<Guid>> ErasePersonalDataAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(orderIds);

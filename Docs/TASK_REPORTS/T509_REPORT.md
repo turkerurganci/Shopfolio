@@ -15,6 +15,7 @@
 - Onay `05 §4.2.2`'nin tek işleminde (`ITransactionRunner.RunAsync(work, PlaceOrderRequest.RetryOnUniqueIndexes, ct)`; D-563 tek ev); sonuç eşlemesi: teyit 303, 422 (eksik alan/kutu, il, özet farkı, kapanan satış, yöntem), 429 (L-7, L-8; adressiz istek de nötr 429 — D-805), 404 (yabancı defter girdisi), 303'ler (kalem yok / asgari tutar → `/sepet`, oluşmuş sipariş → teyit, belirsiz sonuç → `IOutcomeTarget` sonuç ekranı `[OutcomeUncertain("UC-27")]`, kapanan oturum → giriş).
 - Modül yüzü: `ICheckout` (okuma, onay, `MarkPaymentUnavailableAsync`), `OrderConfirmation.ReadStepAsync` (kilitli okuma, kupon kararı, önceki ödenmemiş sipariş), `SummaryChanges` (değişiklik satırları), `Carts.MarkPaymentUnavailableAsync` (UC-26).
 - Bu tur: cayma özetinde iki fiziksel cümle yalnız fiziksel kalemde (D-743); hesabı silinen oturumun siparişi misafir yoluna düşer ve doğrulanmış hesaba bağlanır (D-385); hedefi T509 olan backlog kalemleri kapatıldı ya da gerekçeyle ileri atıldı.
+- **Düzeltme 1 (doğrulama tur 1 B1, VAL-E061):** sağlayıcıya iki dakika erişilemeyen kart artık listeden çıkmıyor: sayfa `IsCardUnavailableNowAsync`'i `ListOpenAsync`'ten ayrı okur, `ShownMethods` kartı sabit sırada (kart, havale) listede tutar, radyosu `disabled`, yanında `CheckoutTexts.CardUnavailableNow`; `ChosenMethod` bu kartı seçmez, `HasNoUsableMethod` = seçilebilir yöntem yok (`OpenMethods` boş). Kart seçili sahte onay 422 `PaymentMethodUnavailable`, sipariş ve bildirim yok. Test: `CheckoutPageTests.TheCardUnavailableNow_StaysInTheListUnselectableWithItsReason_AndItsConfirmationIsRefusedWith422_VAL_E061` (yardımcıya `cardOpen` düzeneği). D-1077'nin T509 payı tur 1'de "kapandı" yazılmıştı ama sayfada karşılanmıyordu; bu düzeltmeyle karşılandı.
 - Tarama kuralları gevşetilmeden kod kurala uyduruldu: enum başına dosya (`PlaceOrderOutcome.cs`, `SummaryChangeKind.cs` + `SummaryChange.cs`), iki enum saklanmayan değer listesinde (`ApplicationEnums.NotStored`; sütun değil, sonuç kodu ve okuma biçimi), form `asp-antiforgery` + sayfa yoluyla `action`, gerekçesiz `!` gerekçe aldı, `07 §5.2` kalın alan adları ve dört kutu alanı `[SpecAssignedName]`, erişim anahtarı parametresi varsayılansız (ölü `OrderConfirmationResult.Placed` silindi), KK2 testi iddiayı testin kendisinde yapar.
 
 ## Etkilenen Modüller / Dosyalar
@@ -28,14 +29,14 @@
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | Bölümler tek sayfada; yeni anahtar, parmak izi, iki sürüm; misafir e-postası özette, kodsuz, düzeltilebilir | ✓ | `CheckoutPageTests.TheGet_DrawsTheSectionsOfTheCart_WithAFreshKey_TheFingerprintAndTheVersions_T509_KK1` |
+| 1 | Bölümler tek sayfada; yeni anahtar, parmak izi, iki sürüm; misafir e-postası özette, kodsuz, düzeltilebilir | ✓ | `CheckoutPageTests.TheGet_DrawsTheSectionsOfTheCart_WithAFreshKey_TheFingerprintAndTheVersions_T509_KK1`; yöntem bölümünde iki dakikalık kart hâli (`04` 5.13.8, `07 4.13.1`): `TheCardUnavailableNow_StaysInTheListUnselectableWithItsReason_AndItsConfirmationIsRefusedWith422_VAL_E061` (düzeltme 1) |
 | 2 | Geçiş kapalıysa UC-22…UC-25 303 → `/sepet` | ✓ | `TheStepThatCannotOpen_SendsTheGetAndTheThreeSubmissionsToTheCart_T509_KK2` |
 | 3 | Çerezden dolar; yalnız ayrılışta, yalnız `05 §6.7.9` alanları | ✓ | `TheLeaving_WritesTheCookieWithoutValidating_…_T509_KK3_KK6`; Unit `CheckoutFormsTests.TheCookie_KeepsOnlyTheDocumentedFields_…` |
 | 4 | `ApplyCoupon` 200 yazmaz; 422 iki biçim; 429 L-6; hak ayrılmaz | ✓ | `TheCoupon_IsAppliedWithoutWriting_RefusedWith422_AndRemoved_T509_KK4_KK5`, `TheCouponAttempts_AreClosedByL6With429_T509_KK4` |
 | 5 | `RemoveCoupon`; `Recalculate` zorunluluk denetlemez; hatırlatma L-3'e sayılmaz | ✓ | `…_KK4_KK5`, `TheRecalculation_ChecksNoRequiredField_TellsAnUnservedProvince_AndTheRegisteredEmailReminder_T509_KK5` |
 | 6 | `Leave` doğrulamasız çerez; üç hedef; yöntem yoksa işaret | ✓ | `…_KK3_KK6`, `TheReturnToTheCart_WithNoUsableMethod_MarksTheCart_T509_KK6` |
 | 7 | Tek işlem, 303 teyit, çerez silinir | ✓ | `TheConfirmation_PlacesTheOrder_GoesToItsConfirmation_DeletesTheCookie_AndTheRepeatOpensNoSecondOrder_T509_KK7_KK10` |
-| 8 | 422 beş sebep; 429 L-7/L-8; 404 yabancı defter | ✓ | `…RefusesMissingFieldsAndBoxesTogether_With422_…_KK8`, `…AnUnservedProvince_AChangedSummary_AndAnUnusableMethod_With422_T509_KK8`, `…TheClosedSale_With422_AndAForeignBookEntry_With404_T509_KK8`, `AFullOpenUnpaidCeiling_RefusesTheNextConfirmationWith429_T509_KK8`, `AConfirmationWithoutAClientAddress_IsRefusedWithTheNeutral429_AndNoOrder_T509_KK8` |
+| 8 | 422 beş sebep; 429 L-7/L-8; 404 yabancı defter | ✓ | `…RefusesMissingFieldsAndBoxesTogether_With422_…_KK8`, `…AnUnservedProvince_AChangedSummary_AndAnUnusableMethod_With422_T509_KK8`, `…_VAL_E061` (iki dakikalık kart 422, sipariş ve bildirim yok), `…TheClosedSale_With422_AndAForeignBookEntry_With404_T509_KK8`, `AFullOpenUnpaidCeiling_RefusesTheNextConfirmationWith429_T509_KK8`, `AConfirmationWithoutAClientAddress_IsRefusedWithTheNeutral429_AndNoOrder_T509_KK8` |
 | 9 | 303'ler: kalem yok / asgari tutar → sepet; oluşmuş → teyit; belirsiz → sonuç ekranı; kapanan oturum → giriş | ✓ | `…SendsTheCartsLostLinesToTheCart_AndAClosedMemberSessionToTheSignIn_T509_KK9`, `…UnderTheMinimumAmount_GoesToTheCart_T509_KK9`, `AnUnexpectedError_…_T509_KK9`, `…_KK7_KK10` (aynı anahtar → teyit) |
 | 10 | Aynı anahtar ikinci sipariş açmaz; iki sekme kilitle sıraya girer | ✓ | `…_KK7_KK10`, `TwoTabs_WithTwoKeys_AreQueuedByTheCartsLock_AndTheSecondCancelsTheFirstsUnpaidOrder_T509_KK10` |
 
@@ -48,6 +49,8 @@
 | Madde | Sonuç | Kanıt |
 |---|---|---|
 | KK1: sepete göre bölüm, taze anahtar; misafir e-postası özette | ✓ | KK1 testi (dijital sepette teslimat bölümü yok; iki GET farklı anahtar; e-posta + düzeltme bağlantısı) |
+| Düzeltme 1 — KK1 yöntem bölümü: kullanılamayan yöntem listede kalır, seçilemez, sebebi yanında (`04` 5.13.8; `07 4.13.1`; VAL-E061) | ✓ | `…_VAL_E061`: önce açık kart seçili ve sebepsiz (testin boş kümeyi karşılaştırmadığının kanıtı), `Mark()` sonrası kart radyosu `disabled`, seçili değil, "şu an kullanılamıyor" yanında, havale seçili; yalnız kart açıkken kart listede + "kullanılabilecek yöntem yok" mesajı |
+| Düzeltme 1 — KK6/KK8 yan etkisi | ✓ | `Leave` işaret koşulu değişmedi (`ListOpenAsync` + `IsCardUnavailableNowAsync`); KK6 ve KK8 testleri yeşil; kart seçili onay 422, sipariş 0, `dispatch_records` 0 |
 | KK2: üç sebep, dört uçta | ✓ | KK2 testi (GET, ApplyCoupon, RemoveCoupon, Recalculate; satış kapalı, kapı, özet yok) |
 | KK3: çerez alan listesi; kutu yazılmaz | ✓ | Unit `CheckoutFormsTests` (alan listesi = `05 §6.7.9`), KK3_KK6 testi |
 | KK4: üç sonuç, L-6; 200 yazmaz, hak ayırmaz | ✓ | KK4 testleri (`reserved_count` değişmez) |
@@ -66,7 +69,7 @@
 | Sık FAIL 3: "Varsayılan" DB default'u / FK dizini | ✓ | Şema değişikliği yok |
 | Sık FAIL 4: kural değişince aynı sayıyı anan öteki yerler | ✓ | UC-27 işareti tek listede güncellendi; tekil dizin listesi tek evde |
 | Sık FAIL 5: belge kuralını değiştiren 09 metni karar kaydısız | ✓ | `09` değişmedi |
-| Hedefi T509 olan backlog kalemleri | ✓ | Kapandı: D-385, D-563, D-626, D-729, D-743, D-785, D-805, D-807; T509 payı kapandı: D-254, D-437, D-801, D-1077, D-1225 (D-1080: `VAL-E061` doğrulamanın); ileri atıldı (gerekçeli): D-435, D-650, D-769, D-853, D-1189, D-1190, D-1245, D-1246 → F5 gate; D-1127 → T510 |
+| Hedefi T509 olan backlog kalemleri | ✓ | Kapandı: D-385, D-563, D-626, D-729, D-743, D-785, D-805, D-807; T509 payı kapandı: D-254, D-437, D-801, D-1077 (tur 1'de iddia sayfada karşılanmıyordu — FAIL B1; düzeltme 1'de sayfa + `…_VAL_E061` testiyle karşılandı; backlog metni artık doğru), D-1225 (D-1080: yapım payı düzeltme 1'de karşılandı, `VAL-E061` tarayıcı gözlemi doğrulamanın); ileri atıldı (gerekçeli): D-435, D-650, D-769, D-853, D-1189, D-1190, D-1245, D-1246 → F5 gate; D-1127 → T510 |
 | Modül kurucusuna yeni bağımlılık, elle kuran test düzenekleri | ✓ | `Checkout` kurucusuna `Carts`; `OrderingTestServices` kullanan bütün sınıflar koşuldu (Test Sonuçları); Integration TAM doğrulayıcıda |
 | Sık FAIL (modül/akış değişince elle kuran test düzenekleri) | ✓ | Satış kapısı onaya girince `OrderingTestServices`/`MainFlowTests` düzeneği güncellendi (`OpenSalesGate`); gerçek kapıyı okuyan testler gerçek `SettingsModule`'ü kurar (`OrderConfirmationTests` iki satır, `PanelHomeTests` kurulum listesi KK8/KK9) |
 | `09 §25` doküman uyumu: yeni adlar `07`/`06`'dan; diff yalnız görev; yeni ayar/sabit yok | ✓ | Model alanları `07 §5.2` (sapma ⚠ (a), D-1333); `appsettings`/`.env.example` değişmedi; diff `Pages/Storefront`, `Modules/Ordering`, `Modules/Membership` ve testlerle sınırlı |
@@ -96,6 +99,10 @@
 | Integration (T509 sınıfları) | ✓ | `--filter-class "Shopfolio.IntegrationTests.Web.CheckoutPageTests"`, `"*OrderAccessTests"`, `"*OutcomeUncertainConsistencyTests"`, `"*MembershipTests"` | 17/17; üçü birlikte 35/35; Membership 137/137; tarama düzeltmelerinden ve `main` birleştirmesinden sonra `CheckoutPageTests` yeniden 17/17 |
 | Unit TAM | ✓ | `dotnet test --project tests/Shopfolio.UnitTests` (`main` `a56a1735` birleştirmesinden sonra) | 7435/7435; `CheckoutFormsTests` dahil |
 | Integration (değişen/ilgili parçalar) | ✓ | `--filter-class` parçaları (`main` `a56a1735` birleştirmesinden sonra) | Önceki turlarda ad alanı parçaları 350 + 209; birleştirmeden sonra `CheckoutPageTests` 17/17, `StorefrontFrameTests` yeşil, `OrderConfirmationTests` + `MainFlowTests` 29/29; `Ordering` ad alanının öteki 28 sınıfı 264/264 + 367/367; `OrderingTestServices` kullanan öteki sınıflar (`DataExportTests`, `PanelHomeTests`, `SalesSummaryTests`, `CardRefundJobTests`, `RequestsPageTests`) ve `main`'in yeni sayfa testleri (`OrderOperationScreenTests`, `PanelHomeAndVerificationPagesTests`, `SessionAccessTests`) 171/171 (`PanelHomeTests` düzeltmesinden sonra 25/25) |
+| Düzeltme 1 — derleme | ✓ | `dotnet restore Shopfolio.slnx --locked-mode`; `dotnet build Shopfolio.slnx --no-restore -warnaserror` | restore çıkış 0; 0 uyarı, 0 hata |
+| Düzeltme 1 — `dotnet format` | ✓ | `dotnet format <proje> --verify-no-changes --no-restore` (Web, Integration, Unit) | üçü çıkış 0 |
+| Düzeltme 1 — Unit TAM | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | 7440/7441; kalan 1 `DomesticProductionLogoSourceScanTests` regex zaman aşımı (5 s, makine yükü; T509 diff'i dokunmuyor) — sınıf yeniden 38/38 |
+| Düzeltme 1 — Integration | ✓ | `--filter-class "Shopfolio.IntegrationTests.Web.CheckoutPageTests"` (Postgres 18, `track_commit_timestamp=on`, 127.0.0.1) | 18/18 (yeni VAL-E061 testi dahil). **TAM: CI** |
 | Integration TAM | ⏳ | — | Yönetici kararı (makine yükü, "Yük altında Integration TAM"): yapımda koşulmadı; **TAM doğrulayıcıda koşulacak** |
 | `dotnet format` | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` (Web, Unit, Integration; son turda değişen 5 test dosyası `--include` ile) | Temiz (çıkış 0) |
 
@@ -107,6 +114,7 @@
 | Bulgu sayısı (tur 1) | 1 (1 ORTA, S1); K-notu yok |
 | Düzeltme gerekli mi | Evet — B1 (ORTA, VAL-E061, D-1077, D-1080; kriter 1/UC-22): sağlayıcıya iki dakika erişilemeyen kart listeden çıkıyor; `04` 5.13.8 / `07 4.13.1` listede kalmasını, seçilemez olmasını ve yanında "şu an kullanılamıyor" yazmasını ister |
 | Yapım raporu karşılaştırması (tur 1) | 1 uyuşmazlık: kriter 1 ✓ ve D-1077 "T509 payı kapandı" sayılmış; kartın iki dakikalık hâli sayfada çizilmiyor, testi yok |
+| Düzeltme 1 | B1 düzeltildi: iki dakikalık kart listede kalır, radyosu `disabled`, yanında "şu an kullanılamıyor"; kart seçili onay 422, sipariş yok. Test `…_VAL_E061`. K-notu yoktu. Yeni backlog kalemi yok (D-1414–1415 kullanılmadı). Ayrıntı "Yapılan İşler" > Düzeltme 1 |
 
 ## Altyapı Değişiklikleri
 

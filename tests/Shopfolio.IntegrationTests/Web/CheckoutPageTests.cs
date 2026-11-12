@@ -19,6 +19,7 @@ using Shopfolio.Modules.Catalog.Contracts.Coupons;
 using Shopfolio.Modules.CorporateContent;
 using Shopfolio.Modules.CorporateContent.Contracts;
 using Shopfolio.Modules.Ordering;
+using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.Pages.Components;
@@ -373,6 +374,53 @@ public sealed partial class CheckoutPageTests : IAsyncLifetime
         using HttpResponseMessage card = await PostAsync(client, "PlaceOrder", [.. Complete(fresh, method: "Card")], GuestCart(guest));
         Assert.Equal(HttpStatusCode.UnprocessableEntity, card.StatusCode);
         Assert.Equal(0, await ScalarAsync("SELECT count(*) FROM orders"));
+    }
+
+    // ---- VAL-E061 (D-1077, D-1080; 04 5.13.8; 07 4.13.1; 08 2.1.8): the card the provider could not be reached for stays in the list, unselectable, with its reason ----
+
+    [Fact]
+    public async Task TheCardUnavailableNow_StaysInTheListUnselectableWithItsReason_AndItsConfirmationIsRefusedWith422_VAL_E061()
+    {
+        Regex disabledCard = new("<input type=\"radio\" id=\"method-card\"[^>]*disabled=\"disabled\"");
+        Regex checkedCard = new("<input type=\"radio\" id=\"method-card\"[^>]*checked");
+        string reason = "<span class=\"field__reason\">" + CheckoutTexts.CardUnavailableNow + "</span>";
+        string guest = await SeedGuestCartAsync(ProductType.Physical);
+        await using WebApplicationFactory<Program> factory = Open(salesOpen: true, cardOpen: true);
+
+        // The open card is chosen first and has no reason beside it.
+        string usable = (await GetAsync(factory, GuestCart(guest))).Html;
+        Assert.Matches(checkedCard, usable);
+        Assert.DoesNotMatch(disabledCard, usable);
+        Assert.DoesNotContain(reason, usable, StringComparison.Ordinal);
+
+        // A token request's connection error: for two minutes the card stays in the list, cannot be chosen and says why; the transfer is chosen.
+        factory.Services.GetRequiredService<CardUnavailability>().Mark();
+        string page = (await GetAsync(factory, GuestCart(guest))).Html;
+        Assert.Matches(disabledCard, page);
+        Assert.DoesNotMatch(checkedCard, page);
+        Assert.Contains(reason, page, StringComparison.Ordinal);
+        Assert.Matches(new Regex("<input type=\"radio\" id=\"method-banktransfer\"[^>]*checked=\"checked\""), page);
+        Assert.DoesNotContain(CheckoutTexts.NoMethod, page, StringComparison.Ordinal);
+
+        // A forged card confirmation is refused with 422 without an order or a notice; the page draws the card unselectable again.
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        using HttpResponseMessage card = await PostAsync(client, "PlaceOrder", [.. Complete(page, method: "Card")], GuestCart(guest));
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, card.StatusCode);
+        string refused = await BodyOf(card);
+        Assert.Contains(CheckoutTexts.MethodUnavailable, refused, StringComparison.Ordinal);
+        Assert.Matches(disabledCard, refused);
+        Assert.Equal(0, await ScalarAsync("SELECT count(*) FROM orders"));
+        Assert.Equal(0, await ScalarAsync("SELECT count(*) FROM dispatch_records"));
+
+        // With the transfer off the unavailable card is the only one listed: no method can be used, the cart's way back stands instead (04 5.13.21).
+        await ExecuteAsync("UPDATE company_settings SET is_bank_transfer_enabled = false");
+        await using WebApplicationFactory<Program> cardOnly = Open(salesOpen: true, cardOpen: true);
+        cardOnly.Services.GetRequiredService<CardUnavailability>().Mark();
+        string alone = (await GetAsync(cardOnly, GuestCart(guest))).Html;
+        Assert.Matches(disabledCard, alone);
+        Assert.Contains(reason, alone, StringComparison.Ordinal);
+        Assert.DoesNotContain("id=\"method-banktransfer\"", alone, StringComparison.Ordinal);
+        Assert.Contains(CheckoutTexts.NoMethod, alone, StringComparison.Ordinal);
     }
 
     [Fact]

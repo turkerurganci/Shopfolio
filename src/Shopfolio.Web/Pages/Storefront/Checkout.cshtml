@@ -110,7 +110,7 @@
         <h2 id="checkout-method">Ödeme yöntemi</h2>
         <fieldset class="checkout__methods">
             <legend>Ödeme yöntemi</legend>
-            @foreach (PaymentMethod method in Model.OpenMethods)
+            @foreach (PaymentMethod method in Model.ShownMethods)
             {
                 bool unavailable = method == PaymentMethod.Card && Model.IsCardUnavailableNow;
                 string id = "method-" + method.ToString().ToLowerInvariant();

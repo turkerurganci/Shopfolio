@@ -97,11 +97,17 @@ internal sealed class CheckoutModel : PageModel, IOutcomeTarget
     /// <summary>The 81 provinces with their delivery mark (04 2.12.2.3).</summary>
     public IReadOnlyList<ProvinceChoice> Provinces { get; private set; } = [];
 
-    /// <summary>The open methods (04 5.13.8).</summary>
+    /// <summary>The methods that can be chosen now (07 4.13.1); the card whose provider was unreachable in the last two minutes is not among them (08 2.1.8).</summary>
     public IReadOnlyList<PaymentMethod> OpenMethods { get; private set; } = [];
 
     /// <summary>The card is open but cannot be chosen now (08 2.1.8; 04 5.13.8).</summary>
     public bool IsCardUnavailableNow { get; private set; }
+
+    /// <summary>
+    /// The methods the list draws in the fixed order card, bank transfer (04 5.13.8): the open ones and the card that cannot be chosen now, which stays in the list
+    /// unselectable with its reason beside it (07 4.13.1; VAL-E061).
+    /// </summary>
+    public IReadOnlyList<PaymentMethod> ShownMethods => IsCardUnavailableNow && !OpenMethods.Contains(PaymentMethod.Card) ? [PaymentMethod.Card, .. OpenMethods] : OpenMethods;
 
     /// <summary>The method the form shows chosen.</summary>
     public PaymentMethod? ChosenMethod { get; private set; }
@@ -128,7 +134,7 @@ internal sealed class CheckoutModel : PageModel, IOutcomeTarget
     public ConsentBasket Basket { get; private set; } = ConsentBasket.Physical;
 
     /// <summary>No method can be used: the cart's way back stands in the confirm button's place (04 5.13.21).</summary>
-    public bool HasNoUsableMethod => OpenMethods.All(m => m == PaymentMethod.Card && IsCardUnavailableNow);
+    public bool HasNoUsableMethod => OpenMethods.Count == 0;
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
@@ -395,8 +401,8 @@ internal sealed class CheckoutModel : PageModel, IOutcomeTarget
         }
 
         OpenMethods = await _paymentMethods.ListOpenAsync(ct);
-        IsCardUnavailableNow = OpenMethods.Contains(PaymentMethod.Card) && await _paymentMethods.IsCardUnavailableNowAsync(ct);
-        ChosenMethod = form.PaymentMethod is PaymentMethod chosen && OpenMethods.Contains(chosen) ? chosen : DefaultMethod();
+        IsCardUnavailableNow = await _paymentMethods.IsCardUnavailableNowAsync(ct);
+        ChosenMethod = form.PaymentMethod is PaymentMethod chosen && OpenMethods.Contains(chosen) && !(chosen == PaymentMethod.Card && IsCardUnavailableNow) ? chosen : DefaultMethod();
 
         DeliveryArea area = await _settings.GetDeliveryAreaAsync(ct);
         Provinces = [.. (await _settings.GetProvincesAsync(ct)).Select(p => new ProvinceChoice(p.Id, p.Name, area.IsServed(p.Id)))];

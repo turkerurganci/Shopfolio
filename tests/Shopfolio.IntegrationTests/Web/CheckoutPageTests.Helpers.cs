@@ -35,9 +35,15 @@ public sealed partial class CheckoutPageTests
     /// <summary>The client address of the test requests (a test server's connection has none; behind the proxy every request has one, 09 15.1 item 8).</summary>
     private static readonly IPAddress ClientIp = IPAddress.Parse("203.0.113.9");
 
-    private WebApplicationFactory<Program> Open(bool salesOpen, bool confirmationFails = false, bool hasAddress = true) =>
+    private WebApplicationFactory<Program> Open(bool salesOpen, bool confirmationFails = false, bool hasAddress = true, bool cardOpen = false) =>
         new ShopfolioWebApplicationFactory(_database.Dsn).WithWebHostBuilder(b => b.ConfigureServices(s =>
         {
+            if (cardOpen)
+            {
+                s.RemoveAll<ICardPaymentCondition>();
+                s.AddScoped<ICardPaymentCondition>(_ => new OpenCardCondition());
+            }
+
             if (hasAddress)
             {
                 s.AddSingleton<IStartupFilter>(new ClientAddressFilter());
@@ -324,5 +330,11 @@ public sealed partial class CheckoutPageTests
         }
 
         public Task MarkPaymentUnavailableAsync(CartOwner owner, CancellationToken ct) => inner.MarkPaymentUnavailableAsync(owner, ct);
+    }
+
+    /// <summary>The card's line open: the provider's keys defined at installation (02 3.21.2); the test installation has none.</summary>
+    private sealed class OpenCardCondition : ICardPaymentCondition
+    {
+        public Task<bool> IsOpenAsync(CancellationToken ct) => Task.FromResult(true);
     }
 }

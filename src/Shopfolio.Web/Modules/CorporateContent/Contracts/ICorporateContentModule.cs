@@ -34,6 +34,20 @@ public interface ICorporateContentModule
     /// </summary>
     Task<AnnouncementView?> GetAnnouncementAsync(bool asAdministrator, CancellationToken ct);
 
+    /// <summary>
+    /// One page of a content list page (T505; 02 3.27.4, 3.27.5, 3.27.11, 3.27.25; 04 5.7.3): the published service introductions or reference works in the firm's manual order, 24 a page, a
+    /// draft never among them, under the type's name as the firm gave it. A type with no published record gives no cards. A page number past the last shows the last. A plain read.
+    /// </summary>
+    Task<ContentListView> GetContentListAsync(ContentListKind kind, int page, CancellationToken ct);
+
+    /// <summary>
+    /// A content record's page (T505; 02 3.27.3-3.27.5, 3.27.9, 3.27.10, 3.27.25; 04 5.8): Hakkımızda (<paramref name="slug"/> is ignored), a service introduction, a reference work or a general page
+    /// with its gallery and - for the first two - the linked products that are published. Null when there is no such page: the record does not exist, the address belongs to another type, or the record
+    /// is a draft and <paramref name="asAdministrator"/> - the request of a signed-in administrator - is false; the three are not told apart (04 5.8.9). For the administrator a draft opens with
+    /// <see cref="ContentRecordPage.IsDraft"/> set. A plain read.
+    /// </summary>
+    Task<ContentRecordPage?> GetContentPageAsync(ContentPageKind kind, string? slug, bool asAdministrator, CancellationToken ct);
+
     /// <summary>The brand form as the panel shows it (T362; 02 3.29; 04 9.15): the stored values and the form's version. A plain read; the panel's view of the brand never carries the brand colour on itself (02 3.29.1).</summary>
     Task<BrandingSection> GetBrandingAsync(CancellationToken ct);
 

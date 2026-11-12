@@ -1,0 +1,48 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@model GalleryUploadView
+@*
+    The gallery upload (T544; 04 OB-19, 2.12.8.1, 2.12.8.2): several images, each row with its thumbnail, its order number set by hand, its alternative text (optional - the field says the system's text stands in
+    when it is empty) and one main-image choice for the whole gallery, independent of the order. The file input takes more files while the gallery has room; the form must be multipart. Only the panel draws
+    this view (04 2.12.8.6): GalleryUploads.Create refuses the customer's side.
+*@
+<fieldset class="gallery-upload" data-js="gallery-upload">
+    <legend>Görseller <span class="field__requirement">(isteğe bağlı)</span></legend>
+    <p class="gallery-upload__count">@Model.CountText</p>
+    <ol class="gallery-upload__rows">
+        @foreach (GalleryRowView row in Model.Rows)
+        {
+            <li class="gallery-upload__row">
+                <img class="gallery-upload__thumb" src="@row.Image.Url" alt="@(row.UsesGeneratedText ? row.GeneratedAltText : row.Image.AltText)" width="96" height="96">
+                <input type="hidden" name="@row.IdName" value="@row.Image.ImageId">
+                <div class="field">
+                    <label class="field__label" for="@row.OrderId">Sıra</label>
+                    <input class="field__control" type="number" inputmode="numeric" min="1" id="@row.OrderId" name="@row.OrderName" value="@row.Image.Order">
+                </div>
+                <div class="field">
+                    <label class="field__label" for="@row.AltId">Alternatif metin <span class="field__requirement">(isteğe bağlı)</span></label>
+                    <input class="field__control" type="text" id="@row.AltId" name="@row.AltName" value="@row.Image.AltText" aria-describedby="@(row.UsesGeneratedText ? row.AltHintId : null)">
+                    @if (row.UsesGeneratedText)
+                    {
+                        <p class="field__hint" id="@row.AltHintId">@row.GeneratedTextHint</p>
+                    }
+                </div>
+                <div class="field field--check">
+                    <input type="radio" name="@Model.MainName" id="main-@row.Image.ImageId" value="@row.Image.ImageId" checked="@(Model.MainImageId == row.Image.ImageId)">
+                    <label for="main-@row.Image.ImageId">Ana görsel</label>
+                </div>
+            </li>
+        }
+    </ol>
+    @if (Model.HasRoom || Model.IsInvalid)
+    {
+        <div class="field@(Model.IsInvalid ? " field--invalid" : string.Empty)">
+            <label class="field__label" for="@Model.FilesId">Görsel ekle</label>
+            <input class="field__control" type="file" id="@Model.FilesId" name="@Model.FilesName" multiple accept="@Model.Accept" aria-invalid="@(Model.IsInvalid ? "true" : null)" aria-describedby="@Model.Error?.Id" autofocus="@Model.Autofocus">
+            @if (Model.Error is not null)
+            {
+                <partial name="_Message" model="Model.Error" />
+            }
+        </div>
+    }
+</fieldset>

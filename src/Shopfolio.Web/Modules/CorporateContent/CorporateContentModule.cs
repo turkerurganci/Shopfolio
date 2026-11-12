@@ -17,6 +17,7 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     private readonly ContactRequests _requests;
     private readonly ContactRequestExport _contactRequestExport;
     private readonly SocialLinks _socialLinks;
+    private readonly StorefrontContentPages _contentPages;
 
     public CorporateContentModule(
         CorporateContentSitemapReader sitemap,
@@ -27,10 +28,12 @@ internal sealed class CorporateContentModule : ICorporateContentModule
         ContactFormSending contactForm,
         ContactRequests requests,
         ContactRequestExport contactRequestExport,
-        SocialLinks socialLinks)
+        SocialLinks socialLinks,
+        StorefrontContentPages contentPages)
     {
         _contactRequestExport = contactRequestExport;
         _socialLinks = socialLinks;
+        _contentPages = contentPages;
         _contactForm = contactForm;
         _requests = requests;
         _sitemap = sitemap;
@@ -48,6 +51,10 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     public Task<StorefrontMenu> GetMenuAsync(CancellationToken ct) => _menu.GetAsync(ct);
 
     public Task<HomepageView> GetHomepageAsync(CancellationToken ct) => _homepage.GetAsync(ct);
+
+    public Task<ContentListView> GetContentListAsync(ContentListKind kind, int page, CancellationToken ct) => _contentPages.ListAsync(kind, page, ct);
+
+    public Task<ContentRecordPage?> GetContentPageAsync(ContentPageKind kind, string? slug, bool asAdministrator, CancellationToken ct) => _contentPages.FindAsync(kind, slug, asAdministrator, ct);
 
     public Task<BrandingSection> GetBrandingAsync(CancellationToken ct) => _branding.ReadSectionAsync(ct);
 
@@ -108,6 +115,7 @@ internal static class CorporateContentModuleRegistration
         services.AddScoped<ContentGallery>();
         services.AddScoped<StorefrontMenuReader>();
         services.AddScoped<HomepageReader>();
+        services.AddScoped<StorefrontContentPages>();
         services.AddScoped<AnnouncementReader>();
         services.AddScoped<ContentPageReader>();
         services.AddDisposalPart<ContactRequestDisposalPart>();

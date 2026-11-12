@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 
-using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.InstallationSettings;
+using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.UnitTests.Fakes;
 

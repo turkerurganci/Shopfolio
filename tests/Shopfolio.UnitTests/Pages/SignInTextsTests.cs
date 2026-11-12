@@ -1,5 +1,5 @@
-using Shopfolio.Pages.Components;
 using Shopfolio.Infrastructure.Notices;
+using Shopfolio.Pages.Components;
 
 namespace Shopfolio.UnitTests.Pages;
 

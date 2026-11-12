@@ -337,6 +337,24 @@ public sealed class CustomerSignInPageTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task TheReturn_OfANewAddress_BindsTheGuestOrdersOfThatAddress_D577_T515_KK7()
+    {
+        StubGateway gateway = new();
+        await using WebApplicationFactory<Program> factory = Open(google: gateway, gateOpen: true);
+        (Guid orderId, _, _) = await TestSessions.OrderAsync(_database.Dsn, null);
+        (string cookie, string state, string nonce) = StartFlow(factory, null);
+        gateway.Enqueue(new GoogleIdentityResult.Succeeded("alici@example.com", true, "Alici", null, null, nonce));
+
+        (HttpStatusCode status, _) = await ReturnAsync(factory, cookie, $"code=c1&state={Uri.EscapeDataString(state)}");
+
+        Assert.Equal(HttpStatusCode.SeeOther, status);
+        await using AppDbContext db = NewContext();
+        Guid customerId = await db.Customers.AsNoTracking().Select(c => c.Id).SingleAsync(Ct);
+        Assert.Equal(customerId, await db.Orders.Where(o => o.Id == orderId).Select(o => o.CustomerId).SingleAsync(Ct));
+        Assert.Equal(1, await db.Sessions.CountAsync(Ct));
+    }
+
+    [Fact]
     public async Task TheReturn_OfAnAddressWithAPendingRegistration_WhileTheGateIsOpen_LeavesOneVerifiedAccount_T515_KK7()
     {
         StubGateway gateway = new();

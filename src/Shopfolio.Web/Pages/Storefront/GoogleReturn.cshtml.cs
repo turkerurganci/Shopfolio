@@ -82,13 +82,15 @@ internal sealed class GoogleReturnModel : PageModel
                     return new GoogleOutcome(result, null);
                 }
 
-                // The account is saved before the session is written, under the account row's lock the module holds until the transaction ends (D-556).
+                // The account is saved before the session is written, under the account row's lock the module holds until the transaction ends (D-556). The session row takes the account's lock first,
+                // so the guest orders - whose row locks follow the account's in the order of 05 7.3.5 - are linked after it, never before.
+                SessionOpening opening = await _sessions.SignInAsync(customerId, false, presentedMark, token);
                 if (result.AccountCreated)
                 {
                     await _ordering.LinkGuestOrdersAsync(customerId, identity.Email, token);
                 }
 
-                return new GoogleOutcome(result, await _sessions.SignInAsync(customerId, false, presentedMark, token));
+                return new GoogleOutcome(result, opening);
             },
             RegistrationIndexes.RetryOnUniqueIndexes,
             ct);

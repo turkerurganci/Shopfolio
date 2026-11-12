@@ -46,7 +46,7 @@
 | KK8: tek talep, Açık | ✓ | `…_KK8` (durum, adet, açıklama, iade adresi) |
 | KK9: üç 422, üç 303, 404 | ✓ | `…_KK9` |
 | KK10: Z-18 içi ve dışı; müşteri satırı | ✓ | `…_KK10`; yeniden açma açıklama almaz (`ReopenDefectClaimInput` yalnız adet) |
-| 09 §25: tarama ve mimari testleri | ✓ | Unit tam koşu 7378/7378 (`OperationSourceScanTests`, `FormSourceScanTests`, `ModelBindingRuleTests`, `NullForgivingSourceScanTests`, Consistency dahil) |
+| 09 §25: tarama ve mimari testleri | ✓ | Unit tam koşu 7413/7413 (`OperationSourceScanTests`, `FormSourceScanTests`, `ModelBindingRuleTests`, `NullForgivingSourceScanTests`, Consistency dahil) |
 | Güvenlik: POST'lar kapılı, antiforgery, yetki | ✓ | üç işleyici `[GatedOperation]`; kök çözümü sipariş sayfasıyla ortak (`OrderRoots.ResolveMemberAsync`/`ResolveAccessAsync`), yönetici oturumu ve yabancı sipariş 404; ham SQL yok; null-forgiving yok |
 | Sık FAIL (1) bekçi istisnası geniş | ✓ | yeni tarama/bekçi istisnası eklenmedi |
 | Sık FAIL (2) tarama çağrı biçimi | ✓ | yeni tarama yok; `OperationSourceScan` aynı dosyadaki çağrıyı izler, işleyiciler `AfterSalesScreenModels.cs`'te |
@@ -58,7 +58,7 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --max-threads 3` | 7378/7378 |
+| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --max-threads 3` | 7413/7413 (`origin/main` `29562ee9` ile birleşik ağaç, `-warnaserror` 0 uyarı) |
 | Integration (T513) | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests/… --filter-class "*AfterSalesScreenTests"` | 9/9 |
 | Integration TAM | bekliyor | ad alanı parçalarıyla | — |
 | Format | ✓ | `dotnet format <proje> --no-restore` (Web, UnitTests, IntegrationTests) | değişiklik yok |

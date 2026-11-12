@@ -60,6 +60,31 @@ internal static class DispatchMarks
     }
 
     /// <summary>
+    /// The administrator invitations among <paramref name="invitationIds"/> whose invitation e-mail carries the mark (T522; the panel's invitations list): the reading of <see cref="AccountEmailHasMarkAsync"/> for all
+    /// the invitations of a list in one query - each invitation's rows form their own groups and the latest row of any group decides.
+    /// </summary>
+    public static async Task<IReadOnlySet<Guid>> InvitationsWithMarkAsync(AppDbContext db, IReadOnlyCollection<Guid> invitationIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(db);
+        ArgumentNullException.ThrowIfNull(invitationIds);
+        Guid[] ids = [.. invitationIds.Distinct()];
+        if (ids.Length == 0)
+        {
+            return new HashSet<Guid>();
+        }
+
+        var rows = await db.DispatchRecords.AsNoTracking()
+            .Where(d => d.DispatchType == DispatchType.AdminInvitation && d.RelatedRecordType == DispatchRelatedRecordType.AdminInvitation && d.RelatedRecordId != null && ids.Contains(d.RelatedRecordId.Value))
+            .Select(d => new { InvitationId = d.RelatedRecordId!.Value, d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState, ClosedUnsent = d.AttemptCount == 0 && d.LastOutcome == null }) // non-null: the Where above keeps only records with a related record
+            .ToListAsync(ct);
+        return rows
+            .GroupBy(r => r.InvitationId)
+            .Where(g => HasMark(g.Select(r => new Row(r.Id, r.OriginalDispatchId, r.CreatedAt, r.DispatchState, r.ClosedUnsent))))
+            .Select(g => g.Key)
+            .ToHashSet();
+    }
+
+    /// <summary>
     /// The groups of customer notices whose latest row is "undelivered" - the notices the mark stands for and a re-sending can name (02 9.1.6; 05 4.4.3). A group's first row is the one
     /// whose <c>OriginalDispatchId</c> is empty; when that row is gone by its own period the rows left stand under the id they carry.
     /// </summary>

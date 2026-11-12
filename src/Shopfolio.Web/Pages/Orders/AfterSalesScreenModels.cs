@@ -245,7 +245,7 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
         }
 
         // One row per item (07 5.1.5): two rows of the same item are an invalid selection - 422 under the list, nothing added up, no row processed.
-        if (!ItemRows.RejectRepeated(ModelState, nameof(SubmitWithdrawalInput.Items), chosen.Select(r => r.OrderItemId!.Value)))
+        if (!ItemRows.RejectRepeated(ModelState, nameof(SubmitWithdrawalInput.Items), chosen.Select(r => r.OrderItemId).OfType<Guid>()))
         {
             return await ReloadAsync(ct) ?? FormResults.Redisplay(this);
         }
@@ -351,7 +351,7 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
         List<WithdrawalScreen> screens = [];
         foreach (Guid itemId in operations.Open
             .Where(e => e.OrderItemId is not null && e.Operation is OrderOperation.WithdrawPhysicalItem or OrderOperation.WithdrawServiceItem or OrderOperation.WithdrawDigitalItem)
-            .Select(e => e.OrderItemId!.Value)
+            .Select(e => e.OrderItemId).OfType<Guid>()
             .Distinct())
         {
             if (await _operations.ReadWithdrawalScreenAsync(orderId, itemId, ct) is WithdrawalScreen screen)
@@ -628,9 +628,9 @@ public abstract class DefectClaimPageModel : AfterSalesScreenModel
         [
             .. operations.Open
                 .Where(e => e.Operation == OrderOperation.OpenDefectClaim && e.OrderItemId is not null)
-                .Select(e => (Entry: e, Item: detail.Items.FirstOrDefault(i => i.OrderItemId == e.OrderItemId)))
-                .Where(p => p.Item is not null)
-                .Select(p => new DefectClaimRowView(p.Item!.OrderItemId, p.Item.Name, p.Item.ProductType, Math.Max(1, p.Entry.Availability.DefaultQuantity), Math.Max(1, p.Entry.Availability.MaxQuantity))),
+                .SelectMany(
+                    e => detail.Items.Where(i => i.OrderItemId == e.OrderItemId).Take(1),
+                    (e, item) => new DefectClaimRowView(item.OrderItemId, item.Name, item.ProductType, Math.Max(1, e.Availability.DefaultQuantity), Math.Max(1, e.Availability.MaxQuantity))),
         ];
         if (Rows.Count == 0)
         {

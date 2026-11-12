@@ -60,7 +60,7 @@
 |---|---|---|---|
 | Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --max-threads 3` | 7413/7413 (`origin/main` `29562ee9` ile birleşik ağaç, `-warnaserror` 0 uyarı) |
 | Integration (T513) | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests/… --filter-class "*AfterSalesScreenTests"` | 9/9 |
-| Integration TAM | sürüyor | ad alanı parçalarıyla (`--filter-namespace`) | yeşil: Administration 69, Catalog 82, Commands 70, Concurrency 30, CorporateContent 195, Database 36, Disposal 61, FileSecrets 24, Files 121, Jobs 85, Logging 30, Model 1410 (`--max-threads 3`; sınırsız ilk koşuda yük altında 3 kırmızı, yeniden koşuda 1410/1410); kalan: Ordering, Outages, Pages, Payment, Security, SignedEndpoints, Web |
+| Integration TAM | sürüyor | ad alanı parçalarıyla (`--filter-namespace`) | yeşil: Administration 69, Catalog 82, Commands 70, Concurrency 30, CorporateContent 195, Database 36, Disposal 61, FileSecrets 24, Files 121, Jobs 85, Logging 30, Model 1410 (`--max-threads 3`; sınırsız ilk koşuda yük altında 3 kırmızı, yeniden koşuda 1410/1410), Ordering 399 (sınıf parçalarıyla `--filter-class`: A–C 108, D–M 116, OpenUnpaid+OrderAccess+OrderConfirmation 54, OrderCorrection+OrderOperations+OrderPlacementLimit+OrderTracking+OrderTransitions 121; O grubu tek parçada yük altında 580 sn sınırına takıldı, ikiye bölündü); kalan: Ordering P–W sınıfları (Payment*, RefundAmount, Shipment*, StatusCorrection*, Withdrawal*), Outages, Pages, Payment, Security, SignedEndpoints, Web |
 | Format | ✓ | `dotnet format <proje> --no-restore` (Web, UnitTests, IntegrationTests) | değişiklik yok |
 
 ## Doğrulama

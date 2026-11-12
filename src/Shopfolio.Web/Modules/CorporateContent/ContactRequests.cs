@@ -72,33 +72,37 @@ internal sealed class ContactRequests
         RequireAdministrator(adminId);
         DateTimeOffset now = _time.GetUtcNow();
         bool written = await CurrentStateWrite.ApplyAsync(
-            _db.ContactRequests.Where(c => c.Id == requestId),
+            KeptRows(now).Where(c => c.Id == requestId),
             c => c.ContactRequestStatus == ContactRequestStatus.Open,
             set => set.SetProperty(c => c.ContactRequestStatus, ContactRequestStatus.Closed).SetProperty(c => c.LastClosedAt, now),
             ct);
-        return await ResultAsync(requestId, written, ct);
+        return await ResultAsync(requestId, written, now, ct);
     }
 
     /// <summary>Closed to open, by an administrator; the last closing moment is not emptied, so the retention keeps running from it. Writes no notice.</summary>
     public async Task<ContactRequestResult> ReopenAsync(Guid requestId, Guid adminId, CancellationToken ct)
     {
         RequireAdministrator(adminId);
+        DateTimeOffset now = _time.GetUtcNow();
         bool written = await CurrentStateWrite.ApplyAsync(
-            _db.ContactRequests.Where(c => c.Id == requestId),
+            KeptRows(now).Where(c => c.Id == requestId),
             c => c.ContactRequestStatus == ContactRequestStatus.Closed,
             set => set.SetProperty(c => c.ContactRequestStatus, ContactRequestStatus.Open),
             ct);
-        return await ResultAsync(requestId, written, ct);
+        return await ResultAsync(requestId, written, now, ct);
     }
 
-    private async Task<ContactRequestResult> ResultAsync(Guid requestId, bool written, CancellationToken ct)
+    // A request past its period is not there for the panel, whatever the night's run has reached (T532; 07 UC-94, UC-155, UC-156: K-1192).
+    private IQueryable<ContactRequest> KeptRows(DateTimeOffset now) => _db.ContactRequests.Where(ContactRequestRetention.Kept(now));
+
+    private async Task<ContactRequestResult> ResultAsync(Guid requestId, bool written, DateTimeOffset now, CancellationToken ct)
     {
         if (written)
         {
             return new ContactRequestResult(ContactRequestOutcome.Done, requestId);
         }
 
-        bool exists = await _db.ContactRequests.AsNoTracking().AnyAsync(c => c.Id == requestId, ct);
+        bool exists = await KeptRows(now).AsNoTracking().AnyAsync(c => c.Id == requestId, ct);
         return new ContactRequestResult(exists ? ContactRequestOutcome.Unchanged : ContactRequestOutcome.NotFound, requestId);
     }
 
@@ -108,8 +112,53 @@ internal sealed class ContactRequests
     /// </summary>
     internal static readonly ContactTopic[] SummaryTopics = [ContactTopic.GeneralQuestion, ContactTopic.AboutProduct, ContactTopic.Other];
 
-    /// <summary>The requests still open, whatever their topic (T382; 02 10.6.1: the panel home's "açık talep" counts every open contact request); an index on (status, created at) serves it.</summary>
-    public Task<int> CountOpenAsync(CancellationToken ct) => _db.ContactRequests.AsNoTracking().CountAsync(c => c.ContactRequestStatus == ContactRequestStatus.Open, ct);
+    /// <summary>
+    /// The requests still open, whatever their topic (T382; 02 10.6.1: the panel home's "açık talep" counts every open contact request); an index on (status, created at) serves it. A request past its
+    /// period is not counted (T532; 07 UC-93): the count is the "Açık" list's row count.
+    /// </summary>
+    public Task<int> CountOpenAsync(CancellationToken ct) => CountAsync([ContactRequestStatus.Open], ct);
+
+    /// <summary>The kept requests in one of <paramref name="statuses"/> (none named: any status) - the panel list's share of the row count (T532; 07 UC-93).</summary>
+    public Task<int> CountAsync(IReadOnlyCollection<ContactRequestStatus> statuses, CancellationToken ct) =>
+        Filtered(statuses).CountAsync(ct);
+
+    /// <summary>
+    /// The first <paramref name="take"/> kept requests in one of <paramref name="statuses"/> (none named: any status), newest first - the moment the request reached the firm, equal moments by id
+    /// as the database sorts it (04 9.10.6; 06 2.3.1). The panel merges them with the defect claims and cuts the page.
+    /// </summary>
+    public async Task<IReadOnlyList<PanelContactRequestRow>> ListAsync(IReadOnlyCollection<ContactRequestStatus> statuses, int take, CancellationToken ct)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(take);
+        return await Filtered(statuses)
+            .OrderByDescending(c => c.CreatedAt)
+            .ThenByDescending(c => c.Id)
+            .Take(take)
+            .Select(c => new PanelContactRequestRow(c.Id, c.ContactTopic, c.Name, c.Email, c.ContactRequestStatus, c.CreatedAt))
+            .ToListAsync(ct);
+    }
+
+    /// <summary>The detail of one kept request; null when there is none - never there, or past its period (K-1192).</summary>
+    public async Task<ContactRequestDetail?> FindAsync(Guid requestId, CancellationToken ct)
+    {
+        DateTimeOffset now = _time.GetUtcNow();
+        return await KeptRows(now).AsNoTracking()
+            .Where(c => c.Id == requestId)
+            .Select(c => new ContactRequestDetail(c.Id, c.ContactTopic, c.ContactRequestStatus, c.Name, c.Email, c.Phone, c.Message, c.CreatedAt, c.LastClosedAt))
+            .SingleOrDefaultAsync(ct);
+    }
+
+    private IQueryable<ContactRequest> Filtered(IReadOnlyCollection<ContactRequestStatus> statuses)
+    {
+        ArgumentNullException.ThrowIfNull(statuses);
+        IQueryable<ContactRequest> rows = KeptRows(_time.GetUtcNow()).AsNoTracking();
+        if (statuses.Count == 0)
+        {
+            return rows;
+        }
+
+        ContactRequestStatus[] named = [.. statuses];
+        return rows.Where(c => named.Contains(c.ContactRequestStatus));
+    }
 
     /// <summary>The requests opened in <c>[from, to)</c> with one of <see cref="SummaryTopics"/>; a request destroyed at the end of its retention is no longer there to count.</summary>
     public Task<int> CountForSummaryAsync(DateTimeOffset from, DateTimeOffset to, CancellationToken ct)

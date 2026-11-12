@@ -55,7 +55,10 @@ public sealed class LegalTextsModelTests
             }
         }
 
-        Assert.False(NoticeTexts.TryShortLived(NoticeCode.ContactRequestClosed, out _));
-        Assert.False(NoticeTexts.TryShortLived(NoticeCode.ContactRequestReopened, out _));
+        // T532: the two contact request codes name a fact and carry the sentences of the screen that shows them (04 9.11.8).
+        Assert.True(NoticeTexts.TryShortLived(NoticeCode.ContactRequestClosed, out string? closed));
+        Assert.Equal("Talep kapatıldı", closed);
+        Assert.True(NoticeTexts.TryShortLived(NoticeCode.ContactRequestReopened, out string? reopened));
+        Assert.Equal("Talep yeniden açıldı", reopened);
     }
 }

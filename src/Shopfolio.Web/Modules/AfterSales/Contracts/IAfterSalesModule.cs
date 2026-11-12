@@ -351,6 +351,12 @@ public interface IAfterSalesModule
     Task<IReadOnlySet<Guid>> FindRefundsAwaitingIbanAsync(IReadOnlyCollection<RefundOfItem> refunds, CancellationToken ct);
 
     /// <summary>
+    /// What the open IBAN requests stand on (T527; 06 4.29; 04 2.5.3.4): the "IBAN bekleniyor" mark is an open request - neither fulfilled nor closed - on an item, or on the refund of a late payment
+    /// (K-1075). The items and the refunds, each once; the caller maps them to their orders. A plain read.
+    /// </summary>
+    Task<OpenIbanRequestSubjects> ListOpenIbanRequestSubjectsAsync(CancellationToken ct);
+
+    /// <summary>
     /// The firm's removal record (06 4.23; 02 10.4.3; T386): the unit rule of the cancellation (at most the units open to an operation), then one row with the administrator
     /// and no reason; the amounts set aside as on the cancellation (02 7.1.7). Whether the operation is open is the order module's decision (03 1.11.22); the writer joins the
     /// caller's transaction under the order's row lock and saves nothing.

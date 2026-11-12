@@ -204,6 +204,9 @@ public interface IPaymentModule
     /// AfterSales module's (K-525). Read by the database; a plain read.
     /// </summary>
     Task<IReadOnlyList<OpenRefundWork>> ListOpenRefundWorkAsync(CancellationToken ct);
+
+    /// <summary>The orders of the given refunds (T527; 06 4.32 <c>OrderId</c>), each once; a refund that does not exist is not in the answer. A plain read.</summary>
+    Task<IReadOnlySet<Guid>> FindOrdersOfRefundsAsync(IReadOnlyCollection<Guid> refundIds, CancellationToken ct);
 }
 
 /// <summary>One refund the firm still has a step on (T382): the refund, its order and the item it is for (null when it is for no one item).</summary>

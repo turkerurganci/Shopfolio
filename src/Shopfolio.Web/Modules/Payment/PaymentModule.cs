@@ -431,6 +431,18 @@ internal sealed class PaymentModule : IPaymentModule
         return found;
     }
 
+    public async Task<IReadOnlySet<Guid>> FindOrdersOfRefundsAsync(IReadOnlyCollection<Guid> refundIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(refundIds);
+        if (refundIds.Count == 0)
+        {
+            return new HashSet<Guid>();
+        }
+
+        Guid[] ids = [.. refundIds.Distinct()];
+        return (await _db.Refunds.AsNoTracking().Where(r => ids.Contains(r.Id)).Select(r => r.OrderId).Distinct().ToListAsync(ct)).ToHashSet();
+    }
+
     public async Task<IReadOnlyList<OpenRefundWork>> ListOpenRefundWorkAsync(CancellationToken ct)
     {
         return await (

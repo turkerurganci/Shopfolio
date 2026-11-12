@@ -62,6 +62,15 @@ internal sealed class OrderingModule : IOrderingModule
     public Task<CustomerOrderPage> ListCustomerOrdersAsync(Guid customerId, int page, CancellationToken ct) =>
         new CustomerOrderReader(_db).ListAsync(customerId, page, ct);
 
+    public Task<IReadOnlyList<Guid>> ListPendingOrderIdsAsync(PendingOrderKind kind, CancellationToken ct) => new PendingWorkReader(_db).ListOrderIdsAsync(kind, ct);
+
+    public Task<PanelOrderPage> ListPanelOrdersAsync(PanelOrderFilter filter, int page, int pageSize, CancellationToken ct) =>
+        new PanelOrderListReader(_db).ListAsync(filter, page, pageSize, ct);
+
+    public Task<IReadOnlyList<PanelOrderKey>> FindPanelOrderKeysAsync(PanelOrderFilter filter, CancellationToken ct) => new PanelOrderListReader(_db).FindKeysAsync(filter, ct);
+
+    public Task<IReadOnlyList<PanelOrderRow>> ReadPanelOrderRowsAsync(IReadOnlyList<Guid> orderIds, CancellationToken ct) => new PanelOrderListReader(_db).ReadRowsAsync(orderIds, ct);
+
     public Task<IReadOnlyList<OrderOfItem>> FindPaidOrdersOfItemsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct) =>
         new SalesPeriodReader(_db).FindPaidOrdersOfItemsAsync(orderItemIds, ct);
 
@@ -479,6 +488,9 @@ internal static class OrderingModuleRegistration
 
         // The delivery periods (T325; 03 4.1.10-4.1.13): read from the order's records, never a source - Z-10, Z-11 and Z-39 run out without an action.
         services.AddScoped<OrderPeriods>();
+
+        // The panel's order screens' reads that need the item records' rule (T527; 04 9.8, 9.9): a surface apart from IOrderingModule, which the AfterSales module depends on.
+        services.AddScoped<IPanelOrderReader, PanelOrderReader>();
         return services;
     }
 }

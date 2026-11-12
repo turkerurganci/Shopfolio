@@ -1,6 +1,6 @@
 # T533 — Üye kaydı görünümü (E-40)
 
-**Faz:** F5 | **Durum:** ⏳ Doğrulama bekliyor | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-12
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -66,10 +66,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⏳ bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-12) — dal ucu `d1a1729a` (origin/main `29562ee9` ile birleşik, main ilerlemedi): build `-warnaserror` 0 uyarı, format temiz (3 proje), Unit 7402/7402, betik 4/4, Integration dokunulan sınıflar 59/59 (`MemberRecordPageTests` 14 + doğrulayıcının geçici VAL-A109/A110 kanıtı 2, `ListComponentPageTests` + `RequestsPageTests` + `MembershipAccountDeletionTests` 43), `--locked-mode` restore 0; dal CI'ı run 43183892942 yeşil. Kabul kriterleri 1–9 ve KK1–KK9 doğrulayıcı kanıtıyla ✓. `12`: VAL-A107, A108, A109, A110, D024, C031 → PASS |
+| Bulgu sayısı | 0 (S1/S2/S3 yok) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 → D-1373 (`04` 9.12.15 dar sınıf kartında toplam da görünür) · K2 → D-1374 (doğrulanmamış kaydın panelden silinmesi: `04` 6.3.12.2 ↔ `07 UC-157`, `02 §3.13.5`) |
+
+Yapım raporu uyuşmazlıkları (bloke etmez, bu PR'da düzeltildi): okuyucu yöntemi `GetCustomerOrdersAsync` değil `IOrderingModule.ListCustomerOrdersAsync`; tutarlılık testi `tests/Shopfolio.UnitTests/Consistency/OutcomeUncertainConsistencyTests.cs`'tedir; PR #556.
 
 ## Altyapı Değişiklikleri
 
@@ -81,7 +83,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T533-uye-kaydi`
-- **PR:** açılınca eklenir
+- **PR:** #556
 - **Post-merge run'lar:** *(validator doldurur)*; son ana dal koşuları: 43151185860, 43151185866 (`bc915800`, success)
 
 ## Dış Varsayımlar
@@ -97,3 +99,5 @@ Dış varsayım: yok.
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
 | 1 | 07 yüzey metni, imha kaydı türleri, VAL-D024 hücresi, 05 §7.3.5 kilit sırası | D-607, D-608, D-652, D-664 | Belge kuralı değişikliği; karar kaydı ister, F5 kapısına ileri atıldı |
+| 2 | Dar sınıf sipariş kartında toplam (doğrulama K1) | D-1373 | E-36 kart kalıbıyla birlikte karar (T527) |
+| 3 | Doğrulanmamış kaydın panelden silinmesi belgeler arasında çelişik (doğrulama K2) | D-1374 | Doküman kararı; F5 kapısı |

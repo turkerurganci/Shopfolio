@@ -101,4 +101,19 @@ public interface IAdministrationModule
 
     /// <summary>The new address's button (07 UC-186): the address changes, the old one is told with a revert link, the trail row is written.</summary>
     Task<AdminEmailVerificationResult> VerifyNewEmailAsync(string key, CancellationToken ct);
+
+    /// <summary>What the new address's landing page shows when its link opens (07 UC-108): only reads; opening changes nothing (05 6.4.7; K-904).</summary>
+    Task<AdminLinkReading> ReadNewEmailLinkAsync(string key, CancellationToken ct);
+
+    /// <summary>What the revert link's landing page shows when it opens (07 UC-108): only reads.</summary>
+    Task<AdminLinkReading> ReadEmailRestoreLinkAsync(string key, CancellationToken ct);
+
+    /// <summary>
+    /// The revert link's button (07 UC-187; 02 10.2.4; K-1210): the address goes back, every session ends, the marks and the password become invalid, the earlier address gets the password
+    /// reset link, the trail row is written. The earlier address being another administrator's refuses (422) and the caller rolls back.
+    /// </summary>
+    Task<AdminEmailRevertResult> RestorePreviousEmailAsync(string key, CancellationToken ct);
+
+    /// <summary>Drops the earlier permission of a session when the re-verification page opens (07 UC-108; 05 6.1.5): the new form is the one that counts. Joins the caller's transaction.</summary>
+    Task DropReauthenticationAsync(Guid adminId, Guid sessionId, CancellationToken ct);
 }

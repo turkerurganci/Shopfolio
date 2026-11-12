@@ -1,0 +1,98 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Modules.AfterSales.Contracts
+@using Shopfolio.Modules.Catalog.Contracts
+@using Shopfolio.Modules.Ordering.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Orders
+@model CustomerOperationPageModel
+@*
+    E-17 (04 5.17; 07 UC-38…UC-41): one skeleton for the three operations (K-744) - the operation's name and its items, the refund's way and period, the IBAN field on a paid transfer order,
+    and the last step. Every value is the server's: the open quantity, the default and the upper limit of each item (K-1170 (2)) and the shipping fee line (K-789). The order's cancellation and
+    the termination list their items read-only (04 5.17.4); a digital item and an item of one unit have no quantity field (04 2.12.1.8). The last step of the script-free path is the server's
+    answer to the first POST (07 2.2.4).
+*@
+@{
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState);
+    CustomerOperationScreen screen = Model.Screen;
+    (string title, string handler, string button) = screen.Operation switch
+    {
+        CustomerScreenOperation.CancelOrder => ("Siparişi iptal et", "CancelOrder", "Siparişi iptal et"),
+        CustomerScreenOperation.CancelOrderItems => ("Ürünleri iptal et", "CancelOrderItems", "Seçilen ürünleri iptal et"),
+        _ => ("Gecikme nedeniyle feshet", "SubmitLateDeliveryTermination", "Gecikme nedeniyle feshet"),
+    };
+    bool selectable = screen.Operation == CustomerScreenOperation.CancelOrderItems;
+}
+<article class="operation-screen" aria-labelledby="operation-screen-title">
+    <h1 id="operation-screen-title">@title</h1>
+    @if (Model.Confirm is ConfirmView confirm)
+    {
+        <partial name="_Confirm" model="confirm" />
+    }
+    else
+    {
+        <partial name="_FormErrorSummary" model="summary" />
+        @foreach (Microsoft.AspNetCore.Mvc.ModelBinding.ModelError error in ViewData.ModelState.TryGetValue(string.Empty, out var entry) && entry is not null ? entry.Errors : [])
+        {
+            <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, error.ErrorMessage, "operation-screen-message")' />
+        }
+        <form method="post" asp-antiforgery="true" action="@(Model.ScreenPath)?handler=@handler" class="operation-screen__form" data-js="submit-once">
+            <ul class="operation-screen__items">
+                @for (int index = 0; index < screen.Items.Count; index++)
+                {
+                    CustomerScreenItem item = screen.Items[index];
+                    string prefix = $"Items[{index}]";
+                    string quantityName = prefix + ".Quantity";
+                    bool chosen = Model.Sent.TryGetValue(prefix + ".OrderItemId", out string? sentId) && sentId == item.OrderItemId.ToString();
+                    string quantityValue = Model.Sent.TryGetValue(quantityName, out string? sentQuantity) ? sentQuantity : DisplayFormat.Number(item.DefaultQuantity);
+                    <li class="operation-screen__item">
+                        @if (selectable)
+                        {
+                            <label class="operation-screen__choice">
+                                <input type="checkbox" name="@(prefix).OrderItemId" value="@item.OrderItemId" checked="@chosen" />
+                                <span>@CustomerOperationPageModel.ItemNameOf(item)</span>
+                            </label>
+                            <input type="hidden" name="@(prefix).OriginalOpenQuantity" value="@item.OpenQuantity" />
+                            @if (item.HasQuantityField)
+                            {
+                                FieldView quantity = Fields.Bind(Fields.Number(quantityName, "Adet", FieldRequirement.Required, quantityValue), summary);
+                                <partial name="_Field" model="quantity" />
+                                <span class="operation-screen__limit">Açık adet: @DisplayFormat.Number(item.OpenQuantity) · en çok @DisplayFormat.Number(item.MaxQuantity)</span>
+                            }
+                            else
+                            {
+                                <input type="hidden" name="@quantityName" value="@item.MaxQuantity" />
+                                <span class="operation-screen__quantity">@DisplayFormat.Number(item.OpenQuantity) adet</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="operation-screen__name">@CustomerOperationPageModel.ItemNameOf(item)</span>
+                            <span class="operation-screen__quantity">@DisplayFormat.Number(item.OpenQuantity) adet</span>
+                        }
+                    </li>
+                }
+            </ul>
+            @if (screen.Operation != CustomerScreenOperation.CancelOrder)
+            {
+                <p class="operation-screen__refund">@Model.RefundLineText</p>
+                @if (screen.Operation == CustomerScreenOperation.TerminateForLateDelivery)
+                {
+                    <p class="operation-screen__fee">Kargo ücreti de geri ödenir.</p>
+                }
+                else
+                {
+                    <p class="operation-screen__fee">Seçiminiz kargoya verilmemiş bütün ürünleri kapsıyorsa kargo ücreti de geri ödenir.</p>
+                }
+            }
+            @if (Model.IbanField is IbanFieldView iban)
+            {
+                <partial name="_IbanField" model="iban" />
+            }
+            <div class="operation-screen__buttons">
+                <a class="button button--secondary" href="@Model.RootPath">@ConfirmView.CancelLabel</a>
+                <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(button)">@button</button>
+            </div>
+        </form>
+    }
+</article>

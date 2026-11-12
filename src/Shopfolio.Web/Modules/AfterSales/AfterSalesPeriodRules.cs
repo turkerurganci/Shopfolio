@@ -112,9 +112,12 @@ internal static class AfterSalesPeriodRules
     /// </summary>
     public static PeriodStanding RefundStanding(DateOnly startDay, DateTimeOffset now)
     {
-        DateOnly lastDay = PeriodCounting.LastDay(CountedPeriod.RefundPeriod, startDay, RefundPeriodDays, BusinessCalendar.Product);
+        DateOnly lastDay = RefundLastDay(startDay);
         return PeriodStanding.Of(CountedPeriod.RefundPeriod, lastDay, now, BusinessCalendar.Product);
     }
+
+    /// <summary>The last day of a refund period that started on <paramref name="startDay"/> (Z-16): the panel home's "IBAN bekleniyor" list reads it.</summary>
+    public static DateOnly RefundLastDay(DateOnly startDay) => PeriodCounting.LastDay(CountedPeriod.RefundPeriod, startDay, RefundPeriodDays, BusinessCalendar.Product);
 
     /// <summary>
     /// Z-17 - where a paid cancellation's refund stands at <paramref name="now"/> (03 4.1.19; 02 4.2 Z-17): the period runs from the cancellation's

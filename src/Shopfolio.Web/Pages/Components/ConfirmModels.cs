@@ -45,6 +45,12 @@ public sealed record ConfirmView(
     /// <summary>The element id of the heading the window is named by.</summary>
     public const string HeadingId = "confirm-heading";
 
+    /// <summary>
+    /// What the customer's last step cancels or terminates, each item by name and units as the server worked them out (04 5.17.6, 2.12.1.8; K-795): drawn above the sentence and kept with it
+    /// (04 5.17.15); empty on a confirmation without items.
+    /// </summary>
+    public IReadOnlyList<ConfirmItem> Items { get; init; } = [];
+
     /// <summary>The lines of the body in order: the warning if any, the sentence, the irreversible sentence if it applies.</summary>
     public IReadOnlyList<string> Lines
     {
@@ -66,6 +72,9 @@ public sealed record ConfirmView(
         }
     }
 }
+
+/// <summary>One item of the last step's list (04 5.17.6): the item's name with its option values and the units the operation takes.</summary>
+public sealed record ConfirmItem(string Name, int Quantity);
 
 /// <summary>
 /// The only constructors of a <see cref="ConfirmView"/> (T541; 04 2.4). The rules of the anatomy are checked here, once: a button named "Evet" or "Tamam" is refused, an irreversible operation

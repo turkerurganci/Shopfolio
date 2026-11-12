@@ -615,3 +615,73 @@
 .admin-accounts__ends {
     overflow-wrap: anywhere;
 }
+
+/* E-40, the member record (T533; 04 9.12.15): account and login paths left, address book right on the wide class; the bound orders under them at full width; "Hesabı sil" always last. */
+.member-record {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    margin: var(--space-5) 0;
+    overflow-wrap: anywhere;
+}
+
+.member-record__top {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+@media (min-width: 1024px) {
+    .member-record__top {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .member-record__top > .member-record__section {
+        flex: 1 1 0;
+    }
+}
+
+.member-record__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+    background: var(--color-surface);
+}
+
+.member-record__heading {
+    margin: 0;
+    font-size: var(--font-size-large);
+}
+
+.member-record__line {
+    margin: 0;
+}
+
+.member-record__facts {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: var(--space-2) var(--space-4);
+    margin: 0;
+}
+
+.member-record__facts dd {
+    margin: 0;
+}
+
+.member-record__paths,
+.member-record__addresses {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.member-record__address {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--color-border);
+}

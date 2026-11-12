@@ -8,6 +8,16 @@
 <form method="post" action="@(Model.ActionPath)?handler=@(Model.Handler)" asp-antiforgery="true" class="confirm__form" data-js="submit-once">
     <h2 class="confirm__title" id="@ConfirmView.HeadingId">@Model.OperationName</h2>
     <div class="confirm__body">
+        @if (Model.Items.Count > 0)
+        {
+            @* The customer's last step names what it takes, item by item with its units (04 5.17.6; K-795). *@
+            <ul class="confirm__items">
+                @foreach (ConfirmItem item in Model.Items)
+                {
+                    <li class="confirm__item"><span class="confirm__item-name">@item.Name</span> · <span class="confirm__item-quantity">@Shopfolio.Infrastructure.DisplayFormat.Number(item.Quantity) adet</span></li>
+                }
+            </ul>
+        }
         @foreach (string line in Model.Lines)
         {
             <p class="confirm__line">@line</p>

@@ -145,8 +145,11 @@ public static class ListCatalog
 }
 
 /// <summary>The search field of a list (04 2.13.2): the form of the GET list address with the one parameter <c>search</c>; <see cref="Value"/> is what the request carried.</summary>
-public sealed record ListSearch(ListKind Kind, string ListRoot, string Label, string? Value)
+public sealed record ListSearch(ListKind Kind, string ListRoot, string Label, string? Value, string? Message = null)
 {
+    /// <summary>The element id of the search field; the field's message is tied to it (04 2.12.1.1).</summary>
+    public const string FieldId = "list-search-field";
+
     /// <summary>The parameter of the search word (07 2.6.3).</summary>
     public const string Parameter = "search";
 

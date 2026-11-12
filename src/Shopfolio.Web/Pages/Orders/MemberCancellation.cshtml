@@ -1,0 +1,9 @@
+@page "/siparis/{orderNumber:regex(^[0-9][0-9][0-9][0-9]-[A-Za-z0-9]+\z)}/iptal"
+@model Shopfolio.Pages.Orders.MemberCancellationModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = "İptal";
+}
+@* UC-38…UC-40 under the member's root (07 4.17); the screen itself is the shared E-17 view. *@
+<partial name="_OperationScreen" model="Model" />

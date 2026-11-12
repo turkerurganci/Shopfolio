@@ -188,6 +188,21 @@ public sealed class GoogleSignInFlowTests
         Assert.Null(await _flow.VerifyAsync(values, "c3", TestContext.Current.CancellationToken));
     }
 
+    [Fact]
+    public async Task ExchangeAsync_KeepsTheKindOfEnding_AndTurnsAnotherNonceIntoAFailure()
+    {
+        var values = new GoogleFlowValues("id", "the-nonce", "the-verifier");
+        var unavailable = new GoogleIdentityResult.Unavailable("timeout");
+        var failed = new GoogleIdentityResult.Failed("invalid");
+        var verified = new GoogleIdentityResult.Succeeded("a@example.com", true, null, null, null, "the-nonce");
+        _gateway.Enqueue(verified, unavailable, failed, new GoogleIdentityResult.Succeeded("a@example.com", true, null, null, null, "other-nonce"));
+
+        Assert.Same(verified, await _flow.ExchangeAsync(values, "c1", TestContext.Current.CancellationToken));
+        Assert.Same(unavailable, await _flow.ExchangeAsync(values, "c2", TestContext.Current.CancellationToken));
+        Assert.Same(failed, await _flow.ExchangeAsync(values, "c3", TestContext.Current.CancellationToken));
+        Assert.IsType<GoogleIdentityResult.Failed>(await _flow.ExchangeAsync(values, "c4", TestContext.Current.CancellationToken));
+    }
+
     private (HttpContext Back, string State, Dictionary<string, StringValues> Query) StartAndReturn(GoogleFlowKind kind, string? operation, string? returnUrl)
     {
         var start = new DefaultHttpContext();

@@ -222,6 +222,5 @@ internal sealed class ReauthenticationModel : PageModel
 /// <summary>The form of UC-62 (07 UC-62): the operation the Google route is started for.</summary>
 public sealed class StartSocialReauthenticationInput : IFormInput
 {
-    [SpecAssignedName]
     public string? ReauthenticatedOperation { get; set; }
 }

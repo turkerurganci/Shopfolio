@@ -7,6 +7,7 @@ using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Lists;
 using Shopfolio.Infrastructure.Operations;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Pages.Components;
 using Shopfolio.Pages.Frame;
@@ -55,6 +56,8 @@ public sealed record PublishMoveView(PublishStatus Target, string Label);
 /// conditions (K-653); the figures are the server's (07 8.1.4). The publish moves and the permanent deletions are their own forms on the side column and the variant rows and carry no version
 /// (K-1189 (1)): the handler reads the record's current version in the same transaction. Each operation is one transaction of the catalog module's write method (09 9.1).
 /// </summary>
+[HandlerBodyClass("SaveProduct", RequestBodyClass.LongText)]
+[HandlerBodyClass("UploadImage", RequestBodyClass.ImageUpload)]
 internal sealed class ProductFormModel : PageModel
 {
     public const string NewTitle = "Yeni ürün";
@@ -72,6 +75,9 @@ internal sealed class ProductFormModel : PageModel
 
     /// <summary>K-799: the refusal of the last Published variant of a published product, with its way out.</summary>
     public const string LastPublishedVariantText = "Bu, yayındaki ürünün yayında kalan son seçeneği. Önce ürünü taslağa ya da arşive alın.";
+
+    /// <summary>07 UC-115: a variant whose price is zero is not published under a published product (02 3.7.3).</summary>
+    public const string ZeroPriceVariantText = "Seçenek yayına alınamadı: yayındaki üründe fiyatı sıfır olan seçenek yayına alınamaz. Önce fiyatı girin.";
 
     public const string GateHeading = "Yayın için eksik";
 
@@ -323,6 +329,10 @@ internal sealed class ProductFormModel : PageModel
         if (code == ErrorCode.LastPublishedVariant)
         {
             Refusal = Messages.InPlace(MessageMeaning.Error, LastPublishedVariantText, "product-publish-refused");
+        }
+        else if (ReferenceEquals(result, PublishChangeResult.ZeroPriceVariant))
+        {
+            Refusal = Messages.InPlace(MessageMeaning.Error, ZeroPriceVariantText, "product-publish-refused");
         }
         else
         {

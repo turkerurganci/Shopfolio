@@ -290,7 +290,12 @@ public sealed partial class ProductListPageTests : IAsyncLifetime
     private async Task<Guid> AddProductAsync(string name, PublishStatus status, DateTimeOffset createdAt, ProductType type, params (decimal Price, int? Stock)[] variants)
     {
         await using AppDbContext db = ListSeed.Open(_database.Dsn);
-        Product product = Product.Create(name, $"p-{Guid.NewGuid():N}", type, 20m, createdAt).WithSeededOrigin();
+        Product product = Product.Create(name, $"p-{Guid.NewGuid():N}", type, 20m, createdAt);
+        if (type == ProductType.Physical)
+        {
+            product.WithSeededOrigin();
+        }
+
         product.PublishStatus = status;
         db.Products.Add(product);
 

@@ -35,6 +35,12 @@ public sealed class PublishChangeResult : IOperationResult
     /// <summary>The last Published variant of a published product cannot leave Published (07 6.2: <c>LastPublishedVariant</c>).</summary>
     public static PublishChangeResult LastPublishedVariant { get; } = new(false, ErrorCode.LastPublishedVariant, NoConditions);
 
+    /// <summary>
+    /// A variant whose price is zero cannot go Published under a published product (11 T525 criterion 8; 07 UC-115; 02 3.7.3: every Published variant's price is above zero). The code is
+    /// the gate's (07 6.2.6 <c>PublishGateIncomplete</c>, "varyantın yayına alınması"); no condition is named - the gate's condition set stays closed (<see cref="PublishCondition.All"/>).
+    /// </summary>
+    public static PublishChangeResult ZeroPriceVariant { get; } = new(false, ErrorCode.PublishGateIncomplete, NoConditions);
+
     public bool IsChanged { get; }
 
     /// <summary>The refusal's code; empty when the operation succeeded or changed nothing.</summary>

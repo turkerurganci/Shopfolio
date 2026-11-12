@@ -122,9 +122,19 @@ internal sealed class ProductTransitions : IProductTransitions
             return PublishChangeResult.Unchanged;
         }
 
-        if (target == PublishStatus.Published && await AskGateAsync(_gate.CheckVariantAsync(variantId, ct)) is { } refusal)
+        // The variant's publish keeps the gate only under a published product (07 UC-115; 02 3.7.5): under a draft or archived product the move is free and the product's own move asks
+        // every Published variant's file later. Under a published product a fileless digital variant and a variant whose price is zero are refused (11 T525 criterion 8; 02 3.7.3, 3.7.4).
+        if (target == PublishStatus.Published && product.PublishStatus == PublishStatus.Published)
         {
-            return refusal;
+            if (await AskGateAsync(_gate.CheckVariantAsync(variantId, ct)) is { } refusal)
+            {
+                return refusal;
+            }
+
+            if (!PublishGateRules.HasSalePrice(variant.Price))
+            {
+                return PublishChangeResult.ZeroPriceVariant;
+            }
         }
 
         // The gate of a published product is kept while it is published too (03 1.8.2): its last Published variant stays.

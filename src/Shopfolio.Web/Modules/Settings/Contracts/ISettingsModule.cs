@@ -83,6 +83,12 @@ public interface ISettingsModule
     Task<SalesGate> GetSalesGateAsync(CancellationToken ct);
 
     /// <summary>
+    /// The first moment the sales gate was open in this installation (02 10.6.3 m6; K-486): not stored, derived from the settings, their trail changes and the legal texts'
+    /// first publications (06 10.6 m6). <see langword="null"/> when sales never opened. Only reads.
+    /// </summary>
+    Task<DateTimeOffset?> FindSalesFirstOpenedAtAsync(CancellationToken ct);
+
+    /// <summary>
     /// Closes sales temporarily (T331; 02 3.1.6; 07 9.16.3): one update against the value the screen showed (<paramref name="shownIsClosed"/>, no version, no row lock) and the
     /// trail row in the caller's transaction, by the administrator of the request. A changed or already closed switch writes nothing and is a result.
     /// </summary>

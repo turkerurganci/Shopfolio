@@ -343,7 +343,7 @@ public sealed partial class SalesSummaryTests : IAsyncLifetime
         AppDbContext db = services.GetRequiredService<AppDbContext>();
         TimeProvider time = services.GetRequiredService<TimeProvider>();
         ContactCount content = new(new ContactRequests(db, new UnusedNotifications(), time));
-        return new SalesSummaryService(services.GetRequiredService<IOrderingModule>(), services.GetRequiredService<IAfterSalesModule>(), content, time);
+        return new SalesSummaryService(services.GetRequiredService<IOrderingModule>(), services.GetRequiredService<IAfterSalesModule>(), content, services.GetRequiredService<ISettingsModule>(), time);
     }
 
     private Task<Guid> SavePaidPhysicalAsync(DateTimeOffset approvedAt) => SavePaidPromiseAsync(approvedAt, (_shirt, 1));

@@ -740,6 +740,8 @@ public sealed partial class MembershipTests : IAsyncLifetime
     {
         public Task<SalesGate> GetSalesGateAsync(CancellationToken ct) => Task.FromResult(gate.Gate);
 
+        public Task<DateTimeOffset?> FindSalesFirstOpenedAtAsync(CancellationToken ct) => throw new NotSupportedException();
+
         public Task<string?> GetWhatsAppNumberAsync(CancellationToken ct) => throw new NotSupportedException();
 
         public Task<DeliveryProvincesSection> GetDeliveryProvincesAsync(CancellationToken ct) => throw new NotSupportedException();

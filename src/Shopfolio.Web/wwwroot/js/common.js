@@ -234,48 +234,38 @@ function bindSubmitOnce(form) {
     });
 }
 
-// A form whose answer is a file (the panel's exports, 04 9.24.7; T524): the screen does not change, so the form is sent in the background, the button says the file is being prepared and can not be
-// pressed twice, and the file is handed to the browser's download when it comes; the button is ready again after it. Any other answer (a field message, an empty set, an error) is the page itself:
-// the form is then sent the plain way, which draws the page the server answers - those answers write nothing, so the second sending changes nothing.
+// A form whose answer is a file (the panel's exports, 04 9.24.7; T524): while the file is prepared the button can not be pressed twice and says the work goes on (04 2.7.2). The form is sent the
+// plain way: a field message, an empty set or an error is a new page, which starts ready. A file leaves the screen as it is and the browser gives the page no sign when the download begins (and the
+// scripts load nothing from the network, so the answer is not read here); the button is therefore ready again when its busy animation ends (admin.css, export-busy). A second export is a new file
+// and a new trail row, never a repeat.
 function bindDownloadOnce(form) {
-    form.addEventListener("submit", async (event) => {
-        event.preventDefault();
+    const ready = () => {
+        form.removeAttribute("aria-busy");
+        for (const button of form.querySelectorAll("button[data-original-label]")) {
+            button.textContent = button.dataset.originalLabel;
+        }
+    };
+    form.addEventListener("submit", (event) => {
         if (form.getAttribute("aria-busy") === "true") {
+            event.preventDefault();
             return;
         }
 
-        const button = event.submitter ?? form.querySelector('button[type="submit"]');
-        const label = button ? button.textContent : "";
         form.setAttribute("aria-busy", "true");
-        if (button && button.dataset.busyLabel) {
-            button.textContent = button.dataset.busyLabel;
+        const submitter = event.submitter ?? form.querySelector('button[type="submit"]');
+        if (submitter && submitter.dataset.busyLabel) {
+            submitter.dataset.originalLabel = submitter.dataset.originalLabel ?? submitter.textContent;
+            submitter.textContent = submitter.dataset.busyLabel;
         }
-
-        try {
-            const response = await fetch(form.action, { method: "POST", body: new FormData(form), credentials: "same-origin" });
-            const disposition = response.headers.get("Content-Disposition") ?? "";
-            if (!response.ok || !disposition.startsWith("attachment")) {
-                form.submit();
-                return;
-            }
-
-            const name = /filename=("?)([^";]+)\1/.exec(disposition)?.[2] ?? "dosya.csv";
-            const address = URL.createObjectURL(await response.blob());
-            const link = document.createElement("a");
-            link.href = address;
-            link.download = name;
-            document.body.append(link);
-            link.click();
-            link.remove();
-            URL.revokeObjectURL(address);
-        } catch {
-            form.submit();
-            return;
-        } finally {
-            form.removeAttribute("aria-busy");
-            if (button) {
-                button.textContent = label;
-            }
+    });
+    form.addEventListener("animationend", (event) => {
+        if (event.animationName === "export-busy") {
+            ready();
+        }
+    });
+    window.addEventListener("pageshow", (event) => {
+        if (event.persisted) {
+            ready();
         }
     });
 }

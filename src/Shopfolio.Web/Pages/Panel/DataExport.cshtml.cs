@@ -19,11 +19,9 @@ namespace Shopfolio.Pages.Panel;
 /// </summary>
 public sealed class ExportOrdersInput : IFormInput
 {
-    [SpecAssignedName]
     [Display(Name = "Başlangıç")]
     public string? StartDate { get; set; }
 
-    [SpecAssignedName]
     [Display(Name = "Bitiş")]
     public string? EndDate { get; set; }
 }

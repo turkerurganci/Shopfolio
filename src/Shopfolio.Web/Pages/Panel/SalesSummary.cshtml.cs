@@ -18,10 +18,8 @@ public sealed class SalesSummaryQuery : IQueryModel
     [SpecAssignedName]
     public string? Period { get; init; }
 
-    [SpecAssignedName]
     public string? StartDate { get; init; }
 
-    [SpecAssignedName]
     public string? EndDate { get; init; }
 }
 
@@ -174,7 +172,7 @@ internal sealed class SalesSummaryModel : PageModel
         ];
         TopSellers = [.. summary.TopSellers.Select(t => new TopSellerView(t.ProductName, DisplayFormat.Number(t.Quantity), DisplayFormat.Amount(t.Amount)))];
         int paid = summary.PaymentMethods.Sum(m => m.OrderCount);
-        PaymentMethods = [.. summary.PaymentMethods.Where(m => m.OrderCount > 0).Select(m => new PaymentMethodView(MethodName(m.Method), DisplayFormat.Number(m.OrderCount), Share(m.OrderCount, paid)))];
+        PaymentMethods = [.. summary.PaymentMethods.Where(m => m.OrderCount > 0).Select(m => new PaymentMethodView(MethodName(m.Method), DisplayFormat.Number(m.OrderCount), DisplayFormat.Share(m.OrderCount, paid)))];
         return Page();
     }
 
@@ -201,10 +199,8 @@ internal sealed class SalesSummaryModel : PageModel
             return new(id, name, NotAssessable, $"{NotAssessable} — bu dönemde {denominatorName} yok.", definition);
         }
 
-        return new(id, name, Share(ratio.Numerator, ratio.Denominator), $"{DisplayFormat.Number(ratio.Numerator)} / {DisplayFormat.Number(ratio.Denominator)}", definition);
+        return new(id, name, DisplayFormat.Share(ratio.Numerator, ratio.Denominator), $"{DisplayFormat.Number(ratio.Numerator)} / {DisplayFormat.Number(ratio.Denominator)}", definition);
     }
-
-    private static string Share(int part, int whole) => DisplayFormat.Percent(Math.Round(100m * part / whole, 1, MidpointRounding.AwayFromZero));
 
     private static string MethodName(PaymentMethod method) => method switch
     {

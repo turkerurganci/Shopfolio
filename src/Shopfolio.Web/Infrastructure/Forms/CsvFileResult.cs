@@ -63,7 +63,7 @@ internal sealed class CsvFileResult : IActionResult
 
         response.StatusCode = StatusCodes.Status200OK;
         response.ContentType = ContentType;
-        response.ContentLength = _stream is not null ? _stream.Length - _stream.Position : _content!.Length;
+        response.ContentLength = _stream is not null ? _stream.Length - _stream.Position : _content!.Length; // non-null: each constructor sets exactly one of the stream and the bytes
         response.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment") { FileName = FileName }.ToString();
         response.Headers.CacheControl = "no-store";
         response.Headers["X-Robots-Tag"] = "noindex";

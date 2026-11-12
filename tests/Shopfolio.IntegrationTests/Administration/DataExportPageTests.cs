@@ -202,8 +202,6 @@ public sealed partial class DataExportTests
 
     private static Uri OrdersAddress => new(ExportPath + "?handler=ExportOrders", UriKind.Relative);
 
-    private static string Day(DateOnly day) => day.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
-
     private static string DayOf(string name) => name switch
     {
         "" => string.Empty,

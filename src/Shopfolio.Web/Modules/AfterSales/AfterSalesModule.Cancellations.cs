@@ -27,14 +27,17 @@ internal sealed partial class AfterSalesModule
     }
 
     /// <summary>The IBAN the customer gave with the cancellation on the transfer line (T370; 02 7.2.8, 7.4.5), stored compact; null on the card line.</summary>
-    private Guid? AddCancellationIban(CustomerCancellationEntry entry)
+    private Guid? AddCancellationIban(CustomerCancellationEntry entry) => AddRecordIban(entry.Subject.OrderId, entry.Iban, entry.At);
+
+    /// <summary>The IBAN a customer's record carries on the transfer line - the cancellation's and the late delivery termination's (T370, T512), stored compact; null on the card line.</summary>
+    private Guid? AddRecordIban(Guid orderId, string? entered, DateTimeOffset at)
     {
-        if (entry.Iban is not { } entered)
+        if (entered is null)
         {
             return null;
         }
 
-        RefundIban iban = RefundIban.Create(entry.Subject.OrderId, entered, entry.At);
+        RefundIban iban = RefundIban.Create(orderId, entered, at);
         _db.RefundIbans.Add(iban);
         return iban.Id;
     }
@@ -83,7 +86,7 @@ internal sealed partial class AfterSalesModule
         ItemAmounts amounts = ItemShares.SetAside(entry.Frozen, subject.ItemQuantity, open, closesTheItem: true, couponSetAside, vatSetAside);
         LateDeliveryTermination termination = entry.Admin is { } admin
             ? LateDeliveryTermination.ByAdmin(subject.OrderItemId, open, admin.AdminId, admin.AdminName, entry.DeclarationDate, amounts, null, entry.At)
-            : LateDeliveryTermination.ByBuyer(subject.OrderItemId, open, entry.DeclarationDate, amounts, null, entry.At);
+            : LateDeliveryTermination.ByBuyer(subject.OrderItemId, open, entry.DeclarationDate, amounts, AddRecordIban(subject.OrderId, entry.Iban, entry.At), entry.At);
         _db.LateDeliveryTerminations.Add(termination);
         return new ItemRecordWriteResult(null, termination.Id, null);
     }

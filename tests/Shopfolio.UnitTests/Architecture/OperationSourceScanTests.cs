@@ -41,6 +41,8 @@ public sealed class OperationSourceScanTests
         "[GatedOperation] public IActionResult OnPostA() { /* OperationRunner */ return Page(); }",
         "[GatedOperation] public IActionResult OnPostA() { string s = \"OperationGate.Decide\"; return Page(); }",
         "[GatedOperation] public IActionResult OnPostA() { string s = @\"OperationRunner\"; return Page(); }",
+        "[GatedOperation] public IActionResult OnPostA() { var o = Services.GetRequiredService<OperationRunner>(); return Page(); }",
+        "[GatedOperation] public async Task<IActionResult> OnPostA() { var o = Services.GetRequiredService<OperationRunner>(); await Other.RunAsyncLater(); return Page(); }",
         "[GatedOperation] public IActionResult OnPostA() { return Go(); } private IActionResult Go() { return A(); } private IActionResult A() { return B(); } private IActionResult B() { return C(); } private IActionResult C() { return D(); } private IActionResult D() { OperationGate.Decide(r, c, 1); return Page(); }",
     ];
 
@@ -137,6 +139,7 @@ public sealed class OperationSourceScanTests
                 (OperationSourceScan.GatedWithoutCheck, 5),
                 (OperationSourceScan.GatedWithoutCheck, 14),
                 (OperationSourceScan.GatedNotAPostHandler, 22),
+                (OperationSourceScan.GatedWithoutCheck, 45),
             ],
             findings);
     }

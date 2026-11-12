@@ -340,7 +340,8 @@ internal static partial class OperationSourceScan
     [GeneratedRegex(@"(?<![\w])(?<name>[A-Za-z_]\w*)\s*(?:<[^>(]*>)?\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex Call();
 
-    // The gate: OperationGate.Decide(...) (also qualified), or a OperationRunner used (a field, a parameter or a resolved service of that type) and run.
-    [GeneratedRegex(@"\bOperationGate\s*\.\s*Decide\b|\bOperationRunner\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    // The gate: OperationGate.Decide(...) (also qualified), or a OperationRunner used (a field, a parameter or a resolved service of that type) and run - its
+    // .RunAsync( called after it (09 8.3 item 2 (a); D-154 (a)): a handler that only resolves the runner never reaches the gate.
+    [GeneratedRegex(@"\bOperationGate\s*\.\s*Decide\b|\bOperationRunner\b[\s\S]*?\.\s*RunAsync\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex Gate();
 }

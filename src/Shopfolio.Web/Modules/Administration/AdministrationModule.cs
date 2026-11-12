@@ -235,6 +235,18 @@ internal sealed class AdministrationModule : IAdministrationModule
 
     public Task<AdminEmailVerificationResult> VerifyNewEmailAsync(string key, CancellationToken ct) => _emailChanges.VerifyNewEmailAsync(key, ct);
 
+    public Task<AdminLinkReading> ReadNewEmailLinkAsync(string key, CancellationToken ct) => _emailChanges.ReadNewEmailLinkAsync(key, ct);
+
+    public Task<AdminLinkReading> ReadEmailRestoreLinkAsync(string key, CancellationToken ct) => _emailChanges.ReadRevertLinkAsync(key, ct);
+
+    public Task<AdminEmailRevertResult> RestorePreviousEmailAsync(string key, CancellationToken ct) => _emailChanges.RestorePreviousEmailAsync(key, ct);
+
+    public Task DropReauthenticationAsync(Guid adminId, Guid sessionId, CancellationToken ct)
+    {
+        RequireTransaction("The permission is dropped only inside a transaction (09 6 item 3).");
+        return _sessions.DropReauthenticationAsync(AccountType.Admin, adminId, sessionId, ct);
+    }
+
     private void RequireTransaction(string message)
     {
         if (_db.Database.CurrentTransaction is null)
@@ -261,6 +273,7 @@ internal static class AdministrationModuleRegistration
         services.AddScoped<IAuditTrail>(p => p.GetRequiredService<AuditTrail>());
         services.AddScoped<ISalesSummary, SalesSummaryService>();
         services.AddScoped<IPanelHome, PanelHomeService>();
+        services.AddScoped<IPanelHomeDetails, PanelHomeDetailsService>();
         services.AddScoped<IPanelRequestList, PanelRequestListService>();
         services.AddDisposalPart<AdminInvitationDisposalPart>();
         services.TryAddSingleton<Shopfolio.Infrastructure.ExportTempDirectory>();

@@ -368,6 +368,222 @@ public sealed class CouponTests : IAsyncLifetime
         Assert.Equal(50m, (await EvaluateAsync("don", basket)).Items.Single().CouponShare);
     }
 
+    // ---- T526: the panel's change, list and read (07 UC-90, UC-122; KK8-KK10) ----
+
+    [Fact]
+    public async Task ChangingAMissingCoupon_IsNotFound_T526_KK10()
+    {
+        CouponWriteResult result = await UpdateAsync(EntityIds.New(), Definition("YOK"), 1);
+
+        Assert.True(result.IsNotFound);
+        Assert.Empty(result.Problems);
+    }
+
+    [Fact]
+    public async Task AStaleVersion_IsAConflict_BeforeTheFieldRules_AndWritesNothing_T526_KK10()
+    {
+        Coupon coupon = await SeedPercentAsync("SURUM", 10m);
+
+        CouponWriteResult result = await UpdateAsync(coupon.Id, new CouponDefinition(" ", CouponKind.Percentage, 100m, null, End, Start, -1), 2);
+
+        Assert.True(result.IsVersionConflict);
+        Assert.Empty(result.Problems);
+        Coupon stored = await ReadCouponAsync(coupon.Id);
+        Assert.Equal(("SURUM", 10m, 1), (stored.Code, stored.Percentage!.Value, stored.Version));
+    }
+
+    [Fact]
+    public async Task EveryFieldIsWritten_TheVersionRises_TheRightsStay_AndNoTrailRowIsWritten_T526_KK9()
+    {
+        Coupon coupon = await SeedPercentAsync("ESKI", 10m, limit: 5);
+        Assert.True(await ReserveAsync(coupon.Id));
+        long trailBefore = await ScalarAsync<long>("SELECT count(*) FROM audit_logs");
+        DateOnly newStart = new(2026, 11, 5);
+        DateOnly newEnd = new(2026, 11, 20);
+
+        CouponWriteResult result = await UpdateAsync(coupon.Id, new CouponDefinition("YENI", CouponKind.Amount, 50m, 200m, newStart, newEnd, 7), 1);
+
+        Assert.False(result.IsRejected);
+        Coupon stored = await ReadCouponAsync(coupon.Id);
+        Assert.Equal("YENI", stored.Code);
+        Assert.Null(stored.Percentage);
+        Assert.Equal(50m, stored.Amount);
+        Assert.Equal(200m, stored.MinimumBasketAmount);
+        Assert.Equal((newStart, newEnd, 7), (stored.StartDate, stored.EndDate, stored.TotalUsageLimit));
+        Assert.Equal((0, 1, 2), (stored.UsedCount, stored.ReservedCount, stored.Version));
+        Assert.Equal(trailBefore, await ScalarAsync<long>("SELECT count(*) FROM audit_logs"));
+        Assert.Equal(CouponOutcome.Accepted, (await EvaluateAsync("yeni", Basket)).Outcome);
+        Assert.Equal(CouponOutcome.Rejected, (await EvaluateAsync("eski", Basket)).Outcome);
+    }
+
+    [Fact]
+    public async Task TheUsageCount_MayNotGoUnderTheUsedAndReservedRights_ButMayEqualThem_T526_KK10()
+    {
+        Coupon coupon = await SeedPercentAsync("TABAN", 10m, limit: 5);
+        Assert.True(await ReserveAsync(coupon.Id));
+        await RunAsync(async (catalog, token) =>
+        {
+            await catalog.CommitAsync(new StockClaim([], coupon.Id), token);
+            return Done.Value;
+        });
+        Assert.True(await ReserveAsync(coupon.Id));
+
+        CouponWriteResult below = await UpdateAsync(coupon.Id, Definition("TABAN", limit: 1), 1);
+        CouponWriteResult equal = await UpdateAsync(coupon.Id, Definition("TABAN", limit: 2), 1);
+
+        Assert.Equal([new CouponProblem(nameof(CouponDefinition.TotalUsageLimit), ErrorCode.CouponUsageBelowUsed)], below.Problems);
+        Assert.Equal(2, below.UsedAndReserved);
+        Assert.False(equal.IsRejected);
+        Assert.Equal((1, 1, 2, 2), await RightsAndLimitAsync(coupon.Id));
+    }
+
+    [Fact]
+    public async Task TheCode_IsUniqueAgainstOtherCoupons_ButTheCouponItselfIsNotAnother_T526_KK10()
+    {
+        Coupon own = await SeedPercentAsync("KENDI", 10m);
+        await SeedPercentAsync("BASKA", 10m);
+
+        CouponWriteResult same = await UpdateAsync(own.Id, Definition("kendi"), 1);
+        CouponWriteResult taken = await UpdateAsync(own.Id, Definition("baska"), 2);
+
+        Assert.False(same.IsRejected);
+        Assert.Equal([new CouponProblem(nameof(CouponDefinition.Code), ErrorCode.DuplicateCouponCode)], taken.Problems);
+        Assert.Equal("kendi", (await ReadCouponAsync(own.Id)).Code);
+    }
+
+    [Fact]
+    public async Task MovingTheEndDayEarlier_RefusesANewOrder_AndTheReservedRightsStay_T526_KK9()
+    {
+        Coupon coupon = await SeedPercentAsync("ERKEN", 10m, limit: 5);
+        Assert.True(await ReserveAsync(coupon.Id));
+        Assert.Equal(CouponOutcome.Accepted, (await EvaluateAsync("erken", Basket)).Outcome);
+
+        CouponWriteResult result = await UpdateAsync(coupon.Id, Definition("ERKEN", end: new DateOnly(2026, 11, 10), limit: 5), 1);
+
+        Assert.False(result.IsRejected);
+        Assert.Equal(CouponOutcome.Rejected, (await EvaluateAsync("erken", Basket)).Outcome);
+        Assert.Equal((0, 1, 5, 2), await RightsAndLimitAsync(coupon.Id));
+    }
+
+    [Fact]
+    public async Task AChangedValue_ReachesOnlyANewBasket_TheOrderItemKeepsItsShare_T526_KK9()
+    {
+        Coupon coupon = await SeedPercentAsync("DEGIS", 10m);
+        CouponLine[] basket = [new CouponLine(100m, 1, 20m)];
+        Guid itemId = await SeedOrderItemAsync(await EvaluateAsync("degis", basket));
+
+        CouponWriteResult result = await UpdateAsync(coupon.Id, Definition("DEGIS", value: 50m), 1);
+
+        Assert.False(result.IsRejected);
+        Assert.Equal(("10.00", "15.00"), await ItemColumnsAsync(itemId));
+        Assert.Equal(50m, (await EvaluateAsync("degis", basket)).Items.Single().CouponShare);
+    }
+
+    [Fact]
+    public async Task AChangeThatRacesAReservation_WaitsForIt_AndMeasuresTheFloorAfterIt_T526_KK10()
+    {
+        Coupon coupon = await SeedPercentAsync("YARIS", 10m, limit: 1);
+
+        await using ServiceProvider provider = BuildProvider();
+        await using AsyncServiceScope first = provider.CreateAsyncScope();
+        await using AsyncServiceScope second = provider.CreateAsyncScope();
+        AppDbContext firstDb = first.ServiceProvider.GetRequiredService<AppDbContext>();
+        AppDbContext secondDb = second.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        await using IDbContextTransaction firstTransaction = await firstDb.Database.BeginTransactionAsync(Ct);
+        Assert.True(await first.ServiceProvider.GetRequiredService<ICatalogModule>().ReserveAsync(new StockClaim([], coupon.Id), null, Ct));
+        await using IDbContextTransaction secondTransaction = await secondDb.Database.BeginTransactionAsync(Ct);
+        int pid = (await secondDb.Database.SqlQuery<int>($"SELECT pg_backend_pid() AS \"Value\"").ToListAsync(Ct)).Single();
+        Task<CouponWriteResult> waiting = second.ServiceProvider.GetRequiredService<ICatalogModule>().UpdateCouponAsync(coupon.Id, Definition("YARIS", limit: 0), 1, Ct);
+        await WaitUntilBlockedAsync(pid);
+
+        await firstTransaction.CommitAsync(Ct);
+        CouponWriteResult result = await waiting.WaitAsync(TimeSpan.FromSeconds(30), Ct);
+        await secondTransaction.RollbackAsync(Ct);
+
+        Assert.Equal([new CouponProblem(nameof(CouponDefinition.TotalUsageLimit), ErrorCode.CouponUsageBelowUsed)], result.Problems);
+        Assert.Equal(1, result.UsedAndReserved);
+        await AssertRightsAsync(coupon.Id, used: 0, reserved: 1);
+    }
+
+    [Fact]
+    public async Task TheList_IsNewestFirst_ThenByInnerKey_AndAPagePastTheLastShowsTheLast_T526_KK8()
+    {
+        for (int i = 0; i < PageSizes.Panel + 1; i++)
+        {
+            await SeedPercentAsync($"AYNI{i:D2}", 10m);
+        }
+
+        await SaveAsync(c => c.Coupons.Add(Coupon.CreatePercentage("ENYENI", 10m, Start, End, 5, Now.AddHours(1))));
+        List<Guid> sameTime;
+        await using (AppDbContext reader = NewContext())
+        {
+            sameTime = await reader.Coupons.Where(c => c.Code != "ENYENI").OrderByDescending(c => c.Id).Select(c => c.Id).ToListAsync(Ct);
+        }
+
+        CouponListPage firstPage = await ReadAsync(catalog => catalog.ListCouponsAsync(1, Ct));
+        CouponListPage pastTheLast = await ReadAsync(catalog => catalog.ListCouponsAsync(int.MaxValue, Ct));
+
+        Assert.Equal((1, 2, PageSizes.Panel), (firstPage.PageNumber, firstPage.PageCount, firstPage.Items.Count));
+        Assert.Equal("ENYENI", firstPage.Items[0].Code);
+        Assert.Equal(sameTime.Take(PageSizes.Panel - 1), firstPage.Items.Skip(1).Select(r => r.Id));
+        Assert.Equal(2, pastTheLast.PageNumber);
+        Assert.Equal(sameTime.Skip(PageSizes.Panel - 1), pastTheLast.Items.Select(r => r.Id));
+    }
+
+    [Fact]
+    public async Task EachRowsValidity_IsReadFromItsDatesAndItsRightsLeft_AndAForeignKeyReadsNothing_T526_KK8()
+    {
+        await SaveAsync(c => c.Coupons.Add(Coupon.CreatePercentage("GELECEK", 10m, new DateOnly(2026, 12, 1), new DateOnly(2026, 12, 31), 5, Now)));
+        await SaveAsync(c => c.Coupons.Add(Coupon.CreatePercentage("GECMIS", 10m, new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 31), 5, Now)));
+        Coupon usedUp = await SeedPercentAsync("BITTI", 10m, limit: 1);
+        Assert.True(await ReserveAsync(usedUp.Id));
+        Coupon valid = await SeedPercentAsync("GECERLI", 10m, limit: 3);
+
+        CouponListPage page = await ReadAsync(catalog => catalog.ListCouponsAsync(1, Ct));
+        CouponRecord? read = await ReadAsync(catalog => catalog.GetCouponAsync(valid.Id, Ct));
+        CouponRecord? foreign = await ReadAsync(catalog => catalog.GetCouponAsync(EntityIds.New(), Ct));
+
+        Dictionary<string, CouponValidity> validity = page.Items.ToDictionary(r => r.Code, r => r.Validity);
+        Assert.Equal(CouponValidity.NotStarted, validity["GELECEK"]);
+        Assert.Equal(CouponValidity.Expired, validity["GECMIS"]);
+        Assert.Equal(CouponValidity.RightsUsedUp, validity["BITTI"]);
+        Assert.Equal(CouponValidity.Valid, validity["GECERLI"]);
+        Assert.NotNull(read);
+        Assert.Equal((CouponKind.Percentage, 10m, 3, 0, 0, 1), (read.Kind, read.Value, read.TotalUsageLimit, read.UsedCount, read.ReservedCount, read.Version));
+        Assert.Null(foreign);
+    }
+
+    private static CouponDefinition Definition(string code, decimal value = 10m, DateOnly? end = null, int limit = 100)
+        => new(code, CouponKind.Percentage, value, null, Start, end ?? End, limit);
+
+    private async Task<CouponWriteResult> UpdateAsync(Guid couponId, CouponDefinition definition, int formVersion)
+    {
+        await using ServiceProvider provider = BuildProvider();
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        ICatalogModule catalog = scope.ServiceProvider.GetRequiredService<ICatalogModule>();
+        return await scope.ServiceProvider.GetRequiredService<ITransactionRunner>().RunAsync(token => catalog.UpdateCouponAsync(couponId, definition, formVersion, token), Ct);
+    }
+
+    private async Task<T> ReadAsync<T>(Func<ICatalogModule, Task<T>> read)
+    {
+        await using ServiceProvider provider = BuildProvider();
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        return await read(scope.ServiceProvider.GetRequiredService<ICatalogModule>());
+    }
+
+    private async Task<Coupon> ReadCouponAsync(Guid couponId)
+    {
+        await using AppDbContext reader = NewContext();
+        return await reader.Coupons.AsNoTracking().SingleAsync(c => c.Id == couponId, Ct);
+    }
+
+    private async Task<(int Used, int Reserved, int Limit, int Version)> RightsAndLimitAsync(Guid couponId)
+    {
+        Coupon coupon = await ReadCouponAsync(couponId);
+        return (coupon.UsedCount, coupon.ReservedCount, coupon.TotalUsageLimit, coupon.Version);
+    }
+
     private async Task<Guid> SeedOrderItemAsync(CouponApplication applied)
     {
         int n = Interlocked.Increment(ref _counter);

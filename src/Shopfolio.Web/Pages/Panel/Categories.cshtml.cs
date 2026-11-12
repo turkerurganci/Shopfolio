@@ -287,14 +287,17 @@ internal sealed class CategoriesModel : PageModel
         options.AddRange(tree
             .Where(t => t.Id != node.Id)
             .Select(t => new CategoryMoveOption(t.Id.ToString("D"), new string(' ', (t.Level - 1) * 2) + t.Name, t.Id == node.ParentCategoryId)));
-        string? message = Message("MoveCategory") ?? Message("DeleteCategory");
+        bool takesChildren = node.Level < ProductConstants.CategoryLevelMax;
+
+        // A third-level node draws no child form, so a child sent to it anyway is refused on the node itself.
+        string? message = Message("MoveCategory") ?? Message("DeleteCategory") ?? (takesChildren ? null : Message("CreateChild"));
         return new CategoryNodeView(
             node.Id,
             node.Name,
             node.Level,
             CountsTextOf(node),
             listed.Contains(node.Id) ? null : MenuHiddenText,
-            node.Level < ProductConstants.CategoryLevelMax,
+            takesChildren,
             options,
             message,
             Message("RenameCategory"),

@@ -251,14 +251,12 @@ internal sealed class CouponsModel : PageModel
                 return;
             }
 
+            // A changed version is answered before the field rules (07 2.4.8): the field problems are dropped so the validation filter lets the request through, and the
+            // handler answers 409. The request is not cut here - the inner filters (the panel frame among them) still run.
             if (current.Version != (input?.Version ?? 0))
             {
                 ModelState.Clear();
-                _rejections.Rejected(ErrorCode.RecordVersionConflict);
                 IsConflicted = true;
-                await LoadAsync(ct);
-                context.Result = FormResults.Conflict(this);
-                return;
             }
         }
 
@@ -295,6 +293,13 @@ internal sealed class CouponsModel : PageModel
     public async Task<IActionResult> OnPostSaveCouponAsync(SaveCouponInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
+        if (IsConflicted)
+        {
+            _rejections.Rejected(ErrorCode.RecordVersionConflict);
+            await LoadAsync(ct);
+            return FormResults.Conflict(this);
+        }
+
         string? key = RouteKey();
         CouponKind kind = input.ParsedKind() ?? CouponKind.Percentage; // non-null: the field's rules refuse an empty or unknown kind before the handler
         CouponDefinition definition = new(

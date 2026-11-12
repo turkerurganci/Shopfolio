@@ -25,10 +25,10 @@
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | `GET {kök}/cayma` içerik; kapalıysa 303 kök + sebep | ✓ | `AfterSalesScreenTests.TheWithdrawalScreen_ShowsTheItemsUnitsReturnAddressAndRefund_AndAClosedOneIs303WithTheReason_KK1`, `…TheWithdrawalScreen_ShowsTheConditionalExemptionsLine_OnlyOnTheItemThatHasIt_KK1` |
+| 1 | `GET {kök}/cayma` içerik; kapalıysa 303 kök + sebep | ~ (doğrulama tur 1: kargo ücreti satırı hesapsız — B1) | `AfterSalesScreenTests.TheWithdrawalScreen_ShowsTheItemsUnitsReturnAddressAndRefund_AndAClosedOneIs303WithTheReason_KK1`, `…TheWithdrawalScreen_ShowsTheConditionalExemptionsLine_OnlyOnTheItemThatHasIt_KK1` |
 | 2 | Onaysız 200 son adım; onaylı 303 kök, tarih ve adres kökte | ✓ | `…TheUnconfirmedPost_IsTheLastStepAndWritesNothing_AndTheConfirmedOneFreezesTheReturnAddress_KK2_KK3` |
 | 3 | Kalem başına tarih + adet; iade adresi donar | ✓ | aynı test (adres değiştirildikten sonra kayıt eski adresi tutar) |
-| 4 | Üç 422, pencere/hak 303, açık adet farkı 303, yabancı kalem 404 | ✓ | `…TheWithdrawalsThree422s_TheClosedWindow_TheStaleUnits_AndTheForeignItem_WriteNothing_KK4` |
+| 4 | Üç 422, pencere/hak 303, açık adet farkı 303, yabancı kalem 404 | ~ (doğrulama tur 1: onaylı gönderimde ✓; onaysız gönderim aşan/eskimiş adette 200 — B4) | `…TheWithdrawalsThree422s_TheClosedWindow_TheStaleUnits_AndTheForeignItem_WriteNothing_KK4` |
 | 5 | Kısmi seçimin tekrarı ikinci cayma olmaz | ✓ | `…TheRepeatOfAPartialSelection_IsNoSecondWithdrawal_But303WithTheReason_KK5` |
 | 6 | Yeni talep: açık kalemler, varsayılan 1, üst sınır, iade adresi; yeniden açma: talep + Çözüldü rozeti | ✓ | `…TheDefectClaimScreen_NewClaimHasDefaultOneAndTheLimit_AndTheReopeningShowsTheResolvedClaim_KK6` |
 | 7 | Üç 303 (açık değil, Çözüldü değil, Z-18 doldu); 404 (kök, yabancı, talep yok) | ✓ | `…TheDefectClaimScreen_Is303WhenNotOpenNotResolvedOrPastZ18_And404ForAForeignItemOrNoClaim_KK7` |
@@ -79,10 +79,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | — |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-12, head `926f70ff`; CI run 43262766424 yeşil) |
+| Bulgu sayısı | 4 — B1 ORTA, B2/B3/B4 DÜŞÜK (hepsi S1) |
+| Düzeltme gerekli mi | Evet. **B1 (ORTA, para; kriter 1):** E-18'in kargo ücreti satırı (`OrderScreenTexts.ShippingFeeText`) her fiziksel kalemde sabit koşullu cümle; seçime ve önceki beyanlara göre karar verilmiyor, ücretsiz kargolu siparişte ve K-1076'nın dışladığı hâlde de geri ödeme vaat ediyor (`04` 5.18.6; `07 UC-42` "kargo ücreti"; `02 §7.4.6`; K-789). E-17'nin `CancellationRefundsShippingFee` emsali gibi modül kararı gerekir; D-1340 kabul edilmiş risk değildir. **B2 (DÜŞÜK; `09 §20` m.4, `09 §25` "döngüde sorgu"):** `WithdrawalPageModel.LoadScreenAsync` açık kalem başına `ReadWithdrawalScreenAsync` çağırıyor; her çağrı siparişin işlem olgularını baştan yüklüyor (`OrderOperations.LoadAsync`) + kalem sorgusu + iade adresi; GET ve her POST yeniden yüklemesi N+1; komut sayısı testi yok. **B3 (DÜŞÜK; `04` 2.12.1.8, VAL-A881; D-1367 hedefi T513):** E-18 satırı "İşleme açık adet: X", E-19 "Ayıplı adet: en çok X" — üst sınır kalemin adediyle söylenmiyor; E-19'un adet alanı kalemin satırında değil, formda tek alan. **B4 (DÜŞÜK; `07 UC-43`, kriter 4, VAL-A577/A688):** onaysız `SubmitWithdrawal` açık adedi aşan ya da eskimiş `OriginalOpenQuantity` taşıyan gönderimde 303 yerine 200 son adım veriyor (ör. açık 2'de "Seçtiğiniz 3 ürün…"); E-17 bunu T512'de 303'e çevirmişti |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 → D-1401 (alan kuralı 422'si yabancı kalemin 404'ünün önünde; `07 §2.3.3`; F5 kapısı); K2 → bu PR'ın düzeltme turu (E-18'de aynı kalemin iki satırı 422 ve çok kalemli bütün-ya-da-hiç için ekran testi yok; VAL-A581, VAL-A688) |
 
 ## Altyapı Değişiklikleri
 

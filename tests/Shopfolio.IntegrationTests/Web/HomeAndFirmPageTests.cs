@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -9,6 +10,7 @@ using Microsoft.Net.Http.Headers;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages;
@@ -211,6 +213,9 @@ public sealed partial class HomeAndFirmPageTests : IAsyncLifetime
         Assert.Contains(HomeAndMenuModel.DefaultNamePrefix + MenuNameDefaults.Offerings, html, StringComparison.Ordinal);
         Assert.Contains("Menü adı boş olamaz; varsayılan ad: " + MenuNameDefaults.Offerings + ".", html, StringComparison.Ordinal);
         Assert.DoesNotContain("Hizmetler menü adı boş olamaz", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("FieldRequired", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("InvalidUrl", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("InvalidPhone", html, StringComparison.Ordinal);
         Assert.Contains("field--invalid", html, StringComparison.Ordinal);
         Assert.Equal("ContentFirst", await ScalarAsync<string>("SELECT homepage_layout FROM company_settings"));
         Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM social_links"));
@@ -226,6 +231,48 @@ public sealed partial class HomeAndFirmPageTests : IAsyncLifetime
         Assert.Equal("2", FieldValue(staleHtml, "Input.Version"));
         Assert.Equal("Hizmetler", await ScalarAsync<string>("SELECT menu_name_offerings FROM company_settings"));
         Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM social_links"));
+    }
+
+    [Fact]
+    public async Task TheEmptyMenuNameRefusal_WritesTheRejectionLine_WithTheFieldAndTheFieldRequiredCode_AndNoValue_KK3()
+    {
+        await using ShopfolioWebApplicationFactory root = new(_database.Dsn);
+        await using WebApplicationFactory<Program> factory = root.WithWebHostBuilder(b => b.ConfigureServices(s => s.AddRazorPages().AddApplicationPart(typeof(ForgeryTokenSampleModel).Assembly)));
+        using HttpClient client = ClientOf(factory);
+        const string requestId = "t535-empty-menu-name";
+        using HttpRequestMessage request = new(HttpMethod.Post, new Uri(HomePath + "?handler=SaveHomepage", UriKind.Relative))
+        {
+            Content = HomeForm(layout: "StoreFirst", offerings: "  ", instagram: string.Empty, whatsApp: string.Empty, version: 1),
+        };
+        request.Headers.TryAddWithoutValidation("X-Request-Id", requestId);
+
+        using HttpResponseMessage refused = await client.SendAsync(request, Ct);
+        string html = WebUtility.HtmlDecode(await refused.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, refused.StatusCode);
+        Assert.Contains("Menü adı boş olamaz; varsayılan ad: " + MenuNameDefaults.Offerings + ".", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("FieldRequired", html, StringComparison.Ordinal);
+        List<JsonElement> lines = [];
+        foreach (string path in Directory.GetFiles(root.LogDirectory, "app-*.jsonl"))
+        {
+            using FileStream stream = new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using StreamReader reader = new(stream);
+            while (reader.ReadLine() is { } text)
+            {
+                JsonElement line = JsonDocument.Parse(text).RootElement.Clone();
+                if (line.TryGetProperty("requestId", out JsonElement id) && id.GetString() == requestId)
+                {
+                    lines.Add(line);
+                }
+            }
+        }
+
+        JsonElement rejection = Assert.Single(lines);
+        Assert.Equal(LogEvents.ValidationRejected, rejection.GetProperty("event").GetString());
+        JsonElement field = Assert.Single(rejection.GetProperty("fields").EnumerateArray());
+        Assert.Equal("FieldRequired", field.GetProperty("code").GetString());
+        Assert.Contains("MenuNameOfferings", field.GetProperty("field").GetString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("varsayılan", rejection.GetRawText(), StringComparison.Ordinal);
     }
 
     // ---- KK4, KK5: the conditions, their links, the e-mail line, the two labels (criteria 4, 5) ----
@@ -317,6 +364,9 @@ public sealed partial class HomeAndFirmPageTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, emptied.StatusCode);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, badEmail.StatusCode);
+        string badEmailHtml = WebUtility.HtmlDecode(await badEmail.Content.ReadAsStringAsync(Ct));
+        Assert.Contains("E-posta geçerli bir e-posta adresi olmalıdır.", badEmailHtml, StringComparison.Ordinal);
+        Assert.DoesNotContain("InvalidEmail", badEmailHtml, StringComparison.Ordinal);
         Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM audit_logs"));
 
         using HttpResponseMessage saved = await client.PostAsync(FirmPath + "?handler=SaveCompany", CompanyForm(legalName: "Yılmaz Ticaret Ltd", email: "iletisim@firma.com.tr", version: 1, type: "LegalEntity"), Ct);

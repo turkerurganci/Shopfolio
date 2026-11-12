@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -22,34 +24,49 @@ namespace Shopfolio.Pages.Panel;
 /// <summary>The form input of the identity form (E-44; 07 9.16.2 <c>SaveCompanyInput</c>; 04 7.2.19) and the version of the company record it was opened with (06 4.1).</summary>
 public sealed class SaveCompanyInput : IFormInput
 {
+    [Display(Name = "Firma tipi")]
     public string? CompanyType { get; set; }
 
+    [Display(Name = "Unvan veya ad soyad")]
     public string? LegalName { get; set; }
 
+    [Display(Name = "Vergi kimlik numarası")]
     public string? TaxIdNumber { get; set; }
 
+    [Display(Name = "MERSİS numarası")]
     public string? MersisNumber { get; set; }
 
+    [Display(Name = "Ticaret sicil numarası")]
     public string? TradeRegistryNumber { get; set; }
 
+    [Display(Name = "İl")]
     public string? ProvinceId { get; set; }
 
+    [Display(Name = "İlçe")]
     public string? District { get; set; }
 
+    [Display(Name = "Açık adres")]
     public string? AddressLine { get; set; }
 
+    [Display(Name = "Telefon")]
     public string? Phone { get; set; }
 
+    [Display(Name = "E-posta")]
     public string? Email { get; set; }
 
+    [Display(Name = "KEP adresi")]
     public string? KepAddress { get; set; }
 
+    [Display(Name = "Meslek odası")]
     public string? ChamberName { get; set; }
 
+    [Display(Name = "İşletme adı veya tescilli marka")]
     public string? BusinessName { get; set; }
 
+    [Display(Name = "Meslekle ilgili davranış kuralları")]
     public string? ProfessionalConductRules { get; set; }
 
+    [Display(Name = "ETBİS doğrulama bilgisi")]
     public string? EtbisVerificationUrl { get; set; }
 
     public int Version { get; set; }
@@ -140,6 +157,8 @@ public sealed class FirmIdentityModel : PageModel
     private readonly IPanelHome _home;
     private SaveCompanyInput? _posted;
     private bool _conflicted;
+    private (CompanyIdentity Identity, IReadOnlyList<ProvinceInfo> Provinces, SaveCompanyInput? Sent)? _loaded;
+    private (FormErrorSummary Summary, IReadOnlyList<FieldView> Fields)? _built;
 
     public FirmIdentityModel(ISettingsModule settings, IPanelHome home)
     {
@@ -155,9 +174,9 @@ public sealed class FirmIdentityModel : PageModel
 
     public IReadOnlyList<GateConditionRowView> Conditions { get; private set; } = [];
 
-    public IReadOnlyList<FieldView> IdentityFields { get; private set; } = [];
+    public IReadOnlyList<FieldView> IdentityFields => Built().Fields;
 
-    public FormErrorSummary Summary { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
+    public FormErrorSummary Summary => Built().Summary;
 
     public int FormVersion { get; private set; }
 
@@ -260,15 +279,29 @@ public sealed class FirmIdentityModel : PageModel
         IsTemporarilyClosed = gate.IsTemporarilyClosed;
         ShowsDataEntriesClosed = !gate.IsDataCollectionOpen;
         Conditions = ConditionsOf(gate);
-        Summary = FormErrorSummary.From(ModelState, FormOrder);
+        // The views carry the model state's messages, and the page filter turns a handler's rule codes into the catalog texts only after the handler returns; so they are drawn on the first read.
         SaveCompanyInput? sent = _posted;
         FormVersion = sent is null || _conflicted ? identity.Version : sent.Version;
-        IdentityFields = [.. FieldsOf(identity, provinces, sent)];
+        _loaded = (identity, provinces, sent);
+        _built = null;
         FirmNoticesWarning = home.FirmNoticesWarningOpen
             ? $"Firma bildirimleri ulaşmıyor — {(string.IsNullOrWhiteSpace(identity.Email) ? "firma" : identity.Email)} adresine giden e-postalar teslim edilemedi."
             : null;
         NoticeCode? notice = NoticeParameter.Read(Request, NoticeKind.ShortLived);
         Notice = notice is { } code && NoticeTexts.TryShortLived(code, out string? noticeText) ? Messages.ShortLivedSuccess(noticeText) : null;
+    }
+
+    private (FormErrorSummary Summary, IReadOnlyList<FieldView> Fields) Built()
+    {
+        if (_built is { } built)
+        {
+            return built;
+        }
+
+        (CompanyIdentity identity, IReadOnlyList<ProvinceInfo> provinces, SaveCompanyInput? sent) = _loaded ?? throw new InvalidOperationException("The screen is read before it is loaded.");
+        FormErrorSummary summary = FormErrorSummary.From(ModelState, FormOrder);
+        _built = (summary, [.. FieldsOf(summary, identity, provinces, sent)]);
+        return _built.Value;
     }
 
     private static List<GateConditionRowView> ConditionsOf(SalesGate gate)
@@ -303,7 +336,7 @@ public sealed class FirmIdentityModel : PageModel
         ];
     }
 
-    private IEnumerable<FieldView> FieldsOf(CompanyIdentity identity, IReadOnlyList<ProvinceInfo> provinces, SaveCompanyInput? sent)
+    private static IEnumerable<FieldView> FieldsOf(FormErrorSummary summary, CompanyIdentity identity, IReadOnlyList<ProvinceInfo> provinces, SaveCompanyInput? sent)
     {
         string? Pick(string? sentValue, string? stored) => sent is not null ? sentValue : stored;
         string? typeValue = sent is not null ? sent.CompanyType : identity.CompanyType?.ToString();
@@ -341,7 +374,7 @@ public sealed class FirmIdentityModel : PageModel
             Fields.Text("Input.BusinessName", "İşletme adı veya tescilli marka", FieldRequirement.Optional, Pick(sent?.BusinessName, identity.BusinessName)),
             Fields.Text("Input.EtbisVerificationUrl", "ETBİS doğrulama bilgisi", FieldRequirement.Optional, Pick(sent?.EtbisVerificationUrl, identity.EtbisVerificationUrl), hint: EtbisReminder),
         ];
-        return fields.Select(f => Fields.Bind(f, Summary));
+        return fields.Select(f => Fields.Bind(f, summary));
     }
 
 

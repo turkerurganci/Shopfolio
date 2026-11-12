@@ -291,7 +291,7 @@
 | T532 | Talepler ve iletişim talebi ayrıntısı (E-38, E-39) | ✓ | ✓ PASS (tur 1) | `d202a668` | #552 |
 | T533 | Üye kaydı görünümü (E-40) | ✓ | ✓ PASS (tur 1) | `d1a1729a` | #556 |
 | T534 | Kurumsal içerik ve marka yönetimi (E-41, E-43) | ⬚ | — | — | — |
-| T535 | Ana sayfa ve menü, firma kimliği ve satış (E-42, E-44) | ✗ | ✗ FAIL (tur 1) | — | #555 |
+| T535 | Ana sayfa ve menü, firma kimliği ve satış (E-42, E-44) | ✗ | ✗ FAIL (tur 1) — düzeltme 1 yapıldı, tur 2 bekliyor | — | #555 |
 | T536 | Ödeme yöntemleri, kargo, süreler ve varsayılanlar (E-45, E-46) | ⬚ | — | — | — |
 | T537 | Vitrin çerçevesinin modeli: marka, menü, duyuru şeridi, hesap alanı, sepet sayısı | ✓ | ✓ PASS (tur 1) | `b69ac697` | #532 |
 | T538 | Uç ve model eşitlik denetimleri: uç envanteri, form girdi ve sorgu modelleri, makine ucu gövdeleri | ⬚ | — | — | — |

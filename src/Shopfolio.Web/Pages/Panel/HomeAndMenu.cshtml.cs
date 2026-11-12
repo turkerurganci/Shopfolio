@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -26,18 +28,25 @@ public sealed class SaveHomepageInput : IFormInput
 {
     public string? HomepageLayout { get; set; }
 
+    [Display(Name = "Ürünler menü adı")]
     public string? MenuNameProducts { get; set; }
 
+    [Display(Name = "Hizmetler menü adı")]
     public string? MenuNameOfferings { get; set; }
 
+    [Display(Name = "Referanslar menü adı")]
     public string? MenuNamePortfolioItems { get; set; }
 
+    [Display(Name = "Hakkımızda menü adı")]
     public string? MenuNameAboutPage { get; set; }
 
+    [Display(Name = "Sık sorulan sorular menü adı")]
     public string? MenuNameFaqItems { get; set; }
 
+    [Display(Name = "İletişim menü adı")]
     public string? MenuNameContact { get; set; }
 
+    [Display(Name = "WhatsApp numarası")]
     public string? WhatsAppNumber { get; set; }
 
     /// <summary>One entry per platform of the closed list, in its order: the platform and the address typed for it (07 9.14.2 <c>SocialLinks</c>; 06 4.55).</summary>
@@ -53,6 +62,7 @@ public sealed class SocialLinkValue
 {
     public SocialPlatform SocialPlatform { get; set; }
 
+    [Display(Name = "Bağlantı")]
     public string? Url { get; set; }
 }
 
@@ -85,9 +95,6 @@ public sealed class HomeAndMenuModel : PageModel
 
     public const string DefaultNamePrefix = "Varsayılan ad: ";
 
-    /// <summary>The field message of an empty menu name is this, the item's default name and a full stop (K-813).</summary>
-    public const string EmptyNameMessagePrefix = "Menü adı boş olamaz; varsayılan ad: ";
-
     public const string SocialNote = "Bağlantılar sitenin üst bölümünün ince satırında ve altbilgide görünür. Boş bıraktığınız platformun bağlantısı kaldırılır.";
 
     public const string WhatsAppHint = "On haneli telefon numarası; isteğe bağlı.";
@@ -96,6 +103,10 @@ public sealed class HomeAndMenuModel : PageModel
     private readonly ICorporateContentModule _content;
     private SaveHomepageInput? _posted;
     private int _formVersion;
+
+    private LoadedState? _loaded;
+
+    private BuiltViews? _built;
 
     public HomeAndMenuModel(ISettingsModule settings, ICorporateContentModule content)
     {
@@ -109,13 +120,13 @@ public sealed class HomeAndMenuModel : PageModel
     public HomepageLayout Layout { get; private set; }
 
     /// <summary>The menu name fields in the selected layout's menu order, without İletişim (04 9.14.4): the general pages shown in the menu come after them and before <see cref="ContactRow"/>.</summary>
-    public IReadOnlyList<MenuNameRowView> MenuRows { get; private set; } = [];
+    public IReadOnlyList<MenuNameRowView> MenuRows => Built().MenuRows;
 
-    public MenuNameRowView ContactRow { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
+    public MenuNameRowView ContactRow => Built().ContactRow;
 
-    public IReadOnlyList<SocialLinkRowView> SocialRows { get; private set; } = [];
+    public IReadOnlyList<SocialLinkRowView> SocialRows => Built().SocialRows;
 
-    public FieldView WhatsApp { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
+    public FieldView WhatsApp => Built().WhatsApp;
 
     /// <summary>The general pages the firm shows in the menu, read only (04 9.14.4).</summary>
     public IReadOnlyList<GeneralPageLink> MenuPages { get; private set; } = [];
@@ -124,7 +135,7 @@ public sealed class HomeAndMenuModel : PageModel
 
     public bool IsConflicted { get; private set; }
 
-    public FormErrorSummary Summary { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
+    public FormErrorSummary Summary => Built().Summary;
 
     public MessageView? Notice { get; private set; }
 
@@ -214,8 +225,8 @@ public sealed class HomeAndMenuModel : PageModel
                 string defaultName = DefaultNameOf(rejection.Field);
                 if (rejection.Code == FieldCodes.FieldRequired && defaultName.Length > 0)
                 {
-                    // K-813: an empty menu name's message reminds the default name; it is no catalog text, so the page filter leaves it as written.
-                    ModelState.AddModelError("Input." + rejection.Field, EmptyNameMessagePrefix + defaultName + ".");
+                    // K-813: an empty menu name's message reminds the default name; the common field error carries it as the parameter, so the filter logs the rejection too.
+                    ModelState.AddFieldError("Input." + rejection.Field, rejection.Code, defaultName);
                     continue;
                 }
 
@@ -239,50 +250,71 @@ public sealed class HomeAndMenuModel : PageModel
         StorefrontMenu menu = await _content.GetMenuAsync(ct);
         IReadOnlyList<SocialLinkItem> links = await _content.ListSocialLinksAsync(ct);
         SaveHomepageInput? sent = _posted;
-        // The name fields follow the menu's own order (the layout's, 04 9.14.4); the menu carries it, so the screen does not restate it.
-        List<MenuItemKind> kinds = [.. menu.Items.Where(i => i.Kind != MenuItemKind.GeneralPage).Select(i => i.Kind)];
-        Summary = FormErrorSummary.From(ModelState, FormOrderOf(kinds));
         FormVersion = IsConflicted || sent is null ? section.Version : _formVersion;
         Layout = sent is not null && Enum.TryParse(sent.HomepageLayout, ignoreCase: false, out HomepageLayout chosen) && Enum.IsDefined(chosen) ? chosen : section.Layout;
+        MenuPages = [.. menu.FooterPages.Where(p => p.IsInMenu)];
+        NoticeCode? notice = NoticeParameter.Read(Request, NoticeKind.ShortLived);
+        Notice = notice is { } code && NoticeTexts.TryShortLived(code, out string? noticeText) ? Messages.ShortLivedSuccess(noticeText) : null;
+        // The field views carry the model state's messages, and the page filter turns a handler's rule codes into the catalog texts only after the handler returns; so the views are drawn on the first read.
+        _loaded = new LoadedState(section, whatsApp, menu, links, sent);
+        _built = null;
+    }
+
+    private BuiltViews Built()
+    {
+        if (_built is not null)
+        {
+            return _built;
+        }
+
+        LoadedState loaded = _loaded ?? throw new InvalidOperationException("The screen is read before it is loaded.");
+        (HomepageSection section, string? whatsApp, StorefrontMenu menu, IReadOnlyList<SocialLinkItem> links, SaveHomepageInput? sent) = loaded;
+        // The name fields follow the menu's own order (the layout's, 04 9.14.4); the menu carries it, so the screen does not restate it.
+        List<MenuItemKind> kinds = [.. menu.Items.Where(i => i.Kind != MenuItemKind.GeneralPage).Select(i => i.Kind)];
+        FormErrorSummary summary = FormErrorSummary.From(ModelState, FormOrderOf(kinds));
 
         MenuNameRowView RowOf(MenuItemKind kind) => kind switch
         {
-            MenuItemKind.Products => Row(menu, kind, "Ürünler", MenuNameDefaults.Products, sent?.MenuNameProducts, section.MenuNames.Products, sent is not null),
-            MenuItemKind.Offerings => Row(menu, kind, "Hizmetler", MenuNameDefaults.Offerings, sent?.MenuNameOfferings, section.MenuNames.Offerings, sent is not null),
-            MenuItemKind.PortfolioItems => Row(menu, kind, "Referanslar", MenuNameDefaults.PortfolioItems, sent?.MenuNamePortfolioItems, section.MenuNames.PortfolioItems, sent is not null),
-            MenuItemKind.AboutPage => Row(menu, kind, "Hakkımızda", MenuNameDefaults.AboutPage, sent?.MenuNameAboutPage, section.MenuNames.AboutPage, sent is not null),
-            MenuItemKind.FaqItems => Row(menu, kind, "Sık sorulan sorular", MenuNameDefaults.FaqItems, sent?.MenuNameFaqItems, section.MenuNames.FaqItems, sent is not null),
-            _ => Row(menu, MenuItemKind.Contact, "İletişim", MenuNameDefaults.Contact, sent?.MenuNameContact, section.MenuNames.Contact, sent is not null),
+            MenuItemKind.Products => Row(menu, summary, kind, "Ürünler", MenuNameDefaults.Products, sent?.MenuNameProducts, section.MenuNames.Products, sent is not null),
+            MenuItemKind.Offerings => Row(menu, summary, kind, "Hizmetler", MenuNameDefaults.Offerings, sent?.MenuNameOfferings, section.MenuNames.Offerings, sent is not null),
+            MenuItemKind.PortfolioItems => Row(menu, summary, kind, "Referanslar", MenuNameDefaults.PortfolioItems, sent?.MenuNamePortfolioItems, section.MenuNames.PortfolioItems, sent is not null),
+            MenuItemKind.AboutPage => Row(menu, summary, kind, "Hakkımızda", MenuNameDefaults.AboutPage, sent?.MenuNameAboutPage, section.MenuNames.AboutPage, sent is not null),
+            MenuItemKind.FaqItems => Row(menu, summary, kind, "Sık sorulan sorular", MenuNameDefaults.FaqItems, sent?.MenuNameFaqItems, section.MenuNames.FaqItems, sent is not null),
+            _ => Row(menu, summary, MenuItemKind.Contact, "İletişim", MenuNameDefaults.Contact, sent?.MenuNameContact, section.MenuNames.Contact, sent is not null),
         };
-
-        MenuRows = [.. kinds.Where(kind => kind != MenuItemKind.Contact).Select(RowOf)];
-        ContactRow = RowOf(MenuItemKind.Contact);
 
         string? Link(SocialPlatform platform) => sent is not null
             ? sent.SocialLinks.FirstOrDefault(l => l.SocialPlatform == platform)?.Url
             : links.FirstOrDefault(l => l.Platform == platform)?.Url;
-        SocialRows = [.. Platforms.Select(platform => SocialRow(platform, Link(platform)))];
-        WhatsApp = Fields.Bind(
-            Fields.Telephone("Input.WhatsAppNumber", "WhatsApp numarası", FieldRequirement.Optional, sent is not null ? sent.WhatsAppNumber : whatsApp),
-            Summary);
-        MenuPages = [.. menu.FooterPages.Where(p => p.IsInMenu)];
-        NoticeCode? notice = NoticeParameter.Read(Request, NoticeKind.ShortLived);
-        Notice = notice is { } code && NoticeTexts.TryShortLived(code, out string? noticeText) ? Messages.ShortLivedSuccess(noticeText) : null;
+
+        _built = new BuiltViews(
+            summary,
+            [.. kinds.Where(kind => kind != MenuItemKind.Contact).Select(RowOf)],
+            RowOf(MenuItemKind.Contact),
+            [.. Platforms.Select(platform => SocialRow(summary, platform, Link(platform)))],
+            Fields.Bind(
+                Fields.Telephone("Input.WhatsAppNumber", "WhatsApp numarası", FieldRequirement.Optional, sent is not null ? sent.WhatsAppNumber : whatsApp),
+                summary));
+        return _built;
     }
 
-    private MenuNameRowView Row(StorefrontMenu menu, MenuItemKind kind, string label, string defaultName, string? sentName, string storedName, bool wasSent)
+    private static MenuNameRowView Row(StorefrontMenu menu, FormErrorSummary summary, MenuItemKind kind, string label, string defaultName, string? sentName, string storedName, bool wasSent)
     {
         string property = PropertyOf(kind);
         MenuItem? item = menu.Items.FirstOrDefault(i => i.Kind == kind);
         string? reason = item is { IsVisible: false, HiddenReason: { } why } ? (why == MenuHiddenReason.NoPublishedProduct ? NoPublishedProductText : NoPublishedRecordText) : null;
         FieldView field = Fields.Bind(
             Fields.Text("Input." + property, label + " menü adı", FieldRequirement.Required, wasSent ? sentName : storedName, hint: DefaultNamePrefix + defaultName),
-            Summary);
+            summary);
         return new MenuNameRowView(field, defaultName, reason);
     }
 
-    private SocialLinkRowView SocialRow(SocialPlatform platform, string? value) =>
-        new(platform, Fields.Bind(Fields.Text(SocialFieldName(platform), platform.ToString(), FieldRequirement.Optional, value), Summary));
+    private static SocialLinkRowView SocialRow(FormErrorSummary summary, SocialPlatform platform, string? value) =>
+        new(platform, Fields.Bind(Fields.Text(SocialFieldName(platform), platform.ToString(), FieldRequirement.Optional, value), summary));
+
+    private sealed record LoadedState(HomepageSection Section, string? WhatsApp, StorefrontMenu Menu, IReadOnlyList<SocialLinkItem> Links, SaveHomepageInput? Sent);
+
+    private sealed record BuiltViews(FormErrorSummary Summary, IReadOnlyList<MenuNameRowView> MenuRows, MenuNameRowView ContactRow, IReadOnlyList<SocialLinkRowView> SocialRows, FieldView WhatsApp);
 
     /// <summary>The name of a platform's address field: its entry's place in the closed list.</summary>
     public static string SocialFieldName(SocialPlatform platform) =>

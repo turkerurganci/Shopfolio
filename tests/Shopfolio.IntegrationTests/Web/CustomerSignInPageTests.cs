@@ -247,6 +247,31 @@ public sealed class CustomerSignInPageTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task TheResendOfTheSignInPage_SendsANewLink_AndSupersedesTheEarlierOnes_D1249_T515_KK5()
+    {
+        await using WebApplicationFactory<Program> factory = Open(google: null, gateOpen: false);
+        await SeedCustomerAsync("ayse@example.com", verified: false);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        using HttpResponseMessage refused = await PostSignInAsync(client, "ayse@example.com", Entered);
+        string html = await BodyOf(refused);
+        const string marker = "name=\"PendingRegistration\" value=\"";
+        int start = html.IndexOf(marker, StringComparison.Ordinal) + marker.Length;
+        string value = WebUtility.HtmlDecode(html[start..html.IndexOf('"', start)]);
+
+        using HttpResponseMessage resent = await PostAsync(client, FramePaths.SignIn, "ResendVerificationLink", [("PendingRegistration", value)]);
+
+        Assert.Equal(HttpStatusCode.SeeOther, resent.StatusCode);
+        Assert.StartsWith(FramePaths.SignIn + "?", resent.Headers.Location!.OriginalString, StringComparison.Ordinal);
+        Assert.EndsWith($"&notice={NoticeCode.LinkResent}", resent.Headers.Location.OriginalString, StringComparison.Ordinal);
+        await using AppDbContext db = NewContext();
+        List<LinkRecord> links = await db.LinkRecords.AsNoTracking().OrderBy(l => l.CreatedAt).ToListAsync(Ct);
+        Assert.Equal(2, links.Count);
+        Assert.NotNull(links[0].SupersededAt);
+        Assert.Null(links[1].SupersededAt);
+        Assert.Equal(0, await db.Sessions.CountAsync(Ct));
+    }
+
+    [Fact]
     public async Task TheRightPairOfAnAccountWhoseLinkEnded_IsToldAsAWrongPair_T515_KK5()
     {
         await using WebApplicationFactory<Program> factory = Open(google: null, gateOpen: false);

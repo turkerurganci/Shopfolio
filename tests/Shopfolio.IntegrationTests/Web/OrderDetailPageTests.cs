@@ -10,6 +10,7 @@ using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -126,6 +127,55 @@ public sealed partial class OrderDetailPageTests
         Order order = await db.Orders.AsNoTracking().SingleAsync(o => o.Id == orderId, Ct);
         Assert.Equal(PaymentStatus.Paid, order.PaymentStatus);
         Assert.Equal(1, await db.AuditLogs.CountAsync(a => a.TargetRecordId == orderId && a.Operation == nameof(AuditOperation.MarkBankTransferPaid), Ct));
+    }
+
+    [Fact]
+    public async Task MarkPaid_Confirmed_CommitsTheReservedUnitsAndTheCoupon_AndTakesOnlyTheOrderedVariantOutOfTheCart_KK5()
+    {
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        (Guid orderId, _, _) = await TestSessions.OrderAsync(_database.Dsn, null);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        string run = Guid.NewGuid().ToString("N")[..8];
+        Product product = Product.Create("Kapı", $"kapi-t527-{run}", ProductType.Physical, 20m, now).WithSeededOrigin();
+        Variant ordered = Variant.Create(product.Id, $"KAPI-T527-{run}-A", 100m, now, 5);
+        Product otherProduct = Product.Create("Pencere", $"pencere-t527-{run}", ProductType.Physical, 20m, now).WithSeededOrigin();
+        Variant other = Variant.Create(otherProduct.Id, $"PENCERE-T527-{run}", 100m, now, 5);
+        DateOnly today = TurkeyTime.DateOf(now);
+        Coupon coupon = Coupon.CreatePercentage($"T527K{run}", 10m, today.AddDays(-1), today.AddDays(30), 10, now);
+        Cart cart = Cart.ForGuest($"t527-cart-{run}", now);
+        await using (AppDbContext seed = NewContext())
+        {
+            seed.Products.AddRange(product, otherProduct);
+            seed.Variants.AddRange(ordered, other);
+            seed.Coupons.Add(coupon);
+            seed.Carts.Add(cart);
+            seed.CartItems.AddRange(CartItem.Create(cart.Id, ordered.Id, 3, 100m, now), CartItem.Create(cart.Id, other.Id, 1, 100m, now));
+            seed.OrderItems.Add(OrderItem.Create(orderId, product.Id, ordered.Id, ProductType.Physical, "Kapı", 2, 100m, 20m, 16.67m, now));
+            seed.StockReservations.Add(StockReservation.ForVariant(orderId, ordered.Id, 2, now));
+            seed.StockReservations.Add(StockReservation.ForCoupon(orderId, coupon.Id, now));
+            await seed.SaveChangesAsync(Ct);
+            await seed.Variants.Where(v => v.Id == ordered.Id).ExecuteUpdateAsync(s => s.SetProperty(v => v.ReservedQuantity, 2), Ct);
+            await seed.Coupons.Where(c => c.Id == coupon.Id).ExecuteUpdateAsync(s => s.SetProperty(c => c.ReservedCount, 1), Ct);
+            await seed.Orders.Where(o => o.Id == orderId).ExecuteUpdateAsync(s => s.SetProperty(o => o.CartId, cart.Id), Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (HttpStatusCode status, _) = await PostForLocationAsync(client, $"{OrdersPath}/{orderId:D}?handler=MarkPaid", [("Input.Version", "1"), ("Input.Confirmed", "true")], key);
+
+        // Ö1's simultaneous transitions (03 1.4.4.2; 02 3.16.12), through the module's one path: the reserved units fall finally, the reserved right
+        // becomes a used one, the reservation rows go, and the cart loses the ordered variant's line only.
+        Assert.Equal(HttpStatusCode.SeeOther, status);
+        await using AppDbContext db = NewContext();
+        Order order = await db.Orders.AsNoTracking().SingleAsync(o => o.Id == orderId, Ct);
+        Assert.Equal((OrderStatus.Preparing, PaymentStatus.Paid), (order.OrderStatus, order.PaymentStatus));
+        Variant committed = await db.Variants.AsNoTracking().SingleAsync(v => v.Id == ordered.Id, Ct);
+        Assert.Equal((3, 0), (committed.StockQuantity!.Value, committed.ReservedQuantity));
+        Coupon used = await db.Coupons.AsNoTracking().SingleAsync(c => c.Id == coupon.Id, Ct);
+        Assert.Equal((1, 0), (used.UsedCount, used.ReservedCount));
+        Assert.False(await db.StockReservations.AnyAsync(r => r.OrderId == orderId, Ct));
+        Assert.Equal([other.Id], await db.CartItems.Where(i => i.CartId == cart.Id).Select(i => i.VariantId).ToListAsync(Ct));
     }
 
     [Fact]

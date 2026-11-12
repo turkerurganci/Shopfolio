@@ -523,6 +523,19 @@ internal sealed class PaymentModule : IPaymentModule
         return new CardRefundLine(refund.Id, refund.OrderId, refund.OrderItemId, refund.PaymentMethod, refund.SentAt is not null, refund.VoidedAt is not null, latest);
     }
 
+    public async Task<IReadOnlySet<Guid>> OrderRefundIdsAsync(Guid orderId, IReadOnlyCollection<Guid> refundIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(refundIds);
+        if (refundIds.Count == 0)
+        {
+            return new HashSet<Guid>();
+        }
+
+        Guid[] ids = [.. refundIds];
+        List<Guid> found = await _db.Refunds.AsNoTracking().Where(r => r.OrderId == orderId && ids.Contains(r.Id)).Select(r => r.Id).ToListAsync(ct);
+        return found.ToHashSet();
+    }
+
     public async Task<bool> RetryCardRefundAsync(Guid orderId, Guid refundId, bool isIbanEntered, CancellationToken ct)
     {
         CardRefundLine? line = await ReadRefundLineAsync(orderId, refundId, ct);

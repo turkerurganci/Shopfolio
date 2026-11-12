@@ -1,0 +1,44 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Modules.AfterSales.Contracts
+@using Shopfolio.Modules.Ordering.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Orders
+@model (OrderPageModel Page, RefundIbanFieldView Field)
+@*
+    E-16's IBAN form (07 UC-35; 04 5.16.12, 7.1.7): the field an open request opened - with its reason - or the IBAN on file to correct until the refund is processed. The item's field
+    stands on its row, the late payment's itemless field in "Sizden beklenen" (D-1194). Saving asks no confirmation and writes no e-mail; its button is the page's one primary button (04 5.16.2).
+*@
+@{
+    IbanFieldView? field = Model.Page.IbanFieldOf(Model.Field);
+    string? reason = Model.Field.Reason switch
+    {
+        RefundIbanRequestReason.CardRefundFailed => "Kartınıza geri ödeme gerçekleşmedi; dilerseniz geri ödemeyi IBAN'ınıza almak için IBAN girebilirsiniz.",
+        RefundIbanRequestReason.TransferFailed => "Önceki IBAN'ınıza havale gerçekleşmedi; geri ödeme için IBAN'ınızı yeniden girin.",
+        null => null,
+        _ => Model.Field.OrderItemId is null
+            ? "Siparişiniz iptal edildikten sonra ulaşan ödemenizin geri ödemesi için IBAN'ınızı girin."
+            : "Bu ürünün geri ödemesi için IBAN'ınızı girin.",
+    };
+}
+@if (field is not null)
+{
+    <form method="post" asp-antiforgery="true" action="@(Model.Page.RootPath)?handler=SaveRefundIban" class="order-iban" data-js="submit-once">
+        @if (reason is not null)
+        {
+            <p class="order-iban__reason">@reason</p>
+        }
+        @if (Model.Field.OrderItemId is Guid itemId)
+        {
+            <input type="hidden" name="OrderItemId" value="@itemId" />
+        }
+        @if (Model.Page.IsIbanRefused && Model.Page.RefusedIbanItemId == Model.Field.OrderItemId)
+        {
+            @foreach (Microsoft.AspNetCore.Mvc.ModelBinding.ModelError error in Model.Page.ModelState.TryGetValue(string.Empty, out var entry) && entry is not null ? entry.Errors : [])
+            {
+                <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, error.ErrorMessage, "order-iban-message")' />
+            }
+        }
+        <partial name="_IbanField" model="field" />
+        <button type="submit" class="button button--primary" data-busy-label="Kaydediliyor">@(Model.Field.IsCorrection ? "IBAN'ı düzelt" : "IBAN'ı kaydet")</button>
+    </form>
+}

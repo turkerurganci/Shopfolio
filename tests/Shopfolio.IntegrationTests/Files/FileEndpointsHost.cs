@@ -45,7 +45,7 @@ internal sealed class FileEndpointsHost : IAsyncDisposable
     {
         Dsn = dsn;
         Time = new ManualTimeProvider(DateTimeOffset.UtcNow);
-        _baseFactory = new ShopfolioWebApplicationFactory(dsn, withJobRunner: false);
+        _baseFactory = new ShopfolioWebApplicationFactory(dsn, loggerProvider: Logs, withJobRunner: false);
         _factory = _baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
         {
             services.RemoveAll<TimeProvider>();
@@ -91,6 +91,9 @@ internal sealed class FileEndpointsHost : IAsyncDisposable
     public ManualTimeProvider Time { get; }
 
     public FakeDisk Disk { get; } = new();
+
+    /// <summary>The host's application log lines, for the tests that count a request's rejection line (09 8.2 item 3).</summary>
+    public CollectingLoggerProvider Logs { get; } = new();
 
     public HttpClient Client { get; }
 

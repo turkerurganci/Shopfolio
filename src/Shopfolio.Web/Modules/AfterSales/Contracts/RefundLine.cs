@@ -18,6 +18,13 @@ public sealed record RefundIbanRequestOpened(Guid RequestId, bool IsNew);
 /// <summary>An open IBAN request as the order module checks it before the customer's entry: its item or refund and its reason.</summary>
 public sealed record OpenRefundIbanRequest(Guid RequestId, Guid? OrderItemId, Guid? RefundId, RefundIbanRequestReason Reason);
 
+/// <summary>
+/// One IBAN field of the order page (T512; 04 5.16.12): an open request to answer (<see cref="RequestId"/>, with its reason) or an IBAN on file to correct
+/// (<see cref="RefundIbanId"/>, with the value). <see cref="OrderItemId"/> is the item whose row draws it - null on the late payment's itemless refund (K-1075)
+/// and on an IBAN whose records name no item.
+/// </summary>
+public sealed record RefundIbanField(Guid? OrderItemId, Guid? RequestId, Guid? RefundId, RefundIbanRequestReason? Reason, Guid? RefundIbanId, string? Iban);
+
 /// <summary>The customer's IBAN entered on the order page for an open request (02 7.4.5; 03 1.11.33): the order, the request and the text as typed.</summary>
 public sealed record RefundIbanEntry(Guid OrderId, Guid RequestId, string Iban, DateTimeOffset At);
 

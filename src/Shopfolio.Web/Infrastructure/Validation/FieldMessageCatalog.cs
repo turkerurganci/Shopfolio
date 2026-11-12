@@ -40,6 +40,12 @@ internal static class FieldMessageCatalog
         _patterns.Add(FieldCodes.PasswordTooWeak, "{0} en az {1} karakter olmalı ve çok yaygın bir şifre olmamalıdır.");
     }
 
+    /// <summary>
+    /// The text of an empty menu name (K-813): <see cref="FieldCodes.FieldRequired"/> with the item's default name as its parameter. It is no code of its own (07 6.2.2 has
+    /// one code for an empty required field); the decision fixes the text, and the field's label is not in it.
+    /// </summary>
+    private const string RequiredWithDefaultNamePattern = "Menü adı boş olamaz; varsayılan ad: {0}.";
+
     /// <summary>The patterns, by code.</summary>
     public static IReadOnlyDictionary<string, string> Patterns => _patterns;
 
@@ -58,6 +64,11 @@ internal static class FieldMessageCatalog
         if (NeedsParameter(code) && parameter is null)
         {
             throw new ArgumentException($"The message of '{code}' names a limit and the rule gave none.", nameof(parameter));
+        }
+
+        if (code == FieldCodes.FieldRequired && parameter is not null)
+        {
+            return RequiredWithDefaultNamePattern.Replace("{0}", parameter, StringComparison.Ordinal);
         }
 
         return string.Format(CultureInfo.InvariantCulture, pattern, label, parameter);

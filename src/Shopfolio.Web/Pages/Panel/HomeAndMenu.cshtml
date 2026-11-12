@@ -1,0 +1,78 @@
+@page "/panel/ana-sayfa-ve-menu"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Modules.CorporateContent.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Panel
+@model HomeAndMenuModel
+@*
+    E-42, the home page and menu screen (T535; 04 9.14; 07 UC-97, UC-162): one form, three sections - the layout (two choices with their block order), the six menu names (each with its default name and, when
+    the item is not on the site, the reason) and the social links with the WhatsApp number - and one "Kaydet". The general pages shown in the menu are a read-only list. No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Ana sayfa ve menü";
+    bool contentFirst = Model.Layout == HomepageLayout.ContentFirst;
+}
+<h1>Ana sayfa ve menü</h1>
+@if (Model.Notice is not null)
+{
+    <partial name="_Message" model="Model.Notice" />
+}
+<partial name="_FormErrorSummary" model="Model.Summary" />
+<form method="post" asp-antiforgery="true" asp-page-handler="SaveHomepage" class="form" data-js="submit-once">
+    @VersionFields.Version(Model.FormVersion, "Input")
+    <section class="form-section" aria-labelledby="layout-heading">
+        <h2 id="layout-heading">Ana sayfa düzeni</h2>
+        <p>@HomeAndMenuModel.LayoutNote</p>
+        <div class="field field--check">
+            <input type="radio" id="layout-content-first" name="Input.HomepageLayout" value="@HomepageLayout.ContentFirst" checked="@contentFirst">
+            <label for="layout-content-first">@HomeAndMenuModel.ContentFirstLabel</label>
+            <p class="field__hint">@HomeAndMenuModel.ContentFirstOrder</p>
+        </div>
+        <div class="field field--check">
+            <input type="radio" id="layout-store-first" name="Input.HomepageLayout" value="@HomepageLayout.StoreFirst" checked="@(!contentFirst)">
+            <label for="layout-store-first">@HomeAndMenuModel.StoreFirstLabel</label>
+            <p class="field__hint">@HomeAndMenuModel.StoreFirstOrder</p>
+        </div>
+    </section>
+    <section class="form-section" aria-labelledby="menu-heading">
+        <h2 id="menu-heading">Menü adları</h2>
+        <div class="form-fields">
+            @foreach (MenuNameRowView row in Model.MenuRows)
+            {
+                <partial name="_Field" model="row.Field" />
+                @if (row.HiddenReason is not null)
+                {
+                    <p class="menu-reason" id="@(row.Field.Id)-reason">@row.HiddenReason</p>
+                }
+            }
+            @if (Model.MenuPages.Count > 0)
+            {
+                <h3>Menüde gösterilen genel sayfalar</h3>
+                <ul class="menu-pages" id="menu-pages">
+                    @foreach (GeneralPageLink general in Model.MenuPages)
+                    {
+                        <li>@general.Title</li>
+                    }
+                </ul>
+            }
+            <partial name="_Field" model="Model.ContactRow.Field" />
+        </div>
+    </section>
+    <section class="form-section" aria-labelledby="social-heading">
+        <h2 id="social-heading">Sosyal bağlantılar</h2>
+        <p>@HomeAndMenuModel.SocialNote</p>
+        <div class="form-fields">
+            @foreach (SocialLinkRowView row in Model.SocialRows)
+            {
+                <input type="hidden" name="@HomeAndMenuModel.SocialPlatformFieldName(row.Platform)" value="@row.Platform" />
+                <partial name="_Field" model="row.Field" />
+            }
+            <partial name="_Field" model="Model.WhatsApp" />
+            <p class="field__hint">@HomeAndMenuModel.WhatsAppHint</p>
+        </div>
+    </section>
+    @ConflictControls.RecordSaveControl(Model.IsConflicted, PanelFramePaths.HomeAndMenu)
+</form>

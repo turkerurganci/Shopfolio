@@ -6,6 +6,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Modules.CorporateContent.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
 
 using FieldRejection = Shopfolio.Modules.Settings.Contracts.FieldRejection;
@@ -22,12 +23,17 @@ namespace Shopfolio.Modules.Settings;
 /// </summary>
 internal sealed class FirmSettings
 {
-    /// <summary>The names of the three sections as the trail shows them (02 10.3.1 (6)).</summary>
+    /// <summary>The names of the sections as the trail shows them (02 10.3.1 (6)).</summary>
     internal const string ShippingFeeDisplayName = "Kargo ücreti ve eşikler";
 
     internal const string PeriodsDisplayName = "Süreler";
 
     internal const string ProductDefaultsDisplayName = "Ürün varsayılanları";
+
+    internal const string HomepageDisplayName = "Ana sayfa ve menü";
+
+    /// <summary>The prefix of a social link in the trail row's field name; the platform's name follows.</summary>
+    internal const string SocialLinkFieldPrefix = "SocialLink.";
 
     private readonly AppDbContext _db;
     private readonly CompanySettingsWriter _writer;
@@ -80,6 +86,84 @@ internal sealed class FirmSettings
         return await _db.CompanySettings.AsNoTracking()
             .Select(s => new ProductDefaultsSection(s.DownloadAllowance, s.DefaultVatRate, s.ProductDefaultsVersion))
             .SingleAsync(ct);
+    }
+
+    /// <summary>
+    /// The save of the home page and menu section (T535; 07 UC-162): the row lock, the checks (a required layout, six names that are not empty, an optional WhatsApp number of the telephone form),
+    /// the changed values with their old and new value - the social links the content module changed in the same transaction included - and the one conditional update of the section's version.
+    /// </summary>
+    public async Task<SettingsSaveResult> SaveHomepageAsync(HomepageInput input, int formVersion, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        await _writer.LockAsync(ct);
+        HomepageSection current = await ReadHomepageAsync(ct);
+        string? currentWhatsApp = await ReadWhatsAppNumberAsync(ct);
+
+        List<FieldRejection> rejections = [];
+        if (input.HomepageLayout is not { } layout || !Enum.IsDefined(layout))
+        {
+            rejections.Add(new FieldRejection(nameof(HomepageInput.HomepageLayout), input.HomepageLayout is null ? FieldCodes.FieldRequired : FieldCodes.InvalidListValue));
+        }
+
+        string? products = RequiredName(rejections, nameof(HomepageInput.MenuNameProducts), input.MenuNameProducts);
+        string? offerings = RequiredName(rejections, nameof(HomepageInput.MenuNameOfferings), input.MenuNameOfferings);
+        string? portfolio = RequiredName(rejections, nameof(HomepageInput.MenuNamePortfolioItems), input.MenuNamePortfolioItems);
+        string? about = RequiredName(rejections, nameof(HomepageInput.MenuNameAboutPage), input.MenuNameAboutPage);
+        string? faq = RequiredName(rejections, nameof(HomepageInput.MenuNameFaqItems), input.MenuNameFaqItems);
+        string? contact = RequiredName(rejections, nameof(HomepageInput.MenuNameContact), input.MenuNameContact);
+        string? whatsApp = CompanyIdentityRules.Phone(input.WhatsAppNumber);
+        if (whatsApp is not null && new InvalidPhoneAttribute().GetValidationResult(whatsApp, new System.ComponentModel.DataAnnotations.ValidationContext(whatsApp)) is not null)
+        {
+            rejections.Add(new FieldRejection(nameof(HomepageInput.WhatsAppNumber), FieldCodes.InvalidPhone));
+        }
+
+        if (rejections.Count > 0)
+        {
+            return SettingsSaveResult.Refused(rejections);
+        }
+
+        MenuNames names = new(products!, offerings!, portfolio!, about!, faq!, contact!); // non-null: RequiredName refuses an empty name, refused above
+        HomepageLayout chosen = input.HomepageLayout!.Value; // non-null: a missing layout is refused above
+        List<AuditValueChange> changes = [];
+        TrackText(changes, nameof(CompanySettings.HomepageLayout), current.Layout.ToString(), chosen.ToString());
+        TrackText(changes, nameof(CompanySettings.MenuNameProducts), current.MenuNames.Products, names.Products);
+        TrackText(changes, nameof(CompanySettings.MenuNameOfferings), current.MenuNames.Offerings, names.Offerings);
+        TrackText(changes, nameof(CompanySettings.MenuNamePortfolioItems), current.MenuNames.PortfolioItems, names.PortfolioItems);
+        TrackText(changes, nameof(CompanySettings.MenuNameAboutPage), current.MenuNames.AboutPage, names.AboutPage);
+        TrackText(changes, nameof(CompanySettings.MenuNameFaqItems), current.MenuNames.FaqItems, names.FaqItems);
+        TrackText(changes, nameof(CompanySettings.MenuNameContact), current.MenuNames.Contact, names.Contact);
+        TrackText(changes, nameof(CompanySettings.WhatsAppNumber), currentWhatsApp, whatsApp);
+        foreach (SocialLinkChange link in input.SocialLinkChanges ?? [])
+        {
+            changes.Add(new AuditValueChange(SocialLinkFieldPrefix + link.Platform, link.Before, link.After));
+        }
+
+        if (changes.Count == 0)
+        {
+            return Unchanged(current.Version, formVersion);
+        }
+
+        bool written = await _writer.WriteHomepageAsync(chosen, names, whatsApp, formVersion, ct);
+        return await FinishAsync(written, HomepageDisplayName, changes, ct);
+    }
+
+    private static string? RequiredName(List<FieldRejection> rejections, string field, string? typed)
+    {
+        string? name = CompanyIdentityRules.Text(typed);
+        if (name is null)
+        {
+            rejections.Add(new FieldRejection(field, FieldCodes.FieldRequired));
+        }
+
+        return name;
+    }
+
+    private static void TrackText(List<AuditValueChange> changes, string field, string? oldValue, string? newValue)
+    {
+        if (!string.Equals(oldValue, newValue, StringComparison.Ordinal))
+        {
+            changes.Add(new AuditValueChange(field, oldValue, newValue));
+        }
     }
 
     public async Task<SettingsSaveResult> SaveShippingFeeAsync(ShippingFeeInput input, int formVersion, CancellationToken ct)

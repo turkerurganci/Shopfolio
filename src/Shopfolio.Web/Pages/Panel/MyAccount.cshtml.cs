@@ -21,7 +21,7 @@ using Shopfolio.Pages.Frame;
 namespace Shopfolio.Pages.Panel;
 
 /// <summary>
-/// The administrator's own account page (T523; 04 9.21; 07 UC-104, UC-178 to UC-180, UC-188; E-50), inside the panel frame. Three sections: the name (its form is always open), the address and the
+/// The administrator's own account page (T523; 04 9.21; 07 UC-104, UC-178 to UC-181; E-50), inside the panel frame. Three sections: the name (its form is always open), the address and the
 /// password. The address and the password change only through the re-verification step (E-54): the page opens with the operation and the single-use value in the address, asks the module whether the
 /// session holds that permission bound to that value, and opens the form only then; any other request for the page drops the permission (05 6.1.5; 07 2.2.5). The pending address change shows its new
 /// address and the last day of its link, with the button that asks the link again; while a revert link is open the address change is closed and K-819's sentence says until when. The password is never
@@ -204,7 +204,7 @@ internal sealed class MyAccountModel : PageModel
                 if (result.Code == ErrorCode.AdminEmailTaken)
                 {
                     RejectionLog().Rejected(ErrorCode.AdminEmailTaken);
-                    ModelState.AddModelError("Input.NewEmail", AdminAccountsModel.AdminEmailTakenText);
+                    ModelState.AddModelError("Input.NewEmail", MyAccountTexts.AdminEmailTaken);
                 }
                 else
                 {
@@ -244,7 +244,7 @@ internal sealed class MyAccountModel : PageModel
         return FormResults.Redisplay(this);
     }
 
-    /// <summary>UC-188: the new password; every other session of the account ends and the recognized browsers' marks are replaced (02 3.13.10).</summary>
+    /// <summary>UC-181: the new password; every other session of the account ends and the recognized browsers' marks are replaced (02 3.13.10).</summary>
     public async Task<IActionResult> OnPostChangePasswordAsync(ChangePasswordInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -335,7 +335,7 @@ public sealed class ChangeEmailInput : IFormInput
     public string? ReauthenticationToken { get; set; }
 }
 
-/// <summary>The password form of UC-188 (07 5.2): the new password and the single-use value the re-verification gave.</summary>
+/// <summary>The password form of UC-181 (07 5.2): the new password and the single-use value the re-verification gave.</summary>
 public sealed class ChangePasswordInput : IFormInput
 {
     [Display(Name = "Yeni şifre")]

@@ -15,6 +15,12 @@ internal static class MyAccountTexts
 
     public const string NameButton = "Adı değiştir";
 
+    /// <summary>04 9.21.3: where the name is read; the customer never sees it (02 10.2.4; K-736).</summary>
+    public const string NameNote = "Adınız yönetici listesinde, işlem izinde ve yöneticilere giden bildirimlerde okunur; müşteriye görünmez.";
+
+    /// <summary>K-819's field message of an address that belongs to another administrator account (04 7.2.24.2, 9.21.8); not K-820's message of the administrators page.</summary>
+    public const string AdminEmailTaken = "Bu e-posta adresi başka bir yönetici hesabında kayıtlı.";
+
     public const string EmailHeading = "E-posta";
 
     public const string EmailLabel = "E-posta adresi";

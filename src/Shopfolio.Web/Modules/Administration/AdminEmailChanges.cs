@@ -84,7 +84,8 @@ internal sealed class AdminEmailChanges
             return AdminEmailChangeRequestResult.Refused(AdminEmailChangeOutcome.NotFound, ErrorCode.NotFound);
         }
 
-        string ownNormalized = await _db.Admins.AsNoTracking().Where(a => a.Id == adminId).Select(a => a.NormalizedEmail).SingleAsync(ct);
+        var own = await _db.Admins.AsNoTracking().Where(a => a.Id == adminId).Select(a => new { a.Name, a.Email, a.NormalizedEmail }).SingleAsync(ct);
+        string ownNormalized = own.NormalizedEmail;
         string entered = newEmail.Trim();
         if (entered.Length == 0)
         {
@@ -130,6 +131,11 @@ internal sealed class AdminEmailChanges
         _links.Add(link);
         await _links.SupersedeEarlierAsync(LinkType.NewEmailVerification, null, adminId, link.Id, ct);
         await _notifications.QueueAccountEmailAsync(new NewAddressVerificationEmail(DispatchRelatedRecordType.Admin, adminId, link.Id, entered), ct);
+
+        // The request is a change of the account's address and is written to the trail with the requested value (07 9.21.3; 02 10.3.1 (4)); the verification and the revert write their own rows.
+        await _trail.WriteForAsync(
+            new AuditActor(adminId, own.Name, own.Email),
+            new AuditEntry(AuditOperation.ChangeAdminEmail, nameof(Admin), adminId, new AuditDetails(own.Name, changes: [new AuditValueChange("Email", own.Email, entered)])));
         return AdminEmailChangeRequestResult.Requested(link.Id, expiresAt, replaces);
     }
 

@@ -26,6 +26,7 @@
 <partial name="_FormErrorSummary" model="summary" />
 <section aria-labelledby="my-account-name-heading">
     <h2 id="my-account-name-heading">@MyAccountTexts.NameHeading</h2>
+    <p id="name-note">@MyAccountTexts.NameNote</p>
     <form method="post" asp-antiforgery="true" action="@(PanelFramePaths.MyAccount)?handler=ChangeName" class="form" data-js="submit-once" id="change-name-form">
         <div class="form-fields">
             <partial name="_Field" model="nameField" />

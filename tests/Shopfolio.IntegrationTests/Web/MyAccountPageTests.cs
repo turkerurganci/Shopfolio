@@ -9,6 +9,7 @@ using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Administration;
+using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Notifications;
 using Shopfolio.Pages.Panel;
@@ -23,7 +24,7 @@ public sealed class MyAccountPageTestsDefinition : ICollectionFixture<Collection
 }
 
 /// <summary>
-/// The administrator's own account page (E-50; 07 UC-104, UC-178 to UC-180, UC-188) on the opened application (T523 KK1-KK9): what the address draws for each query, what each handler answers (303, 422,
+/// The administrator's own account page (E-50; 07 UC-104, UC-178 to UC-181) on the opened application (T523 KK1-KK9): what the address draws for each query, what each handler answers (303, 422,
 /// 429) and what it writes. Accounts, sessions, links and pending changes are real rows of the collection database.
 /// </summary>
 [Collection(MyAccountPageTestsDefinition.Name)]
@@ -49,7 +50,7 @@ public sealed class MyAccountPageTests : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         await using AppDbContext db = NewContext();
-        await db.Database.ExecuteSqlRawAsync("TRUNCATE attempt_records, login_records, dispatch_records", Ct);
+        await db.Database.ExecuteSqlRawAsync("TRUNCATE attempt_records, login_records, dispatch_records, audit_logs", Ct);
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -74,6 +75,7 @@ public sealed class MyAccountPageTests : IAsyncLifetime
         Assert.Contains("name=\"Input.ReauthenticationToken\"", html, StringComparison.Ordinal);
         Assert.Contains($"value=\"{held}\"", html, StringComparison.Ordinal);
         Assert.Contains("id=\"change-name-form\"", html, StringComparison.Ordinal);
+        Assert.Contains(MyAccountTexts.NameNote, html, StringComparison.Ordinal);
         await using AppDbContext db = NewContext();
         Assert.NotNull((await db.Sessions.AsNoTracking().SingleAsync(s => s.Id == sessionId, Ct)).ReauthenticationTokenHash);
     }
@@ -215,6 +217,10 @@ public sealed class MyAccountPageTests : IAsyncLifetime
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
         string old = await EmailOfAsync(adminId);
+        await using (AppDbContext seed = NewContext())
+        {
+            await seed.Database.ExecuteSqlRawAsync("DELETE FROM companies; INSERT INTO companies (id, created_at, email) VALUES (gen_random_uuid(), now(), 'iletisim@firma.example')", Ct);
+        }
 
         (HttpStatusCode status, string? location, _) = await PostAsync(client, $"{AccountPath}?handler=ChangeEmail", [("Input.NewEmail", "New.Address@Example.com"), ("Input.ReauthenticationToken", held)], key);
 
@@ -225,6 +231,14 @@ public sealed class MyAccountPageTests : IAsyncLifetime
         Assert.Equal(1, await db.LinkRecords.CountAsync(l => l.AdminId == adminId && l.LinkType == LinkType.NewEmailVerification && l.UsedAt == null, Ct));
         Assert.Equal(1, await db.DispatchRecords.CountAsync(Ct));
         Assert.Equal(old, await EmailOfAsync(adminId));
+        AuditLog trail = await db.AuditLogs.AsNoTracking().SingleAsync(a => a.AdminId == adminId, Ct);
+        Assert.Equal("ChangeAdminEmail", trail.Operation);
+        Assert.Equal(AuditArea.AdminAccounts, trail.AuditArea);
+        Assert.Equal(adminId, trail.TargetRecordId);
+        string details = await db.Database.SqlQueryRaw<string>("SELECT details::text AS \"Value\" FROM audit_logs").SingleAsync(Ct);
+        Assert.Contains("New.Address@Example.com", details, StringComparison.Ordinal);
+        Assert.Contains(old, details, StringComparison.Ordinal);
+        Assert.Equal("iletisim@firma.example", await db.Companies.AsNoTracking().Select(c => c.Email).SingleAsync(Ct));
     }
 
     [Fact]
@@ -245,7 +259,8 @@ public sealed class MyAccountPageTests : IAsyncLifetime
         Assert.StartsWith(ReauthPath + "?reauthenticatedOperation=EmailChange", noneLocation, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, malformed);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, taken);
-        Assert.Contains(AdminAccountsModel.AdminEmailTakenText, takenHtml, StringComparison.Ordinal);
+        Assert.Contains("Bu e-posta adresi başka bir yönetici hesabında kayıtlı.", takenHtml, StringComparison.Ordinal);
+        Assert.DoesNotContain("Bu adres zaten bir yönetici hesabına ait.", takenHtml, StringComparison.Ordinal);
         await using AppDbContext db = NewContext();
         Assert.False(await db.PendingEmailChanges.AnyAsync(p => p.AdminId == adminId, Ct));
         Assert.NotNull((await db.Sessions.AsNoTracking().SingleAsync(s => s.Id == sessionId, Ct)).ReauthenticationTokenHash);

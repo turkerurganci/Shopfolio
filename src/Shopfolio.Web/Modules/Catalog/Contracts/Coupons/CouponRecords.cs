@@ -27,19 +27,31 @@ public sealed record CouponProblem(string Field, ErrorCode Code);
 /// </summary>
 public sealed class CouponWriteResult : IOperationResult
 {
-    private CouponWriteResult(Guid? couponId, IReadOnlyList<CouponProblem> problems)
+    private CouponWriteResult(Guid? couponId, IReadOnlyList<CouponProblem> problems, bool isNotFound = false, bool isVersionConflict = false)
     {
         CouponId = couponId;
         Problems = problems;
+        IsNotFound = isNotFound;
+        IsVersionConflict = isVersionConflict;
     }
 
     /// <summary>The coupon written; empty on a refusal.</summary>
     public Guid? CouponId { get; }
 
-    /// <summary>The fields that block the save; empty when the coupon was written.</summary>
+    /// <summary>The fields that block the save; empty when the coupon was written, and on a missing coupon or a version conflict.</summary>
     public IReadOnlyList<CouponProblem> Problems { get; }
 
-    public bool IsRejected => Problems.Count > 0;
+    /// <summary>The coupon to change does not exist (07 UC-122: 404).</summary>
+    public bool IsNotFound { get; }
+
+    /// <summary>The coupon's version is no longer the one the form carried (07 UC-122: 409, decided before the field rules - 07 2.4.8).</summary>
+    public bool IsVersionConflict { get; }
+
+    public bool IsRejected => Problems.Count > 0 || IsNotFound || IsVersionConflict;
+
+    public static CouponWriteResult NotFound { get; } = new(null, [], isNotFound: true);
+
+    public static CouponWriteResult VersionConflict(Guid couponId) => new(couponId, [], isVersionConflict: true);
 
     public static CouponWriteResult Written(Guid couponId) => new(couponId, []);
 

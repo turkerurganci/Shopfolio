@@ -134,6 +134,13 @@ internal sealed class CatalogModule : ICatalogModule
 
     public Task<CouponWriteResult> CreateCouponAsync(CouponDefinition definition, CancellationToken ct) => _coupons.CreateAsync(definition, ct);
 
+    public Task<CouponWriteResult> UpdateCouponAsync(Guid couponId, CouponDefinition definition, int formVersion, CancellationToken ct)
+        => _coupons.UpdateAsync(couponId, definition, formVersion, ct);
+
+    public Task<CouponListPage> ListCouponsAsync(int page, CancellationToken ct) => _coupons.ListAsync(page, ct);
+
+    public Task<CouponRecord?> GetCouponAsync(Guid couponId, CancellationToken ct) => _coupons.GetAsync(couponId, ct);
+
     public Task<CouponApplication> EvaluateCouponAsync(string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct) => _coupons.EvaluateAsync(code, lines, ct);
 
     public Task<CouponApplication> ApplyCouponAsync(Guid cartId, string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct)

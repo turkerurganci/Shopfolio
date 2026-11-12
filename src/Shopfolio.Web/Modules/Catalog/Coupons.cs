@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Catalog.Contracts.Coupons;
@@ -35,16 +36,7 @@ internal sealed class Coupons
     /// </summary>
     public async Task<CouponWriteResult> CreateAsync(CouponDefinition definition, CancellationToken ct)
     {
-        List<CouponProblem> problems = [.. CouponRules.CheckDefinition(definition)];
-        if (!string.IsNullOrWhiteSpace(definition.Code))
-        {
-            string normalized = TextNormalizer.NormalizeIdentity(definition.Code);
-            if (await _db.Coupons.AsNoTracking().AnyAsync(c => c.NormalizedCode == normalized, ct))
-            {
-                problems.Add(new CouponProblem(nameof(CouponDefinition.Code), ErrorCode.DuplicateCouponCode));
-            }
-        }
-
+        List<CouponProblem> problems = await ProblemsOfAsync(definition, null, 0, ct);
         if (problems.Count > 0)
         {
             return CouponWriteResult.Refused(problems);
@@ -62,6 +54,107 @@ internal sealed class Coupons
 
         _db.Coupons.Add(coupon);
         return CouponWriteResult.Written(coupon.Id);
+    }
+
+    /// <summary>
+    /// Changes a coupon (07 UC-122; 02 3.10.5, 3.10.6; 04 9.7.6; K-806): every field may change, and the change reaches only new orders - an order's coupon share is frozen
+    /// on its items (02 3.10.3). The order of the refusals is 07 2.4.8's: a missing coupon, then the version the form carried - a changed version is refused before the
+    /// field rules are looked at -, then every field problem together, the total usage count measured against the used and reserved rights and the code against every
+    /// other coupon. The record save raises the version (09 10.2 item 2); the rights are not touched. Moving the end day earlier stops the campaign: a new order no longer
+    /// takes the code (<see cref="CouponRules.ValidityOf"/>), and the reserved rights stay on their orders. No trail row (02 10.3.1; K-310). Joins the caller's transaction.
+    /// </summary>
+    public async Task<CouponWriteResult> UpdateAsync(Guid couponId, CouponDefinition definition, int formVersion, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        Coupon? coupon = await _db.Coupons.SingleOrDefaultAsync(c => c.Id == couponId, ct);
+        if (coupon is null)
+        {
+            return CouponWriteResult.NotFound;
+        }
+
+        if (coupon.Version != formVersion)
+        {
+            return CouponWriteResult.VersionConflict(couponId);
+        }
+
+        List<CouponProblem> problems = await ProblemsOfAsync(definition, couponId, coupon.UsedCount + coupon.ReservedCount, ct);
+        if (problems.Count > 0)
+        {
+            return CouponWriteResult.Refused(problems);
+        }
+
+        RecordSaveResult saved = await RecordSave.SaveAsync(_db, coupon, formVersion, c => Apply(c, definition), ct);
+        return saved.IsSaved ? CouponWriteResult.Written(couponId) : CouponWriteResult.VersionConflict(couponId);
+    }
+
+    /// <summary>The coupon list, newest first and then by inner key (07 UC-90, 2.6.5; K-1228), at the panel's page size; each row with its validity for now (03 1.10.2). A plain read.</summary>
+    public async Task<CouponListPage> ListAsync(int page, CancellationToken ct)
+    {
+        PagedList<Coupon> paged = await _db.Coupons.AsNoTracking()
+            .OrderByDescending(c => c.CreatedAt)
+            .ThenByDescending(c => c.Id)
+            .ToPageAsync(page, PageSizes.Panel, ct);
+        DateTimeOffset now = _time.GetUtcNow();
+        return new CouponListPage([.. paged.Items.Select(c => RecordOf(c, now))], paged.PageNumber, paged.PageCount);
+    }
+
+    /// <summary>One coupon for its form (07 UC-90): null when no coupon has <paramref name="couponId"/>. A plain read.</summary>
+    public async Task<CouponRecord?> GetAsync(Guid couponId, CancellationToken ct)
+    {
+        Coupon? coupon = await _db.Coupons.AsNoTracking().SingleOrDefaultAsync(c => c.Id == couponId, ct);
+        return coupon is null ? null : RecordOf(coupon, _time.GetUtcNow());
+    }
+
+    private static CouponRecord RecordOf(Coupon coupon, DateTimeOffset now)
+    {
+        CouponKind kind = coupon.Percentage is not null ? CouponKind.Percentage : CouponKind.Amount;
+        decimal value = coupon.Percentage ?? coupon.Amount ?? throw new InvalidOperationException($"Coupon {coupon.Id} has neither a percentage nor an amount (06 4.13).");
+        CouponValidity validity = CouponRules.ValidityOf(coupon.StartDate, coupon.EndDate, coupon.TotalUsageLimit, coupon.UsedCount, coupon.ReservedCount, now);
+        return new CouponRecord(
+            coupon.Id,
+            coupon.Code,
+            kind,
+            value,
+            coupon.MinimumBasketAmount,
+            coupon.StartDate,
+            coupon.EndDate,
+            coupon.TotalUsageLimit,
+            coupon.UsedCount,
+            coupon.ReservedCount,
+            validity,
+            coupon.Version);
+    }
+
+    /// <summary>
+    /// Every problem of a definition (<see cref="CouponRules.CheckDefinition(CouponDefinition, int)"/>) and a code another coupon holds in the identity form
+    /// (<c>DuplicateCouponCode</c>; K-806) - the coupon being changed (<paramref name="selfId"/>) is not another one.
+    /// </summary>
+    private async Task<List<CouponProblem>> ProblemsOfAsync(CouponDefinition definition, Guid? selfId, int usedAndReserved, CancellationToken ct)
+    {
+        List<CouponProblem> problems = [.. CouponRules.CheckDefinition(definition, usedAndReserved)];
+        if (!string.IsNullOrWhiteSpace(definition.Code))
+        {
+            string normalized = TextNormalizer.NormalizeIdentity(definition.Code);
+            if (await _db.Coupons.AsNoTracking().AnyAsync(c => c.NormalizedCode == normalized && c.Id != selfId, ct))
+            {
+                problems.Add(new CouponProblem(nameof(CouponDefinition.Code), ErrorCode.DuplicateCouponCode));
+            }
+        }
+
+        return problems;
+    }
+
+    /// <summary>Writes a checked definition onto the tracked coupon: the code with its identity form, the one value its kind fills, the minimum, the dates and the count.</summary>
+    private static void Apply(Coupon coupon, CouponDefinition definition)
+    {
+        coupon.SetCode(definition.Code!); // non-null: CheckDefinition refuses an empty code, refused before the save
+        decimal value = definition.Value!.Value; // non-null: CheckDefinition refuses a coupon without a value, refused before the save
+        coupon.Percentage = definition.Kind == CouponKind.Percentage ? value : null;
+        coupon.Amount = definition.Kind == CouponKind.Amount ? value : null;
+        coupon.MinimumBasketAmount = definition.MinimumBasketAmount;
+        coupon.StartDate = definition.StartDate;
+        coupon.EndDate = definition.EndDate;
+        coupon.TotalUsageLimit = definition.TotalUsageLimit;
     }
 
     /// <summary>

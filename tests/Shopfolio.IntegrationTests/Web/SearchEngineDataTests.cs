@@ -228,7 +228,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
         (string slug, Guid image) = await SeedProductAsync("Ahşap Masa", 2450.50m, 5, withImage: true);
         await using Host host = new(_database.Dsn, kestrel);
 
-        Answer page = await GetAsync(host, $"/hizmet/{slug}");
+        Answer page = await GetAsync(host, $"/sss/ornek-arama/{slug}");
 
         Assert.Equal(HttpStatusCode.OK, page.Status);
         Assert.Contains("<title>Ahşap Masa – Yılmaz Mobilya</title>", page.Body, StringComparison.Ordinal);
@@ -237,7 +237,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
         Assert.Equal("product", metas["og:type"]);
         Assert.Equal("Ahşap Masa – Yılmaz Mobilya", metas["og:title"]);
         Assert.Equal("Masif meşe masa, el yapımı.", metas["og:description"]);
-        Assert.Equal($"https://localhost/hizmet/{slug}", metas["og:url"]);
+        Assert.Equal($"https://localhost/sss/ornek-arama/{slug}", metas["og:url"]);
         Assert.Equal($"https://localhost/gorsel/{image:N}", metas["og:image"]);
         Assert.DoesNotContain("robots", metas.Keys);
 
@@ -266,7 +266,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
         await SeedBrandAsync(withLogo: false);
         (string slug, _) = await SeedProductAsync("Ahşap Masa", 100m, 1, withImage: false);
         await using Host host = new(_database.Dsn, kestrel: false);
-        Assert.Equal("https://schema.org/InStock", Block(Blocks((await GetAsync(host, $"/hizmet/{slug}")).Body), "Product").GetProperty("offers").GetProperty("availability").GetString());
+        Assert.Equal("https://schema.org/InStock", Block(Blocks((await GetAsync(host, $"/sss/ornek-arama/{slug}")).Body), "Product").GetProperty("offers").GetProperty("availability").GetString());
 
         await using (ServiceProvider provider = BuildProvider())
         await using (AsyncServiceScope scope = provider.CreateAsyncScope())
@@ -275,7 +275,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
             await db.Variants.ExecuteUpdateAsync(s => s.SetProperty(v => v.StockQuantity, 0).SetProperty(v => v.Price, 129.90m), Ct);
         }
 
-        JsonElement offer = Block(Blocks((await GetAsync(host, $"/hizmet/{slug}")).Body), "Product").GetProperty("offers");
+        JsonElement offer = Block(Blocks((await GetAsync(host, $"/sss/ornek-arama/{slug}")).Body), "Product").GetProperty("offers");
 
         Assert.Equal("https://schema.org/OutOfStock", offer.GetProperty("availability").GetString());
         Assert.Equal(129.90m, offer.GetProperty("price").GetDecimal());
@@ -290,7 +290,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
         (string slug, _) = await SeedProductAsync("Ahşap Masa", 100m, 5, withImage: false);
         await using Host host = new(_database.Dsn, kestrel);
 
-        Answer page = await GetAsync(host, $"/hizmet/{slug}");
+        Answer page = await GetAsync(host, $"/sss/ornek-arama/{slug}");
 
         Assert.Equal($"https://localhost/gorsel/{logo:N}", Metas(page.Body)["og:image"]);
         Assert.False(Block(Blocks(page.Body), "Product").TryGetProperty("image", out _));
@@ -303,7 +303,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
         (string slug, _) = await SeedProductAsync("Ahşap Masa", 100m, 5, withImage: false);
         await using Host host = new(_database.Dsn, kestrel: false);
 
-        Answer page = await GetAsync(host, $"/hizmet/{slug}");
+        Answer page = await GetAsync(host, $"/sss/ornek-arama/{slug}");
 
         Assert.DoesNotContain("og:image", Metas(page.Body).Keys);
     }
@@ -315,7 +315,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
         (string slug, _) = await SeedProductAsync("Taslak Masa", 100m, 5, withImage: true, PublishStatus.Draft);
         await using Host host = new(_database.Dsn, kestrel: false);
 
-        Answer page = await GetAsync(host, $"/hizmet/{slug}");
+        Answer page = await GetAsync(host, $"/sss/ornek-arama/{slug}");
 
         Assert.Equal(HttpStatusCode.OK, page.Status);
         Assert.Contains("<title>Taslak Masa – Yılmaz Mobilya</title>", page.Body, StringComparison.Ordinal);

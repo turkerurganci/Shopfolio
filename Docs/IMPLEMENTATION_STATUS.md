@@ -261,7 +261,7 @@
 | T502 | Vitrin: ana sayfa ve kategori sayfası (E-01, E-02) | ✓ | ✓ PASS (tur 2) | `038a972f` | #541 |
 | T503 | Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04) | ✓ | ✓ PASS (tur 3) | `2f131820` | #542 |
 | T504 | Hata sayfaları: bulunamayan adres ve beklenmeyen hata (E-06, 500) | ✓ | ✓ PASS (tur 1) | `e59bfa5f` | #540 |
-| T505 | İçerik liste ve içerik sayfaları (E-07, E-08) | ⬚ | — | — | — |
+| T505 | İçerik liste ve içerik sayfaları (E-07, E-08) | ✓ | ✓ PASS (tur 4) | `687ec955` | #543 |
 | T506 | Sık sorulan sorular ve iletişim sayfası ve formu (E-09, E-10) | ⬚ | — | — | — |
 | T507 | Yasal metin sayfaları ve panelde yönetimi (E-11, E-47) | ✓ | ✓ PASS (tur 1) | `7eadf545` | #547 |
 | T508 | Sepet (E-12) | ✓ | ✓ PASS (tur 1) | `6a8e61a0` | #544 |
@@ -305,7 +305,7 @@
 | T546 | Gezinme ve geçiş eşitlik denetimleri: iskeletler, geçişler, dışarıdan girişler, dönüşler | ⬚ | — | — | — |
 | T547 | Durum × rol matrisi ve form envanteri eşitlik denetimleri | ⬚ | — | — | — |
 | T548 | Parçalı yükleme betiği: başlatma–parça–durum akışı, 409/404/400/413 yanıtları, ağ hatasında üç kez sürdürme | ⬚ | — | — | — |
-| T549 | Vitrin: arşivlenmiş ürün sayfası (E-05) | ⬚ | — | — | — |
+| T549 | Vitrin: arşivlenmiş ürün sayfası (E-05) | ✓ | ✓ PASS (tur 1) | `7973b482` | #550 |
 | T550 | F4 kapanış düzeltmeleri: null-forgiving temizliği ve sır bekçisi önek soyma | ✓ | ✓ PASS (tur 1) | `bf77ceaf` | #533 |
 
 ---

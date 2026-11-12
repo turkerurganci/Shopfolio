@@ -34,7 +34,7 @@ public sealed class DomesticProductionLogoTests
     private static async Task<string> PriceBlockAsync(HttpClient client, ProductType type, string? code, string? name)
     {
         string query = $"type={type}&code={Uri.EscapeDataString(code ?? string.Empty)}&name={Uri.EscapeDataString(name ?? string.Empty)}";
-        using HttpResponseMessage response = await client.GetAsync($"/referans/ornek?{query}", Ct);
+        using HttpResponseMessage response = await client.GetAsync($"/sss/ornek-mensei/ornek?{query}", Ct);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         return WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct));
     }

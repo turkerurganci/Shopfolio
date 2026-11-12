@@ -215,6 +215,8 @@ internal sealed class CatalogModule : ICatalogModule
 
     public Task<IReadOnlyList<ShowcaseProduct>> ListPublishedProductsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct) => _showcase.ListListedByIdsAsync(productIds, ct);
 
+    public Task<IReadOnlyList<ProductListCard>> ListPublishedProductCardsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct) => _lists.ListCardsAsync(productIds, ct);
+
     public Task<IReadOnlyList<Guid>> FindProductIdsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct) => _showcase.FindProductIdsAsync(productIds, ct);
 
     public Task<IReadOnlyList<ShowcaseVariant>> ListOptionVariantsAsync(Guid productId, CancellationToken ct) => _showcase.ListOptionsAsync(productId, ct);

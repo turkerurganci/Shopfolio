@@ -105,7 +105,7 @@ public sealed partial class StorefrontFrameTests : IAsyncLifetime
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        JsonElement frame = await FrameOfAsync(client, "/hakkimizda");
+        JsonElement frame = await FrameOfAsync(client, "/sss/ornek-cerceve");
 
         // The model of the page holds no frame (FrameSampleModel has none); the response still carries it. No logo and no name: the domain, as text.
         Assert.Equal(JsonValueKind.Null, frame.GetProperty("Brand").GetProperty("LogoId").ValueKind);
@@ -135,7 +135,7 @@ public sealed partial class StorefrontFrameTests : IAsyncLifetime
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        JsonElement footer = (await FrameOfAsync(client, "/hakkimizda")).GetProperty("Footer");
+        JsonElement footer = (await FrameOfAsync(client, "/sss/ornek-cerceve")).GetProperty("Footer");
 
         Assert.Equal("https://etbis.example/dogrula", footer.GetProperty("EtbisVerificationUrl").GetString());
         // The cookie policy has a published version, the privacy notice has none: only the first and the guide are linked.
@@ -153,7 +153,7 @@ public sealed partial class StorefrontFrameTests : IAsyncLifetime
             shown = (await scope.ServiceProvider.GetRequiredService<ICorporateContentModule>().GetBrandIdentityAsync(Ct)).ShowsPlatformSignature;
         }
 
-        JsonElement frame = await FrameOfAsync(client, "/hakkimizda");
+        JsonElement frame = await FrameOfAsync(client, "/sss/ornek-cerceve");
 
         Assert.Equal(shown, frame.GetProperty("Footer").GetProperty("ShowsPlatformSignature").GetBoolean());
     }
@@ -168,29 +168,29 @@ public sealed partial class StorefrontFrameTests : IAsyncLifetime
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        JsonElement visitor = (await FrameOfAsync(client, "/hakkimizda")).GetProperty("Account");
+        JsonElement visitor = (await FrameOfAsync(client, "/sss/ornek-cerceve")).GetProperty("Account");
         Assert.Equal(JsonValueKind.Null, visitor.GetProperty("MemberName").ValueKind);
-        Assert.Equal("/giris?returnUrl=%2Fhakkimizda", visitor.GetProperty("SignInPath").GetString());
+        Assert.Equal("/giris?returnUrl=%2Fsss%2Fornek-cerceve", visitor.GetProperty("SignInPath").GetString());
         Assert.Equal("/siparis-takibi", visitor.GetProperty("OrderTrackingPath").GetString());
         Assert.Equal(JsonValueKind.Null, visitor.GetProperty("SignOut").ValueKind);
 
-        JsonElement member = (await FrameOfAsync(client, "/hakkimizda?a=1", Customer(customerKey))).GetProperty("Account");
+        JsonElement member = (await FrameOfAsync(client, "/sss/ornek-cerceve?a=1", Customer(customerKey))).GetProperty("Account");
         Assert.Equal("Test musteri", member.GetProperty("MemberName").GetString());
         Assert.Equal("/cikis", member.GetProperty("SignOut").GetProperty("Path").GetString());
-        Assert.Equal("/hakkimizda?a=1", member.GetProperty("SignOut").GetProperty("ReturnUrl").GetString());
+        Assert.Equal("/sss/ornek-cerceve?a=1", member.GetProperty("SignOut").GetProperty("ReturnUrl").GetString());
         Assert.Equal("/hesap", member.GetProperty("AccountPath").GetString());
         Assert.Equal("/hesap/siparisler", member.GetProperty("OrdersPath").GetString());
 
         // The administrator's cookie alone: the account area is the visitor's, and the strip is there.
-        JsonElement admin = await FrameOfAsync(client, "/hakkimizda", Admin(adminKey));
+        JsonElement admin = await FrameOfAsync(client, "/sss/ornek-cerceve", Admin(adminKey));
         Assert.Equal(JsonValueKind.Null, admin.GetProperty("Account").GetProperty("MemberName").ValueKind);
         Assert.Equal("/panel", admin.GetProperty("AdminStrip").GetProperty("PanelPath").GetString());
 
         // Both cookies: the member is shown and the strip as well; the customer never gets the strip.
-        JsonElement both = await FrameOfAsync(client, "/hakkimizda", Customer(customerKey), Admin(adminKey));
+        JsonElement both = await FrameOfAsync(client, "/sss/ornek-cerceve", Customer(customerKey), Admin(adminKey));
         Assert.Equal("Test musteri", both.GetProperty("Account").GetProperty("MemberName").GetString());
         Assert.NotEqual(JsonValueKind.Null, both.GetProperty("AdminStrip").ValueKind);
-        JsonElement customerOnly = await FrameOfAsync(client, "/hakkimizda", Customer(customerKey));
+        JsonElement customerOnly = await FrameOfAsync(client, "/sss/ornek-cerceve", Customer(customerKey));
         Assert.Equal(JsonValueKind.Null, customerOnly.GetProperty("AdminStrip").ValueKind);
     }
 
@@ -206,7 +206,7 @@ public sealed partial class StorefrontFrameTests : IAsyncLifetime
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        JsonElement account = (await FrameOfAsync(client, "/hakkimizda", Customer(customerKey))).GetProperty("Account");
+        JsonElement account = (await FrameOfAsync(client, "/sss/ornek-cerceve", Customer(customerKey))).GetProperty("Account");
 
         Assert.Equal(JsonValueKind.Null, account.GetProperty("MemberName").ValueKind);
     }
@@ -228,8 +228,8 @@ public sealed partial class StorefrontFrameTests : IAsyncLifetime
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        Assert.Equal(JsonValueKind.Null, (await FrameOfAsync(client, "/hakkimizda")).GetProperty("Announcement").ValueKind);
-        JsonElement seen = (await FrameOfAsync(client, "/hakkimizda", Admin(adminKey))).GetProperty("Announcement");
+        Assert.Equal(JsonValueKind.Null, (await FrameOfAsync(client, "/sss/ornek-cerceve")).GetProperty("Announcement").ValueKind);
+        JsonElement seen = (await FrameOfAsync(client, "/sss/ornek-cerceve", Admin(adminKey))).GetProperty("Announcement");
         Assert.Equal("Taslak duyuru", seen.GetProperty("Text").GetString());
         Assert.True(seen.GetProperty("IsDraft").GetBoolean());
 
@@ -238,7 +238,7 @@ public sealed partial class StorefrontFrameTests : IAsyncLifetime
             await db.Announcements.ExecuteUpdateAsync(a => a.SetProperty(x => x.PublishStatus, Shopfolio.Modules.Catalog.Contracts.PublishStatus.Published), Ct);
         }
 
-        JsonElement published = (await FrameOfAsync(client, "/hakkimizda")).GetProperty("Announcement");
+        JsonElement published = (await FrameOfAsync(client, "/sss/ornek-cerceve")).GetProperty("Announcement");
         Assert.Equal("Taslak duyuru", published.GetProperty("Text").GetString());
         Assert.False(published.GetProperty("IsDraft").GetBoolean());
     }
@@ -261,7 +261,7 @@ public sealed partial class StorefrontFrameTests : IAsyncLifetime
         using HttpClient client = factory.CreateClient();
 
         JsonElement checkout = await FrameOfAsync(client, "/odeme");
-        JsonElement page = await FrameOfAsync(client, "/hakkimizda");
+        JsonElement page = await FrameOfAsync(client, "/sss/ornek-cerceve");
 
         Assert.True(checkout.GetProperty("IsCheckoutStep").GetBoolean());
         Assert.Equal(JsonValueKind.Null, checkout.GetProperty("Menu").ValueKind);
@@ -280,7 +280,7 @@ public sealed partial class StorefrontFrameTests : IAsyncLifetime
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        JsonElement closed = (await FrameOfAsync(client, "/hakkimizda")).GetProperty("Sales");
+        JsonElement closed = (await FrameOfAsync(client, "/sss/ornek-cerceve")).GetProperty("Sales");
         Assert.True(closed.GetProperty("IsSalesClosed").GetBoolean());
         Assert.False(closed.GetProperty("IsDataCollectionOpen").GetBoolean());
 
@@ -292,14 +292,14 @@ public sealed partial class StorefrontFrameTests : IAsyncLifetime
             await db.CompanySettings.ExecuteUpdateAsync(s => s.SetProperty(c => c.IsSalesTemporarilyClosed, true), Ct);
         }
 
-        Assert.True((await FrameOfAsync(client, "/hakkimizda")).GetProperty("Sales").GetProperty("IsTemporarilyClosed").GetBoolean());
+        Assert.True((await FrameOfAsync(client, "/sss/ornek-cerceve")).GetProperty("Sales").GetProperty("IsTemporarilyClosed").GetBoolean());
 
         await using (AppDbContext db = NewContext())
         {
             await db.CompanySettings.ExecuteUpdateAsync(s => s.SetProperty(c => c.IsSalesTemporarilyClosed, false), Ct);
         }
 
-        Assert.False((await FrameOfAsync(client, "/hakkimizda")).GetProperty("Sales").GetProperty("IsTemporarilyClosed").GetBoolean());
+        Assert.False((await FrameOfAsync(client, "/sss/ornek-cerceve")).GetProperty("Sales").GetProperty("IsTemporarilyClosed").GetBoolean());
     }
 
     // ---- KK5: the cart count of this browser; the links ----
@@ -324,12 +324,12 @@ public sealed partial class StorefrontFrameTests : IAsyncLifetime
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        Assert.Equal(0, (await FrameOfAsync(client, "/hakkimizda")).GetProperty("Cart").GetProperty("ItemCount").GetInt32());
-        Assert.Equal(1, (await FrameOfAsync(client, "/hakkimizda", GuestCart(guestKey))).GetProperty("Cart").GetProperty("ItemCount").GetInt32());
-        Assert.Equal(2, (await FrameOfAsync(client, "/hakkimizda", Customer(customerKey))).GetProperty("Cart").GetProperty("ItemCount").GetInt32());
+        Assert.Equal(0, (await FrameOfAsync(client, "/sss/ornek-cerceve")).GetProperty("Cart").GetProperty("ItemCount").GetInt32());
+        Assert.Equal(1, (await FrameOfAsync(client, "/sss/ornek-cerceve", GuestCart(guestKey))).GetProperty("Cart").GetProperty("ItemCount").GetInt32());
+        Assert.Equal(2, (await FrameOfAsync(client, "/sss/ornek-cerceve", Customer(customerKey))).GetProperty("Cart").GetProperty("ItemCount").GetInt32());
 
         // The administrator's session changes neither the cart nor the account area: the guest cart of the same browser is still counted.
-        JsonElement admin = await FrameOfAsync(client, "/hakkimizda", Admin(adminKey), GuestCart(guestKey));
+        JsonElement admin = await FrameOfAsync(client, "/sss/ornek-cerceve", Admin(adminKey), GuestCart(guestKey));
         Assert.Equal(1, admin.GetProperty("Cart").GetProperty("ItemCount").GetInt32());
 
         JsonElement contact = admin.GetProperty("Contact");
@@ -354,7 +354,7 @@ public sealed partial class StorefrontFrameTests : IAsyncLifetime
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
 
         // A redirect answer is no page: no frame, and the mark stays.
-        using (HttpRequestMessage post = new(HttpMethod.Post, "/hakkimizda?handler=Leave"))
+        using (HttpRequestMessage post = new(HttpMethod.Post, "/sss/ornek-cerceve?handler=Leave"))
         {
             post.Headers.Add("Cookie", Customer(customerKey));
             post.Content = new FormUrlEncodedContent([]);
@@ -367,8 +367,8 @@ public sealed partial class StorefrontFrameTests : IAsyncLifetime
             Assert.True(await db.CartItems.AnyAsync(i => i.CartId == cartId && i.IsMergeNoticePending, Ct));
         }
 
-        JsonElement first = await FrameOfAsync(client, "/hakkimizda", Customer(customerKey));
-        JsonElement second = await FrameOfAsync(client, "/hakkimizda", Customer(customerKey));
+        JsonElement first = await FrameOfAsync(client, "/sss/ornek-cerceve", Customer(customerKey));
+        JsonElement second = await FrameOfAsync(client, "/sss/ornek-cerceve", Customer(customerKey));
 
         Assert.Single(first.GetProperty("MergeAddedProductNames").EnumerateArray());
         Assert.Equal(2, first.GetProperty("Cart").GetProperty("ItemCount").GetInt32());

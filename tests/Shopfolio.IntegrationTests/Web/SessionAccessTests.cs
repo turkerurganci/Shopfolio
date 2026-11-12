@@ -629,7 +629,7 @@ public sealed class SessionAccessTests
         Assert.Empty(unguarded);
         Assert.Contains(endpoints, e => e.Metadata.GetMetadata<IAuthorizeData>() is not null);
         Assert.Equal(
-            ["/hesap/silindi", "/panel/davet/{}", "/panel/giris", "/panel/sifre-sifirlama", "/panel/sifre-sifirlama/{}"], // the product's panel pages that open before a session (T520)
+            ["/hesap/silindi", "/panel/davet/{}", "/panel/dogrulama/{}", "/panel/geri-al/{}", "/panel/giris", "/panel/sifre-sifirlama", "/panel/sifre-sifirlama/{}"], // the product's panel pages that open before a session (T520, T521)
             open.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray());
     }
 

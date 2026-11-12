@@ -1,3 +1,5 @@
+using Shopfolio.Modules.AfterSales.Contracts;
+
 namespace Shopfolio.Modules.Administration.Contracts;
 
 /// <summary>
@@ -22,6 +24,31 @@ public sealed record PanelHome(
     bool ChannelWarningOpen,
     bool FirmNoticesWarningOpen,
     IReadOnlyList<SetupChecklistItem>? SetupChecklist);
+
+/// <summary>
+/// What only the home page shows beyond <see cref="IPanelHome"/> (T521; 04 2.6.2, 3.4.3; 02 10.6.1): the order counts of the three order-level warnings and the "IBAN bekleniyor" lines. Kept apart from
+/// <see cref="IPanelHome"/>, which every panel screen reads for its frame: the heavier reads below are the home page's own. Computed at every call, nothing is stored (K-405).
+/// </summary>
+public interface IPanelHomeDetails
+{
+    /// <summary>The home's extra data now; nothing is written.</summary>
+    Task<PanelHomeDetails> GetAsync(CancellationToken ct);
+}
+
+/// <summary>The orders whose customer e-mail did not arrive, the orders with a failed card refund, the orders whose card refund awaits its result, and every open "IBAN bekleniyor" line.</summary>
+public sealed record PanelHomeDetails(int EmailNotDeliveredOrders, int CardRefundFailedOrders, int CardRefundOutcomePendingOrders, IReadOnlyList<AwaitingIbanRow> AwaitingIban);
+
+/// <summary>
+/// One "IBAN bekleniyor" line (04 9.3.6): the order and its number, the item's name (null on the refund of a late payment, which has no item), the reason of the request, the instant it was opened, and the
+/// last day of the refund period when the line has one.
+/// </summary>
+public sealed record AwaitingIbanRow(
+    Guid OrderId,
+    string OrderNumber,
+    string? ItemName,
+    RefundIbanRequestReason Reason,
+    DateTimeOffset RequestedAt,
+    DateOnly? RefundLastDay);
 
 /// <summary>One counter: its name, the count and the list it leads to. The unit is the order, except the open request, whose unit is the request.</summary>
 public sealed record PanelCounter(PanelCounterKind Kind, int Count, PanelListTarget ListTarget);

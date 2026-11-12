@@ -37,6 +37,53 @@ internal static class PanelAccessTexts
     /// <summary>K-799: the invalid invitation's message; the reason is not told.</summary>
     public const string InvitationInvalid = "Bu davet bağlantısı artık geçerli değil. Yeni bir davet için panele erişimi olan bir yöneticiye başvurun.";
 
+    public const string VerifyEmailTitle = "Yeni e-posta adresi";
+
+    public const string RevertEmailTitle = "E-posta değişikliği";
+
+    public const string ReauthTitle = "Kimliğinizi doğrulayın";
+
+    /// <summary>04 9.25.4: the valid new-address link; one sentence and the one button (K-904).</summary>
+    public const string VerifyEmailValid = "Bu adresi hesabınızın yeni e-posta adresi yapmak için doğrulayın.";
+
+    public const string VerifyEmailButton = "Yeni adresi doğrula";
+
+    /// <summary>04 9.25.4: the new address is verified; the account works with it from now on and the earlier address was told.</summary>
+    public const string EmailVerified = "Yeni e-posta adresiniz doğrulandı. Hesabınız bundan sonra bu adresle çalışır; önceki adresinize bildirim gönderdik.";
+
+    /// <summary>04 9.25.4: the link is used, run out, replaced or unknown; the change is not valid with it and is started again from the account page.</summary>
+    public const string VerifyEmailInvalid = "Bu doğrulama bağlantısı artık geçerli değil. E-posta değişikliği bu bağlantıyla geçerli olmaz; \"Hesabım\" sayfasından yeniden başlatabilirsiniz.";
+
+    /// <summary>04 9.25.4: the new address became another administrator account's address in between; nothing was written.</summary>
+    public const string VerifyEmailTaken = "Bu e-posta adresi başka bir hesaba ait olduğu için değişiklik uygulanmadı.";
+
+    /// <summary>04 9.25.5: the valid revert link; one sentence about the result and the one button (K-839).</summary>
+    public const string RevertValid = "Geri alırsanız hesabın e-postası önceki adrese döner, bütün oturumları kapanır, şifresi geçersiz olur ve önceki adrese şifre sıfırlama bağlantısı gönderilir.";
+
+    public const string RevertButton = "E-posta değişikliğini geri al";
+
+    /// <summary>04 9.25.5: the change is reverted.</summary>
+    public const string EmailReverted =
+        "E-posta değişikliği geri alındı. Hesabın e-postası önceki adrese döndü, bütün oturumları kapandı, tanınan tarayıcı işaretleri düştü ve şifresi geçersiz oldu. Önceki adrese şifre sıfırlama bağlantısı gönderildi.";
+
+    /// <summary>04 9.25.5: the link is used or run out; the way back is another administrator or, when none can sign in, the person who set the product up.</summary>
+    public const string RevertInvalid =
+        "Bu geri alma bağlantısı artık geçerli değil; ürünün içinden geri alma yolu kalmadı. Panele erişimi olan başka bir yöneticiye başvurun; hiçbir yönetici giremiyorsa kurulumu yapan kişiye başvurun.";
+
+    /// <summary>04 9.25.5: the earlier address belongs to another administrator account now; the revert is not applied.</summary>
+    public const string RevertNotApplied = "Geri alma uygulanmadı: önceki e-posta adresi artık başka bir hesaba ait. Panele erişimi olan başka bir yöneticiye ya da kurulumu yapan kişiye başvurun.";
+
+    public const string ToMyAccountLink = "Hesabım sayfasına git";
+
+    public const string ReauthPasswordChangeLine = "Şifrenizi değiştirmek için kimliğinizi doğrulayın.";
+
+    public const string ReauthEmailChangeLine = "E-posta adresinizi değiştirmek için kimliğinizi doğrulayın.";
+
+    public const string ReauthButton = "Doğrula";
+
+    /// <summary>04 9.25.9: the wrong password is the field's message.</summary>
+    public const string ReauthPasswordWrong = "Şifre hatalı.";
+
     public const string SignInButton = "Giriş yap";
 
     public const string RequestButton = "Sıfırlama bağlantısı gönder";

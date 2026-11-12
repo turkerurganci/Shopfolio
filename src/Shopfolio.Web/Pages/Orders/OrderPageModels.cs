@@ -1,13 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Binding;
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
+using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -44,6 +47,12 @@ public abstract class OrderPageModel : PageModel
     /// <summary>The words of the card order cancelled because its payment failed (04 5.16.4; 03 2.5.1.3): the cart stays as it was.</summary>
     public const string CardFailedText = "Kart ödemesi gerçekleşmedi ve sipariş iptal edildi. Sepetiniz olduğu gibi duruyor; sepetinizden yeni bir siparişle yeniden deneyebilirsiniz.";
 
+    /// <summary>The reason of a screen's 303 when the operation is not open (07 6.3.3 <c>OperationClosed</c>; 04 5.17.11): the page below is the order as it is now.</summary>
+    public const string OperationClosedText = "Bu işlem şu anda siparişinizde açık değil ya da o arada kapandı; işlem uygulanmadı. Siparişin güncel hâli aşağıda.";
+
+    /// <summary>The reason of <c>QuantityExceedsOpen</c> (07 6.3.3; K-1202): nothing was applied.</summary>
+    public const string QuantityExceedsOpenText = "İstediğiniz adet, ürünün şu anki açık adedini aşıyor ya da açık adet o arada değişti; isteğiniz uygulanmadı. Güncel adetlerle yeniden deneyin.";
+
     private readonly IOrderingModule _ordering;
     private readonly IOrderPage _page;
     private readonly IOrderOperations _operations;
@@ -51,6 +60,7 @@ public abstract class OrderPageModel : PageModel
     private readonly ISettingsModule _settings;
     private readonly IAfterSalesModule _afterSales;
     private IReadOnlyList<ItemRecordFact> _records = [];
+    private bool _loaded;
 
     protected OrderPageModel(IOrderingModule ordering, IOrderPage page, IOrderOperations operations, IOrderDocuments documents, ISettingsModule settings, IAfterSalesModule afterSales)
     {
@@ -180,6 +190,35 @@ public abstract class OrderPageModel : PageModel
     }
 
     /// <summary>
+    /// The validation filter answers a form whose fields break their rules itself, 422 without the handler (09 3.4 item 3; UC-35's IBAN format): the page it shows again still needs the
+    /// root's check and the order, and the refused field its message.
+    /// </summary>
+    public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        PageHandlerExecutedContext executed = await next();
+        if (_loaded || executed.Exception is not null || executed.Result is not PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
+        {
+            return;
+        }
+
+        OrderRootResult root = await ResolveAsync(HttpContext.RequestAborted);
+        if (root.OrderId is not Guid orderId || !await LoadAsync(orderId, HttpContext.RequestAborted))
+        {
+            executed.Result = root.Denial ?? AccessDenial.NotFound();
+            return;
+        }
+
+        if (context.HandlerArguments.Values.OfType<SaveRefundIbanInput>().FirstOrDefault() is { } input)
+        {
+            IsIbanRefused = true;
+            RefusedIbanItemId = input.OrderItemId;
+            SentIban = input.Iban;
+        }
+    }
+
+    /// <summary>
     /// UC-36 (07 4.16.3): the root first (404 like the GET), then the item - a digital item of this order, else 404 (07 2.3.3) - then the module's write in one transaction. Issued: 303
     /// to the signed address (UC-37). Refused: 422, the page again with the reason in the button's place; the line names <c>DownloadNotAvailable</c>.
     /// </summary>
@@ -229,11 +268,114 @@ public abstract class OrderPageModel : PageModel
         return FormResults.Redisplay(this);
     }
 
+    /// <summary>
+    /// UC-35 (07 4.16.2): the root first (404 like the GET), then the item - an item not of this order is 404 (07 2.3.3) - then the module's write in one transaction. Saved: 303 to the root
+    /// with "Kaydedildi" (the result stands in the field). A value that fails format or check digits, or a field that is not open now, is 422 with the field's message; no e-mail (K-710).
+    /// </summary>
+    [GatedOperation]
+    public async Task<IActionResult> OnPostSaveRefundIbanAsync(SaveRefundIbanInput input, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        OrderRootResult root = await ResolveAsync(ct);
+        if (root.OrderId is not Guid orderId)
+        {
+            return root.Denial ?? AccessDenial.NotFound();
+        }
+
+        if (string.IsNullOrWhiteSpace(input.Iban))
+        {
+            ModelState.AddFieldError(nameof(SaveRefundIbanInput.Iban), FieldCodes.FieldRequired);
+            return await RedisplayIbanAsync(orderId, input, ct);
+        }
+
+        CustomerOperationResult? outcome = null;
+        ICustomerOperations customer = HttpContext.RequestServices.GetRequiredService<ICustomerOperations>();
+        OperationRunner runner = HttpContext.RequestServices.GetRequiredService<OperationRunner>();
+        GatedOperationResult result = await runner.RunAsync(
+            async stepCt =>
+            {
+                outcome = await customer.SaveRefundIbanAsync(orderId, input.OrderItemId, input.Iban, stepCt);
+                return outcome.Gate;
+            },
+            ct);
+        if (!result.IsRejected)
+        {
+            return FormResults.SeeOther(RootPath, NoticeCode.Saved);
+        }
+
+        switch (outcome?.Outcome)
+        {
+            case CustomerOperationOutcome.NotFound:
+                return AccessDenial.NotFound();
+            case CustomerOperationOutcome.InvalidIban:
+                ModelState.AddFieldError(nameof(SaveRefundIbanInput.Iban), FieldCodes.InvalidIban);
+                break;
+            default:
+                // The field closed meanwhile - the refund was processed or the request is gone (07 4.16.2: 422, 8.1.3); UC-35's code for a field that is not open (07 6.2.4).
+                HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.RefundIbanNotRequested);
+                ModelState.AddModelError(string.Empty, IbanFieldClosedText);
+                break;
+        }
+
+        return await RedisplayIbanAsync(orderId, input, ct);
+    }
+
+    /// <summary>The 422 message when the IBAN field is no longer open (07 4.16.2): the refund was processed or the request was closed meanwhile.</summary>
+    public const string IbanFieldClosedText = "Bu IBAN alanı artık açık değil; geri ödeme işlenmiş ya da istek kapanmış olabilir. Siparişin güncel hâli aşağıda.";
+
+    /// <summary>The field whose save was refused (the 422 page draws its message there) and the value as typed.</summary>
+    public Guid? RefusedIbanItemId { get; private set; }
+
+    public string? SentIban { get; private set; }
+
+    public bool IsIbanRefused { get; private set; }
+
+    private async Task<IActionResult> RedisplayIbanAsync(Guid orderId, SaveRefundIbanInput input, CancellationToken ct)
+    {
+        if (!await LoadAsync(orderId, ct))
+        {
+            return AccessDenial.NotFound();
+        }
+
+        IsIbanRefused = true;
+        RefusedIbanItemId = input.OrderItemId;
+        SentIban = input.Iban;
+        return FormResults.Redisplay(this);
+    }
+
+    /// <summary>The open IBAN fields of the order (04 5.16.12): the item's field on its row, the late payment's itemless field in "müşteriden beklenen" (D-1194).</summary>
+    public IReadOnlyList<RefundIbanFieldView> RefundIbanFields { get; private set; } = [];
+
+    /// <summary>The reason a screen of the order returned with (07 4.16.1; K-1170 (1), (4)), said in the operations' place.</summary>
+    public string? OperationReasonText { get; private set; }
+
+    /// <summary>The short-lived "Kaydedildi" of UC-35 (07 6.3.1).</summary>
+    public string? SavedText { get; private set; }
+
+    /// <summary>The IBAN field of a place with the 422 message bound when it was the refused one.</summary>
+    public IbanFieldView? IbanFieldOf(RefundIbanFieldView field)
+    {
+        ArgumentNullException.ThrowIfNull(field);
+        // On the card line an IBAN exists only through one of the two exceptions (04 2.12.3.1): its correction keeps the exception's field.
+        IbanOpening opening = field.Reason == RefundIbanRequestReason.CardRefundFailed || (field.IsCorrection && Detail.PaymentMethod == PaymentMethod.Card) ? IbanOpening.CardRefundNotRealized
+            : field.OrderItemId is null && !field.IsCorrection ? IbanOpening.LatePayment
+            : IbanOpening.Standard;
+        bool refused = IsIbanRefused && RefusedIbanItemId == field.OrderItemId;
+        IbanFieldView? view = Components.IbanFields.Create(
+            IbanFieldPlace.OrderPage,
+            Detail.PaymentMethod,
+            opening,
+            nameof(SaveRefundIbanInput.Iban),
+            refused ? SentIban : field.Iban is { } stored ? DisplayFormat.Iban(stored) : null);
+        return view is null || !refused ? view : view with { Field = Fields.Bind(view.Field, FormErrorSummary.From(ModelState)) };
+    }
+
     /// <summary>Finds the order of the root: the order's id, or the denial the root answers with (302 to the sign-in or the one 404).</summary>
     protected abstract Task<OrderRootResult> ResolveAsync(CancellationToken ct);
 
     private async Task<bool> LoadAsync(Guid orderId, CancellationToken ct)
     {
+        _loaded = true;
         OrderPageSummary? summary = await _ordering.GetOrderPageSummaryAsync(orderId, ct);
         OrderPageDetail? detail = await _page.ReadAsync(orderId, ct);
         OrderOperationsView? operations = await _operations.ReadAsync(orderId, ActorKind.Buyer, ct);
@@ -252,6 +394,14 @@ public abstract class OrderPageModel : PageModel
         PrivacyNotice = await _settings.GetLegalTextVersionAsync(detail.PrivacyNoticeVersionId, ct);
         ScreenLinks = OrderScreenLink.From(operations, RootPath);
         _records = await _afterSales.ListItemRecordsAsync([.. detail.Items.Select(i => i.OrderItemId)], ct);
+        RefundIbanFields = await HttpContext.RequestServices.GetRequiredService<ICustomerOperations>().ReadRefundIbanFieldsAsync(orderId, ct);
+        OperationReasonText = NoticeParameter.Read(Request, NoticeKind.Reason) switch
+        {
+            NoticeCode.OperationClosed => OperationClosedText,
+            NoticeCode.QuantityExceedsOpen => QuantityExceedsOpenText,
+            _ => null,
+        };
+        SavedText = NoticeParameter.Read(Request, NoticeKind.ShortLived) is { } saved && NoticeTexts.TryShortLived(saved, out string? text) ? text : null;
         return true;
     }
 }
@@ -275,17 +425,36 @@ public sealed class MemberOrderModel(IOrderingModule ordering, IOrderPage page, 
 {
     private readonly IOrderingModule _ordering = ordering;
 
-    protected override async Task<OrderRootResult> ResolveAsync(CancellationToken ct)
+    protected override Task<OrderRootResult> ResolveAsync(CancellationToken ct) => OrderRoots.ResolveMemberAsync(this, _ordering, ct);
+}
+
+/// <summary>The two roots' lookups (07 2.1.3, 2.3.2–2.3.5), shared by the order page and the screens under it, so a screen's root holds exactly when the page's does.</summary>
+public static class OrderRoots
+{
+    /// <summary>The member's root: no session is 302 to the sign-in; an administrator's session alone, another account's order or no such number is the one 404.</summary>
+    public static async Task<OrderRootResult> ResolveMemberAsync(PageModel page, IOrderingModule ordering, CancellationToken ct)
     {
-        if (User.AccountId() is not Guid customerId)
+        ArgumentNullException.ThrowIfNull(page);
+        ArgumentNullException.ThrowIfNull(ordering);
+        if (page.User.AccountId() is not Guid customerId)
         {
-            return OrderRootResult.Denied(await HttpContext.HasAdminSessionAsync()
+            return OrderRootResult.Denied(await page.HttpContext.HasAdminSessionAsync()
                 ? AccessDenial.NotFound()
-                : Challenge(SessionSchemes.CustomerScheme));
+                : page.Challenge(SessionSchemes.CustomerScheme));
         }
 
-        string number = RouteData.Values["orderNumber"] as string ?? string.Empty;
-        Guid? orderId = await _ordering.FindMemberOrderAsync(number, customerId, ct);
+        string number = page.RouteData.Values["orderNumber"] as string ?? string.Empty;
+        Guid? orderId = await ordering.FindMemberOrderAsync(number, customerId, ct);
+        return orderId is Guid id ? OrderRootResult.Found(id) : OrderRootResult.Denied(AccessDenial.NotFound());
+    }
+
+    /// <summary>The access-key root: a key that is not valid, a renewed key and a disposed order are the one 404 (04 5.16.20).</summary>
+    public static async Task<OrderRootResult> ResolveAccessAsync(PageModel page, IOrderingModule ordering, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+        ArgumentNullException.ThrowIfNull(ordering);
+        string key = page.RouteData.Values["accessKey"] as string ?? string.Empty;
+        Guid? orderId = await ordering.FindOrderByAccessKeyAsync(key, ct);
         return orderId is Guid id ? OrderRootResult.Found(id) : OrderRootResult.Denied(AccessDenial.NotFound());
     }
 }
@@ -301,12 +470,7 @@ public sealed class AccessOrderModel(IOrderingModule ordering, IOrderPage page, 
 {
     private readonly IOrderingModule _ordering = ordering;
 
-    protected override async Task<OrderRootResult> ResolveAsync(CancellationToken ct)
-    {
-        string key = RouteData.Values["accessKey"] as string ?? string.Empty;
-        Guid? orderId = await _ordering.FindOrderByAccessKeyAsync(key, ct);
-        return orderId is Guid id ? OrderRootResult.Found(id) : OrderRootResult.Denied(AccessDenial.NotFound());
-    }
+    protected override Task<OrderRootResult> ResolveAsync(CancellationToken ct) => OrderRoots.ResolveAccessAsync(this, _ordering, ct);
 }
 
 /// <summary>One button of the operations area (04 5.16.6): the words and the screen under the root it opens (07 2.1.3).</summary>
@@ -356,4 +520,14 @@ public sealed record OrderScreenLink(string Text, string Href)
 public sealed class DownloadDigitalFileInput : IFormInput
 {
     public Guid OrderItemId { get; set; }
+}
+
+/// <summary>UC-35's form (07 5): the IBAN (blanks ignored; 07 2.9.5) and the item - empty on the late payment's itemless refund (06 4.29; K-1075).</summary>
+public sealed class SaveRefundIbanInput : IFormInput
+{
+    [System.ComponentModel.DataAnnotations.Display(Name = Components.IbanFields.Label)]
+    [InvalidIban]
+    public string Iban { get; set; } = string.Empty;
+
+    public Guid? OrderItemId { get; set; }
 }

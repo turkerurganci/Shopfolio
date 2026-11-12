@@ -11,7 +11,19 @@
             {
                 <li class="awaiting-customer__row">
                     <a href="@row.OrderPath">@row.OrderNumber</a>
+                    @if (row.ItemName is not null)
+                    {
+                        <span class="awaiting-customer__item">@row.ItemName</span>
+                    }
                     <span class="awaiting-customer__text">@row.Text</span>
+                    @if (row.Reason is not null)
+                    {
+                        <span class="awaiting-customer__reason">@row.Reason</span>
+                    }
+                    @if (row.RequestedAt is { } requestedAt)
+                    {
+                        <time class="awaiting-customer__date" datetime="@requestedAt.ToString("O", System.Globalization.CultureInfo.InvariantCulture)">@Shopfolio.Infrastructure.DisplayFormat.Date(requestedAt)</time>
+                    }
                     @if (row.Period is not null)
                     {
                         <partial name="_PeriodIndicator" model="row.Period" />

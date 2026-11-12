@@ -34,6 +34,23 @@ internal static class ShippingFeeRefunds
     /// <summary>(3): always; of the terminations written at one moment the first carries it.</summary>
     public static bool OnTermination(IReadOnlyCollection<UnitMove> terminations, UnitMove subject) => IsFirstOfItsMoment(terminations, subject);
 
+    /// <summary>
+    /// (1) read before the customer's last step (T512; 04 5.17.5; K-789): whether cancelling <paramref name="selectedUnits"/> now meets the trigger, with the physical
+    /// items' open units as the units to cover and the selection as the moves of one moment. Units already closed are not in <paramref name="openPhysicalUnits"/>, so the
+    /// moves before this moment did not meet the trigger - it is met now or not at all. An order with no open physical unit has no trigger.
+    /// </summary>
+    public static bool OnCancellationPreview(IReadOnlyDictionary<Guid, int> openPhysicalUnits, IReadOnlyDictionary<Guid, int> selectedUnits)
+    {
+        ArgumentNullException.ThrowIfNull(openPhysicalUnits);
+        ArgumentNullException.ThrowIfNull(selectedUnits);
+        DateTimeOffset moment = DateTimeOffset.UnixEpoch;
+        List<UnitMove> moves =
+        [
+            .. selectedUnits.Where(s => s.Value > 0 && openPhysicalUnits.ContainsKey(s.Key)).Select(s => new UnitMove(s.Key, s.Key, moment, s.Value)),
+        ];
+        return moves.Exists(m => OnCancellationBeforeShipment(openPhysicalUnits, moves, m));
+    }
+
     private static bool IsFirstOfItsMoment(IReadOnlyCollection<UnitMove> moves, UnitMove subject)
     {
         ArgumentNullException.ThrowIfNull(moves);

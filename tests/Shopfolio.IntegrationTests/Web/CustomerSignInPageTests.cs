@@ -337,6 +337,46 @@ public sealed class CustomerSignInPageTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task TheReturn_OfAnAddressWithAPendingRegistration_WhileTheGateIsOpen_LeavesOneVerifiedAccount_T515_KK7()
+    {
+        StubGateway gateway = new();
+        await using WebApplicationFactory<Program> factory = Open(google: gateway, gateOpen: true);
+        await SeedCustomerAsync("yeni@gmail.com", verified: false);
+        (string cookie, string state, string nonce) = StartFlow(factory, null);
+        gateway.Enqueue(new GoogleIdentityResult.Succeeded("yeni@gmail.com", true, "Yeni", null, null, nonce));
+
+        (_, HttpResponseMessage response) = await ReturnAsync(factory, cookie, $"code=c1&state={Uri.EscapeDataString(state)}");
+
+        Assert.Equal("/", response.Headers.Location!.OriginalString);
+        await using AppDbContext db = NewContext();
+        Customer only = await db.Customers.AsNoTracking().SingleAsync(Ct);
+        Assert.NotNull(only.EmailVerifiedAt);
+        Assert.Null(only.PasswordHash);
+        Assert.Equal(1, await db.Sessions.CountAsync(Ct));
+    }
+
+    [Fact]
+    public async Task TwoFirstReturns_OfOneNewAddress_AtTheSameTime_OpenOneAccount_AndBothSignIn_D556_T515_KK7()
+    {
+        StubGateway gateway = new();
+        await using WebApplicationFactory<Program> factory = Open(google: gateway, gateOpen: true);
+        (string cookieA, string stateA, string nonceA) = StartFlow(factory, null);
+        (string cookieB, string stateB, string nonceB) = StartFlow(factory, null);
+        gateway.AnswerCode("cA", new GoogleIdentityResult.Succeeded("yeni@gmail.com", true, "Yeni", null, null, nonceA));
+        gateway.AnswerCode("cB", new GoogleIdentityResult.Succeeded("yeni@gmail.com", true, "Yeni", null, null, nonceB));
+
+        Task<(HttpStatusCode Status, HttpResponseMessage Response)> first = ReturnAsync(factory, cookieA, $"code=cA&state={Uri.EscapeDataString(stateA)}");
+        Task<(HttpStatusCode Status, HttpResponseMessage Response)> second = ReturnAsync(factory, cookieB, $"code=cB&state={Uri.EscapeDataString(stateB)}");
+        (HttpStatusCode, HttpResponseMessage)[] both = await Task.WhenAll(first, second);
+
+        Assert.All(both, r => Assert.Equal(HttpStatusCode.SeeOther, r.Item1));
+        Assert.All(both, r => Assert.Equal("/", r.Item2.Headers.Location!.OriginalString));
+        await using AppDbContext db = NewContext();
+        Assert.Equal(1, await db.Customers.CountAsync(Ct));
+        Assert.Equal(2, await db.Sessions.CountAsync(Ct));
+    }
+
+    [Fact]
     public async Task TheReturn_OfAnUnlinkedAccountWhereGoogleIsNotTheAuthority_OpensNoSession_AndQueuesTheConfirmationLink_T515_KK7()
     {
         StubGateway gateway = new();
@@ -592,6 +632,7 @@ public sealed class CustomerSignInPageTests : IAsyncLifetime
     {
         private readonly Queue<GoogleIdentityResult> _results = new();
         private readonly List<IdentityCodeExchange> _calls = [];
+        private readonly Dictionary<string, GoogleIdentityResult> _byCode = [];
 
         public IReadOnlyList<IdentityCodeExchange> Calls
         {
@@ -612,11 +653,25 @@ public sealed class CustomerSignInPageTests : IAsyncLifetime
             }
         }
 
+        // An answer bound to one authorization code, for returns that meet at the same time.
+        public void AnswerCode(string code, GoogleIdentityResult result)
+        {
+            lock (_calls)
+            {
+                _byCode[code] = result;
+            }
+        }
+
         public Task<GoogleIdentityResult> VerifyIdentityAsync(IdentityCodeExchange exchange, CancellationToken ct)
         {
             lock (_calls)
             {
                 _calls.Add(exchange);
+                if (_byCode.TryGetValue(exchange.AuthorizationCode, out GoogleIdentityResult? bound))
+                {
+                    return Task.FromResult(bound);
+                }
+
                 return Task.FromResult(_results.Count > 0 ? _results.Dequeue() : new GoogleIdentityResult.Failed("not-queued"));
             }
         }

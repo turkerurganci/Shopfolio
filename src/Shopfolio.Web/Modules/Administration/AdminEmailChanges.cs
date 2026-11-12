@@ -99,7 +99,7 @@ internal sealed class AdminEmailChanges
         DateTimeOffset now = _time.GetUtcNow();
 
         // An open revert link closes the change: a following change must not shut the earlier address's way back (02 3.13.14; 07 8.1.3).
-        DateTimeOffset? revertEnds = await OpenRevertEndAsync(adminId, now, ct);
+        DateTimeOffset? revertEnds = await EmailChangeRules.OpenRevertEndAsync(_db, AccountType.Admin, adminId, now, ct);
         if (revertEnds is { } ends)
         {
             return AdminEmailChangeRequestResult.Reverting(ends);
@@ -112,8 +112,8 @@ internal sealed class AdminEmailChanges
         }
 
         AdminPendingEmailChange? pending = await _pending.FindAsync(adminId, ct);
-        bool replaces = pending is not null && !IsEnded(pending.CreatedAt, now);
-        if (replaces && await CountedOverLimitAsync(ownNormalized, ipAddress, ct))
+        bool replaces = pending is not null && !EmailChangeRules.IsEnded(pending.CreatedAt, now);
+        if (replaces && await EmailChangeRules.CountedOverLimitAsync(_attempts, ownNormalized, ipAddress, ct))
         {
             return AdminEmailChangeRequestResult.Refused(AdminEmailChangeOutcome.Limited, ErrorCode.VerificationLinkLimitExceeded);
         }
@@ -144,20 +144,20 @@ internal sealed class AdminEmailChanges
         string normalizedEmail = await _db.Admins.AsNoTracking().Where(a => a.Id == adminId).Select(a => a.NormalizedEmail).SingleAsync(ct);
 
         // L-9 is counted on every request, on the e-mail and on the IP (02 8.2); over the limit the earlier link stays valid.
-        if (await CountedOverLimitAsync(normalizedEmail, ipAddress, ct))
+        if (await EmailChangeRules.CountedOverLimitAsync(_attempts, normalizedEmail, ipAddress, ct))
         {
             return AdminEmailChangeResendResult.Limited();
         }
 
         DateTimeOffset now = _time.GetUtcNow();
         AdminPendingEmailChange? pending = await _pending.FindAsync(adminId, ct);
-        if (pending is null || IsEnded(pending.CreatedAt, now))
+        if (pending is null || EmailChangeRules.IsEnded(pending.CreatedAt, now))
         {
             return AdminEmailChangeResendResult.Nothing();
         }
 
         // The new link ends where the pending change ends: asking again does not lengthen it (02 3.13.5).
-        DateTimeOffset expiresAt = pending.CreatedAt.AddHours(ProductConstants.EmailVerificationLinkHours);
+        DateTimeOffset expiresAt = EmailChangeRules.LinkEnd(pending.CreatedAt);
         LinkRecord link = LinkRecord.ForAdmin(_keys, LinkType.NewEmailVerification, adminId, expiresAt, now);
         _links.Add(link);
         await _links.SupersedeEarlierAsync(LinkType.NewEmailVerification, null, adminId, link.Id, ct);
@@ -200,7 +200,7 @@ internal sealed class AdminEmailChanges
 
         DateTimeOffset now = _time.GetUtcNow();
         AdminPendingEmailChange? pending = await _pending.FindAsync(adminId, ct);
-        if (pending is null || IsEnded(pending.CreatedAt, now))
+        if (pending is null || EmailChangeRules.IsEnded(pending.CreatedAt, now))
         {
             return AdminEmailVerificationResult.LinkInvalid(AccountLinkStatus.Expired);
         }
@@ -253,6 +253,34 @@ internal sealed class AdminEmailChanges
         return AdminEmailVerificationResult.Verified(adminId, revert.Id, revertEnds);
     }
 
+    /// <summary>
+    /// What the account page shows (07 UC-104; 04 9.21): the account, the pending change (while its link lives) and the open revert link; the address change's form never opens while a revert link is
+    /// open (K-819). The operation's form opens only when the session holds that operation's permission bound to the presented value; any other request drops the permission (05 6.1.5; 07 2.2.5).
+    /// </summary>
+    public async Task<AdminOwnAccount?> ReadOwnAccountAsync(Guid adminId, Guid sessionId, ReauthenticationOperation? operation, string? reauthenticationValue, CancellationToken ct)
+    {
+        RequireTransaction("The account page drops the permission only inside a transaction (09 6 item 3).");
+        var account = await _db.Admins.AsNoTracking().Where(a => a.Id == adminId).Select(a => new { a.Name, a.Email }).SingleOrDefaultAsync(ct);
+        if (account is null)
+        {
+            return null;
+        }
+
+        bool listed = operation is ReauthenticationOperation.PasswordChange or ReauthenticationOperation.EmailChange;
+        bool held = listed && await _sessions.HoldsReauthenticationAsync(AccountType.Admin, adminId, sessionId, operation!.Value, reauthenticationValue, ct);
+        if (!held)
+        {
+            await _sessions.DropReauthenticationAsync(AccountType.Admin, adminId, sessionId, ct);
+        }
+
+        DateTimeOffset now = _time.GetUtcNow();
+        AdminPendingEmailChange? pending = await _pending.FindAsync(adminId, ct);
+        bool pendingLives = pending is not null && !EmailChangeRules.IsEnded(pending.CreatedAt, now);
+        DateTimeOffset? revertEnds = await EmailChangeRules.OpenRevertEndAsync(_db, AccountType.Admin, adminId, now, ct);
+        ReauthenticationOperation? open = held && !(operation == ReauthenticationOperation.EmailChange && revertEnds is not null) ? operation : null;
+        return new AdminOwnAccount(account.Name, account.Email, pendingLives ? pending!.NewEmail : null, pendingLives ? EmailChangeRules.LinkEnd(pending!.CreatedAt) : null, revertEnds, open);
+    }
+
     /// <summary>What the new address's landing page shows (07 UC-108): reads only. A valid link whose pending change has ended or is gone reads as expired - the same view the button takes.</summary>
     public async Task<AdminLinkReading> ReadNewEmailLinkAsync(string key, CancellationToken ct)
     {
@@ -269,7 +297,7 @@ internal sealed class AdminEmailChanges
         }
 
         AdminPendingEmailChange? pending = await _pending.FindAsync(adminId, ct);
-        return new AdminLinkReading(pending is null || IsEnded(pending.CreatedAt, _time.GetUtcNow()) ? AccountLinkStatus.Expired : AccountLinkStatus.Valid);
+        return new AdminLinkReading(pending is null || EmailChangeRules.IsEnded(pending.CreatedAt, _time.GetUtcNow()) ? AccountLinkStatus.Expired : AccountLinkStatus.Valid);
     }
 
     /// <summary>What the revert link's landing page shows (07 UC-108): reads only.</summary>
@@ -352,27 +380,6 @@ internal sealed class AdminEmailChanges
             new AuditActor(adminId, account.Name, previousEmail),
             new AuditEntry(AuditOperation.ChangeAdminEmail, nameof(Admin), adminId, new AuditDetails(account.Name, changes: [new AuditValueChange("Email", account.Email, previousEmail)])));
         return AdminEmailRevertResult.Reverted(adminId, reset.Id);
-    }
-
-    // The life of a pending change is the first link's: P-12 hours from the request (the nightly deletion reads the same rule).
-    private static bool IsEnded(DateTimeOffset createdAt, DateTimeOffset now) => createdAt <= now - TimeSpan.FromHours(ProductConstants.EmailVerificationLinkHours);
-
-    private async Task<DateTimeOffset?> OpenRevertEndAsync(Guid adminId, DateTimeOffset now, CancellationToken ct)
-    {
-        return await _db.LinkRecords.AsNoTracking()
-            .Where(l => l.AdminId == adminId && l.LinkType == LinkType.EmailChangeRevert && l.UsedAt == null && l.SupersededAt == null && l.ExpiresAt > now)
-            .OrderByDescending(l => l.ExpiresAt)
-            .Select(l => (DateTimeOffset?)l.ExpiresAt)
-            .FirstOrDefaultAsync(ct);
-    }
-
-    private async Task<bool> CountedOverLimitAsync(string normalizedEmail, IPAddress? ipAddress, CancellationToken ct)
-    {
-        AttemptSubject byEmail = AttemptSubject.Email(normalizedEmail);
-        AttemptSubject byIp = AttemptSubject.Ip(ipAddress);
-        await _attempts.RecordAsync(AttemptLimit.L9, byEmail, ct);
-        await _attempts.RecordAsync(AttemptLimit.L9, byIp, ct);
-        return await _attempts.IsExceededAsync(AttemptLimit.L9, byEmail, ct) || await _attempts.IsExceededAsync(AttemptLimit.L9, byIp, ct);
     }
 
     private static AccountLinkStatus StatusOf(LinkState state) => AdminAccounts.StatusOf(state);

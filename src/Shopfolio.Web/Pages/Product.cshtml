@@ -44,6 +44,7 @@
         </ol>
     </nav>
 }
+@* The archived page's attribute is empty: it carries no variant data (04 5.5.4; 07 4.5.1), and the script is not loaded for it. *@
 <div class="product" data-variants="@view.ScriptDataJson">
     <div class="product__gallery">
         @if (view.Lead is { } lead)
@@ -65,6 +66,20 @@
         @if (view.Kind == ProductPageKind.Archived)
         {
             <p class="product__retired">@ProductView.NoLongerSoldText</p>
+            @* The ways out (04 5.5.3 item 4; 5.5.5): home and the products - the home page's own first-level categories, none while no product is published (04 2.7.1.2). No button. *@
+            <nav class="product__return" aria-label="Dönüş bağlantıları">
+                <p><a href="@FramePaths.Home">@NotFoundTexts.HomeLabel</a></p>
+                @if (ProductViews.ReturnLinksOf(frame.Menu?.Categories) is { Count: > 0 } returnLinks)
+                {
+                    <h2 class="product__return-title" id="product-return-products">@NotFoundTexts.ProductsLabel</h2>
+                    <ul class="product__return-list" aria-labelledby="product-return-products">
+                        @foreach (MenuCategoryNode category in returnLinks)
+                        {
+                            <li><a href="@category.Path">@category.Name</a></li>
+                        }
+                    </ul>
+                }
+            </nav>
         }
         else
         {
@@ -184,4 +199,7 @@
         }
     </div>
 </div>
-<script type="module" src="@ViewContext.HttpContext.StaticAsset("js/product.js")"></script>
+@if (view.Kind != ProductPageKind.Archived)
+{
+    <script type="module" src="@ViewContext.HttpContext.StaticAsset("js/product.js")"></script>
+}

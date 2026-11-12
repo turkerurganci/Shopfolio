@@ -42,24 +42,24 @@ internal sealed class Checkout : ICheckout
         // 07 4.13.6: the account and the fields come before the order's work (422/404); the order's transaction is the confirmation's own sequence (05 4.2.2).
         if (await ContactEmailOfAsync(request.Owner, request.GuestEmail, ct) is not { Length: > 0 } email)
         {
-            return new PlaceOrderResult(PlaceOrderOutcome.AccountNotAccepted);
+            return PlaceOrderResult.Without(PlaceOrderOutcome.AccountNotAccepted);
         }
 
         OrderAccountResolution account = await _membership.ResolveOrderAccountAsync(request.Owner.CustomerId, email, ct);
         if (!account.IsAccepted)
         {
-            return new PlaceOrderResult(PlaceOrderOutcome.AccountNotAccepted);
+            return PlaceOrderResult.Without(PlaceOrderOutcome.AccountNotAccepted);
         }
 
         OrderAddressResolution addresses = await _membership.ResolveOrderAddressesAsync(request.Addresses with { CustomerId = request.Owner.CustomerId }, ct);
         if (addresses.IsBookEntryNotFound)
         {
-            return new PlaceOrderResult(PlaceOrderOutcome.AddressBookEntryNotFound);
+            return PlaceOrderResult.Without(PlaceOrderOutcome.AddressBookEntryNotFound);
         }
 
         if (!addresses.IsResolved || addresses.Billing is not { } billing)
         {
-            return new PlaceOrderResult(PlaceOrderOutcome.AddressRefused, AddressFields: addresses.Fields);
+            return PlaceOrderResult.Without(PlaceOrderOutcome.AddressRefused) with { AddressFields = addresses.Fields };
         }
 
         PartyAddress? shipping = addresses.Shipping is { } s ? new PartyAddress(s.RecipientName, s.Phone, s.ProvinceId, s.District, s.AddressLine) : null;
@@ -85,14 +85,13 @@ internal sealed class Checkout : ICheckout
     {
         null => new PlaceOrderResult(PlaceOrderOutcome.Placed, result.OrderNumber, result.OrderAccessKey, result.IsGuestOrder),
         OrderConfirmationRefusal.AlreadyPlaced => new PlaceOrderResult(PlaceOrderOutcome.AlreadyPlaced, result.OrderNumber, result.OrderAccessKey, result.IsGuestOrder),
-        OrderConfirmationRefusal.NoOrderableItem => new PlaceOrderResult(PlaceOrderOutcome.NoOrderableItem),
-        OrderConfirmationRefusal.MinimumOrderAmountNotMet => new PlaceOrderResult(PlaceOrderOutcome.MinimumOrderAmountNotMet),
-        OrderConfirmationRefusal.SalesClosed => new PlaceOrderResult(PlaceOrderOutcome.SalesClosed),
-        OrderConfirmationRefusal.PaymentMethodUnavailable => new PlaceOrderResult(PlaceOrderOutcome.PaymentMethodUnavailable),
-        OrderConfirmationRefusal.AttemptLimitExceeded => new PlaceOrderResult(PlaceOrderOutcome.AttemptLimitExceeded, ExceededLimit: result.ExceededLimit),
-        OrderConfirmationRefusal.ConfirmationStepNotReady => new PlaceOrderResult(
-            PlaceOrderOutcome.ConfirmationStepNotReady, CurrentSummary: result.CurrentSummary, StepCheck: result.StepCheck),
-        _ => new PlaceOrderResult(PlaceOrderOutcome.SummaryChanged, CurrentSummary: result.CurrentSummary, Changes: result.Changes),
+        OrderConfirmationRefusal.NoOrderableItem => PlaceOrderResult.Without(PlaceOrderOutcome.NoOrderableItem),
+        OrderConfirmationRefusal.MinimumOrderAmountNotMet => PlaceOrderResult.Without(PlaceOrderOutcome.MinimumOrderAmountNotMet),
+        OrderConfirmationRefusal.SalesClosed => PlaceOrderResult.Without(PlaceOrderOutcome.SalesClosed),
+        OrderConfirmationRefusal.PaymentMethodUnavailable => PlaceOrderResult.Without(PlaceOrderOutcome.PaymentMethodUnavailable),
+        OrderConfirmationRefusal.AttemptLimitExceeded => PlaceOrderResult.Without(PlaceOrderOutcome.AttemptLimitExceeded) with { ExceededLimit = result.ExceededLimit },
+        OrderConfirmationRefusal.ConfirmationStepNotReady => PlaceOrderResult.Without(PlaceOrderOutcome.ConfirmationStepNotReady) with { CurrentSummary = result.CurrentSummary, StepCheck = result.StepCheck },
+        _ => PlaceOrderResult.Without(PlaceOrderOutcome.SummaryChanged) with { CurrentSummary = result.CurrentSummary, Changes = result.Changes },
     };
 
     // A member's contact e-mail is the account's verified one (04 5.13.5); a guest's is the one written.

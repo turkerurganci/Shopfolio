@@ -98,13 +98,11 @@ internal sealed record OrderConfirmationResult(
     ConfirmationSummary? CurrentSummary,
     IReadOnlyList<SummaryChange> Changes,
     ConfirmationStepCheck? StepCheck,
-    AttemptLimit? ExceededLimit = null,
-    string? OrderAccessKey = null,
-    bool IsGuestOrder = false) : IOperationResult
+    AttemptLimit? ExceededLimit,
+    string? OrderAccessKey,
+    bool IsGuestOrder) : IOperationResult
 {
     public bool IsRejected => Refusal is not null;
-
-    public static OrderConfirmationResult Placed(Guid orderId, string orderNumber) => new(null, orderId, orderNumber, null, [], null);
 
     /// <summary>The order born: its number, its access key and whether it is a guest's, which pick the confirmation screen's root (07 2.1.3).</summary>
     public static OrderConfirmationResult Placed(Order order) => new(null, order.Id, order.OrderNumber, null, [], null, null, order.OrderAccessKey, order.IsGuestOrder);
@@ -114,11 +112,11 @@ internal sealed record OrderConfirmationResult(
         new(OrderConfirmationRefusal.AlreadyPlaced, orderId, orderNumber, null, [], null, null, accessKey, isGuestOrder);
 
     public static OrderConfirmationResult Refused(OrderConfirmationRefusal refusal, ConfirmationSummary? current = null, IReadOnlyList<SummaryChange>? changes = null, ConfirmationStepCheck? check = null) =>
-        new(refusal, null, null, current, changes ?? [], check);
+        new(refusal, null, null, current, changes ?? [], check, null, null, false);
 
     /// <summary>The refusal of a limit (T377): the limit that stopped the order, for the log line; the user sees the neutral message only.</summary>
     public static OrderConfirmationResult LimitExceeded(AttemptLimit limit) =>
-        new(OrderConfirmationRefusal.AttemptLimitExceeded, null, null, null, [], null, limit);
+        new(OrderConfirmationRefusal.AttemptLimitExceeded, null, null, null, [], null, limit, null, false);
 }
 
 /// <summary>

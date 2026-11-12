@@ -181,7 +181,7 @@ internal sealed class CheckoutModel : PageModel, IOutcomeTarget
 
         input.CouponCode = null;
         ModelState.Remove(nameof(PlaceOrderInput.CouponCode));
-        CartOwner owner = StorefrontFrameBuilder.CartOwnerOf(HttpContext)!; // non-null: see above
+        CartOwner owner = StorefrontFrameBuilder.CartOwnerOf(HttpContext)!; // non-null: SessionClosedUnder answers a request without a cart owner
         return await ShowAsync(owner, input, appliesCoupon: false, ct) ?? Page();
     }
 
@@ -193,14 +193,14 @@ internal sealed class CheckoutModel : PageModel, IOutcomeTarget
             return toSignIn;
         }
 
-        CartOwner owner = StorefrontFrameBuilder.CartOwnerOf(HttpContext)!; // non-null: see above
+        CartOwner owner = StorefrontFrameBuilder.CartOwnerOf(HttpContext)!; // non-null: SessionClosedUnder answers a request without a cart owner
         if (await ShowAsync(owner, input, appliesCoupon: false, ct) is IActionResult away)
         {
             return away;
         }
 
         // 04 5.13.23: an undelivered shipping province is told at the field; the recalculation checks nothing else.
-        if (input.AddressBookId is null && Step!.HasPhysicalItem && AddressForms.CheckProvince(AddressVariant.Delivery, input.ShippingProvinceId, Provinces) is { IsAccepted: false, Reason: { } message })
+        if (input.AddressBookId is null && Step!.HasPhysicalItem && AddressForms.CheckProvince(AddressVariant.Delivery, input.ShippingProvinceId, Provinces) is { IsAccepted: false, Reason: { } message }) // non-null: ShowAsync sets the step when it does not send the request away
         {
             ModelState.AddModelError(nameof(PlaceOrderInput.ShippingProvinceId), message);
         }
@@ -240,7 +240,7 @@ internal sealed class CheckoutModel : PageModel, IOutcomeTarget
             return toSignIn;
         }
 
-        CartOwner owner = StorefrontFrameBuilder.CartOwnerOf(HttpContext)!; // non-null: see above
+        CartOwner owner = StorefrontFrameBuilder.CartOwnerOf(HttpContext)!; // non-null: SessionClosedUnder answers a request without a cart owner
         bool isMember = owner.CustomerId is not null;
 
         // The fields and the boxes are checked before the order's transaction, all together (07 4.13.6; 04 5.13.18).

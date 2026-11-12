@@ -158,12 +158,12 @@ public sealed partial class CheckoutPageTests : IAsyncLifetime
         string underMinimum = await SeedGuestCartAsync(ProductType.Physical, price: 10m);
 
         await using WebApplicationFactory<Program> closed = Open(salesOpen: false);
-        await AssertAllToCartAsync(closed, closedSale);
+        Assert.Equal(AllToTheCart(), await AnswersOfTheStepAsync(closed, closedSale));
 
         await using WebApplicationFactory<Program> open = Open(salesOpen: true);
-        await AssertAllToCartAsync(open, soldOut);
+        Assert.Equal(AllToTheCart(), await AnswersOfTheStepAsync(open, soldOut));
         await SetMinimumAsync(50m);
-        await AssertAllToCartAsync(open, underMinimum);
+        Assert.Equal(AllToTheCart(), await AnswersOfTheStepAsync(open, underMinimum));
     }
 
     // ---- KK3 and KK6: the leaving writes the cookie with the 05 6.7.9 fields; three targets, an empty form too; the cookie fills the fields ----

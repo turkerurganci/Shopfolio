@@ -20,7 +20,7 @@
     Layout = "_StorefrontLayout";
     ViewData["Title"] = CheckoutTexts.ScreenName;
     CheckoutStep step = Model.Step!; // non-null: the page is drawn only after the step was read
-    ConfirmationStepView confirmation = Model.Confirmation!; // non-null: as above
+    ConfirmationStepView confirmation = Model.Confirmation!; // non-null: the page is drawn only after the confirmation section was read
     ConfirmationSummary summary = step.Summary!; // non-null: a step without a summary goes back to the cart
     PlaceOrderInput form = Model.Form;
     FormErrorSummary errors = FormErrorSummary.From(ViewData.ModelState);
@@ -40,7 +40,7 @@
 }
 <h1>@CheckoutTexts.ScreenName</h1>
 <partial name="_FormErrorSummary" model="errors" />
-<form method="post" id="checkout-form" class="checkout" action="@(action)PlaceOrder" data-js="checkout" novalidate>
+<form method="post" asp-antiforgery="true" id="checkout-form" class="checkout" action="@(FramePaths.Checkout)?handler=PlaceOrder" data-js="checkout" novalidate>
     @ConfirmationKeys.Hidden(Model.ConfirmationKey)
     <input type="hidden" name="@nameof(PlaceOrderInput.SummaryFingerprint)" value="@Model.Fingerprint" />
     <input type="hidden" name="@nameof(PlaceOrderInput.PreInformationFormVersionId)" value="@confirmation.ShownPreInformationFormId.ToString("D")" />

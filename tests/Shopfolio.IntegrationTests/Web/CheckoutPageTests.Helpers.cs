@@ -156,17 +156,28 @@ public sealed partial class CheckoutPageTests
         yield return (nameof(PlaceOrderInput.AcceptDistanceSales), "true");
     }
 
-    private static async Task AssertAllToCartAsync(WebApplicationFactory<Program> factory, string guest)
+    /// <summary>The submissions of the step that sends a request away from it: the GET and the three POSTs that show the step again.</summary>
+    private static readonly string[] AwayHandlers = ["ApplyCoupon", "RemoveCoupon", "Recalculate"];
+
+    /// <summary>What the step answers to its GET and its three re-showing POSTs, as "request status location" lines (the GET's line has its status only).</summary>
+    private static async Task<IReadOnlyList<string>> AnswersOfTheStepAsync(WebApplicationFactory<Program> factory, string guest)
     {
         (HttpStatusCode status, _, _) = await GetAsync(factory, GuestCart(guest));
-        Assert.Equal(HttpStatusCode.SeeOther, status);
+        List<string> answers = [$"GET {(int)status}"];
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
-        foreach (string handler in new[] { "ApplyCoupon", "RemoveCoupon", "Recalculate" })
+        foreach (string handler in AwayHandlers)
         {
             using HttpResponseMessage response = await PostAsync(client, handler, [("ContactEmail", string.Empty), ("CouponCode", "KOD")], GuestCart(guest));
-            Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
-            Assert.Equal(FramePaths.Cart, response.Headers.Location?.OriginalString);
+            answers.Add($"{handler} {(int)response.StatusCode} {response.Headers.Location?.OriginalString}");
         }
+
+        return answers;
+    }
+
+    /// <summary>The answers of <see cref="AnswersOfTheStepAsync"/> when every one goes to the cart.</summary>
+    private static IReadOnlyList<string> AllToTheCart()
+    {
+        return [$"GET {(int)HttpStatusCode.SeeOther}", .. AwayHandlers.Select(h => $"{h} {(int)HttpStatusCode.SeeOther} {FramePaths.Cart}")];
     }
 
     private async Task<Guid> SeedVariantAsync(ProductType type, decimal price, int stock)

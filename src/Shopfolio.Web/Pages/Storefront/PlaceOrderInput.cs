@@ -10,7 +10,7 @@ namespace Shopfolio.Pages.Storefront;
 /// <summary>
 /// The payment step's one form (07 5.2 <c>PlaceOrderInput</c>; 04 7.1.5): the five handlers of UC-23…UC-27 bind it (07 5.1.5). The fields carry no rule attribute: the coupon, the recalculation and the
 /// leaving do not validate, and the confirmation checks the fields itself with the project's rules (the e-mail rule, the address part, the boxes) so the errors are marked together (04 5.13.18).
-/// The boxes are the confirmation section's (04 OB-18; <see cref="ConsentBoxes.NameOf"/>).
+/// The boxes are the confirmation section's (04 OB-18; <see cref="ConsentBoxes.NameOf"/>): their four names are the component's, not 07 5.2's AcceptedCheckboxes (D-1333).
 /// </summary>
 public sealed class PlaceOrderInput : IFormInput
 {
@@ -26,10 +26,12 @@ public sealed class PlaceOrderInput : IFormInput
 
     public string? ShippingAddressLine { get; set; }
 
+    [SpecAssignedName]
     public bool SaveToAddressBook { get; set; }
 
     public string? ShippingPhone { get; set; }
 
+    [SpecAssignedName]
     public bool IsBillingSameAsShipping { get; set; }
 
     public string? BillingRecipientName { get; set; }
@@ -44,22 +46,28 @@ public sealed class PlaceOrderInput : IFormInput
 
     public PaymentMethod? PaymentMethod { get; set; }
 
+    [SpecAssignedName]
     public string? AcceptPreInformation { get; set; }
 
+    [SpecAssignedName]
     public string? AcceptDistanceSales { get; set; }
 
+    [SpecAssignedName]
     public string? AcceptDigital { get; set; }
 
+    [SpecAssignedName]
     public string? AcceptService { get; set; }
 
     public string? ConfirmationKey { get; set; }
 
+    [SpecAssignedName]
     public string? SummaryFingerprint { get; set; }
 
     public Guid? PreInformationFormVersionId { get; set; }
 
     public Guid? DistanceSalesContractVersionId { get; set; }
 
+    [SpecAssignedName]
     public string? LeaveTarget { get; set; }
 }
 

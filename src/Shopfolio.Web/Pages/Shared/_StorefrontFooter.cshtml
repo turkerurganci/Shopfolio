@@ -1,5 +1,5 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @using Shopfolio.Pages.Frame
-@using Shopfolio.Modules.Settings.Contracts
 @model StorefrontFrame
 @*
     The footer (04 2.2.5, 2.2.6; T540): whole on every storefront screen - the payment step, the cart, the sign-in, the order page and "sayfa bulunamadı" included - never folded, long names
@@ -9,22 +9,6 @@
 *@
 @{
     FrameFooter footer = Model.Footer;
-    LegalIdentity identity = footer.Identity;
-    string nameLabel = identity.CompanyType == CompanyType.Tradesman ? "Ad soyad" : "Ticaret unvanı";
-    (string Label, string? Value)[] rows =
-    [
-        (nameLabel, identity.LegalName),
-        ("İşletme adı", identity.BusinessName),
-        ("Vergi kimlik numarası", identity.TaxIdNumber),
-        ("MERSİS numarası", identity.MersisNumber),
-        ("Ticaret sicil numarası", identity.TradeRegistryNumber),
-        ("Adres", string.Join(" ", new[] { identity.AddressLine, identity.District, identity.ProvinceName }.Where(part => !string.IsNullOrWhiteSpace(part)))),
-        ("Telefon", identity.Phone),
-        ("E-posta", identity.Email),
-        ("KEP adresi", identity.KepAddress),
-        ("Meslek odası", identity.ChamberName),
-        ("Meslekle ilgili davranış kuralları", identity.ProfessionalConductRules),
-    ];
 }
 <footer class="site-footer">
     <div class="container">
@@ -33,18 +17,7 @@
                 <h2 class="site-footer__heading" id="footer-contact-heading"><a href="@footer.ContactPath">İletişim</a></h2>
                 @* The whole brand name: the header cuts a long one on the narrow class and says so here (04 2.2.4, 8.3.2 row 1). *@
                 <p class="site-footer__brand">@Model.Brand.BrandName</p>
-                <dl class="identity-block">
-                    @foreach (var row in rows)
-                    {
-                        if (!string.IsNullOrWhiteSpace(row.Value))
-                        {
-                            <div class="identity-block__row">
-                                <dt>@row.Label</dt>
-                                <dd>@row.Value</dd>
-                            </div>
-                        }
-                    }
-                </dl>
+                <partial name="_IdentityBlock" model="footer.Identity" />
                 @if (footer.EtbisVerificationUrl is { } etbis)
                 {
                     <a class="etbis-band" href="@etbis" rel="noopener noreferrer">ETBİS doğrulama</a>

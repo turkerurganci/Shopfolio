@@ -237,9 +237,9 @@ internal sealed class AdministrationModule : IAdministrationModule
 
     public Task<AdminLinkReading> ReadNewEmailLinkAsync(string key, CancellationToken ct) => _emailChanges.ReadNewEmailLinkAsync(key, ct);
 
-    public Task<AdminLinkReading> ReadEmailRevertLinkAsync(string key, CancellationToken ct) => _emailChanges.ReadRevertLinkAsync(key, ct);
+    public Task<AdminLinkReading> ReadEmailRestoreLinkAsync(string key, CancellationToken ct) => _emailChanges.ReadRevertLinkAsync(key, ct);
 
-    public Task<AdminEmailRevertResult> RevertPendingEmailChangeAsync(string key, CancellationToken ct) => _emailChanges.RevertPendingEmailChangeAsync(key, ct);
+    public Task<AdminEmailRevertResult> RestorePreviousEmailAsync(string key, CancellationToken ct) => _emailChanges.RestorePreviousEmailAsync(key, ct);
 
     public Task DropReauthenticationAsync(Guid adminId, Guid sessionId, CancellationToken ct)
     {

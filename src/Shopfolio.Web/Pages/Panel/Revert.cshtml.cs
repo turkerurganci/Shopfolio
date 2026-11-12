@@ -38,7 +38,7 @@ internal sealed class RevertModel : PageModel
     public async Task<IActionResult> OnGetAsync(string key, CancellationToken ct)
     {
         Key = key;
-        AdminLinkReading reading = await _administration.ReadEmailRevertLinkAsync(key, ct);
+        AdminLinkReading reading = await _administration.ReadEmailRestoreLinkAsync(key, ct);
         Step = reading.Status switch
         {
             Shopfolio.Infrastructure.Security.AccountLinkStatus.Valid => LandingStep.Valid,
@@ -54,7 +54,7 @@ internal sealed class RevertModel : PageModel
         RevertOutcome outcome = await _transactions.RunAsync(
             async cancel =>
             {
-                AdminEmailRevertResult reverted = await _administration.RevertPendingEmailChangeAsync(key, cancel);
+                AdminEmailRevertResult reverted = await _administration.RestorePreviousEmailAsync(key, cancel);
                 return new RevertOutcome(reverted);
             },
             ct);

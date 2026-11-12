@@ -106,13 +106,13 @@ public interface IAdministrationModule
     Task<AdminLinkReading> ReadNewEmailLinkAsync(string key, CancellationToken ct);
 
     /// <summary>What the revert link's landing page shows when it opens (07 UC-108): only reads.</summary>
-    Task<AdminLinkReading> ReadEmailRevertLinkAsync(string key, CancellationToken ct);
+    Task<AdminLinkReading> ReadEmailRestoreLinkAsync(string key, CancellationToken ct);
 
     /// <summary>
     /// The revert link's button (07 UC-187; 02 10.2.4; K-1210): the address goes back, every session ends, the marks and the password become invalid, the earlier address gets the password
     /// reset link, the trail row is written. The earlier address being another administrator's refuses (422) and the caller rolls back.
     /// </summary>
-    Task<AdminEmailRevertResult> RevertPendingEmailChangeAsync(string key, CancellationToken ct);
+    Task<AdminEmailRevertResult> RestorePreviousEmailAsync(string key, CancellationToken ct);
 
     /// <summary>Drops the earlier permission of a session when the re-verification page opens (07 UC-108; 05 6.1.5): the new form is the one that counts. Joins the caller's transaction.</summary>
     Task DropReauthenticationAsync(Guid adminId, Guid sessionId, CancellationToken ct);

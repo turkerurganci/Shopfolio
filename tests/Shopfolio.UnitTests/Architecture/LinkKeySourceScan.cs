@@ -61,7 +61,7 @@ internal static partial class LinkKeySourceScan
 
         // The administrator invitation's button and the administrator's new e-mail verification (T379; T521 adds the revert command, which consumes the revert link): each consumes its link in its own command and nowhere else in the file.
         ["src/Shopfolio.Web/Modules/Administration/AdminAccounts.cs"] = ["AcceptInvitationAsync"],
-        ["src/Shopfolio.Web/Modules/Administration/AdminEmailChanges.cs"] = ["VerifyNewEmailAsync", "RevertPendingEmailChangeAsync"],
+        ["src/Shopfolio.Web/Modules/Administration/AdminEmailChanges.cs"] = ["VerifyNewEmailAsync", "RestorePreviousEmailAsync"],
     };
 
     /// <summary>
@@ -71,7 +71,7 @@ internal static partial class LinkKeySourceScan
     public static readonly IReadOnlyDictionary<string, string[]> WrapperMethods = new Dictionary<string, string[]>(StringComparer.Ordinal)
     {
         ["src/Shopfolio.Web/Modules/Membership/MembershipModule.cs"] = ["ResetPasswordAsync", "ConfirmGoogleLinkAsync", "VerifyNewEmailAsync"],
-        ["src/Shopfolio.Web/Modules/Administration/AdministrationModule.cs"] = ["ResetPasswordAsync", "AcceptInvitationAsync", "VerifyNewEmailAsync", "RevertPendingEmailChangeAsync"],
+        ["src/Shopfolio.Web/Modules/Administration/AdministrationModule.cs"] = ["ResetPasswordAsync", "AcceptInvitationAsync", "VerifyNewEmailAsync", "RestorePreviousEmailAsync"],
     };
 
     private static readonly string[] ControlKeywords = ["if", "for", "foreach", "while", "switch", "using", "lock", "catch", "fixed", "when", "return", "nameof", "typeof"];

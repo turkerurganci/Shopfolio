@@ -277,7 +277,7 @@ internal sealed class AdminEmailChanges
     /// consumed with one conditional update; the address goes back, every session of the account ends - the open one too -, the recognized browsers' marks end, the password becomes unusable, the
     /// earlier address gets the panel's password reset link, and the trail row is written for the administrator whose address went back (the link opens no session).
     /// </summary>
-    public async Task<AdminEmailRevertResult> RevertPendingEmailChangeAsync(string key, CancellationToken ct)
+    public async Task<AdminEmailRevertResult> RestorePreviousEmailAsync(string key, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(key);
         RequireTransaction("The revert is written only inside a transaction (09 6 item 3).");

@@ -53,7 +53,7 @@ public sealed class SearchDataSampleModel : PageModel
         List<FaqItem> questions = await db.FaqItems.AsNoTracking().Where(f => f.PublishStatus == PublishStatus.Published).OrderBy(f => f.SortOrder).ToListAsync(ct);
 
         bool inStock = variant is not null && (variant.StockQuantity is null || variant.StockQuantity - variant.ReservedQuantity > 0);
-        string path = $"/hizmet/{product.Slug}";
+        string path = $"/sss/ornek-arama/{product.Slug}";
         ProductData data = new(
             product.Name,
             SearchText.Description(null, product.Description),

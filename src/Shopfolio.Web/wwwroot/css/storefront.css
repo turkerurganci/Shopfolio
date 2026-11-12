@@ -490,6 +490,65 @@
     }
 }
 
+/* Content list and content record pages (T505; 04 5.7, 5.8): the heading, the gallery - one scrolling row on the narrow class, a wrapping grid on the wide - the text and "İlgili ürünler". */
+.content-heading {
+    margin-block: var(--space-5) var(--space-4);
+}
+
+.content-gallery {
+    display: flex;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-5);
+    padding: 0;
+    list-style: none;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+}
+
+.content-gallery__item {
+    flex: 0 0 85%;
+    min-width: 0;
+    scroll-snap-align: start;
+}
+
+.content-gallery__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-1);
+}
+
+.content-page__body {
+    overflow-wrap: anywhere;
+}
+
+.content-page__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-block: var(--space-5);
+}
+
+.related-products {
+    margin-block: var(--space-6);
+}
+
+.related-products__heading {
+    margin-block: 0 var(--space-4);
+}
+
+@media (min-width: 768px) {
+    .content-gallery {
+        flex-wrap: wrap;
+        overflow-x: visible;
+    }
+
+    .content-gallery__item {
+        flex-basis: calc(50% - var(--space-3));
+    }
+}
+
 /* A legal text page (T507; 04 5.11.3): the heading and the whole text on one page; a long line breaks and nothing scrolls sideways. */
 .legal-text {
     max-width: 48rem;
@@ -801,6 +860,14 @@
     margin: 0 0 var(--space-3);
     color: var(--color-text-muted);
     font-weight: 600;
+}
+
+.product__return-list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
 .product__description {

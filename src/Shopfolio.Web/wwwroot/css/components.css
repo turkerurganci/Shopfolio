@@ -729,3 +729,83 @@
         grid-column: 1 / -1;
     }
 }
+
+/* The coupon field, the confirmation's boxes and the uploads (T544; 04 OB-16 to OB-19). */
+.coupon {
+    margin: var(--space-3) 0;
+}
+
+.coupon__row > summary,
+.coupon__change > summary {
+    cursor: pointer;
+    min-height: var(--touch-target);
+}
+
+.coupon__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+}
+
+.coupon__applied {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-2);
+}
+
+.coupon__code {
+    font-weight: 600;
+}
+
+.consents {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin: var(--space-4) 0;
+    border: 0;
+    padding: 0;
+}
+
+.consents__legend {
+    font-weight: 600;
+    padding: 0;
+}
+
+.field--check input[type="checkbox"],
+.field--check input[type="radio"] {
+    min-width: var(--touch-target);
+    min-height: var(--touch-target);
+}
+
+.gallery-upload {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.gallery-upload__rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.gallery-upload__row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.gallery-upload__thumb {
+    max-width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+.upload-status__item progress {
+    width: 100%;
+}

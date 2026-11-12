@@ -1,0 +1,56 @@
+@page "/sss/kontrol"
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@model Shopfolio.IntegrationTests.Pages.ControlSampleModel
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = "Kontrol";
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, Shopfolio.IntegrationTests.Pages.ControlSampleModel.BoxOrder);
+    CouponFieldView coupon = Model.Coupon();
+    ConsentBoxesView boxes = ConsentBoxes.Create("Input.", Shopfolio.IntegrationTests.Pages.ControlSampleModel.Basket, Model.Sent(), ConsentReset.None, summary);
+    FormErrorSummary uploadSummary = FormErrorSummary.From(ViewData.ModelState, ["Input.Gallery.Files", "Input.Logo", "Input.File"]);
+    // One summary heads the page; the upload fields take their message from the same state, in the order of the upload form.
+    GalleryUploadView gallery = GalleryUploads.Create(UploadSide.Panel, UploadSurface.ProductGallery, "Input.Gallery.", "Deneme ürünü", Shopfolio.IntegrationTests.Pages.ControlSampleModel.Images, summary: uploadSummary);
+    SingleUploadView logo = SingleUploads.Create(UploadSide.Panel, UploadSurface.Logo, "Input.Logo", "Logo", summary: uploadSummary);
+    SingleUploadView digital = SingleUploads.Create(UploadSide.Panel, UploadSurface.DigitalFile, "Input.File", "Dijital dosya", summary: uploadSummary);
+    UploadStatusView status = UploadStatusView.Of(Model.Uploading ? [new UploadProgressView("a.webp", 30, 100)] : []);
+}
+<p id="sample-content">Kontrol ornegi</p>
+
+<partial name="_FormErrorSummary" model="summary" />
+
+<section id="summary">
+    <p id="lines">Ara toplam</p>
+    <partial name="_CouponField" model="coupon" />
+    <p id="total">Toplam</p>
+</section>
+
+<section id="confirm">
+    <form method="post" asp-antiforgery="true" action="/sss/kontrol?handler=Confirm" id="confirm-form">
+        <p id="legal-texts">Yasal metinler</p>
+        <p id="withdrawal-summary">Cayma özeti</p>
+        <partial name="_ConsentBoxes" model="boxes" />
+        <button type="submit" id="confirm-button">Siparişi onayla</button>
+    </form>
+    @if (Model.Confirmed)
+    {
+        <p id="confirmed">Siparis olustu</p>
+    }
+</section>
+
+<section id="panel-form">
+    <form method="post" asp-antiforgery="true" action="/sss/kontrol?handler=Upload" id="panel-upload-form" enctype="multipart/form-data">
+        <partial name="_GalleryUpload" model="gallery" />
+        <partial name="_SingleUpload" model="logo" />
+        <partial name="_SingleUpload" model="digital" />
+        <partial name="_UploadStatus" model="status" />
+        <button type="submit" id="save-button" disabled="@status.SaveBlocked">Kaydet</button>
+    </form>
+</section>
+
+<section id="customer-contact">
+    <form method="post" asp-antiforgery="true" action="/sss/kontrol?handler=Contact" id="contact-form">
+        <input type="text" name="Input.Subject">
+        <button type="submit">Gonder</button>
+    </form>
+</section>

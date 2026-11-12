@@ -536,6 +536,10 @@ public sealed class SalesSummaryTests : IAsyncLifetime
 
         public Task<BrandIdentity> GetBrandIdentityAsync(CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<ContentListView> GetContentListAsync(ContentListKind kind, int page, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<ContentRecordPage?> GetContentPageAsync(ContentPageKind kind, string? slug, bool asAdministrator, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<IReadOnlyList<SocialLinkItem>> ListSocialLinksAsync(CancellationToken ct) => throw new NotSupportedException();
 
         public Task<ContactFormView> GetContactFormAsync(string? memberName, string? memberEmail, CancellationToken ct) => throw new NotSupportedException();

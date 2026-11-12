@@ -1,0 +1,17 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@model UploadStatusView
+@*
+    The progress of the uploads of a form (T544; 04 OB-19, 2.12.8.4, 2.7.2): each running upload draws a progress bar with its file and its percent; while one runs the form's save button is closed
+    (the screen takes SaveBlocked for its button's disabled) and the words below say why. Nothing is drawn when no upload runs.
+*@
+@if (Model.SaveBlocked)
+{
+    <div class="upload-status" role="status" data-js="upload-status">
+        @foreach (UploadProgressView upload in Model.Running)
+        {
+            <p class="upload-status__item"><progress value="@upload.Percent" max="100" aria-label="@upload.FileName">@upload.Percent %</progress> <span>@upload.Text</span></p>
+        }
+        <p class="upload-status__blocked">@Model.SaveBlockedText</p>
+    </div>
+}

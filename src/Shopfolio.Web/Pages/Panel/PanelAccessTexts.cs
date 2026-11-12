@@ -81,6 +81,9 @@ internal static class PanelAccessTexts
 
     public const string ReauthButton = "Doğrula";
 
+    /// <summary>04 9.25.9: the wrong password is the field's message.</summary>
+    public const string ReauthPasswordWrong = "Şifre hatalı.";
+
     public const string SignInButton = "Giriş yap";
 
     public const string RequestButton = "Sıfırlama bağlantısı gönder";

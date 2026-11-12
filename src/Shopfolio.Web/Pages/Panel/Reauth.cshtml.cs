@@ -135,7 +135,8 @@ internal sealed class ReauthModel : PageModel
             return FormResults.SeeOther(PanelFramePaths.MyAccount);
         }
 
-        ModelState.AddFieldError("Input.Password", ErrorCode.ReauthenticationFailed.ToString());
+        // The wrong password is the field's own message and counted for L-1 by the module (04 9.25.9).
+        ModelState.AddModelError("Input.Password", PanelAccessTexts.ReauthPasswordWrong);
         return FormResults.Redisplay(this);
     }
 

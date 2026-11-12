@@ -50,7 +50,14 @@ public sealed record PlaceOrderRequest(
     string? CouponCode,
     string? GuestEmail,
     OrderAddressRequest Addresses,
-    IPAddress IpAddress);
+    IPAddress IpAddress)
+{
+    /// <summary>
+    /// The unique indexes of the order table that a clash of a made value breaks - the number's and the access key's - in the form the transaction runner takes (09 9.4 item 3;
+    /// D-563): the payment step runs the confirmation with them, so a clash runs the whole work again.
+    /// </summary>
+    public static IReadOnlyCollection<string> RetryOnUniqueIndexes { get; } = ["ix_orders_order_number", "ix_orders_order_access_key"];
+}
 
 /// <summary>The confirmation's outcome (T509; 07 4.13.6): the answer the page gives for each. A result code, never stored.</summary>
 public enum PlaceOrderOutcome

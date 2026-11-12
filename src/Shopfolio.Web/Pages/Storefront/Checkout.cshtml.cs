@@ -295,7 +295,7 @@ internal sealed class CheckoutModel : PageModel, IOutcomeTarget
             address);
 
         // 04 5.13.31; 07 6.4.2: an error the step did not expect is the error layer's - the handler is marked and the layer sends the customer to OutcomeScreen.
-        PlaceOrderResult result = await _transactions.RunAsync(inner => _checkout.PlaceOrderAsync(request, inner), ct);
+        PlaceOrderResult result = await _transactions.RunAsync(inner => _checkout.PlaceOrderAsync(request, inner), PlaceOrderRequest.RetryOnUniqueIndexes, ct);
         return await AnswerAsync(owner, input, result, ct);
     }
 

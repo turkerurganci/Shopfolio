@@ -1,11 +1,15 @@
+using System.Security.Claims;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Membership.Contracts;
 using Shopfolio.Modules.Membership.Contracts.Results;
 using Shopfolio.Modules.Ordering.Contracts;

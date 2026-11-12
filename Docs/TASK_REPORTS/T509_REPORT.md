@@ -103,7 +103,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
+| Doğrulama durumu (tur 1) | ✗ FAIL (2026-11-12; dal ucu `42e1e6a7`, origin/main `4b37cf0c` birleşik) — build `-warnaserror`, format, Unit 7441/7441, betik 4/4, Integration parçalı 215/215 + 57/57, dal CI (run 43262776784) yeşil |
+| Bulgu sayısı (tur 1) | 1 (1 ORTA, S1); K-notu yok |
+| Düzeltme gerekli mi | Evet — B1 (ORTA, VAL-E061, D-1077, D-1080; kriter 1/UC-22): sağlayıcıya iki dakika erişilemeyen kart listeden çıkıyor; `04` 5.13.8 / `07 4.13.1` listede kalmasını, seçilemez olmasını ve yanında "şu an kullanılamıyor" yazmasını ister |
+| Yapım raporu karşılaştırması (tur 1) | 1 uyuşmazlık: kriter 1 ✓ ve D-1077 "T509 payı kapandı" sayılmış; kartın iki dakikalık hâli sayfada çizilmiyor, testi yok |
 
 ## Altyapı Değişiklikleri
 
@@ -116,8 +119,8 @@
 
 - **Branch:** `task/T509-odeme-adimi`
 - **Commit:** son baş SHA PR açıklamasında
-- **PR:** *(açılınca)*
-- **CI:** *(validator doldurur)*
+- **PR:** #559
+- **CI:** tur 1: run 43262776784 yeşil
 
 ## Dış Varsayımlar
 

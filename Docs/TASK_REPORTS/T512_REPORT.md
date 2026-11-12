@@ -86,6 +86,7 @@
 | Integration | TAM ad alanı parçalarıyla 3857/3857 yeşil: Ordering 668, Web 821 (head `45641703`); main `33a9d21a` birleştirildikten sonra Model 1410 (sınıf harf gruplarıyla dört parça 319+427+370+294), Files+Payment 178, Administration+Catalog+Commands+Concurrency+CorporateContent 446, Database+Disposal+FileSecrets+Jobs+Logging+Outages+Security+SignedEndpoints 334; birleştirmenin getirdiği T549 testleri için `StorefrontSearchAndProductTests` 32/32 yeniden. `Pages` ad alanı yalnız yardımcı sınıflar (test yok). |
 | Unit (birleştirme sonrası) | `Architecture` 1702/1702, `Pages` 339/339 |
 | main `856f5441` (T544) birleştirmesi + ret satırı düzeltmesi sonrası | Unit `Architecture` 1750/1750, `Pages` 420/420; Integration `Web` 842/842 (üç parça 124+350+368; ortadaki parça ilk koşuda 1 kırmızı, adı alınamadı, değişmeden yeniden koşuda 350/350 yeşil), `Files` 119/119, `Ordering.CustomerOperationsTests` yeşil; `dotnet format --verify-no-changes` değişen üç dosyada temiz |
+| main `368d978d` (T514) birleştirmesi sonrası | Derleme uyarısız; Unit `Architecture` + `Pages` 2190/2190; Integration `Web` 869/869 (dört parça 124+218+245+282; T514'ün `RegistrationPageTests` dahil). Birleştirmede tek çakışma `DEFERRED_BACKLOG.md` D-801/D-803 satırlarında: D-801 main'den (T514 payı düştü), D-803 daldan (T512 kapanışı) |
 | `dotnet format --verify-no-changes` | Web, UnitTests, IntegrationTests (değişen dosyalar `--include` ile) temiz |
 
 ## Doğrulama
@@ -120,7 +121,7 @@
 2. **D-1197 / D-1259 hedefi T528'e:** müşteri dijital kalemi iptal edemez (`CancelDigitalItem` kapalı, `02` sözlük "İptal"); T512'nin hiçbir yolu ödemesi onaylı dijital kalemi kapatmaz. Kapanmış ödenmiş dijital kalem yalnız firmanın kalem iptaliyle doğar (UC-129, T528).
 3. **Tarayıcı satırları (VAL-B071, VAL-A554'ün tarayıcı yarısı):** yapımda tarayıcı gözlemi yapılmadı; PASS sayılmadı, doğrulamaya bırakıldı.
 4. **D-1281 (aday):** firmanın bütün sipariş iptalinde kargo ücretinin satıra düşmeme olasılığı T528'e kayıtlandı; T512'nin müşteri yolu azalan uuid sırasıyla yazar.
-5. **Web parçasında tek kararsız kırmızı:** T544 birleştirmesinden sonra `Web` F*–O* parçasının ilk koşusunda 1 test kırmızı geldi (çıktı dosyaya alınmadığı için adı bilinmiyor); kod değişmeden yeniden koşuda 350/350 yeşil. T512 dosyası bu parçada yok; doğrulayıcı birleşik ağaçta Web'i koşarken dikkat etsin.
+5. **Web parçasında tek kararsız kırmızı:** T544 birleştirmesinden sonra `Web` F*–O* parçasının ilk koşusunda 1 test kırmızı geldi (çıktı dosyaya alınmadığı için adı bilinmiyor); kod değişmeden yeniden koşuda 350/350 yeşil. T512 dosyası bu parçada yok; doğrulayıcı birleşik ağaçta Web'i koşarken dikkat etsin. T514 birleştirmesinden sonraki `Web` koşusu (869) ilk seferde yeşil.
 
 ## Known Limitations / Follow-up
 

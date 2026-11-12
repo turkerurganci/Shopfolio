@@ -216,6 +216,9 @@ internal sealed class GoogleSignIns
             {
                 _db.DisposalRecords.Add(DisposalRecord.Counted(DisposalRecordType.PendingRegistration, deleted, now));
                 replaced = true;
+
+                // The deleted row's lock is moot; the account born next takes its own row lock when its session opens (T515).
+                LockSequence.Forget(_db, LockKind.Account, pending);
             }
         }
 

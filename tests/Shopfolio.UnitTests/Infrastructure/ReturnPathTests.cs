@@ -95,6 +95,26 @@ public sealed class ReturnPathTests
         Assert.Equal(expected, ReturnPath.AfterSignOut(value));
     }
 
+    [Theory]
+    [InlineData("/urun/ahsap-masa", "/urun/ahsap-masa")]
+    [InlineData("/sepet?x=1#a", "/sepet?x=1#a")]
+    [InlineData("/giris", "/")]
+    [InlineData("/giris?x", "/")]
+    [InlineData("/giris/google", "/")]
+    [InlineData("/Giris", "/")]
+    [InlineData("/%67iris", "/")]
+    [InlineData("/kayit", "/")]
+    [InlineData("/sifre-sifirlama/abc", "/")]
+    [InlineData("/dogrulama/abc", "/")]
+    [InlineData("//evil.example", "/")]
+    [InlineData("https://evil.example", "/")]
+    [InlineData("", "/")]
+    [InlineData(null, "/")]
+    public void AfterSignIn_KeepsAPageOfTheSite_AndAnswersTheHomePageForAnEntryScreenOrForeignOrMissingValue(string? value, string expected)
+    {
+        Assert.Equal(expected, ReturnPath.AfterSignIn(value));
+    }
+
     [Fact]
     public void TheHomePagesAndTheParameterName_AreTheDocumentedOnes()
     {

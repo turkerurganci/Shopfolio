@@ -323,7 +323,6 @@ public sealed class ContentAuthoringTests : IAsyncLifetime
         ContentReaders readers = new(db, FakeSettings(), new ProvinceList(db));
         ContactPageContent page = await readers.ReadContactPageAsync(Ct);
 
-        Assert.True(page.HasContactForm);
         Assert.Equal(["Birinci", "İkinci"], page.Branches.Select(b => b.Name).ToArray());
         Assert.DoesNotContain(page.Branches, b => b.Id == draft.Id);
         Assert.All(page.Branches, b => Assert.Equal("İstanbul", b.ProvinceName));

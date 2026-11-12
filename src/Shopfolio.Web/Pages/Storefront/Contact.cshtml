@@ -1,0 +1,134 @@
+@page "/iletisim"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Modules.CorporateContent.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Storefront
+@model Shopfolio.Pages.Storefront.ContactModel
+@inject SearchEngineData Search
+@*
+    The contact page (E-10; T506; 04 5.10): under "İletişim" the identity block - the footer's full set, with the ETBİS band next to it while the verification address is filled -, the contact form and
+    the branches in the firm's order. No embedded map: each branch has the "Haritada aç" link that opens elsewhere. Narrow class: one column in that order; wide class: the identity block and the
+    branches on the left, the form on the right. The form has three faces: open (the fields, the invisible trap field, the privacy notice link and no consent box), closed (the gate of the
+    data-collecting entries; one sentence in place and no button) and the state after the send (the address carries ContactRequestSent; the request went to the firm, the answer comes by e-mail outside
+    the system, there is no number; the link opens a new form at the code-free address). The branches, the identity block and the page's name stay in all three. A refused send is drawn again with the
+    sent values, the summary and the messages (422); the limit's neutral message stands beside the button (429).
+*@
+@{
+    Layout = "_StorefrontLayout";
+    StorefrontFrame frame = ViewContext.HttpContext.GetStorefrontFrame()
+        ?? throw new InvalidOperationException("The contact page needs the storefront frame (T537).");
+    string title = frame.Menu?.Items.FirstOrDefault(i => i.Kind == MenuItemKind.Contact)?.Name is { Length: > 0 } menuName ? menuName.Trim() : "İletişim";
+    ContactPageView content = Model.PageContent;
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, ContactModel.FormOrder);
+    SendContactRequestInput input = Model.Input;
+    FieldView name = Fields.Bind(Fields.Text(ContactModel.FieldName(nameof(SendContactRequestInput.Name)), "Ad soyad", FieldRequirement.Required, input.Name, autocomplete: "name"), summary);
+    FieldView email = Fields.Bind(Fields.Email(ContactModel.FieldName(nameof(SendContactRequestInput.Email)), "E-posta", FieldRequirement.Required, input.Email), summary);
+    FieldView phone = Fields.Bind(Fields.Telephone(ContactModel.FieldName(nameof(SendContactRequestInput.Phone)), "Telefon", FieldRequirement.Optional, input.Phone), summary);
+    FieldView topic = Fields.Bind(Fields.ClosedList(ContactModel.FieldName(nameof(SendContactRequestInput.ContactTopic)), "Konu", FieldRequirement.Required, ContactTopicLabels.Options, input.ContactTopic), summary);
+    FieldView message = Fields.Bind(Fields.TextArea(ContactModel.FieldName(nameof(SendContactRequestInput.Message)), "Mesajınız", FieldRequirement.Required, input.Message), summary);
+    bool limitExceeded = ViewData.ModelState.TryGetValue(string.Empty, out var formLevel) && formLevel.Errors.Count > 0;
+    FrameLegalLink? privacyNotice = frame.Footer.LegalLinks.FirstOrDefault(l => l.Path == FramePaths.PrivacyNotice);
+}
+@section Head {
+    @Search.Head(ViewContext.HttpContext, StorefrontHeads.Contact(frame, title, content.Branches.Any(b => b.IsDraft)))
+}
+<section class="contact" aria-labelledby="contact-title">
+    <h1 class="contact__title" id="contact-title">@title</h1>
+    <div class="contact__layout">
+        <div class="contact__identity">
+            <partial name="_IdentityBlock" model="content.Identity" />
+            @if (content.Identity.EtbisVerificationUrl is { } etbis)
+            {
+                <a class="etbis-band" href="@etbis" rel="noopener noreferrer">ETBİS doğrulama</a>
+            }
+        </div>
+        <section class="contact__form" id="contact-form" aria-labelledby="contact-form-title">
+            <h2 class="contact__heading" id="contact-form-title">Bize ulaşın</h2>
+            @if (Model.ShowsSentState)
+            {
+                <div class="contact-sent" id="contact-sent">
+                    <partial name="_Message" model='Messages.InPlace(MessageMeaning.Success, "Mesajınız firmaya iletildi. Cevap, yazdığınız e-posta adresine gelecek.")' />
+                    <a class="button button--secondary contact-sent__new" href="@FramePaths.Contact">Yeni bir mesaj yaz</a>
+                </div>
+            }
+            else if (!Model.Form.IsOpen)
+            {
+                <partial name="_Message" model='Messages.InPlace(MessageMeaning.Info, SalesClosedMessages.DataEntryText)' />
+            }
+            else
+            {
+                <partial name="_FormErrorSummary" model="summary" />
+                <form method="post" asp-antiforgery="true" asp-page-handler="SendContactRequest" class="form contact-form" data-js="submit-once">
+                    <div class="form-fields">
+                        <partial name="_Field" model="name" />
+                        <partial name="_Field" model="email" />
+                        <partial name="_Field" model="phone" />
+                        <partial name="_Field" model="topic" />
+                        <partial name="_Field" model="message" />
+                    </div>
+                    <div class="contact-form__trap" aria-hidden="true">
+                        <label for="Input_Website">Web sitesi</label>
+                        <input type="text" id="Input_Website" name="Input.Website" value="" tabindex="-1" autocomplete="off" />
+                    </div>
+                    @if (privacyNotice is not null)
+                    {
+                        <p class="contact-form__notice">Kişisel verileriniz <a href="@privacyNotice.Path">@privacyNotice.Title</a> kapsamında işlenir.</p>
+                    }
+                    <div class="contact-form__actions">
+                        <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf("Gönder")">Gönder</button>
+                        @if (limitExceeded)
+                        {
+                            <partial name="_Message" model='Messages.NeutralLimit("contact-limit")' />
+                        }
+                    </div>
+                </form>
+            }
+        </section>
+        @if (content.Branches.Count > 0)
+        {
+            <section class="contact__branches" aria-labelledby="contact-branches-title">
+                <h2 class="contact__heading" id="contact-branches-title">Şubelerimiz</h2>
+                <ul class="branch-list">
+                    @foreach (ContactBranchView branch in content.Branches)
+                    {
+                        string address = string.Join(" ", new[] { branch.AddressLine, branch.District, branch.ProvinceName }.Where(part => !string.IsNullOrWhiteSpace(part)));
+                        <li class="branch@(branch.IsDraft ? " branch--draft" : string.Empty)">
+                            @if (branch.ImageId is Guid imageId)
+                            {
+                                <img class="branch__image" src="@FrameStyle.ImagePath(imageId)" alt="@branch.ImageAltText" loading="lazy" width="400" height="300" />
+                            }
+                            <h3 class="branch__name">
+                                @if (branch.IsDraft)
+                                {
+                                    <span class="branch__draft">Taslak</span>
+                                }
+                                @branch.Name
+                            </h3>
+                            <dl class="branch__details">
+                                @if (address.Length > 0)
+                                {
+                                    <div class="branch__row"><dt>Adres</dt><dd>@address</dd></div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(branch.Phone))
+                                {
+                                    <div class="branch__row"><dt>Telefon</dt><dd>@DisplayFormat.Phone(branch.Phone)</dd></div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(branch.WorkingHours))
+                                {
+                                    <div class="branch__row"><dt>Çalışma saatleri</dt><dd>@branch.WorkingHours</dd></div>
+                                }
+                            </dl>
+                            @if (branch.MapUrl is { } mapUrl)
+                            {
+                                <a class="branch__map" href="@mapUrl" target="_blank" rel="noopener noreferrer">@branch.MapLinkText</a>
+                            }
+                        </li>
+                    }
+                </ul>
+            </section>
+        }
+    </div>
+</section>

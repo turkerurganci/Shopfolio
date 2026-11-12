@@ -19,7 +19,10 @@
         {
             <div class="home-warnings__item">
                 <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, warning.Text, warning.Id)" />
-                <a class="home-warnings__link" href="@warning.Href">Ekrana git</a>
+                @if (warning.Href is not null)
+                {
+                    <a class="home-warnings__link" href="@warning.Href">Ekrana git</a>
+                }
             </div>
         }
     </section>
@@ -31,7 +34,12 @@
         <ul class="setup-checklist__list">
             @foreach (HomeChecklistView item in Model.Checklist)
             {
-                <li class="setup-checklist__item"><a href="@item.Href">@item.Text</a></li>
+                <li class="setup-checklist__item"><a href="@item.Href">@item.Text</a>
+                    @if (item.Note is not null)
+                    {
+                        <p class="setup-checklist__note">@item.Note</p>
+                    }
+                </li>
             }
         </ul>
     </section>

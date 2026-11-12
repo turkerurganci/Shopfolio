@@ -56,7 +56,8 @@ internal sealed class PanelHomeDetailsService : IPanelHomeDetails
         }
     }
 
-    // A line leads to its order: the item's order, or the order of the refund an itemless request names. A line whose order cannot be found (the record is gone) is left out.
+    // A line leads to its order: the item's order, or the order of the refund it names. Its item is the request's own or the one its refund is for; a request with no item at all is the refund of a late
+    // payment (02 7.2.8; K-1108) and has no item name. A line whose item or order cannot be found (the record is gone) is left out.
     private async Task<IReadOnlyList<AwaitingIbanRow>> ReadAwaitingIbanAsync(CancellationToken ct)
     {
         IReadOnlyList<AwaitingIbanLine> lines = await _afterSales.ListAwaitingIbanLinesAsync(ct);
@@ -65,31 +66,53 @@ internal sealed class PanelHomeDetailsService : IPanelHomeDetails
             return [];
         }
 
-        IReadOnlyList<OrderOfItem> ofItems = await _ordering.FindOrdersOfItemsAsync([.. lines.Select(l => l.OrderItemId).OfType<Guid>().Distinct()], ct);
-        Dictionary<Guid, Guid> orderOfItem = ofItems.ToDictionary(o => o.OrderItemId, o => o.OrderId);
-        Dictionary<Guid, Guid> orderOfRefund = (await _payment.ListOpenRefundWorkAsync(ct)).ToDictionary(r => r.RefundId, r => r.OrderId);
+        Dictionary<Guid, OpenRefundWork> workOfRefund = lines.Any(l => l.OrderItemId is null && l.RefundId is not null)
+            ? (await _payment.ListOpenRefundWorkAsync(ct)).ToDictionary(r => r.RefundId)
+            : [];
 
-        List<(Guid OrderId, DateOnly? LastDay)> resolved = [];
+        List<(AwaitingIbanLine Line, Guid? ItemId, Guid? RefundOrderId)> resolved = [];
         foreach (AwaitingIbanLine line in lines)
         {
-            Guid? orderId = line.OrderItemId is { } item && orderOfItem.TryGetValue(item, out Guid byItem) ? byItem
-                : line.RefundId is { } refund && orderOfRefund.TryGetValue(refund, out Guid byRefund) ? byRefund
-                : null;
-            if (orderId is { } found)
-            {
-                resolved.Add((found, line.RefundLastDay));
-            }
+            OpenRefundWork? work = line.RefundId is { } refund && workOfRefund.TryGetValue(refund, out OpenRefundWork? found) ? found : null;
+            resolved.Add((line, line.OrderItemId ?? work?.OrderItemId, work?.OrderId));
         }
 
-        Dictionary<Guid, string> numbers = [];
-        foreach (Guid orderId in resolved.Select(r => r.OrderId).Distinct())
+        Guid[] itemIds = [.. resolved.Select(r => r.ItemId).OfType<Guid>().Distinct()];
+        Dictionary<Guid, OrderItemLabel> labels = itemIds.Length == 0
+            ? []
+            : (await _ordering.FindItemLabelsAsync(itemIds, ct)).ToDictionary(l => l.OrderItemId);
+
+        Dictionary<Guid, string?> numberOfOrder = [];
+        List<AwaitingIbanRow> rows = [];
+        foreach ((AwaitingIbanLine line, Guid? itemId, Guid? refundOrderId) in resolved)
         {
-            if (await _ordering.GetOrderNumberAsync(orderId, ct) is { } number)
+            if (itemId is { } item)
             {
-                numbers[orderId] = number;
+                if (labels.TryGetValue(item, out OrderItemLabel? label))
+                {
+                    rows.Add(new AwaitingIbanRow(label.OrderId, label.OrderNumber, PanelRequestListService.ItemNameOf(label), line.Reason, line.CreatedAt, line.RefundLastDay));
+                }
+
+                continue;
+            }
+
+            if (refundOrderId is not { } orderId)
+            {
+                continue;
+            }
+
+            if (!numberOfOrder.TryGetValue(orderId, out string? number))
+            {
+                number = await _ordering.GetOrderNumberAsync(orderId, ct);
+                numberOfOrder[orderId] = number;
+            }
+
+            if (number is not null)
+            {
+                rows.Add(new AwaitingIbanRow(orderId, number, null, line.Reason, line.CreatedAt, line.RefundLastDay));
             }
         }
 
-        return [.. resolved.Where(r => numbers.ContainsKey(r.OrderId)).Select(r => new AwaitingIbanRow(r.OrderId, numbers[r.OrderId], r.LastDay))];
+        return rows;
     }
 }

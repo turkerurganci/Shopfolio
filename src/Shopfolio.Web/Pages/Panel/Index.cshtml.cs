@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.Modules.Settings.Contracts.Gates;
 using Shopfolio.Pages.Components;
@@ -11,11 +12,11 @@ using Shopfolio.Pages.Frame;
 
 namespace Shopfolio.Pages.Panel;
 
-/// <summary>One warning of the home page (04 3.4.3): its sentence and the screen or list it leads to.</summary>
-public sealed record HomeWarningView(string Id, string Text, string Href);
+/// <summary>One warning of the home page (04 3.4.3): its sentence and the screen or list it leads to; the channel warning leads nowhere - its mending is the setup setting, not a screen (K-769).</summary>
+public sealed record HomeWarningView(string Id, string Text, string? Href);
 
-/// <summary>One open item of the setup checklist (04 3.4.4): what is missing and the screen of its own setting.</summary>
-public sealed record HomeChecklistView(string Text, string Href);
+/// <summary>One open item of the setup checklist (04 3.4.4): what is missing, the screen of its own setting and, under the notice item, the line about the closed entrances (04 9.3.4; K-850).</summary>
+public sealed record HomeChecklistView(string Text, string Href, string? Note = null);
 
 /// <summary>
 /// The words of the panel home (T521; 04 3.4; 02 10.6.1, 10.8.2): written here once. The warning sentences are K-799's; the sentence of a card refund whose result is awaited is the product's own and says the
@@ -40,6 +41,24 @@ internal static class PanelHomeTexts
     public static string CardRefundFailed(int orders) => $"{DisplayFormat.Number(orders)} siparişte kart iadesi gerçekleşmedi.";
 
     public static string CardRefundOutcomePending(int orders) => $"{DisplayFormat.Number(orders)} siparişte kart iadesinin sonucu bekleniyor.";
+
+    /// <summary>The line under the notice item: until both legal texts are published the entrances that collect data are closed (04 9.3.4; 04 2.8.3; K-850).</summary>
+    public const string ClosedEntrances = "İki metin de yayına alınana kadar iletişim formu, hesap kaydı ve yeni hesap açan Google girişi kapalıdır.";
+
+    /// <summary>The item's name on the refund of a late payment, which has no item (04 9.3.6; 02 7.2.8; K-1108).</summary>
+    public const string LatePaymentRefund = "geç gelen ödemenin geri ödemesi";
+
+    /// <summary>The reason of an IBAN request in a short sentence for the firm (04 9.3.6); the customer's own wording is the e-mail's.</summary>
+    public static string IbanReason(RefundIbanRequestReason reason) => reason switch
+    {
+        RefundIbanRequestReason.ReturnAfterIbanDeleted => "İade edilen ürün ulaştı",
+        RefundIbanRequestReason.TransferFailed => "Geri ödeme havalesi gerçekleşmedi",
+        RefundIbanRequestReason.CardRefundFailed => "Kart iadesi gerçekleşmedi",
+        RefundIbanRequestReason.NoticeWithoutIban => "Cayma ya da fesih bildirimi IBAN içermiyordu",
+        RefundIbanRequestReason.CancellationOrRemoval => "Ödenmiş kalem iptal edildi ya da siparişten çıkarıldı",
+        RefundIbanRequestReason.AdminRequest => "Firma IBAN istedi",
+        _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "Not an IBAN request reason."),
+    };
 
     /// <summary>The checklist item's name, as 02 10.8.2 writes it.</summary>
     public static string ChecklistName(SetupChecklistItemKind kind) => kind switch
@@ -124,7 +143,7 @@ internal sealed class PanelHomeModel : PageModel
 
         if (home.ChannelWarningOpen)
         {
-            warnings.Add(new HomeWarningView("home-warning-channel", PanelHomeTexts.ChannelBroken, PanelFramePaths.FirmIdentityAndSales));
+            warnings.Add(new HomeWarningView("home-warning-channel", PanelHomeTexts.ChannelBroken, null));
         }
 
         if (home.FirmNoticesWarningOpen)
@@ -149,9 +168,7 @@ internal sealed class PanelHomeModel : PageModel
         }
 
         Warnings = warnings;
-        Checklist = home.SetupChecklist is { } items
-            ? [.. items.Where(i => !i.IsDone).Select(i => new HomeChecklistView(ChecklistText(i), PanelHomeTexts.ChecklistPath(i.Kind)))]
-            : [];
+        Checklist = home.SetupChecklist is { } items ? ChecklistOf(items) : [];
         Counters = PendingCounters.Of(home.Counters);
 
         DateTimeOffset now = _time.GetUtcNow();
@@ -162,8 +179,24 @@ internal sealed class PanelHomeModel : PageModel
                 "IBAN bekleniyor",
                 row.RefundLastDay is { } lastDay
                     ? new PeriodIndicator("İade süresi", CountedPeriod.RefundPeriod, PeriodStanding.Of(CountedPeriod.RefundPeriod, lastDay, now, BusinessCalendar.Product))
-                    : null)));
+                    : null,
+                row.ItemName ?? PanelHomeTexts.LatePaymentRefund,
+                PanelHomeTexts.IbanReason(row.Reason),
+                row.RequestedAt)));
         return Page();
+    }
+
+    // The open items, each with its screen; under the notice item - or under the cookie policy once the notice is done - the line that says the entrances that collect data stay closed until both texts are published (04 9.3.4; K-850).
+    private static List<HomeChecklistView> ChecklistOf(IReadOnlyList<SetupChecklistItem> items)
+    {
+        bool noticeOpen = items.Any(i => !i.IsDone && i.Kind == SetupChecklistItemKind.PrivacyNotice);
+        return
+        [
+            .. items.Where(i => !i.IsDone).Select(i => new HomeChecklistView(
+                ChecklistText(i),
+                PanelHomeTexts.ChecklistPath(i.Kind),
+                i.Kind == SetupChecklistItemKind.PrivacyNotice || (i.Kind == SetupChecklistItemKind.CookiePolicy && !noticeOpen) ? PanelHomeTexts.ClosedEntrances : null)),
+        ];
     }
 
     private static string ChecklistText(SetupChecklistItem item) =>

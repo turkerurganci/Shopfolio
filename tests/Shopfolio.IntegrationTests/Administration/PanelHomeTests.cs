@@ -580,8 +580,8 @@ public sealed class PanelHomeTests : IAsyncLifetime
         IReadOnlyList<AwaitingIbanLine> lines = await AwaitingLinesAsync();
 
         Assert.Equal(2, lines.Count);
-        Assert.Equal(new AwaitingIbanLine(ItemOf(withPeriod), null, AfterSalesPeriodRules.RefundLastDay(Day)), lines[0]);
-        Assert.Equal(new AwaitingIbanLine(ItemOf(withoutPeriod), null, null), lines[1]);
+        Assert.Equal(new AwaitingIbanLine(ItemOf(withPeriod), null, RefundIbanRequestReason.CancellationOrRemoval, cancelled.CreatedAt, AfterSalesPeriodRules.RefundLastDay(Day)), lines[0]);
+        Assert.Equal(new AwaitingIbanLine(ItemOf(withoutPeriod), null, RefundIbanRequestReason.AdminRequest, asked.CreatedAt, null), lines[1]);
 
         // A closed request is no longer awaited.
         await ExecuteAsync($"UPDATE refund_iban_requests SET closed_at = now() WHERE id = '{asked.Id}'");

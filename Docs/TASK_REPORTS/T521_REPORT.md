@@ -8,7 +8,7 @@
 
 - Panel ana sayfası (`Pages/Panel/Index.cshtml(.cs)`, `PanelHomeModel`, `PanelHomeTexts`): uyarılar, kurulum listesi, altı sayaç, "Müşteriden beklenenler" (IBAN bekleniyor, ilk on satır); boş bölüm çizilmez; sayfada form ve yazma yok.
 - Ana sayfanın kendi okuyucuları: `IPanelHomeDetails` / `PanelHomeDetailsService` (Administration), `IAfterSalesModule.ListAwaitingIbanLinesAsync`, `IPaymentModule.CountCardRefundProblemsAsync`, `AfterSalesPeriodRules.RefundLastDay`.
-- E-54 sayfaları: `Verify` (`/panel/dogrulama/{anahtar}`), `Revert` (`/panel/geri-al/{anahtar}`), `Reauth` (`/panel/yeniden-dogrulama`), `LandingNextStep`; metinler `PanelAccessTexts`'te, adresler `PanelFramePaths`'te. Modül tarafı: `AdminEmailChanges.VerifyNewEmailAsync` / `RevertPendingEmailChangeAsync`, `IAdministrationModule`, `ReauthenticationValues`, `SessionStore`.
+- E-54 sayfaları: `Verify` (`/panel/dogrulama/{anahtar}`), `Revert` (`/panel/geri-al/{anahtar}`), `Reauth` (`/panel/yeniden-dogrulama`), `LandingNextStep`; metinler `PanelAccessTexts`'te, adresler `PanelFramePaths`'te. Modül tarafı: `AdminEmailChanges.VerifyNewEmailAsync` / `RestorePreviousEmailAsync`, `IAdministrationModule`, `ReauthenticationValues`, `SessionStore`.
 - Bu turda (devam 2): eksik testler (ana sayfa uyarıları, IBAN satırları, iki yeni modül okuyucusu), mimari tarama düzeltmeleri (tüketici yöntem listesi, `ReauthenticateInput` alan işareti, `!` kullanımı), kayıtlar.
 
 ## Etkilenen Modüller / Dosyalar
@@ -22,7 +22,7 @@
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | `GET /panel` uyarı, kurulum listesi, altı sayaç, beklenenler; boş bölüm görünmez | ✓ | `TheHome_DrawsTheSixCounters_ZeroIncluded_AndLeavesAnEmptySectionOut_T521_KK1`, `ACountOfZero_OpensNoWarning_AndACountAboveZero_OpensItsOwnLine_T521_KK1` |
+| 1 | `GET /panel` uyarı, kurulum listesi, altı sayaç, beklenenler; boş bölüm görünmez | ✓ (düzeltme 1: satır içeriği, kanal uyarısı geçişsiz, aydınlatma alt satırı) | `TheHome_DrawsTheSixCounters_ZeroIncluded_AndLeavesAnEmptySectionOut_T521_KK1`, `AnIbanLine_CarriesTheNumberTheItemNameTheReasonAndTheDate_AndTheRefundOfALatePaymentHasNoItemName_T521_KK3`, `TheChannelWarning_LeadsNowhere_…_T521_KK1`, `TheNoticeItem_CarriesTheLineAboutTheClosedEntrances_…_T521_KK1`, `ACountOfZero_OpensNoWarning_AndACountAboveZero_OpensItsOwnLine_T521_KK1` |
 | 2 | İstek anında hesap, sayaç saklanmaz; eksik madde satış kapısından, kendi ayar ekranına bağlı | ✓ | `ACounter_ChangesWhenTheRecordsChange_AndIsNotStored_T521_KK2`; `PanelHomeDetails` tabloya yazmaz; `PanelHomeModel.WarningPathOf`, `PanelHomeTexts.ChecklistPath` |
 | 3 | Sayaçlar süzgeçle listeye bağlı; IBAN bekleniyor ilk on, kalan süreye göre | ✓ | `TheIbanLines_ShowTheTenWithTheLeastTimeLeftFirst_AndTheRestAreOnTheLink_T521_KK3`, `ALineWithoutALastDay_HasNoPeriod_…_KK3`, `TheAwaitingIbanLines_AreTheOpenRequests_…_KK3` |
 | 4 | Yeniden doğrulama: işlem adı, şifre alanı, Google yok; yok/dışı 303 `/panel/hesabim`; açılış önceki izni düşürür | ✓ | `TheReauthenticationPage_Redirects_…_KK4`, `TheReauthenticationPage_NamesTheOperation_AsksThePassword_HasNoGoogle_AndDropsTheEarlierPermission_T521_KK4` |
@@ -54,7 +54,7 @@
 
 | # | Neden | Sonuç |
 |---|---|---|
-| 1 | Bekçi/tarama istisnası geniş | ✓ Tüketici listesine yalnız `AdminEmailChanges.cs` içindeki `RevertPendingEmailChangeAsync` eklendi (tek dosya, tek yöntem) |
+| 1 | Bekçi/tarama istisnası geniş | ✓ Tüketici listesine yalnız `AdminEmailChanges.cs` içindeki `RestorePreviousEmailAsync` eklendi (tek dosya, tek yöntem) |
 | 2 | Kaynak taraması çağrı biçimi kaçırıyor | ✓ Yeni tarama eklenmedi; var olan tarama yeni tüketiciyi yakaladı (önce kırmızı, sonra listeyle yeşil) |
 | 3 | 06 "Varsayılan" / FK dizini | ✓ Şema değişmedi |
 | 4 | Aynı sayıyı anan öteki yerler | ✓ Kural değişmedi; yalnız tüketici listesi genişledi, açıklaması güncellendi |
@@ -85,7 +85,6 @@
 
 ## ⚠ Maddeler
 
-- Kalem adı okuyucusu yok: IBAN bekleniyor satırı "IBAN bekleniyor" + sipariş no gösterir, kalem adı yok (D-1297).
 - IBAN satırı süresi yalnız `CancellationOrRemoval`, `NoticeWithoutIban`, `ReturnAfterIbanDeleted` nedenlerinde; başlangıç talep `CreatedAt` günüdür (beyan/iptal gününün yaklaşığı); öteki nedenler süresiz (K-716) (D-1298).
 - "Kart iadesinin sonucu bekleniyor" cümlesi belgede yok; ürünün kendi cümlesi yazıldı (K-940) (D-1299).
 - Sipariş satırı bağlantısı `/panel/siparisler/{orderId}`; sayfa sonraki task'ta (D-1300).
@@ -106,3 +105,19 @@ Dış varsayım: yok.
 | Yapım raporu karşılaştırması (tur 1) | KK2, KK4–KK10 kanıtları uyumlu. Uyuşmazlıklar: (1) kriter 1/KK1 ✓ yazılmış ama `04` 9.3.6'nın satır içeriği eksik ve D-1297 ile ertelenmiş (B1); (2) öz denetim `04` 3.4.3 / 9.25.2 / 9.3.4 ayrıntılarını kapsamıyor (B2–B4); (3) "Etkilenen modüller" eski adları (`RevertPendingEmailChangeAsync`) yazıyor, koddaki ad `RestorePreviousEmailAsync`; (4) `12` Durum hücreleri yazılmamış |
 | Doğrulayıcı kanıtları (tur 1) | Derleme `-warnaserror` 0/0; `dotnet format --verify-no-changes` üç proje temiz; Unit 7092/7092 + Consistency 295/295; betik 4/4; Integration TAM 3909/3909 (Web 901 = 229+387+285; Ordering 645; Model 1410; Administration+Catalog+Commands+Concurrency+CorporateContent+Database+Disposal+FileSecrets+Files+Jobs+Logging+Outages+Payment+Security+SignedEndpoints 953) — postgres:18, `track_commit_timestamp=on`; `restore --locked-mode` 0; CI run 43150388572 yeşil; undo bekçisi (`IrreversibleConfirmationTests.UndoWord`) değişmemiş, istisna yok; `12` Durum: A257, A259, A260, A262, A263, A316, D043 PASS · A261 FAIL · A258, A264 BEKLEMEDE (E-36 yok; D-1348) |
 | Birleştirme notu (tur 1) | origin/main `29562ee9` (T532) ile `src/Shopfolio.Web/Modules/Administration/AdministrationModule.cs` (DI kayıt satırı: `IPanelHomeDetails` ↔ `IPanelRequestList`) kod çakışması — birleştirme geri alındı; kayıt commit'i birleştirmesiz |
+
+## Düzeltme 1 (2026-11-12; tur 1 FAIL sonrası)
+
+Yapım raporundaki eski ad (`RevertPendingEmailChangeAsync`) `RestorePreviousEmailAsync` olarak düzeltildi. D-1297 kapandı.
+
+| Bulgu | Düzeltme | Kanıt |
+|---|---|---|
+| B1 (ORTA, `VAL-A261`) | "Müşteriden beklenenler" satırı sipariş numarası, kalemin adı (kalemsiz geç gelen ödeme geri ödemesinde "geç gelen ödemenin geri ödemesi"), isteğin sebebi ve tarihi ile varsa kalan süreyi taşır; süresiz satırlar istek tarihiyle sıralı. `AwaitingIbanLine` sebep + `CreatedAt`, `AwaitingIbanRow` kalem adı + sebep + tarih alır; kalem adı `IOrderingModule.FindItemLabelsAsync` (T532) ve `PanelRequestListService.ItemNameOf` ile okunur (ikinci ad yazıcısı yok); refund'ın kalemi `OpenRefundWork.OrderItemId`'den çözülür | `AnIbanLine_CarriesTheNumberTheItemNameTheReasonAndTheDate_…_T521_KK3`, `TheLinesWithoutAPeriod_AreOrderedByTheDateOfTheirRequest_…_T521_KK3`, `TheAwaitingIbanLines_AreTheOpenRequests_…_KK3` (sebep + tarih) |
+| B2 (DÜŞÜK) | Kanal uyarısı "Ekrana git" taşımaz (`HomeWarningView.Href` null) | `TheChannelWarning_LeadsNowhere_AndTheOthersLeadToTheirScreen_T521_KK1` |
+| B3 (DÜŞÜK) | Geri alma inişinin "bağlantı geçersiz", "uygulanmadı" ve "geri alındı" hâllerinde sonraki adım bağlantısı `LandingNextStep` ile (oturum açıksa E-50, değilse E-29) | `TheRevertLanding_ShowsTheNextStepInEveryState_…_T521_KK6` |
+| K3 | Geri alma başarısında çerez yalnız geri alınan hesabın kendi oturumuysa silinir (POST'ta işlemden önce oturumdaki hesap okunur) | `TheRevertButton_DeletesTheBrowsersCookieOnlyWhenItIsTheRevertedAccountsOwnSession_T521_KK9` |
+| B4 (DÜŞÜK) | Aydınlatma metni maddesinin altına (aydınlatma tamamsa çerez politikasının altına) "iki metin de yayına alınana kadar iletişim formu, hesap kaydı ve yeni hesap açan Google girişi kapalıdır" satırı | `TheNoticeItem_CarriesTheLineAboutTheClosedEntrances_…_T521_KK1`, `TheHome_DrawsTheSixCounters_…_KK1` (satır bir kez) |
+
+Öz denetim: 10 kabul kriteri ve KK1–KK10 yeniden geçildi; KK1 artık ✓ (satır içeriği, kanal uyarısı, aydınlatma alt satırı); öteki kriterlerin kanıt testleri değişmedi. `sik-fail-nedenleri.md` okundu: "satır içeriği belgedeki alanları taşımıyor" ve "iniş/uyarı hâllerinde belgenin istediği cümle/bağlantı" satırları bu turda karşılandı; "Integration TAM koşulmadan PR" nedeni için aşağıdaki not.
+
+Sınama (düzeltme 1; dal + origin/main `29562ee9` birleşik ağaç): restore ✓; build `-warnaserror` 0 uyarı/0 hata ✓; `dotnet format --verify-no-changes` Web, UnitTests, IntegrationTests ✓; Unit 7116/7116 + Consistency 295/295 ✓; Integration (postgres:18, `track_commit_timestamp=on`): `PanelHomeAndVerificationPagesTests` + `PanelHomeTests` 42/42 ✓. **Integration TAM bu turda koşulamadı** (45 dk bütçe; makinede başka koşular var, 42 test 6 dk sürdü) — doğrulayıcı TAM koşmalı.

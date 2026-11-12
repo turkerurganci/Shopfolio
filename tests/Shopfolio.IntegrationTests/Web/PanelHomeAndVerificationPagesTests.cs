@@ -14,6 +14,7 @@ using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Notifications;
 using Shopfolio.Modules.Notifications.Contracts;
+using Shopfolio.Pages.Frame;
 using Shopfolio.Pages.Panel;
 
 namespace Shopfolio.IntegrationTests.Web;
@@ -81,6 +82,9 @@ public sealed class PanelHomeAndVerificationPagesTests : IAsyncLifetime
         Assert.DoesNotContain("Müşteriden beklenenler", html, StringComparison.Ordinal);
         Assert.DoesNotContain("home-warning-email-undelivered", html, StringComparison.Ordinal);
         Assert.DoesNotContain("home-warning-card-refund", html, StringComparison.Ordinal);
+
+        // The empty installation lacks both legal texts: the line about the closed entrances stands once, under the notice item (04 9.3.4; K-850).
+        Assert.Equal(1, Regex.Count(html, Regex.Escape(PanelHomeTexts.ClosedEntrances), RegexOptions.None, TimeSpan.FromSeconds(5)));
 
         // The order of the sections: warnings, then the checklist, then the counters.
         Assert.True(html.IndexOf("home-warning-sales", StringComparison.Ordinal) < html.IndexOf("setup-checklist-title", StringComparison.Ordinal));
@@ -299,6 +303,72 @@ public sealed class PanelHomeAndVerificationPagesTests : IAsyncLifetime
         Assert.Contains(PanelAccessTexts.RevertInvalid, unknown, StringComparison.Ordinal);
         await using AppDbContext db = NewContext();
         Assert.Equal(email, await db.Admins.Where(a => a.Id == adminId).Select(a => a.NormalizedEmail).SingleAsync(Ct));
+    }
+
+    [Fact]
+    public async Task TheRevertLanding_ShowsTheNextStepInEveryState_ToMyAccountWhenASessionIsOpenElseToTheSignIn_T521_KK6()
+    {
+        (string email, Guid adminId) = await SeedAdminAsync();
+        (string otherEmail, Guid otherId) = await SeedAdminAsync();
+        (string otherSession, _) = await SeedSessionAsync(otherId);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        LinkKeys keys = factory.Services.GetRequiredService<LinkKeys>();
+        string used = await SeedRevertAsync(keys, adminId, "previous-" + email, DateTimeOffset.UtcNow.AddMinutes(-1));
+        string taken = await SeedRevertAsync(keys, adminId, otherEmail, null);
+        string signIn = $"href=\"{PanelFramePaths.SignIn}\"";
+        string myAccount = $"href=\"{PanelFramePaths.MyAccount}\"";
+
+        (_, string invalidClosed, _) = await GetAsync(client, $"{RevertPath}/{used}");
+        (_, string invalidOpen, _) = await GetAsync(client, $"{RevertPath}/{used}", AdminCookie(otherSession));
+        (_, string doneClosed, _) = await GetAsync(client, $"{RevertPath}/{used}?{NoticeParameter.ParameterName}={NoticeCode.EmailChangeReverted}");
+        (_, string doneOpen, _) = await GetAsync(client, $"{RevertPath}/{used}?{NoticeParameter.ParameterName}={NoticeCode.EmailChangeReverted}", AdminCookie(otherSession));
+        (HttpStatusCode notAppliedStatus, string notAppliedClosed) = await PostBodyAsync(client, $"{RevertPath}/{taken}?handler=RevertPendingEmailChange", []);
+        (_, string notAppliedOpen) = await PostBodyAsync(client, $"{RevertPath}/{taken}?handler=RevertPendingEmailChange", [], AdminCookie(otherSession));
+
+        Assert.Contains(PanelAccessTexts.RevertInvalid, invalidClosed, StringComparison.Ordinal);
+        Assert.Contains(signIn, invalidClosed, StringComparison.Ordinal);
+        Assert.Contains(myAccount, invalidOpen, StringComparison.Ordinal);
+        Assert.Contains(signIn, doneClosed, StringComparison.Ordinal);
+        Assert.Contains(myAccount, doneOpen, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, notAppliedStatus);
+        Assert.Contains(PanelAccessTexts.RevertNotApplied, notAppliedClosed, StringComparison.Ordinal);
+        Assert.Contains(signIn, notAppliedClosed, StringComparison.Ordinal);
+        Assert.Contains(PanelAccessTexts.RevertNotApplied, notAppliedOpen, StringComparison.Ordinal);
+        Assert.Contains(myAccount, notAppliedOpen, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TheRevertButton_DeletesTheBrowsersCookieOnlyWhenItIsTheRevertedAccountsOwnSession_T521_KK9()
+    {
+        (string email, Guid adminId) = await SeedAdminAsync();
+        _ = await SeedSessionAsync(adminId);
+        (_, Guid otherId) = await SeedAdminAsync();
+        (string otherSession, _) = await SeedSessionAsync(otherId);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        LinkKeys keys = factory.Services.GetRequiredService<LinkKeys>();
+        string byOther = await SeedRevertAsync(keys, adminId, "previous-" + email, null);
+
+        // Another administrator's browser opens the link and presses the button: the revert happens, that administrator's cookie and session stay.
+        (HttpStatusCode first, _, List<string> otherCookies) = await PostAsync(client, $"{RevertPath}/{byOther}?handler=RevertPendingEmailChange", [], AdminCookie(otherSession));
+        Assert.Equal(HttpStatusCode.SeeOther, first);
+        Assert.DoesNotContain(otherCookies, c => c.StartsWith(CookieNames.AdminSession + "=", StringComparison.Ordinal));
+        await using AppDbContext db = NewContext();
+        Assert.True(await db.Sessions.AnyAsync(s => s.AdminId == otherId, Ct));
+        Assert.False(await db.Sessions.AnyAsync(s => s.AdminId == adminId, Ct));
+
+        // The landing after the revert leads that administrator to "Hesabım".
+        (_, string landing, _) = await GetAsync(client, $"{RevertPath}/{byOther}?{NoticeParameter.ParameterName}={NoticeCode.EmailChangeReverted}", AdminCookie(otherSession));
+        Assert.Contains($"href=\"{PanelFramePaths.MyAccount}\"", landing, StringComparison.Ordinal);
+
+        // The reverted account's own browser: its session ended with the revert and its cookie goes.
+        (string ownEmail, Guid ownId) = await SeedAdminAsync();
+        (string ownKey, _) = await SeedSessionAsync(ownId);
+        string byOwner = await SeedRevertAsync(keys, ownId, "previous-" + ownEmail, null);
+        (HttpStatusCode second, _, List<string> ownCookies) = await PostAsync(client, $"{RevertPath}/{byOwner}?handler=RevertPendingEmailChange", [], AdminCookie(ownKey));
+        Assert.Equal(HttpStatusCode.SeeOther, second);
+        Assert.Contains(ownCookies, c => c.StartsWith(CookieNames.AdminSession + "=", StringComparison.Ordinal));
     }
 
     [Fact]

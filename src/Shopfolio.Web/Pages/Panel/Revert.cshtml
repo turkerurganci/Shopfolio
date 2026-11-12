@@ -24,12 +24,14 @@
         break;
     case LandingStep.Done:
         <partial name="_Message" model='Messages.InPlace(MessageMeaning.Success, PanelAccessTexts.EmailReverted, "revert-done")' />
-        <p><a href="@PanelFramePaths.SignIn">@PanelAccessTexts.ToSignInLink</a></p>
+        <p><a href="@Model.NextPath">@Model.NextText</a></p>
         break;
     case LandingStep.Rejected:
         <partial name="_Message" model='Messages.InPlace(MessageMeaning.Warning, PanelAccessTexts.RevertNotApplied, "revert-not-applied")' />
+        <p><a href="@Model.NextPath">@Model.NextText</a></p>
         break;
     default:
         <partial name="_Message" model='Messages.InPlace(MessageMeaning.Warning, PanelAccessTexts.RevertInvalid, "revert-invalid")' />
+        <p><a href="@Model.NextPath">@Model.NextText</a></p>
         break;
 }

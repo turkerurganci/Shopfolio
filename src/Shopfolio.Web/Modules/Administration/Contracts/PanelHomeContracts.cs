@@ -1,3 +1,5 @@
+using Shopfolio.Modules.AfterSales.Contracts;
+
 namespace Shopfolio.Modules.Administration.Contracts;
 
 /// <summary>
@@ -36,8 +38,17 @@ public interface IPanelHomeDetails
 /// <summary>The orders whose customer e-mail did not arrive, the orders with a failed card refund, the orders whose card refund awaits its result, and every open "IBAN bekleniyor" line.</summary>
 public sealed record PanelHomeDetails(int EmailNotDeliveredOrders, int CardRefundFailedOrders, int CardRefundOutcomePendingOrders, IReadOnlyList<AwaitingIbanRow> AwaitingIban);
 
-/// <summary>One "IBAN bekleniyor" line: the order, its number, and the last day of the refund period when the line has one.</summary>
-public sealed record AwaitingIbanRow(Guid OrderId, string OrderNumber, DateOnly? RefundLastDay);
+/// <summary>
+/// One "IBAN bekleniyor" line (04 9.3.6): the order and its number, the item's name (null on the refund of a late payment, which has no item), the reason of the request, the instant it was opened, and the
+/// last day of the refund period when the line has one.
+/// </summary>
+public sealed record AwaitingIbanRow(
+    Guid OrderId,
+    string OrderNumber,
+    string? ItemName,
+    RefundIbanRequestReason Reason,
+    DateTimeOffset RequestedAt,
+    DateOnly? RefundLastDay);
 
 /// <summary>One counter: its name, the count and the list it leads to. The unit is the order, except the open request, whose unit is the request.</summary>
 public sealed record PanelCounter(PanelCounterKind Kind, int Count, PanelListTarget ListTarget);

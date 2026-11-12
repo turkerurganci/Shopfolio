@@ -136,6 +136,8 @@ internal sealed partial class AfterSalesModule
             .. open.Select(r => new AwaitingIbanLine(
                 r.OrderItemId,
                 r.RefundId,
+                r.Reason,
+                r.CreatedAt,
                 r.Reason is RefundIbanRequestReason.CancellationOrRemoval or RefundIbanRequestReason.NoticeWithoutIban or RefundIbanRequestReason.ReturnAfterIbanDeleted
                     ? AfterSalesPeriodRules.RefundLastDay(TurkeyTime.DateOf(r.CreatedAt))
                     : null)),

@@ -367,8 +367,8 @@ public interface IAfterSalesModule
     Task<(ItemRecordRefusal? Refusal, DateOnly? OldDate)> CorrectArrivalDateAsync(ItemRecordSubject subject, Guid recordId, DateOnly arrivalDate, CancellationToken ct);
 }
 
-/// <summary>One open IBAN request of the panel home's list (T521): the item it is on (null on the refund of a late payment), the refund it names (null before a refund is linked), the last day of its refund period (null when it has none).</summary>
-public sealed record AwaitingIbanLine(Guid? OrderItemId, Guid? RefundId, DateOnly? RefundLastDay);
+/// <summary>One open IBAN request of the panel home's list (T521; 04 9.3.6): the item it is on (null on the refund of a late payment), the refund it names (null before a refund is linked), the reason it was opened for, the instant it was opened, the last day of its refund period (null when it has none).</summary>
+public sealed record AwaitingIbanLine(Guid? OrderItemId, Guid? RefundId, RefundIbanRequestReason Reason, DateTimeOffset CreatedAt, DateOnly? RefundLastDay);
 
 /// <summary>A refund and the item it is for, null when it is for no one item (T382): the pair the IBAN wait is read by.</summary>
 public sealed record RefundOfItem(Guid RefundId, Guid? OrderItemId);

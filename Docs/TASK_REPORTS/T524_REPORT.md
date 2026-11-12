@@ -1,6 +1,6 @@
 # T524 — Satış özeti ve dışa aktarma (E-51, E-53)
 
-**Faz:** F5 | **Durum:** ⏳ Doğrulama bekliyor | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ PASS (doğrulama tur 1) | **Tarih:** 2026-11-12
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -59,6 +59,17 @@
 - `PanelFrameFilter`'a sonuç aşaması eklendi (hata katmanının 500 yeniden çizimi için); aynı boşluk vitrin filtresinde → D-1378.
 - `SalesSummaryTests`'teki bölüm sürüm numarası beklentisi main'deki sürüme göre düzeltildi.
 - İade adresi kaydının iz yazmaması (kapsam dışı) → D-1377.
+
+## Doğrulama
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu (tur 1) | ✓ PASS — tur 1 (2026-11-12, head `c5add538`; `origin/main` `73e36672` dalda, birleştirme gerekmedi). Kriter 1–10 ve KK1–KK10 ✓ (kanıtlar: `SalesSummaryPageTests`, `DataExportPageTests`, `SalesSummaryTests`, `DataExportTests`, `SalesGateTests` 2 yeni, Unit `SalesOpeningRulesTests` 8 ve `CsvExportWriterTests`; doğrulayıcının 3 geçici sınaması — oturumsuz ve müşteri oturumlu export erişimi dosya vermez ve iz 0; aralık dışı ödenmiş sipariş dosyada yok, başlıkta ödeme/kargo/iletişim sütunları; zengin günde sayfa kartları servis değerleriyle birebir, geç ödemesi sistemce iade edilmiş Başarısız sipariş sayı/ciro/dağılımda yok). Yerel: derleme `-warnaserror` 0 uyarı, format temiz (Web, Unit, Integration), Unit 7493/7493, betik testleri 4/4, Integration ilgili sınıflar 374/374 + geçici 3/3; **Integration TAM: CI**. Dal CI'ı yeşil (`43282828056`; Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate). Ana dal son üç run `success` (`43276977661`, `43276977628`, `43243831320`). |
+| `12` satırları (tur 1) | PASS: `VAL-A266`, A267, A268, A269, A270, A271, A272, A273, A274, A275, A276, A277, A278, A279, A280, A281, A282, A283, D030; `VAL-D029` zaten PASS. Matris betiği hata 0. |
+| Bulgu sayısı (tur 1) | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (tur 1) | 3 — **K1** (D-1377 hedefi → T536): iade adresi kaydı ize yazılmazsa ölçüm penceresinin başı erken türetilir (`06 §10.6` m6 izi varsayar). **K2** (forward D-1423): kart hattı kurulum değeri izde yok; anahtar sonradan tanımlanırsa pencere başı erken çıkar. **K3** (forward D-1424): A271 (yetkisiz istek), A273/A274/A283 sayfa düzeyi sınaması kalıcı teste girmedi (geçici sınamada yeşil). |
+| Yapım raporu karşılaştırması (tur 1) | Kabul kriterlerinde tam uyum (1–10 ✓); öz denetim tablosu var. Uyuşmazlık 1: rapor "iz imha edilirse pencere sunulmaz" diyor; kod eksik izde güncel hâli geçmişe yayar (pencere sunulabilir, başı kayar) — 10 yıllık saklama nedeniyle pratik etkisi yok. |
 
 ## Known Limitations / Follow-up
 

@@ -1,0 +1,35 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model Shopfolio.Pages.Content.ContentRecordPageModel
+@* The body of a content record page (T505; 04 5.8.3-5.8.5): the name or title, the gallery in the firm's order, the text, the "Bize ulaşın" link of a service, "İlgili ürünler" (when at least one linked
+   product is published) and, last, the shared "Paylaş" button (04 5.8.3 order). The video link lives in the text; nothing here writes (07 UC-09...UC-12). *@
+<article class="content-page">
+    <h1 class="content-heading">@Model.Title</h1>
+    @if (Model.Images.Count > 0)
+    {
+        <ul class="content-gallery">
+            @foreach (var image in Model.Images)
+            {
+                <li class="content-gallery__item">
+                    <img class="content-gallery__image" src="@Shopfolio.Pages.Frame.FrameStyle.ImagePath(image.ImageId)" alt="@image.EffectiveAltText" loading="lazy" width="800" height="600" />
+                </li>
+            }
+        </ul>
+    }
+    <div class="content-page__body rich-text">@Model.Body</div>
+    @if (Model.ContactPath is not null)
+    {
+        <div class="content-page__actions">
+            <a class="button button--primary" href="@Model.ContactPath">Bize ulaşın</a>
+        </div>
+    }
+</article>
+@if (Model.LinkedProducts.Count > 0)
+{
+    <section class="related-products" aria-labelledby="related-products-heading">
+        <h2 id="related-products-heading" class="related-products__heading">İlgili ürünler</h2>
+        <partial name="_ProductGrid" model="Model.LinkedProducts" />
+    </section>
+}
+<div class="content-page__actions content-page__share">
+    <partial name="_ShareButton" />
+</div>

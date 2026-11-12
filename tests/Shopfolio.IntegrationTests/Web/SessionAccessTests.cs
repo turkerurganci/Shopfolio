@@ -213,7 +213,7 @@ public sealed class SessionAccessTests
             Assert.Equal($"/giris?returnUrl={Escaped(closed)}", response.Headers.Location?.OriginalString);
         }
 
-        foreach (string open in new[] { "/hesap/silindi", "/sss/urun-ornegi/ahsap-masa", "/sayfa/hakkinda", "/sistem/canlilik", $"/siparis/erisim/{accessKey}" })
+        foreach (string open in new[] { "/hesap/silindi", "/sss/urun-ornegi/ahsap-masa", "/sss/ornek-serit/hakkinda", "/sistem/canlilik", $"/siparis/erisim/{accessKey}" })
         {
             using HttpResponseMessage response = await GetAsync(client, open);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -543,9 +543,9 @@ public sealed class SessionAccessTests
         using HttpResponseMessage account = await GetAsync(client, "/hesap", admin);
         using HttpResponseMessage accountPost = await PostAsync(client, "/hesap/adresler?handler=Save", admin);
         using HttpResponseMessage order = await GetAsync(client, $"/siparis/{number}", admin);
-        using HttpResponseMessage strip = await GetAsync(client, "/sayfa/yonetici-seridi", admin);
-        using HttpResponseMessage both = await GetAsync(client, "/sayfa/yonetici-seridi", $"{admin}; {CustomerCookie(customerKey)}");
-        using HttpResponseMessage nobody = await GetAsync(client, "/sayfa/yonetici-seridi");
+        using HttpResponseMessage strip = await GetAsync(client, "/sss/ornek-serit/yonetici-seridi", admin);
+        using HttpResponseMessage both = await GetAsync(client, "/sss/ornek-serit/yonetici-seridi", $"{admin}; {CustomerCookie(customerKey)}");
+        using HttpResponseMessage nobody = await GetAsync(client, "/sss/ornek-serit/yonetici-seridi");
 
         Assert.Equal(HttpStatusCode.Found, account.StatusCode);
         Assert.Equal($"/giris?returnUrl={Escaped("/hesap")}", account.Headers.Location?.OriginalString);

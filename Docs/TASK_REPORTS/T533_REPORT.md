@@ -59,8 +59,8 @@
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
 | Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --max-threads 3` | Tam koşuda 7381 testten 2 kırmızı (CSS kesme noktası, alan adı işareti) düzeltildi; ilgili sınıflar 125/125, düzeltmeden sonra tam koşu kırmızıları dışında 7379 yeşil |
-| Integration | ⏳ | `dotnet test --project tests/Shopfolio.IntegrationTests --no-build` (ad alanı parçaları) | aşağıda |
-| `dotnet format` | ✓ | `--verify-no-changes` | Web ve UnitTests temiz; IntegrationTests aşağıda |
+| Integration | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests --no-build --filter-namespace "*.X"` (ad alanı parçaları) | Yeşil: Web 1–2 turda sınıf parçalarıyla, Ordering 645, Administration 69, Catalog 82, Commands 70, Concurrency 30, CorporateContent 195, Database 32, Disposal 61, FileSecrets 24, Files 95, Jobs 85, Logging 30, Outages 53, Payment 59, Security 34, SignedEndpoints 11, Model 1410; Pages ad alanında test yok. Database (1) ve Model (3) ilk koşuda makine yükünden kırmızı, tek başına yeniden koşuda yeşil |
+| `dotnet format` | ✓ | `--verify-no-changes` | Web, UnitTests ve IntegrationTests temiz; Unit TAM 7402 yeşil |
 
 ## Doğrulama
 

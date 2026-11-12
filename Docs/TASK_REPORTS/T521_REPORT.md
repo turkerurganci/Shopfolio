@@ -65,10 +65,11 @@
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
 | Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --no-build` | Son tam koşu 7224 testten 4 kırmızı (üç mimari tarama + alan işareti) düzeltildi; Architecture ad alanı 1696/1696 yeşil; yeni `PanelHomeDetailsTests` 6/6 |
-| Integration | bkz. aşağı | `dotnet test --project tests/Shopfolio.IntegrationTests/… --no-build --filter-class …` | `PanelHomeAndVerificationPagesTests` 15/15, `Administration.PanelHomeTests` 25/25 |
+| Unit (main birleşiminden sonra) | ✓ | `dotnet test tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj` | 7373/7373 |
+| Integration TAM | ✓ | `dotnet test tests/Shopfolio.IntegrationTests/… --no-build --filter-namespace "*<Ad alanı>"` (Web: `--filter-class` parçaları) | 0 kırmızı: Administration 71, Catalog 82, Commands 70, Concurrency 30, CorporateContent 194, Database 36, Disposal 61, FileSecrets 24, Files 112, Jobs 85, Logging 30, Model 1410, Outages 53, Ordering 645, Payment 59, Security 34, SignedEndpoints 11, Web 884 (216+383+285); Pages ad alanında test yok (yalnız örnek sınıflar). Web'de `SessionAccessTests.EveryEndpoint…` açık sayfa listesine `/panel/dogrulama/{}` ve `/panel/geri-al/{}` eklenerek düzeltildi |
 | Format | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` | Web, UnitTests, IntegrationTests temiz |
 
-Integration TAM sonucu dönüşte ve PR açıklamasında yazılıdır.
+Öz denetim tablosu bu turda diff'te yeniden geçildi (10 kabul kriteri + KK1–KK10: 28 `_T521_KK*` test adı mevcut); eksik bulunmadı.
 
 ## Altyapı Değişiklikleri
 

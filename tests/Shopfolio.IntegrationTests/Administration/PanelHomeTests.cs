@@ -617,7 +617,8 @@ public sealed class PanelHomeTests : IAsyncLifetime
             services.GetRequiredService<IPaymentModule>(),
             new ContactCount(new ContactRequests(db, new UnusedNotifications(), time)),
             new PanelWarningReader(db, time),
-            services.GetRequiredService<ISettingsModule>());
+            services.GetRequiredService<ISettingsModule>(),
+            services.GetRequiredService<INotificationsModule>());
         return await home.GetAsync(Ct);
     }
 

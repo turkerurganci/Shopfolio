@@ -108,8 +108,38 @@ internal sealed class ProductListReader
             .OrderByDescending(r => r.CreatedAt)
             .ThenByDescending(r => r.Id);
         PagedList<CardRow> paged = await ordered.ToPageAsync(page, pageSize, ct);
+        IReadOnlyList<ProductListItem> items = await ItemsOfAsync(paged.Items, ct);
+        return new ProductListPage(items, paged.PageNumber, paged.PageSize, paged.TotalCount, paged.PageCount);
+    }
 
-        List<Guid> keys = [.. paged.Items.Select(p => p.Id)];
+    /// <summary>
+    /// The cards of the published products among <paramref name="productIds"/>, in the order of the ids given (T505; 02 3.27.10; 04 5.8.5, 2.11.1): the list item of each - name, address, lowest price,
+    /// purchasable mark and running discount - and the main image with the text the card uses (the firm's text when written, else the product's name; 02 3.11.4). A draft and an archived product
+    /// are left out, an id that is no product is left out, a product comes once. A plain read; the number of ids is the caller's (a content record's links).
+    /// </summary>
+    public async Task<IReadOnlyList<ProductListCard>> ListCardsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(productIds);
+        if (productIds.Count == 0)
+        {
+            return [];
+        }
+
+        Guid[] wanted = [.. productIds.Distinct()];
+        List<CardRow> rows = await Published()
+            .Where(p => wanted.Contains(p.Id))
+            .Select(p => new CardRow { Id = p.Id, Name = p.Name, Slug = p.Slug, CreatedAt = p.CreatedAt })
+            .ToListAsync(ct);
+        IReadOnlyList<ProductListItem> items = await ItemsOfAsync(rows, ct);
+        Dictionary<Guid, ProductListItem> byId = items.ToDictionary(i => i.Id);
+
+        // The items already carry the main image and its text (T502; D-332).
+        return [.. wanted.Where(byId.ContainsKey).Select(id => new ProductListCard(byId[id], byId[id].MainImageId, byId[id].MainImageAltText))];
+    }
+
+    private async Task<IReadOnlyList<ProductListItem>> ItemsOfAsync(IReadOnlyList<CardRow> rows, CancellationToken ct)
+    {
+        List<Guid> keys = [.. rows.Select(p => p.Id)];
         Dictionary<Guid, CardFigures> figures = await _db.Variants.AsNoTracking()
             .Where(v => keys.Contains(v.ProductId) && v.PublishStatus == PublishStatus.Published)
             .GroupBy(v => v.ProductId)
@@ -123,8 +153,9 @@ internal sealed class ProductListReader
             .Where(i => keys.Contains(i.ProductId) && i.IsMain)
             .Select(i => new MainImageRow(i.ProductId, i.ImageId, i.AltText))
             .ToDictionaryAsync(i => i.ProductId, ct);
-        return new ProductListPage(
-            [.. paged.Items.Select(p =>
+        return
+        [
+            .. rows.Select(p =>
             {
                 mainImages.TryGetValue(p.Id, out MainImageRow? image);
                 return new ProductListItem(
@@ -136,11 +167,8 @@ internal sealed class ProductListReader
                     discounts.GetValueOrDefault(p.Id),
                     image?.ImageId,
                     image is null ? null : ImageAltText.Choose(image.AltText, () => ImageAltText.ForCard(p.Name)));
-            })],
-            paged.PageNumber,
-            paged.PageSize,
-            paged.TotalCount,
-            paged.PageCount);
+            }),
+        ];
     }
 
     // The discount declarations of the page's products whose discount runs now (02 3.9.2; 04 2.11.2; K-1578): the card's price is the lowest list price, so the

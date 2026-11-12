@@ -204,7 +204,7 @@ internal sealed class MyAccountModel : PageModel
                 if (result.Code == ErrorCode.AdminEmailTaken)
                 {
                     RejectionLog().Rejected(ErrorCode.AdminEmailTaken);
-                    ModelState.AddModelError("Input.NewEmail", MyAccountTexts.EmailTakenByOtherAdmin);
+                    ModelState.AddModelError("Input.NewEmail", AdminAccountsModel.AdminEmailTakenText);
                 }
                 else
                 {

@@ -46,9 +46,6 @@ internal static class MyAccountTexts
     /// <summary>No pending change to ask the link of (07 UC-180).</summary>
     public const string NoPendingChange = "Bekleyen bir e-posta değişikliği yok.";
 
-    /// <summary>The address is another administrator account's (07 UC-179).</summary>
-    public const string EmailTakenByOtherAdmin = "Bu e-posta adresi başka bir yönetici hesabında kayıtlı.";
-
     /// <summary>K-819: an open revert link closes the change until its last day.</summary>
     public static string RevertOpen(DateTimeOffset endsAt) =>
         "Önceki e-posta adresinize gönderilen geri alma bağlantısı " + DisplayFormat.Date(endsAt) + " tarihine kadar açık. Bu tarihe kadar e-posta adresiniz yeniden değiştirilemez.";

@@ -245,7 +245,7 @@ public sealed class MyAccountPageTests : IAsyncLifetime
         Assert.StartsWith(ReauthPath + "?reauthenticatedOperation=EmailChange", noneLocation, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, malformed);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, taken);
-        Assert.Contains(MyAccountTexts.EmailTakenByOtherAdmin, takenHtml, StringComparison.Ordinal);
+        Assert.Contains(AdminAccountsModel.AdminEmailTakenText, takenHtml, StringComparison.Ordinal);
         await using AppDbContext db = NewContext();
         Assert.False(await db.PendingEmailChanges.AnyAsync(p => p.AdminId == adminId, Ct));
         Assert.NotNull((await db.Sessions.AsNoTracking().SingleAsync(s => s.Id == sessionId, Ct)).ReauthenticationTokenHash);

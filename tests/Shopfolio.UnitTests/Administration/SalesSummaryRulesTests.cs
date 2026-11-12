@@ -211,7 +211,7 @@ public sealed class SalesSummaryRulesTests
         Assert.DoesNotContain(fields, f => f.FieldType == typeof(AppDbContext) || f.FieldType.Namespace!.StartsWith("Microsoft.AspNetCore", StringComparison.Ordinal));
 
         string[] methods = [.. typeof(ISalesSummary).GetMethods().Select(m => m.Name).Order(StringComparer.Ordinal)];
-        Assert.Equal(["CountDailyOrdersAsync", "GetAsync"], methods);
+        Assert.Equal(["CountDailyOrdersAsync", "FindSalesOpenDayAsync", "GetAsync"], methods);
         Assert.DoesNotContain(typeof(AppDbContext).GetProperties(), p => p.Name.Contains("SalesSummar", StringComparison.OrdinalIgnoreCase));
     }
 

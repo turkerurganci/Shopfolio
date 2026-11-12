@@ -148,8 +148,6 @@ internal sealed class CouponsModel : PageModel
 
     private static readonly InvalidPercentageAttribute PercentageRule = new();
 
-    private const decimal Hundred = 100m;
-
     private const string PercentageField = "Input." + nameof(SaveCouponInput.Percentage);
 
     /// <summary>The cell of a coupon without a minimum basket amount (a percentage coupon may have none; 02 3.10.4).</summary>
@@ -263,7 +261,7 @@ internal sealed class CouponsModel : PageModel
         PageHandlerExecutedContext executed = await next();
         if (executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
         {
-            if (input?.ParsedKind() == CouponKind.Percentage && input.Percentage >= Hundred && ModelState.TryGetValue(PercentageField, out ModelStateEntry? entry) && entry.Errors.Count > 0)
+            if (input?.ParsedKind() == CouponKind.Percentage && input.Percentage > Money.MaxPercentage && ModelState.TryGetValue(PercentageField, out ModelStateEntry? entry) && entry.Errors.Count > 0)
             {
                 entry.Errors.Clear();
                 ModelState.AddModelError(PercentageField, PercentageReachesHundredText);

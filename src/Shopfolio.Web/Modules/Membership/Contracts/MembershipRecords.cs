@@ -11,6 +11,13 @@ namespace Shopfolio.Modules.Membership.Contracts;
 /// </summary>
 public sealed record RegisterInput(string Name, string Email, string Password);
 
+/// <summary>The unique index of the registration (kept apart from the form's record, which holds the three values and nothing else; 02 3.13.21).</summary>
+public static class RegistrationIndexes
+{
+    /// <summary>The unique index of the e-mail (06 4.36): the caller runs the registration with it, so a second registration of the same address at the same moment is answered as the first's duplicate (09 9.4 item 3).</summary>
+    public static IReadOnlyCollection<string> RetryOnUniqueIndexes { get; } = ["ix_customers_normalized_email"];
+}
+
 /// <summary>
 /// One refused field of a form: the field's name as the input's and the code of 07 6.2.2. <paramref name="Detail"/> carries the one value the message needs when the code alone is not
 /// enough - the province name of a delivery refusal (04 5.13.23) - and is null otherwise.
@@ -65,6 +72,12 @@ public sealed class RegistrationResult : IOperationResult
 
     internal static RegistrationResult FieldsRefused(IReadOnlyList<MembershipFieldError> fields) => new(null, null, null, fields[0].Code, fields, null);
 }
+
+/// <summary>
+/// What the registration screen shows after the form is sent (T514; 04 5.20.4): the address the link went to and the last day of the pending registration (the end of its first link,
+/// Z-1). Nothing of the account's name or password.
+/// </summary>
+public sealed record PendingRegistrationReading(string Email, DateTimeOffset LinkEndsAt);
 
 /// <summary>The reading of a verification link: its status and, when there is a record, the account it belongs to.</summary>
 public sealed record VerificationLinkReading(VerificationLinkStatus Status, Guid? CustomerId);
@@ -182,3 +195,6 @@ public sealed class NameChangeResult : IOperationResult
 
     internal static NameChangeResult FieldRefused(MembershipFieldError field) => new(false, false, [field]);
 }
+
+/// <summary>The signed-in member's name and e-mail as the account holds them (T506): the contact form's starting values, which the member may change.</summary>
+public sealed record MemberContact(string Name, string Email);

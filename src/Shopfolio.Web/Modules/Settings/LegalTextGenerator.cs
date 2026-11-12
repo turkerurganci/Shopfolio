@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.Modules.Settings;
@@ -25,9 +26,11 @@ internal sealed class LegalTextGenerator
     private readonly AppDbContext _db;
     private readonly CompanySettingsWriter _writer;
     private readonly TimeProvider _time;
+    private readonly IAuditTrail _trail;
 
-    public LegalTextGenerator(AppDbContext db, CompanySettingsWriter writer, TimeProvider time)
+    public LegalTextGenerator(AppDbContext db, CompanySettingsWriter writer, TimeProvider time, IAuditTrail trail)
     {
+        _trail = trail;
         _db = db;
         _writer = writer;
         _time = time;
@@ -63,6 +66,20 @@ internal sealed class LegalTextGenerator
         // The rows are added to the caller's unit of work: the command pipeline and the start-up transaction runner save it before they commit. The one writer of the settings
         // row stays CompanySettingsWriter (09 10.3 item 4), so this file calls no save.
         return written;
+    }
+
+    /// <summary>
+    /// Writes the trail row of each version a changed setting caused (D-165 (a), D-220; 02 10.3.1 (6)): the same operation and shape as the publication of an edited text, in the caller's transaction.
+    /// A version a changed template caused is a system event and gets no row (02 3.33.3, 10.3.3). Needs the signed-in administrator of the request, as the trail does.
+    /// </summary>
+    public async Task WriteTrailAsync(IReadOnlyList<GeneratedVersion> versions, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(versions);
+        foreach (GeneratedVersion version in versions.Where(v => !v.IsTemplateChange))
+        {
+            AuditDetails details = new(LegalTexts.DisplayNameOf(version.Type), values: [new AuditValue("versionNumber", version.VersionNumber.ToString(System.Globalization.CultureInfo.InvariantCulture))]);
+            await _trail.WriteAsync(new AuditEntry(AuditOperation.PublishLegalText, nameof(LegalTextVersion), version.Id, details), ct);
+        }
     }
 
     private async Task<IReadOnlyDictionary<string, string?>> ReadCompanyValuesAsync(CancellationToken ct)

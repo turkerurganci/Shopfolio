@@ -394,7 +394,13 @@ internal sealed class AdminAccounts
     {
         // Sent by the administrator, closed by no moment, and the link still lives: this is what the confirmation counts (02 10.2.2).
         return i => i.SenderAdminId == senderId && i.WithdrawnAt == null && i.InvalidatedAt == null && i.AcceptedAt == null
-            && _db.LinkRecords.Any(l => l.AdminInvitationId == i.Id && l.UsedAt == null && l.SupersededAt == null && l.ExpiresAt > now);
+            && _db.LinkRecords.Where(LiveLink(now)).Any(l => l.AdminInvitationId == i.Id);
+    }
+
+    /// <summary>A link that is unused, not replaced and not run out: the same reading as <c>LinkRecords.StateOf</c>' Valid state, which <see cref="StatusOf"/> maps. The accounts screen's list reads with it too (T522).</summary>
+    internal static System.Linq.Expressions.Expression<Func<LinkRecord, bool>> LiveLink(DateTimeOffset now)
+    {
+        return l => l.UsedAt == null && l.SupersededAt == null && l.ExpiresAt > now;
     }
 
     // A link's life ends now (the invitation's moment is written after, in the same transaction): only links that are unused and still alive are taken.

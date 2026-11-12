@@ -160,7 +160,7 @@ public sealed class MainFlowTests : IAsyncLifetime
         OrderConfirmationResult confirmed = await RunAsync(sp => sp.GetRequiredService<OrderConfirmation>().ConfirmAsync(
             new OrderConfirmationRequest(
                 owner, summary, view.ShownPreInformationFormId, view.ShownDistanceSalesContractId, new TickedBoxes(true, true, false, false), CouponCode, ContactEmail,
-                input.Shipping, input.Billing, IPAddress.Parse("203.0.113.5")),
+                input.Shipping, input.Billing!, IPAddress.Parse("203.0.113.5")), // non-null: the input carries a billing address
             Ct));
         Assert.False(confirmed.IsRejected);
         Guid orderId = confirmed.OrderId!.Value;

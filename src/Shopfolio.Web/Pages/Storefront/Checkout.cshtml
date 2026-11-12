@@ -139,7 +139,10 @@
             @if (Model.Coupon.Mode == CouponFieldMode.LimitClosed)
             {
                 <p class="coupon__closed-text">@CouponFields.ClosedRowText</p>
-                <partial name="_Message" model="Model.Coupon.LimitMessage!" />
+                @if (Model.Coupon.LimitMessage is MessageView limit)
+                {
+                    <partial name="_Message" model="limit" />
+                }
             }
             else
             {
@@ -151,7 +154,10 @@
                 }
                 else
                 {
-                    <partial name="_Field" model="Fields.Bind(Model.Coupon.CodeField!, errors)" />
+                    @if (Model.Coupon.CodeField is FieldView codeField)
+                    {
+                        <partial name="_Field" model="Fields.Bind(codeField, errors)" />
+                    }
                     <button type="submit" class="button button--secondary" formaction="@(action)ApplyCoupon" formnovalidate>@CouponFields.ApplyLabel</button>
                 }
             }

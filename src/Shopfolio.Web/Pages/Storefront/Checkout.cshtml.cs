@@ -325,7 +325,7 @@ internal sealed class CheckoutModel : PageModel
                 return await RefuseAsync(owner, input, null, ct);
             case PlaceOrderOutcome.SalesClosed:
                 ActionMessage = Messages.InPlace(MessageMeaning.Warning, SalesClosedMessages.StorefrontText);
-                return await RefuseAsync(owner, input, ErrorCode.SalesClosed, ct);
+                return await RefuseAsync(owner, input, ErrorCode.SalesClosed, ct, checksGate: false);
             case PlaceOrderOutcome.PaymentMethodUnavailable:
                 ActionMessage = Messages.InPlace(MessageMeaning.Warning, CheckoutTexts.MethodUnavailable);
                 return await RefuseAsync(owner, input, ErrorCode.PaymentMethodUnavailable, ct);
@@ -345,14 +345,14 @@ internal sealed class CheckoutModel : PageModel
     }
 
     // The page again with the sent values, 422 (07 4.13.6): the named refusal writes its one rejection line (09 8.2 item 3).
-    private async Task<IActionResult> RefuseAsync(CartOwner owner, PlaceOrderInput input, ErrorCode? code, CancellationToken ct, bool logs = true)
+    private async Task<IActionResult> RefuseAsync(CartOwner owner, PlaceOrderInput input, ErrorCode? code, CancellationToken ct, bool logs = true, bool checksGate = true)
     {
         if (code is ErrorCode named && logs)
         {
             HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(named);
         }
 
-        if (await ShowAsync(owner, input, appliesCoupon: false, ct) is IActionResult away)
+        if (await ShowAsync(owner, input, appliesCoupon: false, ct, checksGate) is IActionResult away)
         {
             return away;
         }
@@ -380,12 +380,12 @@ internal sealed class CheckoutModel : PageModel
     }
 
     // The step's read and the view; a step that cannot open answers 303 to the cart (07 4.13).
-    private async Task<IActionResult?> ShowAsync(CartOwner owner, PlaceOrderInput form, bool appliesCoupon, CancellationToken ct)
+    private async Task<IActionResult?> ShowAsync(CartOwner owner, PlaceOrderInput form, bool appliesCoupon, CancellationToken ct, bool checksGate = true)
     {
         Form = form;
         IsMember = owner.CustomerId is not null;
         SalesGate gate = await _settings.GetSalesGateAsync(ct);
-        if (!gate.Permits(SalesGateOperation.ProceedToCheckout))
+        if (checksGate && !gate.Permits(SalesGateOperation.ProceedToCheckout))
         {
             return FormResults.SeeOther(FramePaths.Cart);
         }

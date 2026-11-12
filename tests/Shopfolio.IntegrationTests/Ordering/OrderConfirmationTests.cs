@@ -730,7 +730,7 @@ public sealed partial class OrderConfirmationTests : IAsyncLifetime
     private async Task<OrderConfirmationResult> ConfirmAsync(OrderSummaryInput input, ConfirmationSummary seen, TickedBoxes? ticked = null)
     {
         OrderConfirmationRequest request = new(
-            input.Owner, seen, _formId, _contractId, ticked ?? new TickedBoxes(true, true, false, false), input.CouponCode, input.ContactEmail, input.Shipping, input.Billing, IPAddress.Parse("203.0.113.5"));
+            input.Owner, seen, _formId, _contractId, ticked ?? new TickedBoxes(true, true, false, false), input.CouponCode, input.ContactEmail, input.Shipping, input.Billing!, IPAddress.Parse("203.0.113.5")); // non-null: the input carries a billing address
         await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn, _clock, _cardLineOpen, logs: null, _extra);
         await using AsyncServiceScope scope = provider.CreateAsyncScope();
         OrderConfirmation confirmation = scope.ServiceProvider.GetRequiredService<OrderConfirmation>();

@@ -83,7 +83,7 @@ internal sealed class PasswordRegime
 
         if (!account.IsVerified)
         {
-            return new SignInVerdict(VerdictKind.NotEligible, null);
+            return new SignInVerdict(VerdictKind.NotEligible, account.Id);
         }
 
         await ForgetAllAsync(rows, ct);

@@ -81,6 +81,31 @@ internal static class ReturnPath
     }
 
     /// <summary>
+    /// The first path segments of the screens a sign-in never returns to (07 UC-55; 04 3.6.1 to 3.6.3): the sign-in itself (and its Google return), the registration, the password reset and the
+    /// verification landing. A return address that names one of them is the home page, so the member does not land on a form they have just left.
+    /// </summary>
+    private static readonly string[] _entryScreens = ["giris", "kayit", "sifre-sifirlama", "dogrulama"];
+
+    /// <summary>
+    /// The path the storefront's sign-in returns to (07 UC-55, UC-51; 04 3.6.1-3.6.3): the value when it is the site's own path and not one of the entry screens, else the home page. The
+    /// comparison is made on the decoded first segment, so a percent-encoded spelling of a screen's name does not pass for another page; the query and the fragment are not part of it.
+    /// </summary>
+    public static string AfterSignIn(string? value)
+    {
+        string path = Resolve(value, ReturnArea.Storefront);
+        string pathOnly = path;
+        int cut = pathOnly.AsSpan().IndexOfAny('?', '#');
+        if (cut >= 0)
+        {
+            pathOnly = pathOnly[..cut];
+        }
+
+        string first = pathOnly.Split('/', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty;
+        string decoded = Uri.UnescapeDataString(first);
+        return _entryScreens.Contains(decoded, StringComparer.OrdinalIgnoreCase) ? StorefrontHome : path;
+    }
+
+    /// <summary>
     /// The target of a sign-out (07 4.34.1): the page the request came from when it needs no session, else the home page. A page needs a session when it is under
     /// <c>/hesap</c> (but for <c>/hesap/silindi</c>, 07 2.3.1), under <c>/panel</c>, or is the member root of an order page (<c>/siparis/{number}</c>, not the
     /// access-key root <c>/siparis/erisim/...</c>, 07 2.1.3); a value that is not the site's own path is the home page (05 6.5.6).

@@ -117,6 +117,32 @@ public sealed partial class RecordPagesTests
     }
 
     [Fact]
+    public void TheFixedContentPage_HasTheGivenAddress_AndADraftIsClosed_T505()
+    {
+        PageSearchData published = RecordPages.FixedContent("/hakkimizda", "Hakkımızda", "Biz kimiz.", null, null, null, Brand, open: true);
+        PageSearchData draft = RecordPages.FixedContent("/hakkimizda", "Hakkımızda", "Biz kimiz.", null, null, null, Brand, open: false);
+
+        Assert.Equal("/hakkimizda", published.Path);
+        Assert.Equal("Hakkımızda – Yılmaz Mobilya", published.Title);
+        Assert.Equal("Biz kimiz.", published.Description);
+        Assert.False(published.Closed);
+        Assert.True(draft.Closed);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AContentListPage_HasTheTypesNameAsTitle_NoDescription_AndTheListPatternsMark_T505(bool closed)
+    {
+        PageSearchData page = RecordPages.ContentList("/hizmetler", "Çözümlerimiz", null, Brand, closed);
+
+        Assert.Equal("Çözümlerimiz – Yılmaz Mobilya", page.Title);
+        Assert.Equal("/hizmetler", page.Path);
+        Assert.Null(page.Description);
+        Assert.Equal(closed, page.Closed);
+    }
+
+    [Fact]
     public void AClosedScreen_HasTheScreenNameAndTheBrandAsTitle_AndTheRobotsTagOnly_KK6()
     {
         PageSearchData cart = RecordPages.ClosedScreen("Sepet", Brand, "/sepet");

@@ -24,6 +24,10 @@
                         {
                             <a href="@row.RecordPath">@row.Cells[i]</a>
                         }
+                        else if (row.BadgeAt(i) is { } badge)
+                        {
+                            <partial name="_Badge" model="badge" />
+                        }
                         else
                         {
                             @row.Cells[i]

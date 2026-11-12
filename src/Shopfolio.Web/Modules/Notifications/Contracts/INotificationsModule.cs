@@ -55,6 +55,12 @@ public interface INotificationsModule
     /// </summary>
     Task<bool> ClaimHasUndeliveredMarkAsync(DispatchRelatedRecordType recordType, Guid recordId, CancellationToken ct);
 
+    /// <summary>
+    /// The defect claims among <paramref name="claimIds"/> that show the mark on their own row (T532; the panel's requests list): the same reading as <see cref="ClaimHasUndeliveredMarkAsync"/>, for all the claims
+    /// of a page in one query. A claim with no mark is not in the answer. A plain read.
+    /// </summary>
+    Task<IReadOnlySet<Guid>> FindClaimsWithUndeliveredMarkAsync(IReadOnlyCollection<Guid> claimIds, CancellationToken ct);
+
     /// <summary>The order's customer notices that carry the mark - what the order detail's re-send buttons stand for (T385; 02 9.1.6); oldest first. A plain read.</summary>
     Task<IReadOnlyList<UndeliveredNotice>> FindUndeliveredNoticesAsync(Guid orderId, CancellationToken ct);
 

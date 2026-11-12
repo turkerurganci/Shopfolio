@@ -104,6 +104,31 @@ internal static class DispatchMarks
     }
 
     /// <summary>
+    /// The defect claims among <paramref name="claimIds"/> whose row carries the mark (T532; the requests list): the same reading as <see cref="ClaimHasMarkAsync"/>, for all the claims of a page in one
+    /// query - each claim's B-9 rows form their own groups and the latest row of any group decides.
+    /// </summary>
+    public static async Task<IReadOnlySet<Guid>> ClaimsWithMarkAsync(AppDbContext db, IReadOnlyCollection<Guid> claimIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(db);
+        ArgumentNullException.ThrowIfNull(claimIds);
+        Guid[] ids = [.. claimIds.Distinct()];
+        if (ids.Length == 0)
+        {
+            return new HashSet<Guid>();
+        }
+
+        var rows = await db.DispatchRecords.AsNoTracking()
+            .Where(d => d.DispatchType == DispatchType.B9 && d.RelatedRecordType == DispatchRelatedRecordType.DefectClaim && d.RelatedRecordId != null && ids.Contains(d.RelatedRecordId.Value))
+            .Select(d => new { ClaimId = d.RelatedRecordId!.Value, d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState, ClosedUnsent = d.AttemptCount == 0 && d.LastOutcome == null })
+            .ToListAsync(ct);
+        return rows
+            .GroupBy(r => r.ClaimId)
+            .Where(g => HasMark(g.Select(r => new Row(r.Id, r.OriginalDispatchId, r.CreatedAt, r.DispatchState, r.ClosedUnsent))))
+            .Select(g => g.Key)
+            .ToHashSet();
+    }
+
+    /// <summary>
     /// One page of the orders that carry the mark, by order id after <paramref name="afterOrderId"/> (null starts at the first): the filtered list the home page's row leads to (02 10.6.1;
     /// K-761) - the set is read, not counted, and never taken whole (09 20 item 2). The candidates are the orders with an "undelivered" customer notice row; each candidate's groups
     /// decide, because a later row of the group may have sent it.

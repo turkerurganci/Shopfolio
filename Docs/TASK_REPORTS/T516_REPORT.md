@@ -80,8 +80,8 @@ Backlog payı: D-1351 ✅ (yerinde kapatıldı); D-109, D-572, D-801 (A352 payı
 ## Commit & PR
 
 - **Branch:** `task/T516-sifre-sifirlama`
-- **Commit:** *(PR açılınca)*
-- **PR:** *(PR açılınca)*
+- **Commit:** `5c3fdb84`
+- **PR:** #564
 - **CI:** yönetici izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

@@ -1,0 +1,91 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Orders
+@model DefectClaimPageModel
+@*
+    E-19 (04 5.19; 07 UC-44…UC-46): two states. The new claim - the items a claim is open for, the defective units (default one, upper limit the server's; K-1170 (2), K-830), the description and the
+    firm's current return address with a physical item. The reopening - the claim's item, its units, its first description, its opening day and the "Çözüldü" badge, the firm's e-mail for further
+    information, no description field (K-783). No confirmation step, no upload, no choice of remedy (04 5.19.5).
+*@
+@{
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState);
+}
+<article class="operation-screen" aria-labelledby="operation-screen-title">
+    <h1 id="operation-screen-title">@OrderScreenTexts.DefectClaimName</h1>
+    <partial name="_FormErrorSummary" model="summary" />
+    @if (Model.Reopening is ReopenClaimView claim)
+    {
+        <section class="operation-screen__claim" id="defect-claim-reopening">
+            <p class="operation-screen__name">@claim.Name <partial name="_Badge" model="claim.Badge" /></p>
+            <p>@OrderScreenTexts.DefectClaimQuantityLabel: @DisplayFormat.Number(claim.Quantity)</p>
+            <p class="operation-screen__description">@claim.Description</p>
+            <p>@OrderScreenTexts.OpenedOn(claim.OpenedAt)</p>
+            <p>@OrderScreenTexts.ReopenIsSameClaimText</p>
+            <p>@Model.MoreInformationText</p>
+        </section>
+        <form method="post" asp-antiforgery="true" action="@(Model.ScreenPath)?handler=@DefectClaimPageModel.ReopenHandler" class="operation-screen__form" data-js="submit-once">
+            <input type="hidden" name="OrderItemId" value="@claim.OrderItemId" />
+            @if (claim.HasQuantityField)
+            {
+                FieldView quantity = Fields.Bind(Fields.Number("Quantity", OrderScreenTexts.DefectClaimQuantityLabel, FieldRequirement.Optional, Model.SentValue("Quantity") ?? DisplayFormat.Number(claim.Quantity)), summary);
+                <partial name="_Field" model="quantity" />
+                <span class="operation-screen__limit">En az @DisplayFormat.Number(claim.Quantity) · en çok @DisplayFormat.Number(claim.MaxQuantity)</span>
+            }
+            <div class="operation-screen__buttons">
+                <a class="button button--secondary" href="@Model.RootPath">@OrderScreenTexts.CancelLabel</a>
+                <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(OrderScreenTexts.DefectClaimReopenLabel)">@OrderScreenTexts.DefectClaimReopenLabel</button>
+            </div>
+        </form>
+    }
+    else
+    {
+        string? sentItem = Model.SentValue("OrderItemId");
+        <form method="post" asp-antiforgery="true" action="@(Model.ScreenPath)?handler=@DefectClaimPageModel.SubmitHandler" class="operation-screen__form" data-js="submit-once">
+            <fieldset class="operation-screen__items" id="OrderItemId">
+                <legend>@OrderScreenTexts.DefectClaimItemLabel</legend>
+                @foreach (DefectClaimRowView row in Model.Rows)
+                {
+                    <div class="operation-screen__item" data-item="@row.OrderItemId">
+                        <label class="operation-screen__choice">
+                            <input type="radio" name="OrderItemId" value="@row.OrderItemId" checked="@(sentItem == row.OrderItemId.ToString() || Model.Rows.Count == 1)" />
+                            <span>@row.Name</span>
+                        </label>
+                        @if (row.HasQuantityField)
+                        {
+                            <span class="operation-screen__limit">@OrderScreenTexts.DefectClaimQuantityLabel: en çok @DisplayFormat.Number(row.MaxQuantity)</span>
+                        }
+                    </div>
+                }
+            </fieldset>
+            @if (Model.Rows.Any(r => r.HasQuantityField))
+            {
+                FieldView quantity = Fields.Bind(Fields.Number("Quantity", OrderScreenTexts.DefectClaimQuantityLabel, FieldRequirement.Optional, Model.SentValue("Quantity") ?? DisplayFormat.Number(1)), summary);
+                <partial name="_Field" model="quantity" />
+            }
+            @{
+                FieldView description = Fields.Bind(Fields.TextArea("Description", OrderScreenTexts.DefectClaimDescriptionLabel, FieldRequirement.Required, Model.SentValue("Description")), summary);
+            }
+            <partial name="_Field" model="description" />
+            @if (Model.ReturnAddress is ReturnAddressView address)
+            {
+                <section class="operation-screen__return" aria-labelledby="defect-claim-return-title" id="defect-claim-return">
+                    <h2 id="defect-claim-return-title">@OrderScreenTexts.ReturnAddressTitle</h2>
+                    <address class="operation-screen__address">
+                        @address.RecipientName<br />
+                        @address.AddressLine<br />
+                        @address.District / @address.ProvinceName
+                        @if (address.Phone is string phone)
+                        {
+                            <br />@DisplayFormat.Phone(phone)
+                        }
+                    </address>
+                </section>
+            }
+            <div class="operation-screen__buttons">
+                <a class="button button--secondary" href="@Model.RootPath">@OrderScreenTexts.CancelLabel</a>
+                <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(OrderScreenTexts.DefectClaimSubmitLabel)">@OrderScreenTexts.DefectClaimSubmitLabel</button>
+            </div>
+        </form>
+    }
+</article>

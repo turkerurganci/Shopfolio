@@ -1,0 +1,9 @@
+@page "/siparis/erisim/{accessKey:regex(^[A-Za-z0-9_-]+\z)}/cayma"
+@model Shopfolio.Pages.Orders.AccessWithdrawalModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = Shopfolio.Pages.Orders.OrderScreenTexts.WithdrawalName;
+}
+@* UC-42, UC-43 under the access-key root (07 4.18); the screen itself is the shared E-18 view. *@
+<partial name="_WithdrawalScreen" model="Model" />

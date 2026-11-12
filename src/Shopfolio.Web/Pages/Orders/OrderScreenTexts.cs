@@ -37,6 +37,9 @@ public static class OrderScreenTexts
     /// <summary>04 5.18.6; 02 7.3.3; K-578, K-792: a service partly performed.</summary>
     public const string PartlyPerformedServiceText = "Kısmen ifa edilmiş hizmetten caymada, cayılan adetler için ödediğiniz bedelin tamamı geri ödenir.";
 
+    /// <summary>04 5.18.6; 02 7.4.6; K-789: the shipping fee comes back only when every unit of the shipped physical items is withdrawn, earlier declarations included.</summary>
+    public const string ShippingFeeText = "Kargoyla gönderilen ürünlerin bütün adetlerinden, önceki beyanlarınızla birlikte, caydığınızda kargo ücreti de geri ödenir.";
+
     public const string ReturnAddressTitle = "İade adresi";
 
     public const string DefectClaimName = "Ayıp talebi";

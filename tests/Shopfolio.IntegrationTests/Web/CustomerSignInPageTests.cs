@@ -148,6 +148,24 @@ public sealed class CustomerSignInPageTests : IAsyncLifetime
         Assert.Equal(2, await db.Sessions.CountAsync(Ct));
     }
 
+    [Fact]
+    public async Task ASignIn_WithAGuestCartCookie_DeletesThatCookie_T515_KK3()
+    {
+        await using WebApplicationFactory<Program> factory = Open(google: null, gateOpen: false);
+        await SeedCustomerAsync("ali@example.com", verified: true);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        using HttpRequestMessage request = new(HttpMethod.Post, $"{FramePaths.SignIn}?handler=SignIn");
+        request.Headers.TryAddWithoutValidation("X-Forwarded-Proto", "https");
+        request.Headers.TryAddWithoutValidation("Cookie", $"{CookieNames.Cart}=guest-key-515");
+        request.Content = new FormUrlEncodedContent([new("Input.Email", "ali@example.com"), new("Input.Password", Entered)]);
+        using HttpResponseMessage response = await client.SendAsync(request, Ct);
+
+        Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
+        string deleted = Assert.Single(SetCookies(response), c => c.StartsWith(CookieNames.Cart + "=", StringComparison.Ordinal));
+        Assert.Contains("expires=Thu, 01 Jan 1970", deleted, StringComparison.OrdinalIgnoreCase);
+    }
+
     // ---- KK4: one sentence for the two failures; the limit is neutral and locks nothing ----
 
     [Fact]

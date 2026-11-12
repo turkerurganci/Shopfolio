@@ -10,6 +10,7 @@ using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Pages.Components;
@@ -202,7 +203,55 @@ public sealed partial class OrderDetailPageTests
         return Assert.Single(lines).GetProperty("code").GetString();
     }
 
-    private static string ConflictControlsText => Shopfolio.Infrastructure.Forms.ConflictControls.OrderMessage;
+    // ---- no query in a loop: the screen sends the same number of commands for one item and for three (09 20 item 4, 25) ----
+
+    [Fact]
+    public async Task TheScreen_SendsTheSameNumberOfCommands_ForOneItemAndForThree_KK3_KK4()
+    {
+        (string key, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
+        (Guid oneId, Guid[] oneItems) = await StepOrderAsync(OrderStatus.Delivered, PaymentStatus.Paid, (ProductType.Physical, true));
+        (Guid threeId, Guid[] threeItems) = await StepOrderAsync(
+            OrderStatus.Delivered, PaymentStatus.Paid, (ProductType.Physical, true), (ProductType.Physical, true), (ProductType.Digital, true));
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        await using (AppDbContext db = NewContext())
+        {
+            foreach (Guid orderId in new[] { oneId, threeId })
+            {
+                db.InternalNotes.Add(InternalNote.Create(orderId, "Not", adminId, "Yönetici Bir", now));
+                db.TransitionRecords.Add(TransitionRecord.Create(orderId, TransitionCode.O1, ActorKind.System, null, null, null, null, null, null, null, now.AddDays(-2)));
+            }
+
+            db.OrderEmailHistories.Add(OrderEmailHistory.Create(oneId, "eski@example.com", "yeni@example.com", adminId, "Yönetici Bir", now));
+            foreach (int i in Enumerable.Range(1, 3))
+            {
+                db.OrderEmailHistories.Add(OrderEmailHistory.Create(threeId, $"eski{i}@example.com", $"yeni{i}@example.com", adminId, "Yönetici Bir", now.AddMinutes(i)));
+            }
+
+            await db.SaveChangesAsync(Ct);
+        }
+
+        StorefrontSearchAndProductTests.CommandCounter counter = new();
+        await using WebApplicationFactory<Program> factory = Open(counter);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        await GetAsync(client, $"{OrdersPath}/{oneId:D}", key);
+        int beforeOne = counter.Count;
+        (HttpStatusCode oneStatus, _) = await GetAsync(client, $"{OrdersPath}/{oneId:D}", key);
+        int oneCommands = counter.Count - beforeOne;
+        int beforeThree = counter.Count;
+        (HttpStatusCode threeStatus, string threeHtml) = await GetAsync(client, $"{OrdersPath}/{threeId:D}", key);
+        int threeCommands = counter.Count - beforeThree;
+
+        Assert.Equal(HttpStatusCode.OK, oneStatus);
+        Assert.Equal(HttpStatusCode.OK, threeStatus);
+        Assert.Single(oneItems);
+        Assert.Equal(3, threeItems.Length);
+        Assert.Contains("yeni3@example.com", threeHtml, StringComparison.Ordinal);
+        Assert.True(oneCommands > 0);
+        Assert.Equal(oneCommands, threeCommands);
+    }
+
+    private static string ConflictControlsText =>Shopfolio.Infrastructure.Forms.ConflictControls.OrderMessage;
 
     private static string AdminCookie(string key) => $"{CookieNames.AdminSession}={key}";
 
@@ -238,8 +287,16 @@ public sealed partial class OrderDetailPageTests
         return await client.SendAsync(request, Ct);
     }
 
-    private WebApplicationFactory<Program> Open() =>
-        new ShopfolioWebApplicationFactory(_database.Dsn).WithWebHostBuilder(b => b.ConfigureServices(s => s.AddRazorPages().AddApplicationPart(typeof(Pages.PanelOrdersModel).Assembly)));
+    // The counter counts the commands the contexts send (the job runner is off then, so its polling is not counted).
+    private WebApplicationFactory<Program> Open(StorefrontSearchAndProductTests.CommandCounter? counter = null) =>
+        new ShopfolioWebApplicationFactory(_database.Dsn, withJobRunner: counter is null).WithWebHostBuilder(b => b.ConfigureServices(s =>
+        {
+            s.AddRazorPages().AddApplicationPart(typeof(Pages.PanelOrdersModel).Assembly);
+            if (counter is not null)
+            {
+                s.ConfigureDbContext<AppDbContext>(options => options.AddInterceptors(counter));
+            }
+        }));
 
     private AppDbContext NewContext()
     {

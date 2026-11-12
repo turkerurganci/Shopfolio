@@ -156,6 +156,49 @@ public sealed class OrderListPageTests
         Assert.Contains("Son ödeme günü", html, StringComparison.Ordinal);
     }
 
+    // ---- no query in a loop: the list sends the same number of commands for one order and for many (09 20 item 4, 25) ----
+
+    [Fact]
+    public async Task TheList_SendsTheSameNumberOfCommands_ForOneOrderAndForFour_KK1_KK4()
+    {
+        (string key, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        string fewEmail = UniqueEmail();
+        string manyEmail = UniqueEmail();
+        string one = await PreparingOrderAsync(fewEmail, now.AddHours(-1), approvedAt: now.AddHours(-1));
+        List<string> four = [];
+        for (int i = 0; i < 4; i++)
+        {
+            four.Add(await PreparingOrderAsync(manyEmail, now.AddHours(-1).AddMinutes(i), approvedAt: now.AddHours(-1)));
+        }
+
+        // Each of the four carries a mark the row reads (the corrected e-mail), so every per-row read has rows to find.
+        await using (AppDbContext db = NewContext())
+        {
+            List<Guid> ids = await db.Orders.Where(o => four.Contains(o.OrderNumber)).Select(o => o.Id).ToListAsync(Ct);
+            db.OrderEmailHistories.AddRange(ids.Select(id => OrderEmailHistory.Create(id, "eski@example.com", manyEmail, adminId, "Yönetici Bir", now)));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        StorefrontSearchAndProductTests.CommandCounter counter = new();
+        await using WebApplicationFactory<Program> factory = Open(counter);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        await ListAsync(client, $"search={Uri.EscapeDataString(fewEmail)}", key);
+        int beforeFew = counter.Count;
+        string fewHtml = await ListAsync(client, $"search={Uri.EscapeDataString(fewEmail)}", key);
+        int fewCommands = counter.Count - beforeFew;
+        int beforeMany = counter.Count;
+        string manyHtml = await ListAsync(client, $"search={Uri.EscapeDataString(manyEmail)}", key);
+        int manyCommands = counter.Count - beforeMany;
+
+        Assert.Contains(one, fewHtml, StringComparison.Ordinal);
+        Assert.All(four, n => Assert.Contains(n, manyHtml, StringComparison.Ordinal));
+        Assert.Contains(PanelMarks.TextOf(PanelMark.EmailCorrected), manyHtml, StringComparison.Ordinal);
+        Assert.True(fewCommands > 0);
+        Assert.Equal(fewCommands, manyCommands);
+    }
+
     private static string UniqueEmail() => $"liste-{Guid.NewGuid():N}@example.com";
 
     private async Task<(Guid OrderId, string Number)> OrderAsync(string email, DateTimeOffset createdAt)
@@ -204,8 +247,16 @@ public sealed class OrderListPageTests
         return WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct));
     }
 
-    private WebApplicationFactory<Program> Open() =>
-        new ShopfolioWebApplicationFactory(_database.Dsn).WithWebHostBuilder(b => b.ConfigureServices(s => s.AddRazorPages().AddApplicationPart(typeof(Pages.PanelOrdersModel).Assembly)));
+    // The counter counts the commands the contexts send (the job runner is off then, so its polling is not counted).
+    private WebApplicationFactory<Program> Open(StorefrontSearchAndProductTests.CommandCounter? counter = null) =>
+        new ShopfolioWebApplicationFactory(_database.Dsn, withJobRunner: counter is null).WithWebHostBuilder(b => b.ConfigureServices(s =>
+        {
+            s.AddRazorPages().AddApplicationPart(typeof(Pages.PanelOrdersModel).Assembly);
+            if (counter is not null)
+            {
+                s.ConfigureDbContext<AppDbContext>(options => options.AddInterceptors(counter));
+            }
+        }));
 
     private AppDbContext NewContext()
     {

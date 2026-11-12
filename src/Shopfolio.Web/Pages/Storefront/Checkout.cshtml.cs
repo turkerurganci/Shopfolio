@@ -28,7 +28,7 @@ namespace Shopfolio.Pages.Storefront;
 /// no orderable line, a physical cart under the minimum amount - sends every handler but the leaving one back to the cart (07 4.13). The response is personal and not stored (07 2.5.6); the page is noindex.
 /// </summary>
 [NoStore]
-internal sealed class CheckoutModel : PageModel
+internal sealed class CheckoutModel : PageModel, IOutcomeTarget
 {
     /// <summary>The prefix of the confirmation's boxes: none, the box names are the model's own (07 5.2).</summary>
     public const string BoxPrefix = "";
@@ -231,6 +231,7 @@ internal sealed class CheckoutModel : PageModel
         return FormResults.SeeOther(FramePaths.Cart);
     }
 
+    [OutcomeUncertain("UC-27")]
     public async Task<IActionResult> OnPostPlaceOrderAsync(PlaceOrderInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -285,19 +286,14 @@ internal sealed class CheckoutModel : PageModel
             PlaceOrderInputs.AddressRequest(input, owner.CustomerId, confirmed.Lines.Select(l => l.ProductType).ToArray()),
             HttpContext.Connection.RemoteIpAddress ?? IPAddress.None);
 
-        PlaceOrderResult result;
-        try
-        {
-            result = await _transactions.RunAsync(inner => _checkout.PlaceOrderAsync(request, inner), ct);
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException)
-        {
-            // 04 5.13.31; 07 4.13.6: an outcome the step did not expect never says "nothing was done"; the customer is sent to see the result.
-            return FormResults.SeeOther(isMember ? FramePaths.AccountOrders : FramePaths.OrderTracking);
-        }
-
+        // 04 5.13.31; 07 6.4.2: an error the step did not expect is the error layer's - the handler is marked and the layer sends the customer to OutcomeScreen.
+        PlaceOrderResult result = await _transactions.RunAsync(inner => _checkout.PlaceOrderAsync(request, inner), ct);
         return await AnswerAsync(owner, input, result, ct);
     }
+
+    /// <summary>The one method that chooses the screen of an uncertain confirmation (09 8.1 item 4; 07 6.4.2): the member's orders, the guest's order tracking.</summary>
+    public string OutcomeScreen() =>
+        StorefrontFrameBuilder.CartOwnerOf(HttpContext)?.CustomerId is null ? FramePaths.OrderTracking : FramePaths.AccountOrders;
 
     private async Task<IActionResult> AnswerAsync(CartOwner owner, PlaceOrderInput input, PlaceOrderResult result, CancellationToken ct)
     {

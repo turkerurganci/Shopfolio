@@ -279,7 +279,8 @@ public sealed partial class CheckoutPageTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains(AddressMessages.NotDelivered("İstanbul"), html, StringComparison.Ordinal);
         Assert.Contains(CheckoutTexts.RegisteredEmailReminder, html, StringComparison.Ordinal);
-        Assert.DoesNotContain("alanda hata var", html, StringComparison.Ordinal);
+        // Only the province's message counts; the empty required fields of the form are not checked.
+        Assert.Contains("<span>1 alanda hata var</span>", html, StringComparison.Ordinal);
     }
 
     // ---- KK7 and KK10: one transaction, the cookie deleted; the same key opens no second order ----
@@ -430,6 +431,48 @@ public sealed partial class CheckoutPageTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
         Assert.Equal(FramePaths.Cart, response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
+    public async Task AnUnexpectedError_InTheConfirmation_SendsTheGuestToTheOrderTracking_AndTheMemberToTheirOrders_T509_KK9()
+    {
+        string guest = await SeedGuestCartAsync(ProductType.Physical);
+        (string memberKey, Guid memberId) = await TestSessions.CustomerAsync(_database.Dsn);
+        await SeedMemberCartAsync(memberId);
+        await using WebApplicationFactory<Program> factory = Open(salesOpen: true, confirmationFails: true);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string guestPage = (await GetAsync(factory, GuestCart(guest))).Html;
+        string memberPage = (await GetAsync(factory, Customer(memberKey))).Html;
+
+        // 09 8.1 item 4; 07 6.4.2: the marked handler's error is the layer's 303 to the result screen, never "nothing was done"; the open transaction is rolled back.
+        using HttpResponseMessage guestAnswer = await PostAsync(client, "PlaceOrder", [.. Complete(guestPage)], GuestCart(guest));
+        using HttpResponseMessage memberAnswer = await PostAsync(client, "PlaceOrder", [.. Complete(memberPage, guest: false)], Customer(memberKey));
+
+        Assert.Equal(HttpStatusCode.SeeOther, guestAnswer.StatusCode);
+        Assert.Equal(FramePaths.OrderTracking, guestAnswer.Headers.Location?.OriginalString);
+        Assert.Equal(HttpStatusCode.SeeOther, memberAnswer.StatusCode);
+        Assert.Equal(FramePaths.AccountOrders, memberAnswer.Headers.Location?.OriginalString);
+        Assert.Equal(0, await ScalarAsync("SELECT count(*) FROM orders"));
+    }
+
+    [Fact]
+    public async Task AFullOpenUnpaidCeiling_RefusesTheNextConfirmationWith429_T509_KK8()
+    {
+        await using WebApplicationFactory<Program> factory = Open(salesOpen: true);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        HttpStatusCode last = HttpStatusCode.OK;
+        for (int i = 0; i <= ProductConstants.OpenUnpaidOrdersMax; i++)
+        {
+            string guest = await SeedGuestCartAsync(ProductType.Physical);
+            string page = (await GetAsync(factory, GuestCart(guest))).Html;
+            using HttpResponseMessage response = await PostAsync(client, "PlaceOrder", [.. Complete(page)], GuestCart(guest));
+            last = response.StatusCode;
+            Assert.Equal(i < ProductConstants.OpenUnpaidOrdersMax ? HttpStatusCode.SeeOther : HttpStatusCode.TooManyRequests, last);
+        }
+
+        // L-8 (02 8.2.3): the bank transfers of one IP stop at the ceiling; the refused confirmation opens no order.
+        Assert.Equal(HttpStatusCode.TooManyRequests, last);
+        Assert.Equal(ProductConstants.OpenUnpaidOrdersMax, await ScalarAsync("SELECT count(*) FROM orders"));
     }
 
     [GeneratedRegex("type=\"checkbox\"[^>]*name=\"Accept[A-Za-z]+\"[^>]*checked")]

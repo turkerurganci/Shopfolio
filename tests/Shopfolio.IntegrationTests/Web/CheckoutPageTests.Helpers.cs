@@ -16,6 +16,7 @@ using Shopfolio.IntegrationTests.Pages;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering;
+using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.Modules.Settings.Contracts.Gates;
@@ -29,7 +30,7 @@ public sealed partial class CheckoutPageTests
 {
     private const string Phone = "5321234567";
 
-    private WebApplicationFactory<Program> Open(bool salesOpen) =>
+    private WebApplicationFactory<Program> Open(bool salesOpen, bool confirmationFails = false) =>
         new ShopfolioWebApplicationFactory(_database.Dsn).WithWebHostBuilder(b => b.ConfigureServices(s =>
         {
             // The sample pages give the forgery token page; their frame sample at the step's own address is put after the real step.
@@ -44,6 +45,11 @@ public sealed partial class CheckoutPageTests
                 })).AddApplicationPart(typeof(FrameSampleModel).Assembly);
             s.RemoveAll<ISettingsModule>();
             s.AddScoped(sp => GateSettings.Create(ActivatorUtilities.CreateInstance<SettingsModule>(sp), salesOpen));
+            if (confirmationFails)
+            {
+                s.RemoveAll<ICheckout>();
+                s.AddScoped<ICheckout>(sp => new FailingConfirmation(ActivatorUtilities.CreateInstance<Checkout>(sp)));
+            }
         }));
 
     private AppDbContext NewContext()
@@ -265,5 +271,19 @@ public sealed partial class CheckoutPageTests
                 throw e.InnerException;
             }
         }
+    }
+
+    /// <summary>The real step whose confirmation fails after its work, inside the open transaction: the error the step did not expect (09 8.1 item 4; 07 6.4.2).</summary>
+    private sealed class FailingConfirmation(ICheckout inner) : ICheckout
+    {
+        public Task<CheckoutStep> ReadAsync(CheckoutInput input, bool appliesCoupon, CancellationToken ct) => inner.ReadAsync(input, appliesCoupon, ct);
+
+        public async Task<PlaceOrderResult> PlaceOrderAsync(PlaceOrderRequest request, CancellationToken ct)
+        {
+            await inner.PlaceOrderAsync(request, ct);
+            throw new InvalidOperationException("The confirmation failed after its work.");
+        }
+
+        public Task MarkPaymentUnavailableAsync(CartOwner owner, CancellationToken ct) => inner.MarkPaymentUnavailableAsync(owner, ct);
     }
 }

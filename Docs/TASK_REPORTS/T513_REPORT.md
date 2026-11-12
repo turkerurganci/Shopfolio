@@ -90,7 +90,7 @@ Yok.
 
 ## Commit & PR
 
-Dal `task/T513-cayma-ayip`.
+Dal `task/T513-cayma-ayip`; PR #558 (base `main`).
 
 ## Dış Varsayımlar
 

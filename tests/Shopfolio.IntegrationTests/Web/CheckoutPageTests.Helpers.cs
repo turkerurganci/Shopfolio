@@ -1,6 +1,8 @@
 using System.Net;
 using System.Text.RegularExpressions;
 
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -30,9 +32,17 @@ public sealed partial class CheckoutPageTests
 {
     private const string Phone = "5321234567";
 
-    private WebApplicationFactory<Program> Open(bool salesOpen, bool confirmationFails = false) =>
+    /// <summary>The client address of the test requests (a test server's connection has none; behind the proxy every request has one, 09 15.1 item 8).</summary>
+    private static readonly IPAddress ClientIp = IPAddress.Parse("203.0.113.9");
+
+    private WebApplicationFactory<Program> Open(bool salesOpen, bool confirmationFails = false, bool hasAddress = true) =>
         new ShopfolioWebApplicationFactory(_database.Dsn).WithWebHostBuilder(b => b.ConfigureServices(s =>
         {
+            if (hasAddress)
+            {
+                s.AddSingleton<IStartupFilter>(new ClientAddressFilter());
+            }
+
             // The sample pages give the forgery token page; their frame sample at the step's own address is put after the real step.
             s.AddRazorPages(o => o.Conventions.AddPageRouteModelConvention(
                 "/Storefront/FrameCheckoutSample",
@@ -270,6 +280,24 @@ public sealed partial class CheckoutPageTests
             {
                 throw e.InnerException;
             }
+        }
+    }
+
+    /// <summary>Gives every request of the test server the client address <see cref="ClientIp"/> before the application's pipeline.</summary>
+    private sealed class ClientAddressFilter : IStartupFilter
+    {
+        public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
+        {
+            ArgumentNullException.ThrowIfNull(next);
+            return app =>
+            {
+                app.Use((context, forward) =>
+                {
+                    context.Connection.RemoteIpAddress = ClientIp;
+                    return forward(context);
+                });
+                next(app);
+            };
         }
     }
 

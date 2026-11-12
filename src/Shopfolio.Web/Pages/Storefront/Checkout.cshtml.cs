@@ -274,6 +274,14 @@ internal sealed class CheckoutModel : PageModel, IOutcomeTarget
             return await RefuseAsync(owner, input, null, ct);
         }
 
+        // D-805: an order needs the client address (L-7 and L-8 count it, 02 8.2.2). A request without one is not counted, so it is refused like a full limit -
+        // the neutral 429 that tells no count, time or axis - and never becomes a 500 or an order.
+        if (ClientAddress.Of(HttpContext) is not IPAddress address)
+        {
+            await ShowAsync(owner, input, appliesCoupon: false, ct);
+            return FormResults.AttemptLimitExceeded(this, ErrorCode.UnpaidOrderLimitExceeded);
+        }
+
         PlaceOrderRequest request = new(
             owner,
             input.ConfirmationKey ?? string.Empty,
@@ -284,7 +292,7 @@ internal sealed class CheckoutModel : PageModel, IOutcomeTarget
             input.CouponCode,
             isMember ? null : input.ContactEmail?.Trim(),
             PlaceOrderInputs.AddressRequest(input, owner.CustomerId, confirmed.Lines.Select(l => l.ProductType).ToArray()),
-            HttpContext.Connection.RemoteIpAddress ?? IPAddress.None);
+            address);
 
         // 04 5.13.31; 07 6.4.2: an error the step did not expect is the error layer's - the handler is marked and the layer sends the customer to OutcomeScreen.
         PlaceOrderResult result = await _transactions.RunAsync(inner => _checkout.PlaceOrderAsync(request, inner), ct);

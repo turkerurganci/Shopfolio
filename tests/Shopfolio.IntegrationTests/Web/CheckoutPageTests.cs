@@ -475,6 +475,21 @@ public sealed partial class CheckoutPageTests : IAsyncLifetime
         Assert.Equal(ProductConstants.OpenUnpaidOrdersMax, await ScalarAsync("SELECT count(*) FROM orders"));
     }
 
+    [Fact]
+    public async Task AConfirmationWithoutAClientAddress_IsRefusedWithTheNeutral429_AndNoOrder_T509_KK8()
+    {
+        string guest = await SeedGuestCartAsync(ProductType.Physical);
+        await using WebApplicationFactory<Program> factory = Open(salesOpen: true, hasAddress: false);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string page = (await GetAsync(factory, GuestCart(guest))).Html;
+
+        // D-805: the limits count the address; a request without one is not a 500 and not an order.
+        using HttpResponseMessage response = await PostAsync(client, "PlaceOrder", [.. Complete(page)], GuestCart(guest));
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
+        Assert.Equal(0, await ScalarAsync("SELECT count(*) FROM orders"));
+    }
+
     [GeneratedRegex("type=\"checkbox\"[^>]*name=\"Accept[A-Za-z]+\"[^>]*checked")]
     private static partial Regex TickedBox();
 }

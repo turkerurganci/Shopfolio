@@ -862,6 +862,14 @@
     font-weight: 600;
 }
 
+.product__return-list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
 .product__description {
     margin-block-start: var(--space-5);
     overflow-wrap: anywhere;

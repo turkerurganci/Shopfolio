@@ -19,6 +19,7 @@ using Shopfolio.Modules.Catalog.Contracts.Coupons;
 using Shopfolio.Modules.CorporateContent;
 using Shopfolio.Modules.CorporateContent.Contracts;
 using Shopfolio.Modules.Ordering;
+using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
@@ -423,6 +424,91 @@ public sealed partial class CheckoutPageTests : IAsyncLifetime
         Assert.Contains(CheckoutTexts.NoMethod, alone, StringComparison.Ordinal);
     }
 
+    // ---- VAL-A044 (D-627; 04 5.13.10, 5.13.26; 02 3.19.5) and its neighbour VAL-A043: the threshold's line under the fee; no shipping line without a physical item ----
+
+    [Fact]
+    public async Task TheSummary_TellsTheRemainingAmountToFreeShippingUnderTheFee_SaysFreeShippingOnce_AndADigitalCartHasNoShippingLine_VAL_A044()
+    {
+        const decimal fee = 30m;
+        const decimal threshold = 500m;
+        await ExecuteAsync(FormattableString.Invariant($"UPDATE company_settings SET shipping_fee = {fee}, free_shipping_threshold = {threshold}"));
+        string under = await SeedGuestCartAsync(ProductType.Physical, price: 100m);
+        string reached = await SeedGuestCartAsync(ProductType.Physical, price: 600m);
+        string digital = await SeedGuestCartAsync(ProductType.Digital);
+        await using WebApplicationFactory<Program> factory = Open(salesOpen: true);
+
+        // Under the threshold: the fee, and right under it the module's own sentence ("Ücretsiz kargoya 400 TL kaldı").
+        ShippingFeeSection terms = new(fee, threshold, null, 1);
+        string remaining = ThresholdMessages.FreeShipping(ShippingCharge.Assess(terms, 100m, hasPhysicalItem: true))!.Text;
+        string underHtml = (await GetAsync(factory, GuestCart(under))).Html;
+        Assert.Matches(
+            new Regex("<p class=\"checkout__shipping\">Kargo: " + Regex.Escape(DisplayFormat.Amount(fee)) + "</p>\\s*<p class=\"threshold-message threshold-message--free-shipping\">"
+                + Regex.Escape(remaining) + "</p>"),
+            underHtml);
+
+        // At the threshold: the shipping line says "Kargo ücretsiz" once - no second threshold line, no "Kargo: Kargo ücretsiz".
+        string reachedHtml = (await GetAsync(factory, GuestCart(reached))).Html;
+        Assert.Contains("<p class=\"checkout__shipping\">" + ShippingAssessment.FreeShippingText + "</p>", reachedHtml, StringComparison.Ordinal);
+        Assert.DoesNotContain("threshold-message", reachedHtml, StringComparison.Ordinal);
+        Assert.DoesNotContain("Kargo: " + ShippingAssessment.FreeShippingText, reachedHtml, StringComparison.Ordinal);
+
+        // Without a physical item there is no shipping line and no threshold line (04 5.13.26).
+        string digitalHtml = (await GetAsync(factory, GuestCart(digital))).Html;
+        Assert.DoesNotContain("checkout__shipping", digitalHtml, StringComparison.Ordinal);
+        Assert.DoesNotContain("threshold-message", digitalHtml, StringComparison.Ordinal);
+    }
+
+    // ---- D-853 (07 4.13.1; 04 5.13.8, 5.13.21; 03 3.2.1.21; UC-26): a full L-8 keeps the transfer in the list, unselectable, with the neutral message ----
+
+    [Fact]
+    public async Task AFullOpenUnpaidCeiling_KeepsTheTransferListedUnselectable_TheCardOpen_AndWithTheCardUnavailableLeavesNoMethod_T509_KK1()
+    {
+        Regex disabledTransfer = new("<input type=\"radio\" id=\"method-banktransfer\"[^>]*disabled=\"disabled\"");
+        Regex checkedCard = new("<input type=\"radio\" id=\"method-card\"[^>]*checked");
+        string reason = "<span class=\"field__reason\">" + NeutralMessages.LimitExceeded + "</span>";
+        await using WebApplicationFactory<Program> transfer = Open(salesOpen: true);
+        using HttpClient transferClient = ForgeryTokenHandler.CreateClient(transfer);
+        string last = string.Empty;
+        for (int i = 0; i < ProductConstants.OpenUnpaidOrdersMax; i++)
+        {
+            last = await SeedGuestCartAsync(ProductType.Physical);
+            string open = (await GetAsync(transfer, GuestCart(last))).Html;
+            using HttpResponseMessage placed = await PostAsync(transferClient, "PlaceOrder", [.. Complete(open)], GuestCart(last));
+            Assert.Equal(HttpStatusCode.SeeOther, placed.StatusCode);
+        }
+
+        // The ceiling is full on this IP: the transfer stays in the list, cannot be chosen and says the neutral message; the open card is chosen.
+        string guest = await SeedGuestCartAsync(ProductType.Physical);
+        await using WebApplicationFactory<Program> factory = Open(salesOpen: true, cardOpen: true);
+        string page = (await GetAsync(factory, GuestCart(guest))).Html;
+        Assert.Matches(disabledTransfer, page);
+        Assert.Contains(reason, page, StringComparison.Ordinal);
+        Assert.Matches(checkedCard, page);
+        Assert.DoesNotContain(CheckoutTexts.NoMethod, page, StringComparison.Ordinal);
+
+        // The cart whose own unpaid order is one of them is not closed by it: the confirmation cancels that order before it counts (K-837).
+        Assert.DoesNotMatch(disabledTransfer, (await GetAsync(factory, GuestCart(last))).Html);
+
+        // A forged transfer confirmation is still the neutral 429 and opens no order.
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        using HttpResponseMessage forged = await PostAsync(client, "PlaceOrder", [.. Complete(page)], GuestCart(guest));
+        Assert.Equal(HttpStatusCode.TooManyRequests, forged.StatusCode);
+        Assert.Matches(disabledTransfer, await BodyOf(forged));
+        Assert.Equal(ProductConstants.OpenUnpaidOrdersMax, await ScalarAsync("SELECT count(*) FROM orders"));
+
+        // L-8 full and the card unreachable: no usable method - the cart's way back stands in the button's place, and the return marks the cart (04 5.13.21; UC-26).
+        factory.Services.GetRequiredService<CardUnavailability>().Mark();
+        string none = (await GetAsync(factory, GuestCart(guest))).Html;
+        Assert.Matches(disabledTransfer, none);
+        Assert.Contains(CheckoutTexts.NoMethod, none, StringComparison.Ordinal);
+        Assert.Equal(1, CartReturns().Count(page));
+        Assert.Equal(2, CartReturns().Count(none)); // the way back in the button's place, besides the page's own return link
+        using HttpResponseMessage back = await PostAsync(client, "Leave", [("LeaveTarget", "cart")], GuestCart(guest));
+        Assert.Equal(HttpStatusCode.SeeOther, back.StatusCode);
+        await using AppDbContext db = NewContext();
+        Assert.True(await db.Carts.Where(c => c.GuestCartKeyHash == SecretKey.Hash(guest)).Select(c => c.IsPaymentUnavailableNoticePending).SingleAsync(Ct));
+    }
+
     [Fact]
     public async Task TheConfirmation_RefusesTheClosedSale_With422_AndAForeignBookEntry_With404_T509_KK8()
     {
@@ -543,4 +629,7 @@ public sealed partial class CheckoutPageTests : IAsyncLifetime
 
     [GeneratedRegex("type=\"checkbox\"[^>]*name=\"Accept[A-Za-z]+\"[^>]*checked")]
     private static partial Regex TickedBox();
+
+    [GeneratedRegex("name=\"LeaveTarget\" value=\"cart\"")]
+    private static partial Regex CartReturns();
 }

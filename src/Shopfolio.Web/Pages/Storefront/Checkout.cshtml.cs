@@ -103,6 +103,9 @@ internal sealed class CheckoutModel : PageModel, IOutcomeTarget
     /// <summary>The card is open but cannot be chosen now (08 2.1.8; 04 5.13.8).</summary>
     public bool IsCardUnavailableNow { get; private set; }
 
+    /// <summary>The bank transfer is open but L-8's ceiling is full: it stays in the list unselectable with the neutral message; the card stays open (04 5.13.8; 03 3.2.1.21).</summary>
+    public bool IsBankTransferAtLimit { get; private set; }
+
     /// <summary>
     /// The methods the list draws in the fixed order card, bank transfer (04 5.13.8): the open ones and the card that cannot be chosen now, which stays in the list
     /// unselectable with its reason beside it (07 4.13.1; VAL-E061).
@@ -133,8 +136,20 @@ internal sealed class CheckoutModel : PageModel, IOutcomeTarget
     /// <summary>The basket the boxes are about.</summary>
     public ConsentBasket Basket { get; private set; } = ConsentBasket.Physical;
 
-    /// <summary>No method can be used: the cart's way back stands in the confirm button's place (04 5.13.21).</summary>
-    public bool HasNoUsableMethod => OpenMethods.Count == 0;
+    /// <summary>
+    /// No method can be used: the cart's way back stands in the confirm button's place (04 5.13.21) - no open method, or the card unavailable now and the transfer closed by L-8 or off
+    /// (03 3.2.1.21).
+    /// </summary>
+    public bool HasNoUsableMethod => !ShownMethods.Any(IsSelectable);
+
+    /// <summary>The server's verdict on one listed method (07 4.13.1): open, and neither the card unavailable now nor the transfer closed by L-8.</summary>
+    public bool IsSelectable(PaymentMethod method) =>
+        OpenMethods.Contains(method) && !(method == PaymentMethod.Card && IsCardUnavailableNow) && !(method == PaymentMethod.BankTransfer && IsBankTransferAtLimit);
+
+    /// <summary>The reason beside a listed method that cannot be chosen (04 5.13.8): the card's "şu an kullanılamıyor", the transfer's neutral limit message; null for a selectable one.</summary>
+    public string? ReasonOf(PaymentMethod method) => IsSelectable(method)
+        ? null
+        : method == PaymentMethod.Card ? CheckoutTexts.CardUnavailableNow : NeutralMessages.LimitExceeded;
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
@@ -226,9 +241,8 @@ internal sealed class CheckoutModel : PageModel, IOutcomeTarget
         // 07 UC-26: the return to the cart while no method can be used marks the cart; the cart tells it once (K-1183).
         if (StorefrontFrameBuilder.CartOwnerOf(HttpContext) is CartOwner owner)
         {
-            IReadOnlyList<PaymentMethod> open = await _paymentMethods.ListOpenAsync(ct);
-            bool cardNow = open.Contains(PaymentMethod.Card) && !await _paymentMethods.IsCardUnavailableNowAsync(ct);
-            if (!cardNow && !open.Contains(PaymentMethod.BankTransfer))
+            await ReadMethodsAsync(owner, ct);
+            if (HasNoUsableMethod)
             {
                 await _transactions.RunAsync(async inner => await MarkAsync(owner, inner), ct);
             }
@@ -400,9 +414,8 @@ internal sealed class CheckoutModel : PageModel, IOutcomeTarget
             return FormResults.SeeOther(FramePaths.Cart);
         }
 
-        OpenMethods = await _paymentMethods.ListOpenAsync(ct);
-        IsCardUnavailableNow = await _paymentMethods.IsCardUnavailableNowAsync(ct);
-        ChosenMethod = form.PaymentMethod is PaymentMethod chosen && OpenMethods.Contains(chosen) && !(chosen == PaymentMethod.Card && IsCardUnavailableNow) ? chosen : DefaultMethod();
+        await ReadMethodsAsync(owner, ct);
+        ChosenMethod = form.PaymentMethod is PaymentMethod chosen && IsSelectable(chosen) ? chosen : DefaultMethod();
 
         DeliveryArea area = await _settings.GetDeliveryAreaAsync(ct);
         Provinces = [.. (await _settings.GetProvincesAsync(ct)).Select(p => new ProvinceChoice(p.Id, p.Name, area.IsServed(p.Id)))];
@@ -457,12 +470,21 @@ internal sealed class CheckoutModel : PageModel, IOutcomeTarget
 
     private PaymentMethod? DefaultMethod()
     {
-        if (OpenMethods.Contains(PaymentMethod.Card) && !IsCardUnavailableNow)
+        if (IsSelectable(PaymentMethod.Card))
         {
             return PaymentMethod.Card;
         }
 
-        return OpenMethods.Contains(PaymentMethod.BankTransfer) ? PaymentMethod.BankTransfer : null;
+        return IsSelectable(PaymentMethod.BankTransfer) ? PaymentMethod.BankTransfer : null;
+    }
+
+    // The methods' states as the server decides them (07 4.13.1): the open methods, the card's two-minute unavailability and L-8 on the transfer - asked only when the transfer is open.
+    // The page and the return to the cart read them here, so the list and the cart's mark judge "no usable method" the same way (UC-26).
+    private async Task ReadMethodsAsync(CartOwner owner, CancellationToken ct)
+    {
+        OpenMethods = await _paymentMethods.ListOpenAsync(ct);
+        IsCardUnavailableNow = await _paymentMethods.IsCardUnavailableNowAsync(ct);
+        IsBankTransferAtLimit = OpenMethods.Contains(PaymentMethod.BankTransfer) && await _checkout.ClosesBankTransferAsync(owner, ClientAddress.Of(HttpContext), ct);
     }
 
     private async Task<PartyAddress?> ShippingOfAsync(CartOwner owner, PlaceOrderInput form, CancellationToken ct)

@@ -22,6 +22,7 @@
     CheckoutStep step = Model.Step!; // non-null: the page is drawn only after the step was read
     ConfirmationStepView confirmation = Model.Confirmation!; // non-null: the page is drawn only after the confirmation section was read
     ConfirmationSummary summary = step.Summary!; // non-null: a step without a summary goes back to the cart
+    ThresholdMessage? freeShipping = ThresholdMessages.FreeShipping(step.Shipping);
     PlaceOrderInput form = Model.Form;
     FormErrorSummary errors = FormErrorSummary.From(ViewData.ModelState);
     string action = FramePaths.Checkout + "?handler=";
@@ -112,14 +113,14 @@
             <legend>Ödeme yöntemi</legend>
             @foreach (PaymentMethod method in Model.ShownMethods)
             {
-                bool unavailable = method == PaymentMethod.Card && Model.IsCardUnavailableNow;
+                string? reason = Model.ReasonOf(method);
                 string id = "method-" + method.ToString().ToLowerInvariant();
                 <div class="field field--check">
-                    <input type="radio" id="@id" name="@nameof(PlaceOrderInput.PaymentMethod)" value="@method" checked="@(Model.ChosenMethod == method)" disabled="@unavailable" />
+                    <input type="radio" id="@id" name="@nameof(PlaceOrderInput.PaymentMethod)" value="@method" checked="@(Model.ChosenMethod == method)" disabled="@(reason is not null)" />
                     <label for="@id">@(method == PaymentMethod.Card ? "Kart" : "Havale")</label>
-                    @if (unavailable)
+                    @if (reason is not null)
                     {
-                        <span class="field__reason">@CheckoutTexts.CardUnavailableNow</span>
+                        <span class="field__reason">@reason</span>
                     }
                 </div>
             }
@@ -134,7 +135,16 @@
                 <li><span>@line.ProductName</span> <span>× @line.Quantity</span> <span>@DisplayFormat.Amount(line.Payable)</span></li>
             }
         </ul>
-        <p class="checkout__shipping">Kargo: @(summary.ShippingFee == 0 ? "Kargo ücretsiz" : DisplayFormat.Amount(summary.ShippingFee))</p>
+        @* 04 5.13.10, 5.13.26: the shipping line only with a physical item - the fee or "Kargo ücretsiz" -, and the free shipping threshold's remaining amount right under it (02 3.19.5); at the
+           threshold the line itself says "Kargo ücretsiz" once. *@
+        @if (step.HasPhysicalItem)
+        {
+            <p class="checkout__shipping">@(summary.ShippingFee == 0 ? ShippingAssessment.FreeShippingText : "Kargo: " + DisplayFormat.Amount(summary.ShippingFee))</p>
+            @if (freeShipping is not null && !step.Shipping.IsFreeByThreshold)
+            {
+                <partial name="_ThresholdMessage" model="freeShipping" />
+            }
+        }
         <div class="coupon" id="coupon-field" data-js="coupon-field">
             @if (Model.Coupon.Mode == CouponFieldMode.LimitClosed)
             {

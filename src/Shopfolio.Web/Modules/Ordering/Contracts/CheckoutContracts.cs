@@ -23,14 +23,16 @@ public sealed record CheckoutInput(
 /// <summary>
 /// The payment step as the server judges it now (T509; 07 UC-22): <see cref="Block"/> is the cart's own way to the step (no line enters an order, or a physical cart under the minimum order
 /// amount) - the sales gate is the page's to ask -; <see cref="Summary"/> is empty when no line enters an order; <see cref="Coupon"/> is the code's verdict, empty without a code;
-/// <see cref="EarlierUnpaidOrderNumber"/> is the cart's unpaid order the confirmation cancels (K-837); <see cref="HasPhysicalItem"/> opens the shipping section (02 3.14.4).
+/// <see cref="EarlierUnpaidOrderNumber"/> is the cart's unpaid order the confirmation cancels (K-837); <see cref="HasPhysicalItem"/> opens the shipping section and the shipping line
+/// (02 3.14.4; 04 5.13.26); <see cref="Shipping"/> is the cart's shipping terms the summary shows - the fee and the free shipping threshold's line under it (02 3.19.5; 04 5.13.10).
 /// </summary>
 public sealed record CheckoutStep(
     CartPaymentBlock Block,
     ConfirmationSummary? Summary,
     CouponApplication? Coupon,
     string? EarlierUnpaidOrderNumber,
-    bool HasPhysicalItem) : IOperationResult
+    bool HasPhysicalItem,
+    ShippingAssessment Shipping) : IOperationResult
 {
     /// <summary>The read writes only the cart's marks and, on UC-23, the coupon's attempt (L-6): both are kept.</summary>
     public bool IsRejected => false;
@@ -92,6 +94,13 @@ public interface ICheckout
     /// judged behind L-6 and a code that is not accepted keeps its attempt; no coupon right is reserved (07 4.13.2).
     /// </summary>
     Task<CheckoutStep> ReadAsync(CheckoutInput input, bool appliesCoupon, CancellationToken ct);
+
+    /// <summary>
+    /// L-8's verdict for the step's method list (07 4.13.1; 04 5.13.8; 03 3.2.1.21): true when the open unpaid order ceiling is full on the client's IP axis or, for a member, the account's -
+    /// the bank transfer then stays in the list unselectable and the card stays open. The cart's own placed unpaid orders are not counted: the confirmation cancels them before it asks
+    /// (K-837). A plain read; the confirmation asks the same rule again in its transaction.
+    /// </summary>
+    Task<bool> ClosesBankTransferAsync(CartOwner owner, IPAddress? address, CancellationToken ct);
 
     /// <summary>
     /// The confirmation (07 UC-27; 05 4.2.2): the account and the address part are resolved first (a refusal is 422 or 404 before the order's work), then the order's one transaction - the cart's

@@ -1,3 +1,5 @@
+using System.Net;
+
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Membership.Contracts;
 using Shopfolio.Modules.Membership.Contracts.Results;
@@ -15,15 +17,24 @@ internal sealed class Checkout : ICheckout
     private readonly OrderConfirmation _confirmation;
     private readonly IMembershipModule _membership;
     private readonly Carts _carts;
+    private readonly OrderPlacementLimits _limits;
 
-    public Checkout(OrderConfirmation confirmation, IMembershipModule membership, Carts carts)
+    public Checkout(OrderConfirmation confirmation, IMembershipModule membership, Carts carts, OrderPlacementLimits limits)
     {
         _confirmation = confirmation;
         _membership = membership;
         _carts = carts;
+        _limits = limits;
     }
 
     public Task MarkPaymentUnavailableAsync(CartOwner owner, CancellationToken ct) => _carts.MarkPaymentUnavailableAsync(owner, ct);
+
+    public async Task<bool> ClosesBankTransferAsync(CartOwner owner, IPAddress? address, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(owner);
+        Guid? cartId = await _carts.FindCartIdAsync(owner, ct);
+        return await _limits.ClosesBankTransferAsync(address, owner.CustomerId, cartId, ct);
+    }
 
     public async Task<CheckoutStep> ReadAsync(CheckoutInput input, bool appliesCoupon, CancellationToken ct)
     {
@@ -32,7 +43,7 @@ internal sealed class Checkout : ICheckout
         CheckoutStepRead read = await _confirmation.ReadStepAsync(
             new OrderSummaryInput(input.Owner, input.PaymentMethod, input.CouponCode, email, input.Shipping, input.Billing), appliesCoupon, ct);
         bool hasPhysical = read.Cart.OrderingLines.Any(l => l.ProductType == ProductType.Physical);
-        return new CheckoutStep(read.Cart.PaymentBlock, read.Summary, read.Coupon, read.EarlierUnpaidOrderNumber, hasPhysical);
+        return new CheckoutStep(read.Cart.PaymentBlock, read.Summary, read.Coupon, read.EarlierUnpaidOrderNumber, hasPhysical, read.Cart.Shipping);
     }
 
     public async Task<PlaceOrderResult> PlaceOrderAsync(PlaceOrderRequest request, CancellationToken ct)

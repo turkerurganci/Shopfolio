@@ -330,6 +330,8 @@ public sealed partial class CheckoutPageTests
         }
 
         public Task MarkPaymentUnavailableAsync(CartOwner owner, CancellationToken ct) => inner.MarkPaymentUnavailableAsync(owner, ct);
+
+        public Task<bool> ClosesBankTransferAsync(CartOwner owner, IPAddress? address, CancellationToken ct) => inner.ClosesBankTransferAsync(owner, address, ct);
     }
 
     /// <summary>The card's line open: the provider's keys defined at installation (02 3.21.2); the test installation has none.</summary>

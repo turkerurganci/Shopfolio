@@ -64,7 +64,7 @@ internal sealed partial class AfterSalesModule
 
         return await _db.Withdrawals.AsNoTracking()
             .Where(w => ids.Contains(w.OrderItemId))
-            .Select(w => new WithdrawalDeclarationDay(w.Id, w.OrderItemId, w.DeclarationDate))
+            .Select(w => new WithdrawalDeclarationDay(w.Id, w.OrderItemId, w.DeclarationDate, w.CreatedAt))
             .ToListAsync(ct);
     }
 

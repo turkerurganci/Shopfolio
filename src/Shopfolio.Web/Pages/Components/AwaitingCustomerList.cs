@@ -5,11 +5,21 @@ namespace Shopfolio.Pages.Components;
 /// <param name="OrderPath">The order's page: every line leads to its order.</param>
 /// <param name="Text">What is awaited ("IBAN bekleniyor"; the item's name, or the order for a late payment's refund - 02 7.2.8).</param>
 /// <param name="Period">The line's running period (the refund period); null when the line has none.</param>
-internal sealed record AwaitingCustomerRow(string OrderNumber, string OrderPath, string Text, PeriodIndicator? Period);
+/// <param name="ItemName">The item's name; "geç gelen ödemenin geri ödemesi" on that refund, which has no item (04 9.3.6; K-1108). Null when the line names none.</param>
+/// <param name="Reason">The reason of the request, in a short sentence (04 9.3.6); null when the line gives none.</param>
+/// <param name="RequestedAt">When the request was opened: the date shows, and it orders the lines that have no period (02 10.6.1; K-716).</param>
+internal sealed record AwaitingCustomerRow(
+    string OrderNumber,
+    string OrderPath,
+    string Text,
+    PeriodIndicator? Period,
+    string? ItemName = null,
+    string? Reason = null,
+    DateTimeOffset? RequestedAt = null);
 
 /// <summary>
 /// The "IBAN bekleniyor" list of the panel home (T542; 04 2.6.2; 02 10.6.1; K-750): a list of lines, not a counter - nothing here is counted and no number is drawn. The lines with a period come
-/// first and the one that runs out soonest comes before the others; the lines without a period follow in order-number order. A long list shows its first ten lines and a link to the order list
+/// first and the one that runs out soonest comes before the others; the lines without a period follow by the date of their request, then by order number. A long list shows its first ten lines and a link to the order list
 /// filtered by the IBAN mark.
 /// </summary>
 internal sealed class AwaitingCustomerList
@@ -41,6 +51,7 @@ internal sealed class AwaitingCustomerList
             .. rows
                 .OrderBy(r => r.Period is null)
                 .ThenBy(r => r.Period?.Standing.EndsAt ?? DateTimeOffset.MaxValue)
+                .ThenBy(r => r.RequestedAt ?? DateTimeOffset.MaxValue)
                 .ThenBy(r => r.OrderNumber, StringComparer.Ordinal),
         ];
         return new AwaitingCustomerList([.. ordered.Take(ShownLines)], ordered.Length > ShownLines);

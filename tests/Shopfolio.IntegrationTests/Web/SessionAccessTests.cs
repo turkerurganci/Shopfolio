@@ -110,7 +110,7 @@ public sealed class SessionAccessTests
             Assert.Equal(HttpStatusCode.OK, own.StatusCode);
         }
 
-        using (HttpResponseMessage panel = await GetAsync(client, "/panel/siparisler", AdminCookie(adminKey)))
+        using (HttpResponseMessage panel = await GetAsync(client, "/panel/erisim-ornegi", AdminCookie(adminKey)))
         {
             Assert.Equal(HttpStatusCode.OK, panel.StatusCode);
         }
@@ -118,9 +118,9 @@ public sealed class SessionAccessTests
         // A customer's key in the panel's cookie, an administrator's key in the customer's cookie, and each cookie on the other side: no session.
         foreach ((string path, string cookie) in new[]
         {
-            ("/panel/siparisler", AdminCookie(customerKey)),
+            ("/panel/erisim-ornegi", AdminCookie(customerKey)),
             ("/hesap", CustomerCookie(adminKey)),
-            ("/panel/siparisler", CustomerCookie(customerKey)),
+            ("/panel/erisim-ornegi", CustomerCookie(customerKey)),
             ("/hesap", AdminCookie(adminKey)),
         })
         {
@@ -150,10 +150,10 @@ public sealed class SessionAccessTests
         await using WebApplicationFactory<Program> factory = Open(out _);
         using HttpClient client = ClientOf(factory);
 
-        using (HttpResponseMessage closed = await GetAsync(client, "/panel/siparisler"))
+        using (HttpResponseMessage closed = await GetAsync(client, "/panel/erisim-ornegi"))
         {
             Assert.Equal(HttpStatusCode.Found, closed.StatusCode);
-            Assert.Equal($"/panel/giris?returnUrl={Escaped("/panel/siparisler")}", closed.Headers.Location?.OriginalString);
+            Assert.Equal($"/panel/giris?returnUrl={Escaped("/panel/erisim-ornegi")}", closed.Headers.Location?.OriginalString);
         }
 
         foreach (string open in new[] { "/panel/giris", "/panel/sifre-sifirlama", "/panel/sifre-sifirlama/abc" })
@@ -174,7 +174,7 @@ public sealed class SessionAccessTests
         await using WebApplicationFactory<Program> factory = Open(out _);
         using HttpClient client = ClientOf(factory);
 
-        using HttpResponseMessage response = await GetAsync(client, "/panel/siparisler", AdminCookie(adminKey));
+        using HttpResponseMessage response = await GetAsync(client, "/panel/erisim-ornegi", AdminCookie(adminKey));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("panel-orders", await BodyOf(response));
@@ -228,11 +228,11 @@ public sealed class SessionAccessTests
         await using WebApplicationFactory<Program> factory = Open(out _);
         using HttpClient client = ClientOf(factory);
 
-        using HttpResponseMessage panel = await GetAsync(client, "/panel/siparisler?page=2");
+        using HttpResponseMessage panel = await GetAsync(client, "/panel/erisim-ornegi?page=2");
         using HttpResponseMessage account = await GetAsync(client, "/hesap/adresler?x=1&y=a%20b");
 
         Assert.Equal(HttpStatusCode.Found, panel.StatusCode);
-        Assert.Equal($"/panel/giris?returnUrl={Escaped("/panel/siparisler?page=2")}", panel.Headers.Location?.OriginalString);
+        Assert.Equal($"/panel/giris?returnUrl={Escaped("/panel/erisim-ornegi?page=2")}", panel.Headers.Location?.OriginalString);
         Assert.Equal(HttpStatusCode.Found, account.StatusCode);
         Assert.Equal($"/giris?returnUrl={Escaped("/hesap/adresler?x=1&y=a%20b")}", account.Headers.Location?.OriginalString);
     }
@@ -245,11 +245,11 @@ public sealed class SessionAccessTests
         await using WebApplicationFactory<Program> factory = Open(out AccessWriteLog log);
         using HttpClient client = ClientOf(factory);
 
-        using HttpResponseMessage panel = await PostAsync(client, "/panel/siparisler?handler=Save");
+        using HttpResponseMessage panel = await PostAsync(client, "/panel/erisim-ornegi?handler=Save");
         using HttpResponseMessage account = await PostAsync(client, "/hesap/adresler?handler=Save&page=2");
 
         Assert.Equal(HttpStatusCode.SeeOther, panel.StatusCode);
-        Assert.Equal($"/panel/giris?returnUrl={Escaped("/panel/siparisler")}&{NoticeParameter.ParameterName}={NoticeCode.SessionExpired}", panel.Headers.Location?.OriginalString);
+        Assert.Equal($"/panel/giris?returnUrl={Escaped("/panel/erisim-ornegi")}&{NoticeParameter.ParameterName}={NoticeCode.SessionExpired}", panel.Headers.Location?.OriginalString);
         Assert.Equal(HttpStatusCode.SeeOther, account.StatusCode);
         Assert.Equal($"/giris?returnUrl={Escaped("/hesap/adresler?page=2")}&{NoticeParameter.ParameterName}={NoticeCode.SessionExpired}", account.Headers.Location?.OriginalString);
         Assert.Empty(log.Snapshot());
@@ -328,7 +328,7 @@ public sealed class SessionAccessTests
             ("/hesap", "/"),
             ("/siparis/2026-ABC123", "/"),
             ("/siparis/erisim/abc-DEF_123", "/siparis/erisim/abc-DEF_123"),
-            ("/panel/siparisler", "/"),
+            ("/panel/erisim-ornegi", "/"),
             ("//evil.example", "/"),
             ("/\\evil.example", "/"),
             (Evil, "/"),
@@ -619,8 +619,8 @@ public sealed class SessionAccessTests
         await using WebApplicationFactory<Program> factory = Open(out _);
         using HttpClient client = ClientOf(factory);
 
-        using HttpResponseMessage longResponse = await GetAsync(client, "/panel/siparisler", AdminCookie(longKey));
-        using HttpResponseMessage shortResponse = await GetAsync(client, "/panel/siparisler", AdminCookie(shortKey));
+        using HttpResponseMessage longResponse = await GetAsync(client, "/panel/erisim-ornegi", AdminCookie(longKey));
+        using HttpResponseMessage shortResponse = await GetAsync(client, "/panel/erisim-ornegi", AdminCookie(shortKey));
 
         Assert.Equal(HttpStatusCode.OK, longResponse.StatusCode);
         SetCookieHeaderValue cookie = Assert.Single(SetCookieHeaderValue.ParseList([.. longResponse.Headers.GetValues("Set-Cookie")]));
@@ -667,7 +667,7 @@ public sealed class SessionAccessTests
         Assert.Empty(unguarded);
         Assert.Contains(endpoints, e => e.Metadata.GetMetadata<IAuthorizeData>() is not null);
         Assert.Equal(
-            ["/hesap/silindi", "/panel/davet/{}", "/panel/giris", "/panel/sifre-sifirlama", "/panel/sifre-sifirlama/{}"], // the product's panel pages that open before a session (T520)
+            ["/hesap/silindi", "/panel/davet/{}", "/panel/dogrulama/{}", "/panel/geri-al/{}", "/panel/giris", "/panel/sifre-sifirlama", "/panel/sifre-sifirlama/{}"], // the product's panel pages that open before a session (T520, T521)
             open.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray());
     }
 

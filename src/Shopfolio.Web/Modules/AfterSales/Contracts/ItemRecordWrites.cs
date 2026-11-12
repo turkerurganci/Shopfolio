@@ -117,8 +117,11 @@ public sealed record ClosingRecordMoment(Guid RecordId, Guid OrderItemId, bool I
 /// </summary>
 public sealed record ArrivalRecordDate(Guid RecordId, Guid OrderItemId, DateOnly ArrivalDate);
 
-/// <summary>A withdrawal declaration's day on one of the given items (02 7.4.1; K-608): the corrected delivery date that falls on it asks the panel which came first.</summary>
-public sealed record WithdrawalDeclarationDay(Guid WithdrawalId, Guid OrderItemId, DateOnly DeclarationDate);
+/// <summary>
+/// A withdrawal declaration's day on one of the given items (02 7.4.1; K-608) and the moment it was made: a delivery date - the mark's (T527) or the corrected one - that falls on it asks the panel which
+/// came first, and the panel shows the moment beside the question (04 9.9.17).
+/// </summary>
+public sealed record WithdrawalDeclarationDay(Guid WithdrawalId, Guid OrderItemId, DateOnly DeclarationDate, DateTimeOffset DeclaredAt);
 
 /// <summary>An order item, its own quantity and the moment its open quantity is asked at (T383; 02 10.6.3: the end of the order's shipping promise).</summary>
 public sealed record ItemQuantityAt(Guid OrderItemId, int Quantity, DateTimeOffset At);

@@ -1,4 +1,5 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.Forms
 @using Shopfolio.Infrastructure.Routing
 @using Shopfolio.Modules.Catalog.Contracts
 @using Shopfolio.Pages.Components
@@ -29,6 +30,82 @@
 {
     <partial name="_Confirm" model="Model.Confirmation" />
 }
+@{
+    SaveProductInput entries = Model.Form;
+    string uploadAction = Model.FormPath + "?handler=UploadImage";
+    string Decimal(decimal? value) => value is { } d ? Shopfolio.Infrastructure.RequestFormat.FormatDecimal(d) : string.Empty;
+    string Whole(int? value) => value?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty;
+}
+<form method="post" asp-antiforgery="true" action="@(Model.FormPath)?handler=SaveProduct" enctype="multipart/form-data" class="product-form__entries" id="product-save">
+    @if (entries.Version is { } version)
+    {
+        @VersionFields.Version(version, "Input")
+    }
+    @foreach (FieldView field in Model.ProductFields())
+    {
+        <partial name="_Field" model="field" />
+    }
+    <fieldset class="product-form__gallery" id="product-images">
+        <legend>Görseller</legend>
+        @for (int i = 0; i < entries.Images.Count; i++)
+        {
+            SaveProductImageRow image = entries.Images[i];
+            <div class="product-form__image" data-image="@image.ImageId.ToString("D")">
+                <input type="hidden" name="Input.Images[@i].ImageId" value="@image.ImageId.ToString("D")" />
+                <input type="hidden" name="Input.Images[@i].SortOrder" value="@image.SortOrder.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+                <input type="hidden" name="Input.Images[@i].IsMain" value="@(image.IsMain ? "true" : "false")" />
+                <label for="product-image-@i-alt">Alternatif metin</label>
+                <input type="text" id="product-image-@i-alt" name="Input.Images[@i].AltText" value="@image.AltText" />
+            </div>
+        }
+        @if (Model.UploadRefusal is not null && Model.UploadRefusalTarget == ProductFormModel.GalleryTarget)
+        {
+            <partial name="_Message" model="Model.UploadRefusal" />
+        }
+        <label for="product-image-file">Görsel dosyası</label>
+        <input type="file" id="product-image-file" name="Input.ImageFile" accept="@UploadLimits.Accept(UploadSurface.ProductGallery)" />
+        <button type="submit" class="button button--secondary" formaction="@uploadAction" name="Input.ImageTarget" value="@ProductFormModel.GalleryTarget">Galeriye yükle</button>
+    </fieldset>
+    <fieldset class="product-form__variant-entries">
+        <legend>Varyant bilgileri</legend>
+        @for (int i = 0; i < entries.Variants.Count; i++)
+        {
+            SaveProductVariantRow row = entries.Variants[i];
+            string target = $"Variants[{i}].ImageId";
+            <div class="product-form__variant-entry" id="@ProductFormModel.UploadFieldId(target)">
+                @if (row.VariantId is { } variantId)
+                {
+                    <input type="hidden" name="Input.Variants[@i].VariantId" value="@variantId.ToString("D")" />
+                }
+                @if (row.FirstOptionValueId is { } first)
+                {
+                    <input type="hidden" name="Input.Variants[@i].FirstOptionValueId" value="@first.ToString("D")" />
+                }
+                @if (row.SecondOptionValueId is { } second)
+                {
+                    <input type="hidden" name="Input.Variants[@i].SecondOptionValueId" value="@second.ToString("D")" />
+                }
+                <label for="product-variant-@i-sku">Stok kodu</label>
+                <input type="text" id="product-variant-@i-sku" name="Input.Variants[@i].SKU" value="@row.SKU" />
+                <label for="product-variant-@i-price">Fiyat (TL)</label>
+                <input type="text" inputmode="decimal" id="product-variant-@i-price" name="Input.Variants[@i].Price" value="@Decimal(row.Price)" />
+                <label for="product-variant-@i-stock">Stok</label>
+                <input type="text" inputmode="numeric" id="product-variant-@i-stock" name="Input.Variants[@i].StockQuantity" value="@Whole(row.StockQuantity)" />
+                <input type="hidden" name="Input.Variants[@i].OriginalStockQuantity" value="@row.OriginalStockQuantity" />
+                @if (row.ImageId is { } imageId)
+                {
+                    <input type="hidden" name="Input.Variants[@i].ImageId" value="@imageId.ToString("D")" />
+                }
+                @if (Model.UploadRefusal is not null && Model.UploadRefusalTarget == target)
+                {
+                    <partial name="_Message" model="Model.UploadRefusal" />
+                }
+                <button type="submit" class="button button--secondary" formaction="@uploadAction" name="Input.ImageTarget" value="@target">Varyant görseli yükle</button>
+            </div>
+        }
+    </fieldset>
+    <button type="submit" class="button">@ProductFormModel.SaveLabel</button>
+</form>
 @if (record is not null)
 {
     <div class="product-form">

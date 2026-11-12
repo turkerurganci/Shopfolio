@@ -17,8 +17,11 @@ public sealed record PanelVariantRow(
     PublishStatus PublishStatus,
     Guid? ImageId);
 
+/// <summary>One image of the product's gallery (T525; 06 4.71; 04 7.2.4.5): the image, its place, the main mark and the alternative text.</summary>
+public sealed record PanelImageRow(Guid ImageId, int SortOrder, bool IsMain, string? AltText);
+
 /// <summary>
-/// The product form's record as it stands when the form opens (T525; 07 UC-88): the product's fields of 06 4.5, its <c>Version</c> (06 2.6), its variants, the publish gate's unmet conditions
+/// The product form's record as it stands when the form opens (T525; 07 UC-88): the product's fields of 06 4.5, its <c>Version</c> (06 2.6), its variants, its gallery, the publish gate's unmet conditions
 /// by name (04 9.5.10; 02 3.7.3) and the address - fixed at the first publish (02 3.30.2), before that the draft preview's. The figures are the server's (07 8.1.4).
 /// </summary>
 public sealed record PanelProductForm(
@@ -38,12 +41,13 @@ public sealed record PanelProductForm(
     string Slug,
     bool IsSlugFixed,
     IReadOnlyList<PanelVariantRow> Variants,
+    IReadOnlyList<PanelImageRow> Images,
     IReadOnlyList<string> UnmetGateConditions);
 
 /// <summary>The panel's product form read (T525; 07 UC-88). A plain read; it writes nothing.</summary>
 public interface IPanelProductForm
 {
-    /// <summary>The record the form shows; null when the key is no product (07 UC-88: 404). Four reads whatever the variant count (09 20 item 4).</summary>
+    /// <summary>The record the form shows; null when the key is no product (07 UC-88: 404). Five reads whatever the variant count (09 20 item 4).</summary>
     Task<PanelProductForm?> GetAsync(Guid productId, CancellationToken ct);
 
     /// <summary>

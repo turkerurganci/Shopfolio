@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
@@ -9,6 +10,7 @@ using Shopfolio.Infrastructure.Lists;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.Pages.Components;
 using Shopfolio.Pages.Frame;
 
@@ -81,28 +83,65 @@ internal sealed class ProductFormModel : PageModel
 
     public const string GateHeading = "Yayın için eksik";
 
+    /// <summary>07 5.2.3: the upload target of the gallery.</summary>
+    public const string GalleryTarget = "Images";
+
+    /// <summary>The refusal of an image whose pixel size is over the decoder's ceiling (07 UC-117; 05 6.6.1).</summary>
+    public const string PixelLimitText = "Görselin boyutları çok büyük; daha küçük bir görsel yükleyin.";
+
+    /// <summary>The refusal of a request that names no image file or no image field of the form (07 UC-117).</summary>
+    public const string NoImageText = "Yüklenecek görseli seçin.";
+
     private readonly IPanelProductForm _form;
     private readonly IProductTransitions _transitions;
     private readonly IProductRemoval _removal;
+    private readonly ICatalogModule _catalog;
+    private readonly ISettingsModule _settings;
     private readonly ITransactionRunner _transactions;
     private readonly RejectionLog _rejections;
 
-    public ProductFormModel(IPanelProductForm form, IProductTransitions transitions, IProductRemoval removal, ITransactionRunner transactions, RejectionLog rejections)
+    // True once a handler ran: the validation filter's 422 runs none (OnPageHandlerExecutionAsync).
+    private bool _ran;
+
+    public ProductFormModel(
+        IPanelProductForm form,
+        IProductTransitions transitions,
+        IProductRemoval removal,
+        ICatalogModule catalog,
+        ISettingsModule settings,
+        ITransactionRunner transactions,
+        RejectionLog rejections)
     {
         ArgumentNullException.ThrowIfNull(form);
         ArgumentNullException.ThrowIfNull(transitions);
         ArgumentNullException.ThrowIfNull(removal);
+        ArgumentNullException.ThrowIfNull(catalog);
+        ArgumentNullException.ThrowIfNull(settings);
+        _settings = settings;
         ArgumentNullException.ThrowIfNull(transactions);
         ArgumentNullException.ThrowIfNull(rejections);
         _form = form;
         _transitions = transitions;
         _removal = removal;
+        _catalog = catalog;
         _transactions = transactions;
         _rejections = rejections;
     }
 
     /// <summary>The record the form shows; null on the new product's form.</summary>
     public PanelProductForm? Record { get; private set; }
+
+    /// <summary>
+    /// The form's entries: the record's values when the form opens (07 UC-88), the sent values when it is shown again (UC-114 422, UC-117) - with the record's <c>Version</c> as the form
+    /// was opened and, after an upload, the new image in its field (K-1171 (5)).
+    /// </summary>
+    public SaveProductInput Form { get; private set; } = new();
+
+    /// <summary>The field message of a refused upload (07 UC-117; 04 2.12.8.3), keyed by the upload's target; null otherwise.</summary>
+    public MessageView? UploadRefusal { get; private set; }
+
+    /// <summary>The field the refused upload named (<see cref="SaveProductInput.ImageTarget"/>); null otherwise.</summary>
+    public string? UploadRefusalTarget { get; private set; }
 
     public IReadOnlyList<ProductVariantView> Variants { get; private set; } = [];
 
@@ -129,22 +168,143 @@ internal sealed class ProductFormModel : PageModel
 
     public static string PathOf(Guid productId) => $"{PanelFramePaths.Products}/{productId:D}";
 
+    /// <summary>
+    /// A form whose fields break their rules is answered 422 by the validation filter without the handler (09 3.4 item 3): the form it shows again needs the record as it stands and the sent
+    /// entries (07 2.7.1).
+    /// </summary>
+    public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        PageHandlerExecutedContext executed = await next();
+        if (!_ran && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
+        {
+            if (context.HandlerArguments.TryGetValue("id", out object? key) && key is Guid productId)
+            {
+                await LoadAsync(productId, HttpContext.RequestAborted);
+            }
+
+            Form = context.HandlerArguments.Values.OfType<SaveProductInput>().FirstOrDefault() ?? Form;
+        }
+    }
+
     /// <summary>UC-88: the form. The new product's form is empty; an existing one's key that is no product is 404.</summary>
     public async Task<IActionResult> OnGetAsync(Guid? id, string? returnUrl, CancellationToken ct)
     {
         ReturnPath = ListReturn.Target(returnUrl, PanelFramePaths.Products);
         if (id is null)
         {
+            // The new product's VAT rate starts from the firm's default (P-10; 02 3.6.2); the rest is empty.
+            Form = new SaveProductInput { VatRate = (await _settings.GetProductDefaultsAsync(ct)).DefaultVatRate, Variants = [new SaveProductVariantRow()] };
             return Page();
         }
 
         return await LoadAsync(id.Value, ct) ? Page() : NotFound();
     }
 
+    /// <summary>
+    /// UC-117: the image is uploaded before the form is saved. Nothing of the record is written and its version stays: the answer is 200 with the form's sent entries and the new image's id in the
+    /// target field (K-1171 (5)). 422 at the target field: the content is no image of P-22 or cannot be decoded, it is over P-23 or the pixel ceiling (the module's refusal), the gallery would pass
+    /// P-24, or the variant's single image field is already filled. 404 when the form's record is gone. The body's ceiling (P-23 + 1 MB, 413) is the request limit's (<see cref="HandlerBodyClassAttribute"/>).
+    /// </summary>
+    public async Task<IActionResult> OnPostUploadImageAsync(Guid? id, SaveProductInput input, string? returnUrl, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        _ran = true;
+        ReturnPath = ListReturn.Target(returnUrl, PanelFramePaths.Products);
+        if (id is { } productId && !await LoadAsync(productId, ct))
+        {
+            return NotFound();
+        }
+
+        Form = input;
+        int? variantRow = VariantRowOf(input.ImageTarget, input.Variants.Count);
+        bool gallery = string.Equals(input.ImageTarget, GalleryTarget, StringComparison.Ordinal);
+        if (input.ImageFile is not { Length: > 0 } file || (!gallery && variantRow is null))
+        {
+            return RefuseUpload(input.ImageTarget, ErrorCode.InvalidImage, NoImageText);
+        }
+
+        // The count rules first, so a refused upload leaves no unlinked image behind: the gallery as the form holds it (P-24), and the variant's one image (07 5.2.3).
+        if (gallery && input.Images.Count >= ProductConstants.ImagesPerProductMax)
+        {
+            return RefuseUpload(input.ImageTarget, ErrorCode.ImageLimitExceeded, UploadChecks.CountMessage(UploadSurface.ProductGallery));
+        }
+
+        if (variantRow is { } row && input.Variants[row].ImageId is not null)
+        {
+            return RefuseUpload(input.ImageTarget, ErrorCode.ImageLimitExceeded, UploadChecks.CountMessage(UploadSurface.Logo));
+        }
+
+        byte[] content;
+        await using (Stream stream = file.OpenReadStream())
+        using (MemoryStream buffer = new())
+        {
+            await stream.CopyToAsync(buffer, ct);
+            content = buffer.ToArray();
+        }
+
+        // The unlinked image row and its derivative job are one transaction the module joins (05 7.7.2); the record is not touched.
+        ImageUploadResult result = await _transactions.RunAsync(inner => _catalog.UploadImageAsync(content, inner), ct);
+        if (result.IsRejected)
+        {
+            return RefuseUpload(input.ImageTarget, ErrorCode.InvalidImage, UploadRefusalText(result));
+        }
+
+        Guid imageId = result.ImageId!.Value;
+        if (gallery)
+        {
+            input.Images.Add(new SaveProductImageRow
+            {
+                ImageId = imageId,
+                SortOrder = input.Images.Count == 0 ? 1 : input.Images.Max(i => i.SortOrder) + 1,
+                IsMain = input.Images.Count == 0,
+            });
+        }
+        else
+        {
+            input.Variants[variantRow!.Value].ImageId = imageId;
+        }
+
+        // The form is drawn from Form, not from the posted model state: the new image's id reaches its hidden field.
+        ModelState.Clear();
+        return Page();
+    }
+
+    /// <summary>The row of a variant image target <c>Variants[n].ImageId</c> (07 5.2.3); null when the target is no variant row of the sent form.</summary>
+    public static int? VariantRowOf(string? target, int variantCount)
+    {
+        const string Prefix = "Variants[";
+        const string Suffix = "].ImageId";
+        if (target is null || !target.StartsWith(Prefix, StringComparison.Ordinal) || !target.EndsWith(Suffix, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        string index = target[Prefix.Length..^Suffix.Length];
+        return index.Length is > 0 and <= 4 && index.All(char.IsAsciiDigit)
+            && int.Parse(index, System.Globalization.CultureInfo.InvariantCulture) is var n && n < variantCount
+            ? n
+            : null;
+    }
+
+    /// <summary>The field message of the image module's refusal (04 2.12.8.3): the format and an undecodable file, the size, the pixel ceiling.</summary>
+    public static string UploadRefusalText(ImageUploadResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        if (ReferenceEquals(result, ImageUploadResult.TooLarge))
+        {
+            return UploadChecks.SizeMessage(UploadSurface.ProductGallery);
+        }
+
+        return ReferenceEquals(result, ImageUploadResult.OverPixelLimit) ? PixelLimitText : UploadChecks.FormatMessage();
+    }
+
     /// <summary>UC-115, the product branch: the target status is absolute - a record already in it is written nothing (07 2.5.1). The gate's refusal names the unmet conditions (422).</summary>
     public async Task<IActionResult> OnPostChangeProductPublishStatusAsync(Guid? id, ChangeProductPublishStatusInput input, string? returnUrl, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
+        _ran = true;
         if (id is not { } productId || input.PublishStatus is not { } target || !Enum.IsDefined(target))
         {
             return NotFound();
@@ -160,6 +320,7 @@ internal sealed class ProductFormModel : PageModel
     public async Task<IActionResult> OnPostChangeVariantPublishStatusAsync(Guid? id, ChangeVariantPublishStatusInput input, string? returnUrl, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
+        _ran = true;
         if (id is not { } productId || input.PublishStatus is not { } target || !Enum.IsDefined(target))
         {
             return NotFound();
@@ -178,6 +339,7 @@ internal sealed class ProductFormModel : PageModel
     public async Task<IActionResult> OnPostDeleteProductAsync(Guid? id, DeleteProductInput input, string? returnUrl, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
+        _ran = true;
         if (id is not { } productId)
         {
             return NotFound();
@@ -208,6 +370,7 @@ internal sealed class ProductFormModel : PageModel
     public async Task<IActionResult> OnPostDeleteVariantAsync(Guid? id, DeleteVariantInput input, string? returnUrl, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
+        _ran = true;
         if (id is not { } productId || !await LoadAsync(productId, ct) || Record!.Variants.All(v => v.Id != input.VariantId))
         {
             return NotFound();
@@ -246,6 +409,30 @@ internal sealed class ProductFormModel : PageModel
         }
 
         return result.IsDone ? FormResults.SeeOther(FormAddress(productId, returnUrl)) : NotFound();
+    }
+
+    /// <summary>The product's own fields of the form (04 9.5.2-9.5.4, 7.2.4): the entries of <see cref="Form"/>, each with its message after a refusal (04 2.3.2).</summary>
+    public IReadOnlyList<FieldView> ProductFields()
+    {
+        FormErrorSummary summary = FormErrorSummary.From(ModelState);
+        static string? Whole(int? value) => value?.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        List<FieldOption> types =
+        [
+            new(nameof(ProductType.Physical), ProductsModel.TypeOf(ProductType.Physical)),
+            new(nameof(ProductType.Service), ProductsModel.TypeOf(ProductType.Service)),
+            new(nameof(ProductType.Digital), ProductsModel.TypeOf(ProductType.Digital)),
+        ];
+        FieldView[] fields =
+        [
+            Fields.Text("Input.Name", "Ürün adı", FieldRequirement.Required, Form.Name, ProductConstants.ProductNameMaxLength),
+            Fields.ClosedList("Input.ProductType", "Tip", FieldRequirement.Required, types, Form.ProductType?.ToString()),
+            Fields.TextArea("Input.Description", "Açıklama", FieldRequirement.Optional, Form.Description),
+            Fields.Number("Input.VatRate", "KDV oranı (%)", FieldRequirement.Required, Form.VatRate is { } vat ? RequestFormat.FormatDecimal(vat) : null),
+            Fields.Number("Input.ShippingPeriod", "Kargoya verme süresi (gün)", FieldRequirement.Optional, Whole(Form.ShippingPeriod)),
+            Fields.Number("Input.FulfilmentPeriod", "İfa süresi (gün)", FieldRequirement.Optional, Whole(Form.FulfilmentPeriod)),
+            Fields.Number("Input.MaxQuantityPerOrder", "Siparişte en çok adet", FieldRequirement.Optional, Whole(Form.MaxQuantityPerOrder)),
+        ];
+        return Fields.BindAll(fields, summary);
     }
 
     /// <summary>The screen names of the gate's conditions (04 9.5.10): ad, ana kategori, tip, en az bir yayındaki seçenek, yayındaki her seçeneğin dosyası, ifa süresi.</summary>
@@ -383,6 +570,55 @@ internal sealed class ProductFormModel : PageModel
         ];
         UnmetConditions = [.. record.UnmetGateConditions.Select(ConditionName)];
         ProductMoves = MovesOf(record.PublishStatus);
+        Form = InputOf(record);
         return true;
     }
+
+    /// <summary>The form's entries of a record as it stands (07 UC-88): its fields, variants with the shown stock value, gallery and <c>Version</c>.</summary>
+    public static SaveProductInput InputOf(PanelProductForm record)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+        return new SaveProductInput
+        {
+            ProductType = record.ProductType,
+            Name = record.Name,
+            Description = record.Description,
+            VatRate = record.VatRate,
+            OriginCountryId = record.OriginCountryId,
+            MeasurementUnit = record.MeasurementUnit,
+            ShippingPeriod = record.ShippingPeriod,
+            FulfilmentPeriod = record.FulfilmentPeriod,
+            MaxQuantityPerOrder = record.MaxQuantityPerOrder,
+            WithdrawalExemptionReason = record.WithdrawalExemptionReason,
+            Variants =
+            [
+                .. record.Variants.Select(v => new SaveProductVariantRow
+                {
+                    VariantId = v.Id,
+                    SKU = v.StockCode,
+                    Price = v.Price,
+                    NetQuantity = v.NetQuantity,
+                    StockQuantity = v.StockQuantity,
+                    OriginalStockQuantity = v.StockQuantity?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                    ImageId = v.ImageId,
+                }),
+            ],
+            Images = [.. record.Images.Select(i => new SaveProductImageRow { ImageId = i.ImageId, SortOrder = i.SortOrder, IsMain = i.IsMain, AltText = i.AltText })],
+            Version = record.Version,
+        };
+    }
+
+    private IActionResult RefuseUpload(string? target, ErrorCode code, string text)
+    {
+        _rejections.Rejected(code);
+        UploadRefusalTarget = target;
+        UploadRefusal = Messages.ForField(UploadFieldId(target), text);
+        return FormResults.Redisplay(this);
+    }
+
+    /// <summary>The element id of an upload target's field: <c>product-images</c> for the gallery, <c>product-variant-{n}-image</c> for a variant row.</summary>
+    public static string UploadFieldId(string? target) =>
+        VariantRowOf(target, int.MaxValue) is { } row
+            ? $"product-variant-{row.ToString(System.Globalization.CultureInfo.InvariantCulture)}-image"
+            : "product-images";
 }

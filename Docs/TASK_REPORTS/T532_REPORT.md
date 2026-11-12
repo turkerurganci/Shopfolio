@@ -1,6 +1,6 @@
 # T532 — Talepler ve iletişim talebi ayrıntısı (E-38, E-39)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor (PR açıldı, doğrulama bekliyor) | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-12
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -80,10 +80,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-12) — birleşik ağaç (uç `d202a668` + origin/main `368d978d`, çakışmasız): build `-warnaserror` 0 uyarı, format temiz, Unit 7388/7388, betik 4/4, Integration TAM 3894/3894 (Web 888, Model 1410, Ordering 645, kalan 951), `--locked-mode` restore 0; dal CI run 43145034022 yeşil. Kabul kriterleri 1–10 ✓ (validator kanıtı yukarıdaki testler + kod okuması; KK7 maskesi `PathMasker` sorgu değerlerini `*` yapar). Ek geçici sınama (commit edilmedi): imha edilmiş talebe GET ve kapatma POST'u 404 + "Sayfa bulunamadı" + "Panele dön", yeniden açma sonrası "Talep yeniden açıldı" bildirimi, oturumsuz ayrıntı 302. `12`: VAL-A256, C063, C064, A556 → PASS; A735, A736, B048 BEKLEMEDE |
+| Bulgu sayısı | 0 (S1/S2/S3 yok) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 — K1 → D-1338 (`VAL-A735` "Panele dön → listeye" cümlesi `04` 6.3.11.3 ile çelişir) |
 
 ## Altyapı Değişiklikleri
 
@@ -97,7 +97,7 @@
 - **Branch:** `task/T532-talepler`
 - **Commit:** son baş SHA PR açıklamasında
 - **PR:** #552
-- **CI:** yoklanmadı (yapım işçisi CI izlemez)
+- **CI:** dal run 43145034022 (`d202a668`) — 9 adım + CI Gate yeşil (doğrulayıcı)
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

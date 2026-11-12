@@ -126,6 +126,13 @@ internal static class ProductViews
     /// <summary>The address of a product's page (07 2.1.2).</summary>
     public static string PathOf(string slug) => ProductCards.ProductPath(slug);
 
+    /// <summary>
+    /// The "ürünlere dönüş" links of the archived page (04 5.5.3 item 4; 2.7.1.2): the home page's own first-level categories - the menu's roots, nothing below them -, none while the menu holds no
+    /// category (no product is published, or the payment step's reduced frame) and the way home then stands alone.
+    /// </summary>
+    public static IReadOnlyList<MenuCategoryNode> ReturnLinksOf(IReadOnlyList<MenuCategory>? menuCategories) =>
+        menuCategories is null ? [] : FrameMenuTree.Build(menuCategories);
+
     /// <summary>The unit's short text of the unit price line (02 3.8.5): the base unit of the line, not the unit the net quantity is written in.</summary>
     public static string UnitText(MeasurementUnit unit) => unit switch
     {

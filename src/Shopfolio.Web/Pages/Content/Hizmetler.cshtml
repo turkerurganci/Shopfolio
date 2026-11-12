@@ -1,0 +1,11 @@
+@page "/hizmetler"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model Shopfolio.Pages.Content.ServiceListModel
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = Model.Title;
+}
+@section Head {
+    @Model.Head
+}
+<partial name="_ContentListBody" model="Model" />

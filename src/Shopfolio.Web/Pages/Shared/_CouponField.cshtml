@@ -1,0 +1,43 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@model CouponFieldView
+@*
+    The coupon field of the payment step (T544; 04 OB-17, 2.12.6): inside the order summary, above the total, a closed row ("Kupon kodum var") that opens without a script (a details element). The open field takes
+    the code and "Uygula"; the applied code shows its name and the amount it takes off with "Değiştir" and "Kaldır" - one code at most, a new code replaces it. A field the attempt limit has closed shows the neutral
+    message in its place and takes no code. Each action is a form of its own that names its handler (07 2.2.1); the case of a code never matters (K-806).
+*@
+@switch (Model.Mode)
+{
+    case CouponFieldMode.LimitClosed:
+        <div class="coupon coupon--limit" id="coupon-field" data-js="coupon-field">
+            <p class="coupon__closed-text">@CouponFields.ClosedRowText</p>
+            <partial name="_Message" model="Model.LimitMessage!" />
+        </div>
+        break;
+    case CouponFieldMode.Applied:
+        <div class="coupon coupon--applied" id="coupon-field" data-js="coupon-field">
+            <p class="coupon__applied"><span class="coupon__code">@Model.AppliedCode</span> <span class="coupon__discount">@Model.DiscountText</span></p>
+            <details class="coupon__change">
+                <summary class="button button--secondary">@CouponFields.ChangeLabel</summary>
+                <form method="post" asp-antiforgery="true" asp-page-handler="@CouponFields.ApplyHandler" class="coupon__form">
+                    <partial name="_Field" model="Model.CodeField!" />
+                    <button type="submit" class="button button--primary">@CouponFields.ApplyLabel</button>
+                </form>
+            </details>
+            <form method="post" asp-antiforgery="true" asp-page-handler="@CouponFields.RemoveHandler" class="coupon__form">
+                <button type="submit" class="button button--secondary">@CouponFields.RemoveLabel</button>
+            </form>
+        </div>
+        break;
+    default:
+        <div class="coupon coupon--@(Model.Mode == CouponFieldMode.Open ? "open" : "closed")" id="coupon-field" data-js="coupon-field">
+            <details class="coupon__row" open="@(Model.Mode == CouponFieldMode.Open)">
+                <summary>@CouponFields.ClosedRowText</summary>
+                <form method="post" asp-antiforgery="true" asp-page-handler="@CouponFields.ApplyHandler" class="coupon__form">
+                    <partial name="_Field" model="Model.CodeField!" />
+                    <button type="submit" class="button button--primary">@CouponFields.ApplyLabel</button>
+                </form>
+            </details>
+        </div>
+        break;
+}

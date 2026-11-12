@@ -300,7 +300,7 @@
 | T541 | Mesaj, onay, boş ve hata hâlleri ve satış kapalı hâli (OB-03, OB-04, OB-07, OB-08) | ✓ | ✓ PASS (tur 1) | `8ac3b828` | #537 |
 | T542 | Rozet ve işaretler, sayaç ve süre göstergeleri, eşzamanlı düzenleme uyarısı (OB-05, OB-06, OB-10) | ✓ | ✓ PASS (tur 1) | `db7984ac` | #536 |
 | T543 | Form alanı ve düzeni, adres formu, IBAN alanı, sebep seçimi ve ortak alan kuralları (OB-12…OB-15) | ✓ | ✓ PASS (tur 1) | `01411663` | #539 |
-| T544 | Tarih alanı, kupon alanı, onay kutuları, görsel ve dosya yükleme arayüzü (OB-16…OB-19) | ⬚ | — | — | — |
+| T544 | Tarih alanı, kupon alanı, onay kutuları, görsel ve dosya yükleme arayüzü (OB-16…OB-19) | ✓ | ✓ PASS (tur 2) | `5a5ec864` | #546 |
 | T545 | Liste ve tablo, ürün kartı (OB-20, OB-11) | ✓ | ✓ PASS (tur 2) | `f40f3a9d` | #538 |
 | T546 | Gezinme ve geçiş eşitlik denetimleri: iskeletler, geçişler, dışarıdan girişler, dönüşler | ⬚ | — | — | — |
 | T547 | Durum × rol matrisi ve form envanteri eşitlik denetimleri | ⬚ | — | — | — |

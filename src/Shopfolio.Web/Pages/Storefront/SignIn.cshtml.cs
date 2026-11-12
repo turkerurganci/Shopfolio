@@ -127,7 +127,7 @@ internal sealed class SignInModel : PageModel
             PendingRegistrationReading? pending = await _membership.ReadPendingRegistrationAsync(customerId, ct);
             if (pending is not null)
             {
-                SetPending(pending, pendingRegistration!);
+                SetPending(pending, pendingRegistration!); // non-null: TryResolve returned true, which needs a value
                 LinkWasResent = true;
             }
         }
@@ -166,7 +166,7 @@ internal sealed class SignInModel : PageModel
 
         BrowserCookies.Write(HttpContext, CookieNames.Session, opening.SessionKey, opening.CookieLifetime);
         BrowserCookies.WriteKnownDevice(HttpContext, opening.MarkValue, opening.MarkLifetime);
-        await GuestCartMerge.RunAsync(HttpContext, _transactions, _ordering, signedIn, ct);
+        await GuestCartMerge.MergeAsync(HttpContext, _transactions, _ordering, signedIn, ct);
         return FormResults.SeeOther(ReturnPath.AfterSignIn(input.ReturnUrl));
     }
 

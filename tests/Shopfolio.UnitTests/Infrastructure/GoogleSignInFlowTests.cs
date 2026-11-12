@@ -20,6 +20,7 @@ public sealed class GoogleSignInFlowTests
     private static readonly DateTimeOffset _start = new(2026, 11, 12, 9, 0, 0, TimeSpan.Zero);
 
     private readonly ManualTimeProvider _time = new(_start);
+    private readonly FakeGoogleIdentityGateway _gateway = new();
     private readonly GoogleSignInFlow _flow;
 
     public GoogleSignInFlowTests()
@@ -30,7 +31,8 @@ public sealed class GoogleSignInFlowTests
             protectedValues,
             Options.Create(new GoogleOptions { ClientId = "client-x" }),
             Options.Create(new SiteOptions { Domain = "shop.example.com" }),
-            _time);
+            _time,
+            _gateway);
     }
 
     [Fact]
@@ -156,6 +158,34 @@ public sealed class GoogleSignInFlowTests
 
         Assert.False(GoogleSignInFlow.NonceMatches(values, returned));
         Assert.True(GoogleSignInFlow.NonceMatches(values, "the-nonce"));
+    }
+
+    [Fact]
+    public async Task VerifyAsync_OnAVerifiedIdentityWithTheFlowsNonce_GivesTheIdentity_AndSendsTheCodeWithTheFlowsVerifier()
+    {
+        var values = new GoogleFlowValues("id", "the-nonce", "the-verifier");
+        _gateway.Enqueue(new GoogleIdentityResult.Succeeded("a@example.com", true, "Ada", null, null, "the-nonce"));
+
+        GoogleIdentityResult.Succeeded? identity = await _flow.VerifyAsync(values, "code-1", TestContext.Current.CancellationToken);
+
+        Assert.NotNull(identity);
+        Assert.Equal("a@example.com", identity.Email);
+        FakeCall call = Assert.Single(_gateway.Calls);
+        Assert.Equal(new IdentityCodeExchange("code-1", "the-verifier"), call.Argument);
+    }
+
+    [Fact]
+    public async Task VerifyAsync_OnAnotherNonceOnAFailureOrWhenGoogleIsUnavailable_GivesNull()
+    {
+        var values = new GoogleFlowValues("id", "the-nonce", "the-verifier");
+        _gateway.Enqueue(
+            new GoogleIdentityResult.Succeeded("a@example.com", true, null, null, null, "other-nonce"),
+            new GoogleIdentityResult.Failed("invalid"),
+            new GoogleIdentityResult.Unavailable("timeout"));
+
+        Assert.Null(await _flow.VerifyAsync(values, "c1", TestContext.Current.CancellationToken));
+        Assert.Null(await _flow.VerifyAsync(values, "c2", TestContext.Current.CancellationToken));
+        Assert.Null(await _flow.VerifyAsync(values, "c3", TestContext.Current.CancellationToken));
     }
 
     private (HttpContext Back, string State, Dictionary<string, StringValues> Query) StartAndReturn(GoogleFlowKind kind, string? operation, string? returnUrl)

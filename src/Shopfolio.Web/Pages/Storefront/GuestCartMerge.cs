@@ -12,7 +12,7 @@ namespace Shopfolio.Pages.Storefront;
 /// </summary>
 internal static class GuestCartMerge
 {
-    public static async Task RunAsync(HttpContext context, ITransactionRunner transactions, IOrderingModule ordering, Guid customerId, CancellationToken ct)
+    public static async Task MergeAsync(HttpContext context, ITransactionRunner transactions, IOrderingModule ordering, Guid customerId, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(transactions);

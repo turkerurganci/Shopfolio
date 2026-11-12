@@ -28,7 +28,6 @@ internal sealed class GoogleReturnModel : PageModel
     private readonly ISessionService _sessions;
     private readonly IOrderingModule _ordering;
     private readonly ITransactionRunner _transactions;
-    private readonly IGoogleIdentityGateway _gateway;
     private readonly GoogleSignInFlow _flow;
 
     public GoogleReturnModel(
@@ -36,20 +35,17 @@ internal sealed class GoogleReturnModel : PageModel
         ISessionService sessions,
         IOrderingModule ordering,
         ITransactionRunner transactions,
-        IGoogleIdentityGateway gateway,
         GoogleSignInFlow flow)
     {
         ArgumentNullException.ThrowIfNull(membership);
         ArgumentNullException.ThrowIfNull(sessions);
         ArgumentNullException.ThrowIfNull(ordering);
         ArgumentNullException.ThrowIfNull(transactions);
-        ArgumentNullException.ThrowIfNull(gateway);
         ArgumentNullException.ThrowIfNull(flow);
         _membership = membership;
         _sessions = sessions;
         _ordering = ordering;
         _transactions = transactions;
-        _gateway = gateway;
         _flow = flow;
     }
 
@@ -68,8 +64,8 @@ internal sealed class GoogleReturnModel : PageModel
             return Back(NoticeCode.SocialLoginFailed);
         }
 
-        GoogleIdentityResult answer = await _gateway.VerifyIdentityAsync(new IdentityCodeExchange(code, flow.Values.CodeVerifier), ct);
-        if (answer is not GoogleIdentityResult.Succeeded identity || !GoogleSignInFlow.NonceMatches(flow.Values, identity.Nonce))
+        GoogleIdentityResult.Succeeded? identity = await _flow.VerifyAsync(flow.Values, code, ct);
+        if (identity is null)
         {
             // Unreachable, an error answer, a failed verification and a nonce that is not the flow's are all the same ending for the sign-in flow (08 2.3; 05 10.1.5).
             return Back(NoticeCode.SocialLoginFailed);
@@ -103,7 +99,7 @@ internal sealed class GoogleReturnModel : PageModel
             case GoogleSignInOutcome.SignedIn when outcome.Opening is { } opening && decided.CustomerId is { } customerId:
                 BrowserCookies.Write(HttpContext, CookieNames.Session, opening.SessionKey, opening.CookieLifetime);
                 BrowserCookies.WriteKnownDevice(HttpContext, opening.MarkValue, opening.MarkLifetime);
-                await GuestCartMerge.RunAsync(HttpContext, _transactions, _ordering, customerId, ct);
+                await GuestCartMerge.MergeAsync(HttpContext, _transactions, _ordering, customerId, ct);
                 return FormResults.SeeOther(ReturnPath.AfterSignIn(flow.State.ReturnUrl));
             case GoogleSignInOutcome.EmailNotVerified:
                 return FormResults.SeeOther(FramePaths.Register, NoticeCode.SocialLoginEmailUnverified);

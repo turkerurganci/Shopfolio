@@ -42,19 +42,22 @@ internal sealed class GoogleSignInFlow
     private readonly IOptions<GoogleOptions> _google;
     private readonly IOptions<SiteOptions> _site;
     private readonly TimeProvider _time;
+    private readonly IGoogleIdentityGateway _gateway;
 
-    public GoogleSignInFlow(BrowserCookies cookies, ProtectedValues protectedValues, IOptions<GoogleOptions> google, IOptions<SiteOptions> site, TimeProvider time)
+    public GoogleSignInFlow(BrowserCookies cookies, ProtectedValues protectedValues, IOptions<GoogleOptions> google, IOptions<SiteOptions> site, TimeProvider time, IGoogleIdentityGateway gateway)
     {
         ArgumentNullException.ThrowIfNull(cookies);
         ArgumentNullException.ThrowIfNull(protectedValues);
         ArgumentNullException.ThrowIfNull(google);
         ArgumentNullException.ThrowIfNull(site);
         ArgumentNullException.ThrowIfNull(time);
+        ArgumentNullException.ThrowIfNull(gateway);
         _cookies = cookies;
         _protectedValues = protectedValues;
         _google = google;
         _site = site;
         _time = time;
+        _gateway = gateway;
     }
 
     /// <summary>
@@ -64,9 +67,9 @@ internal sealed class GoogleSignInFlow
     public Uri Start(HttpContext context, GoogleFlowKind kind, string? operation, string? returnUrl)
     {
         ArgumentNullException.ThrowIfNull(context);
-        string flowId = RandomToken(16);
-        string nonce = RandomToken(32);
-        string verifier = RandomToken(32);
+        string flowId = SecretKey.Create();
+        string nonce = SecretKey.Create();
+        string verifier = SecretKey.Create();
         DateTimeOffset startedAt = _time.GetUtcNow();
         string state = _protectedValues.Protect(
             DataProtectionPurposes.ExternalLoginState,
@@ -128,6 +131,15 @@ internal sealed class GoogleSignInFlow
             && CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(flow.Nonce), Encoding.UTF8.GetBytes(returned));
     }
 
-    private static string RandomToken(int bytes) =>
-        Convert.ToBase64String(RandomNumberGenerator.GetBytes(bytes)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+    /// <summary>
+    /// Verifies a return's authorization code with Google (the gateway's one call, outside any transaction, 09 11.3) and returns the identity when it is verified and carries the flow's nonce; an
+    /// unreachable Google, an error answer, a failed verification and a nonce that is not the flow's are all the same ending, null (08 2.3; 05 10.1.5).
+    /// </summary>
+    public async Task<GoogleIdentityResult.Succeeded?> VerifyAsync(GoogleFlowValues flow, string code, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(flow);
+        ArgumentException.ThrowIfNullOrWhiteSpace(code);
+        GoogleIdentityResult answer = await _gateway.VerifyIdentityAsync(new IdentityCodeExchange(code, flow.CodeVerifier), ct);
+        return answer is GoogleIdentityResult.Succeeded identity && NonceMatches(flow, identity.Nonce) ? identity : null;
+    }
 }

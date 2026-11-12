@@ -109,8 +109,8 @@
 | Düzeltme 1 — Unit TAM | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | 7440/7441; kalan 1 `DomesticProductionLogoSourceScanTests` regex zaman aşımı (5 s, makine yükü; T509 diff'i dokunmuyor) — sınıf yeniden 38/38 |
 | Düzeltme 1 — Integration | ✓ | `--filter-class "Shopfolio.IntegrationTests.Web.CheckoutPageTests"` (Postgres 18, `track_commit_timestamp=on`, 127.0.0.1) | 18/18 (yeni VAL-E061 testi dahil). **TAM: CI** |
 | Düzeltme 2 — derleme ve biçim | ✓ | `dotnet restore Shopfolio.slnx --locked-mode`; `dotnet build Shopfolio.slnx --no-restore -warnaserror`; `dotnet format <proje> --verify-no-changes --no-restore` (Web, Unit, Integration) | restore çıkış 0; 0 uyarı, 0 hata; format üçü çıkış 0 |
-| Düzeltme 2 — Unit TAM | ⏳ | `dotnet test --project tests/Shopfolio.UnitTests --no-build` (parçalı) | koşuluyor |
-| Düzeltme 2 — Integration | ⏳ | `--filter-class` `CheckoutPageTests` (Postgres 18, `track_commit_timestamp=on`, 127.0.0.1); `OpenUnpaidOrderLimitTests`, `OrderPlacementLimitTests`, `OrderConfirmationTests` | `CheckoutPageTests` 20/20 (iki yeni test dahil); öteki sınıflar koşuluyor. **TAM: CI** |
+| Düzeltme 2 — Unit TAM | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build` parçalı: `--filter-namespace` Consistency · Architecture · `--filter-not-namespace` ikisi | 295/295 + 1750/1750 + 5433/5433 = 7478/7478 |
+| Düzeltme 2 — Integration | ✓ | `--filter-class` (Postgres 18, `track_commit_timestamp=on`, 127.0.0.1): `OpenUnpaidOrderLimitTests`, `OrderPlacementLimitTests`, `OrderConfirmationTests` (+ partial) · `CheckoutPageTests`, `MainFlowTests`, `CartPageTests` | 49/49 · 43/43 (`CheckoutPageTests` 20/20, iki yeni test dahil). **TAM: CI** |
 | Integration TAM | ⏳ | — | Yönetici kararı (makine yükü, "Yük altında Integration TAM"): yapımda koşulmadı; **TAM doğrulayıcıda koşulacak** |
 | `dotnet format` | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` (Web, Unit, Integration; son turda değişen 5 test dosyası `--include` ile) | Temiz (çıkış 0) |
 

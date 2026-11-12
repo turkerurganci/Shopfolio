@@ -283,6 +283,7 @@ internal static class CatalogModuleRegistration
         services.AddScoped<ProductCategoryLinks>();
         services.AddScoped<ProductListReader>();
         services.AddScoped<IPanelProductList, PanelProductListReader>();
+        services.AddScoped<IPanelProductForm, PanelProductFormReader>();
         services.AddScoped<ProductGallery>();
 
         // The discount and the price history (T337): one writer of the history, the two writers that call it, and the scheduler's source of the discounts' bounds.

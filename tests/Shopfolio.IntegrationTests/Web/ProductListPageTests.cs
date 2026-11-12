@@ -293,9 +293,24 @@ public sealed partial class ProductListPageTests : IAsyncLifetime
         Product product = Product.Create(name, $"p-{Guid.NewGuid():N}", type, 20m, createdAt).WithSeededOrigin();
         product.PublishStatus = status;
         db.Products.Add(product);
+
+        // A product with more than one variant opens them as combinations of an option's values: the variant key (product, first value, second value) is unique (06 4.6).
+        Option? option = variants.Length > 1 ? Option.Create(product.Id, "Renk", 1, createdAt) : null;
+        if (option is not null)
+        {
+            db.Options.Add(option);
+        }
+
         for (int i = 0; i < variants.Length; i++)
         {
             Variant variant = Variant.Create(product.Id, $"S-{Guid.NewGuid():N}"[..20], variants[i].Price, createdAt.AddSeconds(i));
+            if (option is not null)
+            {
+                OptionValue value = OptionValue.Create(option.Id, $"Değer {i}", i + 1, createdAt);
+                db.OptionValues.Add(value);
+                variant.FirstOptionValueId = value.Id;
+            }
+
             variant.StockQuantity = variants[i].Stock;
             variant.PublishStatus = status == PublishStatus.Published ? PublishStatus.Published : PublishStatus.Draft;
             db.Variants.Add(variant);

@@ -1,0 +1,116 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.Routing
+@using Shopfolio.Modules.Catalog.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model ProductFormModel
+@*
+    E-33's body (T525; 04 9.5): the name, the type and the badge first (9.5.2), the variant table with the shown stock value and the reserved units (9.5.5; K-653), and the side column - the badge,
+    the gate's unmet conditions by name, "Önizle" or "Sitede gör", the publish moves and the permanent deletion (9.5.10, 9.5.22). The moves and the deletions are their own forms and carry no
+    version (K-1189 (1)). No inline style, no inline script.
+*@
+@{
+    PanelProductForm? record = Model.Record;
+}
+<div class="product-form__heading">
+    <h1>@Model.Title</h1>
+    @if (record is not null)
+    {
+        <span class="product-form__type">@ProductsModel.TypeOf(record.ProductType)</span>
+        <partial name="_Badge" model="StatusBadges.For(record.PublishStatus)" />
+    }
+    <a class="product-form__back" href="@Model.ReturnPath">Ürünler</a>
+</div>
+@if (Model.Refusal is not null)
+{
+    <partial name="_Message" model="Model.Refusal" />
+}
+@if (Model.Confirmation is not null)
+{
+    <partial name="_Confirm" model="Model.Confirmation" />
+}
+@if (record is not null)
+{
+    <div class="product-form">
+        <aside class="product-form__side" aria-labelledby="product-status-heading">
+            <h2 id="product-status-heading">Yayın durumu</h2>
+            <partial name="_Badge" model="StatusBadges.For(record.PublishStatus)" />
+            @if (Model.UnmetConditions.Count > 0)
+            {
+                <h3 class="product-form__gate-heading">@ProductFormModel.GateHeading</h3>
+                <ul class="product-form__gate" id="product-gate">
+                    @foreach (string condition in Model.UnmetConditions)
+                    {
+                        <li>@condition</li>
+                    }
+                </ul>
+            }
+            <p class="product-form__address">
+                <a href="/@AddressRules.ProductPrefix/@record.Slug">@(record.PublishStatus == PublishStatus.Draft ? ProductFormModel.PreviewLabel : ProductFormModel.ViewOnSiteLabel)</a>
+                @if (record.IsSlugFixed)
+                {
+                    <span class="product-form__slug">/@AddressRules.ProductPrefix/@record.Slug</span>
+                }
+            </p>
+            @foreach (PublishMoveView move in Model.ProductMoves)
+            {
+                <form method="post" asp-antiforgery="true" action="@(Model.FormPath)?handler=ChangeProductPublishStatus" class="product-form__move">
+                    <input type="hidden" name="Input.PublishStatus" value="@move.Target" />
+                    <button type="submit" class="button button--secondary">@move.Label</button>
+                </form>
+            }
+            <form method="post" asp-antiforgery="true" action="@(Model.FormPath)?handler=DeleteProduct" class="product-form__move">
+                <button type="submit" class="button button--secondary">@ProductFormModel.DeleteLabel</button>
+            </form>
+        </aside>
+        <section class="product-form__variants" aria-labelledby="product-variants-heading">
+            <h2 id="product-variants-heading">Seçenekler ve varyantlar</h2>
+            <table class="panel-table" id="product-variants">
+                <thead>
+                    <tr>
+                        <th scope="col">Varyant</th>
+                        <th scope="col">Stok kodu</th>
+                        <th scope="col">Fiyat</th>
+                        @if (record.ProductType != ProductType.Digital)
+                        {
+                            <th scope="col">@(record.ProductType == ProductType.Service ? "Kontenjan" : "Stok")</th>
+                            <th scope="col">Ayrılmış</th>
+                        }
+                        <th scope="col">Durum</th>
+                        <th scope="col"><span class="visually-hidden">İşlemler</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (ProductVariantView variant in Model.Variants)
+                    {
+                        <tr data-variant="@variant.Id.ToString("D")">
+                            <td>@variant.Label</td>
+                            <td>@variant.StockCode</td>
+                            <td>@variant.Price</td>
+                            @if (record.ProductType != ProductType.Digital)
+                            {
+                                <td>@(variant.StockQuantity?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? ProductsModel.UnlimitedText)</td>
+                                <td>@variant.ReservedQuantity.ToString(System.Globalization.CultureInfo.InvariantCulture)</td>
+                            }
+                            <td><partial name="_Badge" model="variant.Badge" /></td>
+                            <td>
+                                @foreach (PublishMoveView move in ProductFormModel.MovesOf(variant.PublishStatus))
+                                {
+                                    <form method="post" asp-antiforgery="true" action="@(Model.FormPath)?handler=ChangeVariantPublishStatus" class="product-form__move">
+                                        <input type="hidden" name="Input.VariantId" value="@variant.Id.ToString("D")" />
+                                        <input type="hidden" name="Input.PublishStatus" value="@move.Target" />
+                                        <button type="submit" class="button button--secondary">@move.Label</button>
+                                    </form>
+                                }
+                                <form method="post" asp-antiforgery="true" action="@(Model.FormPath)?handler=DeleteVariant" class="product-form__move">
+                                    <input type="hidden" name="Input.VariantId" value="@variant.Id.ToString("D")" />
+                                    <button type="submit" class="button button--secondary">@ProductFormModel.DeleteLabel</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+    </div>
+}

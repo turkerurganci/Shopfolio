@@ -147,6 +147,24 @@ public sealed class AfterSalesScreenTests : IAsyncLifetime
         Assert.Contains(OrderScreenTexts.PackagingConditionText, html, StringComparison.Ordinal);
     }
 
+    // ---- D-1196: the order page's buttons open the two screens ----
+
+    [Fact]
+    public async Task TheOrderPagesWithdrawalAndDefectClaimButtons_OpenTheirScreens_D1196()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (_, string key, _, _) = await SeedAsync(host, "Shipped", 2);
+
+        using HttpResponseMessage page = await host.Client.GetAsync(At(OrderRoutes.AccessPath(key)), Ct);
+        using HttpResponseMessage withdrawal = await host.Client.GetAsync(At(Withdrawal(key)), Ct);
+        using HttpResponseMessage claim = await host.Client.GetAsync(At(ClaimScreen(key)), Ct);
+
+        string html = await page.Content.ReadAsStringAsync(Ct);
+        Assert.Contains($"href=\"{Withdrawal(key)}\"", html, StringComparison.Ordinal);
+        Assert.Contains($"href=\"{ClaimScreen(key)}\"", html, StringComparison.Ordinal);
+        Assert.Equal((HttpStatusCode.OK, HttpStatusCode.OK), (withdrawal.StatusCode, claim.StatusCode));
+    }
+
     // ---- KK2, KK3: the last step writes nothing; the declaration freezes the return address ----
 
     [Fact]

@@ -47,6 +47,12 @@ public interface IMembershipModule
     Task<VerificationResendResult> ResendVerificationLinkAsync(Guid customerId, IPAddress? ipAddress, CancellationToken ct);
 
     /// <summary>
+    /// The pending registration of an account for the registration screen's after-send state (T514; 04 5.20.4; read only): the address and the end of the first link - or nothing when the
+    /// account is missing, is verified or its first link has ended (the registration is then no longer pending).
+    /// </summary>
+    Task<PendingRegistrationReading?> ReadPendingRegistrationAsync(Guid customerId, CancellationToken ct);
+
+    /// <summary>
     /// The sign-in's check of the e-mail and the password (02 3.13.4, 3.13.19, 3.13.20): the same work is done whether or not the address has an account; an unverified account
     /// is refused even with the right password (<c>EmailNotVerified</c>) and the attempt is written as failed. Every attempt is one sign-in record row with its moment, IP,
     /// e-mail and outcome, written in a transaction of its own so a refusal does not take it back. The sign-in is never behind the gate. The limit L-1 (02 3.13.17) is counted
@@ -140,6 +146,12 @@ public interface IMembershipModule
     /// shows nothing else of the account.
     /// </summary>
     Task<string?> GetMemberNameAsync(Guid customerId, CancellationToken ct);
+
+    /// <summary>
+    /// The signed-in member's name and e-mail for the contact form's starting values (T506; 02 3.32.1; 04 5.10.11): the account's own values, which the member may change on the form, or null when
+    /// no account holds the id. A plain read; the form stores nothing back on the account.
+    /// </summary>
+    Task<MemberContact?> GetMemberContactAsync(Guid customerId, CancellationToken ct);
 
     /// <summary>The member changes the account's name (02 3.13.21): an empty name is refused; no verification is asked again and no order's recipient name is touched.</summary>
     Task<NameChangeResult> ChangeNameAsync(Guid customerId, string name, CancellationToken ct);

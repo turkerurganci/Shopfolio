@@ -1,0 +1,32 @@
+@page "/dogrulama/{key}"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@model Shopfolio.Pages.Storefront.VerificationModel
+@inject SearchEngineData Search
+@*
+    The landing page of the e-mail links (T514; 04 5.21). One of the states of VerificationLandings: one sentence in place and either the one button of the verification step or the one link of the
+    next step. Opening the page writes nothing; the button is a form of its own (K-904). The page has no other form (04 5.21.10).
+*@
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = VerificationLandings.ScreenName;
+    VerificationLanding landing = Model.Landing;
+}
+@section Head {
+    @Search.Head(ViewContext.HttpContext, RecordPages.ClosedScreen(VerificationLandings.ScreenName, ViewContext.HttpContext.GetStorefrontFrame()?.Brand.BrandName, FramePaths.Verification))
+}
+<h1>@VerificationLandings.ScreenName</h1>
+<partial name="_Message" model="Messages.InPlace(landing.Meaning, landing.Sentence)" />
+@if (landing.ButtonLabel is not null)
+{
+    <form method="post" asp-antiforgery="true" action="@(FramePaths.Verification)/@Uri.EscapeDataString(Model.LinkKey)?handler=VerifyEmail" data-js="submit-once">
+        <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(landing.ButtonLabel)">@landing.ButtonLabel</button>
+    </form>
+}
+else if (landing.NextPath is not null)
+{
+    <a class="button button--primary" href="@landing.NextPath">@landing.NextLabel</a>
+}

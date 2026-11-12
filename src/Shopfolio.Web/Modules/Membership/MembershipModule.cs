@@ -251,6 +251,21 @@ internal sealed class MembershipModule : IMembershipModule
         return VerificationResendResult.Issued(link.Id, expiresAt);
     }
 
+    public async Task<PendingRegistrationReading?> ReadPendingRegistrationAsync(Guid customerId, CancellationToken ct)
+    {
+        string? email = await _db.Customers.AsNoTracking()
+            .Where(c => c.Id == customerId && c.EmailVerifiedAt == null)
+            .Select(c => c.Email)
+            .SingleOrDefaultAsync(ct);
+        if (email is null)
+        {
+            return null;
+        }
+
+        DateTimeOffset? end = await FirstLinkEndAsync(customerId, ct);
+        return end is { } endsAt && endsAt > _time.GetUtcNow() ? new PendingRegistrationReading(email, endsAt) : null;
+    }
+
     public async Task<CredentialCheckResult> CheckCredentialsAsync(string email, string entered, IPAddress? ipAddress, string? recognizedBrowserMark, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(email);
@@ -334,6 +349,11 @@ internal sealed class MembershipModule : IMembershipModule
     public async Task<string?> GetMemberNameAsync(Guid customerId, CancellationToken ct)
     {
         return await _db.Customers.AsNoTracking().Where(c => c.Id == customerId).Select(c => c.Name).SingleOrDefaultAsync(ct);
+    }
+
+    public async Task<MemberContact?> GetMemberContactAsync(Guid customerId, CancellationToken ct)
+    {
+        return await _db.Customers.AsNoTracking().Where(c => c.Id == customerId).Select(c => new MemberContact(c.Name, c.Email)).SingleOrDefaultAsync(ct);
     }
 
     public async Task<NameChangeResult> ChangeNameAsync(Guid customerId, string name, CancellationToken ct)

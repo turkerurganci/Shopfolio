@@ -76,6 +76,26 @@ public static class Confirmations
 {
     private static readonly string[] _vagueLabels = ["Evet", "Tamam", "Onayla", "Devam", "Devam et"];
 
+    /// <summary>The name of the administrator removal's operation and of its button (04 9.20.10; K-814).</summary>
+    public const string AdminRemovalOperationName = "Yöneticiyi kaldır";
+
+    /// <summary>
+    /// 04 9.20.10 (K-662, K-814): the administrator's window of the administrator removal. The operation is irreversible (the account, its sessions and its invitations end) but it is not one of the eight of
+    /// <see cref="IrreversibleConfirmation"/>, whose list is closed, so its sentence is written here: the removed one's name and address, the immediate end of the open sessions, the number of unused invitations
+    /// that become invalid (only when there is one) and the notice to every administrator.
+    /// </summary>
+    public static ConfirmView ForAdminRemoval(string name, string email, int invalidatedInvitations, string actionPath, string handler, string cancelPath, IReadOnlyList<KeyValuePair<string, string>> fields)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
+        ArgumentOutOfRangeException.ThrowIfNegative(invalidatedInvitations);
+        string invitations = invalidatedInvitations > 0
+            ? $" Gönderdiği kullanılmamış {invalidatedInvitations.ToString(System.Globalization.CultureInfo.InvariantCulture)} davet geçersizleşecek."
+            : string.Empty;
+        string sentence = $"{name} ({email}) yönetici olarak kaldırılacak ve açık oturumları hemen kapanacak.{invitations} Kaldırma bütün yöneticilere bildirilecek.";
+        return Build(ConfirmSurface.AdminWindow, AdminRemovalOperationName, null, sentence, true, AdminRemovalOperationName, actionPath, handler, cancelPath, fields);
+    }
+
     /// <summary>04 2.4.4: the administrator's window for an irreversible operation of 03 1.6.1: the texts are those of <see cref="IrreversibleConfirmation"/> (K-797, K-798).</summary>
     public static ConfirmView ForIrreversible(
         IrreversibleConfirmation confirmation,

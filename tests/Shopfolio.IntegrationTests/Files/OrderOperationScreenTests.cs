@@ -3,6 +3,7 @@ using System.Net;
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Routing;
 using Shopfolio.IntegrationTests.Database;
@@ -104,10 +105,15 @@ public sealed class OrderOperationScreenTests
             host, screen, "CancelOrderItems", [.. Line(0, itemId, "1", 2), .. Line(1, itemId, "1", 2), new("Iban", ValidIban), new("Confirmed", "true")]);
         using HttpResponseMessage noIban = await PostAsync(host, screen, "CancelOrderItems", [.. Line(0, itemId, "1", 2)]);
         using HttpResponseMessage badIban = await PostAsync(host, screen, "CancelOrderItems", [.. Line(0, itemId, "1", 2), new("Iban", "TR330006100519786457841327"), new("Confirmed", "true")]);
+        using HttpResponseMessage noItem = await PostAsync(host, screen, "CancelOrderItems", [.. Line(0, Guid.Empty, "1", 2), new("Iban", ValidIban), new("Confirmed", "true")]);
 
         Assert.Equal(
-            [HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity],
-            new[] { zero.StatusCode, missing.StatusCode, repeated.StatusCode, noIban.StatusCode, badIban.StatusCode });
+            [HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity],
+            new[] { zero.StatusCode, missing.StatusCode, repeated.StatusCode, noIban.StatusCode, badIban.StatusCode, noItem.StatusCode });
+        Assert.Contains(CancellationPageModel.NoItemText, WebUtility.HtmlDecode(await noItem.Content.ReadAsStringAsync(Ct)), StringComparison.Ordinal);
+
+        // Every refused request writes exactly one rejection line (09 8.2 item 3): a field error's line is the validation filter's, the page writes none beside it.
+        Assert.Equal(6, host.Logs.Lines.Count(l => l.Contains("RejectionLog|", StringComparison.Ordinal) && l.Contains(LogEvents.ValidationRejected, StringComparison.Ordinal)));
         await AssertNoCancellationAsync(host, orderId);
     }
 

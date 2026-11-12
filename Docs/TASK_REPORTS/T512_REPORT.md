@@ -75,6 +75,7 @@
 | Sık FAIL 5: belge kuralını değiştiren 09 metni | ✓ | `09` ve öteki kural belgeleri değişmedi |
 | Tek kural evi (para) | ✓ | Sayfa tutar hesaplamaz; kargo ön izlemesi `ShippingFeeRefunds.OnCancellationPreview`, süre `AfterSalesPeriodRules` üzerinden |
 | Döngüde sorgu (`09 §20` m.4) | ✓ | Kalemsiz IBAN alanı süzgeci tek sorgu (`OrderRefundIdsAsync`); çok kalemli iptal satır başına modül işlemi (kural tek kalemli geçişte, K-1202 işlem içinde bütün-ya-da-hiç) |
+| Ret kaydı istek başına bir satır (`09 §8.2` m.3; sık FAIL T503 r2, T506 r1) | ✓ (son öz denetimde düzeltildi) | Kalem iptalinde alan hatalı 422'ler (tekrarlı satır, adet) hem süzgecin alan satırını hem sayfanın kendi satırını yazıyordu (iki satır); sayfa satırı kaldırıldı, yalnız alan kodu olmayan "kalem seçilmemiş" 422'si `FieldRequired` satırını sayfada yazar. `OrderOperationScreenTests.TheItemCancellation_…_Are422_AndWriteNothing_KK8_D155` altı 422 için tam altı ret satırı sayar (`FileEndpointsHost.Logs`) |
 
 ## Test Sonuçları
 
@@ -84,6 +85,7 @@
 | Unit | 7222/7222 (filtresiz TAM; ilk koşuda yük kaynaklı tek regex zaman aşımı, ikinci koşu yeşil) + `OperationHandlerMarkTests` 4/4 |
 | Integration | TAM ad alanı parçalarıyla 3857/3857 yeşil: Ordering 668, Web 821 (head `45641703`); main `33a9d21a` birleştirildikten sonra Model 1410 (sınıf harf gruplarıyla dört parça 319+427+370+294), Files+Payment 178, Administration+Catalog+Commands+Concurrency+CorporateContent 446, Database+Disposal+FileSecrets+Jobs+Logging+Outages+Security+SignedEndpoints 334; birleştirmenin getirdiği T549 testleri için `StorefrontSearchAndProductTests` 32/32 yeniden. `Pages` ad alanı yalnız yardımcı sınıflar (test yok). |
 | Unit (birleştirme sonrası) | `Architecture` 1702/1702, `Pages` 339/339 |
+| main `856f5441` (T544) birleştirmesi + ret satırı düzeltmesi sonrası | Unit `Architecture` 1750/1750, `Pages` 420/420; Integration `Web` 842/842 (üç parça 124+350+368; ortadaki parça ilk koşuda 1 kırmızı, adı alınamadı, değişmeden yeniden koşuda 350/350 yeşil), `Files` 119/119, `Ordering.CustomerOperationsTests` yeşil; `dotnet format --verify-no-changes` değişen üç dosyada temiz |
 | `dotnet format --verify-no-changes` | Web, UnitTests, IntegrationTests (değişen dosyalar `--include` ile) temiz |
 
 ## Doğrulama
@@ -118,6 +120,7 @@
 2. **D-1197 / D-1259 hedefi T528'e:** müşteri dijital kalemi iptal edemez (`CancelDigitalItem` kapalı, `02` sözlük "İptal"); T512'nin hiçbir yolu ödemesi onaylı dijital kalemi kapatmaz. Kapanmış ödenmiş dijital kalem yalnız firmanın kalem iptaliyle doğar (UC-129, T528).
 3. **Tarayıcı satırları (VAL-B071, VAL-A554'ün tarayıcı yarısı):** yapımda tarayıcı gözlemi yapılmadı; PASS sayılmadı, doğrulamaya bırakıldı.
 4. **D-1281 (aday):** firmanın bütün sipariş iptalinde kargo ücretinin satıra düşmeme olasılığı T528'e kayıtlandı; T512'nin müşteri yolu azalan uuid sırasıyla yazar.
+5. **Web parçasında tek kararsız kırmızı:** T544 birleştirmesinden sonra `Web` F*–O* parçasının ilk koşusunda 1 test kırmızı geldi (çıktı dosyaya alınmadığı için adı bilinmiyor); kod değişmeden yeniden koşuda 350/350 yeşil. T512 dosyası bu parçada yok; doğrulayıcı birleşik ağaçta Web'i koşarken dikkat etsin.
 
 ## Known Limitations / Follow-up
 

@@ -262,9 +262,9 @@ public abstract class CancellationPageModel(ICustomerOperations operations, IOrd
         }
 
         // One row per item (07 5.1.5; K-1196): two rows of the same item are an invalid selection - 422 under the list, nothing added up, no row processed.
+        // A field error's one rejection line is the validation filter's, written after the handler returns (09 8.2 item 3); the page writes none of its own.
         if (!ItemRows.RejectRepeated(ModelState, nameof(CancelOrderItemsInput.Items), input.Items.Where(l => l.OrderItemId != Guid.Empty).Select(l => l.OrderItemId)))
         {
-            HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.InvalidListValue);
             return await LoadAsync(ct) ?? FormResults.Redisplay(this);
         }
 
@@ -289,12 +289,13 @@ public abstract class CancellationPageModel(ICustomerOperations operations, IOrd
 
         if (ModelState.IsValid && lines.Count == 0)
         {
+            // No item chosen (07 4.17.3: 422) is a form message without a field code, so the filter writes no line: the page writes the one line.
             ModelState.AddModelError(string.Empty, NoItemText);
+            HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.FieldRequired);
         }
 
         if (!ModelState.IsValid)
         {
-            HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.InvalidQuantity);
             return await LoadAsync(ct) ?? FormResults.Redisplay(this);
         }
 

@@ -257,6 +257,12 @@ public interface IAfterSalesModule
     /// <summary>The refund period of a cancellation and of a late delivery termination in calendar days (T512; 02 4.2 Z-17; 02 7.2.3): the period rule's own value.</summary>
     int RefundPeriodDays { get; }
 
+    /// <summary>
+    /// The last day of the refund period (Z-16, Z-17) of a refund that started at <paramref name="startedAt"/> (T527; 04 9.9.6, 2.6.3; K-491): the period rule's own day, which the panel
+    /// places against its instant. The period runs from the refund's start - the record's moment for a cancellation, removal or termination, the goods' receipt for a withdrawal after delivery.
+    /// </summary>
+    DateOnly RefundLastDay(DateTimeOffset startedAt);
+
     /// <summary>True when an IBAN request on the refund was fulfilled: the customer chose the transfer path, so the card refund is not retried (02 7.2.8; K-569).</summary>
     Task<bool> IsRefundIbanEnteredForRefundAsync(Guid refundId, CancellationToken ct);
 

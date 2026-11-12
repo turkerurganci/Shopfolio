@@ -21,6 +21,8 @@ internal sealed partial class AfterSalesModule
 
     public int RefundPeriodDays => AfterSalesPeriodRules.RefundPeriodDays;
 
+    public DateOnly RefundLastDay(DateTimeOffset startedAt) => AfterSalesPeriodRules.RefundLastDay(TurkeyTime.DateOf(startedAt));
+
     public bool CancellationRefundsShippingFee(IReadOnlyDictionary<Guid, int> openPhysicalUnits, IReadOnlyDictionary<Guid, int> selectedUnits) =>
         ShippingFeeRefunds.OnCancellationPreview(openPhysicalUnits, selectedUnits);
 

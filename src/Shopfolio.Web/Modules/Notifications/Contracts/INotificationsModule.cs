@@ -65,6 +65,12 @@ public interface INotificationsModule
     Task<IReadOnlyList<UndeliveredNotice>> FindUndeliveredNoticesAsync(Guid orderId, CancellationToken ct);
 
     /// <summary>
+    /// The order's customer notices, oldest first (T527; 04 9.9.12; K-804): every dispatch row bound to the order - a firm notice or an account e-mail has no order link and is never among
+    /// them. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<OrderNoticeLine>> ListOrderNoticesAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
     /// One page of the orders that carry the mark, by order id after <paramref name="afterOrderId"/> (null starts at the first): the filtered list the home page's "işaretli siparişler" row leads
     /// to (T385; 02 10.6.1; K-761). An empty page is the end. A plain read.
     /// </summary>

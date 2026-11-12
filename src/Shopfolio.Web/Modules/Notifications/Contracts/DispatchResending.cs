@@ -11,6 +11,12 @@ public sealed record UndeliveredNotice(
     DispatchRelatedRecordType? RelatedRecordType,
     Guid? RelatedRecordId);
 
+/// <summary>
+/// One row of an order's e-mail history (T527; 04 9.9.12; K-804): the customer notice (B-1…B-16), the moment it went - its creation while it waits -, the address it went to (empty once
+/// the dispatch record's period emptied it, Z-43) and its state; a re-sending or a correction's row is a row of its own (<see cref="IsRepeat"/>).
+/// </summary>
+public sealed record OrderNoticeLine(DispatchType Type, DateTimeOffset At, string? RecipientEmail, DispatchState State, bool IsRepeat);
+
 /// <summary>The panel's request to send a marked customer notice again (02 9.1.6; 07 UC-153).</summary>
 /// <param name="OrderId">The order the notice belongs to.</param>
 /// <param name="OrderNumber">The order's number, which the trail row names (02 10.3.1); never a customer's data.</param>

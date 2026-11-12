@@ -36,6 +36,13 @@
     </p>
     <a class="order-detail__back" href="@Model.BackPath">@OrderDetailModel.BackLabel</a>
 </header>
+<section class="order-detail__section" id="isaretler" aria-label="İşaretler">
+    <partial name="_PanelMarks" model="Model.Marks" />
+    @foreach (PeriodIndicator period in Model.RunningPeriods)
+    {
+        <partial name="_PeriodIndicator" model="period" />
+    }
+</section>
 @if (Model.RefusalText is not null)
 {
     <partial name="_Message" model="Model.RefusalMessage" />
@@ -131,9 +138,29 @@
                 {
                     <p>Teslim tarihi: @DisplayFormat.Date(delivered)</p>
                 }
-                @foreach (ItemRecordFact record in Model.RecordsOf(item))
+                <partial name="_ItemRecords" model="Model.RecordsOf(item)" />
+                @if (Model.ItemFactsOf(item) is { } facts)
                 {
-                    <p class="order-detail__record">@record.Kind · @DisplayFormat.Date(record.At) · @record.Quantity</p>
+                    <partial name="_PanelMarks" model="Model.ItemMarksOf(facts)" />
+                    @if (facts.ReturnGoodsPendingUnits > 0)
+                    {
+                        <p>İade malı bekleniyor: @facts.ReturnGoodsPendingUnits adet</p>
+                    }
+                    @if (facts.WithdrawalLastDay is { } withdrawalLastDay)
+                    {
+                        <partial name="_PeriodIndicator" model="Model.PeriodOf(OrderDetailModel.WithdrawalPeriodLabel, CountedPeriod.WithdrawalWindow, withdrawalLastDay)" />
+                    }
+                    @if (facts.DefectLastDay is { } defectLastDay)
+                    {
+                        <partial name="_PeriodIndicator" model="Model.PeriodOf(OrderDetailModel.DefectPeriodLabel, CountedPeriod.DefectClaimPeriod, defectLastDay)" />
+                    }
+                }
+                @foreach (PanelPendingRefund refund in Model.PendingRefundsOf(item))
+                {
+                    <div class="order-detail__pending-refund">
+                        <p>Bekleyen geri ödeme: @(refund.Quantity is { } units ? $"{units} adet · " : string.Empty)@DisplayFormat.Amount(refund.Amount) · @(refund.Way == PaymentMethod.Card ? "Kart" : "Havale")@(refund.Iban is { } iban ? $" · IBAN {iban}" : string.Empty)</p>
+                        <partial name="_PeriodIndicator" model="Model.PeriodOf(OrderDetailModel.RefundPeriodLabel, CountedPeriod.RefundPeriod, refund.LastDay)" />
+                    </div>
                 }
             </li>
         }
@@ -164,6 +191,13 @@
                 <li>@DisplayFormat.Date(refund.At) · @DisplayFormat.Amount(refund.Amount) · @(refund.Way == PaymentMethod.Card ? "Kart" : "Havale")@(refund.ItemName is { } name ? $" · {name}" : string.Empty)@(refund.Quantity is { } units ? $" · {units} adet" : string.Empty)</li>
             }
         </ul>
+    }
+    @foreach (PanelPendingRefund refund in Model.OrderPendingRefunds)
+    {
+        <div class="order-detail__pending-refund">
+            <p>Bekleyen geri ödeme: @DisplayFormat.Amount(refund.Amount) · @(refund.Way == PaymentMethod.Card ? "Kart" : "Havale")@(refund.Iban is { } iban ? $" · IBAN {iban}" : string.Empty)</p>
+            <partial name="_PeriodIndicator" model="Model.PeriodOf(OrderDetailModel.RefundPeriodLabel, CountedPeriod.RefundPeriod, refund.LastDay)" />
+        </div>
     }
 </section>
 @if (Model.HasPhysicalItem)
@@ -202,6 +236,51 @@
             <dd>@billing.RecipientName · @billing.AddressLine · @billing.District / @billing.ProvinceName</dd>
         }
     </dl>
+    @if (Model.Facts.AddressHistory.Count > 0)
+    {
+        <h3>Adres geçmişi</h3>
+        <ul class="order-detail__history" id="adres-gecmisi">
+            @foreach (PanelAddressChange change in Model.Facts.AddressHistory)
+            {
+                <li>
+                    @DisplayFormat.Date(change.At) · @(change.AddressType == AddressType.ShippingAddress ? "Teslimat adresi" : "Fatura adresi") · @change.AdminName
+                    <br />Eski: @change.Old.RecipientName · @change.Old.Phone · @change.Old.AddressLine · @change.Old.District / @change.Old.ProvinceName
+                    <br />Yeni: @change.New.RecipientName · @change.New.Phone · @change.New.AddressLine · @change.New.District / @change.New.ProvinceName
+                </li>
+            }
+        </ul>
+    }
+</section>
+<section class="order-detail__section" id="ic-not" aria-labelledby="order-note-heading">
+    <h2 id="order-note-heading">İç not</h2>
+    <p class="order-detail__note-hint">@OrderDetailModel.InternalNoteHiddenText</p>
+    @if (!Model.Facts.PersonalDataDisposed && Model.Facts.InternalNote is { } note)
+    {
+        <p class="order-detail__note">@note.Text</p>
+        <p class="order-detail__note-author">@note.AdminName</p>
+    }
+</section>
+<section class="order-detail__section" id="e-posta-gecmisi" aria-labelledby="order-email-heading">
+    <h2 id="order-email-heading">E-posta geçmişi</h2>
+    @if (Model.Facts.Notices.Count > 0)
+    {
+        <ul class="order-detail__history">
+            @foreach (Shopfolio.Modules.Notifications.Contracts.OrderNoticeLine notice in Model.Facts.Notices)
+            {
+                <li>@OrderDetailModel.NoticeNameOf(notice.Type) · @DisplayFormat.Date(notice.At) · @notice.RecipientEmail · @OrderDetailModel.NoticeStateOf(notice.State)@(notice.IsRepeat ? " · yeniden gönderim" : string.Empty)</li>
+            }
+        </ul>
+    }
+    @if (Model.Facts.EmailCorrections.Count > 0)
+    {
+        <h3>E-posta düzeltmeleri</h3>
+        <ul class="order-detail__history">
+            @foreach (PanelEmailChange change in Model.Facts.EmailCorrections)
+            {
+                <li>@DisplayFormat.Date(change.At) · @change.OldEmail → @change.NewEmail · @change.AdminName</li>
+            }
+        </ul>
+    }
 </section>
 <section class="order-detail__section" id="belgeler" aria-labelledby="order-documents-heading">
     <h2 id="order-documents-heading">Belgeler</h2>

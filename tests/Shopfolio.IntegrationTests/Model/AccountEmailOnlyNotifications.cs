@@ -29,6 +29,8 @@ internal sealed class AccountEmailOnlyNotifications(AccountEmailQueue queue, App
 
     public Task<IReadOnlyList<UndeliveredNotice>> FindUndeliveredNoticesAsync(Guid orderId, CancellationToken ct) => throw new NotSupportedException();
 
+    public Task<IReadOnlyList<OrderNoticeLine>> ListOrderNoticesAsync(Guid orderId, CancellationToken ct) => throw new NotSupportedException();
+
     public Task<IReadOnlyList<Guid>> FindMarkedOrderIdsAsync(Guid? afterOrderId, int maxOrders, CancellationToken ct) => throw new NotSupportedException();
 
     public Task<NoticeResendResult> ResendCustomerNoticeAsync(NoticeResendRequest request, CancellationToken ct) => throw new NotSupportedException();

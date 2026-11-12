@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
@@ -61,6 +62,13 @@ internal sealed class NotificationsModule : INotificationsModule
         DispatchMarks.ClaimHasMarkAsync(_db, recordType, recordId, ct);
 
     public Task<IReadOnlyList<UndeliveredNotice>> FindUndeliveredNoticesAsync(Guid orderId, CancellationToken ct) => _resending.FindUndeliveredAsync(orderId, ct);
+
+    public async Task<IReadOnlyList<OrderNoticeLine>> ListOrderNoticesAsync(Guid orderId, CancellationToken ct) =>
+        await _db.DispatchRecords.AsNoTracking()
+            .Where(d => d.OrderId == orderId)
+            .OrderBy(d => d.CreatedAt).ThenBy(d => d.Id)
+            .Select(d => new OrderNoticeLine(d.DispatchType, d.SentAt ?? d.CreatedAt, d.RecipientEmail, d.DispatchState, d.OriginalDispatchId != null))
+            .ToListAsync(ct);
 
     public Task<IReadOnlyList<Guid>> FindMarkedOrderIdsAsync(Guid? afterOrderId, int maxOrders, CancellationToken ct) =>
         DispatchMarks.MarkedOrderIdsAsync(_db, afterOrderId, maxOrders, ct);

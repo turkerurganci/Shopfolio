@@ -69,6 +69,30 @@ public sealed class OrderDetailModel : PageModel
     /// <summary>The internal note's line above the field (04 9.9.11).</summary>
     public const string InternalNoteHiddenText = "Bu not müşteriye hiçbir yerde görünmez.";
 
+    /// <summary>The withdrawal window's name on the item's row (04 9.9.6; Z-13, Z-14).</summary>
+    public const string WithdrawalPeriodLabel = "Cayma süresi";
+
+    /// <summary>The defect claim channel's name on the item's row (04 9.9.6; Z-18).</summary>
+    public const string DefectPeriodLabel = "Ayıp bildirim süresi";
+
+    /// <summary>The refund period's name beside a pending refund (04 9.9.6; Z-16, Z-17; K-491).</summary>
+    public const string RefundPeriodLabel = "Geri ödeme süresi";
+
+    /// <summary>A customer notice's name in the e-mail history (04 9.9.12): its code, B-1…B-16.</summary>
+    public static string NoticeNameOf(Shopfolio.Modules.Notifications.Contracts.DispatchType type)
+    {
+        string code = type.ToString();
+        return $"{code[..1]}-{code[1..]}";
+    }
+
+    /// <summary>A notice's result in the e-mail history (04 9.9.12): sent, "e-posta ulaşmadı", or still waiting to go.</summary>
+    public static string NoticeStateOf(Shopfolio.Modules.Notifications.Contracts.DispatchState state) => state switch
+    {
+        Shopfolio.Modules.Notifications.Contracts.DispatchState.Sent => "gönderildi",
+        Shopfolio.Modules.Notifications.Contracts.DispatchState.Undelivered => "e-posta ulaşmadı",
+        _ => "gönderilmeyi bekliyor",
+    };
+
     private readonly IOrderingModule _ordering;
     private readonly IOrderPage _page;
     private readonly IOrderOperations _operations;
@@ -138,12 +162,57 @@ public sealed class OrderDetailModel : PageModel
 
     public bool IsOpen(OrderOperation operation) => Operations.IsOpen(operation);
 
-    /// <summary>The records on an item's row (04 9.9.6): the AfterSales module's, oldest first, with the units each covers.</summary>
-    public IReadOnlyList<ItemRecordFact> RecordsOf(OrderPageItem item)
+    /// <summary>The panel-only facts (04 9.9.4, 9.9.6, 9.9.10-9.9.12): the marks, the items' facts, the pending refunds, the running periods and the three histories.</summary>
+    public PanelOrderDetailFacts Facts { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
+
+    /// <summary>The order's marks whose condition holds now, in the document's order (04 9.9.4; 2.5.3); the two item marks are drawn on the item's row.</summary>
+    public IReadOnlyList<PanelMark> Marks => PanelMarks.Of(
+        new PanelMarkConditions(
+            EmailNotDelivered: Facts.Marks.EmailNotDelivered,
+            PaymentResultMissing: Facts.Marks.PaymentResultMissing,
+            RefundNotCompleted: Facts.Marks.RefundNotRealized,
+            EmailCorrected: Facts.Marks.EmailCorrected,
+            RefundResultPending: Facts.Marks.RefundOutcomePending),
+        PanelMarkPlace.OrderDetail);
+
+    /// <summary>The records on an item's row (04 9.9.6; 2.5.2): the AfterSales module's under their own names, then the delivery mark.</summary>
+    public IReadOnlyList<ItemRecordEntry> RecordsOf(OrderPageItem item)
     {
         ArgumentNullException.ThrowIfNull(item);
-        return [.. Records.Where(r => r.OrderItemId == item.OrderItemId).OrderBy(r => r.At)];
+        return ItemRecordLabels.EntriesOf(Records, item.OrderItemId, item.Quantity, item.DeliveryMarkedAt);
     }
+
+    /// <summary>The item's panel facts (04 9.9.6): the open quantity, its marks and its periods, as the server read them.</summary>
+    public PanelItemFacts? ItemFactsOf(OrderPageItem item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        return Facts.Items.FirstOrDefault(i => i.OrderItemId == item.OrderItemId);
+    }
+
+    /// <summary>The item's marks (04 2.5.3.4, 2.5.3.5): "IBAN bekleniyor" and "iade malı bekleniyor", from the server's facts.</summary>
+    public IReadOnlyList<PanelMark> ItemMarksOf(PanelItemFacts facts)
+    {
+        ArgumentNullException.ThrowIfNull(facts);
+        return PanelMarks.Of(new PanelMarkConditions(IbanPending: facts.IbanPending, ReturnGoodsPending: facts.ReturnGoodsPendingUnits > 0), PanelMarkPlace.OrderDetail);
+    }
+
+    /// <summary>The refunds still pending on the item (04 9.9.6 "bekleyen geri ödeme"); the amount is the one the server started the refund with.</summary>
+    public IReadOnlyList<PanelPendingRefund> PendingRefundsOf(OrderPageItem item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        return [.. Facts.PendingRefunds.Where(r => r.OrderItemId == item.OrderItemId)];
+    }
+
+    /// <summary>The pending refunds that name no item (an amount based refund, a late payment's refund).</summary>
+    public IReadOnlyList<PanelPendingRefund> OrderPendingRefunds => [.. Facts.PendingRefunds.Where(r => r.OrderItemId is null)];
+
+    /// <summary>A period that ends on <paramref name="lastDay"/> as the panel's period indicator draws it (04 2.6.3): the server's last day placed against the page's instant.</summary>
+    internal PeriodIndicator PeriodOf(string label, CountedPeriod period, DateOnly lastDay) => new(label, period, PeriodStanding.Of(period, lastDay, Now, BusinessCalendar.Product));
+
+    /// <summary>The firm's running periods of the order (Z-10, Z-39) with the legal interest warning on overrun (04 9.9.5, 2.6.3): the list's one naming rule.</summary>
+    internal IReadOnlyList<PeriodIndicator> RunningPeriods => [.. Facts.RunningPeriods.Select(p => OrderListTexts.PeriodOf(p, Now))];
+
+    private DateTimeOffset Now => HttpContext.RequestServices.GetRequiredService<TimeProvider>().GetUtcNow();
 
     public async Task<IActionResult> OnGetAsync(Guid id, CancellationToken ct) =>
         await LoadAsync(id, ct) ? Page() : NotFound();
@@ -345,10 +414,13 @@ public sealed class OrderDetailModel : PageModel
         OrderPageSummary? summary = await _ordering.GetOrderPageSummaryAsync(id, ct);
         OrderPageDetail? detail = await _page.ReadAsync(id, ct);
         OrderOperationsView? operations = await _operations.ReadAsync(id, ActorKind.Admin, ct);
-        if (summary is null || detail is null || operations is null)
+        PanelOrderDetailFacts? facts = await HttpContext.RequestServices.GetRequiredService<IPanelOrderReader>().ReadDetailAsync(id, ct);
+        if (summary is null || detail is null || operations is null || facts is null)
         {
             return false;
         }
+
+        Facts = facts;
 
         Summary = summary;
         Detail = detail;

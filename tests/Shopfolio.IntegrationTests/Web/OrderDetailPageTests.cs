@@ -10,6 +10,7 @@ using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Pages.Components;
 using Shopfolio.Pages.Panel;
 
 namespace Shopfolio.IntegrationTests.Web;
@@ -58,6 +59,31 @@ public sealed class OrderDetailPageTests
         Assert.Contains($"href=\"{OrdersPath}?page=2\"", html, StringComparison.Ordinal);
         Assert.DoesNotContain("id=\"mark-shipped-form\"", html, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.NotFound, foreign);
+    }
+
+    [Fact]
+    public async Task TheScreen_ShowsThePanelOnlyParts_TheInternalNoteAndTheEmailHistory_FromTheServer_KK4()
+    {
+        (string key, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
+        (Guid orderId, _, _) = await TestSessions.OrderAsync(_database.Dsn, null);
+        await using (AppDbContext db = NewContext())
+        {
+            db.InternalNotes.Add(InternalNote.Create(orderId, "Müşteri öğleden sonra aranacak", adminId, "Yönetici Bir", DateTimeOffset.UtcNow));
+            db.OrderEmailHistories.Add(OrderEmailHistory.Create(orderId, "eski@example.com", "yeni@example.com", adminId, "Yönetici Bir", DateTimeOffset.UtcNow));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        (HttpStatusCode status, string html) = await GetAsync(client, $"{OrdersPath}/{orderId:D}", key);
+
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.Contains(OrderDetailModel.InternalNoteHiddenText, html, StringComparison.Ordinal);
+        Assert.Contains("Müşteri öğleden sonra aranacak", html, StringComparison.Ordinal);
+        Assert.Contains("eski@example.com", html, StringComparison.Ordinal);
+        Assert.Contains("yeni@example.com", html, StringComparison.Ordinal);
+        // The corrected e-mail puts its mark on the order (04 9.9.4; 03 1.7.3.6): read from the history, never stored.
+        Assert.Contains(PanelMarks.TextOf(PanelMark.EmailCorrected), html, StringComparison.Ordinal);
     }
 
     [Fact]

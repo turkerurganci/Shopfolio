@@ -241,6 +241,15 @@ internal sealed class PaymentModule : IPaymentModule
             .ToListAsync(ct);
     }
 
+    public async Task<IReadOnlyList<PendingRefund>> ListPendingRefundsAsync(Guid orderId, CancellationToken ct)
+    {
+        return await _db.Refunds.AsNoTracking()
+            .Where(r => r.OrderId == orderId && r.SentAt == null && r.VoidedAt == null)
+            .OrderBy(r => r.CreatedAt).ThenBy(r => r.Id)
+            .Select(r => new PendingRefund(r.Id, r.OrderItemId, r.Quantity, r.Amount, r.PaymentMethod, r.CreatedAt))
+            .ToListAsync(ct);
+    }
+
     public async Task<RefundMarks> ReadRefundMarksAsync(Guid orderId, CancellationToken ct)
     {
         await _db.Refunds.Where(r => r.OrderId == orderId).LoadAsync(ct);

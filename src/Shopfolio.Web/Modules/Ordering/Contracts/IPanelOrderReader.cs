@@ -11,4 +11,7 @@ public interface IPanelOrderReader
     /// to be completed and still has an open quantity. One read for all the orders, whatever their number (09 20 item 4).
     /// </summary>
     Task<IReadOnlyList<OrderRunningPeriod>> FindRunningPeriodsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct);
+
+    /// <summary>The panel-only facts of the order's page (T527; 07 UC-92; 04 9.9.4-9.9.12), or null when there is no such order. A plain read; nothing is written or locked.</summary>
+    Task<PanelOrderDetailFacts?> ReadDetailAsync(Guid orderId, CancellationToken ct);
 }

@@ -88,6 +88,12 @@ public interface IPaymentModule
     /// </summary>
     Task<IReadOnlyList<SentRefund>> ListSentRefundsAsync(Guid orderId, CancellationToken ct);
 
+    /// <summary>
+    /// The order's refunds that have started and are neither sent nor voided, oldest first (T527; 04 9.9.6 "bekleyen geri ödeme"): the amount is the one the refund was started with - the panel
+    /// works out no amount of its own (K-788). A plain read.
+    /// </summary>
+    Task<IReadOnlyList<PendingRefund>> ListPendingRefundsAsync(Guid orderId, CancellationToken ct);
+
     /// <summary>The panel marks of the order's card refunds (02 7.2.8; 05 4.6.2), the changes of the open transaction included.</summary>
     Task<RefundMarks> ReadRefundMarksAsync(Guid orderId, CancellationToken ct);
 

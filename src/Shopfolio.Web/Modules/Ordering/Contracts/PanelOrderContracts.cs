@@ -41,3 +41,43 @@ public sealed record OrderRunningPeriod(Guid OrderId, Shopfolio.Infrastructure.C
 
 /// <summary>One page of the panel's order list: the rows, the page shown (a page past the last is the last, 07 2.6.2), the number of pages and the number of orders of the filter.</summary>
 public sealed record PanelOrderPage(IReadOnlyList<PanelOrderRow> Rows, int PageNumber, int PageCount, int TotalCount);
+
+/// <summary>
+/// What the panel's order page shows beside the customer's order page (T527; 07 UC-92; 04 9.9.4, 9.9.6, 9.9.10-9.9.12; K-788, K-1188 (3)): the order's marks, each item's facts the
+/// operation decision reads (open quantity, the item's marks, its periods' last days), the refunds still pending with the amount the system worked out, the firm's running periods, and the
+/// three panel-only parts - the address history, the e-mail history and the internal note. Every number is the server's; the page works out none. Read at every drawing, never stored.
+/// </summary>
+public sealed record PanelOrderDetailFacts(
+    PanelOrderMarkFacts Marks,
+    IReadOnlyList<PanelItemFacts> Items,
+    IReadOnlyList<PanelPendingRefund> PendingRefunds,
+    IReadOnlyList<OrderRunningPeriod> RunningPeriods,
+    IReadOnlyList<PanelAddressChange> AddressHistory,
+    IReadOnlyList<PanelEmailChange> EmailCorrections,
+    IReadOnlyList<Shopfolio.Modules.Notifications.Contracts.OrderNoticeLine> Notices,
+    PanelInternalNote? InternalNote,
+    bool PersonalDataDisposed);
+
+/// <summary>The order-level marks whose condition holds now (04 9.9.4; 03 1.7.3.1, 1.7.3.2, 1.7.3.3, 1.7.3.6, 1.7.3.7).</summary>
+public sealed record PanelOrderMarkFacts(bool EmailNotDelivered, bool PaymentResultMissing, bool RefundNotRealized, bool RefundOutcomePending, bool EmailCorrected);
+
+/// <summary>
+/// One item's panel facts (04 9.9.6): the open quantity the operation decision reads (K-790), "IBAN bekleniyor" (an open IBAN request on the item), the units of "iade malı bekleniyor" (on
+/// their way back, 03 1.7.3.5) and the last days of the withdrawal window (Z-13, Z-14) and of the defect channel (Z-18); null while the period does not run.
+/// </summary>
+public sealed record PanelItemFacts(Guid OrderItemId, int OpenQuantity, bool IbanPending, int ReturnGoodsPendingUnits, DateOnly? WithdrawalLastDay, DateOnly? DefectLastDay);
+
+/// <summary>
+/// One pending refund (04 9.9.6 "bekleyen geri ödeme"; 02 7.1.7; K-788, K-491): the item and units it covers, the amount the system worked out, the way, the customer's IBAN on a transfer -
+/// read only - and the refund period's last day (Z-16, Z-17).
+/// </summary>
+public sealed record PanelPendingRefund(Guid RefundId, Guid? OrderItemId, int? Quantity, decimal Amount, PaymentMethod Way, string? Iban, DateOnly LastDay);
+
+/// <summary>One address correction (04 9.9.10; 06 4.62): the moment, the address type, the old and the new value (the shipping phone included) and the administrator.</summary>
+public sealed record PanelAddressChange(DateTimeOffset At, AddressType AddressType, OrderPageAddress Old, OrderPageAddress New, string AdminName);
+
+/// <summary>One correction of a guest order's e-mail (04 9.9.12; 02 10.4.11; K-586): the moment, the old and the new address and the administrator.</summary>
+public sealed record PanelEmailChange(DateTimeOffset At, string OldEmail, string NewEmail, string AdminName);
+
+/// <summary>The order's internal note (04 9.9.11; 06 4.20): the text and the administrator who last wrote it.</summary>
+public sealed record PanelInternalNote(string Text, string AdminName);

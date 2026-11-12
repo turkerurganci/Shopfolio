@@ -67,8 +67,8 @@ internal sealed class PanelRequestListService : IPanelRequestList
         ];
         List<Entry> shown = [.. merged.OrderByDescending(e => e.At).ThenBy(e => e.Kind).Skip(skip).Take(pageSize)];
 
-        PanelDefectClaimRow[] shownClaims = [.. shown.Where(e => e.Claim is not null).Select(e => e.Claim!)];
-        IReadOnlyDictionary<Guid, OrderItemLabel> labels = shownClaims.Length == 0
+        PanelDefectClaimRow[] shownClaims = [.. shown.Select(e => e.Claim).OfType<PanelDefectClaimRow>()];
+        Dictionary<Guid, OrderItemLabel> labels = shownClaims.Length == 0
             ? new Dictionary<Guid, OrderItemLabel>()
             : (await _ordering.FindItemLabelsAsync([.. shownClaims.Select(c => c.OrderItemId)], ct)).ToDictionary(l => l.OrderItemId);
         IReadOnlySet<Guid> marked = shownClaims.Length == 0
@@ -99,25 +99,25 @@ internal sealed class PanelRequestListService : IPanelRequestList
     internal static string ItemNameOf(OrderItemLabel label)
     {
         ArgumentNullException.ThrowIfNull(label);
-        string[] options = [.. new[] { label.FirstOptionValue, label.SecondOptionValue }.Where(v => !string.IsNullOrWhiteSpace(v)).Select(v => v!)];
+        string[] options = [.. new[] { label.FirstOptionValue, label.SecondOptionValue }.OfType<string>().Where(v => !string.IsNullOrWhiteSpace(v))];
         return options.Length == 0 ? label.ProductName : $"{label.ProductName} ({string.Join(", ", options)})";
     }
 
     private static ContactRequestStatus[] ContactStatusesOf(IReadOnlyCollection<PanelRequestStatus> statuses) =>
-        [.. statuses.Select(s => s switch
+        [.. statuses.SelectMany(s => s switch
         {
-            PanelRequestStatus.Open => (ContactRequestStatus?)ContactRequestStatus.Open,
-            PanelRequestStatus.Closed => ContactRequestStatus.Closed,
-            _ => null,
-        }).Where(s => s is not null).Select(s => s!.Value).Distinct()];
+            PanelRequestStatus.Open => new[] { ContactRequestStatus.Open },
+            PanelRequestStatus.Closed => [ContactRequestStatus.Closed],
+            _ => Array.Empty<ContactRequestStatus>(),
+        }).Distinct()];
 
     private static DefectClaimStatus[] DefectStatusesOf(IReadOnlyCollection<PanelRequestStatus> statuses) =>
-        [.. statuses.Select(s => s switch
+        [.. statuses.SelectMany(s => s switch
         {
-            PanelRequestStatus.Open => (DefectClaimStatus?)DefectClaimStatus.Open,
-            PanelRequestStatus.Resolved => DefectClaimStatus.Resolved,
-            _ => null,
-        }).Where(s => s is not null).Select(s => s!.Value).Distinct()];
+            PanelRequestStatus.Open => new[] { DefectClaimStatus.Open },
+            PanelRequestStatus.Resolved => [DefectClaimStatus.Resolved],
+            _ => Array.Empty<DefectClaimStatus>(),
+        }).Distinct()];
 
     private static PanelRequestStatus ToPanel(ContactRequestStatus status) => status switch
     {

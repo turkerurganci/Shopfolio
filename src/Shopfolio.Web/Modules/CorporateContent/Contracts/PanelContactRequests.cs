@@ -23,19 +23,6 @@ public sealed record ContactRequestDetail(
     DateTimeOffset CreatedAt,
     DateTimeOffset? LastClosedAt);
 
-/// <summary>What became of a close or a reopening of a contact request (T532; 07 UC-155, UC-156).</summary>
-public enum ContactRequestChangeOutcome
-{
-    /// <summary>The status changed (and, for a closing, the closing moment was written).</summary>
-    Changed,
-
-    /// <summary>The request was already in the asked status (another administrator acted first); nothing was written (07 9.11.2 Idempotency).</summary>
-    Unchanged,
-
-    /// <summary>No such request - never there, or already destroyed at the end of its retention (K-1192).</summary>
-    NotFound,
-}
-
 /// <summary>The result of a close or a reopening of a contact request; a request that is not there is a refusal that rolls the transaction back (09 9.1 item 3).</summary>
 public sealed class ContactRequestChangeResult : IOperationResult
 {

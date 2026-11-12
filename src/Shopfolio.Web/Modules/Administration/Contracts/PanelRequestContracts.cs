@@ -2,24 +2,6 @@ using Shopfolio.Modules.CorporateContent.Contracts;
 
 namespace Shopfolio.Modules.Administration.Contracts;
 
-/// <summary>The two kinds of request the panel's requests list holds (T532; 07 5.3.2 <c>RequestQuery</c> <c>requestType</c>; 02 1.2): the names are the parameter's closed list.</summary>
-public enum PanelRequestKind
-{
-    ContactRequest,
-    DefectClaim,
-}
-
-/// <summary>
-/// The statuses of the requests list's filter (T532; 07 5.3.2 <c>requestStatus</c>): <see cref="Open"/> is the open contact request and the open defect claim, <see cref="Closed"/> only a contact request
-/// and <see cref="Resolved"/> only a defect claim (04 9.10.3). The names are the parameter's closed list.
-/// </summary>
-public enum PanelRequestStatus
-{
-    Open,
-    Closed,
-    Resolved,
-}
-
 /// <summary>
 /// One row of the requests list (T532; 04 9.10.4). Both kinds share the columns: the kind, the moment (<see cref="OpenedAt"/>: when the contact request reached the firm, when the defect claim was opened or last
 /// reopened) and the status, and <see cref="CreatedAt"/>, the first opening (equal to <see cref="OpenedAt"/> for a contact request and for a defect claim never reopened). A contact request fills the topic and the sender; a defect claim fills the order, the item's labels and the defective units, and carries the "e-posta ulaşmadı" mark when its

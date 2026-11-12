@@ -119,7 +119,7 @@ internal static class DispatchMarks
 
         var rows = await db.DispatchRecords.AsNoTracking()
             .Where(d => d.DispatchType == DispatchType.B9 && d.RelatedRecordType == DispatchRelatedRecordType.DefectClaim && d.RelatedRecordId != null && ids.Contains(d.RelatedRecordId.Value))
-            .Select(d => new { ClaimId = d.RelatedRecordId!.Value, d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState, ClosedUnsent = d.AttemptCount == 0 && d.LastOutcome == null })
+            .Select(d => new { ClaimId = d.RelatedRecordId!.Value, d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState, ClosedUnsent = d.AttemptCount == 0 && d.LastOutcome == null }) // non-null: the Where above keeps only records with a related record
             .ToListAsync(ct);
         return rows
             .GroupBy(r => r.ClaimId)

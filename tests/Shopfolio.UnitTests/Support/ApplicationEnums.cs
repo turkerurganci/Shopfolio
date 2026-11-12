@@ -54,6 +54,10 @@ internal static class ApplicationEnums
         // T511: why a download was refused (UC-36's three 422 reasons) and which record stands on an order page item row - result codes and read shapes, never a column.
         "Shopfolio.Modules.Ordering.Contracts.DownloadRefusal",
         "Shopfolio.Modules.AfterSales.Contracts.ItemRecordFactKind",
+        // T532: the requests list's two kinds and three filter statuses (the parameter's closed lists, not the stored statuses) and what a close or a reopening of a contact request came to - read shapes and a result code, never a column.
+        "Shopfolio.Modules.Administration.Contracts.PanelRequestKind",
+        "Shopfolio.Modules.Administration.Contracts.PanelRequestStatus",
+        "Shopfolio.Modules.CorporateContent.Contracts.ContactRequestChangeOutcome",
     };
 
     /// <summary>All enums of the application assembly, by simple name; a name used twice is a failure of the naming rule (09 5.1).</summary>

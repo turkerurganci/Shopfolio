@@ -107,6 +107,21 @@ internal sealed class OrderingModule : IOrderingModule
             .ToListAsync(ct);
     }
 
+    public async Task<IReadOnlyList<OrderItemLabel>> FindItemLabelsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderItemIds);
+        Guid[] ids = [.. orderItemIds.Distinct()];
+        if (ids.Length == 0)
+        {
+            return [];
+        }
+
+        return await _db.OrderItems.AsNoTracking()
+            .Where(i => ids.Contains(i.Id))
+            .Join(_db.Orders, i => i.OrderId, o => o.Id, (i, o) => new OrderItemLabel(i.Id, o.Id, o.OrderNumber, i.ProductName, i.FirstOptionValue, i.SecondOptionValue))
+            .ToListAsync(ct);
+    }
+
     public async Task<Guid?> FindMemberOrderAsync(string orderNumber, Guid customerId, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(orderNumber);

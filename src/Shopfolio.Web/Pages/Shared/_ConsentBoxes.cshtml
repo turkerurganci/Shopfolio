@@ -1,0 +1,22 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@model ConsentBoxesView
+@*
+    The confirmation's boxes (T544; 04 OB-18, 2.12.7): two fixed boxes, the digital and the service box when the basket has such an item. No box comes ticked (K-756). The group stands under the legal
+    texts and the withdrawal summary and directly above the confirm button - the screen puts nothing between (04 2.12.7.2). A box left unticked is marked with its own message at the box. There is no
+    KVKK consent box, no age box and no marketing box (04 2.12.7.4).
+*@
+<fieldset class="consents" data-js="consents">
+    <legend class="consents__legend">@Model.Legend</legend>
+    @foreach (ConsentBoxView box in Model.Boxes)
+    {
+        <div class="field field--check@(box.IsInvalid ? " field--invalid" : string.Empty)">
+            <input type="checkbox" id="@box.Id" name="@box.Name" value="@ConsentSent.TickedValue" checked="@box.IsTicked" aria-required="true" aria-invalid="@(box.IsInvalid ? "true" : null)" aria-describedby="@(box.IsInvalid ? box.MessageId : null)">
+            <label for="@box.Id">@box.Text</label>
+            @if (box.Error is not null)
+            {
+                <partial name="_Message" model="box.Error" />
+            }
+        </div>
+    }
+</fieldset>

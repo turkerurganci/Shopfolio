@@ -136,7 +136,7 @@ public sealed partial class HomeAndFirmPageTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.SeeOther, first.StatusCode);
         Assert.Equal("StoreFirst", await ScalarAsync<string>("SELECT homepage_layout FROM company_settings"));
         Assert.Equal("Çözümlerimiz", await ScalarAsync<string>("SELECT menu_name_offerings FROM company_settings"));
-        Assert.Equal("5321234567", await ScalarAsync<string>("SELECT whatsapp_number FROM company_settings"));
+        Assert.Equal("5321234567", await ScalarAsync<string>("SELECT whats_app_number FROM company_settings"));
         Assert.Equal(2, await ScalarAsync<int>("SELECT homepage_version FROM company_settings"));
         Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM social_links"));
         string trail = await ScalarAsync<string>("SELECT details::text FROM audit_logs WHERE operation = 'UpdateSettings'");

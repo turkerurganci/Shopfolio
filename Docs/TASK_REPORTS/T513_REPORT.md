@@ -98,7 +98,7 @@ Düzeltme 1 sonrası yeniden tarandı (2026-11-12, `origin/main` `73e36672` ile 
 | Integration TAM | — | — | **TAM doğrulayıcıda koşulacak** (yönetici kararı: makine yükü yüzünden yapımda yalnız değişen/ilgili sınıflar; kalan parçalar Ordering P–W, Outages, Payment, Security, SignedEndpoints, Web'in öteki sınıfları) |
 | **Düzeltme 1:** Derleme + format | ✓ | `dotnet build Shopfolio.slnx -warnaserror`; `dotnet format <proje> --verify-no-changes` (Web, UnitTests, IntegrationTests) | 0 uyarı, 0 hata; üçü temiz (head `f82e8297`, `origin/main` `73e36672` birleşik; düzeltme 1c yalnız belge) |
 | **Düzeltme 1:** Unit TAM | ✓ | `dotnet test tests/Shopfolio.UnitTests` (parçalı) | 7481/7481 (Consistency, Architecture dahil) |
-| **Düzeltme 1:** Integration (koşulan sınıflar) | ✓ | `--filter-class` `Files.AfterSalesScreenTests` (Postgres 18, `track_commit_timestamp=on`); `Files.OrderOperationScreenTests` (E-17 sınır metni değişti) | `AfterSalesScreenTests` 17/17; `OrderOperationScreenTests` sonucu aşağıdaki satırda |
+| **Düzeltme 1:** Integration (koşulan sınıflar) | ✓ | `--filter-class` `Files.AfterSalesScreenTests` (Postgres 18, `track_commit_timestamp=on`); `Files.OrderOperationScreenTests` (E-17 sınır metni değişti) | `AfterSalesScreenTests` 17/17; `OrderOperationScreenTests` 12/12 (düzeltme 1c, birleşik ağaç, 127.0.0.1:58761) |
 | **Düzeltme 1:** Integration TAM | TAM: CI | `WithdrawalDeclarationTests`, `CustomerOperationsTests`, `ItemRecordsTests` ve öteki sınıflar yerelde koşulmadı (sahip 2026-11-12) | CI yeşili merge ön koşulu |
 | Format | ✓ | `dotnet format <proje> --no-restore --verify-no-changes --include <değişen .cs>` (Web, UnitTests, IntegrationTests) | değişiklik yok |
 

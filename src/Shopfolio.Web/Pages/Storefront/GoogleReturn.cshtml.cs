@@ -19,7 +19,7 @@ namespace Shopfolio.Pages.Storefront;
 /// reaches no call to Google (D-1070). The identity is verified outside any transaction (the code exchange and the token check are the connector's, 09 11.3); the nonce is compared in constant time. The
 /// account decision is the module's (<see cref="IMembershipModule.SignInWithGoogleAsync"/>); in the same transaction the guest orders of a newly born account are linked (D-577) and the session is opened after the
 /// account is saved (D-556), the whole work run again when two first sign-ins of one address meet at the unique index. The cart merge is a transaction of its own (D-558). Google sign-in does not count to L-1
-/// (02 3.13.17). The reauthentication flow is T516's: a return of that kind reaches no account here.
+/// (02 3.13.17). The reauthentication flow's return (T516) is <see cref="ReauthenticationReturnAsync"/>: it opens no session and ends at the account page or the re-authentication screen.
 /// </summary>
 [NoStore]
 internal sealed class GoogleReturnModel : PageModel
@@ -53,9 +53,15 @@ internal sealed class GoogleReturnModel : PageModel
     {
         // The flow cookie is read and deleted first, whatever the return holds: its values are used once.
         GoogleFlow? flow = _flow.Consume(HttpContext, state);
-        if (flow is null || flow.State.Kind != GoogleFlowKind.SignInOrRegistration)
+        if (flow is null)
         {
             return Back(NoticeCode.SocialLoginFailed);
+        }
+
+        // The kind of the flow is read from the protected state (07 UC-51): the re-authentication's return is another ending and reaches no sign-in.
+        if (flow.State.Kind == GoogleFlowKind.Reauthentication)
+        {
+            return await ReauthenticationReturnAsync(flow, code, error, ct);
         }
 
         // The user gave up or Google answered with an error: no call to Google (D-1070; 08 2.3 first row of the error table).
@@ -114,6 +120,49 @@ internal sealed class GoogleReturnModel : PageModel
                 return Back(NoticeCode.SocialLoginFailed);
         }
     }
+
+    /// <summary>
+    /// The re-authentication flow's return (07 UC-51 "Yeniden doğrulama akışı"; 05 6.1.5; K-968). The signed-in customer's session is the one that asked, so no session is opened or changed: the answer
+    /// is a 303 to the account page with the permission's single-use value when Google's fresh sign-in is after the start of the flow and its e-mail is the account's, else a 303 to the re-authentication
+    /// screen with the operation and a code - <c>SocialReauthenticationUnavailable</c> when Google could not be reached, <c>SocialReauthenticationFailed</c> for every other ending (the user gave up, an error
+    /// answer, a failed verification, a nonce that is not the flow's, a sign-in moment that is old or missing, another e-mail, an account not linked to Google). Nothing is written but the permission, and
+    /// it does not count to L-1 (02 3.13.17). A state that names no operation of the closed list goes to the account page (07 6.2 ReauthenticationOperationInvalid).
+    /// </summary>
+    private async Task<IActionResult> ReauthenticationReturnAsync(GoogleFlow flow, string? code, string? error, CancellationToken ct)
+    {
+        if (!ReauthenticationAddresses.TryParse(flow.State.Operation, out ReauthenticationOperation operation))
+        {
+            HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.ReauthenticationOperationInvalid);
+            return FormResults.SeeOther(FramePaths.Account);
+        }
+
+        // The user gave up or Google answered with an error: no call to Google (D-1070; 08 2.3).
+        if (!string.IsNullOrEmpty(error) || string.IsNullOrWhiteSpace(code))
+        {
+            return ReauthenticationBack(operation, NoticeCode.SocialReauthenticationFailed);
+        }
+
+        GoogleIdentityResult answer = await _flow.ExchangeAsync(flow.Values, code, ct);
+        if (answer is not GoogleIdentityResult.Succeeded identity)
+        {
+            return ReauthenticationBack(operation, GoogleIdentityFailureRule.FailureOf(GoogleFlowKind.Reauthentication, answer) ?? NoticeCode.SocialReauthenticationFailed);
+        }
+
+        // No customer session: the screen is a page of the account folder, which sends the person to the sign-in (07 2.3.1).
+        if (User.AccountId() is not Guid customerId || !Guid.TryParse(User.FindFirstValue(SessionSchemes.SessionIdClaim), out Guid sessionId))
+        {
+            return ReauthenticationBack(operation, NoticeCode.SocialReauthenticationFailed);
+        }
+
+        GoogleReauthenticationResult granted = await _transactions.RunAsync(
+            async cancel => await _membership.GrantGoogleReauthenticationAsync(customerId, sessionId, operation, new GoogleReauthenticationIdentity(identity.Email, identity.EmailVerified, identity.AuthTime), flow.State.StartedAt, cancel),
+            ct);
+        return granted.Value is { } value
+            ? FormResults.SeeOther(ReauthenticationAddresses.Granted(operation, value))
+            : ReauthenticationBack(operation, NoticeCode.SocialReauthenticationFailed);
+    }
+
+    private static IActionResult ReauthenticationBack(ReauthenticationOperation operation, NoticeCode notice) => FormResults.SeeOther(ReauthenticationAddresses.Screen(operation), notice);
 
     private static IActionResult Back(NoticeCode notice) => FormResults.SeeOther(FramePaths.SignIn, notice);
 

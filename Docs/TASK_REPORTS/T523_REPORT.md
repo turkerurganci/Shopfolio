@@ -71,10 +71,13 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu (tur 1) | ✗ FAIL — dal ucu `199c1e51` (origin/main `73e36672` birleşik); dal CI run 43281683423 yeşil |
+| Bulgu sayısı (tur 1) | 3 — **B1** (ORTA, S1, kriter 7/KK7): `ChangeEmail` işlem izine satır yazmaz; `07` 9.21.3 yan etkiler ve KK7 "iz" ister — geçici sınamada istekten sonra yöneticinin iz satırı 0; iz yalnız `VerifyNewEmailAsync`'te (doğrulamada) yazılır. Kod yazılır ya da `07` 9.21.3 / KK7 belge düzeltmesi kararla kaydedilir. **B2** (ORTA, S1, kriter 8/KK8): başka yöneticinin adresinde alan mesajı K-820'nin E-49 metni (`AdminAccountsModel.AdminEmailTakenText`, "Bu adres zaten bir yönetici hesabına ait."); `04` 7.2.24.2, 9.21.8, `07` 9.21.3 ve K-819 "Bu e-posta adresi başka bir yönetici hesabında kayıtlı." ister (8cb1f7a6 doğru metni sildi, gerekçe kaydı yok). **B3** (DÜŞÜK, S1, kriter 1/`04` 9.21.3): ad bölümü adın yönetici listesinde, işlem izinde ve bildirimlerde okunduğunu, müşteriye görünmediğini söyleyen cümleyi taşımıyor. |
+| Düzeltme gerekli mi | Evet — B1, B2, B3 |
+| Bloke-etmeyen not (K) sayısı (tur 1) | 2 — **K1** (forward D-1421): hedefi T523 olan D-553, D-593, D-1301, D-1375 (D-1395) anılmadı. **K2** (forward D-1422): yorumlarda şifre değiştirme `UC-188` (07'de `UC-181`). |
+| `12` satırları (tur 1) | PASS: `VAL-A303`, C073, C074, D035 (iz doğrulamada; satırın ön koşulu "e-postası değiştirilmiş hesap"), A309 (geçici sınamada firma e-postası aynı). BEKLEMEDE kalır: `VAL-A494`, A560, A566 (`07 §6.3.2` kodları, öteki ekranlarla ortak), B090 (`[tarayıcı]`). Matris betiği hata 0. |
+| Testler (tur 1) | Build `-warnaserror` 0/0; format üç proje temiz; Unit 7472/7472; betik 4/4; Integration parçalı 222/222 (`MyAccountPageTests`, `PanelHomeAndVerificationPagesTests`, `MembershipTests`, `MembershipAccountDeletionTests`, `MemberRecordPageTests`, `AdminAccountsPageTests`, `PanelAccessPagesTests`, `MembershipPasswordLockOrderTests`); TAM: CI. `restore --locked-mode` 0. |
+| Yapım raporu karşılaştırması (tur 1) | Öz denetim tablosu var. Uyuşmazlık 3: (1) KK7 "iz; firma iletişim e-postası aynı" ✓ kanıtı `…_KK7` testi — test ne iz satırını ne firma e-postasını denetler, iz istekte yazılmaz (B1); changelog "`ChangeEmail` (… işlem izi …)" diyor. (2) KK8 ✓ — mesaj K-819 değil (B2). (3) "Etkilenen dosyalar"da `Web/SessionAccessTests.cs`, `Pages/AccessSamples.cs` anılıyor; dal diff'inde yoklar. Hedefi T523 olan D-553/D-593/D-1301/D-1375 anılmıyor (K1). |
 
 ## Altyapı Değişiklikleri
 

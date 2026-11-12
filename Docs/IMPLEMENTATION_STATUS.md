@@ -280,7 +280,7 @@
 | T521 | Panel ana sayfası ve yönetici hesabının doğrulama ekranları (E-31, E-54) | ✓ | ✓ PASS (tur 3) | `3cec5c9c` | #554 |
 | T522 | Yönetici hesapları ve işlem izi (E-49, E-52) | ✓ | ✓ PASS (tur 1) | `794aed66` | #557 |
 | T523 | Yöneticinin kendi hesabı (E-50) | ⬚ | — | — | — |
-| T524 | Satış özeti ve dışa aktarma (E-51, E-53) | ⬚ | — | — | — |
+| T524 | Satış özeti ve dışa aktarma (E-51, E-53) | ✓ | ⏳ | — | — |
 | T525 | Ürün listesi ve ürün formu, görsel yükleme (E-32, E-33) | ⬚ | — | — | — |
 | T526 | Kategori ağacı ve kuponlar (E-34, E-35) | ⬚ | — | — | — |
 | T527 | Sipariş listesi, sipariş ayrıntısı ve durum geçişleri (E-36, E-37) | ⬚ | — | — | — |

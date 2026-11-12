@@ -153,15 +153,43 @@ public sealed class CustomerPasswordResetAndReauthenticationPageTests : IAsyncLi
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
 
         HttpStatusCode last = HttpStatusCode.OK;
+        bool retryAfter = false;
         for (int i = 0; i <= ProductConstants.PasswordResetAttemptsPerEmail + 1 && last != HttpStatusCode.TooManyRequests; i++)
         {
             using HttpResponseMessage attempt = await PostAsync(client, FramePaths.PasswordReset, "RequestPasswordReset", [("Input.Email", "ali@example.com")], null);
             last = attempt.StatusCode;
+            retryAfter = attempt.Headers.Contains("Retry-After");
         }
 
         Assert.Equal(HttpStatusCode.TooManyRequests, last);
+        Assert.False(retryAfter);
         await using AppDbContext db = NewContext();
         Assert.Equal(ProductConstants.PasswordResetAttemptsPerEmail + 1, await db.AttemptRecords.CountAsync(a => a.AttemptLimit == AttemptLimit.L2 && a.AttemptAxis == AttemptAxis.Email, Ct));
+    }
+
+    [Fact]
+    public async Task TheBlockOfTheResetRequest_LiftsWhenTheAttemptsLeaveTheWindow_D572_T516_KK4()
+    {
+        await using WebApplicationFactory<Program> factory = Open(google: null, gateOpen: false);
+        await SeedAsync("ali@example.com", hasPassword: true, googleLinked: false);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        HttpStatusCode blocked = HttpStatusCode.OK;
+        for (int i = 0; i <= ProductConstants.PasswordResetAttemptsPerEmail + 1 && blocked != HttpStatusCode.TooManyRequests; i++)
+        {
+            using HttpResponseMessage attempt = await PostAsync(client, FramePaths.PasswordReset, "RequestPasswordReset", [("Input.Email", "ali@example.com")], null);
+            blocked = attempt.StatusCode;
+        }
+
+        await using (AppDbContext db = NewContext())
+        {
+            await db.Database.ExecuteSqlRawAsync("UPDATE attempt_records SET created_at = created_at - interval '2 hours'", Ct);
+        }
+
+        using HttpResponseMessage after = await PostAsync(client, FramePaths.PasswordReset, "RequestPasswordReset", [("Input.Email", "ali@example.com")], null);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, blocked);
+        Assert.Equal(HttpStatusCode.SeeOther, after.StatusCode);
     }
 
     // ---- KK5: the five states of a link ----

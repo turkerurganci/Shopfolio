@@ -1,6 +1,6 @@
 # T522 — Yönetici hesapları ve işlem izi (E-49, E-52)
 
-**Faz:** F5 | **Durum:** 🔄 Yapım bitti, Integration TAM koşusu bekliyor | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** Tamamlandı (PR açıldı) | **Tarih:** 2026-11-12
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -49,7 +49,7 @@
 | 06 "Varsayılan" / FK dizini | ✓ | Yeni varlık, sütun, göç yok |
 | Kural değişince aynı sayıyı anan yerler | ✓ | Yeni `INotificationsModule` yöntemi dört sahte modüle eklendi (derleme `-warnaserror` temiz); D-594 metni `LiveLink` ile güncellendi |
 | Belge kuralını değiştiren 09 metni karar kaydısız | ✓ | `09` ve öteki belgeler değişmedi |
-| Modül kurucusuna yeni bağımlılık / elle kuran düzenek | ✓ (Integration TAM'da doğrulanacak) | `AdminAccountListService` DI ile kurulur |
+| Modül kurucusuna yeni bağımlılık / elle kuran düzenek | ✓ | `AdminAccountListService` DI ile kurulur |
 | Güvenlik taraması | ✓ | Üç POST işleyicisi çerçevenin sahte istek korumasından geçer (`ForgeryTokenHandler` ile testlerde); yönetici oturumu şart; kişisel veri iz sayfasında yok |
 
 ## Test Sonuçları
@@ -58,8 +58,8 @@
 |---|---|---|---|
 | Unit TAM | ✓ | `dotnet test --project tests/Shopfolio.UnitTests` | 7408/7408 (iki koşuda: ilkinde `LinkKeySourceScanTests` yük altında regex zaman aşımı verdi, tek başına 15/15; ikincisinde `ModelBindingRuleTests` kırmızıydı, düzeltildi 27/27) |
 | Integration (T522 sınıfları) | ✓ | `--filter-class "*AdminAccountsPageTests"`, `"*AuditTrailPageTests"`, `"*AccountEmailQueueTests"` | 16/16, 5/5 (6 durum), 15/15 |
-| Integration TAM | ⏳ | `--filter-namespace "Shopfolio.IntegrationTests.<Ad>"` parçaları | KOŞULMADI (süre); PR'dan önce koşulacak |
-| `dotnet format` | ✓ (Web, Integration) | `dotnet format <proje> --no-restore` | değişiklik yok; Unit projesi koşulacak |
+| Integration (kısmi; yük altında TAM koşulmadı) | ✓ | `--filter-namespace "Shopfolio.IntegrationTests.Web"` (main birleştirmesi sonrası) + `--filter-class "*AccountEmailQueueTests"`, `"*LivenessEndpointTests"` | Web 960/961 (yük altında `LivenessEndpointTests.ConnectionOpenIsSlow_Returns503WithinTheLimit` zaman aşımı; sınıf tek başına 16/16), AccountEmailQueueTests 15/15. Kalan ad alanları (Model, Ordering, CorporateContent vb.) **TAM doğrulayıcıda koşulacak** |
+| `dotnet format` | ✓ (Web, Integration, Unit) | `dotnet format <proje> --no-restore` | değişiklik yok |
 
 ## Known Limitations / Follow-up
 

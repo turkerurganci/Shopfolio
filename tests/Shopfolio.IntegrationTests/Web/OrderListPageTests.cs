@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Pages.Components;
@@ -23,8 +25,8 @@ public sealed class OrderListPageTestsDefinition : ICollectionFixture<Collection
 }
 
 /// <summary>
-/// E-36, the panel's order list (T527 KK1, KK2, KK4; 07 UC-91; 04 9.8) on the opened application: the whole-value search by number and e-mail, the two status filters, an invalid value that filters
-/// nothing, the newest-first order and its page boundary on equal creation moments, the system-cancelled unpaid order, and the row's marks and period. Each test gives its orders an e-mail of its own
+/// E-36, the panel's order list (T527 KK1, KK2, KK4; 07 UC-91; 04 9.8) on the opened application: the whole-value search by number and e-mail, the two status filters, a timed pending work filter and its
+/// least-time-left order, an invalid value that filters nothing, the newest-first order and its page boundary on equal creation moments, the system-cancelled unpaid order, and the row's marks and period. Each test gives its orders an e-mail of its own
 /// and searches by it, so the tests of the collection do not see each other's orders.
 /// </summary>
 [Collection(OrderListPageTestsDefinition.Name)]
@@ -105,6 +107,35 @@ public sealed class OrderListPageTests
     }
 
     [Fact]
+    public async Task ATimedPendingWorkFilter_KeepsOnlyItsOrders_OverrunFirstThenLeastTimeLeft_AndAnOrderWithoutAPeriodLast_KK1_KK2()
+    {
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        string email = UniqueEmail();
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        string running = await PreparingOrderAsync(email, now.AddHours(-3), approvedAt: now.AddHours(-1));
+        string overrun = await PreparingOrderAsync(email, now.AddHours(-2), approvedAt: now.AddDays(-30));
+        string unapproved = await PreparingOrderAsync(email, now.AddHours(-1), approvedAt: null);
+        (Guid cancelledId, string cancelled) = await OrderAsync(email, now);
+        await SetStatusAsync(cancelledId, OrderStatus.Cancelled, PaymentStatus.Failed);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        string all = await ListAsync(client, $"search={Uri.EscapeDataString(email)}", key);
+        string timed = await ListAsync(client, $"search={Uri.EscapeDataString(email)}&pendingWork={nameof(PanelOrderWork.AwaitingShipment)}", key);
+
+        // Without the filter the list is newest first; under the timed "Kargoya verilecek" filter (04 9.8.7) the overrun period heads it, then the least time left, and the order with no running
+        // period comes last; the cancelled order is not in the filter's set.
+        Assert.True(all.IndexOf(cancelled, StringComparison.Ordinal) < all.IndexOf(unapproved, StringComparison.Ordinal));
+        Assert.True(all.IndexOf(unapproved, StringComparison.Ordinal) < all.IndexOf(overrun, StringComparison.Ordinal));
+        Assert.True(all.IndexOf(overrun, StringComparison.Ordinal) < all.IndexOf(running, StringComparison.Ordinal));
+        Assert.DoesNotContain(cancelled, timed, StringComparison.Ordinal);
+        int overrunAt = timed.IndexOf(overrun, StringComparison.Ordinal);
+        int runningAt = timed.IndexOf(running, StringComparison.Ordinal);
+        int unapprovedAt = timed.IndexOf(unapproved, StringComparison.Ordinal);
+        Assert.True(overrunAt >= 0 && overrunAt < runningAt && runningAt < unapprovedAt);
+    }
+
+    [Fact]
     public async Task TheRow_ShowsTheListMarks_AndTheRunningPeriodTheServerWorkedOut_KK4()
     {
         (string key, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
@@ -136,6 +167,25 @@ public sealed class OrderListPageTests
         order.CreatedAt = createdAt;
         await db.SaveChangesAsync(Ct);
         return (orderId, number);
+    }
+
+    /// <summary>A preparing paid order with one physical item and a three business day shipping promise; its payment approved (an Ö1 record) at <paramref name="approvedAt"/> or not at all.</summary>
+    private async Task<string> PreparingOrderAsync(string email, DateTimeOffset createdAt, DateTimeOffset? approvedAt)
+    {
+        (Guid orderId, string number) = await OrderAsync(email, createdAt);
+        await using AppDbContext db = NewContext();
+        db.OrderItems.Add(OrderItem.Create(orderId, null, null, ProductType.Physical, "Ürün", 1, 100m, 20m, 16.67m, createdAt));
+        if (approvedAt is { } at)
+        {
+            db.TransitionRecords.Add(TransitionRecord.Create(orderId, TransitionCode.O1, ActorKind.System, null, null, null, null, null, null, null, at));
+        }
+
+        await db.SaveChangesAsync(Ct);
+        await db.Orders.Where(o => o.Id == orderId).ExecuteUpdateAsync(s => s
+            .SetProperty(o => o.OrderStatus, OrderStatus.Preparing)
+            .SetProperty(o => o.PaymentStatus, PaymentStatus.Paid)
+            .SetProperty(o => o.ShippingPeriod, 3), Ct);
+        return number;
     }
 
     private async Task SetStatusAsync(Guid orderId, OrderStatus orderStatus, PaymentStatus paymentStatus)

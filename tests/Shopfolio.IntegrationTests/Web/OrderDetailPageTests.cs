@@ -1,10 +1,12 @@
 using System.Net;
+using System.Text.Json;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Administration.Contracts;
@@ -149,26 +151,55 @@ public sealed partial class OrderDetailPageTests
     {
         (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
         (Guid orderId, _, _) = await TestSessions.OrderAsync(_database.Dsn, null);
-        await using WebApplicationFactory<Program> factory = Open();
+        await using ShopfolioWebApplicationFactory root = new(_database.Dsn);
+        await using WebApplicationFactory<Program> factory = root.WithWebHostBuilder(b => b.ConfigureServices(s => s.AddRazorPages().AddApplicationPart(typeof(Pages.PanelOrdersModel).Assembly)));
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string run = Guid.NewGuid().ToString("N")[..8];
 
-        (HttpStatusCode missing, string missingHtml) = await PostAsync(client, $"{OrdersPath}/{orderId:D}?handler=MarkShipped", [("Input.Version", "1")], key);
+        (HttpStatusCode missing, string missingHtml) = await PostAsync(client, $"{OrdersPath}/{orderId:D}?handler=MarkShipped", [("Input.Version", "1")], key, $"t527-missing-{run}");
         (HttpStatusCode closed, string closedHtml) = await PostAsync(
             client,
             $"{OrdersPath}/{orderId:D}?handler=MarkShipped",
             [("Input.Version", "1"), ("Input.IsOwnVehicleDelivery", "true")],
-            key);
-        (HttpStatusCode failed, _) = await PostAsync(client, $"{OrdersPath}/{orderId:D}?handler=MarkDeliveryFailed", [("Input.Version", "1")], key);
+            key,
+            $"t527-closed-{run}");
+        (HttpStatusCode failed, _) = await PostAsync(client, $"{OrdersPath}/{orderId:D}?handler=MarkDeliveryFailed", [("Input.Version", "1")], key, $"t527-failed-{run}");
         (HttpStatusCode close, _) = await PostAsync(client, $"{OrdersPath}/{orderId:D}?handler=CloseDeliveryFailed", [("Input.Version", "1")], key);
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, missing);
         Assert.Contains(OrderDetailModel.ShipmentMissingText, missingHtml, StringComparison.Ordinal);
+        Assert.DoesNotContain(nameof(ErrorCode.ShipmentInfoMissing), missingHtml, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, closed);
         Assert.Contains(OrderDetailModel.NotOpenText, closedHtml, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, failed);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, close);
         await using AppDbContext db = NewContext();
         Assert.Equal(0, await db.AuditLogs.CountAsync(a => a.TargetRecordId == orderId, Ct));
+
+        // Each refusal writes its one rejection line with the code of 07 6.2 (07 6.1.3; 09 8.2 item 3); the screen shows only the text.
+        Assert.Equal(nameof(ErrorCode.ShipmentInfoMissing), CodeOfRejection(root.LogDirectory, $"t527-missing-{run}"));
+        Assert.Equal(nameof(ErrorCode.OperationNotAvailable), CodeOfRejection(root.LogDirectory, $"t527-closed-{run}"));
+        Assert.Equal(nameof(ErrorCode.OperationNotAvailable), CodeOfRejection(root.LogDirectory, $"t527-failed-{run}"));
+    }
+
+    private static string? CodeOfRejection(string logDirectory, string requestId)
+    {
+        List<JsonElement> lines = [];
+        foreach (string path in Directory.GetFiles(logDirectory, "app-*.jsonl"))
+        {
+            using FileStream stream = new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using StreamReader reader = new(stream);
+            while (reader.ReadLine() is { } text)
+            {
+                JsonElement line = JsonDocument.Parse(text).RootElement.Clone();
+                if (line.TryGetProperty("requestId", out JsonElement id) && id.GetString() == requestId && line.TryGetProperty("code", out _))
+                {
+                    lines.Add(line);
+                }
+            }
+        }
+
+        return Assert.Single(lines).GetProperty("code").GetString();
     }
 
     private static string ConflictControlsText => Shopfolio.Infrastructure.Forms.ConflictControls.OrderMessage;
@@ -183,9 +214,9 @@ public sealed partial class OrderDetailPageTests
         return (response.StatusCode, WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct)));
     }
 
-    private static async Task<(HttpStatusCode Status, string Html)> PostAsync(HttpClient client, string path, IEnumerable<(string Name, string Value)> fields, string key)
+    private static async Task<(HttpStatusCode Status, string Html)> PostAsync(HttpClient client, string path, IEnumerable<(string Name, string Value)> fields, string key, string? requestId = null)
     {
-        using HttpResponseMessage response = await SendPostAsync(client, path, fields, key);
+        using HttpResponseMessage response = await SendPostAsync(client, path, fields, key, requestId);
         return (response.StatusCode, WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct)));
     }
 
@@ -195,10 +226,15 @@ public sealed partial class OrderDetailPageTests
         return (response.StatusCode, response.Headers.Location?.OriginalString);
     }
 
-    private static async Task<HttpResponseMessage> SendPostAsync(HttpClient client, string path, IEnumerable<(string Name, string Value)> fields, string key)
+    private static async Task<HttpResponseMessage> SendPostAsync(HttpClient client, string path, IEnumerable<(string Name, string Value)> fields, string key, string? requestId = null)
     {
         using HttpRequestMessage request = new(HttpMethod.Post, path) { Content = new FormUrlEncodedContent(fields.Select(f => new KeyValuePair<string, string>(f.Name, f.Value))) };
         request.Headers.Add("Cookie", AdminCookie(key));
+        if (requestId is not null)
+        {
+            request.Headers.TryAddWithoutValidation("X-Request-Id", requestId);
+        }
+
         return await client.SendAsync(request, Ct);
     }
 

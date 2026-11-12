@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Binding;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Lists;
 using Shopfolio.Infrastructure.Operations;
@@ -264,7 +265,7 @@ public sealed class OrderDetailModel : PageModel
         Delivery = input;
         if (!DateOnly.TryParseExact(input.DeliveryDate, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date))
         {
-            return await RefuseAsync(id, DeliveryDateMissingText, ct);
+            return await RefuseAsync(id, DeliveryDateMissingText, string.IsNullOrWhiteSpace(input.DeliveryDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate, ct);
         }
 
         TransitionAdmin admin = await AdminAsync(ct);
@@ -275,7 +276,7 @@ public sealed class OrderDetailModel : PageModel
         {
             AsksDeliveryOrder = true;
             DeclarationMomentTexts = [.. result.DeclarationMoments.Select(DisplayFormat.DateAndTime)];
-            return await RefuseAsync(id, DeliveryOrderQuestionText, ct);
+            return await RefuseAsync(id, DeliveryOrderQuestionText, ErrorCode.DeliverySequenceRequired, ct);
         }
 
         return await AnswerAsync(id, result, ct);
@@ -306,7 +307,7 @@ public sealed class OrderDetailModel : PageModel
         ShipmentInfo shipment = new(Blank(input.Carrier), Blank(input.OtherCarrierName), Blank(input.TrackingNumber), input.IsOwnVehicleDelivery);
         if (!IsComplete(shipment))
         {
-            return await RefuseAsync(id, ShipmentMissingText, ct);
+            return await RefuseAsync(id, ShipmentMissingText, ErrorCode.ShipmentInfoMissing, ct);
         }
 
         OrderOperation operation = isResending ? OrderOperation.ResendOrder : OrderOperation.ShipOrder;
@@ -333,12 +334,14 @@ public sealed class OrderDetailModel : PageModel
 
         if (!Operations.IsOpen(operation))
         {
+            Reject(ErrorCode.OperationNotAvailable);
             RefusalText = NotOpenText;
             return FormResults.Redisplay(this);
         }
 
         if (Operations.Version != version)
         {
+            Reject(ErrorCode.OrderVersionConflict);
             IsConflict = true;
             return FormResults.Conflict(this);
         }
@@ -391,29 +394,34 @@ public sealed class OrderDetailModel : PageModel
                     return NotFound();
                 }
 
+                Reject(ErrorCode.OrderVersionConflict);
                 IsConflict = true;
                 return FormResults.Conflict(this);
             default:
-                string text = result.DateObstacle switch
+                (string text, ErrorCode code) = result.DateObstacle switch
                 {
-                    DeliveryDateObstacle.InTheFuture => DeliveryDateFutureText,
-                    DeliveryDateObstacle.BeforeShipment => DeliveryDateBeforeShipmentText,
-                    _ => NotOpenText,
+                    DeliveryDateObstacle.InTheFuture => (DeliveryDateFutureText, ErrorCode.InvalidDate),
+                    DeliveryDateObstacle.BeforeShipment => (DeliveryDateBeforeShipmentText, ErrorCode.InvalidDate),
+                    _ => (NotOpenText, ErrorCode.OperationNotAvailable),
                 };
-                return await RefuseAsync(id, text, ct);
+                return await RefuseAsync(id, text, code, ct);
         }
     }
 
-    private async Task<IActionResult> RefuseAsync(Guid id, string text, CancellationToken ct)
+    private async Task<IActionResult> RefuseAsync(Guid id, string text, ErrorCode code, CancellationToken ct)
     {
         if (!await LoadAsync(id, ct))
         {
             return NotFound();
         }
 
+        Reject(code);
         RefusalText = text;
         return FormResults.Redisplay(this);
     }
+
+    // The one rejection line of a refused step with its code (07 6.1.3, 6.2; 09 8.2 item 3; K-1198): the screen shows the text, the log keeps the code.
+    private void Reject(ErrorCode code) => HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(code);
 
     private async Task<PanelStepResult> RunAsync(Func<IPanelOrderSteps, CancellationToken, Task<PanelStepResult>> step, CancellationToken ct)
     {

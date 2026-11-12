@@ -56,6 +56,12 @@ public sealed class CustomerSignInPageTests : IAsyncLifetime
     {
         await using AppDbContext db = NewContext();
         await db.Database.ExecuteSqlRawAsync("TRUNCATE customers, link_records, dispatch_records, attempt_records, disposal_records, orders CASCADE", Ct);
+
+        // Until the cookie policy is published the storefront writes no cookie at all (05 6.7; T224): the session's cookies are observed with the policy published.
+        await db.Database.ExecuteSqlRawAsync(
+            "INSERT INTO legal_text_versions (id, created_at, legal_text_type, version_number, published_at, text) "
+            + "VALUES ('01000000-0000-7000-8000-000000515001', now(), 'CookiePolicy', 1, now(), 'policy') ON CONFLICT DO NOTHING",
+            Ct);
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -553,8 +559,9 @@ public sealed class CustomerSignInPageTests : IAsyncLifetime
 
     private static long MaxAgeOf(string setCookie)
     {
-        string part = setCookie.Split(';').Select(p => p.Trim()).First(p => p.StartsWith("max-age=", StringComparison.OrdinalIgnoreCase));
-        return long.Parse(part["max-age=".Length..], System.Globalization.CultureInfo.InvariantCulture);
+        // A cookie without a lifetime lasts the browser session: zero.
+        string? part = setCookie.Split(';').Select(p => p.Trim()).FirstOrDefault(p => p.StartsWith("max-age=", StringComparison.OrdinalIgnoreCase));
+        return part is null ? 0 : long.Parse(part["max-age=".Length..], System.Globalization.CultureInfo.InvariantCulture);
     }
 
     // The default encoder writes Turkish letters as character references; the texts are compared as the browser reads them.

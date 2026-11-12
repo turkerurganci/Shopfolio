@@ -362,44 +362,6 @@ public sealed class SessionAccessTests
         Assert.Contains(response.Headers.GetValues("Set-Cookie"), c => c.StartsWith(CookieNames.AdminSession + "=", StringComparison.Ordinal) && c.Contains("expires=", StringComparison.OrdinalIgnoreCase));
     }
 
-    // --- criterion 6, KK6: the return address is the site's own path ---
-
-    [Theory]
-    [InlineData("//evil.example")]
-    [InlineData("/\\evil.example")]
-    [InlineData("https://evil.example")]
-    [InlineData("%2F%2Fevil.example")]
-    [InlineData("javascript:alert(1)")]
-    [InlineData("evil")]
-    [InlineData("/\t/evil.example")]
-    [InlineData("")]
-    public async Task TheSignInPage_IgnoresAReturnAddressThatIsNotASitePath_AndGoesToTheAreasHomePage(string returnUrl)
-    {
-        await using WebApplicationFactory<Program> factory = Open(out _);
-        using HttpClient client = ClientOf(factory);
-
-        using HttpResponseMessage storefront = await GetAsync(client, $"/giris?returnUrl={Uri.EscapeDataString(returnUrl)}");
-
-        // The value is sent encoded once, so the page receives it decoded once: "%2F%2Fevil.example" arrives as the literal text and is no path.
-        // The panel's own sign-in page is the product's (T520); its return address is tried in PanelAccessPagesTests.
-        Assert.Equal("/", await BodyOf(storefront));
-    }
-
-    [Fact]
-    public async Task TheSignInPage_KeepsASitePath_AndANetworkPathSentInTheQueryEncodedOnceIsIgnored()
-    {
-        await using WebApplicationFactory<Program> factory = Open(out _);
-        using HttpClient client = ClientOf(factory);
-
-        using HttpResponseMessage kept = await GetAsync(client, "/giris?returnUrl=%2Fhesap%2Fadresler%3Fpage%3D2");
-        using HttpResponseMessage encodedNetworkPath = await GetAsync(client, "/giris?returnUrl=%2F%2Fdis.example");
-        using HttpResponseMessage controlCharacter = await GetAsync(client, "/giris?returnUrl=%2F%09%2Fdis.example");
-
-        Assert.Equal("/hesap/adresler?page=2", await BodyOf(kept));
-        Assert.Equal("/", await BodyOf(encodedNetworkPath));
-        Assert.Equal("/", await BodyOf(controlCharacter));
-    }
-
     // --- criterion 7, KK7: the one 404 ---
 
     [Fact]

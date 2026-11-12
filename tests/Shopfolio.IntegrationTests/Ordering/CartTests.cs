@@ -349,6 +349,59 @@ public sealed class CartTests : IAsyncLifetime
         Assert.Equal(1, await reader.Carts.CountAsync(Ct));
     }
 
+    // D-619 (T515): the add that arrives while the sign-in merge of the same browser holds the guest cart's lock is made to wait for sure - the merge is kept open until pg_locks shows the add
+    // waiting for an advisory lock - so the order "merge first, add after" is the one that is tested, not a race that usually goes that way.
+    [Fact]
+    public async Task AGuestAdd_ThatWaitsForTheSignInMerge_StartsTheBrowsersNewGuestCart_WithoutAnException_D619()
+    {
+        (_, List<Variant> variants) = await SeedProductAsync("Masa", 2);
+        Guid customerId = await SeedCustomerAsync();
+        string key = NewKey();
+        await SeedCartAsync(null, key, (variants[0].Id, 2, 100m));
+        Task<CartAddResult>? add = null;
+
+        await RunAsync(async (ordering, token) =>
+        {
+            CartMergeResult merged = await ordering.MergeGuestCartAsync(customerId, key, token);
+            Assert.True(merged.WasMerged);
+            add = AddAsync(CartOwner.ForGuest(key), variants[1].Id, 1);
+            await WaitForAWaitingAdvisoryLockAsync(add);
+            return merged;
+        });
+
+        CartAddResult added = await add!;
+
+        Assert.Equal(CartAddOutcome.Added, added.Outcome);
+        CartView member = await OpenAsync(CartOwner.ForMember(customerId));
+        Assert.Equal(new Dictionary<Guid, int> { [variants[0].Id] = 2 }, member.Lines.ToDictionary(l => l.VariantId, l => l.Quantity));
+        CartView guest = await OpenAsync(CartOwner.ForGuest(key));
+        Assert.Equal(new Dictionary<Guid, int> { [variants[1].Id] = 1 }, guest.Lines.ToDictionary(l => l.VariantId, l => l.Quantity));
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(2, await reader.Carts.CountAsync(Ct));
+    }
+
+    private async Task WaitForAWaitingAdvisoryLockAsync(Task<CartAddResult> add)
+    {
+        await using NpgsqlConnection connection = new(_collection.Dsn);
+        await connection.OpenAsync(Ct);
+        await using NpgsqlCommand command = new(
+            "SELECT count(*) FROM pg_locks WHERE locktype = 'advisory' AND NOT granted AND database = (SELECT oid FROM pg_database WHERE datname = current_database())",
+            connection);
+        DateTimeOffset until = DateTimeOffset.UtcNow.AddSeconds(30);
+        while (DateTimeOffset.UtcNow < until)
+        {
+            Assert.False(add.IsCompleted, "The add finished before it waited for the merge's lock.");
+            if (Convert.ToInt64(await command.ExecuteScalarAsync(Ct), System.Globalization.CultureInfo.InvariantCulture) > 0)
+            {
+                return;
+            }
+
+            await Task.Delay(50, Ct);
+        }
+
+        Assert.Fail("The add never waited for the guest cart's advisory lock.");
+    }
+
     [Fact]
     public async Task TwoAddsAtOnce_OfTheSameVariant_ToTheSameMemberCart_AddUp_WithoutAnException_KK3()
     {

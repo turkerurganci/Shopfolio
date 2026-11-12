@@ -9,6 +9,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Binding;
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
+using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
@@ -32,18 +33,27 @@ namespace Shopfolio.Pages.Storefront;
 [NoStore]
 internal sealed class RegisterModel : PageModel
 {
-    public const string PendingParameter = "pendingRegistration";
+    public const string PendingParameter = PendingRegistrations.Parameter;
 
     private readonly IMembershipModule _membership;
     private readonly INotificationsModule _notifications;
     private readonly ISettingsModule _settings;
     private readonly ITransactionRunner _transactions;
     private readonly ProtectedValues _protectedValues;
+    private readonly GoogleSignInFlow _flow;
 
     private bool _loaded;
 
-    public RegisterModel(IMembershipModule membership, INotificationsModule notifications, ISettingsModule settings, ITransactionRunner transactions, ProtectedValues protectedValues)
+    public RegisterModel(
+        IMembershipModule membership,
+        INotificationsModule notifications,
+        ISettingsModule settings,
+        ITransactionRunner transactions,
+        ProtectedValues protectedValues,
+        GoogleSignInFlow flow)
     {
+        ArgumentNullException.ThrowIfNull(flow);
+        _flow = flow;
         ArgumentNullException.ThrowIfNull(membership);
         ArgumentNullException.ThrowIfNull(notifications);
         ArgumentNullException.ThrowIfNull(settings);
@@ -80,6 +90,12 @@ internal sealed class RegisterModel : PageModel
     /// <summary>True when the e-mail's message is "already registered": the sign-in link goes beside it (04 5.20.9).</summary>
     public bool EmailIsTaken { get; private set; }
 
+    /// <summary>True when the Google application is defined and the form is open: only then the form has "Google ile giriş" (04 5.20.3, 5.20.10, 5.20.11; D-81).</summary>
+    public bool GoogleOpen => IsOpen && _membership.IsGoogleSignInOpen;
+
+    /// <summary>The lasting message of the Google return that ends here: Google gave the e-mail as not verified (04 5.20.8; K-779 (5)); null otherwise.</summary>
+    public MessageView? ResultMessage { get; private set; }
+
     /// <summary>
     /// A form the validation filter refused (422, without the handler) or one the forgery check refused is still drawn: it needs the gate's state and the sent values. They are read after the filters,
     /// so a request the forgery check refused writes nothing.
@@ -103,6 +119,10 @@ internal sealed class RegisterModel : PageModel
         // The result code only decides which wording the pending state gets; a code without a pending registration shows the form (04 5.20.4).
         NoticeCode? notice = NoticeParameter.Read(Request, NoticeKind.Result);
         LinkWasResent = notice == NoticeCode.LinkResent;
+        if (SignInTexts.RegisterMessageOf(notice) is { } told)
+        {
+            ResultMessage = Messages.InPlace(told.Meaning, told.Text, "register-result");
+        }
         if (Pending is not null && notice is not (NoticeCode.RegistrationSubmitted or NoticeCode.LinkResent))
         {
             Pending = null;
@@ -136,7 +156,7 @@ internal sealed class RegisterModel : PageModel
         RegistrationResult registration = outcome.Result;
         if (registration.IsRegistered)
         {
-            string value = _protectedValues.Protect(DataProtectionPurposes.PendingRegistration, registration.CustomerId.GetValueOrDefault().ToString("N"));
+            string value = PendingRegistrations.Protect(_protectedValues, registration.CustomerId.GetValueOrDefault());
             return FormResults.SeeOther(FramePaths.Register + "?" + PendingParameter + "=" + Uri.EscapeDataString(value), NoticeCode.RegistrationSubmitted);
         }
 
@@ -168,6 +188,19 @@ internal sealed class RegisterModel : PageModel
         return FormResults.Redisplay(this);
     }
 
+    public async Task<IActionResult> OnPostStartSocialLoginAsync(CancellationToken ct)
+    {
+        await LoadAsync(null, ct);
+
+        // Google is not defined, or the gate of the data-collecting entries is closed (a new account would be refused at the return anyway): the operation is not offered and not done (04 5.20.10, 5.20.11).
+        if (!GoogleOpen)
+        {
+            return FormResults.Redisplay(this);
+        }
+
+        return FormResults.SeeOtherToGoogle(_flow.Start(HttpContext, GoogleFlowKind.SignInOrRegistration, null, null));
+    }
+
     public async Task<IActionResult> OnPostResendVerificationLinkAsync(ResendVerificationLinkInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -177,26 +210,8 @@ internal sealed class RegisterModel : PageModel
             return GoneAddress();
         }
 
-        System.Net.IPAddress? ip = ClientAddress.Of(HttpContext);
-        ResendOutcome outcome = await _transactions.RunAsync(
-            async token =>
-            {
-                // A value that names no pending registration sends nothing and counts nothing (04 5.20.7; 07 UC-49).
-                PendingRegistrationReading? pending = await _membership.ReadPendingRegistrationAsync(customerId, token);
-                if (pending is null)
-                {
-                    return ResendOutcome.Unresolved;
-                }
-
-                VerificationResendResult result = await _membership.ResendVerificationLinkAsync(customerId, ip, token);
-                if (result.IsIssued)
-                {
-                    await _notifications.QueueAccountEmailAsync(new VerificationLinkEmail(customerId, result.LinkId.GetValueOrDefault(), pending.Email), token);
-                }
-
-                return new ResendOutcome(result, pending);
-            },
-            ct);
+        // A value that names no pending registration sends nothing and counts nothing (04 5.20.7; 07 UC-49); the resend is the one both pages share (D-1249).
+        ResendOutcome outcome = await PendingRegistrations.ResendAsync(_membership, _notifications, _transactions, customerId, ClientAddress.Of(HttpContext), ct);
 
         if (outcome.Result is null)
         {
@@ -208,7 +223,7 @@ internal sealed class RegisterModel : PageModel
             return FormResults.SeeOther(FramePaths.Register + "?" + PendingParameter + "=" + Uri.EscapeDataString(sent), NoticeCode.LinkResent);
         }
 
-        if (outcome.Result.Code == ErrorCode.VerificationLinkLimitExceeded)
+        if (outcome.IsLimited)
         {
             // The pending state stays drawn and the neutral sentence stands beside the button (04 5.20.7; 03 3.4.14).
             await LoadAsync(sent, ct);
@@ -242,12 +257,7 @@ internal sealed class RegisterModel : PageModel
         PendingValue = pendingValue;
     }
 
-    private bool TryResolve(string value, out Guid customerId)
-    {
-        customerId = Guid.Empty;
-        ProtectedValueResult unprotected = _protectedValues.Unprotect(DataProtectionPurposes.PendingRegistration, value);
-        return unprotected.IsValid && Guid.TryParseExact(unprotected.Payload, "N", out customerId);
-    }
+    private bool TryResolve(string value, out Guid customerId) => PendingRegistrations.TryResolve(_protectedValues, value, out customerId);
 
     // A value that names nothing pending: back to the screen the 303 came from, without the value - the form in its empty state (07 4.20.1, 4.20.3).
     private static IActionResult GoneAddress() => FormResults.SeeOther(FramePaths.Register);
@@ -266,12 +276,6 @@ internal sealed class RegisterModel : PageModel
         public bool IsRejected => Result.IsRejected;
     }
 
-    private sealed record ResendOutcome(VerificationResendResult? Result, PendingRegistrationReading? Pending) : IOperationResult
-    {
-        public static ResendOutcome Unresolved { get; } = new(null, null);
-
-        public bool IsRejected => Result is null || Result.IsRejected;
-    }
 }
 
 /// <summary>The form of UC-48 (07 5.2.1): the name, the e-mail and the secret - all three required; no marketing consent, no agreement box (04 5.20.5).</summary>

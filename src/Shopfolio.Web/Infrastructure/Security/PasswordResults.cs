@@ -22,7 +22,7 @@ internal enum VerdictKind
     /// <summary>No account, no password on the account, or a wrong password; the attempt counts.</summary>
     Mismatch,
 
-    /// <summary>The right password of an account whose address is not verified (02 3.13.4); the attempt counts.</summary>
+    /// <summary>The right password of an account whose address is not verified (02 3.13.4); the attempt counts. The verdict carries the account's id so the sign-in page can read its pending registration (07 UC-55); it is not a grant.</summary>
     NotEligible,
 
     /// <summary>The limit L-1 is exceeded: no password was checked (02 3.13.17).</summary>

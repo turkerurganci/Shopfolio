@@ -14,12 +14,16 @@ internal sealed class Checkout : ICheckout
 {
     private readonly OrderConfirmation _confirmation;
     private readonly IMembershipModule _membership;
+    private readonly Carts _carts;
 
-    public Checkout(OrderConfirmation confirmation, IMembershipModule membership)
+    public Checkout(OrderConfirmation confirmation, IMembershipModule membership, Carts carts)
     {
         _confirmation = confirmation;
         _membership = membership;
+        _carts = carts;
     }
+
+    public Task MarkPaymentUnavailableAsync(CartOwner owner, CancellationToken ct) => _carts.MarkPaymentUnavailableAsync(owner, ct);
 
     public async Task<CheckoutStep> ReadAsync(CheckoutInput input, bool appliesCoupon, CancellationToken ct)
     {

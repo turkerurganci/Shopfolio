@@ -1,0 +1,206 @@
+@page "/odeme"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Infrastructure.Security
+@using Shopfolio.Modules.Ordering.Contracts
+@using Shopfolio.Modules.Payment.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Storefront
+@model Shopfolio.Pages.Storefront.CheckoutModel
+@inject SearchEngineData Search
+@*
+    The payment step (T509; 04 5.13; 07 4.13). One page and one form (K-756; 07 5.1.5): the sections stand one under the other in 03 2.4's order - contact, shipping address when the cart has a physical
+    line, billing address, payment method, the confirmation - beside the summary and the total. Every button sends the same form to its handler (07 2.2.1), so the page works without a script; the
+    coupon's buttons, the recalculation and the leaving buttons are formaction buttons of the form. The summary, the methods' states and the confirmation's content are the server's.
+*@
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = CheckoutTexts.ScreenName;
+    CheckoutStep step = Model.Step!; // non-null: the page is drawn only after the step was read
+    ConfirmationStepView confirmation = Model.Confirmation!; // non-null: as above
+    ConfirmationSummary summary = step.Summary!; // non-null: a step without a summary goes back to the cart
+    PlaceOrderInput form = Model.Form;
+    FormErrorSummary errors = FormErrorSummary.From(ViewData.ModelState);
+    string action = FramePaths.Checkout + "?handler=";
+    IReadOnlyList<string> boxOrder = ConsentBoxes.FormOrder(CheckoutModel.BoxPrefix, Model.Basket);
+    ConsentBoxesView boxes = ConsentBoxes.Create(CheckoutModel.BoxPrefix, Model.Basket, Model.SentBoxes, Model.BoxReset, errors);
+    AddressFormView shipping = AddressForms.Create(AddressVariant.Delivery, "Shipping", Model.Provinces,
+        new AddressValuesView(null, form.ShippingRecipientName, form.ShippingProvinceId?.ToString("D"), form.ShippingDistrict, form.ShippingAddressLine, form.ShippingPhone)).Bind(errors);
+    AddressFormView billing = AddressForms.Create(AddressVariant.Billing, "Billing", Model.Provinces,
+        new AddressValuesView(null, form.BillingRecipientName, form.BillingProvinceId?.ToString("D"), form.BillingDistrict, form.BillingAddressLine),
+        offerSameAsShipping: step.HasPhysicalItem, sameAsShippingName: nameof(PlaceOrderInput.IsBillingSameAsShipping),
+        sameAsShippingChecked: !ViewContext.HttpContext.Request.HasFormContentType || form.IsBillingSameAsShipping).Bind(errors);
+}
+@section Head {
+    @* A closed screen (02 3.30.5 item 1): noindex, the tab title is the screen's name and the brand name. *@
+    @Search.Head(ViewContext.HttpContext, RecordPages.ClosedScreen(CheckoutTexts.ScreenName, ViewContext.HttpContext.GetStorefrontFrame()?.Brand.BrandName, FramePaths.Checkout))
+}
+<h1>@CheckoutTexts.ScreenName</h1>
+<partial name="_FormErrorSummary" model="errors" />
+<form method="post" id="checkout-form" class="checkout" action="@(action)PlaceOrder" data-js="checkout" novalidate>
+    @ConfirmationKeys.Hidden(Model.ConfirmationKey)
+    <input type="hidden" name="@nameof(PlaceOrderInput.SummaryFingerprint)" value="@Model.Fingerprint" />
+    <input type="hidden" name="@nameof(PlaceOrderInput.PreInformationFormVersionId)" value="@confirmation.ShownPreInformationFormId.ToString("D")" />
+    <input type="hidden" name="@nameof(PlaceOrderInput.DistanceSalesContractVersionId)" value="@confirmation.ShownDistanceSalesContractId.ToString("D")" />
+
+    <section class="checkout__section" aria-labelledby="checkout-contact">
+        <h2 id="checkout-contact">İletişim</h2>
+        @if (Model.IsMember)
+        {
+            <p class="checkout__email">@Model.MemberEmail</p>
+        }
+        else
+        {
+            <p><button type="submit" class="link-button" formaction="@(action)Leave" formnovalidate name="@nameof(PlaceOrderInput.LeaveTarget)" value="@CheckoutModel.LoginTarget">@CheckoutTexts.SignInPrompt</button></p>
+            <partial name="_Field" model='Fields.Bind(Fields.Email(nameof(PlaceOrderInput.ContactEmail), "E-posta", FieldRequirement.Required, form.ContactEmail), errors)' />
+            @if (Model.ShowsRegisteredEmailReminder)
+            {
+                <p class="checkout__reminder">@CheckoutTexts.RegisteredEmailReminder
+                    <button type="submit" class="link-button" formaction="@(action)Leave" formnovalidate name="@nameof(PlaceOrderInput.LeaveTarget)" value="@CheckoutModel.LoginTarget">@CheckoutTexts.SignInLabel</button></p>
+            }
+        }
+    </section>
+
+    @if (step.HasPhysicalItem)
+    {
+        <section class="checkout__section" aria-labelledby="checkout-shipping">
+            <h2 id="checkout-shipping">Teslimat adresi</h2>
+            @if (Model.AddressBook.Count > 0)
+            {
+                <fieldset class="checkout__book">
+                    <legend>Adres defteriniz</legend>
+                    @foreach (AddressBookChoice choice in Model.AddressBook)
+                    {
+                        string id = "book-" + choice.Id.ToString("N");
+                        <div class="field field--check">
+                            <input type="radio" id="@id" name="@nameof(PlaceOrderInput.AddressBookId)" value="@choice.Id.ToString("D")" checked="@(form.AddressBookId == choice.Id)" disabled="@(!choice.Selectable)" />
+                            <label for="@id">@choice.Name</label>
+                            @if (choice.Reason is not null)
+                            {
+                                <span class="field__reason">@choice.Reason</span>
+                            }
+                        </div>
+                    }
+                    <div class="field field--check">
+                        <input type="radio" id="book-new" name="@nameof(PlaceOrderInput.AddressBookId)" value="" checked="@(form.AddressBookId is null)" />
+                        <label for="book-new">Yeni adres</label>
+                    </div>
+                </fieldset>
+            }
+            <partial name="_AddressForm" model="shipping" />
+            @if (Model.IsMember)
+            {
+                <div class="field field--check">
+                    <input type="checkbox" id="save-to-book" name="@nameof(PlaceOrderInput.SaveToAddressBook)" value="true" checked="@form.SaveToAddressBook" />
+                    <label for="save-to-book">Bu adresi adres defterime kaydet</label>
+                </div>
+            }
+        </section>
+    }
+
+    <section class="checkout__section" aria-labelledby="checkout-billing">
+        <h2 id="checkout-billing">Fatura adresi</h2>
+        <partial name="_AddressForm" model="billing" />
+    </section>
+
+    <section class="checkout__section" aria-labelledby="checkout-method">
+        <h2 id="checkout-method">Ödeme yöntemi</h2>
+        <fieldset class="checkout__methods">
+            <legend>Ödeme yöntemi</legend>
+            @foreach (PaymentMethod method in Model.OpenMethods)
+            {
+                bool unavailable = method == PaymentMethod.Card && Model.IsCardUnavailableNow;
+                string id = "method-" + method.ToString().ToLowerInvariant();
+                <div class="field field--check">
+                    <input type="radio" id="@id" name="@nameof(PlaceOrderInput.PaymentMethod)" value="@method" checked="@(Model.ChosenMethod == method)" disabled="@unavailable" />
+                    <label for="@id">@(method == PaymentMethod.Card ? "Kart" : "Havale")</label>
+                    @if (unavailable)
+                    {
+                        <span class="field__reason">@CheckoutTexts.CardUnavailableNow</span>
+                    }
+                </div>
+            }
+        </fieldset>
+    </section>
+
+    <aside class="checkout__summary" aria-labelledby="checkout-summary" data-js="checkout-summary">
+        <h2 id="checkout-summary">Sipariş özeti</h2>
+        <ul class="checkout__lines">
+            @foreach (ConfirmationSummaryLine line in summary.Lines)
+            {
+                <li><span>@line.ProductName</span> <span>× @line.Quantity</span> <span>@DisplayFormat.Amount(line.Payable)</span></li>
+            }
+        </ul>
+        <p class="checkout__shipping">Kargo: @(summary.ShippingFee == 0 ? "Kargo ücretsiz" : DisplayFormat.Amount(summary.ShippingFee))</p>
+        <div class="coupon" id="coupon-field" data-js="coupon-field">
+            @if (Model.Coupon.Mode == CouponFieldMode.LimitClosed)
+            {
+                <p class="coupon__closed-text">@CouponFields.ClosedRowText</p>
+                <partial name="_Message" model="Model.Coupon.LimitMessage!" />
+            }
+            else
+            {
+                @if (Model.Coupon.Mode == CouponFieldMode.Applied)
+                {
+                    <p class="coupon__applied"><span class="coupon__code">@Model.Coupon.AppliedCode</span> <span class="coupon__discount">@Model.Coupon.DiscountText</span></p>
+                    <input type="hidden" name="@nameof(PlaceOrderInput.CouponCode)" value="@Model.Coupon.AppliedCode" />
+                    <button type="submit" class="button button--secondary" formaction="@(action)RemoveCoupon" formnovalidate>@CouponFields.RemoveLabel</button>
+                }
+                else
+                {
+                    <partial name="_Field" model="Fields.Bind(Model.Coupon.CodeField!, errors)" />
+                    <button type="submit" class="button button--secondary" formaction="@(action)ApplyCoupon" formnovalidate>@CouponFields.ApplyLabel</button>
+                }
+            }
+        </div>
+        <p class="checkout__total">Ödenecek toplam: <strong>@DisplayFormat.Amount(summary.Total)</strong></p>
+        <button type="submit" class="button button--secondary" formaction="@(action)Recalculate" formnovalidate>@CheckoutTexts.RecalculateLabel</button>
+    </aside>
+
+    <section class="checkout__section checkout__confirm" aria-labelledby="checkout-confirm">
+        <h2 id="checkout-confirm">Onay</h2>
+        @foreach (string line in Model.ChangeLines)
+        {
+            <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, line)" />
+        }
+        @if (step.EarlierUnpaidOrderNumber is not null)
+        {
+            <partial name="_Message" model='Messages.InPlace(MessageMeaning.Info, $"Bu sepete bağlı ödenmemiş {step.EarlierUnpaidOrderNumber} numaralı siparişiniz bu onayla iptal edilecek.")' />
+        }
+        <div class="checkout__legal">
+            <pre class="checkout__summary-text">@confirmation.SummaryText</pre>
+            <details><summary>Ön Bilgilendirme Formu</summary><div>@confirmation.PreInformationFormText</div></details>
+            <details><summary>Mesafeli Satış Sözleşmesi</summary><div>@confirmation.DistanceSalesContractText</div></details>
+            <p>@confirmation.HowTheOrderIsPlacedText</p>
+            <p><a href="@FramePaths.PrivacyNotice">@FramePaths.PrivacyNoticeTitle</a></p>
+            <p>@confirmation.WithdrawalSummaryText</p>
+        </div>
+        <partial name="_ConsentBoxes" model="boxes" />
+        @if (confirmation.ContactEmailLine is not null)
+        {
+            <p>@confirmation.ContactEmailLine</p>
+        }
+        <p class="checkout__total">Ödenecek toplam: <strong>@DisplayFormat.Amount(summary.Total)</strong></p>
+        @if (Model.ActionMessage is not null)
+        {
+            <partial name="_Message" model="Model.ActionMessage" />
+        }
+        @foreach (string general in errors.FormMessages)
+        {
+            <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, general)" />
+        }
+        @if (Model.HasNoUsableMethod)
+        {
+            <button type="submit" class="button button--primary" formaction="@(action)Leave" formnovalidate name="@nameof(PlaceOrderInput.LeaveTarget)" value="@CheckoutModel.CartTarget">@CheckoutTexts.BackToCart</button>
+        }
+        else
+        {
+            <p>@confirmation.PaymentObligationNotice</p>
+            <button type="submit" class="button button--primary" data-js="submit-once" data-busy-label="@LoadingViews.BusyLabelOf(confirmation.ConfirmButtonText)">@confirmation.ConfirmButtonText</button>
+        }
+    </section>
+    <p><button type="submit" class="link-button" formaction="@(action)Leave" formnovalidate name="@nameof(PlaceOrderInput.LeaveTarget)" value="@CheckoutModel.CartTarget">@CheckoutTexts.BackToCart</button></p>
+</form>

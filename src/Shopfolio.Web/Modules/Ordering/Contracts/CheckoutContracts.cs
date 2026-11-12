@@ -129,4 +129,10 @@ public interface ICheckout
     /// written to the book in the same transaction (K-680); a guest order whose e-mail is a verified account's is bound to it (02 3.13.3).
     /// </summary>
     Task<PlaceOrderResult> PlaceOrderAsync(PlaceOrderRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// The return to the cart while no payment method can be used (07 UC-26 <c>cart</c>; K-1183): writes the cart's once-told mark, which carries no personal data; the cart tells it once. Joins
+    /// the caller's transaction.
+    /// </summary>
+    Task MarkPaymentUnavailableAsync(CartOwner owner, CancellationToken ct);
 }

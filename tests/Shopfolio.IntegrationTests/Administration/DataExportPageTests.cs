@@ -89,6 +89,51 @@ public sealed partial class DataExportTests
         Assert.Equal(2, await ScalarAsync<long>("SELECT count(*) FROM audit_logs WHERE operation = 'ExportOrders'"));
     }
 
+    [Fact]
+    public async Task TheOrderFile_OnARealServer_IsTheServicesFileByteForByte_WithItsLength_AndItsFileIsDeleted_D850()
+    {
+        await SeedAsync(CreatedOn(-3), PaymentMethod.Card, "Paid", (_shirt, 2, 0m), (_book, 1, 0m));
+        Exported expected = await ExportOrdersAsync(Today.AddDays(-5), Today);
+        WebApplicationFactory<Program> factory = OpenPages(services => services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(options =>
+        {
+            // The real server sees the test client as a peer on the loopback; the client plays the reverse proxy that says the request came over HTTPS.
+            options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse("127.0.0.0/8"));
+            options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse("::1/128"));
+        }));
+        byte[] body;
+        long? length;
+        bool? chunked;
+        try
+        {
+            factory.Start();
+            (string key, _) = await TestSessions.AdminAsync(_collection.Dsn);
+            using HttpClient probe = factory.CreateClient();
+            using HttpClient client = new(new ForgeryTokenHandler { InnerHandler = new ForwardedHttpsHandler { InnerHandler = new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false } } })
+            {
+                BaseAddress = probe.BaseAddress,
+            };
+            client.DefaultRequestHeaders.Add(HeaderNames.Cookie, $"{CookieNames.AdminSession}={key}");
+
+            using HttpResponseMessage response = await client.PostAsync(OrdersAddress, Range(Day(Today.AddDays(-5)), Day(Today)), Ct);
+            body = await response.Content.ReadAsByteArrayAsync(Ct);
+            length = response.Content.Headers.ContentLength;
+            chunked = response.Headers.TransferEncodingChunked;
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+        finally
+        {
+            // Stopping the server waits for the request's end, where the response's registered stream is closed (09 10.10 item 7).
+            await factory.DisposeAsync();
+        }
+
+        // Kestrel sends the declared length, not a chunked body, and the bytes are the module's file as it made it (D-850; 09 10.10 item 2).
+        Assert.Equal(expected.Bytes, body);
+        Assert.Equal(body.Length, length);
+        Assert.NotEqual(true, chunked);
+        Assert.Empty(Directory.EnumerateFiles(_directory));
+        Assert.Equal(2, await TrailCountAsync()); // the module's own export above and the download, a row each
+    }
+
     [Theory]
     [InlineData("", "today")]
     [InlineData("start", "")]
@@ -238,6 +283,16 @@ public sealed partial class DataExportTests
         HttpClient client = ForgeryTokenHandler.CreateClient(factory);
         client.DefaultRequestHeaders.Add(HeaderNames.Cookie, $"{CookieNames.AdminSession}={key}");
         return client;
+    }
+
+    /// <summary>Says to the real server that the request came over HTTPS through the trusted proxy (the loopback), as the site's cookies and its forgery token need.</summary>
+    private sealed class ForwardedHttpsHandler : DelegatingHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            request.Headers.TryAddWithoutValidation("X-Forwarded-Proto", "https");
+            return base.SendAsync(request, cancellationToken);
+        }
     }
 
     private sealed class FailingExport : IDataExport

@@ -1,0 +1,37 @@
+@page "/panel/urunler"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Panel
+@model ProductsModel
+@*
+    E-32, the product list (T525; 04 9.4; 07 UC-87): the title and "Yeni ürün", the name search and the publish status filter in one GET form (a changed search or filter returns to the first page: the
+    form carries no page), the table and the page navigation. The row has no operation (04 9.4.4). No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = ProductsModel.Title;
+}
+<div class="product-list__heading">
+    <h1>@ProductsModel.Title</h1>
+    <a class="button button--primary" href="@Model.NewProductPath">@ProductsModel.NewProductLabel</a>
+</div>
+<form class="list-search product-search" method="get" action="@Model.ListRoot" role="search">
+    <label class="list-search__label" for="product-search-field">@ProductsModel.SearchLabel</label>
+    <input class="list-search__field" id="product-search-field" type="search" name="search" value="@Model.SearchValue" />
+    <label class="list-search__label" for="product-status-field">@ProductsModel.StatusLabel</label>
+    <select class="list-search__field" id="product-status-field" name="publishStatus">
+        @foreach (ProductStatusOption option in Model.StatusOptions)
+        {
+            <option value="@option.Value" selected="@option.IsSelected">@option.Label</option>
+        }
+    </select>
+    <button class="button button--secondary list-search__submit" type="submit">Ara</button>
+</form>
+@if (Model.Table is not null)
+{
+    <partial name="_PanelTable" model="Model.Table" />
+    <partial name="_Pager" model="Model.Pager" />
+}
+else if (Model.Empty is not null)
+{
+    <partial name="_EmptyRow" model="Model.Empty" />
+}

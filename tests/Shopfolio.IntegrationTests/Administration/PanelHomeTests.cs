@@ -617,7 +617,7 @@ public sealed class PanelHomeTests : IAsyncLifetime
             services.GetRequiredService<IPaymentModule>(),
             new ContactCount(new ContactRequests(db, new UnusedNotifications(), time)),
             new PanelWarningReader(db, time),
-            services.GetRequiredService<ISettingsModule>());
+            ActivatorUtilities.CreateInstance<SettingsModule>(services)); // the real gate (setup checklist, KK8/KK9), not OpenSalesGate's (T509)
         return await home.GetAsync(Ct);
     }
 

@@ -21,7 +21,7 @@
 
 - `src/Shopfolio.Web/Pages/Storefront/Checkout.cshtml(.cs)`, `CheckoutForms.cs`, `PlaceOrderInput.cs`
 - `src/Shopfolio.Web/Modules/Ordering/` (`Checkout.cs`, `Contracts/CheckoutContracts.cs`, `Contracts/PlaceOrderOutcome.cs`, `Contracts/SummaryChangeKind.cs`, `Contracts/SummaryChange.cs`, `OrderConfirmation.cs`, `OrderIdentifiers.cs`, `Carts.cs`, `ConfirmationStepRules.cs`, `OrderingModule.cs`; `SummaryComparison.cs` kaldırıldı), `Modules/Membership/` (`IMembershipModule`, `MembershipModule`)
-- Testler: `tests/Shopfolio.IntegrationTests/Web/CheckoutPageTests.cs` + `.Helpers.cs`, `Web/StorefrontFrameTests.cs`, `Model/MembershipTests.cs`, `Ordering/MainFlowTests.cs`, `Ordering/OrderConfirmationTests.cs`, `OutcomeUncertainConsistencyTests.cs`; `tests/Shopfolio.UnitTests/Pages/CheckoutFormsTests.cs`, `Ordering/ConfirmationStepTests.cs`, `Support/ApplicationEnums.cs`
+- Testler: `tests/Shopfolio.IntegrationTests/Web/CheckoutPageTests.cs` + `.Helpers.cs`, `Web/StorefrontFrameTests.cs`, `Model/MembershipTests.cs`, `Ordering/MainFlowTests.cs`, `Ordering/OrderConfirmationTests.cs`, `Ordering/OpenSalesGate.cs`, `Ordering/OrderingTestServices.cs`, `Administration/PanelHomeTests.cs`, `OutcomeUncertainConsistencyTests.cs`; `tests/Shopfolio.UnitTests/Pages/CheckoutFormsTests.cs`, `Ordering/ConfirmationStepTests.cs`, `Support/ApplicationEnums.cs`
 - Kayıt: `Docs/DEFERRED_BACKLOG.md` (yerinde kapatma/ileri atma), `Docs/DEFERRED_BACKLOG.d/T508.md`, `T537.md`, `T544.md`, `T509.md` (D-1333, D-1334), `Docs/STATUS_CHANGELOG.d/T509.md`, `Docs/IMPLEMENTATION_STATUS.md` T509 satırı
 
 ## Kabul Kriterleri Kontrolü
@@ -67,7 +67,8 @@
 | Sık FAIL 4: kural değişince aynı sayıyı anan öteki yerler | ✓ | UC-27 işareti tek listede güncellendi; tekil dizin listesi tek evde |
 | Sık FAIL 5: belge kuralını değiştiren 09 metni karar kaydısız | ✓ | `09` değişmedi |
 | Hedefi T509 olan backlog kalemleri | ✓ | Kapandı: D-385, D-563, D-626, D-729, D-743, D-785, D-805, D-807; T509 payı kapandı: D-254, D-437, D-801, D-1077, D-1225 (D-1080: `VAL-E061` doğrulamanın); ileri atıldı (gerekçeli): D-435, D-650, D-769, D-853, D-1189, D-1190, D-1245, D-1246 → F5 gate; D-1127 → T510 |
-| Modül kurucusuna yeni bağımlılık, elle kuran test düzenekleri | ✓ | `Checkout` kurucusuna `Carts`; Integration TAM ile denetlenir (Test Sonuçları) |
+| Modül kurucusuna yeni bağımlılık, elle kuran test düzenekleri | ✓ | `Checkout` kurucusuna `Carts`; `OrderingTestServices` kullanan bütün sınıflar koşuldu (Test Sonuçları); Integration TAM doğrulayıcıda |
+| Sık FAIL (modül/akış değişince elle kuran test düzenekleri) | ✓ | Satış kapısı onaya girince `OrderingTestServices`/`MainFlowTests` düzeneği güncellendi (`OpenSalesGate`); gerçek kapıyı okuyan testler gerçek `SettingsModule`'ü kurar (`OrderConfirmationTests` iki satır, `PanelHomeTests` kurulum listesi KK8/KK9) |
 | `09 §25` doküman uyumu: yeni adlar `07`/`06`'dan; diff yalnız görev; yeni ayar/sabit yok | ✓ | Model alanları `07 §5.2` (sapma ⚠ (a), D-1333); `appsettings`/`.env.example` değişmedi; diff `Pages/Storefront`, `Modules/Ordering`, `Modules/Membership` ve testlerle sınırlı |
 | `09 §25` mimari: modül sınırı, `SaveChanges` yok, tek işlev, `!`, `TimeProvider` | ✓ | Sayfa yalnız `Contracts`'a başvurur; modül diff'inde `SaveChanges`/işlem açma yok (işlem sayfada `RunAsync`); `OrderConfirmation` zamanı `TimeProvider`'dan; gerekçesiz `!` taraması yeşil (Unit TAM) |
 | `09 §25` hata katmanı ve ret kaydı | ✓ | Adlı 422 retleri `RejectionLog.Rejected(code)` (`RefuseAsync`, `ApplyCoupon`); belirsiz sonuç `[OutcomeUncertain("UC-27")]`; geniş `catch` yok |
@@ -93,9 +94,10 @@
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
 | Integration (T509 sınıfları) | ✓ | `--filter-class "Shopfolio.IntegrationTests.Web.CheckoutPageTests"`, `"*OrderAccessTests"`, `"*OutcomeUncertainConsistencyTests"`, `"*MembershipTests"` | 17/17; üçü birlikte 35/35; Membership 137/137; tarama düzeltmelerinden ve `main` birleştirmesinden sonra `CheckoutPageTests` yeniden 17/17 |
-| Unit TAM | ✓ | `dotnet test --project tests/Shopfolio.UnitTests` (`main` birleştirmesinden sonra) | 7412/7412 (önceki 7414: iki enum saklanmayan listeye girince kilit veri satırları düştü); `CheckoutFormsTests` dahil |
-| Integration TAM | ⏳ | ad alanı parçaları | *(TAM koşu sonrası yazılır)* |
-| `dotnet format` | ⏳ | `dotnet format <proje> --no-restore --verify-no-changes` (Web, Unit, Integration) | Üçü de temiz (çıkış 0) |
+| Unit TAM | ✓ | `dotnet test --project tests/Shopfolio.UnitTests` (`main` `a56a1735` birleştirmesinden sonra) | 7435/7435; `CheckoutFormsTests` dahil |
+| Integration (değişen/ilgili parçalar) | ✓ | `--filter-class` parçaları (`main` `a56a1735` birleştirmesinden sonra) | Önceki turlarda ad alanı parçaları 350 + 209; birleştirmeden sonra `CheckoutPageTests` 17/17, `StorefrontFrameTests` yeşil, `OrderConfirmationTests` + `MainFlowTests` 29/29; `Ordering` ad alanının öteki 28 sınıfı 264/264 + 367/367; `OrderingTestServices` kullanan öteki sınıflar (`DataExportTests`, `PanelHomeTests`, `SalesSummaryTests`, `CardRefundJobTests`, `RequestsPageTests`) ve `main`'in yeni sayfa testleri (`OrderOperationScreenTests`, `PanelHomeAndVerificationPagesTests`, `SessionAccessTests`) 171/171 (`PanelHomeTests` düzeltmesinden sonra 25/25) |
+| Integration TAM | ⏳ | — | Yönetici kararı (makine yükü, "Yük altında Integration TAM"): yapımda koşulmadı; **TAM doğrulayıcıda koşulacak** |
+| `dotnet format` | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` (Web, Unit, Integration; son turda değişen 5 test dosyası `--include` ile) | Temiz (çıkış 0) |
 
 ## Doğrulama
 

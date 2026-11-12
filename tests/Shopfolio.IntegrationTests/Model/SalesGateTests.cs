@@ -123,7 +123,7 @@ public sealed class SalesGateTests : IAsyncLifetime
         await ArrangeAsync(SalesGateCondition.CompanyIdentity);
 
         SalesGate waiting = await ReadGateAsync(Bindings.AllOpen);
-        await RunAsync(m => m.SaveCompanyIdentityAsync(CompleteInput(CompanyType.Tradesman), 1, Ct));
+        await RunAsync(m => m.SaveCompanyIdentityAsync(CompleteInput(CompanyType.Tradesman), 1, Ct), admin: _admin);
         SalesGate filled = await ReadGateAsync(Bindings.AllOpen);
 
         Assert.Equal(["CompanyType", "ProvinceId", "District", "AddressLine", "Phone", "Email", "KepAddress", "ChamberName", "ProfessionalConductRules"], waiting.MissingIdentityFields);
@@ -370,7 +370,7 @@ public sealed class SalesGateTests : IAsyncLifetime
 
         // The switch is turned on; the identity changes type and loses its required fields; the return address is emptied; the transfer is closed and its IBAN replaced.
         await RunAsync(m => m.CloseSalesTemporarilyAsync(false, Ct), Bindings.Transfer, _admin);
-        await RunAsync(m => m.SaveCompanyIdentityAsync(CompleteInput(CompanyType.LegalEntity) with { MersisNumber = null, TaxIdNumber = "1234567890" }, 2, Ct));
+        await RunAsync(m => m.SaveCompanyIdentityAsync(CompleteInput(CompanyType.LegalEntity) with { MersisNumber = null, TaxIdNumber = "1234567890" }, 2, Ct), admin: _admin);
         await ExecuteAsync("UPDATE company_settings SET return_recipient_name = NULL, return_province_id = NULL, return_district = NULL, return_address_line = NULL");
         await ExecuteAsync("UPDATE company_settings SET is_bank_transfer_enabled = false, bank_transfer_iban = 'TR000000000000000000000001'");
         SalesGate gate = await ReadGateAsync(Bindings.Transfer);
@@ -469,7 +469,7 @@ public sealed class SalesGateTests : IAsyncLifetime
     {
         if (broken != SalesGateCondition.CompanyIdentity)
         {
-            await RunAsync(m => m.SaveCompanyIdentityAsync(CompleteInput(CompanyType.Tradesman), 1, Ct));
+            await RunAsync(m => m.SaveCompanyIdentityAsync(CompleteInput(CompanyType.Tradesman), 1, Ct), admin: _admin);
         }
 
         if (broken != SalesGateCondition.ReturnAddress)
@@ -552,10 +552,11 @@ public sealed class SalesGateTests : IAsyncLifetime
             "SELECT coalesce(string_agg(to_jsonb(l)::text, '|' ORDER BY l.legal_text_type, l.version_number), '') FROM legal_text_versions l "
             + (onlyIds is null ? string.Empty : $"WHERE l.id = ANY(string_to_array('{onlyIds}', ',')::uuid[])"));
 
+    /// <summary>The switch rows only: the identity saves that set a test up write their own UpdateCompany rows.</summary>
     private async Task<List<AuditLog>> ReadTrailAsync()
     {
         await using AppDbContext context = NewContext();
-        return await context.AuditLogs.AsNoTracking().OrderBy(l => l.CreatedAt).ThenBy(l => l.Id).ToListAsync(Ct);
+        return await context.AuditLogs.AsNoTracking().Where(l => l.Operation == "UpdateSettings").OrderBy(l => l.CreatedAt).ThenBy(l => l.Id).ToListAsync(Ct);
     }
 
     private async Task PublishPrivacyNoticeAsync(DateTimeOffset at)

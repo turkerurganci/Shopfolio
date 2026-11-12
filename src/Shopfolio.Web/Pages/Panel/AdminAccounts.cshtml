@@ -1,0 +1,93 @@
+@page "/panel/yonetici-hesaplari"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model AdminAccountsModel
+@*
+    E-49, the administrator accounts screen (T522; 04 9.20; 07 UC-103): the administrators in alphabetical order (the own row says "siz" and has no removal; with one administrator no row has one), the valid
+    invitations newest first (hidden when there is none), and the invitation form. The removal's confirmation is the page's own state (07 2.2.4). No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Yönetici hesapları";
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, [AdminAccountsModel.EmailFieldName]);
+    FieldView emailField = Fields.Bind(Fields.Email(AdminAccountsModel.EmailFieldName, "E-posta", FieldRequirement.Required, Model.SentEmail, "off"), summary);
+}
+<h1>Yönetici hesapları</h1>
+@if (Model.Notice is not null)
+{
+    <partial name="_Message" model="Model.Notice" />
+}
+@if (Model.RemovalRefusal is not null)
+{
+    <partial name="_Message" model="Model.RemovalRefusal" />
+}
+@if (Model.Confirmation is not null)
+{
+    <partial name="_Confirm" model="Model.Confirmation" />
+}
+<section class="admin-accounts" aria-labelledby="admin-list-heading">
+    <h2 id="admin-list-heading">Yöneticiler</h2>
+    <ul class="admin-accounts__list" id="admin-list">
+        @foreach (AdminAccountRowView admin in Model.Admins)
+        {
+            <li class="admin-accounts__row">
+                <span class="admin-accounts__name">@admin.Name@if (admin.IsSelf)
+                {
+                    <text> (@AdminAccountsModel.YouText)</text>
+                }</span>
+                <span class="admin-accounts__email">@admin.Email</span>
+                @if (admin.CanRemove)
+                {
+                    <form method="post" asp-antiforgery="true" action="@(AdminAccountsModel.ListRoot)?handler=RemoveAdmin" class="admin-accounts__action">
+                        <input type="hidden" name="Input.AdminId" value="@admin.Id.ToString("D")" />
+                        <button type="submit" class="button button--secondary">@AdminAccountsModel.RemoveLabel</button>
+                    </form>
+                }
+            </li>
+        }
+    </ul>
+</section>
+@if (Model.Invitations.Count > 0)
+{
+    <section class="admin-accounts" aria-labelledby="admin-invitation-heading">
+        <h2 id="admin-invitation-heading">Davetler</h2>
+        <ul class="admin-accounts__list" id="admin-invitation-list">
+            @foreach (AdminInvitationRowView invitation in Model.Invitations)
+            {
+                <li class="admin-accounts__row">
+                    <span class="admin-accounts__email">@invitation.Email</span>
+                    <span class="admin-accounts__sender">@invitation.SenderName</span>
+                    <span class="admin-accounts__sent">@invitation.SentOn</span>
+                    <span class="admin-accounts__ends">Son gün: @invitation.LinkEndsOn</span>
+                    @if (invitation.EmailNotDelivered)
+                    {
+                        <span class="panel-marks__item">@RequestTexts.EmailNotDeliveredMark</span>
+                    }
+                    <form method="post" asp-antiforgery="true" action="@(AdminAccountsModel.ListRoot)?handler=RevokeAdminInvitation" class="admin-accounts__action">
+                        <input type="hidden" name="Input.AdminInvitationId" value="@invitation.Id.ToString("D")" />
+                        <button type="submit" class="button button--secondary">@AdminAccountsModel.RevokeLabel</button>
+                    </form>
+                    <form method="post" asp-antiforgery="true" action="@(AdminAccountsModel.ListRoot)?handler=SendAdminInvitation" class="admin-accounts__action">
+                        <input type="hidden" name="@AdminAccountsModel.EmailFieldName" value="@invitation.Email" />
+                        <button type="submit" class="button button--secondary" title="@AdminAccountsModel.ReplacesInvitationText">@AdminAccountsModel.ResendLabel</button>
+                    </form>
+                </li>
+            }
+        </ul>
+    </section>
+}
+<section class="admin-accounts" aria-labelledby="admin-invite-heading">
+    <h2 id="admin-invite-heading">@AdminAccountsModel.InviteHeading</h2>
+    @if (Model.SentEmailHasValidInvitation)
+    {
+        <partial name="_Message" model='Messages.InPlace(MessageMeaning.Warning, AdminAccountsModel.ReplacesInvitationText, "admin-invitation-replaces")' />
+    }
+    <partial name="_FormErrorSummary" model="summary" />
+    <form method="post" asp-antiforgery="true" action="@(AdminAccountsModel.ListRoot)?handler=SendAdminInvitation" class="form" data-js="submit-once">
+        <div class="form-fields">
+            <partial name="_Field" model="emailField" />
+        </div>
+        <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(AdminAccountsModel.InviteButtonLabel)">@AdminAccountsModel.InviteButtonLabel</button>
+    </form>
+</section>

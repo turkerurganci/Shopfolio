@@ -676,6 +676,8 @@ public sealed class AddressTests : IAsyncLifetime
 
         public Task<HomepageSection> GetHomepageAsync(CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<SettingsSaveResult> SaveHomepageAsync(HomepageInput input, int formVersion, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<SalesGate> GetSalesGateAsync(CancellationToken ct) => throw new NotSupportedException();
 
         public Task<DateTimeOffset?> FindSalesFirstOpenedAtAsync(CancellationToken ct) => throw new NotSupportedException();

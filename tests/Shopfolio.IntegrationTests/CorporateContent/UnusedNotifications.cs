@@ -23,6 +23,8 @@ internal sealed class UnusedNotifications : INotificationsModule
     public Task<bool> ClaimHasUndeliveredMarkAsync(DispatchRelatedRecordType recordType, Guid recordId, CancellationToken ct) => throw new NotSupportedException();
     public Task<IReadOnlySet<Guid>> FindClaimsWithUndeliveredMarkAsync(IReadOnlyCollection<Guid> claimIds, CancellationToken ct) => throw new NotSupportedException();
 
+    public Task<IReadOnlySet<Guid>> FindAdminInvitationsWithUndeliveredMarkAsync(IReadOnlyCollection<Guid> invitationIds, CancellationToken ct) => throw new NotSupportedException();
+
     public Task<IReadOnlyList<UndeliveredNotice>> FindUndeliveredNoticesAsync(Guid orderId, CancellationToken ct) => throw new NotSupportedException();
 
     public Task<IReadOnlyList<Guid>> FindMarkedOrderIdsAsync(Guid? afterOrderId, int maxOrders, CancellationToken ct) => throw new NotSupportedException();

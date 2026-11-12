@@ -14,17 +14,6 @@ namespace Shopfolio.Modules.Settings;
 /// </summary>
 internal static class CompanyIdentityRules
 {
-    /// <summary>The fields only the tradesman must give (02 3.1.3): the owner's name and the tax number.</summary>
-    private static readonly string[] TradesmanFields = [nameof(CompanyIdentityInput.LegalName), nameof(CompanyIdentityInput.TaxIdNumber)];
-
-    /// <summary>The fields both merchant types must give (02 3.1.3): the trade title, the MERSIS and the trade registry numbers.</summary>
-    private static readonly string[] MerchantFields =
-    [
-        nameof(CompanyIdentityInput.LegalName),
-        nameof(CompanyIdentityInput.MersisNumber),
-        nameof(CompanyIdentityInput.TradeRegistryNumber),
-    ];
-
     /// <summary>The fields all three types must give (02 3.1.3; K-1568): the address, the contact details, the chamber and the conduct rules.</summary>
     private static readonly string[] CommonFields =
     [
@@ -38,16 +27,8 @@ internal static class CompanyIdentityRules
         nameof(CompanyIdentityInput.ProfessionalConductRules),
     ];
 
-    /// <summary>The fields a type adds to the common set; empty for a type that is not chosen yet.</summary>
-    public static IReadOnlyList<string> TypeFields(CompanyType? type)
-    {
-        return type switch
-        {
-            CompanyType.Tradesman => TradesmanFields,
-            CompanyType.NaturalPersonMerchant or CompanyType.LegalEntity => MerchantFields,
-            _ => [],
-        };
-    }
+    /// <summary>The fields a type adds to the common set; empty for a type that is not chosen yet. The sets are written once, in <see cref="CompanyIdentityFieldSets"/>.</summary>
+    public static IReadOnlyList<string> TypeFields(CompanyType? type) => CompanyIdentityFieldSets.TypeFields(type);
 
     /// <summary>Every field the type requires, in the order of the form: the type's own, then the common set. The type itself is not in the list.</summary>
     public static IReadOnlyList<string> RequiredFields(CompanyType? type) => [.. TypeFields(type), .. CommonFields];

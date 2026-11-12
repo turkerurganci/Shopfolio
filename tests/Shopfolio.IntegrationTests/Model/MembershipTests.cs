@@ -802,5 +802,7 @@ public sealed partial class MembershipTests : IAsyncLifetime
         public Task<IReadOnlyList<ProvinceInfo>> GetProvincesAsync(CancellationToken ct) => Task.FromResult(gate.Provinces);
 
         public Task<HomepageSection> GetHomepageAsync(CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<SettingsSaveResult> SaveHomepageAsync(HomepageInput input, int formVersion, CancellationToken ct) => throw new NotSupportedException();
     }
 }

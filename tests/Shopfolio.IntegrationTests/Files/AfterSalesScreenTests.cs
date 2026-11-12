@@ -32,7 +32,7 @@ public sealed class AfterSalesScreenTestsDefinition : ICollectionFixture<Collect
 /// one Açık claim with its return address, and the reopening inside and outside Z-18 with the customer's history line. The module's rules themselves are the Ordering tests'.
 /// </summary>
 [Collection(AfterSalesScreenTestsDefinition.Name)]
-public sealed class AfterSalesScreenTests : IAsyncLifetime
+public sealed partial class AfterSalesScreenTests : IAsyncLifetime
 {
     private const string ValidIban = "TR330006100519786457841326";
 

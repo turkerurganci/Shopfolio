@@ -42,6 +42,17 @@ public sealed class CancellationPreviewTests
         Assert.False(ShippingFeeRefunds.OnCancellationPreview(new Dictionary<Guid, int>(), new Dictionary<Guid, int> { [Digital] = 1 }));
     }
 
+    [Fact]
+    public void TheWithdrawalsLastStep_PaysTheFeeBackOnlyWhenTheChoiceCoversTheUndeclaredUnits_T513B1()
+    {
+        // E-18 (04 5.18.6; K-789): the units still to withdraw are the shipped ones less the earlier declarations', so the rest alone meets the trigger.
+        Dictionary<Guid, int> undeclared = new() { [First] = 1, [Second] = 1 };
+
+        Assert.True(ShippingFeeRefunds.OnWithdrawalPreview(undeclared, new Dictionary<Guid, int> { [First] = 1, [Second] = 1 }));
+        Assert.False(ShippingFeeRefunds.OnWithdrawalPreview(undeclared, new Dictionary<Guid, int> { [First] = 1 }));
+        Assert.False(ShippingFeeRefunds.OnWithdrawalPreview(new Dictionary<Guid, int>(), new Dictionary<Guid, int> { [First] = 1 }));
+    }
+
     [Theory]
     [InlineData(RefundIbanRequestReason.CardRefundFailed, true, true)]
     [InlineData(RefundIbanRequestReason.CardRefundFailed, false, true)]

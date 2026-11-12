@@ -99,7 +99,7 @@ public sealed class OrderScreenTextsTests
         string[] fixedTexts =
         [
             OrderScreenTexts.OperationClosedText, OrderScreenTexts.QuantityExceedsOpenText, OrderScreenTexts.PackagingConditionText, OrderScreenTexts.CarrierReturnsText,
-            OrderScreenTexts.SendingWayText, OrderScreenTexts.PartlyPerformedServiceText, OrderScreenTexts.ShippingFeeText, OrderScreenTexts.ReopenIsSameClaimText,
+            OrderScreenTexts.SendingWayText, OrderScreenTexts.PartlyPerformedServiceText, OrderScreenTexts.ShippingFeeText, OrderScreenTexts.ShippingFeeRefundedText, OrderScreenTexts.ReopenIsSameClaimText,
         ];
         Assert.All(fixedTexts, t => Assert.DoesNotMatch(@"\d", t));
     }

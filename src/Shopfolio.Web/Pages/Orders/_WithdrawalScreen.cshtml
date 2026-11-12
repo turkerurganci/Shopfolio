@@ -52,11 +52,11 @@
                             FieldView quantity = Fields.Bind(Fields.Number(quantityName, "Adet", FieldRequirement.Required, quantityValue), summary);
                             <partial name="_Field" model="quantity" />
                         }
-                        <span class="operation-screen__limit">@OrderScreenTexts.OpenUnits(row.Quantity, row.OpenQuantity)</span>
                         else
                         {
                             <input type="hidden" name="@quantityName" value="@row.OpenQuantity" />
                         }
+                        <span class="operation-screen__limit">@OrderScreenTexts.OpenUnits(row.Quantity, row.OpenQuantity)</span>
                         @if (row.LastDay is DateOnly lastDay)
                         {
                             <span class="operation-screen__last-day">@OrderScreenTexts.WindowLastDay(lastDay)</span>

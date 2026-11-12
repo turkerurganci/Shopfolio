@@ -59,6 +59,9 @@ internal sealed class OrderingModule : IOrderingModule
     public Task<SalesPeriodFacts> ReadSalesPeriodAsync(DateTimeOffset periodStart, DateTimeOffset periodEnd, DateTimeOffset now, CancellationToken ct) =>
         new SalesPeriodReader(_db).ReadAsync(periodStart, periodEnd, now, ct);
 
+    public Task<CustomerOrderPage> ListCustomerOrdersAsync(Guid customerId, int page, CancellationToken ct) =>
+        new CustomerOrderReader(_db).ListAsync(customerId, page, ct);
+
     public Task<IReadOnlyList<OrderOfItem>> FindPaidOrdersOfItemsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct) =>
         new SalesPeriodReader(_db).FindPaidOrdersOfItemsAsync(orderItemIds, ct);
 

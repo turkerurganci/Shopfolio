@@ -267,6 +267,12 @@ public interface IOrderingModule
     /// </summary>
     Task<SalesPeriodFacts> ReadSalesPeriodAsync(DateTimeOffset periodStart, DateTimeOffset periodEnd, DateTimeOffset now, CancellationToken ct);
 
+    /// <summary>
+    /// The orders bound to the member account <paramref name="customerId"/>, newest first, one page of <c>PageSizes.Panel</c> (T533; 07 UC-95; 04 2.13.3); a page past the last shows the last.
+    /// A plain read; it writes nothing.
+    /// </summary>
+    Task<CustomerOrderPage> ListCustomerOrdersAsync(Guid customerId, int page, CancellationToken ct);
+
     /// <summary>The orders of the given items whose payment was approved (T383; 02 10.6.3); the items of a Failed or pending order are left out. A plain read.</summary>
     Task<IReadOnlyList<OrderOfItem>> FindPaidOrdersOfItemsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
 

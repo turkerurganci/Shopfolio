@@ -1,0 +1,157 @@
+@page "/panel/uyeler"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Panel
+@model MembersModel
+@*
+    E-40, the member record screen (T533; 04 9.12; 07 UC-95, UC-157): the search field first and alone; for the e-mail searched, one of three results - no account, a registration whose e-mail was never verified,
+    a verified account - and for the account its login paths, address book, bound orders (newest first, 25 to a page) and, at the bottom, "Hesabı sil". The record is read only. No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Üyeler";
+    MemberRecordView? record = Model.Record;
+}
+<h1>Üyeler</h1>
+@if (Model.DeletedMessage is not null)
+{
+    <partial name="_Message" model="Model.DeletedMessage" />
+}
+<partial name="_ListSearch" model="Model.Search" />
+@if (Model.Confirmation is not null)
+{
+    <partial name="_Confirm" model="Model.Confirmation" />
+}
+@if (record is not null)
+{
+    @switch (record.State)
+    {
+        case MemberSearchState.NotFound:
+        {
+            MessageView notFound = Messages.InPlace(MessageMeaning.Info, MembersModel.NotFoundText, "member-not-found");
+            <partial name="_Message" model="notFound" />
+            break;
+        }
+
+        case MemberSearchState.Unverified:
+        {
+            <section class="member-record" aria-labelledby="member-unverified-heading">
+                <h2 class="member-record__heading" id="member-unverified-heading">Kayıt</h2>
+                <p class="member-record__line" id="member-unverified">@MembersModel.UnverifiedText</p>
+                <dl class="member-record__facts">
+                    <dt>E-posta</dt>
+                    <dd>@record.Email</dd>
+                    <dt>Kayıt günü</dt>
+                    <dd>@record.CreatedDate</dd>
+                </dl>
+            </section>
+            break;
+        }
+
+        case MemberSearchState.Account:
+        {
+            <div class="member-record">
+                <div class="member-record__top">
+                    <section class="member-record__section" aria-labelledby="member-account-heading">
+                        <h2 class="member-record__heading" id="member-account-heading">Hesap</h2>
+                        <dl class="member-record__facts">
+                            <dt>E-posta</dt>
+                            <dd>@record.Email</dd>
+                            <dt>Ad</dt>
+                            <dd>@record.Name</dd>
+                            <dt>Kayıt günü</dt>
+                            <dd>@record.CreatedDate</dd>
+                            <dt>Giriş yolları</dt>
+                            <dd>
+                                <ul class="member-record__paths">
+                                    <li>@record.EmailPathLine</li>
+                                    <li>@record.GoogleLine</li>
+                                </ul>
+                            </dd>
+                        </dl>
+                    </section>
+                    <section class="member-record__section" aria-labelledby="member-addresses-heading">
+                        <h2 class="member-record__heading" id="member-addresses-heading">Adres defteri</h2>
+                        @if (record.Addresses.Count == 0)
+                        {
+                            <p class="member-record__line" id="member-no-address">@MembersModel.NoAddressText</p>
+                        }
+                        else
+                        {
+                            <ul class="member-record__addresses">
+                                @foreach (MemberAddressView address in record.Addresses)
+                                {
+                                    <li class="member-record__address">
+                                        <strong>@address.Name</strong>
+                                        <span>@address.Recipient</span>
+                                        <span>@address.Province / @address.District</span>
+                                        <span>@address.AddressLine</span>
+                                        @if (address.Phone is not null)
+                                        {
+                                            <span>@address.Phone</span>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </section>
+                </div>
+                <section class="member-record__section member-record__orders" aria-labelledby="member-orders-heading">
+                    <h2 class="member-record__heading" id="member-orders-heading">Bağlı siparişler</h2>
+                    @if (record.Orders.Count == 0)
+                    {
+                        <p class="member-record__line" id="member-no-order">@MembersModel.NoOrderText</p>
+                    }
+                    else
+                    {
+                        <table class="panel-table" id="member-orders">
+                            <caption class="panel-table__caption">Bağlı siparişler</caption>
+                            <thead class="panel-table__head">
+                                <tr>
+                                    <th scope="col" class="panel-table__cell panel-table__cell--primary">Sipariş numarası</th>
+                                    <th scope="col" class="panel-table__cell panel-table__cell--secondary">Sipariş tarihi</th>
+                                    <th scope="col" class="panel-table__cell panel-table__cell--secondary">Toplam</th>
+                                    <th scope="col" class="panel-table__cell panel-table__cell--primary">Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (MemberOrderView order in record.Orders)
+                                {
+                                    <tr class="panel-table__row">
+                                        <td class="panel-table__cell panel-table__cell--primary" data-label="Sipariş numarası"><a href="@order.Path">@order.Number</a></td>
+                                        <td class="panel-table__cell panel-table__cell--secondary" data-label="Sipariş tarihi">@order.Date</td>
+                                        <td class="panel-table__cell panel-table__cell--secondary" data-label="Toplam">@order.Total</td>
+                                        <td class="panel-table__cell panel-table__cell--primary" data-label="Durum"><partial name="_OrderBadges" model="order.Badges" /></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <partial name="_Pager" model="record.OrderPager" />
+                    }
+                </section>
+                @if (record.Deletion is { } deletion)
+                {
+                    <section class="member-record__section member-record__deletion" aria-labelledby="member-deletion-heading">
+                        <h2 class="member-record__heading" id="member-deletion-heading">@MembersModel.DeleteButtonLabel</h2>
+                        <p class="member-record__line">@MembersModel.DeletionResultText</p>
+                        @if (deletion.BlockedText is not null)
+                        {
+                            MessageView blocked = Messages.InPlace(MessageMeaning.Warning, deletion.BlockedText, "member-deletion-blocked");
+                            <partial name="_Message" model="blocked" />
+                        }
+                        else
+                        {
+                            <form method="post" action="@(PanelFramePaths.Members)?handler=@(MembersModel.DeleteHandler)" asp-antiforgery="true">
+                                <input type="hidden" name="CustomerId" value="@deletion.CustomerId" />
+                                <input type="hidden" name="SearchEmail" value="@deletion.SearchEmail" />
+                                <button type="submit" class="button button--primary" id="member-delete-button">@MembersModel.DeleteButtonLabel</button>
+                            </form>
+                        }
+                    </section>
+                }
+            </div>
+            break;
+        }
+    }
+}

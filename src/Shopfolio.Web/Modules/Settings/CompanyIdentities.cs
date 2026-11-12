@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Forms;
+using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.Modules.Settings;
@@ -13,15 +14,20 @@ namespace Shopfolio.Modules.Settings;
 /// </summary>
 internal sealed class CompanyIdentities
 {
+    /// <summary>The identity as the trail names it (02 10.3.1 (1)).</summary>
+    internal const string IdentityDisplayName = "Firma kimliği";
+
     private readonly AppDbContext _db;
     private readonly CompanySettingsWriter _writer;
     private readonly CacheInvalidations _invalidations;
+    private readonly IAuditTrail _trail;
 
-    public CompanyIdentities(AppDbContext db, CompanySettingsWriter writer, CacheInvalidations invalidations)
+    public CompanyIdentities(AppDbContext db, CompanySettingsWriter writer, CacheInvalidations invalidations, IAuditTrail trail)
     {
         _db = db;
         _writer = writer;
         _invalidations = invalidations;
+        _trail = trail;
     }
 
     public async Task<CompanyIdentity> GetAsync(CancellationToken ct)
@@ -96,6 +102,8 @@ internal sealed class CompanyIdentities
             return SettingsSaveResult.Refused(rejections);
         }
 
+        Dictionary<string, string?> before = await ValuesOfAsync(company.CompanyType, company.LegalName, company.TaxIdNumber, company.MersisNumber, company.TradeRegistryNumber, company.ProvinceId, company.District, company.AddressLine, company.Phone, company.Email, company.KepAddress, company.ChamberName, company.BusinessName, company.ProfessionalConductRules, company.EtbisVerificationUrl, ct);
+        Dictionary<string, string?> after = await ValuesOfAsync(input.CompanyType, input.LegalName, input.TaxIdNumber, input.MersisNumber, input.TradeRegistryNumber, input.ProvinceId, input.District, input.AddressLine, input.Phone, input.Email, input.KepAddress, input.ChamberName, input.BusinessName, input.ProfessionalConductRules, input.EtbisVerificationUrl, ct);
         RecordSaveResult saved = await RecordSave.SaveAsync(_db, company, formVersion, c => Apply(c, input), ct);
         if (!saved.IsSaved)
         {
@@ -103,7 +111,55 @@ internal sealed class CompanyIdentities
         }
 
         _invalidations.Add(CacheArea.Settings);
+
+        // Every changed field goes to the trail with its old and new value, in the same transaction (02 10.3.1 (1); 07 UC-164); a save that changes nothing writes no row.
+        List<AuditValueChange> changes = [.. after.Where(pair => !string.Equals(before[pair.Key], pair.Value, StringComparison.Ordinal)).Select(pair => new AuditValueChange(pair.Key, before[pair.Key], pair.Value))];
+        if (changes.Count > 0)
+        {
+            await _trail.WriteAsync(new AuditEntry(AuditOperation.UpdateCompany, nameof(Company), company.Id, new AuditDetails(IdentityDisplayName, changes)), ct);
+        }
+
         return SettingsSaveResult.Saved;
+    }
+
+    /// <summary>The identity's values as the trail shows them, keyed by the members of the identity input; the province by its name.</summary>
+    private async Task<Dictionary<string, string?>> ValuesOfAsync(
+        CompanyType? type,
+        string? legalName,
+        string? taxIdNumber,
+        string? mersisNumber,
+        string? tradeRegistryNumber,
+        Guid? provinceId,
+        string? district,
+        string? addressLine,
+        string? phone,
+        string? email,
+        string? kepAddress,
+        string? chamberName,
+        string? businessName,
+        string? professionalConductRules,
+        string? etbisVerificationUrl,
+        CancellationToken ct)
+    {
+        string? province = provinceId is Guid id ? await _db.Provinces.AsNoTracking().Where(p => p.Id == id).Select(p => p.Name).FirstOrDefaultAsync(ct) : null;
+        return new Dictionary<string, string?>(StringComparer.Ordinal)
+        {
+            [nameof(CompanyIdentityInput.CompanyType)] = type?.ToString(),
+            [nameof(CompanyIdentityInput.LegalName)] = legalName,
+            [nameof(CompanyIdentityInput.TaxIdNumber)] = taxIdNumber,
+            [nameof(CompanyIdentityInput.MersisNumber)] = mersisNumber,
+            [nameof(CompanyIdentityInput.TradeRegistryNumber)] = tradeRegistryNumber,
+            [nameof(CompanyIdentityInput.ProvinceId)] = province,
+            [nameof(CompanyIdentityInput.District)] = district,
+            [nameof(CompanyIdentityInput.AddressLine)] = addressLine,
+            [nameof(CompanyIdentityInput.Phone)] = phone,
+            [nameof(CompanyIdentityInput.Email)] = email,
+            [nameof(CompanyIdentityInput.KepAddress)] = kepAddress,
+            [nameof(CompanyIdentityInput.ChamberName)] = chamberName,
+            [nameof(CompanyIdentityInput.BusinessName)] = businessName,
+            [nameof(CompanyIdentityInput.ProfessionalConductRules)] = professionalConductRules,
+            [nameof(CompanyIdentityInput.EtbisVerificationUrl)] = etbisVerificationUrl,
+        };
     }
 
     private static void Apply(Company company, CompanyIdentityInput input)

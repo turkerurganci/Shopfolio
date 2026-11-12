@@ -1,0 +1,97 @@
+@page "/panel/firma-kimligi-ve-satis"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Panel
+@model FirmIdentityModel
+@*
+    E-44, the firm identity and sales screen (T535; 04 9.16; 07 UC-99): the "Satış durumu" section first - open or closed, the gate's five lines by the checklist's names with the screen that meets
+    an unmet one, and the temporary closure switch in its own forms (the button names the next state; closing asks for the confirmation) - then the identity form with its notes. The confirmation
+    window is the server's answer to the first send of the closing (07 2.2.4). No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Firma kimliği ve satış";
+}
+<h1>Firma kimliği ve satış</h1>
+@if (Model.Notice is not null)
+{
+    <partial name="_Message" model="Model.Notice" />
+}
+@if (Model.Confirm is not null)
+{
+    <partial name="_Confirm" model="Model.Confirm" />
+}
+<section class="sales-status" id="satis-durumu" aria-labelledby="sales-status-heading">
+    <h2 id="sales-status-heading">Satış durumu</h2>
+    <p class="sales-status__state" id="sales-state">@(Model.IsOpen ? FirmIdentityModel.SalesOpenText : FirmIdentityModel.SalesClosedText)</p>
+    @if (Model.IsTemporarilyClosed)
+    {
+        <p class="sales-status__reason" id="sales-temporary-closure">@FirmIdentityModel.TemporarilyClosedText</p>
+    }
+    <ul class="sales-status__conditions" id="sales-conditions">
+        @foreach (GateConditionRowView row in Model.Conditions)
+        {
+            <li class="sales-status__condition">
+                <span class="sales-status__name">@row.Name</span>:
+                @if (row.IsMet)
+                {
+                    <span class="sales-status__met">@FirmIdentityModel.MetText</span>
+                }
+                else if (row.Href is not null)
+                {
+                    <a href="@row.Href">@row.MissingText</a>
+                }
+                else
+                {
+                    <span class="sales-status__unmet">@row.MissingText</span>
+                }
+            </li>
+        }
+    </ul>
+    @if (Model.ShowsDataEntriesClosed)
+    {
+        MessageView closed = Messages.InPlace(MessageMeaning.Warning, FirmIdentityModel.DataEntriesClosedText, "sales-data-entries-closed");
+        <partial name="_Message" model="closed" />
+    }
+    @if (Model.IsTemporarilyClosed)
+    {
+        <form method="post" asp-antiforgery="true" asp-page-handler="ResumeSales" class="form sales-status__switch" data-js="submit-once">
+            <input type="hidden" name="Input.Original" value="true">
+            <p class="field__hint">@FirmIdentityModel.ReopenNote</p>
+            <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(FirmIdentityModel.ReopenLabel)">@FirmIdentityModel.ReopenLabel</button>
+        </form>
+    }
+    else
+    {
+        <form method="post" asp-antiforgery="true" asp-page-handler="SuspendSales" class="form sales-status__switch" data-js="submit-once">
+            <input type="hidden" name="Input.Original" value="false">
+            <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(FirmIdentityModel.CloseLabel)">@FirmIdentityModel.CloseLabel</button>
+        </form>
+    }
+</section>
+<section class="form-section" id="@FirmIdentityModel.IdentitySectionId" aria-labelledby="identity-heading">
+    <h2 id="identity-heading">Firma kimliği</h2>
+    <p class="identity-note" id="identity-note">@FirmIdentityModel.IdentityNote</p>
+    <partial name="_FormErrorSummary" model="Model.Summary" />
+    <form method="post" asp-antiforgery="true" asp-page-handler="SaveCompany" class="form" data-js="submit-once">
+        @VersionFields.Version(Model.FormVersion, "Input")
+        <div class="form-fields">
+            @foreach (FieldView field in Model.IdentityFields)
+            {
+                <partial name="_Field" model="field" />
+                @if (field.Name == "Input.Email")
+                {
+                    <p class="field__hint" id="email-hint">@FirmIdentityModel.EmailHint</p>
+                    @if (Model.FirmNoticesWarning is not null)
+                    {
+                        MessageView warning = Messages.InPlace(MessageMeaning.Warning, Model.FirmNoticesWarning, "firm-notices-warning");
+                        <partial name="_Message" model="warning" />
+                    }
+                }
+            }
+        </div>
+        @ConflictControls.RecordSaveControl(Model.IsConflicted, PanelFramePaths.FirmIdentityAndSales)
+    </form>
+</section>

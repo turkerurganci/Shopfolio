@@ -168,4 +168,13 @@ public interface ISettingsModule
     /// shows at once. A plain read.
     /// </summary>
     Task<HomepageSection> GetHomepageAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The save of the home page and menu section (T535; 02 3.28.1, 3.28.4; 06 4.2; 07 UC-162), in the caller's open transaction, which the method joins and never opens: the settings row lock first
+    /// (09 10.3 item 2), then the checks, then one update conditional on the section's version (<paramref name="formVersion"/>). The layout is required; none of the six menu names can be empty (the
+    /// refusal reminds the default name, K-813); the WhatsApp number is optional and a telephone number of the accepted forms, stored as its ten digits. A version that is not the section's now
+    /// writes nothing and is a result (409). Every changed value, social link included (<see cref="HomepageInput.SocialLinkChanges"/>, written by the content module in the same transaction), goes to
+    /// the trail with its old and new value. A save that changes nothing writes nothing: no version step, no trail row. Needs the signed-in administrator of the request, as the trail does.
+    /// </summary>
+    Task<SettingsSaveResult> SaveHomepageAsync(HomepageInput input, int formVersion, CancellationToken ct);
 }

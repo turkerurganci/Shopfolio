@@ -67,6 +67,22 @@ internal static class FormResults
     public static IActionResult SeeOther(string localPath, NoticeCode notice) => SeeOther(NoticeParameter.Address(localPath, notice));
 
     /// <summary>
+    /// 303 to Google's authorization address (07 UC-50): the one redirect that leaves the site. The target is built by <see cref="Integrations.GoogleAuthorizationRequest"/> from fixed parts and
+    /// never from the request; it is still checked here to be the fixed HTTPS address and no other (05 6.5.6), so this cannot become an open redirect.
+    /// </summary>
+    public static IActionResult SeeOtherToGoogle(Uri authorization)
+    {
+        ArgumentNullException.ThrowIfNull(authorization);
+        if (!authorization.IsAbsoluteUri
+            || !authorization.AbsoluteUri.StartsWith(Integrations.GoogleEndpoints.Authorization + "?", StringComparison.Ordinal))
+        {
+            throw new ArgumentException("The target of the sign-in with Google is Google's authorization address (05 6.5.6).", nameof(authorization));
+        }
+
+        return new SeeOtherResult(authorization.AbsoluteUri);
+    }
+
+    /// <summary>
     /// The same 303 written straight on a response, for the catching layer's middleware that has no action to return (09 8.1 item 2b). The path goes
     /// through the same check as <see cref="SeeOther"/>: the redirect is written in this file and in the access denial only (05 6.5.6).
     /// </summary>

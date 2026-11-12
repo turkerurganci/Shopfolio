@@ -821,6 +821,10 @@ public sealed class PanelHomeTests : IAsyncLifetime
 
         public Task<ContactFormView> GetContactFormAsync(string? memberName, string? memberEmail, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<IReadOnlyList<FaqQuestionView>> GetFaqAsync(bool asAdministrator, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<ContactPageView> GetContactPageAsync(bool asAdministrator, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<ContactFormResult> SendContactRequestAsync(ContactFormInput input, IPAddress? ipAddress, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<int> WriteContactRequestExportAsync(Stream destination, long maxBytes, CancellationToken ct) => throw new NotSupportedException();

@@ -71,7 +71,7 @@ public sealed partial class StorefrontFrameTests
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        (HttpStatusCode status, string html, _) = await GetHtmlAsync(client, "/sss", Admin(adminKey));
+        (HttpStatusCode status, string html, _) = await GetHtmlAsync(client, "/sss/cerceve-ornegi", Admin(adminKey));
 
         Assert.Equal(HttpStatusCode.OK, status);
         int strip = IndexOfRegion(html, "class=\"admin-strip\"");
@@ -85,8 +85,8 @@ public sealed partial class StorefrontFrameTests
         Assert.DoesNotContain("draft-band", html, StringComparison.Ordinal);
 
         // A visitor and a customer see no strip at all; the customer's cookie does not open it.
-        string visitor = (await GetHtmlAsync(client, "/sss")).Html;
-        string customer = (await GetHtmlAsync(client, "/sss", Customer(customerKey))).Html;
+        string visitor = (await GetHtmlAsync(client, "/sss/cerceve-ornegi")).Html;
+        string customer = (await GetHtmlAsync(client, "/sss/cerceve-ornegi", Customer(customerKey))).Html;
         Assert.DoesNotContain("admin-strip", visitor, StringComparison.Ordinal);
         Assert.DoesNotContain("Panele dön", customer, StringComparison.Ordinal);
         Assert.Contains("Duyuru metni", visitor, StringComparison.Ordinal);
@@ -102,7 +102,7 @@ public sealed partial class StorefrontFrameTests
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        string html = (await GetHtmlAsync(client, "/sss")).Html;
+        string html = (await GetHtmlAsync(client, "/sss/cerceve-ornegi")).Html;
 
         int panelStart = IndexOfRegion(html, "id=\"site-header-panel\"");
         int search = IndexOfRegion(html, "site-header__search");
@@ -111,7 +111,7 @@ public sealed partial class StorefrontFrameTests
         Assert.True(toggle < panelStart && panelStart < search && panelStart < account);
         Assert.Contains("aria-controls=\"site-header-panel\"", html, StringComparison.Ordinal);
         Assert.Matches(new Regex("<button[^>]*data-js=\"menu-toggle\"[^>]*\\shidden", RegexOptions.CultureInvariant, PatternTimeout), html);
-        Assert.Contains("href=\"/giris?returnUrl=%2Fsss\"", html, StringComparison.Ordinal);
+        Assert.Contains("href=\"/giris?returnUrl=%2Fsss%2Fcerceve-ornegi\"", html, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public sealed partial class StorefrontFrameTests
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        string html = (await GetHtmlAsync(client, "/sss")).Html;
+        string html = (await GetHtmlAsync(client, "/sss/cerceve-ornegi")).Html;
 
         // The group's tree is reachable by keyboard: a real button (hidden until common.js runs), expanded state and the id of the panel it controls.
         Match button = Regex.Match(html, "<button[^>]*data-js=\"menu-tree-toggle\"[^>]*>", RegexOptions.CultureInvariant, PatternTimeout);
@@ -159,7 +159,7 @@ public sealed partial class StorefrontFrameTests
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        foreach (string path in new[] { "/sss", "/odeme?cizim=1" })
+        foreach (string path in new[] { "/sss/cerceve-ornegi", "/odeme?cizim=1" })
         {
             string html = (await GetHtmlAsync(client, path)).Html;
             Assert.Contains("<h2 class=\"site-footer__heading\" id=\"footer-contact-heading\"><a href=\"/iletisim\">İletişim</a></h2>", html, StringComparison.Ordinal);
@@ -204,9 +204,9 @@ public sealed partial class StorefrontFrameTests
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        string admin = (await GetHtmlAsync(client, "/iletisim", Admin(adminKey))).Html;
-        string customer = (await GetHtmlAsync(client, "/iletisim", Customer(customerKey))).Html;
-        string visitor = (await GetHtmlAsync(client, "/iletisim")).Html;
+        string admin = (await GetHtmlAsync(client, "/iletisim/taslak-ornegi", Admin(adminKey))).Html;
+        string customer = (await GetHtmlAsync(client, "/iletisim/taslak-ornegi", Customer(customerKey))).Html;
+        string visitor = (await GetHtmlAsync(client, "/iletisim/taslak-ornegi")).Html;
 
         Assert.Contains("class=\"draft-band\"", admin, StringComparison.Ordinal);
         Assert.Contains("<a href=\"/panel/urunler/ornek-kayit\">Düzenlemeye dön</a>", admin, StringComparison.Ordinal);
@@ -236,8 +236,8 @@ public sealed partial class StorefrontFrameTests
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = factory.CreateClient();
 
-        string first = (await GetHtmlAsync(client, "/sss", Customer(customerKey))).Html;
-        string second = (await GetHtmlAsync(client, "/sss", Customer(customerKey))).Html;
+        string first = (await GetHtmlAsync(client, "/sss/cerceve-ornegi", Customer(customerKey))).Html;
+        string second = (await GetHtmlAsync(client, "/sss/cerceve-ornegi", Customer(customerKey))).Html;
 
         Assert.Contains("role=\"status\" data-js=\"merge-notice\"", first, StringComparison.Ordinal);
         Assert.Contains("Önceki ziyaretinden sepetine 1 ürün eklendi: Urun ", first, StringComparison.Ordinal);
@@ -256,7 +256,7 @@ public sealed partial class StorefrontFrameTests
 
         foreach ((string path, string[] cookies) in new (string, string[])[]
         {
-            ("/sss", []), ("/odeme?cizim=1", []), ("/iletisim", [Admin(adminKey)]), ("/panel/urunler/x", [Admin(adminKey)]), ("/panel/davet/abc", []),
+            ("/sss/cerceve-ornegi", []), ("/odeme?cizim=1", []), ("/iletisim/taslak-ornegi", [Admin(adminKey)]), ("/panel/urunler/x", [Admin(adminKey)]), ("/panel/davet/abc", []),
         })
         {
             (HttpStatusCode status, string html, HttpResponseMessage response) = await GetHtmlAsync(client, path, cookies);
@@ -301,7 +301,7 @@ public sealed partial class StorefrontFrameTests
 
         string panel = (await GetHtmlAsync(client, "/panel/urunler/x", Admin(adminKey))).Html;
         string bare = (await GetHtmlAsync(client, "/panel/davet/abc")).Html;
-        string storefront = (await GetHtmlAsync(client, "/sss")).Html;
+        string storefront = (await GetHtmlAsync(client, "/sss/cerceve-ornegi")).Html;
         string checkout = (await GetHtmlAsync(client, "/odeme?cizim=1")).Html;
 
         Assert.Contains("<meta name=\"robots\" content=\"noindex\">", panel, StringComparison.Ordinal);

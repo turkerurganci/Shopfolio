@@ -72,6 +72,18 @@ public interface ICorporateContentModule
     Task<IReadOnlyList<SocialLinkItem>> ListSocialLinksAsync(CancellationToken ct);
 
     /// <summary>
+    /// The FAQ page's list (T506; 02 3.27.6; 04 5.9): the published questions in the firm's order, one list, no grouping. <paramref name="asAdministrator"/> is true for a browser that holds a
+    /// panel session: the draft questions then stand in their place, marked (02 3.27.25). A plain read.
+    /// </summary>
+    Task<IReadOnlyList<FaqQuestionView>> GetFaqAsync(bool asAdministrator, CancellationToken ct);
+
+    /// <summary>
+    /// The contact page's content (T506; 02 3.27.8; 04 5.10): the company's legal identity - the footer's set - and the published branches in the firm's order; an administrator's browser adds the
+    /// draft branches, marked. The form is read with <see cref="GetContactFormAsync"/>. A plain read.
+    /// </summary>
+    Task<ContactPageView> GetContactPageAsync(bool asAdministrator, CancellationToken ct);
+
+    /// <summary>
     /// The contact form as the page shows it (T365; 02 3.32.1, 3.32.3, 3.32.8): open or closed by the gate of the data-collecting entries (with the refusal when closed), the five topics,
     /// and the starting values - the signed-in member's name and e-mail, which can be changed, or empty values. The form needs no sign-in. A plain read.
     /// </summary>

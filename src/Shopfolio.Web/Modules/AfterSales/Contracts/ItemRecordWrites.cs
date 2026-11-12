@@ -160,6 +160,9 @@ public sealed record WithdrawalNotes(
     int RefundPeriodDays,
     bool RefundFromGoodsArrival);
 
+/// <summary>One item of the declaration screen as <see cref="IAfterSalesModule.WithdrawalNotesAsync"/> reads it: its type, whether it is shipped and not marked delivered, its frozen exemption and its delivery date.</summary>
+public sealed record WithdrawalNoteQuery(ProductType ProductType, bool ShippedNotDelivered, WithdrawalExemptionReason? Exemption, DateOnly? DeliveryDate);
+
 /// <summary>The firm's return address a claim copied (06 4.30; K-817), as the notice writes it.</summary>
 public sealed record ItemReturnAddress(string RecipientName, Guid ProvinceId, string District, string AddressLine, string? Phone);
 

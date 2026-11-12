@@ -97,6 +97,10 @@ public abstract class AfterSalesScreenModel : PageModel
     /// <summary>303 to the root with the "closed" reason (07 6.3.3 <c>OperationClosed</c>); the line names <c>OperationNotAvailable</c>.</summary>
     protected IActionResult Closed() => OperationRefusals.ToOrderPage(this, new OperationVerdict(OperationDecision.Closed, OperationAvailability.Closed), RootPath);
 
+    /// <summary>303 to the root with <c>QuantityExceedsOpen</c> (07 6.3.3; K-1170 (4), K-1202): units above the open ones, or open units other than the ones the screen showed.</summary>
+    protected IActionResult QuantityChanged() =>
+        OperationRefusals.ToOrderPage(this, new OperationVerdict(OperationDecision.QuantityExceedsOpen, OperationAvailability.Closed), RootPath);
+
     /// <summary>
     /// The module's writes in the page's one transaction (07 8.1.2; 09 9.1 item 3): applied - 303 to the root, where the result stays; refused - nothing written, 303 to the root with the
     /// reason: a quantity above the open one, or open units that changed since the screen (K-1202), is <c>QuantityExceedsOpen</c>, every other refusal <c>OperationClosed</c>.
@@ -151,7 +155,15 @@ public sealed record ReturnAddressView(string RecipientName, string AddressLine,
 /// One item of the withdrawal screen (04 5.18.4): the frozen name, the type, the units open to the withdrawal - the default and the upper limit of the quantity field (K-1170 (2); K-795) -,
 /// the window's last day and the conditional exemption's line (K-509).
 /// </summary>
-public sealed record WithdrawalRowView(Guid OrderItemId, string Name, ProductType ProductType, int OpenQuantity, DateOnly? LastDay, bool PackagingCondition, bool RefundFromGoodsArrival)
+public sealed record WithdrawalRowView(
+    Guid OrderItemId,
+    string Name,
+    ProductType ProductType,
+    int Quantity,
+    int OpenQuantity,
+    DateOnly? LastDay,
+    bool PackagingCondition,
+    bool RefundFromGoodsArrival)
 {
     /// <summary>A quantity field only where more than one unit is open (04 2.12.1.8).</summary>
     public bool HasQuantityField => OpenQuantity > 1;
@@ -160,11 +172,13 @@ public sealed record WithdrawalRowView(Guid OrderItemId, string Name, ProductTyp
 /// <summary>
 /// E-18 — the withdrawal screen <c>{kök}/cayma</c> (07 UC-42, UC-43; 04 5.18; T513). The GET lists the items the withdrawal is open for now, each with its open units, its window's last day and
 /// the conditional exemption's line; when a physical item is on the list the firm's current return address, the sending period with its last day and the way the goods go back (K-665, K-838);
-/// the refund's way and the moment its period starts; the IBAN field on the transfer line when no IBAN is on file. Every value is the module's
-/// (<see cref="IOrderOperations.ReadWithdrawalScreenAsync"/>) - the page works out no period and no amount. No item open: 303 to the root with the reason.
+/// the refund's way and the moment its period starts; the IBAN field on the transfer line when no IBAN is on file. Every value is the module's, read for all items at once
+/// (<see cref="IOrderOperations.ReadWithdrawalScreensAsync"/>; 09 20 item 4) - the page works out no period, no amount and no shipping fee. No item open: 303 to the root with the reason.
 /// <c>SubmitWithdrawal</c>: one row per item (07 5.1.5); no item chosen, a quantity that is not a whole number of at least one, an empty IBAN where one is asked - 422; an item not of the order
-/// - 404; the first POST without the mark is the last step (200, nothing written; 07 2.2.4); the confirmed POST re-reads each item's open units inside the transaction and refuses the whole
-/// request when they differ from the ones shown (K-1202) before the module writes the declarations - each with its date stamp, units and the return address of the moment (06 4.25).
+/// - 404; units above the open ones or open units other than the ones shown - 303 with <c>QuantityExceedsOpen</c>, on the first POST as on the confirmed one (K-1170 (4), K-1202); the first
+/// POST without the mark is the last step (200, nothing written; 07 2.2.4), which says the shipping fee comes back when the module's rule says the choice meets its trigger (04 5.18.6;
+/// K-789); the confirmed POST re-reads the open units inside the transaction and refuses the whole request when they differ from the ones shown before the module writes the
+/// declarations - each with its date stamp, units and the return address of the moment (06 4.25).
 /// </summary>
 public abstract class WithdrawalPageModel : AfterSalesScreenModel
 {
@@ -219,6 +233,13 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
     /// <summary>The chosen items with their units, as the last step lists them (04 5.18.7).</summary>
     public IReadOnlyList<(string Name, int Quantity)> ChosenItems { get; private set; } = [];
 
+    /// <summary>The screen's conditional line (04 5.18.6): withdrawing every listed unit would bring the shipping fee back - false on free shipping and once a unit stayed with the customer (K-1076).</summary>
+    public bool ShippingFeeCanReturn { get; private set; }
+
+    /// <summary>The last step's line (04 5.18.6; K-789): the chosen units, with the earlier declarations, cover the shipped physical units - the module's answer.</summary>
+    public bool RefundsShippingFee { get; private set; }
+
+    private WithdrawalScreens _screens = new([], null);
     private PaymentMethod _paymentMethod;
     private int _refundPeriodDays;
     private bool _asksIban;
@@ -290,6 +311,13 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
             return Closed();
         }
 
+        // Units above the open ones, or open units other than the ones the screen showed, are refused here as the confirmed write refuses them (K-1170 (4), K-1202): the last step
+        // never says "kaydedilecek" for a choice the write will not apply. The whole request, every item.
+        if (lines.Any(l => Rows.First(r => r.OrderItemId == l.ItemId) is { } row && (l.Quantity > row.OpenQuantity || l.Shown != row.OpenQuantity)))
+        {
+            return QuantityChanged();
+        }
+
         // The transfer line's IBAN (04 5.18.6, 5.17.12): required when none is on file; its format is the field's rule.
         if (_asksIban && string.IsNullOrWhiteSpace(input.Iban))
         {
@@ -302,6 +330,7 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
         {
             ChosenItems = [.. lines.Select(l => (Rows.First(r => r.OrderItemId == l.ItemId).Name, l.Quantity))];
             bool fromArrival = lines.Any(l => Rows.First(r => r.OrderItemId == l.ItemId).RefundFromGoodsArrival);
+            RefundsShippingFee = _operations.WithdrawalRefundsShippingFee(_screens, lines.ToDictionary(l => l.ItemId, l => l.Quantity));
             string sentence = OrderScreenTexts.WithdrawalSentence(lines.Sum(l => l.Quantity), _paymentMethod, fromArrival, _refundPeriodDays);
             List<KeyValuePair<string, string>> fields = [.. Sent.Where(f => f.Key != nameof(SubmitWithdrawalInput.Confirmed))];
             fields.Add(new(nameof(SubmitWithdrawalInput.Confirmed), "true"));
@@ -313,20 +342,23 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
         return await RunAsync(
             async stepCt =>
             {
-                foreach ((Guid itemId, int quantity, int shown) in lines)
+                // K-1202: the open units are read again in the write's transaction, once for every item; units that differ from the ones shown refuse the whole request.
+                IReadOnlyList<WithdrawalScreen> now = (await _operations.ReadWithdrawalScreensAsync(orderId, stepCt))?.Items ?? [];
+                foreach ((Guid itemId, int _, int shown) in lines)
                 {
-                    // K-1202: the open units are read again in the write's transaction; units that differ from the ones shown refuse the whole request.
-                    WithdrawalScreen? now = await _operations.ReadWithdrawalScreenAsync(orderId, itemId, stepCt);
-                    if (now is null)
+                    if (now.FirstOrDefault(s => s.OrderItemId == itemId) is not { } screen)
                     {
                         return OperationDecision.Closed;
                     }
 
-                    if (now.OpenQuantity != shown)
+                    if (screen.OpenQuantity != shown)
                     {
                         return OperationDecision.QuantityExceedsOpen;
                     }
+                }
 
+                foreach ((Guid itemId, int quantity, int _) in lines)
+                {
                     WithdrawalResult result = await _transitions.DeclareWithdrawalAsync(new DeclareWithdrawalRequest(orderId, itemId, quantity, true, iban), stepCt);
                     if (result.IsRejected)
                     {
@@ -341,41 +373,29 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
 
     protected override async Task<IActionResult?> LoadScreenAsync(Guid orderId, CancellationToken ct)
     {
-        OrderOperationsView? operations = await _operations.ReadAsync(orderId, ActorKind.Buyer, ct);
+        WithdrawalScreens? read = await _operations.ReadWithdrawalScreensAsync(orderId, ct);
         OrderPageDetail? detail = await _page.ReadAsync(orderId, ct);
-        if (operations is null || detail is null)
+        if (read is null || detail is null)
         {
             return AccessDenial.NotFound();
         }
 
-        List<WithdrawalScreen> screens = [];
-        foreach (Guid itemId in operations.Open
-            .Where(e => e.OrderItemId is not null && e.Operation is OrderOperation.WithdrawPhysicalItem or OrderOperation.WithdrawServiceItem or OrderOperation.WithdrawDigitalItem)
-            .Select(e => e.OrderItemId).OfType<Guid>()
-            .Distinct())
-        {
-            if (await _operations.ReadWithdrawalScreenAsync(orderId, itemId, ct) is WithdrawalScreen screen)
-            {
-                screens.Add(screen);
-            }
-        }
-
+        IReadOnlyList<WithdrawalScreen> screens = read.Items;
         if (screens.Count == 0)
         {
             return Closed();
         }
 
+        _screens = read;
         Rows =
         [
-            .. screens.Select(s => new WithdrawalRowView(
-                s.OrderItemId,
-                detail.Items.First(i => i.OrderItemId == s.OrderItemId).Name,
-                s.ProductType,
-                s.OpenQuantity,
-                s.LastDay,
-                s.PackagingCondition is not null,
-                s.RefundFromGoodsArrival)),
+            .. screens.Select(s =>
+            {
+                OrderPageItem item = detail.Items.First(i => i.OrderItemId == s.OrderItemId);
+                return new WithdrawalRowView(s.OrderItemId, item.Name, s.ProductType, item.Quantity, s.OpenQuantity, s.LastDay, s.PackagingCondition is not null, s.RefundFromGoodsArrival);
+            }),
         ];
+        ShippingFeeCanReturn = _operations.WithdrawalRefundsShippingFee(read, Rows.ToDictionary(r => r.OrderItemId, r => r.OpenQuantity));
         WithdrawalScreen first = screens[0];
         _paymentMethod = first.PaymentMethod;
         _refundPeriodDays = first.RefundPeriodDays;
@@ -454,7 +474,7 @@ public sealed class WithdrawalItemRow
 /// One item of the new claim (04 5.19.3 (1)): the frozen name, the type, and the defective units' field - default one, upper limit the units open to a claim, the closed units taken off
 /// (K-1170 (2); K-830).
 /// </summary>
-public sealed record DefectClaimRowView(Guid OrderItemId, string Name, ProductType ProductType, int DefaultQuantity, int MaxQuantity)
+public sealed record DefectClaimRowView(Guid OrderItemId, string Name, ProductType ProductType, int Quantity, int DefaultQuantity, int MaxQuantity)
 {
     /// <summary>A quantity field only on an item of more than one unit open to a claim (04 5.19.3; 2.12.1.8).</summary>
     public bool HasQuantityField => MaxQuantity > 1;
@@ -511,6 +531,22 @@ public abstract class DefectClaimPageModel : AfterSalesScreenModel
 
     /// <summary>The line of further information on the reopening (K-783).</summary>
     public string MoreInformationText { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// The row the one defective units' field (07 5 <c>SubmitDefectClaimInput.Quantity</c>) opens in (04 2.12.1.8): the row of the chosen item - the one sent, or the only one listed -
+    /// when it carries a field, else the only row that carries one; null when the choice is still open among several such rows, where the field stays under the list.
+    /// </summary>
+    public Guid? QuantityFieldRow(string? sentItem)
+    {
+        DefectClaimRowView? chosen = Rows.Count == 1 ? Rows[0] : Rows.FirstOrDefault(r => r.OrderItemId.ToString() == sentItem);
+        if (chosen is not null)
+        {
+            return chosen.HasQuantityField ? chosen.OrderItemId : null;
+        }
+
+        List<DefectClaimRowView> fielded = [.. Rows.Where(r => r.HasQuantityField)];
+        return fielded.Count == 1 ? fielded[0].OrderItemId : null;
+    }
 
     public async Task<IActionResult> OnGetAsync(DefectClaimQuery query, CancellationToken ct)
     {
@@ -630,7 +666,8 @@ public abstract class DefectClaimPageModel : AfterSalesScreenModel
                 .Where(e => e.Operation == OrderOperation.OpenDefectClaim && e.OrderItemId is not null)
                 .SelectMany(
                     e => detail.Items.Where(i => i.OrderItemId == e.OrderItemId).Take(1),
-                    (e, item) => new DefectClaimRowView(item.OrderItemId, item.Name, item.ProductType, Math.Max(1, e.Availability.DefaultQuantity), Math.Max(1, e.Availability.MaxQuantity))),
+                    (e, item) => new DefectClaimRowView(
+                        item.OrderItemId, item.Name, item.ProductType, item.Quantity, Math.Max(1, e.Availability.DefaultQuantity), Math.Max(1, e.Availability.MaxQuantity))),
         ];
         if (Rows.Count == 0)
         {

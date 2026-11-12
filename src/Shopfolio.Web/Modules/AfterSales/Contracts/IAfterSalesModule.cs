@@ -149,10 +149,10 @@ public interface IAfterSalesModule
     Task<ItemRecordWriteResult> AddWithdrawalAsync(WithdrawalDeclaration declaration, CancellationToken ct);
 
     /// <summary>
-    /// What the declaration screen of an item shows (02 7.3.5; <see cref="WithdrawalNotes"/>): the return address is the setting as it is now; the refund's start is read for a
-    /// declaration sent today against the item's delivery date. A plain read.
+    /// What the declaration screen shows for each of <paramref name="items"/>, in their order (02 7.3.5; <see cref="WithdrawalNotes"/>): the return address is the setting as it is
+    /// now, read once for the screen; the refund's start is read for a declaration sent today against the item's delivery date. A plain read.
     /// </summary>
-    Task<WithdrawalNotes> WithdrawalNotesAsync(ProductType productType, bool shippedNotDelivered, WithdrawalExemptionReason? exemption, DateOnly? deliveryDate, CancellationToken ct);
+    Task<IReadOnlyList<WithdrawalNotes>> WithdrawalNotesAsync(IReadOnlyList<WithdrawalNoteQuery> items, CancellationToken ct);
 
     /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
     Task<ItemRecordWriteResult> AddReturnReceiptAsync(ReturnReceiptEntry entry, CancellationToken ct);
@@ -256,6 +256,19 @@ public interface IAfterSalesModule
     /// item 1). A pure answer; reads and writes nothing.
     /// </summary>
     bool CancellationRefundsShippingFee(IReadOnlyDictionary<Guid, int> openPhysicalUnits, IReadOnlyDictionary<Guid, int> selectedUnits);
+
+    /// <summary>
+    /// The withdrawal's shipping fee trigger as the declaration screen reads it (T513; 02 7.4.6; 04 5.18.6; K-789, K-1076): per physical item the units the carrier took - its units
+    /// less those cancelled or removed before <paramref name="handedToCarrierAt"/> - that no declaration withdrew yet. Null when no such unit is left, or a unit was rejected or
+    /// closed as not come back - it stayed with the customer, so no withdrawal brings the fee back. The caller hands no items on an order whose frozen fee is zero. A plain read.
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, int>?> WithdrawalFeeUnitsAsync(IReadOnlyCollection<ShippedItem> physicalItems, DateTimeOffset handedToCarrierAt, CancellationToken ct);
+
+    /// <summary>
+    /// Whether withdrawing <paramref name="selectedUnits"/> now meets the withdrawal's shipping fee trigger over <paramref name="undeclaredUnits"/> (<see cref="WithdrawalFeeUnitsAsync"/>):
+    /// the rule's answer, so the screen works out nothing itself (09 3.4 item 1). A pure answer.
+    /// </summary>
+    bool WithdrawalRefundsShippingFee(IReadOnlyDictionary<Guid, int> undeclaredUnits, IReadOnlyDictionary<Guid, int> selectedUnits);
 
     /// <summary>The refund period of a cancellation and of a late delivery termination in calendar days (T512; 02 4.2 Z-17; 02 7.2.3): the period rule's own value.</summary>
     int RefundPeriodDays { get; }

@@ -40,6 +40,9 @@ public static class OrderScreenTexts
     /// <summary>04 5.18.6; 02 7.4.6; K-789: the shipping fee comes back only when every unit of the shipped physical items is withdrawn, earlier declarations included.</summary>
     public const string ShippingFeeText = "Kargoyla gönderilen ürünlerin bütün adetlerinden, önceki beyanlarınızla birlikte, caydığınızda kargo ücreti de geri ödenir.";
 
+    /// <summary>04 5.18.6; 02 7.4.6; K-789: the last step's line when the module says the chosen units meet the shipping fee's trigger.</summary>
+    public const string ShippingFeeRefundedText = "Kargo ücreti de geri ödenir.";
+
     public const string ReturnAddressTitle = "İade adresi";
 
     /// <summary>04 5.16.5; 02 3.1.7; K-665: the withdrawal's record on the item's row names the return address written into the declaration, not the firm's address of today.</summary>
@@ -88,8 +91,13 @@ public static class OrderScreenTexts
             CultureInfo.InvariantCulture,
             $"Seçtiğiniz {DisplayFormat.Number(units)} ürün için cayma beyanınız kaydedilecek; geri ödeme {FromWhen(fromGoodsArrival)} itibaren {DisplayFormat.Number(days)} gün içinde {WayOf(way)} yapılacak.");
 
-    /// <summary>04 5.18.4; K-795: the line says the item's units open to the operation.</summary>
-    public static string OpenUnits(int open) => string.Create(CultureInfo.InvariantCulture, $"İşleme açık adet: {DisplayFormat.Number(open)}");
+    /// <summary>04 5.18.4, 2.12.1.8; K-795: the line says the item's units open to the operation - the upper limit - with the item's units.</summary>
+    public static string OpenUnits(int quantity, int open) =>
+        string.Create(CultureInfo.InvariantCulture, $"Siparişteki adet: {DisplayFormat.Number(quantity)} · işleme açık adet: {DisplayFormat.Number(open)}");
+
+    /// <summary>04 5.19.3, 2.12.1.8; K-795, K-830: the defect claim's line says the upper limit - the units open to a claim - with the item's units.</summary>
+    public static string ClaimLimit(int quantity, int max) =>
+        string.Create(CultureInfo.InvariantCulture, $"Siparişteki adet: {DisplayFormat.Number(quantity)} · ayıplı adet en çok {DisplayFormat.Number(max)}");
 
     /// <summary>04 5.18.4: the last day of the item's window, when it has one.</summary>
     public static string WindowLastDay(DateOnly lastDay) => "Cayma hakkınızın son günü: " + DisplayFormat.Date(lastDay);

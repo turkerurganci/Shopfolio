@@ -22,6 +22,10 @@
                 <li>@name — @DisplayFormat.Number(quantity) adet</li>
             }
         </ul>
+        @if (Model.RefundsShippingFee)
+        {
+            <p class="operation-screen__fee" id="withdrawal-fee">@OrderScreenTexts.ShippingFeeRefundedText</p>
+        }
         <partial name="_Confirm" model="confirm" />
     }
     else
@@ -43,12 +47,12 @@
                             <span>@row.Name</span>
                         </label>
                         <input type="hidden" name="@(prefix).OriginalOpenQuantity" value="@row.OpenQuantity" />
-                        <span class="operation-screen__open">@OrderScreenTexts.OpenUnits(row.OpenQuantity)</span>
                         @if (row.HasQuantityField)
                         {
                             FieldView quantity = Fields.Bind(Fields.Number(quantityName, "Adet", FieldRequirement.Required, quantityValue), summary);
                             <partial name="_Field" model="quantity" />
                         }
+                        <span class="operation-screen__limit">@OrderScreenTexts.OpenUnits(row.Quantity, row.OpenQuantity)</span>
                         else
                         {
                             <input type="hidden" name="@quantityName" value="@row.OpenQuantity" />
@@ -100,9 +104,9 @@
                 {
                     <p>@OrderScreenTexts.PartlyPerformedServiceText</p>
                 }
-                @if (Model.HasPhysicalItem)
+                @if (Model.ShippingFeeCanReturn)
                 {
-                    <p>@OrderScreenTexts.ShippingFeeText</p>
+                    <p class="operation-screen__fee">@OrderScreenTexts.ShippingFeeText</p>
                 }
             </section>
             @if (Model.IbanField is IbanFieldView iban)

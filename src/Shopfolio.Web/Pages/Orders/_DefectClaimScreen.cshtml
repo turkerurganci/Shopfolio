@@ -41,6 +41,8 @@
     else
     {
         string? sentItem = Model.SentValue("OrderItemId");
+        Guid? fieldRow = Model.QuantityFieldRow(sentItem);
+        FieldView quantity = Fields.Bind(Fields.Number("Quantity", OrderScreenTexts.DefectClaimQuantityLabel, FieldRequirement.Optional, Model.SentValue("Quantity") ?? DisplayFormat.Number(1)), summary);
         <form method="post" asp-antiforgery="true" action="@(Model.ScreenPath)?handler=@DefectClaimPageModel.SubmitHandler" class="operation-screen__form" data-js="submit-once">
             <fieldset class="operation-screen__items" id="OrderItemId">
                 <legend>@OrderScreenTexts.DefectClaimItemLabel</legend>
@@ -53,14 +55,17 @@
                         </label>
                         @if (row.HasQuantityField)
                         {
-                            <span class="operation-screen__limit">@OrderScreenTexts.DefectClaimQuantityLabel: en çok @DisplayFormat.Number(row.MaxQuantity)</span>
+                            if (fieldRow == row.OrderItemId)
+                            {
+                                <partial name="_Field" model="quantity" />
+                            }
+                            <span class="operation-screen__limit">@OrderScreenTexts.ClaimLimit(row.Quantity, row.MaxQuantity)</span>
                         }
                     </div>
                 }
             </fieldset>
-            @if (Model.Rows.Any(r => r.HasQuantityField))
+            @if (fieldRow is null && Model.Rows.Any(r => r.HasQuantityField))
             {
-                FieldView quantity = Fields.Bind(Fields.Number("Quantity", OrderScreenTexts.DefectClaimQuantityLabel, FieldRequirement.Optional, Model.SentValue("Quantity") ?? DisplayFormat.Number(1)), summary);
                 <partial name="_Field" model="quantity" />
             }
             @{

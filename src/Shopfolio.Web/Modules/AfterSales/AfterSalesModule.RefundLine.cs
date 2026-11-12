@@ -24,6 +24,9 @@ internal sealed partial class AfterSalesModule
     public bool CancellationRefundsShippingFee(IReadOnlyDictionary<Guid, int> openPhysicalUnits, IReadOnlyDictionary<Guid, int> selectedUnits) =>
         ShippingFeeRefunds.OnCancellationPreview(openPhysicalUnits, selectedUnits);
 
+    public bool WithdrawalRefundsShippingFee(IReadOnlyDictionary<Guid, int> undeclaredUnits, IReadOnlyDictionary<Guid, int> selectedUnits) =>
+        ShippingFeeRefunds.OnWithdrawalPreview(undeclaredUnits, selectedUnits);
+
     public async Task<RefundIbanRequestOpened> OpenRefundIbanRequestAsync(RefundIbanRequestEntry entry, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(entry);

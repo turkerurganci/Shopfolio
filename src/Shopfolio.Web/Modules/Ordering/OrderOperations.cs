@@ -67,23 +67,82 @@ internal sealed class OrderOperations : IOrderOperations
             return null;
         }
 
-        bool inTransit = item.ProductType == ProductType.Physical && item.DeliveryDate is null;
-        WithdrawalExemptionReason? exemption = await _db.OrderItems.AsNoTracking().Where(i => i.Id == orderItemId).Select(i => i.WithdrawalExemptionReason).SingleAsync(ct);
-        WithdrawalNotes notes = await _afterSales.WithdrawalNotesAsync(item.ProductType, inTransit, exemption, item.DeliveryDate, ct);
-        return new WithdrawalScreen(
-            orderItemId,
-            item.ProductType,
-            item.OpenQuantity,
-            item.Period.WithdrawalLastDay,
-            notes.ReturnAddress,
-            notes.SendingPeriodDays,
-            notes.SendingLastDay,
-            notes.CarrierReturnsUnreceivedGoods,
-            notes.PackagingCondition,
-            facts.PaymentMethod == PaymentMethod.BankTransfer && !facts.HasRefundIban,
-            facts.PaymentMethod,
-            notes.RefundPeriodDays,
-            notes.RefundFromGoodsArrival);
+        return (await ScreensOfAsync(facts, [item], ct))[0];
+    }
+
+    public async Task<WithdrawalScreens?> ReadWithdrawalScreensAsync(Guid orderId, CancellationToken ct)
+    {
+        OrderOperationFacts? facts = await LoadAsync(orderId, ct);
+        if (facts is null)
+        {
+            return null;
+        }
+
+        // The items whose withdrawal button the decision draws (ReadWithdrawalScreenAsync's rule), from one decision over one load.
+        IReadOnlyList<OrderOperationEntry> open = OrderOperationCatalog.Decide(facts, ActorKind.Buyer);
+        List<OperationItemFacts> items =
+        [
+            .. facts.Items.Where(i => WithdrawalOperation(i.ProductType) is { } operation && open.Any(e => e.Operation == operation && e.OrderItemId == i.ItemId)),
+        ];
+        if (items.Count == 0)
+        {
+            return new WithdrawalScreens([], null);
+        }
+
+        IReadOnlyList<WithdrawalScreen> screens = await ScreensOfAsync(facts, items, ct);
+        return new WithdrawalScreens(screens, await ShippingFeeUnitsAsync(orderId, ct));
+    }
+
+    public bool WithdrawalRefundsShippingFee(WithdrawalScreens screens, IReadOnlyDictionary<Guid, int> selectedUnits)
+    {
+        ArgumentNullException.ThrowIfNull(screens);
+        return screens.ShippingFeeUnits is { } units && _afterSales.WithdrawalRefundsShippingFee(units, selectedUnits);
+    }
+
+    /// <summary>The declaration screens of <paramref name="items"/> in their order: one read of their exemptions and one of the notes, whatever their number (09 20 item 4).</summary>
+    private async Task<IReadOnlyList<WithdrawalScreen>> ScreensOfAsync(OrderOperationFacts facts, IReadOnlyList<OperationItemFacts> items, CancellationToken ct)
+    {
+        Guid[] ids = [.. items.Select(i => i.ItemId)];
+        Dictionary<Guid, WithdrawalExemptionReason?> exemptions = await _db.OrderItems.AsNoTracking()
+            .Where(i => ids.Contains(i.Id))
+            .ToDictionaryAsync(i => i.Id, i => i.WithdrawalExemptionReason, ct);
+        IReadOnlyList<WithdrawalNotes> notes = await _afterSales.WithdrawalNotesAsync(
+            [.. items.Select(i => new WithdrawalNoteQuery(i.ProductType, i.ProductType == ProductType.Physical && i.DeliveryDate is null, exemptions[i.ItemId], i.DeliveryDate))],
+            ct);
+        bool asksIban = facts.PaymentMethod == PaymentMethod.BankTransfer && !facts.HasRefundIban;
+        return
+        [
+            .. items.Select((item, index) => new WithdrawalScreen(
+                item.ItemId,
+                item.ProductType,
+                item.OpenQuantity,
+                item.Period.WithdrawalLastDay,
+                notes[index].ReturnAddress,
+                notes[index].SendingPeriodDays,
+                notes[index].SendingLastDay,
+                notes[index].CarrierReturnsUnreceivedGoods,
+                notes[index].PackagingCondition,
+                asksIban,
+                facts.PaymentMethod,
+                notes[index].RefundPeriodDays,
+                notes[index].RefundFromGoodsArrival)),
+        ];
+    }
+
+    /// <summary>
+    /// The withdrawal's shipping fee trigger's units still to withdraw (02 7.4.6; K-789, K-1076): none on an order whose frozen fee is zero - free shipping or no physical item -
+    /// or that the carrier never took; else the AfterSales rule's count over the order's physical items.
+    /// </summary>
+    private async Task<IReadOnlyDictionary<Guid, int>?> ShippingFeeUnitsAsync(Guid orderId, CancellationToken ct)
+    {
+        decimal fee = await _db.Orders.AsNoTracking().Where(o => o.Id == orderId).Select(o => o.ShippingFee).SingleAsync(ct);
+        if (fee <= 0m || await OrderPeriods.HandedToCarrierAtAsync(_db, orderId, ct) is not { } handed)
+        {
+            return null;
+        }
+
+        List<ShippedItem> physical = await OrderPeriods.ShippedItemsAsync(_db, orderId, ct);
+        return await _afterSales.WithdrawalFeeUnitsAsync(physical, handed, ct);
     }
 
     /// <summary>The customer's withdrawal operation of an item's type (03 1.11.5, 1.11.6): a digital item has none (1.11.7 is not a button; 02 7.3.2).</summary>

@@ -116,7 +116,7 @@ public sealed class AfterSalesScreenTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.OK, page.StatusCode);
         string html = WebUtility.HtmlDecode(await page.Content.ReadAsStringAsync(Ct));
         Assert.Contains(name, html, StringComparison.Ordinal);
-        Assert.Contains(OrderScreenTexts.OpenUnits(2), html, StringComparison.Ordinal);
+        Assert.Contains(OrderScreenTexts.OpenUnits(2, 2), html, StringComparison.Ordinal);
         Assert.Contains("Depo Sokak 3", html, StringComparison.Ordinal);
         Assert.Contains(OrderScreenTexts.CarrierReturnsText, html, StringComparison.Ordinal);
         Assert.Contains(OrderScreenTexts.SendingWayText, html, StringComparison.Ordinal);

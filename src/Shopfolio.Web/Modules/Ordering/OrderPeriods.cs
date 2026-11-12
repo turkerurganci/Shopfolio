@@ -50,6 +50,21 @@ internal sealed class OrderPeriods
         db.TransitionRecords.Where(t => (t.TransitionCode == TransitionCode.S5 || t.TransitionCode == TransitionCode.S8)
             && !db.TransitionRecords.Any(c => c.TransitionCode == TransitionCode.Correction && c.CorrectedTransitionRecordId == t.Id));
 
+    /// <summary>The moment the carrier first took the order (02 7.2.9, 7.4.6): its first standing S5 record; null when it never did. The shipping fee rule's one reading of it.</summary>
+    public static async Task<DateTimeOffset?> HandedToCarrierAtAsync(AppDbContext db, Guid orderId, CancellationToken ct) =>
+        await Shipments(db)
+            .Where(t => t.OrderId == orderId && t.TransitionCode == TransitionCode.S5)
+            .OrderBy(t => t.CreatedAt)
+            .Select(t => (DateTimeOffset?)t.CreatedAt)
+            .FirstOrDefaultAsync(ct);
+
+    /// <summary>The order's physical items as the shipping fee rule reads them: id, units and delivery date.</summary>
+    public static async Task<List<ShippedItem>> ShippedItemsAsync(AppDbContext db, Guid orderId, CancellationToken ct) =>
+        await db.OrderItems
+            .Where(i => i.OrderId == orderId && i.ProductType == ProductType.Physical)
+            .Select(i => new ShippedItem(i.Id, i.Quantity, i.DeliveryDate))
+            .ToListAsync(ct);
+
     /// <summary>
     /// Z-10 - where the order's shipping promise stands at <paramref name="now"/> while the order waits to be shipped (Preparing; 03 4.1.10): null when
     /// the order has no physical item, its payment is not approved, or it is no longer preparing - the period ends when the order is shipped.

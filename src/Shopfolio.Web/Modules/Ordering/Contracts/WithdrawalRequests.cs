@@ -78,3 +78,10 @@ public sealed record WithdrawalScreen(
     PaymentMethod PaymentMethod,
     int RefundPeriodDays,
     bool RefundFromGoodsArrival);
+
+/// <summary>
+/// E-18's screen (T513; 04 5.18): the declaration screen of every item the withdrawal is open for, in the order's item order, and <paramref name="ShippingFeeUnits"/> - per physical
+/// item the units the carrier took that no declaration withdrew yet (02 7.4.6; K-789), null when no withdrawal can bring the fee back: the frozen fee is zero, the carrier never
+/// took the order, a unit was rejected or closed as not come back (K-1076), or no such unit is left.
+/// </summary>
+public sealed record WithdrawalScreens(IReadOnlyList<WithdrawalScreen> Items, IReadOnlyDictionary<Guid, int>? ShippingFeeUnits);

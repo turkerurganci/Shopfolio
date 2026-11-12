@@ -73,7 +73,7 @@
 |---|---|---|---|
 | Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests` | 7233/7233 (önceki işçi, bu turda Unit kodu değişmedi) |
 | Integration (T532 sınıfları) | ✓ | `--filter-class "*RequestsPageTests"`, `"*RequestsDefectClaimTests"` | 17/17 ve 2/2 |
-| Integration TAM | bkz. Notlar | | |
+| Integration TAM | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests --no-build --filter-namespace "Shopfolio.IntegrationTests.<Ad>"` (ad alanı parçaları) | 3836 test, 0 kırmızı: Administration 69, CorporateContent 185, Catalog 82, Commands 70, Concurrency 30, Database 36, Disposal 61, FileSecrets 24, Files 112, Jobs 85, Logging 30, Outages 53, Payment 59, Security 34, SignedEndpoints 11, Ordering 645, Model 1410, Web 840 (Pages ve kök ad alanında test yok, örnek sayfalar) |
 | `dotnet format` | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` (Web, Unit, Integration) | değişiklik yok (bir boş satır düzeltildi) |
 
 ## Doğrulama
@@ -126,4 +126,4 @@ D-1232 (iki bildirim metni) bu task'ta kapandı.
 - **Ana dal CI startup (Adım 0):** yönetici düzeninde yardımcı izler
 - **Repo memory (bitiş kapısı 9):** `MEMORY.md` "Güncel Durum" ve backlog sayacı parça kuralıyla dokunulmadı
 - **VAL satırları:** `VAL-A256`, `C063`, `C064`, `A556`, `A735`, `A736`, `B048` doğrulayıcının PASS'ı ile işaretlenir (yapım PASS yazmaz)
-- **Integration TAM:** aşağıya yazılır
+- **Integration TAM:** ad alanı parçalarıyla ön planda koşuldu, hepsi yeşil; DB silme zaman aşımı olmadı. Postgres 18 konteyneri `track_commit_timestamp=on` ile (CI gibi)

@@ -49,7 +49,7 @@
 | FAIL nedeni 4: kural değişince aynı sayıyı anan yerler | ✓ | Kural/sayı değişmedi; kayıt parçaları ve D kalemleri tutarlı |
 | FAIL nedeni 5: belge kuralını değiştiren 09 metni | ✓ | 09/05/07 metnine dokunulmadı |
 | `dotnet format` test dosyalarında | ✓ | Web ve IntegrationTests (Model, Administration, HomeAndFirmPageTests) temiz |
-| Main birleşince yeni zorunlu alan / kurucu bağımlılığı | ✓ (Integration TAM sonucu aşağıda) | Birleşik ağaçta derleme yeşil |
+| Main birleşince yeni zorunlu alan / kurucu bağımlılığı | ✓ | Birleşik ağaçta derleme yeşil |
 
 12'deki Durum hücreleri BEKLEMEDE kalır (doğrulayıcı PASS yapar); ilgili satırlar VAL-A449, VAL-A541, VAL-A747.
 
@@ -59,7 +59,7 @@
 |---|---|---|---|
 | Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 7402/7402 (main birleşik) |
 | Integration (yeni) | ✓ | `--filter-class HomepageAndIdentityTrailTests` ; `--filter-method *TheEmailField_Warns*` | 26/26 ; 1/1 |
-| Integration TAM | bkz. Notlar | ad alanı parçalarıyla | Notlar bölümü |
+| Integration TAM | ✓ | `--filter-namespace` parçalarıyla | Hepsi yeşil: Administration 69, Catalog 82, Commands 70, Concurrency 30, CorporateContent 195, Database 36, Disposal 61, FileSecrets 24, Files 112, Jobs 85, Logging 30, Ordering 645, Outages 53, Payment 59, Security 34, SignedEndpoints 11, Web 914, Model 1436 (Pages ad alanında test yok, yalnız örnek sınıflar) |
 | Contract | — | — | Bu task'ta yok |
 
 ## Doğrulama
@@ -102,5 +102,5 @@ Dış varsayım: yok.
 
 - **⚠ (f):** kimlik kaydı sürümü değişmeyen kayıtta da artıyor (RecordSave her zaman BumpVersion; T330 davranışı, değişmedi).
 - **Yük:** Makine yüklü; `HomeAndFirmPageTests` sınıfı tek çağrıda 330 sn zaman aşımına girdi, testler tek başına koşuldu.
-- **Integration TAM:** aşağıya eklenecek.
+- **Integration TAM:** bütün ad alanları yeşil; Database, Files ve Ordering ilk koşuda kendi `timeout` kesintisiyle (yük) hata verdi, 590 sn ile tek başına yeniden koşuldu ve yeşil.
 - **Repo memory (bitiş kapısı 9):** güncellendi (parça dosyaları).

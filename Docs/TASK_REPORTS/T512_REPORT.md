@@ -82,8 +82,9 @@
 |---|---|
 | Derleme | Uyarısız, hatasız (birleşik ağaç, origin/main birleştirildi) |
 | Unit | 7222/7222 (filtresiz TAM; ilk koşuda yük kaynaklı tek regex zaman aşımı, ikinci koşu yeşil) + `OperationHandlerMarkTests` 4/4 |
-| Integration | TAM ad alanı parçalarıyla — sonuç PR açıklamasında |
-| `dotnet format --verify-no-changes` | Web, UnitTests, IntegrationTests temiz |
+| Integration | TAM ad alanı parçalarıyla 3857/3857 yeşil: Ordering 668, Web 821 (head `45641703`); main `33a9d21a` birleştirildikten sonra Model 1410 (sınıf harf gruplarıyla dört parça 319+427+370+294), Files+Payment 178, Administration+Catalog+Commands+Concurrency+CorporateContent 446, Database+Disposal+FileSecrets+Jobs+Logging+Outages+Security+SignedEndpoints 334; birleştirmenin getirdiği T549 testleri için `StorefrontSearchAndProductTests` 32/32 yeniden. `Pages` ad alanı yalnız yardımcı sınıflar (test yok). |
+| Unit (birleştirme sonrası) | `Architecture` 1702/1702, `Pages` 339/339 |
+| `dotnet format --verify-no-changes` | Web, UnitTests, IntegrationTests (değişen dosyalar `--include` ile) temiz |
 
 ## Doğrulama
 

@@ -78,6 +78,14 @@ public sealed class OrderScreenTextsTests
     }
 
     [Fact]
+    public void TheWithdrawalRecord_NamesTheReturnAddressWrittenIntoIt_KK2_KK3()
+    {
+        Assert.Equal(
+            "İade adresi: Örnek Ltd., Depo Sokak 3, Kadıköy / İstanbul",
+            OrderScreenTexts.RecordReturnAddress("Örnek Ltd.", "Depo Sokak 3", "Kadıköy", "İstanbul"));
+    }
+
+    [Fact]
     public void FurtherInformation_GoesToTheFirmsEmail_WhenThereIsOne_KK6()
     {
         Assert.Contains("destek@example.com", OrderScreenTexts.MoreInformation("destek@example.com"), StringComparison.Ordinal);

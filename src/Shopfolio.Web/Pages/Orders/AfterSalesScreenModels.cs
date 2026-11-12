@@ -123,8 +123,8 @@ public abstract class AfterSalesScreenModel : PageModel
     protected static int? ParseQuantity(string? text) =>
         int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out int value) && value >= 1 ? value : null;
 
-    /// <summary>The province's name of an address, or an empty text when the list does not carry it.</summary>
-    protected static string ProvinceNameOf(IReadOnlyList<ProvinceInfo> provinces, Guid provinceId) =>
+    /// <summary>The province's name of an address, or an empty text when the list does not carry it (the screens and the order page's withdrawal record).</summary>
+    internal static string ProvinceNameOf(IReadOnlyList<ProvinceInfo> provinces, Guid provinceId) =>
         provinces.FirstOrDefault(p => p.Id == provinceId)?.Name ?? string.Empty;
 
     private void KeepSent()

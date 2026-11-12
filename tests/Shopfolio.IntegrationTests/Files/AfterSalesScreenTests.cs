@@ -15,6 +15,7 @@ using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Settings;
+using Shopfolio.Pages.Components;
 using Shopfolio.Pages.Orders;
 
 namespace Shopfolio.IntegrationTests.Files;
@@ -123,6 +124,27 @@ public sealed class AfterSalesScreenTests : IAsyncLifetime
         Assert.Contains("name=\"Iban\"", html, StringComparison.Ordinal);
         Assert.Equal((HttpStatusCode.SeeOther, NoticeParameter.Address(OrderRoutes.AccessPath(closedKey), NoticeCode.OperationClosed)), (closed.StatusCode, closed.Headers.Location!.OriginalString));
         Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+        Assert.DoesNotContain(OrderScreenTexts.PackagingConditionText, html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TheWithdrawalScreen_ShowsTheConditionalExemptionsLine_OnlyOnTheItemThatHasIt_KK1()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (_, string key, Guid itemId, string name) = await SeedAsync(host, "Shipped", 1);
+        await using (AppDbContext db = host.NewContext())
+        {
+            OrderItem item = await db.OrderItems.SingleAsync(i => i.Id == itemId, Ct);
+            item.WithdrawalExemptionReason = WithdrawalExemptionReason.HygieneSensitive;
+            await db.SaveChangesAsync(Ct);
+        }
+
+        using HttpResponseMessage page = await host.Client.GetAsync(At(Withdrawal(key)), Ct);
+
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+        string html = WebUtility.HtmlDecode(await page.Content.ReadAsStringAsync(Ct));
+        Assert.Contains(name, html, StringComparison.Ordinal);
+        Assert.Contains(OrderScreenTexts.PackagingConditionText, html, StringComparison.Ordinal);
     }
 
     // ---- KK2, KK3: the last step writes nothing; the declaration freezes the return address ----
@@ -150,6 +172,14 @@ public sealed class AfterSalesScreenTests : IAsyncLifetime
             Withdrawal row = await db.Withdrawals.SingleAsync(w => w.OrderItemId == itemId, Ct);
             Assert.Equal((2, "Depo Sokak 3"), (row.Quantity, row.ReturnAddressLine));
             Assert.Equal(TurkeyTime.DateOf(host.Time.GetUtcNow()), row.DeclarationDate);
+
+            // 07 UC-43, 04 5.18.10 and 5.16.5: the root shows the declaration's date and the address written into it, not the firm's changed one (K-665).
+            using HttpResponseMessage root = await host.Client.GetAsync(At(OrderRoutes.AccessPath(key)), Ct);
+            string rootHtml = WebUtility.HtmlDecode(await root.Content.ReadAsStringAsync(Ct));
+            Assert.Contains(OrderScreenTexts.ReturnAddressTitle + ": ", rootHtml, StringComparison.Ordinal);
+            Assert.Contains(", Depo Sokak 3, ", rootHtml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Değişen Sokak 7", rootHtml, StringComparison.Ordinal);
+            Assert.Contains(DisplayFormat.Date(row.CreatedAt), rootHtml, StringComparison.Ordinal);
         }
         finally
         {
@@ -278,6 +308,11 @@ public sealed class AfterSalesScreenTests : IAsyncLifetime
         await using AppDbContext db = host.NewContext();
         DefectClaim claim = await db.DefectClaims.SingleAsync(c => c.OrderItemId == itemId, Ct);
         Assert.Equal((DefectClaimStatus.Open, 2, "Çatlak", "Depo Sokak 3"), (claim.DefectClaimStatus, claim.Quantity, claim.Description, claim.ReturnAddressLine));
+
+        // 04 5.16.5: the claim's record on the item's row carries its status badge.
+        using HttpResponseMessage root = await host.Client.GetAsync(At(OrderRoutes.AccessPath(key)), Ct);
+        string rootHtml = WebUtility.HtmlDecode(await root.Content.ReadAsStringAsync(Ct));
+        Assert.Contains("<span class=\"badge badge--warning\">" + StatusBadges.For(DefectClaimStatus.Open).Text + "</span>", rootHtml, StringComparison.Ordinal);
     }
 
     // ---- KK9: three 422s, three 303s, the 404 ----

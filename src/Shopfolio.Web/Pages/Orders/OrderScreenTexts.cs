@@ -42,6 +42,10 @@ public static class OrderScreenTexts
 
     public const string ReturnAddressTitle = "İade adresi";
 
+    /// <summary>04 5.16.5; 02 3.1.7; K-665: the withdrawal's record on the item's row names the return address written into the declaration, not the firm's address of today.</summary>
+    public static string RecordReturnAddress(string recipientName, string addressLine, string district, string provinceName) =>
+        $"{ReturnAddressTitle}: {recipientName}, {addressLine}, {district} / {provinceName}";
+
     public const string DefectClaimName = "Ayıp talebi";
 
     public const string DefectClaimSubmitLabel = "Talebi gönder";

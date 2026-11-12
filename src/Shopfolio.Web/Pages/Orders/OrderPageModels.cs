@@ -52,6 +52,7 @@ public abstract class OrderPageModel : PageModel
     private readonly ISettingsModule _settings;
     private readonly IAfterSalesModule _afterSales;
     private IReadOnlyList<ItemRecordFact> _records = [];
+    private IReadOnlyList<ProvinceInfo> _provinces = [];
 
     protected OrderPageModel(IOrderingModule ordering, IOrderPage page, IOrderOperations operations, IOrderDocuments documents, ISettingsModule settings, IAfterSalesModule afterSales)
     {
@@ -73,7 +74,12 @@ public abstract class OrderPageModel : PageModel
         bool showsUnits = item.Quantity > 1;
         List<ItemRecordEntry> entries =
         [
-            .. _records.Where(r => r.OrderItemId == item.OrderItemId).Select(r => new ItemRecordEntry(NameOf(r.Kind), showsUnits ? r.Quantity : null, r.At)),
+            .. _records.Where(r => r.OrderItemId == item.OrderItemId).Select(r => new ItemRecordEntry(
+                NameOf(r.Kind),
+                showsUnits ? r.Quantity : null,
+                r.At,
+                r.ReturnAddress is { } address ? OrderScreenTexts.RecordReturnAddress(address.RecipientName, address.AddressLine, address.District, AfterSalesScreenModel.ProvinceNameOf(_provinces, address.ProvinceId)) : null,
+                r.ClaimStatus is { } status ? StatusBadges.For(status) : null)),
         ];
         if (item.DeliveryMarkedAt is { } marked)
         {
@@ -258,6 +264,7 @@ public abstract class OrderPageModel : PageModel
         PrivacyNotice = await _settings.GetLegalTextVersionAsync(detail.PrivacyNoticeVersionId, ct);
         ScreenLinks = OrderScreenLink.From(operations, RootPath);
         _records = await _afterSales.ListItemRecordsAsync([.. detail.Items.Select(i => i.OrderItemId)], ct);
+        _provinces = _records.Any(r => r.ReturnAddress is not null) ? await _settings.GetProvincesAsync(ct) : [];
         return true;
     }
 }

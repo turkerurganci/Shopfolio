@@ -9,7 +9,7 @@
 @*
     The registration screen (T514; 04 5.20; 07 UC-47 to UC-49). Order of the content (04 5.20.3): the heading, the form (name, e-mail, secret), the privacy notice's link, the button. The state after
     the send (04 5.20.4) takes the form's place on the same address and carries the resend button. While the gate of the data-collecting entries is closed the form is replaced by the closed sentence and has
-    no button (04 5.20.10). The Google button is T515's. The secret field is never given a value, so no refusal draws it again.
+    no button (04 5.20.10). "Google ile giriş" stands above the form only when the Google application is defined and the form is open (T515; 04 5.20.3, 5.20.11). The secret field is never given a value, so no refusal draws it again.
 *@
 @{
     Layout = "_StorefrontLayout";
@@ -23,6 +23,17 @@
     @Search.Head(ViewContext.HttpContext, RecordPages.ClosedScreen(RegistrationTexts.ScreenName, ViewContext.HttpContext.GetStorefrontFrame()?.Brand.BrandName, FramePaths.Register))
 }
 <h1>@RegistrationTexts.ScreenName</h1>
+@if (Model.ResultMessage is not null)
+{
+    <partial name="_Message" model="Model.ResultMessage" />
+}
+@if (Model.GoogleOpen && Model.Pending is null)
+{
+    <form method="post" asp-antiforgery="true" action="@(FramePaths.Register)?handler=StartSocialLogin" id="google-sign-in" data-js="submit-once">
+        <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(SignInTexts.GoogleLabel)">@SignInTexts.GoogleLabel</button>
+        <p class="registration__privacy"><a href="@FramePaths.PrivacyNotice">@SignInTexts.PrivacyNoticeLabel</a></p>
+    </form>
+}
 @if (Model.Pending is not null)
 {
     <section class="registration-sent" id="registration-sent">

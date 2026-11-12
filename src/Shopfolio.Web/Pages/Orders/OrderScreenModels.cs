@@ -181,15 +181,24 @@ public abstract class CustomerOperationPageModel : PageModel
         }
     }
 
-    /// <summary>The script-free last step (07 2.2.4; 04 5.17.6): the page again with the confirmation in place, the form's values carried forward with the mark.</summary>
-    protected IActionResult LastStep(string operationName, string sentence, string handler)
+    /// <summary>
+    /// The script-free last step (07 2.2.4; 04 5.17.6): the page again with the confirmation in place - the items the operation takes by name and units, as the server worked them out (07 4.17.3;
+    /// K-795) - and the form's values carried forward with the mark.
+    /// </summary>
+    protected IActionResult LastStep(string operationName, string sentence, string handler, IEnumerable<(CustomerScreenItem Item, int Quantity)> items)
     {
         KeepSent();
         List<KeyValuePair<string, string>> fields = [.. Sent.Where(f => f.Key != nameof(CancelOrderInput.Confirmed))];
         fields.Add(new(nameof(CancelOrderInput.Confirmed), "true"));
-        Confirm = Confirmations.ForCustomer(operationName, sentence, operationName, ScreenPath, handler, RootPath, fields);
+        Confirm = Confirmations.ForCustomer(operationName, sentence, operationName, ScreenPath, handler, RootPath, fields) with
+        {
+            Items = [.. items.Select(i => new ConfirmItem(ItemNameOf(i.Item), i.Quantity))],
+        };
         return Page();
     }
+
+    /// <summary>Every item of the screen with its open units: the order's cancellation and the termination take them all (04 5.17.4).</summary>
+    protected IEnumerable<(CustomerScreenItem Item, int Quantity)> AllOpenUnits() => Screen.Items.Select(i => (i, i.OpenQuantity));
 
     private void KeepSent()
     {
@@ -243,7 +252,7 @@ public abstract class CancellationPageModel(ICustomerOperations operations, IOrd
             }
 
             return Screen.Operation == CustomerScreenOperation.CancelOrder
-                ? LastStep("Siparişi iptal et", "Siparişiniz iptal edilecek.", "CancelOrder")
+                ? LastStep("Siparişi iptal et", "Siparişiniz iptal edilecek.", "CancelOrder", AllOpenUnits())
                 : OperationRefusals.ToOrderPage(this, new OperationVerdict(OperationDecision.Closed, OperationAvailability.Closed), RootPath);
         }
 
@@ -316,6 +325,13 @@ public abstract class CancellationPageModel(ICustomerOperations operations, IOrd
                 return AccessDenial.NotFound();
             }
 
+            // A quantity above the item's upper limit, or an open quantity other than the one the screen showed, is refused here as the confirmed write would refuse it (K-1170 (4), K-1202):
+            // the last step never says "iptal edilecek" for a choice the write will not apply.
+            if (lines.Any(l => Screen.Items.First(i => i.OrderItemId == l.OrderItemId) is { } item && (l.Quantity > item.MaxQuantity || l.OriginalOpenQuantity != item.OpenQuantity)))
+            {
+                return OperationRefusals.ToOrderPage(this, new OperationVerdict(OperationDecision.QuantityExceedsOpen, OperationAvailability.Closed), RootPath);
+            }
+
             if (Screen.AsksIban && string.IsNullOrWhiteSpace(input.Iban))
             {
                 ModelState.AddFieldError(IbanFieldName, FieldCodes.FieldRequired);
@@ -326,7 +342,7 @@ public abstract class CancellationPageModel(ICustomerOperations operations, IOrd
             bool fee = _operations.CancellationRefundsShippingFee(Screen.OpenPhysicalUnits, selected);
             string amount = fee ? "bu ürünler için ödediğiniz tutar ve kargo ücreti" : "bu ürünler için ödediğiniz tutar";
             string sentence = $"Seçtiğiniz {DisplayFormat.Number(lines.Sum(l => l.Quantity))} ürün iptal edilecek; {amount} {DisplayFormat.Number(Screen.RefundPeriodDays)} gün içinde {RefundWayText} geri ödenecek.";
-            return LastStep("Seçilen ürünleri iptal et", sentence, "CancelOrderItems");
+            return LastStep("Seçilen ürünleri iptal et", sentence, "CancelOrderItems", Screen.Items.Where(i => selected.ContainsKey(i.OrderItemId)).Select(i => (i, selected[i.OrderItemId])));
         }
 
         return await RunAsync(stepCt => _operations.CancelOrderItemsAsync(orderId, lines, input.Iban, stepCt), ct);
@@ -368,7 +384,7 @@ public abstract class LateDeliveryTerminationPageModel(ICustomerOperations opera
 
             int units = Screen.Items.Sum(i => i.OpenQuantity);
             string sentence = $"Teslim edilmeyen {DisplayFormat.Number(units)} ürün için sözleşme feshedilecek; bu ürünlerin bedeli ve kargo ücreti {DisplayFormat.Number(Screen.RefundPeriodDays)} gün içinde {RefundWayText} geri ödenecek.";
-            return LastStep("Gecikme nedeniyle feshet", sentence, "SubmitLateDeliveryTermination");
+            return LastStep("Gecikme nedeniyle feshet", sentence, "SubmitLateDeliveryTermination", AllOpenUnits());
         }
 
         return await RunAsync(stepCt => _operations.TerminateForLateDeliveryAsync(orderId, input.Iban, stepCt), ct);

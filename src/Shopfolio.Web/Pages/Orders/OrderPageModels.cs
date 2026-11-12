@@ -311,8 +311,8 @@ public abstract class OrderPageModel : PageModel
                 ModelState.AddFieldError(nameof(SaveRefundIbanInput.Iban), FieldCodes.InvalidIban);
                 break;
             default:
-                // The field closed meanwhile - the refund was processed or the request is gone (07 4.16.2: 422, 8.1.3).
-                HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.OperationNotAvailable);
+                // The field closed meanwhile - the refund was processed or the request is gone (07 4.16.2: 422, 8.1.3); UC-35's code for a field that is not open (07 6.2.4).
+                HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.RefundIbanNotRequested);
                 ModelState.AddModelError(string.Empty, IbanFieldClosedText);
                 break;
         }

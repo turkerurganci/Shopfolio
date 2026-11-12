@@ -428,6 +428,12 @@
     margin-block: 0 var(--space-2);
 }
 
+.confirm__items {
+    margin-block: 0 var(--space-3);
+    padding-inline-start: var(--space-4);
+    overflow-wrap: anywhere;
+}
+
 .confirm__buttons {
     display: flex;
     flex-wrap: wrap;

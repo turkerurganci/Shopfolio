@@ -443,7 +443,47 @@ public sealed class CustomerOperationsTests : IAsyncLifetime
         Assert.Equal(dispatches, await CountDispatchesAsync(order.Id));
     }
 
+    // ---- 09 20 item 4: the IBAN fields are read in a fixed number of commands ----
+
+    [Fact]
+    public async Task TheIbanFields_AreReadInTheSameNumberOfCommands_WhateverTheNumberOfIbansOnFile_EachOnItsOwnItem_09_20()
+    {
+        (Order one, List<OrderItem> oneItems) = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, PaymentMethod.BankTransfer, new Line(ProductType.Physical, 2));
+        (Order three, List<OrderItem> threeItems) = await SeedAsync(
+            OrderStatus.Preparing, PaymentStatus.Paid, PaymentMethod.BankTransfer, new Line(ProductType.Physical, 2), new Line(ProductType.Physical, 2), new Line(ProductType.Physical, 2));
+        Assert.Equal(CustomerOperationOutcome.Applied, (await OperateAsync((o, t) => o.CancelOrderItemsAsync(one.Id, [new CancelOrderItemsLine(oneItems[0].Id, 1, 2)], ValidIban, t))).Outcome);
+        foreach (OrderItem item in threeItems)
+        {
+            Assert.Equal(CustomerOperationOutcome.Applied, (await OperateAsync((o, t) => o.CancelOrderItemsAsync(three.Id, [new CancelOrderItemsLine(item.Id, 1, 2)], ValidIban, t))).Outcome);
+        }
+
+        await using (AppDbContext reader = NewContext())
+        {
+            Assert.Equal(3, await reader.RefundIbans.CountAsync(i => i.OrderId == three.Id, Ct));
+        }
+
+        (IReadOnlyList<RefundIbanFieldView> oneFields, int oneCommands) = await CountedFieldsAsync(one.Id);
+        (IReadOnlyList<RefundIbanFieldView> threeFields, int threeCommands) = await CountedFieldsAsync(three.Id);
+
+        Assert.Equal(oneItems[0].Id, Assert.Single(oneFields).OrderItemId);
+        Assert.Equal(threeItems.Select(i => (Guid?)i.Id).Order(), threeFields.Select(f => f.OrderItemId).Order());
+        Assert.All(threeFields, f => Assert.Equal(ValidIban, f.Iban));
+        Assert.Equal(oneCommands, threeCommands);
+    }
+
     // ---- helpers ----
+
+    /// <summary>The order page's IBAN fields with the number of commands the read sent (09 20 item 4).</summary>
+    private async Task<(IReadOnlyList<RefundIbanFieldView> Fields, int Commands)> CountedFieldsAsync(Guid orderId)
+    {
+        Shopfolio.IntegrationTests.Web.StorefrontSearchAndProductTests.CommandCounter counter = new();
+        await using ServiceProvider provider = BuildProvider(counter);
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        ICustomerOperations operations = scope.ServiceProvider.GetRequiredService<ICustomerOperations>();
+        int before = counter.Count;
+        IReadOnlyList<RefundIbanFieldView> fields = await operations.ReadRefundIbanFieldsAsync(orderId, Ct);
+        return (fields, counter.Count - before);
+    }
 
     private async Task<CustomerOperationScreen?> ScreenAsync(Guid orderId, CustomerScreen screen)
     {
@@ -587,10 +627,17 @@ public sealed class CustomerOperationsTests : IAsyncLifetime
         return (order, items);
     }
 
-    private ServiceProvider BuildProvider()
+    private ServiceProvider BuildProvider(Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor? interceptor = null)
     {
         ServiceCollection services = new();
-        services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, _collection.Dsn));
+        services.AddDbContext<AppDbContext>(options =>
+        {
+            AppDbContext.Configure(options, _collection.Dsn);
+            if (interceptor is not null)
+            {
+                options.AddInterceptors(interceptor);
+            }
+        });
         services.AddSingleton(NpgsqlDataSource.Create(_collection.Dsn));
         services.AddScoped<JobEnqueueTracker>();
         services.AddSingleton<IJobSignal, JobSignal>();

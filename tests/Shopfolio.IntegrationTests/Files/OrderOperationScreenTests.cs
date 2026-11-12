@@ -1,8 +1,10 @@
 using System.Net;
+using System.Text.RegularExpressions;
 
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Routing;
@@ -64,6 +66,80 @@ public sealed class OrderOperationScreenTests
         Assert.Equal(HttpStatusCode.SeeOther, confirmed.StatusCode);
         Assert.Equal(root, confirmed.Headers.Location!.OriginalString);
         Assert.Equal(OrderStatus.Cancelled, await StatusAsync(host, orderId));
+    }
+
+    // ---- KK4, K-795 (04 5.17.6; 07 4.17.3): the last step names the items with their units ----
+
+    [Fact]
+    public async Task TheLastStep_OfTheOrdersCancellation_ListsEveryItemByNameWithItsUnits_KK4_K795()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (Guid orderId, string key, Guid itemId) = await SeedAsync(host, null, 2);
+        string screen = OrderRoutes.ScreenPath(OrderRoutes.AccessPath(key), "iptal");
+
+        using HttpResponseMessage lastStep = await PostAsync(host, screen, "CancelOrder", []);
+
+        Assert.Equal(HttpStatusCode.OK, lastStep.StatusCode);
+        Assert.Equal([(await NameAsync(host, itemId), "2 adet")], LastStepItems(await lastStep.Content.ReadAsStringAsync(Ct)));
+        Assert.Equal(OrderStatus.Placed, await StatusAsync(host, orderId));
+    }
+
+    [Fact]
+    public async Task TheLastStep_OfTheItemCancellation_ListsTheChosenItemsByNameWithTheChosenUnits_AndOnlyThem_KK4_K795()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (Guid orderId, string key, Guid itemId) = await SeedAsync(host, PaymentStatus.Paid, 3);
+        Guid otherItemId = await AddItemAsync(host, orderId, 2);
+        string screen = OrderRoutes.ScreenPath(OrderRoutes.AccessPath(key), "iptal");
+        int index = await ScreenIndexAsync(host, screen, itemId);
+
+        using HttpResponseMessage lastStep = await PostAsync(host, screen, "CancelOrderItems", [.. Line(index, itemId, "2", 3), new("Iban", ValidIban)]);
+
+        Assert.Equal(HttpStatusCode.OK, lastStep.StatusCode);
+        string html = await lastStep.Content.ReadAsStringAsync(Ct);
+        Assert.Equal([(await NameAsync(host, itemId), "2 adet")], LastStepItems(html));
+        Assert.DoesNotContain(await NameAsync(host, otherItemId), WebUtility.HtmlDecode(html[html.IndexOf("confirm__items", StringComparison.Ordinal)..]), StringComparison.Ordinal);
+        Assert.Contains("Seçtiğiniz 2 ürün iptal edilecek", WebUtility.HtmlDecode(html), StringComparison.Ordinal);
+        await AssertNoCancellationAsync(host, orderId);
+    }
+
+    [Fact]
+    public async Task TheLastStep_OfTheTermination_ListsEveryUndeliveredItemByNameWithItsOpenUnits_KK4_K795()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (Guid orderId, string key, Guid itemId) = await SeedAsync(host, PaymentStatus.Paid, 2);
+        await using (AppDbContext db = host.NewContext())
+        {
+            host.Time.SetUtcNow(DeliveryPeriodRules.LegalDeliveryLimitEnd((await db.Orders.SingleAsync(o => o.Id == orderId, Ct)).CreatedAt).AddHours(1));
+        }
+
+        string screen = OrderRoutes.ScreenPath(OrderRoutes.AccessPath(key), "gecikme-feshi");
+
+        using HttpResponseMessage lastStep = await PostAsync(host, screen, "SubmitLateDeliveryTermination", [new("Iban", ValidIban)]);
+
+        Assert.Equal(HttpStatusCode.OK, lastStep.StatusCode);
+        Assert.Equal([(await NameAsync(host, itemId), "2 adet")], LastStepItems(await lastStep.Content.ReadAsStringAsync(Ct)));
+        await using AppDbContext reader = host.NewContext();
+        Assert.False(await reader.LateDeliveryTerminations.AnyAsync(t => t.OrderItemId == itemId, Ct));
+    }
+
+    // ---- K1 (tur 1): the unconfirmed post refuses what the confirmed one would refuse ----
+
+    [Fact]
+    public async Task TheItemCancellationsUnconfirmedPost_AboveTheOpenUnits_OrOnAStaleOpenQuantity_Is303WithTheReason_NotTheLastStep_K1()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (Guid orderId, string key, Guid itemId) = await SeedAsync(host, PaymentStatus.Paid, 2);
+        string root = OrderRoutes.AccessPath(key);
+        string screen = OrderRoutes.ScreenPath(root, "iptal");
+
+        using HttpResponseMessage exceeds = await PostAsync(host, screen, "CancelOrderItems", [.. Line(0, itemId, "3", 2), new("Iban", ValidIban)]);
+        using HttpResponseMessage stale = await PostAsync(host, screen, "CancelOrderItems", [.. Line(0, itemId, "1", 1), new("Iban", ValidIban)]);
+
+        string exceeded = NoticeParameter.Address(root, NoticeCode.QuantityExceedsOpen);
+        Assert.Equal((HttpStatusCode.SeeOther, exceeded), (exceeds.StatusCode, exceeds.Headers.Location!.OriginalString));
+        Assert.Equal((HttpStatusCode.SeeOther, exceeded), (stale.StatusCode, stale.Headers.Location!.OriginalString));
+        await AssertNoCancellationAsync(host, orderId);
     }
 
     // ---- KK6: the closed operation and the unknown root ----
@@ -201,6 +277,20 @@ public sealed class OrderOperationScreenTests
         Assert.Equal(CorrectedIban, (await reader.RefundIbans.SingleAsync(i => i.Id == cancellation.RefundIbanId, Ct)).Iban);
     }
 
+    [Fact]
+    public async Task SaveRefundIban_OnAFieldThatIsNotOpen_Is422_WithOneRefundIbanNotRequestedRejectionLine_VALA490()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (_, string key, Guid itemId) = await SeedAsync(host, PaymentStatus.Paid, 2);
+        string root = OrderRoutes.AccessPath(key);
+        int before = RejectionLines(host).Count;
+
+        using HttpResponseMessage closed = await SaveIbanAsync(host, root, itemId, CorrectedIban);
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, closed.StatusCode);
+        Assert.EndsWith(" " + ErrorCode.RefundIbanNotRequested, Assert.Single(RejectionLines(host).Skip(before)), StringComparison.Ordinal);
+    }
+
     // ---- D-1196: the order page's buttons open their screens ----
 
     [Fact]
@@ -242,6 +332,52 @@ public sealed class OrderOperationScreenTests
 
         return (orderId, key, item.Id);
     }
+
+    /// <summary>A second physical item of the given units on the order.</summary>
+    private static async Task<Guid> AddItemAsync(FileEndpointsHost host, Guid orderId, int quantity)
+    {
+        DateTimeOffset now = host.Time.GetUtcNow();
+        string n = Guid.NewGuid().ToString("N")[..8];
+        await using AppDbContext db = host.NewContext();
+        Product product = Product.Create("Tabak " + n, "tabak-" + n, ProductType.Physical, 20m, now).WithSeededOrigin();
+        Variant variant = Variant.Create(product.Id, "SKU-" + n, 10m, now, 5);
+        db.Products.Add(product);
+        db.Variants.Add(variant);
+        OrderItem item = OrderItem.Create(orderId, product.Id, variant.Id, ProductType.Physical, "Tabak " + n, quantity, 100m, 20m, 16.67m, now);
+        db.OrderItems.Add(item);
+        await db.SaveChangesAsync(Ct);
+        return item.Id;
+    }
+
+    private static async Task<string> NameAsync(FileEndpointsHost host, Guid itemId)
+    {
+        await using AppDbContext db = host.NewContext();
+        return (await db.OrderItems.SingleAsync(i => i.Id == itemId, Ct)).ProductName;
+    }
+
+    /// <summary>The row of the item on the screen as the server draws it: the form's index of its checkbox.</summary>
+    private static async Task<int> ScreenIndexAsync(FileEndpointsHost host, string screen, Guid itemId)
+    {
+        using HttpResponseMessage page = await host.Client.GetAsync(At(screen), Ct);
+        Match row = Regex.Match(
+            await page.Content.ReadAsStringAsync(Ct), "name=\"Items\\[(\\d+)\\]\\.OrderItemId\" value=\"" + itemId + "\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
+        Assert.True(row.Success, "The item is not on the screen.");
+        return int.Parse(row.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>The last step's list (04 5.17.6): each item's name and units, in the order drawn.</summary>
+    private static List<(string Name, string Units)> LastStepItems(string html) =>
+    [
+        .. Regex.Matches(
+                WebUtility.HtmlDecode(html),
+                "<span class=\"confirm__item-name\">([^<]*)</span> · <span class=\"confirm__item-quantity\">([^<]*)</span>",
+                RegexOptions.CultureInvariant,
+                TimeSpan.FromSeconds(2))
+            .Select(m => (m.Groups[1].Value, m.Groups[2].Value)),
+    ];
+
+    private static List<string> RejectionLines(FileEndpointsHost host) =>
+        [.. host.Logs.Lines.Where(l => l.Contains("RejectionLog|", StringComparison.Ordinal) && l.Contains(LogEvents.ValidationRejected, StringComparison.Ordinal))];
 
     private static KeyValuePair<string, string>[] Line(int index, Guid itemId, string quantity, int originalOpen) =>
     [

@@ -61,6 +61,12 @@ public interface INotificationsModule
     /// </summary>
     Task<IReadOnlySet<Guid>> FindClaimsWithUndeliveredMarkAsync(IReadOnlyCollection<Guid> claimIds, CancellationToken ct);
 
+    /// <summary>
+    /// The administrator invitations among <paramref name="invitationIds"/> whose invitation e-mail carries the "e-posta ulaşmadı" mark (T522; 02 9.4; 04 9.20.4): the reading of <c>AccountEmailHasMarkAsync</c> for
+    /// all the invitations of the panel's list in one query. An invitation with no mark is not in the answer. A plain read.
+    /// </summary>
+    Task<IReadOnlySet<Guid>> FindAdminInvitationsWithUndeliveredMarkAsync(IReadOnlyCollection<Guid> invitationIds, CancellationToken ct);
+
     /// <summary>The order's customer notices that carry the mark - what the order detail's re-send buttons stand for (T385; 02 9.1.6); oldest first. A plain read.</summary>
     Task<IReadOnlyList<UndeliveredNotice>> FindUndeliveredNoticesAsync(Guid orderId, CancellationToken ct);
 

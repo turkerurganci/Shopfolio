@@ -27,6 +27,8 @@ internal sealed class AccountEmailOnlyNotifications(AccountEmailQueue queue, App
     public Task<bool> ClaimHasUndeliveredMarkAsync(DispatchRelatedRecordType recordType, Guid recordId, CancellationToken ct) => throw new NotSupportedException();
     public Task<IReadOnlySet<Guid>> FindClaimsWithUndeliveredMarkAsync(IReadOnlyCollection<Guid> claimIds, CancellationToken ct) => throw new NotSupportedException();
 
+    public Task<IReadOnlySet<Guid>> FindAdminInvitationsWithUndeliveredMarkAsync(IReadOnlyCollection<Guid> invitationIds, CancellationToken ct) => throw new NotSupportedException();
+
     public Task<IReadOnlyList<UndeliveredNotice>> FindUndeliveredNoticesAsync(Guid orderId, CancellationToken ct) => throw new NotSupportedException();
 
     public Task<IReadOnlyList<OrderNoticeLine>> ListOrderNoticesAsync(Guid orderId, CancellationToken ct) => throw new NotSupportedException();

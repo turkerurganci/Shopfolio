@@ -277,6 +277,34 @@ public sealed class AccountEmailQueueTests : IAsyncLifetime
         Assert.False(await DispatchMarks.AccountEmailHasMarkAsync(db, DispatchType.GoogleLinkConfirmationLink, customer.Id, Ct));
     }
 
+    [Fact]
+    public async Task TheListReadingOfTheMark_NamesOnlyTheInvitationsWhoseLatestRowIsUndelivered_InOneRead_T522()
+    {
+        Admin admin = await SeedAdminAsync("Ali Yılmaz", "ali.admin@example.com");
+        AdminInvitation marked = await SeedInvitationAsync("isaretli@example.com", admin);
+        AdminInvitation delivered = await SeedInvitationAsync("ulasti@example.com", admin);
+        AdminInvitation withoutRow = await SeedInvitationAsync("satirsiz@example.com", admin);
+        Guid link = Guid.CreateVersion7();
+        await RunAsync(queue => Task.FromResult(queue.Queue(new AdminInvitationEmail(marked.Id, link, "isaretli@example.com", "Ali Yılmaz"))));
+        await RunAsync(queue => Task.FromResult(queue.Queue(new AdminInvitationEmail(delivered.Id, link, "ulasti@example.com", "Ali Yılmaz"))));
+        await using (AppDbContext write = NewContext())
+        {
+            // The firm notice F-6 naming the unmarked invitation is not an invitation e-mail: even undelivered it puts no mark.
+            DispatchRecord notice = DispatchRecord.Queue(DispatchType.F6, "ali.admin@example.com", null, DispatchRelatedRecordType.AdminInvitation, withoutRow.Id, Now);
+            write.DispatchRecords.Add(notice);
+            await write.SaveChangesAsync(Ct);
+        }
+
+        await ExecuteAsync("UPDATE dispatch_records SET dispatch_state = 'Undelivered', next_attempt_at = NULL, attempt_count = 4, last_outcome = 'RecipientError' WHERE dispatch_type = 'F6' OR related_record_id = '" + marked.Id + "'");
+
+        await using AppDbContext db = NewContext();
+        IReadOnlySet<Guid> result = await DispatchMarks.InvitationsWithMarkAsync(db, [marked.Id, delivered.Id, withoutRow.Id, marked.Id], Ct);
+
+        Assert.Equal([marked.Id], result);
+        Assert.Empty(await DispatchMarks.InvitationsWithMarkAsync(db, [], Ct));
+        Assert.Empty(await DispatchMarks.InvitationsWithMarkAsync(db, [Guid.CreateVersion7()], Ct));
+    }
+
     // ---- KK10: the Google confirmation ----
 
     [Fact]

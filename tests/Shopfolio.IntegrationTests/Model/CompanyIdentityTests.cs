@@ -51,6 +51,8 @@ public sealed class CompanyIdentityTests : IAsyncLifetime
 
     private Guid _provinceId;
 
+    private Admin _admin = null!;
+
     private int _orderCounter;
 
     public CompanyIdentityTests(CollectionDatabaseFixture collection)
@@ -62,7 +64,8 @@ public sealed class CompanyIdentityTests : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        await ExecuteAsync("TRUNCATE provinces, companies, company_settings, legal_text_versions, countries CASCADE");
+        await ExecuteAsync("TRUNCATE provinces, companies, company_settings, legal_text_versions, countries, admins, audit_logs CASCADE");
+        _admin = Admin.Create("Ali Yılmaz", "ali@example.com", "hash", Now);
         Province province = Province.Create("06", "Ankara", Now);
         CompanySettings settings = CompanySettings.Create(Now);
         settings.BankTransferPaymentWindow = 1;
@@ -78,6 +81,7 @@ public sealed class CompanyIdentityTests : IAsyncLifetime
         {
             c.Provinces.Add(province);
             c.Companies.Add(Company.Create(Now));
+            c.Admins.Add(_admin);
             c.CompanySettings.Add(settings);
         });
         _provinceId = province.Id;
@@ -466,7 +470,7 @@ public sealed class CompanyIdentityTests : IAsyncLifetime
         services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, _collection.Dsn));
         services.AddScoped<CacheInvalidations>();
         services.AddSingleton<TimeProvider>(TimeProvider.System);
-        services.AddScoped<IAuditActorSource, NoActor>();
+        services.AddScoped<IAuditActorSource>(_ => new FixedActor(_admin));
         services.AddScoped<IAuditTrail, AuditTrail>();
         services.AddSettingsModule();
         return services.BuildServiceProvider();
@@ -568,9 +572,9 @@ public sealed class CompanyIdentityTests : IAsyncLifetime
         return (T)(await command.ExecuteScalarAsync(Ct))!;
     }
 
-    /// <summary>The identity and address saves write no trail row, so no administrator is needed; only the switch does.</summary>
-    private sealed class NoActor : IAuditActorSource
+    /// <summary>The identity save writes a trail row (UpdateCompany), so a signed-in administrator is needed.</summary>
+    private sealed class FixedActor(Admin admin) : IAuditActorSource
     {
-        public Task<AuditActor?> CurrentAsync(CancellationToken ct) => Task.FromResult<AuditActor?>(null);
+        public Task<AuditActor?> CurrentAsync(CancellationToken ct) => Task.FromResult<AuditActor?>(new AuditActor(admin.Id, admin.Name, admin.Email));
     }
 }

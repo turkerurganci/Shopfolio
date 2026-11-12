@@ -276,6 +276,7 @@ internal static class AdministrationModuleRegistration
         services.AddScoped<IPanelHomeDetails, PanelHomeDetailsService>();
         services.AddScoped<IPanelRequestList, PanelRequestListService>();
         services.AddScoped<IPanelOrderList, PanelOrderListService>();
+        services.AddScoped<IAdminAccountList, AdminAccountListService>();
         services.AddDisposalPart<AdminInvitationDisposalPart>();
         services.TryAddSingleton<Shopfolio.Infrastructure.ExportTempDirectory>();
         services.AddScoped<IDataExport, DataExport>();

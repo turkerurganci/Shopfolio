@@ -7,7 +7,7 @@ using Shopfolio.Modules.CorporateContent.Contracts;
 namespace Shopfolio.Modules.CorporateContent;
 
 /// <summary>The result of the social links save; a refusal is a return value (09 9.1 item 3).</summary>
-internal sealed record SocialLinksResult(IReadOnlyList<FieldRejection> Rejections) : IOperationResult
+internal sealed record SocialLinksResult(IReadOnlyList<FieldRejection> Rejections, IReadOnlyList<SocialLinkChange>? Changes = null) : IOperationResult
 {
     public bool IsRejected => Rejections.Count > 0;
 }
@@ -65,27 +65,32 @@ internal sealed class SocialLinks
         }
 
         List<SocialLink> rows = await _db.SocialLinks.ToListAsync(ct);
-        foreach ((SocialPlatform platform, string? url) in wanted)
+        List<SocialLinkChange> changes = [];
+        foreach (SocialPlatform platform in Platforms.Where(wanted.ContainsKey))
         {
+            string? url = wanted[platform];
             SocialLink? row = rows.SingleOrDefault(r => r.SocialPlatform == platform);
             if (url is null)
             {
                 if (row is not null)
                 {
                     _db.SocialLinks.Remove(row);
+                    changes.Add(new SocialLinkChange(platform.ToString(), row.Url, null));
                 }
             }
             else if (row is null)
             {
                 _db.SocialLinks.Add(SocialLink.Create(platform, url, _time.GetUtcNow()));
+                changes.Add(new SocialLinkChange(platform.ToString(), null, url));
             }
-            else
+            else if (!string.Equals(row.Url, url, StringComparison.Ordinal))
             {
+                changes.Add(new SocialLinkChange(platform.ToString(), row.Url, url));
                 row.Url = url;
             }
         }
 
-        return new SocialLinksResult([]);
+        return new SocialLinksResult([], changes);
     }
 
     /// <summary>The links the site shows, in the order of the closed list. A plain read.</summary>

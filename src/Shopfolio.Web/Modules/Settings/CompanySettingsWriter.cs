@@ -106,6 +106,28 @@ internal sealed class CompanySettingsWriter
         return Written(written);
     }
 
+    /// <summary>Writes the home page and menu section (layout, six menu names, WhatsApp number; 06 4.2) by one update conditional on the section's version; same contract as <see cref="WriteShippingFeeAsync"/>.</summary>
+    public async Task<bool> WriteHomepageAsync(CorporateContent.Contracts.HomepageLayout layout, MenuNames names, string? whatsApp, int formVersion, CancellationToken ct)
+    {
+        // The names are read into locals first: the bulk-write scan takes "names.Products" for a set of the product form (09 10.2 items 2-4); this is the settings row.
+        (string productsName, string offeringsName, string portfolioName, string aboutName, string faqName, string contactName) = (names.Products, names.Offerings, names.PortfolioItems, names.AboutPage, names.FaqItems, names.Contact);
+        int written = await _db.CompanySettings
+            .Where(s => s.HomepageVersion == formVersion)
+            .ExecuteUpdateAsync(
+                set => set
+                    .SetProperty(s => s.HomepageLayout, layout)
+                    .SetProperty(s => s.MenuNameProducts, productsName)
+                    .SetProperty(s => s.MenuNameOfferings, offeringsName)
+                    .SetProperty(s => s.MenuNamePortfolioItems, portfolioName)
+                    .SetProperty(s => s.MenuNameAboutPage, aboutName)
+                    .SetProperty(s => s.MenuNameFaqItems, faqName)
+                    .SetProperty(s => s.MenuNameContact, contactName)
+                    .SetProperty(s => s.WhatsAppNumber, whatsApp)
+                    .SetProperty(s => s.HomepageVersion, s => s.HomepageVersion + 1),
+                ct);
+        return Written(written);
+    }
+
     /// <summary>Writes the payment methods section (the bank transfer switch and its IBAN; 02 3.21.5) by one update conditional on the section's version; same contract as <see cref="WriteShippingFeeAsync"/>.</summary>
     public async Task<bool> WritePaymentMethodsAsync(bool isBankTransferEnabled, string? bankTransferIban, int formVersion, CancellationToken ct)
     {

@@ -1,6 +1,6 @@
 # T515 — Müşteri girişi ve Google ile giriş (E-22)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-12
 
 ---
 
@@ -62,10 +62,12 @@ Backlog payı: D-81, D-556, D-558, D-577, D-619, D-1070 ✅ (yerinde kapatıldı
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu (tur 1) | ✓ PASS — tur 1 (2026-11-12, head `0cc6a93a`; `origin/main` `4b37cf0c` (T522 #557) dalda birleşik, main ilerlemedi). Kriter 1–9 ve KK1–KK9 ✓ (kanıtlar: `CustomerSignInPageTests` 33, `GoogleSignInFlowTests`, `ReturnPathTests`, `SignInTextsTests`, `CartTests...D619`; modül: `MembershipSessionTests` (tanınan tarayıcı, sahte özet D-364), `MembershipGoogleTests`). Derleme `-warnaserror` temiz; format üç projede temiz; Unit TAM 7468/7468 (ilk koşuda 1 kararsız kırmızı, yeniden koşuda yeşil); betik testleri 4/4; Integration parçalı 338/338 (`CustomerSignInPageTests`, `CartTests`, `SessionAccessTests`, `RegistrationPageTests`, `MembershipGoogleTests`, `MembershipPasswordLockOrderTests`, `MembershipSessionTests`, `MembershipSignInAxesTests`, `MembershipSignInLockTests`, `MembershipTests`, `AdminAccountsPageTests`, `ConcurrencyTests`, `FormComponentTests`, `SalesGateTests`) + 107/107 (`PanelAccessPagesTests`, `NotFoundPageTests`, `SitemapEndpointTests`, `AccountAndStatusCommandTests`, `StartupSettingsCheckTests`), TAM: CI. Dal CI run 43262785018 success (Integration dahil; önceki `FormComponentTests...KK5` kararsızlığı bu koşuda görülmedi). Doğrulayıcının geçici sınaması (depoya girmedi): `/kayit` Google yüzü (düğme, 422, 303 + PKCE + akış çerezi, kayıt ekranı mesajı) ve L-1 (429'da `Retry-After` yok, tanınan tarayıcı girer, süre dolunca doğru şifre 303) yeşil. |
+| `12` satırları (tur 1) | PASS: `VAL-B021`, `VAL-A091`, `VAL-A092`, `VAL-A093`, `VAL-A094`, `VAL-A095`, `VAL-A096`. BEKLEMEDE kalır: `VAL-A351`, `VAL-C075` (KP-72, D-801; uç yanıtı payı kalıcı teste girince → D-1405), `VAL-A607` (K-1164; cümle D-1349). |
+| Bulgu sayısı (tur 1) | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (tur 1) | 3 — **K1** (forward D-1405): `/kayit` Google yüzü, L-1'de tanınan tarayıcı ve süre dolunca giriş, gerçek misafir sepetinin `/giris`'te birleşmesi sayfa düzeyinde kalıcı teste girmedi (geçici sınamada yeşil; birleşme modülde sınanıyor). **K2** (forward D-1406): hedefinde T515 olan D-109, D-254, D-557, D-572, D-801, D-806'nın T515 payı kalem satırlarına yazılmadı (yalnız raporda). **K3** (D-1349'a eklendi): `SessionClosed` cümlesi `04 3.6.5`'in "kaydedilmemiş değişiklikler korunmaz" yarısını taşımıyor (`VAL-A607`). Ayrıca D-1350, D-1352, D-1353'teki yanlış doküman dosya adları (`07_API_CONTRACT`, `05_SYSTEM_ARCHITECTURE`) bu PR'da düzeltildi. |
+| Yapım raporu karşılaştırması (tur 1) | Kabul kriterlerinde tam uyum (1–9 ✓); öz denetim tablosu var. Uyuşmazlık 2: kriter 4 kanıtı olarak gösterilen `TooManyWrongPasswordsOfOneAddress_...KK4` hesabın kilitlenmediğini ve tanınan tarayıcıyı sayfa düzeyinde sınamaz (müşteri sayısını sayar; davranış modül testleriyle ve doğrulayıcının geçici sınamasıyla kanıtlandı → K1); rapor A351/C075'i bu teste bağlar, C075'in "süre dolunca kabul" yarısı o testte yok. |
 
 ## Altyapı Değişiklikleri
 

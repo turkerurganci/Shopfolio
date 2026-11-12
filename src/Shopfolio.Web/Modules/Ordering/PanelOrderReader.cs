@@ -49,7 +49,55 @@ internal sealed class PanelOrderReader : IPanelOrderReader
         _time = time;
     }
 
-    public Task<IReadOnlyList<OrderRunningPeriod>> FindRunningPeriodsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct) => _periods.RunningPeriodsAsync(orderIds, ct);
+    public async Task<IReadOnlyList<OrderRunningPeriod>> FindRunningPeriodsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderIds);
+        Guid[] ids = [.. orderIds.Distinct()];
+        if (ids.Length == 0)
+        {
+            return [];
+        }
+
+        List<OrderRunningPeriod> periods = [.. await _periods.RunningPeriodsAsync(ids, ct)];
+
+        // Z-8: the last payment day of a transfer order that still waits - the day before its window ends, as the customer's notices write it (B-2, B-3).
+        List<Order> awaiting = await _db.Orders.AsNoTracking()
+            .Where(o => ids.Contains(o.Id))
+            .Where(PaymentWindowRules.Awaiting(PaymentMethod.BankTransfer))
+            .ToListAsync(ct);
+        periods.AddRange(awaiting.Select(o => new OrderRunningPeriod(o.Id, CountedPeriod.BankTransferPaymentWindow, TurkeyTime.DateOf(o.PaymentWindowEndsAt.AddTicks(-1)))));
+
+        // Z-16, Z-17: each refund not yet sent runs from its start, as on the order's page (04 9.9.6) - the AfterSales rule gives the last day.
+        IReadOnlyList<PendingRefundStart> refunds = await _payment.ListPendingRefundStartsAsync(ids, ct);
+        periods.AddRange(refunds.Select(r => new OrderRunningPeriod(r.OrderId, CountedPeriod.RefundPeriod, _afterSales.RefundLastDay(r.StartedAt))));
+        return periods;
+    }
+
+    public async Task<IReadOnlyDictionary<Guid, PanelOrderMarkFacts>> FindListMarksAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderIds);
+        Guid[] ids = [.. orderIds.Distinct()];
+        if (ids.Length == 0)
+        {
+            return new Dictionary<Guid, PanelOrderMarkFacts>();
+        }
+
+        // The page's marks by the same rules as the order's page (ReadDetailAsync): one query per mark kind, whatever the number of orders (09 20 item 4).
+        DateTimeOffset now = _time.GetUtcNow();
+        List<Order> orders = await _db.Orders.AsNoTracking().Where(o => ids.Contains(o.Id)).ToListAsync(ct);
+        IReadOnlySet<Guid> undelivered = await _notifications.FindMarkedOrdersAmongAsync(ids, ct);
+        IReadOnlyDictionary<Guid, RefundMarks> refundMarks = await _payment.ReadRefundMarksOfOrdersAsync(ids, ct);
+        HashSet<Guid> corrected = [.. await _db.OrderEmailHistories.AsNoTracking().Where(h => ids.Contains(h.OrderId)).Select(h => h.OrderId).Distinct().ToListAsync(ct)];
+
+        return orders.ToDictionary(
+            o => o.Id,
+            o => new PanelOrderMarkFacts(
+                undelivered.Contains(o.Id),
+                PaymentWindowRules.IsPaymentOutcomeUnknown(o, now),
+                refundMarks.TryGetValue(o.Id, out RefundMarks? r) && r.IsNotRealized,
+                r is not null && r.IsOutcomePending,
+                corrected.Contains(o.Id)));
+    }
 
     public async Task<PanelOrderDetailFacts?> ReadDetailAsync(Guid orderId, CancellationToken ct)
     {
@@ -85,7 +133,7 @@ internal sealed class PanelOrderReader : IPanelOrderReader
                 r.Amount,
                 r.Way,
                 r.Way == PaymentMethod.BankTransfer ? IbanOf(ibanFields, r) : null,
-                _afterSales.RefundLastDay(r.StartedAt))),
+                r.HasPeriod ? _afterSales.RefundLastDay(r.StartedAt) : null)),
         ];
 
         IReadOnlyDictionary<Guid, string> provinces = (await _settings.GetProvincesAsync(ct)).ToDictionary(p => p.Id, p => p.Name);

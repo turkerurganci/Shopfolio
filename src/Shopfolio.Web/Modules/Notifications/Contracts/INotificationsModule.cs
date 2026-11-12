@@ -83,6 +83,12 @@ public interface INotificationsModule
     Task<IReadOnlyList<Guid>> FindMarkedOrderIdsAsync(Guid? afterOrderId, int maxOrders, CancellationToken ct);
 
     /// <summary>
+    /// The orders among <paramref name="orderIds"/> that carry the "e-posta ulaşmadı" mark (T527; 04 9.8.5): the same rule as the order's own mark, for a page of the panel's order list in one query.
+    /// A plain read.
+    /// </summary>
+    Task<IReadOnlySet<Guid>> FindMarkedOrdersAmongAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct);
+
+    /// <summary>
     /// Sends a marked customer notice again (T385; 02 9.1.6): writes a new "queued" row into the notice's group, which the ordinary queue sends, and the trail row of the re-sending, in the caller's open
     /// transaction, which the method joins and never opens. Nothing is written when the named row is not the latest row of an "undelivered" group of the order (<see cref="NoticeResendResult.NotMarked"/>).
     /// The order's row lock and the concurrent second request are the caller's (05 4.4.3).

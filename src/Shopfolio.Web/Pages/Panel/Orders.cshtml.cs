@@ -138,6 +138,7 @@ public sealed class OrdersModel : PageModel
         new("Ödeme yöntemi", false),
         new("Sipariş durumu", true),
         new("Ödeme durumu", true),
+        new("İşaretler", false),
         new("Süre", true),
     ];
 
@@ -167,6 +168,7 @@ public sealed class OrdersModel : PageModel
                 OrderListTexts.MethodOf(order.PaymentMethod),
                 shipping.Text,
                 payment.Text,
+                string.Join(" · ", OrderListTexts.MarksOf(row.Marks, PanelMarkPlace.OrderList).Select(PanelMarks.TextOf)),
                 period,
             ],
             ListReturn.LinkTo($"{PanelFramePaths.Orders}/{order.OrderId}", listAddress),
@@ -177,6 +179,20 @@ public sealed class OrdersModel : PageModel
 /// <summary>The order list's own words (04 9.8.4, 9.8.5): the pending work filters' names, the payment method and the running period's label.</summary>
 internal static class OrderListTexts
 {
+    /// <summary>The order's marks whose condition holds and that have a place in <paramref name="place"/> (04 2.5.3; 9.8.5, 9.9.4): the one mapping of the order's mark facts the list and the page share.</summary>
+    public static IReadOnlyList<PanelMark> MarksOf(PanelOrderMarkFacts marks, PanelMarkPlace place)
+    {
+        ArgumentNullException.ThrowIfNull(marks);
+        return PanelMarks.Of(
+            new PanelMarkConditions(
+                EmailNotDelivered: marks.EmailNotDelivered,
+                PaymentResultMissing: marks.PaymentResultMissing,
+                RefundNotCompleted: marks.RefundNotRealized,
+                EmailCorrected: marks.EmailCorrected,
+                RefundResultPending: marks.RefundOutcomePending),
+            place);
+    }
+
     /// <summary>The pending work filter's name: the first five are the home counters' names (02 10.6.1), the two marks their own (04 2.5.3).</summary>
     public static string WorkOf(PanelOrderWork work) => work switch
     {
@@ -214,8 +230,12 @@ internal static class OrderListTexts
         {
             CountedPeriod.ShippingPeriod => "Kargoya verme sözü",
             CountedPeriod.ServiceFulfilmentPeriod => "Hizmetin ifa süresi",
+            CountedPeriod.BankTransferPaymentWindow => "Son ödeme günü",
+            CountedPeriod.RefundPeriod => OrderDetailModel.RefundPeriodLabel,
             _ => throw new ArgumentOutOfRangeException(nameof(period), period.Period, "Not a running period of the order list."),
         };
-        return new PeriodIndicator(label, period.Period, standing, WarnsLegalInterest: true);
+
+        // The legal interest warning belongs to the firm's delivery promises (04 2.6.3; 02 7.2.3); the order's page shows the refund period without it, and so does the list.
+        return new PeriodIndicator(label, period.Period, standing, WarnsLegalInterest: period.Period is CountedPeriod.ShippingPeriod or CountedPeriod.ServiceFulfilmentPeriod);
     }
 }

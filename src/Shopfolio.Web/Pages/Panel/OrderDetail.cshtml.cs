@@ -166,14 +166,7 @@ public sealed class OrderDetailModel : PageModel
     public PanelOrderDetailFacts Facts { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
 
     /// <summary>The order's marks whose condition holds now, in the document's order (04 9.9.4; 2.5.3); the two item marks are drawn on the item's row.</summary>
-    public IReadOnlyList<PanelMark> Marks => PanelMarks.Of(
-        new PanelMarkConditions(
-            EmailNotDelivered: Facts.Marks.EmailNotDelivered,
-            PaymentResultMissing: Facts.Marks.PaymentResultMissing,
-            RefundNotCompleted: Facts.Marks.RefundNotRealized,
-            EmailCorrected: Facts.Marks.EmailCorrected,
-            RefundResultPending: Facts.Marks.RefundOutcomePending),
-        PanelMarkPlace.OrderDetail);
+    public IReadOnlyList<PanelMark> Marks => OrderListTexts.MarksOf(Facts.Marks, PanelMarkPlace.OrderDetail);
 
     /// <summary>The records on an item's row (04 9.9.6; 2.5.2): the AfterSales module's under their own names, then the delivery mark.</summary>
     public IReadOnlyList<ItemRecordEntry> RecordsOf(OrderPageItem item)

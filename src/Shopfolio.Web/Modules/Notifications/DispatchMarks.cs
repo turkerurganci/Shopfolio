@@ -85,6 +85,31 @@ internal static class DispatchMarks
     }
 
     /// <summary>
+    /// The orders among <paramref name="orderIds"/> that carry the mark (T527; the panel's order list): the reading of <see cref="HasMarkAsync"/> for a page of orders in one query - each
+    /// order's rows form their own groups and the latest row of any group decides.
+    /// </summary>
+    public static async Task<IReadOnlySet<Guid>> OrdersWithMarkAsync(AppDbContext db, IReadOnlyCollection<Guid> orderIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(db);
+        ArgumentNullException.ThrowIfNull(orderIds);
+        Guid[] ids = [.. orderIds.Distinct()];
+        if (ids.Length == 0)
+        {
+            return new HashSet<Guid>();
+        }
+
+        var rows = await db.DispatchRecords.AsNoTracking()
+            .Where(d => d.OrderId != null && ids.Contains(d.OrderId.Value))
+            .Select(d => new { OrderId = d.OrderId!.Value, d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState, ClosedUnsent = d.AttemptCount == 0 && d.LastOutcome == null }) // non-null: the Where above keeps only rows bound to an order
+            .ToListAsync(ct);
+        return rows
+            .GroupBy(r => r.OrderId)
+            .Where(g => HasMark(g.Select(r => new Row(r.Id, r.OriginalDispatchId, r.CreatedAt, r.DispatchState, r.ClosedUnsent))))
+            .Select(g => g.Key)
+            .ToHashSet();
+    }
+
+    /// <summary>
     /// The groups of customer notices whose latest row is "undelivered" - the notices the mark stands for and a re-sending can name (02 9.1.6; 05 4.4.3). A group's first row is the one
     /// whose <c>OriginalDispatchId</c> is empty; when that row is gone by its own period the rows left stand under the id they carry.
     /// </summary>

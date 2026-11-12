@@ -159,7 +159,10 @@
                 {
                     <div class="order-detail__pending-refund">
                         <p>Bekleyen geri ödeme: @(refund.Quantity is { } units ? $"{units} adet · " : string.Empty)@DisplayFormat.Amount(refund.Amount) · @(refund.Way == PaymentMethod.Card ? "Kart" : "Havale")@(refund.Iban is { } iban ? $" · IBAN {iban}" : string.Empty)</p>
-                        <partial name="_PeriodIndicator" model="Model.PeriodOf(OrderDetailModel.RefundPeriodLabel, CountedPeriod.RefundPeriod, refund.LastDay)" />
+                        @if (refund.LastDay is { } refundLastDay)
+                        {
+                            <partial name="_PeriodIndicator" model="Model.PeriodOf(OrderDetailModel.RefundPeriodLabel, CountedPeriod.RefundPeriod, refundLastDay)" />
+                        }
                     </div>
                 }
             </li>
@@ -196,7 +199,10 @@
     {
         <div class="order-detail__pending-refund">
             <p>Bekleyen geri ödeme: @DisplayFormat.Amount(refund.Amount) · @(refund.Way == PaymentMethod.Card ? "Kart" : "Havale")@(refund.Iban is { } iban ? $" · IBAN {iban}" : string.Empty)</p>
-            <partial name="_PeriodIndicator" model="Model.PeriodOf(OrderDetailModel.RefundPeriodLabel, CountedPeriod.RefundPeriod, refund.LastDay)" />
+            @if (refund.LastDay is { } refundLastDay)
+            {
+                <partial name="_PeriodIndicator" model="Model.PeriodOf(OrderDetailModel.RefundPeriodLabel, CountedPeriod.RefundPeriod, refundLastDay)" />
+            }
         </div>
     }
 </section>

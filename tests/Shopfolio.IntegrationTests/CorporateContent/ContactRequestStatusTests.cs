@@ -319,6 +319,8 @@ public sealed class ContactRequestStatusTests : IAsyncLifetime
 
         public Task<IReadOnlyList<Guid>> FindMarkedOrderIdsAsync(Guid? afterOrderId, int maxOrders, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<IReadOnlySet<Guid>> FindMarkedOrdersAmongAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<NoticeResendResult> ResendCustomerNoticeAsync(NoticeResendRequest request, CancellationToken ct) => throw new NotSupportedException();
     }
 

@@ -25,8 +25,8 @@ public sealed record PanelOrderListQuery(
     IReadOnlyCollection<PaymentStatus> PaymentStatuses,
     PanelOrderWork? Work);
 
-/// <summary>One row of the list (04 9.8.5): the order's own columns and the running period with the least time left (null when none runs).</summary>
-public sealed record PanelOrderListRow(PanelOrderRow Order, OrderRunningPeriod? LeastPeriod);
+/// <summary>One row of the list (04 9.8.5): the order's own columns, its panel marks and the running period with the least time left (null when none runs).</summary>
+public sealed record PanelOrderListRow(PanelOrderRow Order, PanelOrderMarkFacts Marks, OrderRunningPeriod? LeastPeriod);
 
 /// <summary>One page of the list: the rows, the page shown (a page past the last is the last), the number of pages and the number of orders of the filter.</summary>
 public sealed record PanelOrderListPage(IReadOnlyList<PanelOrderListRow> Rows, int PageNumber, int PageCount, int TotalCount);

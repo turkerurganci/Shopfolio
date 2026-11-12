@@ -76,6 +76,9 @@ internal sealed class NotificationsModule : INotificationsModule
     public Task<IReadOnlyList<Guid>> FindMarkedOrderIdsAsync(Guid? afterOrderId, int maxOrders, CancellationToken ct) =>
         DispatchMarks.MarkedOrderIdsAsync(_db, afterOrderId, maxOrders, ct);
 
+    public Task<IReadOnlySet<Guid>> FindMarkedOrdersAmongAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct) =>
+        DispatchMarks.OrdersWithMarkAsync(_db, orderIds, ct);
+
     public Task<NoticeResendResult> ResendCustomerNoticeAsync(NoticeResendRequest request, CancellationToken ct) => _resending.ResendAsync(request, ct);
 }
 

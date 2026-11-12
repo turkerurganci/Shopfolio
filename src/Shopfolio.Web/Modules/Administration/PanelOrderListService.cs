@@ -61,7 +61,8 @@ internal sealed class PanelOrderListService : IPanelOrderList
         int skip = checked((int)((long)(page - 1) * pageSize));
         Guid[] shown = [.. ordered.Skip(skip).Take(pageSize)];
         IReadOnlyList<PanelOrderRow> rows = await _ordering.ReadPanelOrderRowsAsync(shown, ct);
-        return new PanelOrderListPage([.. rows.Select(r => new PanelOrderListRow(r, LeastOf(periods, r.OrderId)))], page, pageCount, ordered.Count);
+        IReadOnlyDictionary<Guid, PanelOrderMarkFacts> marks = await _reader.FindListMarksAsync(shown, ct);
+        return new PanelOrderListPage([.. rows.Select(r => new PanelOrderListRow(r, MarksOf(marks, r.OrderId), LeastOf(periods, r.OrderId)))], page, pageCount, ordered.Count);
     }
 
     /// <summary>
@@ -90,7 +91,17 @@ internal sealed class PanelOrderListService : IPanelOrderList
 
     private async Task<IReadOnlyList<PanelOrderListRow>> WithPeriodsAsync(IReadOnlyList<PanelOrderRow> rows, CancellationToken ct)
     {
-        IReadOnlyList<OrderRunningPeriod> periods = rows.Count == 0 ? [] : await _reader.FindRunningPeriodsAsync([.. rows.Select(r => r.OrderId)], ct);
-        return [.. rows.Select(r => new PanelOrderListRow(r, LeastOf(periods, r.OrderId)))];
+        if (rows.Count == 0)
+        {
+            return [];
+        }
+
+        Guid[] ids = [.. rows.Select(r => r.OrderId)];
+        IReadOnlyList<OrderRunningPeriod> periods = await _reader.FindRunningPeriodsAsync(ids, ct);
+        IReadOnlyDictionary<Guid, PanelOrderMarkFacts> marks = await _reader.FindListMarksAsync(ids, ct);
+        return [.. rows.Select(r => new PanelOrderListRow(r, MarksOf(marks, r.OrderId), LeastOf(periods, r.OrderId)))];
     }
+
+    private static PanelOrderMarkFacts MarksOf(IReadOnlyDictionary<Guid, PanelOrderMarkFacts> marks, Guid orderId) =>
+        marks.TryGetValue(orderId, out PanelOrderMarkFacts? of) ? of : new PanelOrderMarkFacts(false, false, false, false, false);
 }

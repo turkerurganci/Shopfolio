@@ -71,7 +71,7 @@ public sealed record PanelItemFacts(Guid OrderItemId, int OpenQuantity, bool Iba
 /// One pending refund (04 9.9.6 "bekleyen geri ödeme"; 02 7.1.7; K-788, K-491): the item and units it covers, the amount the system worked out, the way, the customer's IBAN on a transfer -
 /// read only - and the refund period's last day (Z-16, Z-17).
 /// </summary>
-public sealed record PanelPendingRefund(Guid RefundId, Guid? OrderItemId, int? Quantity, decimal Amount, PaymentMethod Way, string? Iban, DateOnly LastDay);
+public sealed record PanelPendingRefund(Guid RefundId, Guid? OrderItemId, int? Quantity, decimal Amount, PaymentMethod Way, string? Iban, DateOnly? LastDay);
 
 /// <summary>One address correction (04 9.9.10; 06 4.62): the moment, the address type, the old and the new value (the shipping phone included) and the administrator.</summary>
 public sealed record PanelAddressChange(DateTimeOffset At, AddressType AddressType, OrderPageAddress Old, OrderPageAddress New, string AdminName);

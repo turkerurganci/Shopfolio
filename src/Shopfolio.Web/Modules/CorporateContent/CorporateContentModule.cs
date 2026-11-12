@@ -17,6 +17,7 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     private readonly ContactRequests _requests;
     private readonly ContactRequestExport _contactRequestExport;
     private readonly SocialLinks _socialLinks;
+    private readonly ContentReaders _readers;
     private readonly StorefrontContentPages _contentPages;
 
     public CorporateContentModule(
@@ -29,8 +30,10 @@ internal sealed class CorporateContentModule : ICorporateContentModule
         ContactRequests requests,
         ContactRequestExport contactRequestExport,
         SocialLinks socialLinks,
+        ContentReaders readers,
         StorefrontContentPages contentPages)
     {
+        _readers = readers;
         _contactRequestExport = contactRequestExport;
         _socialLinks = socialLinks;
         _contentPages = contentPages;
@@ -65,6 +68,21 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     public async Task<IReadOnlyList<SocialLinkItem>> ListSocialLinksAsync(CancellationToken ct) =>
         [.. (await _socialLinks.ListAsync(ct)).Select(l => new SocialLinkItem(l.Platform, l.Url))];
 
+    public async Task<IReadOnlyList<FaqQuestionView>> GetFaqAsync(bool asAdministrator, CancellationToken ct)
+    {
+        IReadOnlyList<FaqView> items = asAdministrator ? await _readers.ListFaqForAdministratorAsync(ct) : await _readers.ListFaqAsync(ct);
+        return [.. items.Select(f => new FaqQuestionView(f.Id, f.Question, f.AnswerHtml, f.IsDraft))];
+    }
+
+    public async Task<ContactPageView> GetContactPageAsync(bool asAdministrator, CancellationToken ct)
+    {
+        ContactPageContent content = asAdministrator ? await _readers.ReadContactPageForAdministratorAsync(ct) : await _readers.ReadContactPageAsync(ct);
+        return new ContactPageView(
+            content.Identity,
+            [.. content.Branches.Select(b => new ContactBranchView(
+                b.Id, b.Name, b.ProvinceName, b.District, b.AddressLine, b.Phone, b.WorkingHours, b.ImageId, b.ImageAltText, b.MapLink?.Url, b.MapLink?.Text, b.IsDraft))]);
+    }
+
     public Task<ContactFormView> GetContactFormAsync(string? memberName, string? memberEmail, CancellationToken ct) => _contactForm.ReadAsync(memberName, memberEmail, ct);
 
     public Task<ContactFormResult> SendContactRequestAsync(ContactFormInput input, System.Net.IPAddress? ipAddress, CancellationToken ct) => _contactForm.SendAsync(input, ipAddress, ct);
@@ -72,6 +90,26 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     public Task<int> CountSummaryContactRequestsAsync(DateTimeOffset periodStart, DateTimeOffset periodEnd, CancellationToken ct) => _requests.CountForSummaryAsync(periodStart, periodEnd, ct);
 
     public Task<int> CountOpenContactRequestsAsync(CancellationToken ct) => _requests.CountOpenAsync(ct);
+
+    public Task<int> CountPanelContactRequestsAsync(IReadOnlyCollection<ContactRequestStatus> statuses, CancellationToken ct) => _requests.CountAsync(statuses, ct);
+
+    public Task<IReadOnlyList<PanelContactRequestRow>> ListPanelContactRequestsAsync(IReadOnlyCollection<ContactRequestStatus> statuses, int take, CancellationToken ct) =>
+        _requests.ListAsync(statuses, take, ct);
+
+    public Task<ContactRequestDetail?> FindContactRequestAsync(Guid requestId, CancellationToken ct) => _requests.FindAsync(requestId, ct);
+
+    public async Task<ContactRequestChangeResult> CloseContactRequestAsync(Guid requestId, Guid adminId, CancellationToken ct) =>
+        ChangeOf(await _requests.CloseAsync(requestId, adminId, ct));
+
+    public async Task<ContactRequestChangeResult> ReopenContactRequestAsync(Guid requestId, Guid adminId, CancellationToken ct) =>
+        ChangeOf(await _requests.ReopenAsync(requestId, adminId, ct));
+
+    private static ContactRequestChangeResult ChangeOf(ContactRequestResult result) => new(result.Outcome switch
+    {
+        ContactRequestOutcome.Done => ContactRequestChangeOutcome.Changed,
+        ContactRequestOutcome.Unchanged => ContactRequestChangeOutcome.Unchanged,
+        _ => ContactRequestChangeOutcome.NotFound,
+    });
 
     public Task<int> WriteContactRequestExportAsync(Stream destination, long maxBytes, CancellationToken ct) => _contactRequestExport.WriteAsync(destination, maxBytes, ct);
 }

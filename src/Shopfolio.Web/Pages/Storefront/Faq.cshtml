@@ -1,0 +1,52 @@
+@page "/sss"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.Security
+@using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Modules.CorporateContent.Contracts
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Storefront
+@model Shopfolio.Pages.Storefront.FaqModel
+@inject SearchEngineData Search
+@*
+    The FAQ page (E-09; T506; 04 5.9): the page's name, the "Paylaş" button and every published question with its answer open, in the firm's order, in one list - no category, no sub-heading, no
+    search, no paging. The answer is the stored text of the closed format set, printed by RichText only. A draft question stands in its place with the "Taslak" label for the administrator's preview.
+    The structured data of the published questions is in the head of the first response (05 3.7.2); a page that shows a draft is closed to the search engines. A page opened directly while no question
+    is published shows the empty-state line (04 5.9.8).
+*@
+@{
+    Layout = "_StorefrontLayout";
+    StorefrontFrame frame = ViewContext.HttpContext.GetStorefrontFrame()
+        ?? throw new InvalidOperationException("The FAQ page needs the storefront frame (T537).");
+    FaqPage faqPage = FaqPage.Of(FaqPage.TitleOf(frame), Model.Questions);
+}
+@section Head {
+    @Search.Head(ViewContext.HttpContext, StorefrontHeads.Faq(Search, frame, faqPage))
+}
+<section class="faq" aria-labelledby="faq-title">
+    <div class="faq__head">
+        <h1 class="faq__title" id="faq-title">@faqPage.Title</h1>
+        <partial name="_ShareButton" />
+    </div>
+    @if (faqPage.Empty is { } empty)
+    {
+        <partial name="_EmptyState" model="empty" />
+    }
+    else
+    {
+        <ol class="faq__list">
+            @foreach (FaqQuestionView question in faqPage.Questions)
+            {
+                <li class="faq__item@(question.IsDraft ? " faq__item--draft" : string.Empty)">
+                    <h2 class="faq__question">
+                        @if (question.IsDraft)
+                        {
+                            <span class="faq__draft">Taslak</span>
+                        }
+                        @question.Question
+                    </h2>
+                    <div class="faq__answer">@RichText.Render(question.AnswerHtml)</div>
+                </li>
+            }
+        </ol>
+    }
+</section>

@@ -147,6 +147,12 @@ public interface IMembershipModule
     /// </summary>
     Task<string?> GetMemberNameAsync(Guid customerId, CancellationToken ct);
 
+    /// <summary>
+    /// The signed-in member's name and e-mail for the contact form's starting values (T506; 02 3.32.1; 04 5.10.11): the account's own values, which the member may change on the form, or null when
+    /// no account holds the id. A plain read; the form stores nothing back on the account.
+    /// </summary>
+    Task<MemberContact?> GetMemberContactAsync(Guid customerId, CancellationToken ct);
+
     /// <summary>The member changes the account's name (02 3.13.21): an empty name is refused; no verification is asked again and no order's recipient name is touched.</summary>
     Task<NameChangeResult> ChangeNameAsync(Guid customerId, string name, CancellationToken ct);
 

@@ -309,6 +309,7 @@ public sealed class ContactRequestStatusTests : IAsyncLifetime
         public Task<bool> OrderHasUndeliveredMarkAsync(Guid orderId, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<bool> ClaimHasUndeliveredMarkAsync(DispatchRelatedRecordType recordType, Guid recordId, CancellationToken ct) => throw new NotSupportedException();
+        public Task<IReadOnlySet<Guid>> FindClaimsWithUndeliveredMarkAsync(IReadOnlyCollection<Guid> claimIds, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<UndeliveredNotice>> FindUndeliveredNoticesAsync(Guid orderId, CancellationToken ct) => throw new NotSupportedException();
 

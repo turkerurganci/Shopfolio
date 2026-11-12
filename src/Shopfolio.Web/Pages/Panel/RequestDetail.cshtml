@@ -1,0 +1,58 @@
+@page "/panel/talepler/{id:guid}"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Panel
+@using Shopfolio.Pages.Components
+@model RequestDetailModel
+@*
+    E-39, the contact request's screen (T532; 04 9.11; 07 UC-94): the heading (topic, status badge, the moment the request reached the firm, the last closing), the sender with the two searches, the whole
+    message with its line breaks and the one operation. There is no reply screen, no thread and no attachment (04 9.11.7). No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = Model.TopicText;
+}
+@if (Model.Notice is not null)
+{
+    <partial name="_Message" model="Model.Notice" />
+}
+<header class="request-detail__header">
+    <h1>@Model.TopicText</h1>
+    <partial name="_Badge" model="Model.StatusBadge" />
+    <a class="request-detail__back" href="@Model.BackPath">@RequestDetailModel.BackLabel</a>
+</header>
+<dl class="request-detail__facts">
+    <dt>@RequestDetailModel.ReceivedLabel</dt>
+    <dd>@Model.ReceivedText</dd>
+    @if (Model.LastClosedText is not null)
+    {
+        <dt>@RequestDetailModel.LastClosedLabel</dt>
+        <dd>@Model.LastClosedText <span class="request-detail__retention">@Model.RetentionText</span></dd>
+    }
+</dl>
+<section class="request-detail__section" aria-labelledby="request-sender-heading">
+    <h2 id="request-sender-heading">Gönderen</h2>
+    <dl class="request-detail__facts">
+        <dt>Ad</dt>
+        <dd>@Model.Detail.Name</dd>
+        <dt>E-posta</dt>
+        <dd class="request-detail__selectable">@Model.Detail.Email</dd>
+        @if (!string.IsNullOrWhiteSpace(Model.Detail.Phone))
+        {
+            <dt>Telefon</dt>
+            <dd>@Model.Detail.Phone</dd>
+        }
+    </dl>
+    <p class="request-detail__searches">
+        <a href="@Model.SearchOrdersPath">@RequestDetailModel.SearchOrdersLabel</a>
+        <a href="@Model.SearchMembersPath">@RequestDetailModel.SearchMembersLabel</a>
+    </p>
+</section>
+<section class="request-detail__section" aria-labelledby="request-message-heading">
+    <h2 id="request-message-heading">Mesaj</h2>
+    <p class="request-detail__message">@Model.Detail.Message</p>
+</section>
+<section class="request-detail__section" aria-label="İşlem">
+    <form method="post" action="@(Model.ActionPath)?handler=@(Model.ActionHandler)" asp-antiforgery="true" class="form" data-js="submit-once">
+        <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(Model.ActionLabel)">@Model.ActionLabel</button>
+    </form>
+</section>

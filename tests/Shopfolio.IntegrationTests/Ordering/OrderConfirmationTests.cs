@@ -432,8 +432,8 @@ public sealed partial class OrderConfirmationTests : IAsyncLifetime
         // A minimum order amount the cart no longer meets (02 3.18.1; T349 ShippingCharge.Assess through the cart's read): the total is no longer payable.
         await ExecuteAsync("UPDATE company_settings SET shipping_fee = 0, minimum_order_amount = 2000");
         OrderConfirmationResult belowMinimum = await ConfirmAsync(input, seen);
-        Assert.Equal(OrderConfirmationRefusal.SummaryChanged, belowMinimum.Refusal);
-        Assert.Contains(belowMinimum.Changes, c => c.Kind == SummaryChangeKind.Total);
+        // K-1229 (T509; 07 4.13.6): below the minimum the customer goes back to the cart - its own refusal, not a summary change.
+        Assert.Equal(OrderConfirmationRefusal.MinimumOrderAmountNotMet, belowMinimum.Refusal);
         await AssertNothingBornAsync(variantId);
     }
 

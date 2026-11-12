@@ -21,6 +21,12 @@ internal static class FramePaths
     /// <summary>UC-54: the customer's sign-in page.</summary>
     public const string SignIn = "/giris";
 
+    /// <summary>UC-47: the registration page (E-20).</summary>
+    public const string Register = "/kayit";
+
+    /// <summary>UC-52: the base of the verification link landing page (E-21); the link key follows it.</summary>
+    public const string Verification = "/dogrulama";
+
     /// <summary>UC-77: the sign-out page; the form adds the handler.</summary>
     public const string SignOut = "/cikis";
 

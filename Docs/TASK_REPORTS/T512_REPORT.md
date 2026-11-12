@@ -15,13 +15,19 @@
 - **Tek kural evi (para):** işlemler sayfadan `OperationRunner.RunAsync` ile açılır, modülde `ICustomerOperations` (`CustomerOperations`) → `IOrderTransitions` ile kapı altında işler. Geri ödeme tutarı kayıt yazılırken AfterSales'te hesaplanır; son adımın kargo ücreti cümlesi `ShippingFeeRefunds.OnCancellationPreview`'dan (`IAfterSalesModule.CancellationRefundsShippingFee`), süre `IAfterSalesModule.RefundPeriodDays`'ten gelir — sayfa tutar hesaplamaz. Çok kalemli iptalde satırlar azalan uuid sırasıyla yazılır; kargo ücretini tetiği karşılayan son kayıt taşır (K-789, K-1107).
 - **Mimari:** işaretsiz işlem POST'unu yakalayan kural `OperationHandlerMarkTests` (D-153); işlem taraması `OperationRunner` için `.RunAsync(` çağrısını ister (D-154 (a)).
 - **Öteki:** havale bloğunda "IBAN'ı kopyala" (D-1258; paylaş düğmesinin betiksiz-yol kalıbı); kalemsiz IBAN alanı süzgeci tek sorguya indi (`IPaymentModule.OrderRefundIdsAsync`; `09 §20` m.4).
+- **Düzeltme 1 (tur 1 ✗ FAIL bulguları):**
+  - **B1:** son adım işlemin aldığı kalemleri adıyla ve adetle yazar (`04` 5.17.6, 5.17.15; K-795): `ConfirmView.Items` + `ConfirmItem(Name, Quantity)`, `_ConfirmForm.cshtml` listeyi sonuç cümlesinin üstünde çizer. Sipariş iptali ve fesih bütün kalemleri açık adetle (`AllOpenUnits()`), kalem iptali yalnız seçilenleri seçilen adetle.
+  - **B2:** `AfterSalesModule.ListRefundIbanFieldsAsync` IBAN başına döngü yerine IBAN kimlikleriyle dört toplu sorgu, bellekte eşleme (`09 §20` m.4).
+  - **B3:** kapalı alana IBAN gönderiminin 422 ret satırı `RefundIbanNotRequested` (`07 §6.2.4`; VAL-A490).
+  - **K1:** onaysız kalem iptalinde adet üst sınırı aşıyor ya da açık adet ekrandakinden farklıysa son adım gösterilmez; onaylı yol gibi 303 kök `QuantityExceedsOpen`.
+  - **Öz denetimde:** VAL-A881 — adet alanı ve sınır satırı yalnız seçilen kalemin satırında açılır (`components.css`, `:has()`; `04` 2.12.1.8); seçilmeyen satır sunucuda zaten işlenmez.
 
 ## Etkilenen Modüller / Dosyalar
 
 - Ordering: `CustomerOperations.cs`, `Contracts/ICustomerOperations.cs`, `CustomerScreen.cs`, `CustomerScreenOperation.cs`, `CustomerOperationOutcome.cs`, `OrderTransitions.LateDeliveryTermination.cs`, `OrderTransitions.CustomerCancellation.cs`, `OrderingModule.cs`
 - AfterSales: `AfterSalesModule.RefundLine.cs`, `AfterSalesModule.Cancellations.cs`, `ShippingFeeRefunds.cs`, `Contracts/IAfterSalesModule.cs`, `Contracts/ItemRecordWrites.cs`, `Contracts/RefundLine.cs`
 - Payment: `Contracts/IPaymentModule.cs`, `PaymentModule.cs` (`OrderRefundIdsAsync`)
-- Sayfalar: `Pages/Orders/OrderScreenModels.cs`, `OrderPageModels.cs`, `_OperationScreen.cshtml`, `_OrderIbanForm.cshtml`, `_OrderPage.cshtml`, dört ekran görünümü; `wwwroot/js/common.js`
+- Sayfalar: `Pages/Orders/OrderScreenModels.cs`, `OrderPageModels.cs`, `_OperationScreen.cshtml`, `_OrderIbanForm.cshtml`, `_OrderPage.cshtml`, dört ekran görünümü; `Pages/Components/ConfirmModels.cs`, `Pages/Shared/_ConfirmForm.cshtml`; `wwwroot/js/common.js`, `wwwroot/css/components.css`
 - Testler: `IntegrationTests/Ordering/CustomerOperationsTests.cs`, `IntegrationTests/Files/OrderOperationScreenTests.cs`, `IntegrationTests/Files/OrderPageTests.cs`, `UnitTests/AfterSales/CancellationPreviewTests.cs`, `UnitTests/Architecture/OperationHandlerMarkTests.cs`, `OperationSourceScan(Tests).cs`, `Support/ApplicationEnums.cs`
 
 ## Kabul Kriterleri Kontrolü
@@ -29,34 +35,34 @@
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
 | 1 | `SaveRefundIban` yazar / yerinde düzeltir, boşluk yok sayılır, 303 `Saved` | ✓ | `CustomerOperationsTests.SaveRefundIban_CorrectsTheIbanOnFileInPlace_IgnoringBlanks_…_KK1`; `OrderOperationScreenTests.SaveRefundIban_Is303WithSaved_…_KK1_KK2` |
-| 2 | UC-35 422 (biçim/sağlama, alan kapalı), 404 yabancı kalem | ✓ | `CustomerOperationsTests.SaveRefundIban_ABadIban_AClosedField_AndAForeignItem_…_KK2`; ekran testi `…_KK1_KK2` |
+| 2 | UC-35 422 (biçim/sağlama, alan kapalı), 404 yabancı kalem | ✓ | `CustomerOperationsTests.SaveRefundIban_ABadIban_AClosedField_AndAForeignItem_…_KK2`; ekran testi `…_KK1_KK2`; kapalı alanın ret kodu `SaveRefundIban_OnAFieldThatIsNotOpen_Is422_WithOneRefundIbanNotRequestedRejectionLine_VALA490` |
 | 3 | Havale yoluna dönüş, e-posta yok | ✓ | `CustomerOperationsTests.SaveRefundIban_AnswersTheFailedCardRefundsTransferPath_…_AndNoEmailIsWritten_KK3` |
-| 4 | İki adres, kapsam, geri ödeme, son adım; Bekliyor → sipariş iptali, ödenmiş → kalem iptali | ✓ | `CustomerOperationsTests.TheCancellationAddress_OfAnUnpaidOrder_…_KK4_KK5`, `…_OfAPaidOrder_…_KK4_KK5`, `TheTerminationAddress_…_KK4_KK6`; `OrderOperationScreenTests.TheCancellationAddress_OfAnUnpaidOrder_…_KK4_KK7` |
+| 4 | İki adres, kapsam, geri ödeme, son adım; Bekliyor → sipariş iptali, ödenmiş → kalem iptali | ✓ | `CustomerOperationsTests.TheCancellationAddress_OfAnUnpaidOrder_…_KK4_KK5`, `…_OfAPaidOrder_…_KK4_KK5`, `TheTerminationAddress_…_KK4_KK6`; `OrderOperationScreenTests.TheCancellationAddress_OfAnUnpaidOrder_…_KK4_KK7`; son adımın kalemleri (düzeltme 1, B1): `TheLastStep_OfTheOrdersCancellation_ListsEveryItemByNameWithItsUnits_KK4_K795`, `TheLastStep_OfTheItemCancellation_ListsTheChosenItemsByNameWithTheChosenUnits_AndOnlyThem_KK4_K795`, `TheLastStep_OfTheTermination_ListsEveryUndeliveredItemByNameWithItsOpenUnits_KK4_K795` |
 | 5 | Üç değer sunucudan; dijital/adedi birde adet alanı yok; IBAN alanı yalnız ödenmiş havalede | ✓ | `…_TheServersThreeValues_TheQuantityFieldOnlyOnAnItemOfSeveralUnits_KK4_KK5`; `TheIbanField_IsDrawnOnlyOnThePaidTransferOrder_KK5` |
 | 6 | Kapalı işlem 303 kök + sebep (GET ve POST), kök tutmuyorsa 404 | ✓ | `OrderOperationScreenTests.AClosedOperation_Is303ToTheRootWithItsReason_OnTheScreenAndOnThePost_AndAnUnknownRootIs404_KK6`; `Terminate_BeforeTheLimit_IsClosed_…_KK6` |
 | 7 | `CancelOrder` onaysız 200 yazmaz; onaylı 303, ayırmalar serbest | ✓ | `CustomerOperationsTests.CancelOrder_OnPlacedAndPending_CancelsTheOrder_AndFreesTheReservations_…_KK7`; ekran `…_KK4_KK7` |
-| 8 | `CancelOrderItems` 422 (seçimsiz, adet, IBAN); aşım/eski açık adet 303, uygulanmaz | ✓ | `OrderOperationScreenTests.TheItemCancellation_AQuantityUnderOne_ARepeatedItemRow_AndNoIbanOnTheTransfer_Are422_…_KK8_D155`, `…_AboveTheOpenUnits_OrOnAStaleOpenQuantity_Is303_…_KK6_KK8`; `CustomerOperationsTests.CancelOrderItems_…_KK8` (3 test) |
+| 8 | `CancelOrderItems` 422 (seçimsiz, adet, IBAN); aşım/eski açık adet 303, uygulanmaz | ✓ | `OrderOperationScreenTests.TheItemCancellation_AQuantityUnderOne_ARepeatedItemRow_AndNoIbanOnTheTransfer_Are422_…_KK8_D155`, `…_AboveTheOpenUnits_OrOnAStaleOpenQuantity_Is303_…_KK6_KK8`; `CustomerOperationsTests.CancelOrderItems_…_KK8` (3 test); onaysız gönderimde de 303 (K1): `TheItemCancellationsUnconfirmedPost_AboveTheOpenUnits_OrOnAStaleOpenQuantity_Is303WithTheReason_NotTheLastStep_K1` |
 | 9 | Kartta kendiliğinden, havalede IBAN'la firma; bütün fiziksel adetler → kargo ücreti | ✓ | `CancelOrderItems_OnTheCard_StartsTheRefundItself_AndEveryPhysicalUnitCoveredPaysTheShippingFeeBack_KK9` (iki sıra), `…_OfSomeUnitsOnly_PaysNoShippingFee_KK9`, `…_OnTheTransfer_KeepsTheIbanOnTheRecords_…_KK9`; `CancellationPreviewTests` |
 | 10 | Fesih bütün açık adetleri kapsar, alanları yok sayar, kargo hep döner, IBAN 422 | ✓ | `Terminate_CoversEveryOpenUnit_…_KK10`, `Terminate_OnThePaidTransfer_WithoutAValidIban_…_KK10`, `…_D873_KK10`; `OrderOperationScreenTests.TheTermination_IgnoresTheItemAndQuantityFields_…_KK10` |
 
 ### Öz denetim (bitiş kapısı 2)
 
-Önceki işçilerin işi dahil dalın bütün diff'i (`origin/main...HEAD`) madde madde denetlendi; `sik-fail-nedenleri.md` okundu.
+Önceki işçilerin işi dahil dalın bütün diff'i (`origin/main...HEAD`) madde madde denetlendi; `sik-fail-nedenleri.md` okundu. Düzeltme 1'den sonra bütün satırlar yeniden denetlendi (tur 1'in üç uyuşmazlığı: kriter 4, "Döngüde sorgu", VAL-A490 artık kanıtıyla); `12`'de E-17'yi anan VAL-A881 satırı eksikti, eklendi ve stili yazıldı.
 
 | Madde (KK / 12 / backlog / sık FAIL) | Sonuç | Kanıt (dosya, test adı) |
 |---|---|---|
 | KK1 boşluklu IBAN, yerinde düzeltme | ✓ | `SaveRefundIban_CorrectsTheIbanOnFileInPlace_IgnoringBlanks_…_KK1` |
 | KK2 iki 422 sebebi ve 404 | ✓ | `SaveRefundIban_ABadIban_AClosedField_AndAForeignItem_…_KK2`; ekran `…_KK1_KK2` |
 | KK3 havale yoluna dönüş, e-posta yok | ✓ | `…_AndNoEmailIsWritten_KK3` |
-| KK4 iki adres, iki işlem | ✓ | `TheCancellationAddress_OfAnUnpaidOrder…`, `…_OfAPaidOrder…`, `TheTerminationAddress…` |
+| KK4 iki adres, iki işlem; son adım kalemleri adıyla ve adetle (B1) | ✓ | `TheCancellationAddress_OfAnUnpaidOrder…`, `…_OfAPaidOrder…`, `TheTerminationAddress…`; `TheLastStep_OfTheOrdersCancellation_…_KK4_K795`, `TheLastStep_OfTheItemCancellation_…_AndOnlyThem_KK4_K795`, `TheLastStep_OfTheTermination_…_KK4_K795` |
 | KK5 üç değer; alan görünürlüğü | ✓ | `…_TheServersThreeValues_…_KK4_KK5`, `TheIbanField_IsDrawnOnlyOnThePaidTransferOrder_KK5` |
 | KK6 sebep kodlu 303 ve 404 | ✓ | `AClosedOperation_Is303ToTheRootWithItsReason_…_KK6` |
 | KK7 onaysızda kayıt yok; onaylıda iptal | ✓ | `TheCancellationAddress_OfAnUnpaidOrder_OffersTheOrdersCancellation_TheUnconfirmedPostIsTheLastStep_AndTheConfirmedOneCancels_KK4_KK7` |
-| KK8 bütün istek reddi | ✓ | `CancelOrderItems_AQuantityAboveTheOpenUnits_OrAnOpenQuantityOtherThanTheShownOne_RefusesTheWholeRequest_KK8` |
+| KK8 bütün istek reddi (onaylı ve onaysız gönderim) | ✓ | `CancelOrderItems_AQuantityAboveTheOpenUnits_OrAnOpenQuantityOtherThanTheShownOne_RefusesTheWholeRequest_KK8`; onaysız: `TheItemCancellationsUnconfirmedPost_…_Is303WithTheReason_NotTheLastStep_K1` |
 | KK9 iki hat; kargo iadesi | ✓ | `…_OnTheCard_…_KK9`, `…_OnTheTransfer_…_KK9`, `…_OfSomeUnitsOnly_PaysNoShippingFee_KK9` |
 | KK10 alan yok sayma; kargo iadesi | ✓ | `TheTermination_IgnoresTheItemAndQuantityFields_CoversEveryOpenUnit_…_KK10`, `Terminate_CoversEveryOpenUnit_…_KK10` |
 | VAL-A454 `InvalidIban` 422, kaydedilmez | ✓ | `…_KK2` (iki katman), `CancelOrderItems_OnThePaidTransfer_WithoutAValidIban_…_KK8`, `Terminate_…_WithoutAValidIban_…_KK10` |
-| VAL-A490 `RefundIbanNotRequested` 422 | ✓ | `SaveRefundIban_ABadIban_AClosedField_…_KK2` (kapalı alan) |
+| VAL-A490 `RefundIbanNotRequested` 422 | ✓ (düzeltme 1, B3) | `SaveRefundIban_OnAFieldThatIsNotOpen_Is422_WithOneRefundIbanNotRequestedRejectionLine_VALA490` (tek ret satırı, kod `RefundIbanNotRequested`); veri yazılmaz: `SaveRefundIban_ABadIban_AClosedField_…_KK2` |
 | VAL-A554 `Saved` bildirimi | ✓ (uç yanıtı) | `SaveRefundIban_Is303WithSaved_…`; tarayıcı gözlemi yapılmadı (⚠ 3) |
 | VAL-A577 `QuantityExceedsOpen` bütün istek, 303 | ✓ | `…_AboveTheOpenUnits_OrOnAStaleOpenQuantity_Is303WithTheReason_…_KK6_KK8` |
 | VAL-A581 aynı kalem iki satır 422, hiçbiri işlenmez | ✓ | `…_ARepeatedItemRow_…_Are422_AndWriteNothing_KK8_D155` (`ItemRows.RejectRepeated`) |
@@ -65,7 +71,8 @@
 | VAL-A692 fesihte adet yok sayılır | ✓ | `TheTermination_IgnoresTheItemAndQuantityFields_…_KK10` |
 | VAL-A693 [güvenlik] sahiplik kökten, yabancı kalem 404 | ✓ | `…_AnUnknownRootIs404_KK6`, `CancelOrderItems_AnItemOfAnotherOrder_IsNotFound_…_KK6_KK8`, `SaveRefundIban_…_AndAForeignItemIs404_…` |
 | VAL-A895 fesih bütün açık adetler, kargo hep | ✓ | `Terminate_CoversEveryOpenUnitOfTheUndeliveredPhysicalItems_AndPaysTheShippingFeeBack_KK10` |
-| VAL-B071 [tarayıcı] 320'de E-17 | — | Tarayıcı gözlemi yapılmadı; doğrulamaya (⚠ 3) |
+| VAL-A881 [tarayıcı] adet alanı kalem seçilince satırında açılır; adedi bir ve dijital kalemde yok; satır üst sınırı söyler | — (uç yanıtı yarısı ✓) | Sunucu: `…_TheServersThreeValues_TheQuantityFieldOnlyOnAnItemOfSeveralUnits_KK4_KK5` (`HasQuantityField` yalnız çok adetli fiziksel kalemde; açık adet, varsayılan, üst sınır); `_OperationScreen.cshtml` sınır satırı "Açık adet: N · en çok N". Seçilince açılma öz denetimde eksik bulundu, `components.css`'e yazıldı (⚠ 6). Tarayıcı gözlemi doğrulamaya (⚠ 3) |
+| VAL-B071 [tarayıcı] 320'de E-17 | — | Tarayıcı gözlemi yapılmadı; doğrulamaya (⚠ 3). Son adımın dört parçası (kalemler, sonuç cümlesi, "geri alınamaz", iki düğme) artık aynı bölümde (B1) |
 | `09 §25` / güvenlik taraması | ✓ | Yeni ham SQL, gizli bilgi, kimlik doğrulamasız uç yok; işlem POST'ları antiforgery + `[GatedOperation]`; sahiplik kökten (`FindOrderAsync`) |
 | Backlog: hedefi T512 olan kalemler | ✓ | D-153, D-154, D-155, D-792, D-803, D-873, D-1194, D-1258 kapandı; D-819, D-1196 T512 payı; D-1197, D-1259 T528'e gerekçeyle (⚠ 2) |
 | Sık FAIL 1: bekçi/tarama istisnası geniş | ✓ | `OperationHandlerMarkTests` muafiyeti tek işleyici adıyla, ölü muafiyet bulgu (`ANamedExemptionThatNoLongerExists_IsAFinding`) |
@@ -74,8 +81,12 @@
 | Sık FAIL 4: aynı sayıyı anan öteki yerler | ✓ | Kural/sayı değişikliği yok; enum dosyaları `ApplicationEnums` listesinde |
 | Sık FAIL 5: belge kuralını değiştiren 09 metni | ✓ | `09` ve öteki kural belgeleri değişmedi |
 | Tek kural evi (para) | ✓ | Sayfa tutar hesaplamaz; kargo ön izlemesi `ShippingFeeRefunds.OnCancellationPreview`, süre `AfterSalesPeriodRules` üzerinden |
-| Döngüde sorgu (`09 §20` m.4) | ✓ | Kalemsiz IBAN alanı süzgeci tek sorgu (`OrderRefundIdsAsync`); çok kalemli iptal satır başına modül işlemi (kural tek kalemli geçişte, K-1202 işlem içinde bütün-ya-da-hiç) |
-| Ret kaydı istek başına bir satır (`09 §8.2` m.3; sık FAIL T503 r2, T506 r1) | ✓ (son öz denetimde düzeltildi) | Kalem iptalinde alan hatalı 422'ler (tekrarlı satır, adet) hem süzgecin alan satırını hem sayfanın kendi satırını yazıyordu (iki satır); sayfa satırı kaldırıldı, yalnız alan kodu olmayan "kalem seçilmemiş" 422'si `FieldRequired` satırını sayfada yazar. `OrderOperationScreenTests.TheItemCancellation_…_Are422_AndWriteNothing_KK8_D155` altı 422 için tam altı ret satırı sayar (`FileEndpointsHost.Logs`) |
+| Döngüde sorgu (`09 §20` m.4) | ✓ (düzeltme 1, B2) | `AfterSalesModule.ListRefundIbanFieldsAsync` IBAN kimlikleriyle dört toplu sorgu + bellekte eşleme: `CustomerOperationsTests.TheIbanFields_AreReadInTheSameNumberOfCommands_WhateverTheNumberOfIbansOnFile_EachOnItsOwnItem_09_20` (komut sayacı, bir ve üç IBAN aynı sayı); kalemsiz IBAN alanı süzgeci tek sorgu (`OrderRefundIdsAsync`); çok kalemli iptal satır başına modül işlemi (kural tek kalemli geçişte, K-1202 işlem içinde bütün-ya-da-hiç) |
+| Ret kaydı istek başına bir satır (`09 §8.2` m.3; sık FAIL T503 r2, T506 r1) | ✓ (son öz denetimde düzeltildi) | Kalem iptalinde alan hatalı 422'ler (tekrarlı satır, adet) hem süzgecin alan satırını hem sayfanın kendi satırını yazıyordu (iki satır); sayfa satırı kaldırıldı, yalnız alan kodu olmayan "kalem seçilmemiş" 422'si `FieldRequired` satırını sayfada yazar. `OrderOperationScreenTests.TheItemCancellation_…_Are422_AndWriteNothing_KK8_D155` altı 422 için tam altı ret satırı sayar (`FileEndpointsHost.Logs`). Düzeltme 1: kapalı alan 422'si tek satır (`…_VALA490`, `Assert.Single`); K1'in onaysız 303'ü onaylı yolun ret yolunu (`OperationRefusals.ToOrderPage`) kullanır, ayrı satır yazmaz |
+| Sık FAIL: kabul kriteri kısmen karşılandı | ✓ | Kriter 4'ün son adım parçası (tur 1 B1) karşılandı; ~ satırı yok |
+| Sık FAIL: tarayıcı isteyen `12` satırı tarayıcısız PASS'a çekildi | ✓ | VAL-B071, VAL-A881 ve VAL-A554'ün tarayıcı yarısı "—", doğrulamaya (⚠ 3) |
+| Sık FAIL: sayfa bölge listesi belgeyle birebir | ✓ | Son adım `04` 5.17.15 sırasıyla: kalemler, sonuç cümlesi, "geri alınamaz", iki düğme (`_ConfirmForm.cshtml`); yeni bölge yok |
+| Sık FAIL: Integration TAM koşulmadan PR | ✓ | Kod düzeltmesinden sonra Integration TAM 3947/3947 (Test Sonuçları); sonraki değişiklik yalnız stil (⚠ 7) |
 
 ## Test Sonuçları
 
@@ -88,6 +99,8 @@
 | main `856f5441` (T544) birleştirmesi + ret satırı düzeltmesi sonrası | Unit `Architecture` 1750/1750, `Pages` 420/420; Integration `Web` 842/842 (üç parça 124+350+368; ortadaki parça ilk koşuda 1 kırmızı, adı alınamadı, değişmeden yeniden koşuda 350/350 yeşil), `Files` 119/119, `Ordering.CustomerOperationsTests` yeşil; `dotnet format --verify-no-changes` değişen üç dosyada temiz |
 | main `368d978d` (T514) birleştirmesi sonrası | Derleme uyarısız; Unit `Architecture` + `Pages` 2190/2190; Integration `Web` 869/869 (dört parça 124+218+245+282; T514'ün `RegistrationPageTests` dahil). Birleştirmede tek çakışma `DEFERRED_BACKLOG.md` D-801/D-803 satırlarında: D-801 main'den (T514 payı düştü), D-803 daldan (T512 kapanışı) |
 | `dotnet format --verify-no-changes` | Web, UnitTests, IntegrationTests (değişen dosyalar `--include` ile) temiz |
+| Düzeltme 1 (head `c4cf0936`; main `29562ee9` birleştirildi) | restore ✓; derleme `-warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes` Web, UnitTests, IntegrationTests (proje TAM) çıkış 0; Unit TAM 7416/7416; Integration TAM (postgres:18, `track_commit_timestamp=on`) 3947/3947: Files 124, Ordering 669 (423+246), Model 1410 (727+683), kalan 15 ad alanı 839, Web 905 (395+510). Files'ın bir ara koşusu öldürülmüş önceki koşunun veritabanı durumuyla 124 kırmızı geldi; değişmeden yeniden koşuda 124/124 |
+| Öz denetim stil düzeltmesi sonrası (VAL-A881, yalnız `components.css`) | Derleme `-warnaserror` 0 uyarı 0 hata; Unit `Architecture` 1750/1750 (stil taramaları dahil); Integration `OrderOperationScreenTests` 12/12. Integration TAM yeniden koşulmadı (⚠ 7) |
 
 ## Doğrulama
 
@@ -97,6 +110,7 @@
 | Bulgu sayısı (tur 1) | 3 (1 ORTA, 2 DÜŞÜK; hepsi S1) + 1 K-notu |
 | Düzeltme gerekli mi | Evet — B1 (ORTA): onaysız POST'un 200 son adımı seçilen kalemleri adıyla ve adetle yazmıyor, yalnız sonuç cümlesi (`04` 5.17.6, 2.4.5, 5.17.15; `07` 4.17.3; K-795; kriter 4). B2 (DÜŞÜK): `AfterSalesModule.ListRefundIbanFieldsAsync` IBAN başına döngüde dört sorgu (`09 §20` m.4). B3 (DÜŞÜK): alan kapalıyken 422 ret satırının kodu `OperationNotAvailable`, `07 §6.2.4` UC-35 `RefundIbanNotRequested` ister. K1: onaysız kalem iptalinde aşan/eski adet son adımı gösteriyor, ret ancak onaylı gönderimde |
 | Yapım raporu karşılaştırması (tur 1) | 3 uyuşmazlık: kriter 4 ✓ sayılmış (B1); öz denetimin "Döngüde sorgu ✓" satırı B2'yi atlamış; VAL-A490 ✓ sayılmış (B3) |
+| Düzeltme 1 | B1, B2, B3 düzeltildi; K1 de düzeltildi (onaysız gönderimde 303), backlog'a aktarılmadı. Yeni backlog kalemi yok (D-1356–1357 kullanılmadı). Ayrıntı "Yapılan İşler" > Düzeltme 1; tur 2 bekliyor |
 
 ## Altyapı Değişiklikleri
 
@@ -125,6 +139,8 @@
 3. **Tarayıcı satırları (VAL-B071, VAL-A554'ün tarayıcı yarısı):** yapımda tarayıcı gözlemi yapılmadı; PASS sayılmadı, doğrulamaya bırakıldı.
 4. **D-1281 (aday):** firmanın bütün sipariş iptalinde kargo ücretinin satıra düşmeme olasılığı T528'e kayıtlandı; T512'nin müşteri yolu azalan uuid sırasıyla yazar.
 5. **Web parçasında tek kararsız kırmızı:** T544 birleştirmesinden sonra `Web` F*–O* parçasının ilk koşusunda 1 test kırmızı geldi (çıktı dosyaya alınmadığı için adı bilinmiyor); kod değişmeden yeniden koşuda 350/350 yeşil. T512 dosyası bu parçada yok; doğrulayıcı birleşik ağaçta Web'i koşarken dikkat etsin. T514 birleştirmesinden sonraki `Web` koşusu (869) ilk seferde yeşil.
+6. **VAL-A881 adet alanının açılması (öz denetim, düzeltme 1 sonrası):** `04` 2.12.1.8 "alan kalem seçildiğinde kalemin satırında açılır" der; alan her satırda açıktı. Betiksiz yol korunarak stil kuralıyla çözüldü: seçilmemiş kalemin satırında adet alanı ve sınır satırı gizlenir (`:has()`; desteklemeyen tarayıcıda alan açık kalır, sunucu seçilmemiş satırı zaten işlemez). Sayfa `required` niteliği taşımadığı (`aria-required`) için gizli alan gönderimi durdurmaz.
+7. **Stil düzeltmesinden sonra Integration TAM yeniden koşulmadı:** değişiklik yalnız `components.css`'te; Integration testlerinden hiçbiri bu dosyanın içeriğini okumaz (yalnız `base.css` yolu). Makine yükünden tek sınıf 7,5 dk sürdüğü için süre bütçesinde TAM sığmadı; derleme, Unit `Architecture` ve E-17 ekran sınıfı yeniden koşuldu, TAM dal CI'ında koşar.
 
 ## Known Limitations / Follow-up
 

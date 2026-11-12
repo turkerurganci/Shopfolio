@@ -1,6 +1,6 @@
 # T522 — Yönetici hesapları ve işlem izi (E-49, E-52)
 
-**Faz:** F5 | **Durum:** Tamamlandı (PR açıldı) | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ PASS (doğrulama tur 1) | **Tarih:** 2026-11-12
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -60,6 +60,17 @@
 | Integration (T522 sınıfları) | ✓ | `--filter-class "*AdminAccountsPageTests"`, `"*AuditTrailPageTests"`, `"*AccountEmailQueueTests"` | 16/16, 5/5 (6 durum), 15/15 |
 | Integration (kısmi; yük altında TAM koşulmadı) | ✓ | `--filter-namespace "Shopfolio.IntegrationTests.Web"` (main birleştirmesi sonrası) + `--filter-class "*AccountEmailQueueTests"`, `"*LivenessEndpointTests"` | Web 960/961 (yük altında `LivenessEndpointTests.ConnectionOpenIsSlow_Returns503WithinTheLimit` zaman aşımı; sınıf tek başına 16/16), AccountEmailQueueTests 15/15. Kalan ad alanları (Model, Ordering, CorporateContent vb.) **TAM doğrulayıcıda koşulacak** |
 | `dotnet format` | ✓ (Web, Integration, Unit) | `dotnet format <proje> --no-restore` | değişiklik yok |
+
+## Doğrulama
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu (tur 1) | ✓ PASS — tur 1 (2026-11-12, head `794aed66`; `origin/main` `f62d956f` (T535 #555) birleşik ağaçta, birleştirme çakışmasız). Kriter 1–10 ve KK1–KK10 ✓ (kanıtlar: `AdminAccountsPageTests` 16, `AuditTrailPageTests` 6 durum, `AccountEmailQueueTests` T522 testi, Unit `AdminAccountsTextsTests` 6; kod okuması `AdminAccounts.SendAsync`/`WithdrawAsync`/`RemoveAsync`, `AdminAccountListService`, `DispatchMarks.InvitationsWithMarkAsync`, `AuditTrailModel`; onay cümlesi K-814 metniyle birebir; doğrulayıcının 5 geçici sınaması — yenisiyle geçersizleşen, geri çekilmiş ve göndereni kaldırılmış davetin sayfası geçersiz ve hesap açmaz, kaldırılan yöneticinin oturumu girişe iner, imha kaydı `Admin` ve F-6 dört gönderim, "Davet gönderildi" bildirimi, işlem izine POST/DELETE ≥ 400 ve oturumsuz istek girişe). Yerel: derleme `-warnaserror` 0 uyarı, format temiz (Web, Unit, Integration), Unit 7431/7431, betik testleri 4/4, Integration TAM (ad alanı ve sınıf parçaları, `-maxthreads 4`) parça toplamı 4021 (`AccountEmailQueueTests` iki parçada), 0 kırmızı; birleştirmeden sonra derleme, format, Unit 7431 ve sekiz Integration sınıfı (253) yeşil. Dal CI'ı yeşil (`43225742264`, dokuz iş). Ana dal son üç run `success` (`43218847561`, `43218847509`, `43200154761`). |
+| `12` satırları (tur 1) | PASS: `VAL-A301`, C068, C069, C070, C071, C072, D037, A310, A311, D042, A507, A542, A543, A555, A728. BEKLEMEDE kalır: `VAL-A304` (bütün panel ekranları), A302, A303, A305–A309, C073, C074, D035 (T520/T523), D036, D038–D041 (öteki alanların izi), D048 (üye silmenin imha kaydı ayrıca), B051, B053 (`[tarayıcı]`). Matris betiği hata 0. |
+| Bulgu sayısı (tur 1) | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (tur 1) | 2 — **K1** (forward D-1394): D-1288'in T522'ye bıraktığı davet sayfası sınaması ve KK8'in satır denetimi kalıcı teste girmedi (geçici sınamada yeşil). **K2** (forward D-1395): hedefi T522 olan D-1301 ve D-1375 yöneticinin e-posta değişikliğine aittir; hedef T523'e. |
+| Yapım raporu karşılaştırması (tur 1) | Kabul kriterlerinde tam uyum (1–10 ✓); öz denetim tablosu var. Uyuşmazlık 2: rapor hedefi T522 olan D-1288, D-1301, D-1375'i anmıyor (K1, K2); KK8 kanıtı olarak gösterilen sayfa testi bağlantı silinmesini ve davet geçersizleşmesini denetlemiyor, modül testi denetliyor (K1). |
 
 ## Known Limitations / Follow-up
 

@@ -7,11 +7,14 @@ using Microsoft.Net.Http.Headers;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.IntegrationTests.Model;
 using Shopfolio.IntegrationTests.Pages;
 using Shopfolio.IntegrationTests.Web;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
+using Shopfolio.Modules.Settings;
+using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.Pages.Panel;
 using Shopfolio.UnitTests.Fakes;
 
@@ -69,6 +72,39 @@ public sealed partial class SalesSummaryTests
         Assert.Contains(DisplayFormat.DateRange(Today.AddDays(-29), Today), unknown, StringComparison.Ordinal);
         Assert.Contains(DisplayFormat.DateRange(Today.AddDays(-29), Today), window, StringComparison.Ordinal);
         Assert.DoesNotContain("value=\"MeasurementWindow\"", window, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task OnceSalesOpened_TheWindowIsOffered_FromItsOpeningDayForThreeMonthsCutAtToday_KK3()
+    {
+        DateTimeOffset cookiePublishedAt = DayStart.AddDays(-14).AddHours(10);
+        DateOnly openDay = Day.AddDays(-14);
+        LegalTextVersion notice = LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, 90001, LongAgo, "metin", LongAgo).WithHosting();
+        LegalTextVersion cookie = LegalTextVersion.CreatePublished(LegalTextType.CookiePolicy, 90001, cookiePublishedAt, "metin", cookiePublishedAt);
+        await SaveAsync(c => c.LegalTextVersions.AddRange(notice, cookie));
+        await ExecuteAsync(
+            $"UPDATE company_settings SET is_bank_transfer_enabled = true, bank_transfer_iban = '{Iban}', return_recipient_name = 'Depo', return_province_id = '{_province}', "
+            + "return_district = 'Çankaya', return_address_line = 'Depo Sk. 4'");
+        try
+        {
+            await using WebApplicationFactory<Program> factory = OpenPages();
+            using HttpClient client = await PanelClientAsync(factory);
+
+            (_, string defaultPage) = await GetAsync(client, SummaryPath);
+            (HttpStatusCode status, string window) = await GetAsync(client, $"{SummaryPath}?period=MeasurementWindow");
+
+            Assert.Contains("value=\"MeasurementWindow\"", defaultPage, StringComparison.Ordinal);
+            Assert.Equal(HttpStatusCode.OK, status);
+            Assert.Contains("<option value=\"MeasurementWindow\" selected", window, StringComparison.Ordinal);
+            Assert.Contains($"id=\"summary-period\">{DisplayFormat.DateRange(openDay, Today)}<", window, StringComparison.Ordinal);
+        }
+        finally
+        {
+            await ExecuteAsync(
+                "UPDATE company_settings SET is_bank_transfer_enabled = false, bank_transfer_iban = NULL, return_recipient_name = NULL, return_province_id = NULL, return_district = NULL, "
+                + "return_address_line = NULL");
+            await ExecuteAsync($"DELETE FROM legal_text_versions WHERE id IN ('{notice.Id}', '{cookie.Id}')");
+        }
     }
 
     [Theory]

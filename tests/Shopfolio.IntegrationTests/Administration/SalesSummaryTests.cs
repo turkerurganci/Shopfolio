@@ -52,8 +52,6 @@ public sealed partial class SalesSummaryTests : IAsyncLifetime
     private const string Iban = "TR330006100519786457841326";
     private static readonly RecordAmounts Amounts = new(250m, 0m, 50m);
 
-    private static int _versionNumber = 5000;
-
     private readonly CollectionDatabaseFixture _collection;
 
     private int _counter;
@@ -397,7 +395,13 @@ public sealed partial class SalesSummaryTests : IAsyncLifetime
 
     private async Task SaveWithVersionsAsync(Order order, List<OrderItem> items)
     {
-        int n = Interlocked.Increment(ref _versionNumber);
+        // The next number is read, not counted: the page tests' opened application writes the generated texts' next versions too (LegalTextGenerator).
+        int n;
+        await using (AppDbContext db = NewContext())
+        {
+            n = (await db.LegalTextVersions.AsNoTracking().MaxAsync(l => l.VersionNumber, Ct) ?? 0) + 1;
+        }
+
         LegalTextVersion form = LegalTextVersion.CreatePublished(LegalTextType.PreInformationForm, n, LongAgo, "metin", LongAgo);
         LegalTextVersion contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, n, LongAgo, "metin", LongAgo);
         LegalTextVersion notice = LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, n, LongAgo, "metin", LongAgo).WithHosting();

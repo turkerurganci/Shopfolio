@@ -156,6 +156,16 @@ internal sealed class ContentProductLinks
         return [.. linked.Where(byId.ContainsKey).Select(id => byId[id])];
     }
 
+    /// <summary>
+    /// The "İlgili ürünler" of the record's page drawn as product cards (T505; 04 5.8.5, 2.11.1): the linked products that are published, in the order of the choice, each with its price, running
+    /// discount and main image. Empty when none is linked or none is published - the page then has no such part at all, heading included.
+    /// </summary>
+    public async Task<IReadOnlyList<Shopfolio.Modules.Catalog.Contracts.Lists.ProductListCard>> ListRelatedCardsAsync(ContentLinkOwner owner, Guid ownerId, CancellationToken ct)
+    {
+        IReadOnlyList<Guid> linked = await ListLinkedIdsAsync(owner, ownerId, ct);
+        return linked.Count == 0 ? [] : await _catalog.ListPublishedProductCardsAsync(linked, ct);
+    }
+
     private Task<bool> OwnerExistsAsync(ContentLinkOwner owner, Guid ownerId, CancellationToken ct) =>
         owner == ContentLinkOwner.Offering ? _db.Offerings.AnyAsync(o => o.Id == ownerId, ct) : _db.PortfolioItems.AnyAsync(p => p.Id == ownerId, ct);
 }

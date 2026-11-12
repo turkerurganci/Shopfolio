@@ -1,0 +1,14 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model Shopfolio.Pages.Content.ContentListPageModel
+@* The body of a content list page (T505; 04 5.7.3, 5.7.8, 2.13.1): the type's name as the firm gave it, the cards in the firm's order, the page navigation; a type with no published record shows the
+   empty-state line. No search, no filter, no sort control. *@
+<h1 class="content-heading">@Model.Title</h1>
+@if (Model.Empty is { } empty)
+{
+    <partial name="_EmptyState" model="empty" />
+}
+else
+{
+    <partial name="_ContentGrid" model="Model.Cards" />
+    <partial name="_Pager" model="Model.Pager" />
+}

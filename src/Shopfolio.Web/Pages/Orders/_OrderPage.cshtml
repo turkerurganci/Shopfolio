@@ -103,10 +103,14 @@
         </ul>
     </section>
 
-    @if (Model.ScreenLinks.Count > 0)
+    @if (Model.ScreenLinks.Count > 0 || Model.ReasonText is not null)
     {
         <section class="order-page__operations" aria-labelledby="order-operations-title">
             <h2 id="order-operations-title">İşlemler</h2>
+            @if (Model.ReasonText is string reason)
+            {
+                <partial name="_Message" model='Messages.InPlace(MessageMeaning.Warning, reason, "order-operation-reason")' />
+            }
             <ul class="order-operations">
                 @foreach (OrderScreenLink link in Model.ScreenLinks)
                 {

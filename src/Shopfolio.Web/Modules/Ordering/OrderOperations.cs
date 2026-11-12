@@ -69,7 +69,7 @@ internal sealed class OrderOperations : IOrderOperations
 
         bool inTransit = item.ProductType == ProductType.Physical && item.DeliveryDate is null;
         WithdrawalExemptionReason? exemption = await _db.OrderItems.AsNoTracking().Where(i => i.Id == orderItemId).Select(i => i.WithdrawalExemptionReason).SingleAsync(ct);
-        WithdrawalNotes notes = await _afterSales.WithdrawalNotesAsync(item.ProductType, inTransit, exemption, ct);
+        WithdrawalNotes notes = await _afterSales.WithdrawalNotesAsync(item.ProductType, inTransit, exemption, item.DeliveryDate, ct);
         return new WithdrawalScreen(
             orderItemId,
             item.ProductType,
@@ -77,9 +77,13 @@ internal sealed class OrderOperations : IOrderOperations
             item.Period.WithdrawalLastDay,
             notes.ReturnAddress,
             notes.SendingPeriodDays,
+            notes.SendingLastDay,
             notes.CarrierReturnsUnreceivedGoods,
             notes.PackagingCondition,
-            facts.PaymentMethod == PaymentMethod.BankTransfer && !facts.HasRefundIban);
+            facts.PaymentMethod == PaymentMethod.BankTransfer && !facts.HasRefundIban,
+            facts.PaymentMethod,
+            notes.RefundPeriodDays,
+            notes.RefundFromGoodsArrival);
     }
 
     /// <summary>The customer's withdrawal operation of an item's type (03 1.11.5, 1.11.6): a digital item has none (1.11.7 is not a button; 02 7.3.2).</summary>

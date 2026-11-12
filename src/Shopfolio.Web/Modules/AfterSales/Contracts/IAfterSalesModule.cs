@@ -148,8 +148,11 @@ public interface IAfterSalesModule
     /// </summary>
     Task<ItemRecordWriteResult> AddWithdrawalAsync(WithdrawalDeclaration declaration, CancellationToken ct);
 
-    /// <summary>What the declaration screen of an item shows (02 7.3.5; <see cref="WithdrawalNotes"/>): the return address is the setting as it is now. A plain read.</summary>
-    Task<WithdrawalNotes> WithdrawalNotesAsync(ProductType productType, bool shippedNotDelivered, WithdrawalExemptionReason? exemption, CancellationToken ct);
+    /// <summary>
+    /// What the declaration screen of an item shows (02 7.3.5; <see cref="WithdrawalNotes"/>): the return address is the setting as it is now; the refund's start is read for a
+    /// declaration sent today against the item's delivery date. A plain read.
+    /// </summary>
+    Task<WithdrawalNotes> WithdrawalNotesAsync(ProductType productType, bool shippedNotDelivered, WithdrawalExemptionReason? exemption, DateOnly? deliveryDate, CancellationToken ct);
 
     /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
     Task<ItemRecordWriteResult> AddReturnReceiptAsync(ReturnReceiptEntry entry, CancellationToken ct);

@@ -5,6 +5,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Binding;
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
+using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Infrastructure.Security;
@@ -176,8 +177,13 @@ public abstract class OrderPageModel : PageModel
             return root.Denial ?? AccessDenial.NotFound();
         }
 
+        // The reason of a return from an operation screen (07 6.3.3; K-1170 (1), (4)): said in the operations' place over the order as it is now (04 5.17.11, 5.18.11, 5.19.10).
+        ReasonText = OrderScreenTexts.ReasonOf(NoticeParameter.Read(Request, NoticeKind.Reason));
         return await LoadAsync(orderId, ct) ? Page() : AccessDenial.NotFound();
     }
+
+    /// <summary>The reason an operation screen sent the customer back with, in the operations' place; null when the request carried none.</summary>
+    public string? ReasonText { get; private set; }
 
     /// <summary>
     /// UC-36 (07 4.16.3): the root first (404 like the GET), then the item - a digital item of this order, else 404 (07 2.3.3) - then the module's write in one transaction. Issued: 303
@@ -275,19 +281,7 @@ public sealed class MemberOrderModel(IOrderingModule ordering, IOrderPage page, 
 {
     private readonly IOrderingModule _ordering = ordering;
 
-    protected override async Task<OrderRootResult> ResolveAsync(CancellationToken ct)
-    {
-        if (User.AccountId() is not Guid customerId)
-        {
-            return OrderRootResult.Denied(await HttpContext.HasAdminSessionAsync()
-                ? AccessDenial.NotFound()
-                : Challenge(SessionSchemes.CustomerScheme));
-        }
-
-        string number = RouteData.Values["orderNumber"] as string ?? string.Empty;
-        Guid? orderId = await _ordering.FindMemberOrderAsync(number, customerId, ct);
-        return orderId is Guid id ? OrderRootResult.Found(id) : OrderRootResult.Denied(AccessDenial.NotFound());
-    }
+    protected override Task<OrderRootResult> ResolveAsync(CancellationToken ct) => OrderRoots.ResolveMemberAsync(this, _ordering, ct);
 }
 
 /// <summary>
@@ -301,12 +295,7 @@ public sealed class AccessOrderModel(IOrderingModule ordering, IOrderPage page, 
 {
     private readonly IOrderingModule _ordering = ordering;
 
-    protected override async Task<OrderRootResult> ResolveAsync(CancellationToken ct)
-    {
-        string key = RouteData.Values["accessKey"] as string ?? string.Empty;
-        Guid? orderId = await _ordering.FindOrderByAccessKeyAsync(key, ct);
-        return orderId is Guid id ? OrderRootResult.Found(id) : OrderRootResult.Denied(AccessDenial.NotFound());
-    }
+    protected override Task<OrderRootResult> ResolveAsync(CancellationToken ct) => OrderRoots.ResolveAccessAsync(this, _ordering, ct);
 }
 
 /// <summary>One button of the operations area (04 5.16.6): the words and the screen under the root it opens (07 2.1.3).</summary>

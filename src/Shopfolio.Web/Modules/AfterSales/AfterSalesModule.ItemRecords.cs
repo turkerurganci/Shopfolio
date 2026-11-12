@@ -158,8 +158,11 @@ internal sealed partial class AfterSalesModule
         return new ItemRecordWriteResult(null, withdrawal.Id, null, copied);
     }
 
-    public async Task<WithdrawalNotes> WithdrawalNotesAsync(ProductType productType, bool shippedNotDelivered, WithdrawalExemptionReason? exemption, CancellationToken ct)
+    public async Task<WithdrawalNotes> WithdrawalNotesAsync(ProductType productType, bool shippedNotDelivered, WithdrawalExemptionReason? exemption, DateOnly? deliveryDate, CancellationToken ct)
     {
+        // Z-16's start for a declaration sent now (02 7.4.1): the customer's own declaration never carries the firm's same-day answer, so the delivery day counts as before it.
+        DateOnly today = TurkeyTime.DateOf(_time.GetUtcNow());
+        bool fromArrival = AfterSalesPeriodRules.IsAfterDelivery(productType, deliveryDate, today, null);
         // A physical item's screen shows the current return address and the sending period; in transit it first says the carrier brings the goods back (K-838). A service
         // item's shows neither (K-530). The packaging condition is the conditional exemption's (K-509), the one rule of WithdrawalExemptions.
         bool physical = productType == ProductType.Physical;
@@ -167,8 +170,11 @@ internal sealed partial class AfterSalesModule
         return new WithdrawalNotes(
             address is { } a ? new ItemReturnAddress(a.RecipientName, a.ProvinceId, a.District, a.AddressLine, a.Phone) : null,
             physical ? AfterSalesPeriodRules.ReturnShipmentPeriodDays : null,
+            physical ? PeriodCounting.LastDay(CountedPeriod.ReturnShipmentPeriod, today, AfterSalesPeriodRules.ReturnShipmentPeriodDays, BusinessCalendar.Product) : null,
             physical && shippedNotDelivered,
-            WithdrawalExemptions.IsConditional(exemption) ? exemption : null);
+            WithdrawalExemptions.IsConditional(exemption) ? exemption : null,
+            AfterSalesPeriodRules.RefundPeriodDays,
+            fromArrival);
     }
 
     public async Task<ItemRecordWriteResult> AddReturnReceiptAsync(ReturnReceiptEntry entry, CancellationToken ct)
@@ -312,7 +318,7 @@ internal sealed partial class AfterSalesModule
         ItemReturnAddress? address = claim is { ReturnRecipientName: { } name, ReturnProvinceId: { } province, ReturnDistrict: { } district, ReturnAddressLine: { } line }
             ? new ItemReturnAddress(name, province, district, line, claim.ReturnPhone)
             : null;
-        return new DefectClaimInfo(claim.Id, claim.OrderItemId, claim.DefectClaimStatus, claim.Quantity, claim.CreatedAt, address);
+        return new DefectClaimInfo(claim.Id, claim.OrderItemId, claim.DefectClaimStatus, claim.Quantity, claim.CreatedAt, address, claim.Description);
     }
 
     /// <summary>

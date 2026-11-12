@@ -1,6 +1,7 @@
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Payment.Contracts;
 
 namespace Shopfolio.Modules.Ordering.Contracts;
 
@@ -60,6 +61,8 @@ public sealed record WithdrawalResult(TransitionRefusal? Refusal, Guid? Withdraw
 /// before the last step. A physical item's screen shows the firm's current return address and the period to send the goods back (<see cref="SendingPeriodDays"/>); on a
 /// shipped item not yet marked delivered it first says the carrier brings the goods back when they are not taken in (K-838); a service item's shows neither (K-530). An item
 /// frozen with a conditional exemption shows the protective packaging condition (K-509). <see cref="AsksIban"/> - the order was paid by bank transfer and no IBAN is on file.
+/// The refund (04 5.18.6; 02 7.4.1, 7.4.5): the order's payment way it goes back to, Z-16 in days and whether it runs from the goods' arrival at the firm (a delivered physical
+/// item) or from the declaration.
 /// </summary>
 public sealed record WithdrawalScreen(
     Guid OrderItemId,
@@ -68,6 +71,10 @@ public sealed record WithdrawalScreen(
     DateOnly? LastDay,
     ItemReturnAddress? ReturnAddress,
     int? SendingPeriodDays,
+    DateOnly? SendingLastDay,
     bool CarrierReturnsUnreceivedGoods,
     WithdrawalExemptionReason? PackagingCondition,
-    bool AsksIban);
+    bool AsksIban,
+    PaymentMethod PaymentMethod,
+    int RefundPeriodDays,
+    bool RefundFromGoodsArrival);

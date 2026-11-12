@@ -1,6 +1,6 @@
 # T544 — Tarih alanı, kupon alanı, onay kutuları, görsel ve dosya yükleme arayüzü (OB-16…OB-19)
 
-**Faz:** F5 | **Durum:** ⏳ Düzeltme 1 yapıldı — tur 2 doğrulaması bekliyor | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı — doğrulama tur 2 PASS (2026-11-12) | **Tarih:** 2026-11-11
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -72,9 +72,30 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Tur 1 (2026-11-11): ✗ FAIL — kriter 10 ~ Kısmi (KK10 "reddedilen dosya") |
-| Bulgu sayısı | 2 (ORTA 1, DÜŞÜK 1) + 1 K-notu |
-| Düzeltme gerekli mi | Evet — yeni yapım turu |
+| Doğrulama durumu (tur 2) | ✓ PASS — tur 2 (2026-11-12, head `5a5ec864`; `origin/main` `9f5b8ac8` (T520 #549) dalda, birleştirme gerekmedi). Kriter 1–10 ve KK1–KK10 ✓; tur 1 bulguları giderildi |
+| Bulgu sayısı (tur 2) | 0 (2 K-notu) |
+| Düzeltme gerekli mi (tur 2) | Hayır |
+| Doğrulama durumu (tur 1) | Tur 1 (2026-11-11): ✗ FAIL — kriter 10 ~ Kısmi (KK10 "reddedilen dosya") |
+| Bulgu sayısı (tur 1) | 2 (ORTA 1, DÜŞÜK 1) + 1 K-notu |
+
+**Validator kanıtları (tur 2):**
+
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | `DateFields.CheckEvent`: `day > today` → `InTheFuture`, `day < lowerBound.Day` → `BelowLowerBound` + sebep metni; `today` dışarıdan (saat okunmaz); model testleri KK1 (6) yeşil |
+| 2 | ✓ | `DateFields.SequenceQuestion` zorunlu `ClosedList` alanı döner (pencere yok); `CheckSequence` iki seçenek |
+| 3 | ✓ | `CheckRange` `FutureAllowed`'da ileri tarih serbest, duyuruda iki bayrak false → boş tarih ret değil; `InstantsOf` → `TurkeyTime.StartOf` / `TurkeyTime.EndOfRange` (T378 k7) |
+| 4 | ✓ | `_CouponField` `details` kapalı satır "Kupon kodum var"; `SameCode` → `TextNormalizer.NormalizeIdentity`; alan isteğe bağlı; `ControlComponentTests` KK4 (2) örnek sayfada toplamın üstünde |
+| 5 | ✓ | `Applied`: kod + `-tutar`, "Değiştir" (aynı Apply işleyicisi, yeni kod eskisinin yerine) ve "Kaldır"; tek kod |
+| 6 | ✓ | `RejectedMessage` ↔ `BelowMinimumText(tutar)` ayrı; `AttemptLimitExceeded` → `LimitClosed` (nötr mesaj, kod almaz); `AfterSignIn` yeniden uygular (ekrana bağlama T509, D-1225) |
+| 7 | ✓ | `RequiredFor`: iki sabit + dijital/hizmet; `Create` `sent` yoksa hiçbiri işaretsiz; `SectionOrder`/`IsPlacedRight` ve entegrasyon testi KK7 sırayı sınar |
+| 8 | ✓ | `Missing` + `AddRefusals(CheckboxNotAccepted)`; `ResetOf`/`AfterReset` (sürüm: hepsi, özet: iki yasal); KVKK/yaş/pazarlama kutusu yok (kaynak taraması) |
+| 9 | ✓ | `GalleryUploads.InOrder` elle sıra, tek `MainImageId` radyo adı, `MainOf` sıradan bağımsız; boş alt metin `GalleryText.Generated` + "Boş bırakırsanız şu metin kullanılır" |
+| 10 | ✓ | `UploadChecks.CheckImage/CheckDigitalFile/CheckCount` sınırlar `ProductConstants`'tan; `_GalleryUpload`/`_SingleUpload` mesajı alanın altında, `aria-invalid`/`aria-describedby`, galeri girişi `Input_Gallery_Files` özet bağlantısıyla eşleşir; `_UploadStatus` ilerleme + kayıt kapalı; `RequirePanel` müşteride yükleme yok; `ControlComponentTests` KK10 (5) yeşil |
+
+**Testler (tur 2, yerel, birleşik ağaç):** build `-warnaserror` 0 uyarı · format üç proje temiz · Unit 7341/7341 (ilk koşuda 3 kırmızı, iki ardışık yeniden koşuda 0 — zamanlamaya bağlı kararsız test, T544 dışı) · betik testleri 4 dosya · Integration TAM (postgres:18, `track_commit_timestamp=on`): Web 834, Ordering+Model 2055 (ilk koşuda 1 kırmızı, yeniden koşuda 0), öteki ad alanları 941 — toplam 3830, 0 kırmızı · `restore --locked-mode` 0 · CI run 43120557695 (head `5a5ec864`) bütün işler yeşil.
+
+**K-notları (tur 2):** K1 — `UploadLimits.Accept` MIME listesini (`image/jpeg,image/png,image/webp`) elle yazar; P-22 (`ProductConstants.ImageFormats`) yalnız görünen adı taşır, MIME karşılığı tek yerde değil → `Docs/DEFERRED_BACKLOG.d/T544.md` D-1319. K2 — `CheckDigitalFile` boyut reddinde `InvalidImage` kodunu kullanır (metin doğru, kod adı görsel der) → D-1319'a eklendi.
 
 **Validator kanıtları (tur 1):**
 
@@ -97,7 +118,7 @@
 - **Branch:** `task/T544-tarih-kupon-onay-yukleme`
 - **PR:** #546
 - **CI:** yardımcı denetler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** *(merge sonrası yardımcı/sonraki kayıt PR'ı doldurur; doğrulama commit'i merge'ten önce yazılır)*
 
 ## Dış Varsayımlar
 

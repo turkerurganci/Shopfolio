@@ -27,7 +27,7 @@ public sealed class RequestsPageTestsDefinition : ICollectionFixture<CollectionD
 
 /// <summary>
 /// The requests list (E-38) and the contact request's screen (E-39) with its two handlers on the opened application and a real database (T532 criteria 1-10, KK1-KK10; 07 UC-93, UC-94, UC-155, UC-156;
-/// 04 9.10, 9.11). The contact request half; the defect claim half of the list is in the next worker's hands (hand-over note).
+/// 04 9.10, 9.11). The contact request half; the defect claim rows are in RequestsPageTests.DefectRows.cs.
 /// </summary>
 [Collection(RequestsPageTestsDefinition.Name)]
 public sealed partial class RequestsPageTests : IAsyncLifetime
@@ -52,7 +52,7 @@ public sealed partial class RequestsPageTests : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        await ExecuteAsync("TRUNCATE contact_requests, dispatch_records CASCADE");
+        await ExecuteAsync("TRUNCATE contact_requests, dispatch_records, defect_claims CASCADE");
         _adminKey = (await TestSessions.AdminAsync(_database.Dsn)).Key;
     }
 

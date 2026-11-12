@@ -40,7 +40,7 @@ internal static class PanelHomeTexts
 
     public static string CardRefundFailed(int orders) => $"{DisplayFormat.Number(orders)} siparişte kart iadesi gerçekleşmedi.";
 
-    public static string CardRefundOutcomePending(int orders) => $"{DisplayFormat.Number(orders)} siparişte kart iadesinin sonucu bekleniyor.";
+    public static string CardRefundOutcomePending(int orders) => $"{DisplayFormat.Number(orders)} siparişte kart iadesinin sonucu bekleniyor — iade sağlayıcıda gerçekleşmiş olabilir, önce sağlayıcının panelinde bakın.";
 
     /// <summary>The line under the notice item: until both legal texts are published the entrances that collect data are closed (04 9.3.4; 04 2.8.3; K-850).</summary>
     public const string ClosedEntrances = "İki metin de yayına alınana kadar iletişim formu, hesap kaydı ve yeni hesap açan Google girişi kapalıdır.";

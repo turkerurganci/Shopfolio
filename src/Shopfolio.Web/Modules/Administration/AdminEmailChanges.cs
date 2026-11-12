@@ -186,6 +186,18 @@ internal sealed class AdminEmailChanges
             return AdminEmailVerificationResult.LinkInvalid(StatusOf(state));
         }
 
+        if (!await AccountLocks.LockAsync(_db, AccountType.Admin, adminId, ct))
+        {
+            return AdminEmailVerificationResult.LinkInvalid(AccountLinkStatus.Missing);
+        }
+
+        // Under the account's row lock the link and the pending change are read again: a request or a resend that ran between the first read and the lock has already replaced them (07 9.25.3).
+        LinkReading locked = await _links.ReadAsync(key, ct);
+        if (locked.State is not { } lockedState || lockedState != LinkState.Valid)
+        {
+            return AdminEmailVerificationResult.LinkInvalid(locked.State is { } ended ? StatusOf(ended) : AccountLinkStatus.Missing);
+        }
+
         DateTimeOffset now = _time.GetUtcNow();
         AdminPendingEmailChange? pending = await _pending.FindAsync(adminId, ct);
         if (pending is null || IsEnded(pending.CreatedAt, now))
@@ -193,15 +205,17 @@ internal sealed class AdminEmailChanges
             return AdminEmailVerificationResult.LinkInvalid(AccountLinkStatus.Expired);
         }
 
-        if (!await AccountLocks.LockAsync(_db, AccountType.Admin, adminId, ct))
-        {
-            return AdminEmailVerificationResult.LinkInvalid(AccountLinkStatus.Missing);
-        }
-
         var account = await _db.Admins.AsNoTracking().Where(a => a.Id == adminId).Select(a => new { a.Name, a.Email, a.NormalizedEmail }).SingleAsync(ct);
         if (await _db.Admins.AsNoTracking().AnyAsync(a => a.NormalizedEmail == pending.NormalizedNewEmail && a.Id != adminId, ct))
         {
             return AdminEmailVerificationResult.Taken();
+        }
+
+        // The link is consumed before anything is written: when the one conditional update takes no row nothing has been written (07 9.25.3).
+        if (!await _links.TryConsumeAsync(record.Id, ct))
+        {
+            LinkReading again = await _links.ReadAsync(key, ct);
+            return AdminEmailVerificationResult.LinkInvalid(again.State is { } current ? StatusOf(current) : AccountLinkStatus.Missing);
         }
 
         try
@@ -214,18 +228,14 @@ internal sealed class AdminEmailChanges
                 .ExecuteUpdateAsync(set => set.SetProperty(a => a.Email, newEmail).SetProperty(a => a.NormalizedEmail, normalizedNew), ct);
             if (changed != 1)
             {
-                return AdminEmailVerificationResult.LinkInvalid(AccountLinkStatus.Superseded);
+                // Unreachable under the row lock; the exception rolls the consumption back with the transaction.
+                throw new InvalidOperationException("The administrator's address changed under the account's row lock.");
             }
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
         {
+            // The refusal rolls the transaction back, the consumption with it.
             return AdminEmailVerificationResult.Taken();
-        }
-
-        if (!await _links.TryConsumeAsync(record.Id, ct))
-        {
-            LinkReading again = await _links.ReadAsync(key, ct);
-            return AdminEmailVerificationResult.LinkInvalid(again.State is { } current ? StatusOf(current) : AccountLinkStatus.Missing);
         }
 
         await _pending.DeleteAsync(adminId, ct);

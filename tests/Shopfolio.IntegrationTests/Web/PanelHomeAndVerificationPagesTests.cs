@@ -279,6 +279,70 @@ public sealed class PanelHomeAndVerificationPagesTests : IAsyncLifetime
         Assert.Equal(0, await db.DispatchRecords.CountAsync(Ct));
     }
 
+    [Fact]
+    public async Task TheVerificationButton_WritesNothing_WhenTheLinkIsSupersededWhileItWaitsForTheAccountLock_T521_KK8()
+    {
+        (string oldEmail, Guid adminId) = await SeedAdminAsync();
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string key = await SeedVerificationAsync(factory.Services.GetRequiredService<LinkKeys>(), adminId, "new-" + oldEmail, null, DateTimeOffset.UtcNow.AddHours(1));
+
+        (HttpStatusCode status, string html) = await RaceTheVerificationAsync(client, key, adminId, async holder =>
+            await holder.LinkRecords.Where(l => l.AdminId == adminId && l.LinkType == LinkType.NewEmailVerification).ExecuteUpdateAsync(set => set.SetProperty(l => l.SupersededAt, DateTimeOffset.UtcNow), Ct));
+
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.Contains(PanelAccessTexts.VerifyEmailInvalid, html, StringComparison.Ordinal);
+        await AssertNothingWrittenAsync(adminId, oldEmail);
+    }
+
+    [Fact]
+    public async Task TheVerificationButton_WritesNothing_WhenThePendingChangeGoesWhileItWaitsForTheAccountLock_T521_KK8()
+    {
+        (string oldEmail, Guid adminId) = await SeedAdminAsync();
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string key = await SeedVerificationAsync(factory.Services.GetRequiredService<LinkKeys>(), adminId, "new-" + oldEmail, null, DateTimeOffset.UtcNow.AddHours(1));
+
+        (HttpStatusCode status, string html) = await RaceTheVerificationAsync(client, key, adminId, async holder =>
+            await holder.PendingEmailChanges.Where(p => p.AdminId == adminId).ExecuteDeleteAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.Contains(PanelAccessTexts.VerifyEmailInvalid, html, StringComparison.Ordinal);
+        await AssertNothingWrittenAsync(adminId, oldEmail);
+    }
+
+    // Holds the administrator's row lock, lets the button's POST read the link and block on the lock, changes the records under the lock, then releases it.
+    private async Task<(HttpStatusCode Status, string Html)> RaceTheVerificationAsync(HttpClient client, string key, Guid adminId, Func<AppDbContext, Task> changeUnderTheLock)
+    {
+        await using AppDbContext holder = NewContext();
+        await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await holder.Database.BeginTransactionAsync(Ct);
+        await holder.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM admins WHERE id = {adminId} FOR UPDATE", Ct);
+
+        Task<(HttpStatusCode Status, string Html)> post = PostBodyAsync(client, $"{VerifyPath}/{key}?handler=VerifyEmail", []);
+        await using AppDbContext probe = NewContext();
+        int waiting = 0;
+        for (int i = 0; i < 400 && waiting == 0; i++)
+        {
+            await Task.Delay(50, Ct);
+            waiting = await probe.Database.SqlQuery<int>($"SELECT count(*)::int AS \"Value\" FROM pg_stat_activity WHERE wait_event_type = 'Lock' AND query ILIKE '%FOR UPDATE%' AND datname = current_database()").SingleAsync(Ct);
+        }
+
+        Assert.True(waiting > 0, "The button's request never waited for the account lock.");
+        await changeUnderTheLock(holder);
+        await transaction.CommitAsync(Ct);
+        return await post;
+    }
+
+    private async Task AssertNothingWrittenAsync(Guid adminId, string oldEmail)
+    {
+        await using AppDbContext db = NewContext();
+        Assert.Equal(oldEmail, await db.Admins.Where(a => a.Id == adminId).Select(a => a.NormalizedEmail).SingleAsync(Ct));
+        Assert.Equal(0, await db.DispatchRecords.CountAsync(Ct));
+        Assert.Equal(0, await db.LinkRecords.CountAsync(l => l.AdminId == adminId && l.LinkType == LinkType.EmailChangeRevert, Ct));
+        Assert.Equal(0, await db.AuditLogs.CountAsync(a => a.Operation == "ChangeAdminEmail" && a.AdminId == adminId, Ct));
+        Assert.Null(await db.LinkRecords.Where(l => l.AdminId == adminId && l.LinkType == LinkType.NewEmailVerification).Select(l => l.UsedAt).SingleAsync(Ct));
+    }
+
     // ---- KK6, KK9, KK10: the revert landing ----
 
     [Fact]

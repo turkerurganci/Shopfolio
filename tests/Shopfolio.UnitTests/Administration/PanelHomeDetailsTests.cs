@@ -243,7 +243,7 @@ public sealed class PanelHomeDetailsTests
         PanelHomeModel some = Page(new PanelHomeDetails(2, 1, 4, []));
         await some.OnGetAsync(Ct);
         Assert.Equal(
-            ["2 siparişte müşteriye e-posta ulaşmadı.", "1 siparişte kart iadesi gerçekleşmedi.", "4 siparişte kart iadesinin sonucu bekleniyor."],
+            ["2 siparişte müşteriye e-posta ulaşmadı.", "1 siparişte kart iadesi gerçekleşmedi.", "4 siparişte kart iadesinin sonucu bekleniyor — iade sağlayıcıda gerçekleşmiş olabilir, önce sağlayıcının panelinde bakın."],
             some.Warnings.Where(w => w.Id.StartsWith("home-warning-", StringComparison.Ordinal) && w.Id != "home-warning-sales").Select(w => w.Text));
         Assert.Equal("/panel/siparisler?pendingWork=EmailUndeliveredMark", some.Warnings.Single(w => w.Id == "home-warning-email-undelivered").Href);
         Assert.Equal("/panel/siparisler?pendingWork=AwaitingReturnOrRefund", some.Warnings.Single(w => w.Id == "home-warning-card-refund-failed").Href);

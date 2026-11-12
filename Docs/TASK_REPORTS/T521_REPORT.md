@@ -29,7 +29,7 @@
 | 5 | `Reauthenticate` doğruda tek kullanımlık değer; liste dışı 303; yanlış 422 + L-1; 429 yapmaz | ✓ | `TheRightPassword_GrantsOneSingleUseValue_…_KK5`, `AWrongOrEmptyPassword_Is422_CountsForTheLimit_AndAtTheLimit429DoesNothing_T521_KK5` |
 | 6 | İniş ekranları çerçevesiz, oturumdan bağımsız; hâl kayıttan, kod yalnız kullanılmış bağlantıdan | ✓ | `TheVerificationLanding_HasThreeStates_…_KK6`, `TheRevertLanding_HasThreeStates_…_KK6` |
 | 7 | `VerifyEmail` tek koşullu tüketir, e-posta yeni adres, eskiye bildirim + geri alma bağlantısı, iz, oturum açmaz | ✓ | `TheVerificationButton_ConsumesTheLinkOnce_ChangesTheAddress_NotifiesTheOldOne_AndWritesTheTrail_T521_KK7` |
-| 8 | Arada geçersizleşmişse 200 yazmaz; yeni adres başkasının olduysa 422, tüketilmez | ✓ | `TheVerificationButton_Is422_WhenTheNewAddressBecameAnotherAdministrators_AndTheLinkIsNotConsumed_T521_KK8`; 200 hâli: `TheVerificationLanding_…_KK6` |
+| 8 | Arada geçersizleşmişse 200 yazmaz; yeni adres başkasının olduysa 422, tüketilmez | ✓ (düzeltme 2: kilit altında yeniden okuma, tüketim yazımdan önce) | `TheVerificationButton_Is422_WhenTheNewAddressBecameAnotherAdministrators_AndTheLinkIsNotConsumed_T521_KK8`; 200 hâli: `TheVerificationButton_WritesNothing_WhenTheLinkIsSupersededWhileItWaitsForTheAccountLock_T521_KK8`, `…WhenThePendingChangeGoesWhileItWaitsForTheAccountLock_T521_KK8` |
 | 9 | `RevertPendingEmailChange` e-postayı döndürür, oturumları siler, şifre ve işaretleri geçersiz kılar, sıfırlama bağlantısı, iz | ✓ | `TheRevertButton_ReturnsTheAddress_EndsEverySession_InvalidatesThePassword_SendsTheResetLink_AndWritesTheTrail_T521_KK9` |
 | 10 | Eski adres başkasının olduysa 422, tüketim geri döner; arada geçersizleşmişse 200 | ✓ | `TheRevertButton_Is422_WhenTheEarlierAddressBecameAnotherAdministrators_AndTheConsumptionRollsBack_T521_KK10` |
 
@@ -44,7 +44,7 @@
 | KK5 | Yanlış şifre L-1; tek izin | ✓ | `…_KK5` iki test |
 | KK6 | Üç iniş hâli, kod koşulu | ✓ | `…_KK6` iki test |
 | KK7 | Tek tüketim; bildirim, bağlantı, iz | ✓ | `…_KK7` |
-| KK8 | Yarışta 200; başkasına geçen adres | ✓ | `…_KK8`, KK6 testleri |
+| KK8 | Yarışta 200; başkasına geçen adres | ✓ | `…_KK8` (üç test; ikisi kilit beklerken bağlantı/bekleyen değişiklik değişir) |
 | KK9 | Oturumlar, şifre, e-posta, iz | ✓ | `…_KK9` |
 | KK10 | Çakışmada geri dönüş; yarışta 200 | ✓ | `…_KK10` |
 | 09 §25 | İlgili satırlar | ✓ | Tüketici yöntem listesi (`LinkKeySourceScan.ConsumingMethods`/`WrapperMethods`) ve `ModelBindingRuleTests` yeşil; modül yöntemleri kendi işlemini açmaz; sayfa `[NoStore]` |
@@ -132,3 +132,18 @@ Sınama (düzeltme 1; dal + origin/main `29562ee9` birleşik ağaç): restore �
 | `12` satırları (tur 2) | `VAL-A261` FAIL → PASS (satır içeriği ve sayaç dışı kalma kanıtlandı); `VAL-A257`, A259, A260, A262, A263, A316, D043 PASS kalır; `VAL-A258`, A264 BEKLEMEDE kalır (E-36 yok; D-1348). Matris betiği hata 0. |
 | Yapım raporu karşılaştırması (tur 2) | Öz denetim tablosu var. Uyuşmazlıklar: (1) kriter 8 / KK8 "200 hâli: KK6 testleri" kanıtıyla ✓ yazılmış — KK6 GET inişini sınar, yarışı (okuma ile tüketim arası geçersizleşme) sınayan test yok (D-1301 de bunu söyler); B1. (2) kriter 1 ✓ yazılmış, kart iadesi sonucu uyarısının içeriği D-1299 ile belgeye atılmış; B2. |
 | Doğrulayıcı kanıtları (tur 2) | Ana dal CI son 3: 43153986199, 43153986204, 43151185866 success. PR #554 CI run 43162590489 (head `8c9a0754`) tüm işler yeşil. restore ✓; build `-warnaserror` 0/0; `dotnet format --verify-no-changes` üç proje temiz; Unit 7411/7411 (Consistency, Architecture dahil); betik 4/4; Integration TAM 3930 test: Administration 71, Catalog…Logging 725, Model 1409/1410 (1 yük kaynaklı hata — sınıf tek başına 55/55, D-1366), Ordering 645, kalan ad alanları 157, Web 231+389+302 — hepsi yeşil. |
+
+## Düzeltme 2 (2026-11-12; tur 2 FAIL sonrası)
+
+| Bulgu | Düzeltme | Kanıt |
+|---|---|---|
+| B1 (ORTA, kriter 8 / KK8) | `VerifyNewEmailAsync`: hesabın satır kilidi önce; bağlantı ve bekleyen değişiklik kilit altında yeniden okunur; bağlantı koşullu güncellemeyle e-posta yazımından önce tüketilir (geri almanın sırası); benzersizlik ihlali `Taken()` ile işlemi geri alır. | `TheVerificationButton_WritesNothing_WhenTheLinkIsSupersededWhileItWaitsForTheAccountLock_T521_KK8`, `TheVerificationButton_WritesNothing_WhenThePendingChangeGoesWhileItWaitsForTheAccountLock_T521_KK8` (gerçek satır kilidi tutulur, istek kilitte bekler, kayıt değişir, kilit bırakılır; e-posta, bildirim, geri alma bağlantısı, iz yazılmaz) |
+| B2 (DÜŞÜK, kriter 1 / KK1) | `PanelHomeTexts.CardRefundOutcomePending` iadenin sağlayıcıda gerçekleşmiş olabileceğini ve önce sağlayıcının panelinde bakılacağını söyler; D-1299 ✅. | `PanelHomeDetailsTests` (uyarı metni sınanır) |
+
+Öz denetim: 10 kabul kriteri ve KK1–KK10 diff'te yeniden geçildi; kriter 8 / KK8 ve kriter 1 / KK1 dışındakilere dokunulmadı. Kök neden: kilit-sırası ve tüketim-sırası kuralı (`07` 9.25.3) geri alma yoluna uygulanmış, doğrulama yoluna uygulanmamıştı; yarış testi yoktu.
+
+| Tür | Sonuç | Çıktı |
+|---|---|---|
+| Restore, build `-warnaserror`, format ×3 | ✓ | 0 uyarı, 0 hata |
+| Unit TAM | ✓ | 7411/7411 |
+| Integration | KISMİ | `PanelHomeAndVerificationPagesTests` 19/19; Integration TAM süre bütçesi nedeniyle bu turda koşulmadı (devir notunda) |

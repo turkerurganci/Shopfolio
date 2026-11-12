@@ -1,6 +1,6 @@
 # T535 — Ana sayfa ve menü, firma kimliği ve satış (E-42, E-44)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-12
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -72,6 +72,12 @@
 | Bloke-etmeyen not (K) sayısı (tur 1) | 1 — K1 → D-1363 (task "Unit, Integration" bekliyor; diff'te yeni birim testi yok) |
 | Yapım raporu karşılaştırması (tur 1) | Kriter 1, 2, 4–10 kanıtları uyumlu. Uyuşmazlık: kriter 3 ✓ yazılmış ama alan mesajı varsayılan adı taşımıyor (B1); öz denetim `04` 9.14.4 sırasını kapsamıyor (B2) |
 | Doğrulayıcı kanıtları (tur 1) | Derleme `-warnaserror` 0/0; `dotnet format --verify-no-changes` üç proje temiz; Unit 7402/7402; betik 4/4; Integration değişen/dokunan sınıflar 263/263 + yasal metin, içerik ve çerçeve sınıfları 177/177 (postgres:18, `track_commit_timestamp=on`); CI run 43165022158 yeşil (Integration TAM dahil); `12` Durum: A287, A747 PASS, öteki satırlar BEKLEMEDE |
+| Doğrulama durumu (tur 2) | ✓ PASS (2026-11-12; dal ucu `5e42c12b`, origin/main `a56a1735` — T533 #556, T512 #553, T521 #554 — çakışmasız birleştirildi, birleşik ağaçta doğrulandı) |
+| Bulgu sayısı (tur 2) | 0. Tur 1'in B1'i (K-813 alan mesajı) ve B2'si (menü adı sırası düzeni izler) kapandı: `TheSave_RefusesAnEmptyName…_KK3` ve `TheEmptyMenuNameRefusal_…_KK3` mesajı ve ret günlüğünü, `TheMenuNameFields_FollowTheSelectedLayoutsMenuOrder_…_KK1` iki düzenin sırasını sınıyor |
+| Düzeltme gerekli mi (tur 2) | Hayır |
+| Bloke-etmeyen not (K) sayısı (tur 2) | 1 — K1 → D-1387 (`FieldMessageCatalog` parametreli `FieldRequired`'ı her yerde K-813 metnine çeviriyor; bugün tek çağıran ana sayfa ekranı, yeni dalın birim testi yok) |
+| Yapım raporu karşılaştırması (tur 2) | Tam uyumlu: kriter 1–10 kanıtları ve öz denetim tablosu doğrulayıcının bulgularıyla aynı; düzeltme 1b'nin "öteki ad alanları koşulmadı" boşluğunu bu tur Integration TAM kapattı |
+| Doğrulayıcı kanıtları (tur 2) | Ana dal CI son 3 run yeşil (43200154761, 43200154794, 43195110409); derleme `-warnaserror` 0/0; `dotnet format --verify-no-changes` Web, UnitTests, IntegrationTests temiz; Unit 7425/7425 (Consistency ve Architecture dahil, birleşik ağaç); betik 4/4; Integration TAM 4020/4020 (Web 950 + öteki ad alanları 3070; postgres:18, `track_commit_timestamp=on`); PR #555 CI run 43204870533 yeşil; `12_matris_denetle.py --kapsam 1-77` hata 0; `12` Durum değişmedi (A287, A747 PASS; tarayıcı gözlemi, vitrin ya da eşzamanlı koşu isteyen öteki satırlar BEKLEMEDE) |
 
 ## Düzeltme 1 (tur 1 FAIL sonrası)
 

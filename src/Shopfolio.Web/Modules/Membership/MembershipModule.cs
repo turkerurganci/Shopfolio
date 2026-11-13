@@ -328,14 +328,14 @@ internal sealed class MembershipModule : IMembershipModule
                 .Where(c => c.Id == signedIn)
                 .Select(c => new { c.EmailVerifiedAt })
                 .SingleOrDefaultAsync(ct);
-            if (account is null)
+            if (account is not null)
             {
-                return new OrderAccountResolution(OrderAccountKind.Guest, null);
+                return account.EmailVerifiedAt is null
+                    ? new OrderAccountResolution(OrderAccountKind.RefusedUnverified, signedIn)
+                    : new OrderAccountResolution(OrderAccountKind.SignedIn, signedIn);
             }
 
-            return account.EmailVerifiedAt is null
-                ? new OrderAccountResolution(OrderAccountKind.RefusedUnverified, signedIn)
-                : new OrderAccountResolution(OrderAccountKind.SignedIn, signedIn);
+            // The session's account is gone (deleted in between - a race): the order is a guest's and takes the guest's path below, so a verified account of the address still takes it (D-385).
         }
 
         // A guest: the account takes the order only when its address is verified; a pending registration never does (02 3.13.3; 8.1.2).
@@ -352,6 +352,11 @@ internal sealed class MembershipModule : IMembershipModule
     public async Task<string?> GetMemberNameAsync(Guid customerId, CancellationToken ct)
     {
         return await _db.Customers.AsNoTracking().Where(c => c.Id == customerId).Select(c => c.Name).SingleOrDefaultAsync(ct);
+    }
+
+    public async Task<string?> GetVerifiedEmailAsync(Guid customerId, CancellationToken ct)
+    {
+        return await _db.Customers.AsNoTracking().Where(c => c.Id == customerId && c.EmailVerifiedAt != null).Select(c => c.Email).SingleOrDefaultAsync(ct);
     }
 
     public async Task<MemberContact?> GetMemberContactAsync(Guid customerId, CancellationToken ct)

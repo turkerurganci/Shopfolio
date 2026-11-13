@@ -1,6 +1,6 @@
 # T516 — Şifre sıfırlama ve yeniden doğrulama (E-23, E-24)
 
-**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama bekliyor) | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama ✓ PASS tur 1) | **Tarih:** 2026-11-12
 
 ---
 
@@ -68,7 +68,12 @@ Backlog payı: D-1351 ✅ (yerinde kapatıldı); D-109, D-572, D-801 (A352 payı
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-13) |
+| Bulgu sayısı | 0 bloke eden; 2 K-notu (D-1433, D-1434) |
+| Düzeltme gerekli mi | Hayır |
+| Kanıt | Kriter 1–10 ve KK1–KK10: yukarıdaki testler doğrulayıcı tarafından main (`9cf8d1f7`) ile birleşik ağaçta yeniden koşuldu — Integration `CustomerPasswordResetAndReauthenticationPageTests` + `CustomerSignInPageTests` 67/67; Unit TAM 7511/7511; derleme `-warnaserror` ve `dotnet format` temiz; dal CI (run 43306073724) yeşil. Kriter 10'un "Google tanımsızsa 422" yarısı kodla (`Reauthentication.cshtml.cs` `IsGoogleSignInOpen` dalı) doğrulandı, sayfa testi yok (D-1434). |
+| `12` | `VAL-A097`, `VAL-A574`, `VAL-E076` → PASS; paylı satırlar BEKLEMEDE (D-1433) |
+| Uyuşmazlık | Rapor Google düğmesini "bağlıysa ve tanımlıysa" diye anlatır; görünüm yalnız `GoogleLinkedAt`'a bakar (D-1434) |
 
 ## Altyapı Değişiklikleri
 

@@ -2,8 +2,8 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Notices;
-using Shopfolio.Modules.Membership;
 using Shopfolio.UnitTests.Support;
 
 namespace Shopfolio.UnitTests.Consistency;
@@ -66,11 +66,11 @@ public sealed partial class OutageConsistencyTests
     // Every code the rule can answer with: both flows against both kinds of failure (T214 / D-109: the rule answers with the NoticeCode itself).
     private static readonly string[] GoogleFailureCodes =
     [
-        .. Enum.GetValues<GoogleIdentityFlow>()
-            .SelectMany(flow => new Shopfolio.Infrastructure.Integrations.GoogleIdentityResult[]
+        .. Enum.GetValues<GoogleFlowKind>()
+            .SelectMany(flow => new GoogleIdentityResult[]
             {
-                new Shopfolio.Infrastructure.Integrations.GoogleIdentityResult.Failed("x"),
-                new Shopfolio.Infrastructure.Integrations.GoogleIdentityResult.Unavailable("x"),
+                new GoogleIdentityResult.Failed("x"),
+                new GoogleIdentityResult.Unavailable("x"),
             }.Select(answer => GoogleIdentityFailureRule.FailureOf(flow, answer)))
             .Select(code => code!.Value.ToString())
             .Distinct(),

@@ -1,0 +1,60 @@
+@page "/hesap/yeniden-dogrulama"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@model Shopfolio.Pages.Account.ReauthenticationModel
+@inject SearchEngineData Search
+@*
+    The re-authentication screen (T516; 04 E-24 5.24; 07 UC-60 to UC-62), the storefront frame around it. Order of the content (04 5.24.3): the name of the operation, the password field (only when the account has a
+    password), the button of Google (only when the account is linked to Google; both ways show for an account that has both), the primary button and "Vazgeç". The lasting message of Google's failed or unreachable return
+    stands at the head; an account without a password is shown the way to set one (04 5.24.7). The password is never written back into the page.
+*@
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = ReauthenticationTexts.ScreenName;
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, ["Input.Password"]);
+    string operation = Model.Operation.ToString();
+}
+@section Head {
+    @Search.Head(ViewContext.HttpContext, RecordPages.ClosedScreen(ReauthenticationTexts.ScreenName, ViewContext.HttpContext.GetStorefrontFrame()?.Brand.BrandName, FramePaths.Reauthentication))
+}
+<h1>@ReauthenticationTexts.ScreenName</h1>
+<p id="reauth-operation">@ReauthenticationTexts.OperationLine(Model.Operation)</p>
+@if (Model.ResultMessage is not null)
+{
+    <partial name="_Message" model="Model.ResultMessage" />
+}
+@if (Model.GoogleNotOffered)
+{
+    <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, ReauthenticationTexts.GoogleNotOffered, "reauth-google-not-offered")' />
+}
+@if (Model.Methods.HasPassword)
+{
+    FieldView concealedField = Fields.Bind(Fields.Concealed("Input.Password", ReauthenticationTexts.PasswordLabel, FieldRequirement.Required, "current-password"), summary);
+    <partial name="_FormErrorSummary" model="summary" />
+    <form method="post" asp-antiforgery="true" action="@(FramePaths.Reauthentication)?handler=Reauthenticate" id="reauth-form" class="form" data-js="submit-once">
+        <input type="hidden" name="Input.ReauthenticatedOperation" value="@operation" />
+        <div class="form-fields">
+            <partial name="_Field" model="concealedField" />
+        </div>
+        <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(ReauthenticationTexts.ConfirmButton)">@ReauthenticationTexts.ConfirmButton</button>
+        @if (Model.LimitReached)
+        {
+            <partial name="_Message" model='Messages.NeutralLimit("reauth-limit")' />
+        }
+    </form>
+}
+@if (Model.Methods.HasGoogleLink)
+{
+    <form method="post" asp-antiforgery="true" action="@(FramePaths.Reauthentication)?handler=StartSocialReauthentication" id="reauth-google" data-js="submit-once">
+        <input type="hidden" name="Input.ReauthenticatedOperation" value="@operation" />
+        <button type="submit" class="button @(Model.Methods.HasPassword ? "button--secondary" : "button--primary")" data-busy-label="@LoadingViews.BusyLabelOf(ReauthenticationTexts.GoogleButton)">@ReauthenticationTexts.GoogleButton</button>
+    </form>
+}
+@if (!Model.Methods.HasPassword)
+{
+    <p><a id="reauth-set-password" href="@FramePaths.PasswordReset">@ReauthenticationTexts.SetPasswordLink</a></p>
+}
+<p><a id="reauth-cancel" href="@FramePaths.Account">@ReauthenticationTexts.CancelLink</a></p>

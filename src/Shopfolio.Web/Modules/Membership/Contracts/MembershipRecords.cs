@@ -205,3 +205,32 @@ public sealed class NameChangeResult : IOperationResult
 
 /// <summary>The signed-in member's name and e-mail as the account holds them (T506): the contact form's starting values, which the member may change.</summary>
 public sealed record MemberContact(string Name, string Email);
+
+/// <summary>
+/// The ways a verified customer account is entered (T516; 02 3.13.8, 3.13.13; 06 4.36): the account's e-mail, whether it has a password and whether it is linked to Google (<c>GoogleLinkedAt</c>). The reset
+/// page names "şifre belirle" for an account without a password; the re-authentication page shows the password field when the account has a password and the Google button when it is linked.
+/// </summary>
+public sealed record SignInMethods(string Email, bool HasPassword, bool HasGoogleLink);
+
+/// <summary>What Google's verified identity token says in a re-authentication return (T516; 05 6.1.5): the e-mail, whether Google gives it as verified, and the moment of the Google sign-in (<c>auth_time</c>), empty when Google gave none.</summary>
+public sealed record GoogleReauthenticationIdentity(string Email, bool EmailVerified, DateTimeOffset? AuthTime);
+
+/// <summary>
+/// The outcome of the Google re-authentication's return (T516; 05 6.1.5; K-968): granted with the single-use value of the operation form, or not granted - the account is not linked to Google, the
+/// e-mail is not the account's, Google did not give it as verified, the sign-in moment is missing or not after the start of the flow, or the session is not the account's. Nothing is written when it is not granted.
+/// </summary>
+public sealed class GoogleReauthenticationResult : IOperationResult
+{
+    private GoogleReauthenticationResult(string? value) => Value = value;
+
+    /// <summary>The value for the operation form's hidden field; empty when not granted.</summary>
+    public string? Value { get; }
+
+    public bool IsGranted => Value is not null;
+
+    public bool IsRejected => !IsGranted;
+
+    internal static GoogleReauthenticationResult Granted(string value) => new(value);
+
+    internal static GoogleReauthenticationResult NotGranted() => new(null);
+}

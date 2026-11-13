@@ -134,6 +134,13 @@ internal sealed class CatalogModule : ICatalogModule
 
     public Task<CouponWriteResult> CreateCouponAsync(CouponDefinition definition, CancellationToken ct) => _coupons.CreateAsync(definition, ct);
 
+    public Task<CouponWriteResult> UpdateCouponAsync(Guid couponId, CouponDefinition definition, int formVersion, CancellationToken ct)
+        => _coupons.UpdateAsync(couponId, definition, formVersion, ct);
+
+    public Task<CouponListPage> ListCouponsAsync(int page, CancellationToken ct) => _coupons.ListAsync(page, ct);
+
+    public Task<CouponRecord?> GetCouponAsync(Guid couponId, CancellationToken ct) => _coupons.GetAsync(couponId, ct);
+
     public Task<CouponApplication> EvaluateCouponAsync(string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct) => _coupons.EvaluateAsync(code, lines, ct);
 
     public Task<CouponApplication> ApplyCouponAsync(Guid cartId, string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct)
@@ -292,6 +299,7 @@ internal static class CatalogModuleRegistration
 
         // The coupon (T338): its application counts the cart's invalid attempts (L-6). The counter is infrastructure that Program.cs registers first; a host that builds
         // the module alone (the tests) gets it here, and the application's own registration is never doubled.
+        services.AddScoped<CouponLocks>();
         services.AddScoped<Coupons>();
         services.TryAddScoped<AttemptCounter>();
 

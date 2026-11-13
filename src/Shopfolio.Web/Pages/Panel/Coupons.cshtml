@@ -1,0 +1,62 @@
+@page "/panel/kuponlar/{key?}"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Panel
+@model CouponsModel
+@*
+    E-35, the coupons screen (T526; 04 9.7; 07 UC-90, UC-122): the list newest first - code, kind and value, minimum basket amount, date range, use and the validity line, which is text and not a
+    badge (04 9.7.3) - and the coupon's form on the same screen. On the wide class the form opens beside the list; on the medium and narrow classes it takes the list's place and carries the way back
+    (04 9.7.11). The used and reserved rights are read only (K-654). There is no delete, no search and no filter (04 9.7.5). No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Kuponlar";
+}
+<h1>Kuponlar</h1>
+@if (Model.Notice is not null)
+{
+    <partial name="_Message" model="Model.Notice" />
+}
+<div class="@(Model.ShowsForm ? "coupons coupons--form-open" : "coupons")">
+    <section class="coupons__list" id="coupon-list" aria-label="Kupon listesi">
+        <p class="coupons__new"><a class="button button--primary" href="@(PanelFramePaths.Coupons + "/" + CouponsModel.NewKey)">@CouponsModel.NewCouponLabel</a></p>
+        @if (Model.Table is not null)
+        {
+            <partial name="_PanelTable" model="Model.Table" />
+            <partial name="_Pager" model="Model.Pager" />
+        }
+        else if (Model.Empty is not null)
+        {
+            <partial name="_EmptyRow" model="Model.Empty" />
+        }
+    </section>
+    @if (Model.ShowsForm)
+    {
+        <section class="coupons__form form-section" id="coupon-form" aria-labelledby="coupon-form-heading">
+            <p class="coupons__back"><a href="@PanelFramePaths.Coupons">@CouponsModel.BackToListLabel</a></p>
+            <h2 id="coupon-form-heading">@Model.FormHeading</h2>
+            <partial name="_FormErrorSummary" model="Model.Summary" />
+            <form method="post" action="@(Model.FormPath + "?handler=SaveCoupon")" asp-antiforgery="true" class="form" data-js="submit-once">
+                @if (Model.IsExisting)
+                {
+                    @VersionFields.Version(Model.FormVersion, "Input")
+                }
+                <div class="form-fields">
+                    @foreach (FieldView field in Model.FormFields)
+                    {
+                        <partial name="_Field" model="field" />
+                    }
+                </div>
+                @if (Model.RightsText is not null)
+                {
+                    <p class="coupons__rights" id="coupon-rights">@Model.RightsText</p>
+                }
+                <p class="field__hint" id="coupon-change-note">@CouponsModel.ChangeNote</p>
+                <p class="field__hint" id="coupon-stop-note">@CouponsModel.StopNote</p>
+                @ConflictControls.RecordSaveControl(Model.IsConflicted, Model.FormPath)
+            </form>
+        </section>
+    }
+</div>

@@ -467,6 +467,26 @@ internal sealed class Carts
         return new CartMergeResult(memberCartId, true, unseen);
     }
 
+    /// <summary>
+    /// Writes the cart's once-told mark of the return for an unusable payment method (07 UC-26; 06 4.15; K-1183): the cart's read tells it once and takes it. Under the cart's lock, like every
+    /// write of the cart; an owner without a cart has nothing to mark. Joins the caller's transaction.
+    /// </summary>
+    public async Task MarkPaymentUnavailableAsync(CartOwner owner, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(owner);
+        if (await FindCartIdAsync(owner, ct) is not Guid cartId)
+        {
+            return;
+        }
+
+        await _locks.LockAsync(AdvisoryLockScope.Cart, cartId, ct);
+        Cart? cart = await _db.Carts.SingleOrDefaultAsync(c => c.Id == cartId, ct);
+        if (cart is not null)
+        {
+            cart.IsPaymentUnavailableNoticePending = true;
+        }
+    }
+
     /// <summary>The id of the owner's cart, or null when the owner has none yet (a plain read).</summary>
     public async Task<Guid?> FindCartIdAsync(CartOwner owner, CancellationToken ct)
     {

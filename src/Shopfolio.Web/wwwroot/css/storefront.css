@@ -584,6 +584,18 @@
     white-space: pre-wrap;
 }
 
+/* The checkout's two legal texts (T509; 04 5.13.9 (c)-(d), 5.13.32; K-756, K-832): each open in a box of fixed height that scrolls on every class;
+   never folded, the text at the body size and never smaller. */
+.checkout__legal-box {
+    height: 16rem;
+    overflow-y: auto;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-1);
+    font-size: var(--font-size-base);
+    overflow-wrap: anywhere;
+}
+
 /* ---- Home page and category page (E-01, E-02; T502; 04 5.1, 5.2) ---- */
 
 .home-block {

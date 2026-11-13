@@ -32,6 +32,7 @@ public sealed class ConcurrencySourceScanTests
         Assert.Contains(ConcurrencySourceScan.AdvisoryLocksFile, scanned);
         Assert.Contains(ConcurrencySourceScan.JobClaimFile, scanned);
         Assert.Contains(ConcurrencySourceScan.DigitalFileLocksFile, scanned);
+        Assert.Contains(ConcurrencySourceScan.CouponLocksFile, scanned);
         Assert.Contains(ConcurrencySourceScan.OrderLocksFile, scanned);
         Assert.Contains(ConcurrencySourceScan.StockCountersFile, scanned);
         Assert.Contains(ConcurrencySourceScan.DownloadCountersFile, scanned);
@@ -129,6 +130,29 @@ public sealed class ConcurrencySourceScanTests
         Assert.Contains((ConcurrencySourceScan.RowLockText, 7), findings);
         Assert.Contains((ConcurrencySourceScan.ShareLockText, 8), findings);
         Assert.Contains((ConcurrencySourceScan.CounterWrite, 10), findings);
+    }
+
+    [Fact]
+    public void Scan_InTheCouponLocksFile_AllowsOnlyThePlainRowLockText()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = ConcurrencySourceScan.Scan(ConcurrencySourceScan.CouponLocksFile, ReadSample());
+
+        Assert.Contains((ConcurrencySourceScan.RowLockText, 5), findings);
+        Assert.DoesNotContain((ConcurrencySourceScan.RowLockText, 6), findings);
+        Assert.Contains((ConcurrencySourceScan.RowLockText, 7), findings);
+        Assert.Contains((ConcurrencySourceScan.ShareLockText, 8), findings);
+        Assert.Contains((ConcurrencySourceScan.CounterWrite, 10), findings);
+    }
+
+    [Theory]
+    [InlineData("src/Shopfolio.Web/Modules/Catalog/Coupons.cs")]
+    [InlineData("src/Shopfolio.Web/Modules/Ordering/CouponLocks.cs")]
+    [InlineData("other/src/Shopfolio.Web/Modules/Catalog/CouponLocks.cs")]
+    public void Scan_AFileOfTheSameNameAsCouponLocksElsewhere_OrTheCouponModule_IsNotAnAllowedPlace(string path)
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = ConcurrencySourceScan.Scan(path, ReadSample());
+
+        Assert.Contains((ConcurrencySourceScan.RowLockText, 6), findings);
     }
 
     [Theory]

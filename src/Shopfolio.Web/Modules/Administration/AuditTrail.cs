@@ -100,6 +100,18 @@ internal sealed class AuditTrail : IAuditTrail
         return new AuditPage([.. page.Items.Select(ToRow)], page.PageNumber, page.PageSize, page.TotalCount, page.PageCount);
     }
 
+    public async Task<IReadOnlyList<AuditFieldChangeAt>> ListFieldChangesAsync(AuditOperation operation, string targetRecordType, CancellationToken ct)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(targetRecordType);
+        string code = AuditOperationText.ToCode(operation);
+        var rows = await _db.AuditLogs.AsNoTracking()
+            .Where(l => l.Operation == code && l.TargetRecordType == targetRecordType)
+            .OrderBy(l => l.CreatedAt).ThenBy(l => l.Id)
+            .Select(l => new { l.CreatedAt, l.Details })
+            .ToListAsync(ct);
+        return [.. rows.SelectMany(r => (r.Details?.Changes ?? []).Select(c => new AuditFieldChangeAt(r.CreatedAt, c.Field, c.OldValue, c.NewValue)))];
+    }
+
     public async Task<IReadOnlyList<AuditAdminOption>> ListAdminsAsync(CancellationToken ct)
     {
         // The name written in the newest row of each administrator in the trail (a removed administrator keeps it, 02 10.3.5).

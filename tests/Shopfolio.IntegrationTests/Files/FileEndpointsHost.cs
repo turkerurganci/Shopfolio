@@ -41,7 +41,7 @@ internal sealed class FileEndpointsHost : IAsyncDisposable
     private readonly ShopfolioWebApplicationFactory _baseFactory;
     private readonly WebApplicationFactory<Program> _factory;
 
-    public FileEndpointsHost(string dsn, bool kestrel = false, string? adminKey = null)
+    public FileEndpointsHost(string dsn, bool kestrel = false, string? adminKey = null, Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor? interceptor = null)
     {
         Dsn = dsn;
         Time = new ManualTimeProvider(DateTimeOffset.UtcNow);
@@ -55,6 +55,12 @@ internal sealed class FileEndpointsHost : IAsyncDisposable
             services.RemoveAll<IDiskUsageReader>();
             services.AddSingleton<IDiskUsageReader>(Disk);
             services.AddRazorPages().AddApplicationPart(typeof(ForgeryTokenSampleModel).Assembly);
+            if (interceptor is not null)
+            {
+                // A test that counts the commands of a request (09 20 item 4).
+                services.ConfigureDbContext<AppDbContext>(options => options.AddInterceptors(interceptor));
+            }
+
             if (kestrel)
             {
                 // The real server sees the test client as a peer on the loopback; the test client plays the reverse proxy that says the request came over HTTPS.

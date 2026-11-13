@@ -126,7 +126,7 @@ internal sealed class AccountDeletions
         }
 
         // An open revert link of an e-mail change closes the deletion - the member's and the firm's (02 3.15.6; K-698): the sign of the way back must not be spent by deleting the account.
-        DateTimeOffset? revertEnds = await EmailChanges.OpenRevertEndAsync(_db, customerId, now, ct);
+        DateTimeOffset? revertEnds = await EmailChangeRules.OpenRevertEndAsync(_db, AccountType.Customer, customerId, now, ct);
         return revertEnds is { } ends ? AccountDeletionResult.RevertPending(ends) : null;
     }
 

@@ -1,0 +1,99 @@
+@page "/panel/hesabim"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.Security
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Panel
+@model Shopfolio.Pages.Panel.MyAccountModel
+@*
+    E-50, the administrator's own account (T523; 04 9.21): the name, the address and the password, each its own form. The address and the password forms open only with the single-use value of the
+    re-verification step (E-54); otherwise a link leads there. The password is never written back into the page.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = MyAccountTexts.Title;
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, ["Input.Name", "Input.NewEmail", "Input.NewPassword"]);
+    FieldView nameField = Fields.Bind(Fields.Text("Input.Name", MyAccountTexts.NameLabel, FieldRequirement.Required, Model.SentName, autocomplete: "name"), summary);
+    FieldView currentEmail = Fields.AsReadOnly(Fields.Email("Email", MyAccountTexts.EmailLabel, FieldRequirement.Required, Model.Account.Email, null));
+    string reauthForEmail = PanelFramePaths.Reauthentication + "?" + ReauthModel.OperationParameter + "=EmailChange";
+    string reauthForPass = PanelFramePaths.Reauthentication + "?" + ReauthModel.OperationParameter + "=PasswordChange";
+}
+<h1>@MyAccountTexts.Title</h1>
+@if (Model.Notice is not null)
+{
+    <partial name="_Message" model="Model.Notice" />
+}
+<partial name="_FormErrorSummary" model="summary" />
+<section aria-labelledby="my-account-name-heading">
+    <h2 id="my-account-name-heading">@MyAccountTexts.NameHeading</h2>
+    <p id="name-note">@MyAccountTexts.NameNote</p>
+    <form method="post" asp-antiforgery="true" action="@(PanelFramePaths.MyAccount)?handler=ChangeName" class="form" data-js="submit-once" id="change-name-form">
+        <div class="form-fields">
+            <partial name="_Field" model="nameField" />
+        </div>
+        <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(MyAccountTexts.NameButton)">@MyAccountTexts.NameButton</button>
+    </form>
+</section>
+<section aria-labelledby="my-account-email-heading">
+    <h2 id="my-account-email-heading">@MyAccountTexts.EmailHeading</h2>
+    <partial name="_Field" model="currentEmail" />
+    <p id="email-note">@MyAccountTexts.EmailNote</p>
+    @if (Model.ActionMessage is not null && Model.ActionSection == "email")
+    {
+        <partial name="_Message" model="Model.ActionMessage" />
+    }
+    @if (Model.Result is not null && Model.Result.Id == "link-resent")
+    {
+        <partial name="_Message" model="Model.Result" />
+    }
+    @if (Model.Account.PendingEmail is not null && Model.Account.PendingLinkEnd is { } linkEnd)
+    {
+        <h3>@MyAccountTexts.PendingHeading</h3>
+        <p id="email-pending">@MyAccountTexts.Pending(Model.Account.PendingEmail, linkEnd)</p>
+        <form method="post" asp-antiforgery="true" action="@(PanelFramePaths.MyAccount)?handler=ResendEmailChangeLink" class="form" data-js="submit-once" id="resend-email-link-form">
+            <button type="submit" class="button" data-busy-label="@LoadingViews.BusyLabelOf(MyAccountTexts.ResendButton)">@MyAccountTexts.ResendButton</button>
+        </form>
+    }
+    @if (Model.RevertSentence is not null)
+    {
+        <partial name="_Message" model='Messages.InPlace(MessageMeaning.Warning, Model.RevertSentence, "email-revert-note")' />
+        <button type="button" class="button" disabled>@MyAccountTexts.EmailButton</button>
+    }
+    else if (Model.EmailFormOpen && Model.HeldValue is not null)
+    {
+        FieldView newEmail = Fields.Bind(Fields.Email("Input.NewEmail", MyAccountTexts.NewEmailLabel, FieldRequirement.Required, Model.SentEmail), summary);
+        <form method="post" asp-antiforgery="true" action="@(PanelFramePaths.MyAccount)?handler=ChangeEmail" class="form" data-js="submit-once" id="change-email-form">
+            @ReauthenticationValues.Hidden(Model.HeldValue, "Input")
+            <div class="form-fields">
+                <partial name="_Field" model="newEmail" />
+            </div>
+            <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(MyAccountTexts.EmailSaveButton)">@MyAccountTexts.EmailSaveButton</button>
+        </form>
+    }
+    else
+    {
+        <p><a class="button" id="change-email-link" href="@reauthForEmail">@MyAccountTexts.EmailButton</a></p>
+    }
+</section>
+<section aria-labelledby="my-account-password-heading">
+    <h2 id="my-account-password-heading">@MyAccountTexts.PasswordHeading</h2>
+    @if (Model.Result is not null && Model.Result.Id == "password-changed")
+    {
+        <partial name="_Message" model="Model.Result" />
+    }
+    @if (Model.PassFormOpen && Model.HeldValue is not null)
+    {
+        FieldView newPassField = Fields.Bind(Fields.Concealed("Input.NewPassword", MyAccountTexts.NewPasswordLabel, FieldRequirement.Required, "new-password", PanelAccessTexts.PasswordHint()), summary);
+        <form method="post" asp-antiforgery="true" action="@(PanelFramePaths.MyAccount)?handler=ChangePassword" class="form" data-js="submit-once" id="change-password-form">
+            @ReauthenticationValues.Hidden(Model.HeldValue, "Input")
+            <div class="form-fields">
+                <partial name="_Field" model="newPassField" />
+            </div>
+            <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(MyAccountTexts.PasswordSaveButton)">@MyAccountTexts.PasswordSaveButton</button>
+        </form>
+    }
+    else
+    {
+        <p><a class="button" id="change-password-link" href="@reauthForPass">@MyAccountTexts.PasswordButton</a></p>
+    }
+</section>

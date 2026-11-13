@@ -30,7 +30,7 @@ public sealed class AuditTrailSurfaceTests
     {
         string[] methods = [.. typeof(IAuditTrail).GetMethods().Select(m => m.Name).Order(StringComparer.Ordinal)];
 
-        Assert.Equal(["ListAdminsAsync", "ListAsync", "WriteAsync"], methods);
+        Assert.Equal(["ListAdminsAsync", "ListAsync", "ListFieldChangesAsync", "WriteAsync"], methods);
         string[] forbidden = ["Search", "Group", "Export", "Csv", "Update", "Delete", "Remove", "Correct", "Edit", "Purge", "Truncate"];
         Assert.DoesNotContain(methods, m => forbidden.Any(f => m.Contains(f, StringComparison.OrdinalIgnoreCase)));
     }

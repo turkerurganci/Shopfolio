@@ -43,6 +43,8 @@ internal sealed class SettingsModule : ISettingsModule
 
     public Task<SalesGate> GetSalesGateAsync(CancellationToken ct) => _gates.GetAsync(ct);
 
+    public Task<DateTimeOffset?> FindSalesFirstOpenedAtAsync(CancellationToken ct) => _gates.FindFirstOpenedAtAsync(ct);
+
     public Task<SalesSwitchResult> CloseSalesTemporarilyAsync(bool shownIsClosed, CancellationToken ct) => _switches.CloseAsync(shownIsClosed, ct);
 
     public Task<SalesSwitchResult> ReopenSalesAsync(bool shownIsClosed, CancellationToken ct) => _switches.ReopenAsync(shownIsClosed, ct);

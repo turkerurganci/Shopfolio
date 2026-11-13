@@ -1,0 +1,132 @@
+@page "/panel/satis-ozeti"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Panel
+@model SalesSummaryModel
+@*
+    E-51, the sales summary (T524; 04 9.22; 07 UC-105): the period choice with the selected period's dates beside it, then the numbers, the four measure cards and the two distributions. There is no
+    primary button: with a script a change of the choice sends the form at once; without one the form's button sends it (07 9.22.1; K-1194 (4)). Rows lead nowhere (K-821). No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Satış özeti";
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, [SalesSummaryModel.StartField, SalesSummaryModel.EndField]);
+    FieldView periodField = Fields.ClosedList(SalesSummaryModel.PeriodField, "Dönem", FieldRequirement.Required, Model.PeriodOptions, Model.SelectedPeriod);
+    IReadOnlyList<FieldView> range = Fields.BindAll(
+        DateFields.RangeFields(SalesSummaryModel.StartField, SalesSummaryModel.EndField, Model.Today, DateRangePolicy.NoFuture, startRequired: true, endRequired: true, Model.StartDate, Model.EndDate),
+        summary);
+}
+<h1>Satış özeti</h1>
+<partial name="_FormErrorSummary" model="summary" />
+<form method="get" action="@PanelFramePaths.SalesSummary" class="form summary-period" data-js="submit-on-change">
+    <div class="form-fields">
+        <partial name="_Field" model="periodField" />
+    </div>
+    <fieldset class="summary-period__range">
+        <legend>@SalesSummaryModel.CustomLabel</legend>
+        <div class="form-fields form-fields--paired">
+            @foreach (FieldView field in range)
+            {
+                <partial name="_Field" model="field" />
+            }
+        </div>
+    </fieldset>
+    <button type="submit" class="button button--secondary">Göster</button>
+</form>
+@if (Model.PeriodText is not null)
+{
+    <p class="summary-period__dates" id="summary-period">@Model.PeriodText</p>
+}
+
+@if (Model.Summary is not null)
+{
+    <section class="summary-region" aria-labelledby="summary-numbers-heading">
+        <h2 id="summary-numbers-heading">Sayılar</h2>
+        <div class="summary-cards">
+            @foreach (SummaryNumberView number in Model.Numbers)
+            {
+                <div class="summary-card" id="@number.Id">
+                    <h3 class="summary-card__name">@number.Name</h3>
+                    <p class="summary-card__value">@number.Value</p>
+                    @if (number.Note is not null)
+                    {
+                        <p class="summary-card__note">@number.Note</p>
+                    }
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="summary-region" aria-labelledby="summary-measures-heading">
+        <h2 id="summary-measures-heading">Ölçüler</h2>
+        <div class="summary-cards">
+            @foreach (SummaryMeasureView measure in Model.Measures)
+            {
+                <div class="summary-card" id="@measure.Id">
+                    <h3 class="summary-card__name">@measure.Name</h3>
+                    <p class="summary-card__value">@measure.Value</p>
+                    @if (measure.Detail is not null)
+                    {
+                        <p class="summary-card__detail">@measure.Detail</p>
+                    }
+                    <p class="summary-card__note">@measure.Definition</p>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="summary-region" aria-labelledby="summary-distributions-heading">
+        <h2 id="summary-distributions-heading">Dağılımlar</h2>
+        <table class="panel-table" id="summary-top-sellers">
+            <caption class="panel-table__caption">En çok satan ürünler</caption>
+            <thead class="panel-table__head">
+                <tr>
+                    <th scope="col" class="panel-table__cell panel-table__cell--primary">Ürün</th>
+                    <th scope="col" class="panel-table__cell panel-table__cell--secondary">Satılan adet</th>
+                    <th scope="col" class="panel-table__cell panel-table__cell--secondary">Tutar</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.TopSellers.Count == 0)
+                {
+                    <tr class="panel-table__row"><td class="panel-table__cell" colspan="3">@SalesSummaryModel.NoTopSellerText</td></tr>
+                }
+
+                @foreach (TopSellerView seller in Model.TopSellers)
+                {
+                    <tr class="panel-table__row">
+                        <td class="panel-table__cell panel-table__cell--primary" data-label="Ürün">@seller.Product</td>
+                        <td class="panel-table__cell panel-table__cell--secondary" data-label="Satılan adet">@seller.Quantity</td>
+                        <td class="panel-table__cell panel-table__cell--secondary" data-label="Tutar">@seller.Amount</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <table class="panel-table" id="summary-payment-methods">
+            <caption class="panel-table__caption">Ödeme yöntemi dağılımı</caption>
+            <thead class="panel-table__head">
+                <tr>
+                    <th scope="col" class="panel-table__cell panel-table__cell--primary">Ödeme yöntemi</th>
+                    <th scope="col" class="panel-table__cell panel-table__cell--secondary">Sipariş sayısı</th>
+                    <th scope="col" class="panel-table__cell panel-table__cell--secondary">Pay</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.PaymentMethods.Count == 0)
+                {
+                    <tr class="panel-table__row"><td class="panel-table__cell" colspan="3">@SalesSummaryModel.NoPaymentText</td></tr>
+                }
+
+                @foreach (PaymentMethodView method in Model.PaymentMethods)
+                {
+                    <tr class="panel-table__row">
+                        <td class="panel-table__cell panel-table__cell--primary" data-label="Ödeme yöntemi">@method.Method</td>
+                        <td class="panel-table__cell panel-table__cell--secondary" data-label="Sipariş sayısı">@method.Count</td>
+                        <td class="panel-table__cell panel-table__cell--secondary" data-label="Pay">@method.Share</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </section>
+}

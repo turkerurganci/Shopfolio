@@ -352,8 +352,8 @@ public interface IAfterSalesModule
     Task<IReadOnlyList<Guid>> ListOrdersAwaitingReturnGoodsAsync(CancellationToken ct);
 
     /// <summary>
-    /// The number of items marked "iade malı bekleniyor" (T536; 03 1.7.3, 8.7.4.5; K-665, K-814): the items of <see cref="ListOrdersAwaitingReturnGoodsAsync"/>, counted one by one. The return address screen's
-    /// confirmation says this number. A plain read.
+    /// The number of items marked "iade malı bekleniyor" (T536; 03 1.7.3.5, 8.7.4.5; K-665, K-814): the items of <see cref="ListOrdersAwaitingReturnGoodsAsync"/> whose <see cref="ItemMarksAsync"/> mark
+    /// is set, counted one by one - a withdrawal before the delivery and a late delivery termination await goods but carry no mark. The return address screen's confirmation says this number. A plain read.
     /// </summary>
     Task<int> CountItemsAwaitingReturnGoodsAsync(CancellationToken ct);
 

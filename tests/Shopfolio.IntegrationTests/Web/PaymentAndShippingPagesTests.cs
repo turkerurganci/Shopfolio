@@ -17,6 +17,7 @@ using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
 using Shopfolio.IntegrationTests.Pages;
 using Shopfolio.Modules.Administration;
+using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.CorporateContent.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -563,6 +564,33 @@ public sealed partial class PaymentAndShippingPagesTests : IAsyncLifetime
         Assert.Contains("\"35\"", details, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task TheReturnAddressConfirmation_CountsTheItemsMarkedAwaitingTheReturnGoods_NotTheOtherAwaitedOnes_KK10()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        IReadOnlyList<(Guid Id, DateOnly Delivered)> items = await SeedAwaitedReturnsAsync(factory, marked: 2);
+
+        // The mark and the panel home's counter read the same rows: two items carry the mark, the third (declared on the delivery day, the firm not asked) awaits its goods unmarked.
+        using (IServiceScope scope = factory.Services.CreateScope())
+        {
+            IAfterSalesModule afterSales = scope.ServiceProvider.GetRequiredService<IAfterSalesModule>();
+            IReadOnlyDictionary<Guid, ItemMarks> marks = await afterSales.ItemMarksAsync(
+                [.. items.Select(i => new ItemDelivery(i.Id, Shopfolio.Modules.Catalog.Contracts.ProductType.Physical, i.Delivered))], Ct);
+            Assert.Equal([true, true, false], items.Select(i => marks[i.Id].AwaitingReturnGoods));
+            Assert.Single(await afterSales.ListOrdersAwaitingReturnGoodsAsync(Ct));
+        }
+
+        using HttpResponseMessage first = await client.PostAsync(ShippingPath + "?handler=SaveReturnAddress", ReturnForm("Depo Sorumlusu", _ankara.ToString(), "Çankaya", 1), Ct);
+        Assert.Equal(HttpStatusCode.SeeOther, first.StatusCode);
+        using HttpResponseMessage change = await client.PostAsync(ShippingPath + "?handler=SaveReturnAddress", ReturnForm("Depo Sorumlusu", _izmir.ToString(), "Bornova", 2), Ct);
+        string html = WebUtility.HtmlDecode(await change.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.OK, change.StatusCode);
+        Assert.Contains(ShippingAndDefaultsModel.ReturnAddressChangeSentence(2), html, StringComparison.Ordinal);
+        Assert.Equal("Çankaya", await ScalarAsync<string>("SELECT return_district FROM company_settings"));
+    }
+
     [Theory]
     [InlineData("", "province", "Çankaya", "")]
     [InlineData("Depo", "off-list", "Çankaya", "")]
@@ -663,7 +691,36 @@ public sealed partial class PaymentAndShippingPagesTests : IAsyncLifetime
         }, Ct);
     }
 
-    private async Task SeedAwaitingTransferOrderAsync(WebApplicationFactory<Program> factory)
+    private async Task SeedAwaitingTransferOrderAsync(WebApplicationFactory<Program> factory) => await SeedOrderAsync(factory, PaymentMethod.BankTransfer, (_, _) => { });
+
+    /// <summary>
+    /// A paid card order shipped (S5) and delivered, whose items' withdrawals await the goods: <paramref name="marked"/> declared after the delivery carry "iade malı bekleniyor";
+    /// one declared on the delivery day without the firm's answer awaits the goods for the panel home's counter but carries no mark (03 1.7.3.5; 02 7.4.1). The item ids, marked ones first.
+    /// </summary>
+    private async Task<IReadOnlyList<(Guid Id, DateOnly Delivered)>> SeedAwaitedReturnsAsync(WebApplicationFactory<Program> factory, int marked)
+    {
+        DateOnly delivered = DateOnly.FromDateTime(Now.UtcDateTime).AddDays(-3);
+        List<(Guid, DateOnly)> items = [];
+        Guid orderId = await SeedOrderAsync(factory, PaymentMethod.Card, (order, db) =>
+        {
+            for (int i = 0; i <= marked; i++)
+            {
+                OrderItem item = OrderItem.Create(order.Id, null, null, Shopfolio.Modules.Catalog.Contracts.ProductType.Physical, $"Ürün {i}", 2, 100m, 20m, 16.67m, Now);
+                item.DeliveryMarkedAt = Now.AddDays(-3);
+                item.DeliveryDate = delivered;
+                DateOnly declared = i < marked ? delivered.AddDays(1) : delivered;
+                db.OrderItems.Add(item);
+                db.Withdrawals.Add(Shopfolio.Modules.AfterSales.Withdrawal.ByBuyer(item.Id, 2, declared, null, new Shopfolio.Modules.AfterSales.ItemAmounts(100m, 0m, 16.67m), null, Now));
+                items.Add((item.Id, delivered));
+            }
+
+            db.TransitionRecords.Add(TransitionRecord.Create(order.Id, TransitionCode.S5, ActorKind.System, null, null, null, null, null, null, null, Now.AddDays(-4)));
+        });
+        await ExecuteAsync($"UPDATE orders SET order_status = 'Delivered', payment_status = 'Paid' WHERE id = '{orderId}'");
+        return items;
+    }
+
+    private async Task<Guid> SeedOrderAsync(WebApplicationFactory<Program> factory, PaymentMethod method, Action<Order, AppDbContext> rows)
     {
         CompanyIdentity identity;
         using (IServiceScope scope = factory.Services.CreateScope())
@@ -672,11 +729,11 @@ public sealed partial class PaymentAndShippingPagesTests : IAsyncLifetime
         }
 
         Order order = Order.Create(
-            $"2026-H{Guid.NewGuid().ToString("N")[..8]}", $"access-{Guid.NewGuid():N}", $"confirm-{Guid.NewGuid():N}", PaymentMethod.BankTransfer, true, "ali@example.com", 100m, 0m, Now.AddDays(2), Now);
+            $"2026-H{Guid.NewGuid().ToString("N")[..8]}", $"access-{Guid.NewGuid():N}", $"confirm-{Guid.NewGuid():N}", method, true, "ali@example.com", 100m, 0m, Now.AddDays(2), Now);
         order.IpAddress = IPAddress.Parse("203.0.113.5");
         order.CartId = Guid.NewGuid();
         order.FreezeAddresses(("Ali Veli", "5321234567", _ankara, "Çankaya", "Atatürk Bulvarı 1"), ("Ali Veli", _ankara, "Çankaya", "Atatürk Bulvarı 1"));
-        OrderFreeze.FreezeLegalIdentity(order, identity, new LegalTextVersionIds(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()), Iban);
+        OrderFreeze.FreezeLegalIdentity(order, identity, new LegalTextVersionIds(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()), method == PaymentMethod.BankTransfer ? Iban : null);
         order.FreezeDocuments("ön bilgilendirme", "mesafeli satış");
         order.FreezeShippingFeeVatBreakdown([]);
         order.FreezeShippingPromise(2);
@@ -689,7 +746,9 @@ public sealed partial class PaymentAndShippingPagesTests : IAsyncLifetime
         await using AppDbContext db = NewContext();
         db.LegalTextVersions.AddRange(form, contract, notice);
         db.Orders.Add(order);
+        rows(order, db);
         await db.SaveChangesAsync(Ct);
+        return order.Id;
     }
 
     private async Task<Guid> SeedProductAsync(decimal rate)

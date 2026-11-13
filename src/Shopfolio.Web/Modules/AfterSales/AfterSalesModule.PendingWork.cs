@@ -27,11 +27,20 @@ internal sealed partial class AfterSalesModule
 
     public async Task<int> CountItemsAwaitingReturnGoodsAsync(CancellationToken ct)
     {
+        // The counter's set is wider than the mark: it also holds a withdrawal declared before the delivery (or on its day, the firm not yet asked) and a late delivery termination,
+        // whose goods come back without the item ever carrying "iade malı bekleniyor" (03 1.7.3.5). The mark's own rule narrows it, a page of items at a time (09 20 item 2).
         IReadOnlyList<RefundWorkItemFacts> items = await ItemsAwaitingReturnGoodsAsync(ct);
-        return items.Select(f => f.OrderItemId).Distinct().Count();
+        int marked = 0;
+        foreach (RefundWorkItemFacts[] page in items.Chunk(AwaitedPageSize))
+        {
+            IReadOnlyDictionary<Guid, ItemMarks> marks = await ItemMarksAsync([.. page.Select(f => new ItemDelivery(f.OrderItemId, f.ProductType, f.DeliveryDate))], ct);
+            marked += marks.Values.Count(m => m.AwaitingReturnGoods);
+        }
+
+        return marked;
     }
 
-    // The items whose returned goods are awaited: the one reading behind the panel home's counter and the return address confirmation (T382, T536), so the two never disagree.
+    // The items whose returned goods are awaited: the one reading behind the panel home's counter and the return address confirmation (T382, T536); the confirmation keeps the marked ones.
     private async Task<IReadOnlyList<RefundWorkItemFacts>> ItemsAwaitingReturnGoodsAsync(CancellationToken ct)
     {
         // The units a withdrawal or a termination still awaits, counted by the database: declared minus received, rejected and closed as "mal dönmedi" (a closure that was

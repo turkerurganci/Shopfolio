@@ -62,6 +62,9 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.Administration.Contracts.PanelRequestKind",
         "Shopfolio.Modules.Administration.Contracts.PanelRequestStatus",
         "Shopfolio.Modules.CorporateContent.Contracts.ContactRequestChangeOutcome",
+        // T509: how the placing of an order ended (UC-28) and which part of the cart summary changed since the step was shown - a result code and a read shape, never a column.
+        "Shopfolio.Modules.Ordering.Contracts.PlaceOrderOutcome",
+        "Shopfolio.Modules.Ordering.Contracts.SummaryChangeKind",
     };
 
     /// <summary>All enums of the application assembly, by simple name; a name used twice is a failure of the naming rule (09 5.1).</summary>

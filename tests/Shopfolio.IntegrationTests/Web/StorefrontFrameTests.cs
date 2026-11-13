@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -66,8 +67,20 @@ public sealed partial class StorefrontFrameTests : IAsyncLifetime
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
+    /// <summary>
+    /// The application with the sample pages. The payment step's own address carries the real page too (T509): the sample is put before it, so these frame tests draw the frame around the
+    /// one-line sample and not around the real step, which sends a visitor without a cart to the cart.
+    /// </summary>
     private WebApplicationFactory<Program> Open() =>
-        new ShopfolioWebApplicationFactory(_database.Dsn).WithWebHostBuilder(b => b.ConfigureServices(s => s.AddRazorPages().AddApplicationPart(typeof(FrameSampleModel).Assembly)));
+        new ShopfolioWebApplicationFactory(_database.Dsn).WithWebHostBuilder(b => b.ConfigureServices(s => s.AddRazorPages(o => o.Conventions.AddPageRouteModelConvention(
+            "/Storefront/FrameCheckoutSample",
+            model =>
+            {
+                foreach (SelectorModel selector in model.Selectors)
+                {
+                    selector.AttributeRouteModel!.Order = -1;
+                }
+            })).AddApplicationPart(typeof(FrameSampleModel).Assembly)));
 
     private AppDbContext NewContext()
     {

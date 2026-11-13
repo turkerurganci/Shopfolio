@@ -59,16 +59,21 @@ internal static class ConfirmationStepRules
         return [.. NeededBoxes(lines).Where(box => !IsTicked(box, ticked))];
     }
 
-    /// <summary>The short withdrawal summary above the boxes (02 3.24.3; K-831): the terms, the period, the way and the carrier information; the exempt line's exemption and reason.</summary>
+    /// <summary>
+    /// The short withdrawal summary above the boxes (02 3.24.3; K-831): the terms, the period, the way and the carrier information; the exempt line's exemption and reason. The physical goods'
+    /// period and return carrier sentences are the cart's only when it has a physical line (D-743).
+    /// </summary>
     public static string WithdrawalSummary(IReadOnlyList<ConfirmationSummaryLine> lines)
     {
         ArgumentNullException.ThrowIfNull(lines);
-        List<string> parts =
-        [
-            "Fiziksel ürünlerde teslim tarihinden itibaren on dört gün içinde, gerekçe göstermeden ve cezai şart ödemeden cayabilirsiniz; cayma hakkınızı sipariş sayfanızdan cayma beyanında bulunarak kullanırsınız. "
-            + "Malı, cayma beyanınızdan itibaren on dört gün içinde göndermeniz gerekir.",
-            "İade için taşıyıcı belirlenmemiştir: malı dilediğiniz taşıyıcıyla, bedeli teslim alırken satıcı tarafından ödenmek üzere (ödemeli) gönderirsiniz. İade kargo bedeli satıcıya aittir; siz önden ödeme yapmazsınız.",
-        ];
+        List<string> parts = [];
+        if (lines.Any(l => l.ProductType == ProductType.Physical))
+        {
+            parts.Add("Fiziksel ürünlerde teslim tarihinden itibaren on dört gün içinde, gerekçe göstermeden ve cezai şart ödemeden cayabilirsiniz; cayma hakkınızı sipariş sayfanızdan cayma beyanında bulunarak kullanırsınız. "
+                + "Malı, cayma beyanınızdan itibaren on dört gün içinde göndermeniz gerekir.");
+            parts.Add("İade için taşıyıcı belirlenmemiştir: malı dilediğiniz taşıyıcıyla, bedeli teslim alırken satıcı tarafından ödenmek üzere (ödemeli) gönderirsiniz. İade kargo bedeli satıcıya aittir; siz önden ödeme yapmazsınız.");
+        }
+
         if (lines.Any(l => l.ProductType == ProductType.Service))
         {
             parts.Add("Hizmette cayma hakkınız, sizin onayınızla başlayan hizmetin ifasının tamamlanmasıyla sona erer.");

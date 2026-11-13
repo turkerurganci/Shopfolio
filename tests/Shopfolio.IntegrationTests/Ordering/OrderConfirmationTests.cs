@@ -432,8 +432,8 @@ public sealed partial class OrderConfirmationTests : IAsyncLifetime
         // A minimum order amount the cart no longer meets (02 3.18.1; T349 ShippingCharge.Assess through the cart's read): the total is no longer payable.
         await ExecuteAsync("UPDATE company_settings SET shipping_fee = 0, minimum_order_amount = 2000");
         OrderConfirmationResult belowMinimum = await ConfirmAsync(input, seen);
-        Assert.Equal(OrderConfirmationRefusal.SummaryChanged, belowMinimum.Refusal);
-        Assert.Contains(belowMinimum.Changes, c => c.Kind == SummaryChangeKind.Total);
+        // K-1229 (T509; 07 4.13.6): below the minimum the customer goes back to the cart - its own refusal, not a summary change.
+        Assert.Equal(OrderConfirmationRefusal.MinimumOrderAmountNotMet, belowMinimum.Refusal);
         await AssertNothingBornAsync(variantId);
     }
 
@@ -564,7 +564,7 @@ public sealed partial class OrderConfirmationTests : IAsyncLifetime
         Guid cartId = await SeedCartAsync(owner, (variantId, 1));
 
         IReadOnlyList<PaymentMethod> open = await RunAsync(sp => sp.GetRequiredService<IPaymentMethods>().ListOpenAsync(Ct));
-        SalesGate gate = await RunAsync(sp => sp.GetRequiredService<ISettingsModule>().GetSalesGateAsync(Ct));
+        SalesGate gate = await RunAsync(sp => ActivatorUtilities.CreateInstance<SettingsModule>(sp).GetSalesGateAsync(Ct)); // the real gate, not OpenSalesGate's (T509)
         OrderSummaryInput byCard = Input(owner, PaymentMethod.Card, null);
         OrderConfirmationResult card = await ConfirmAsync(byCard, (await SummarizeAsync(byCard))!);
 
@@ -597,7 +597,7 @@ public sealed partial class OrderConfirmationTests : IAsyncLifetime
 
         _cardLineOpen = false;
         IReadOnlyList<PaymentMethod> none = await RunAsync(sp => sp.GetRequiredService<IPaymentMethods>().ListOpenAsync(Ct));
-        SalesGate gate = await RunAsync(sp => sp.GetRequiredService<ISettingsModule>().GetSalesGateAsync(Ct));
+        SalesGate gate = await RunAsync(sp => ActivatorUtilities.CreateInstance<SettingsModule>(sp).GetSalesGateAsync(Ct)); // the real gate, not OpenSalesGate's (T509)
         Assert.Empty(none);
         Assert.Contains(SalesGateCondition.PaymentMethod, gate.UnmetConditions);
 
@@ -730,7 +730,7 @@ public sealed partial class OrderConfirmationTests : IAsyncLifetime
     private async Task<OrderConfirmationResult> ConfirmAsync(OrderSummaryInput input, ConfirmationSummary seen, TickedBoxes? ticked = null)
     {
         OrderConfirmationRequest request = new(
-            input.Owner, seen, _formId, _contractId, ticked ?? new TickedBoxes(true, true, false, false), input.CouponCode, input.ContactEmail, input.Shipping, input.Billing, IPAddress.Parse("203.0.113.5"));
+            input.Owner, seen, _formId, _contractId, ticked ?? new TickedBoxes(true, true, false, false), input.CouponCode, input.ContactEmail, input.Shipping, input.Billing!, IPAddress.Parse("203.0.113.5")); // non-null: the input carries a billing address
         await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn, _clock, _cardLineOpen, logs: null, _extra);
         await using AsyncServiceScope scope = provider.CreateAsyncScope();
         OrderConfirmation confirmation = scope.ServiceProvider.GetRequiredService<OrderConfirmation>();

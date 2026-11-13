@@ -473,6 +473,7 @@ internal static class OrderingModuleRegistration
 
         // The confirmation (T348; 02 3.17): the one operation that makes an order, in the caller's transaction.
         services.AddScoped<OrderConfirmation>();
+        services.AddScoped<ICheckout, Checkout>();
         services.AddDueRecordSource<TransferPaymentExpiry>();
         services.AddDueRecordSource<TransferPaymentReminder>();
         services.AddDueRecordSource<CardPaymentExpiry>();

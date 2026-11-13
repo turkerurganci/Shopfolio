@@ -65,11 +65,14 @@ public static class ShippingCharge
 /// </summary>
 public sealed record ShippingAssessment(decimal Basis, bool HasPhysicalItem, decimal Fee, bool IsFreeByThreshold, decimal? RemainingToFreeShipping, decimal? MinimumOrderShortfall)
 {
+    /// <summary>The words of a shipping that costs nothing (02 3.19.5; 04 5.13.10): the threshold's line at the threshold and the payment summary's shipping line without a fee.</summary>
+    public const string FreeShippingText = "Kargo ücretsiz";
+
     /// <summary>The free shipping line of the summary (02 3.19.5; 04 2.6.5, 5.12.6): "Ücretsiz kargoya 80 TL kaldı" or "Kargo ücretsiz"; null when no message shows.</summary>
     public string? FreeShippingMessage => RemainingToFreeShipping switch
     {
         null => null,
-        0m => "Kargo ücretsiz",
+        0m => FreeShippingText,
         decimal left => "Ücretsiz kargoya " + DisplayFormat.Amount(left) + " kaldı",
     };
 

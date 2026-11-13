@@ -653,9 +653,22 @@ public sealed class RegistrationPageTests : IAsyncLifetime
         ITransactionRunner transactions = scope.ServiceProvider.GetRequiredService<ITransactionRunner>();
         IMembershipModule membership = scope.ServiceProvider.GetRequiredService<IMembershipModule>();
         LinkKeys keys = scope.ServiceProvider.GetRequiredService<LinkKeys>();
-        EmailChangeRequestResult result = await transactions.RunAsync(async token => await membership.RequestEmailChangeAsync(customerId, newEmail, null, token), Ct);
+        ISessionService sessions = scope.ServiceProvider.GetRequiredService<ISessionService>();
+        GrantedPermission granted = await transactions.RunAsync(
+            async token =>
+            {
+                SessionOpening opened = await sessions.SignInAsync(customerId, true, null, token);
+                return new GrantedPermission(opened.SessionId, await sessions.GrantReauthenticationAsync(customerId, opened.SessionId, ReauthenticationOperation.EmailChange, token));
+            },
+            Ct);
+        EmailChangeRequestResult result = await transactions.RunAsync(async token => await membership.RequestEmailChangeAsync(customerId, granted.SessionId, newEmail, granted.Value, null, token), Ct);
         Assert.True(result.IsRequested);
         return keys.Derive(result.LinkId!.Value);
+    }
+
+    private sealed record GrantedPermission(Guid SessionId, string? Value) : IOperationResult
+    {
+        public bool IsRejected => false;
     }
 
     private static string ValueOf(HttpResponseMessage registered)

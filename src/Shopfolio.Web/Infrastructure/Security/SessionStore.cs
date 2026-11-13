@@ -171,6 +171,12 @@ internal sealed class SessionStore
         }
     }
 
+    /// <summary>Reads whether the account's own session holds the permission for the operation under this value (T517; the account screen's form opens only then); spends nothing.</summary>
+    public async Task<bool> HoldsReauthenticationAsync(AccountType type, Guid accountId, Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct)
+    {
+        return await OwnsAsync(type, accountId, sessionId, ct) && await _reauthentication.HoldsAsync(sessionId, operation, value, ct);
+    }
+
     /// <summary>Takes the permission with one conditional update (the session must be the account's); false means the operation must not run.</summary>
     public async Task<bool> TryRedeemReauthenticationAsync(AccountType type, Guid accountId, Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct)
     {

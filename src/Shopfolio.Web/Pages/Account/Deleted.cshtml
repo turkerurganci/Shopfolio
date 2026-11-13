@@ -1,0 +1,28 @@
+@page "/hesap/silindi"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@model Shopfolio.Pages.Account.DeletedModel
+@inject SearchEngineData Search
+@*
+    The result state of the account's deletion (T517; 04 5.25.13; 07 UC-69), the storefront frame around it - the account area shows "Giriş yap" and "Sipariş takibi" (04 3.1.5). It tells that the account is
+    deleted, what was deleted, that the orders go on and are followed by the order number and the e-mail, and that an e-mail went to the account's address. It is shown once.
+*@
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = AccountDeletedTexts.ScreenName;
+}
+@section Head {
+    @Search.Head(ViewContext.HttpContext, RecordPages.ClosedScreen(AccountDeletedTexts.ScreenName, ViewContext.HttpContext.GetStorefrontFrame()?.Brand.BrandName, FramePaths.AccountDeleted))
+}
+<h1>@AccountDeletedTexts.ScreenName</h1>
+<p id="account-deleted">@AccountDeletedTexts.Deleted</p>
+<p id="account-deleted-things">@AccountDeletedTexts.DeletedThings</p>
+<p id="account-deleted-orders">@AccountDeletedTexts.OrdersGoOn</p>
+<p id="account-deleted-email">@AccountDeletedTexts.EmailSent</p>
+<p>
+    <a id="account-deleted-tracking" class="button button--primary" href="@FramePaths.OrderTracking">@AccountDeletedTexts.TrackingLink</a>
+    <a id="account-deleted-home" class="button button--secondary" href="@FramePaths.Home">@AccountDeletedTexts.HomeLink</a>
+</p>

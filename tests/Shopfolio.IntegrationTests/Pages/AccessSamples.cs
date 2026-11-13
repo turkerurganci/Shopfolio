@@ -55,19 +55,9 @@ public sealed class PanelOrdersModel(AccessWriteLog log) : AccessSamplePage(log)
     protected override string Label => "panel-orders";
 }
 
-public sealed class AccountHomeModel(AccessWriteLog log) : AccessSamplePage(log)
-{
-    protected override string Label => "account-home";
-}
-
 public sealed class AccountAddressesModel(AccessWriteLog log) : AccessSamplePage(log)
 {
     protected override string Label => "account-addresses";
-}
-
-public sealed class AccountDeletedModel(AccessWriteLog log) : AccessSamplePage(log)
-{
-    protected override string Label => "account-deleted";
 }
 
 public sealed class ProductSampleModel(AccessWriteLog log) : AccessSamplePage(log)

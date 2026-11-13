@@ -7,6 +7,9 @@ namespace Shopfolio.Modules.Membership.Contracts;
 /// <summary>The reading of one of the three links of the landing page: its kind and status and the account it belongs to. Only reads (MK-51); a key of another type is <see cref="VerificationLinkStatus.Missing"/>.</summary>
 public sealed record EmailLinkReading(EmailLinkKind? Kind, VerificationLinkStatus Status, Guid? CustomerId);
 
+/// <summary>The account's pending e-mail change that still lives (T517; 04 5.25.4): the new address as entered and the end of its link, which the account screen shows as the last day.</summary>
+public sealed record PendingEmailChangeReading(string NewEmail, DateTimeOffset LinkEndsAt);
+
 /// <summary>
 /// The outcome of the account's request for a new e-mail address (02 3.13.14; 07 UC-66): requested, with the id of the new address's link and the moment it ends, or refused with a
 /// code - a field (<c>FieldRequired</c>, <c>InvalidEmail</c>), <c>EmailTakenByOtherAccount</c>, <c>EmailChangeRevertPending</c> or the limit <c>VerificationLinkLimitExceeded</c> (L-9,

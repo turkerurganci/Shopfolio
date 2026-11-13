@@ -1,0 +1,138 @@
+@page "/hesap"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Infrastructure.Security
+@using Shopfolio.Infrastructure.Values
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Storefront
+@model Shopfolio.Pages.Account.ProfileModel
+@inject SearchEngineData Search
+@*
+    The account screen (T517; 04 E-25 5.25; 07 UC-63 to UC-68), the storefront frame around it. Order of the content (04 5.25.2, 5.25.3 to 5.25.7): the inner navigation, then the five sections - name, e-mail, password,
+    ways of signing in, deletion. No primary button at the head: each section carries its own. The form of an operation is drawn only when the server opened it (the re-authentication's return); the closed section shows
+    the link to the re-authentication screen, or - while the revert link is open - the reason and the date in its place. The password is never written back into the page; the hidden value is the single-use value.
+*@
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = AccountTexts.ScreenName;
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, ["Input.Name", "Input.NewEmail", "Input.NewPassword"]);
+    FieldView nameField = Fields.Bind(Fields.Text("Input.Name", AccountTexts.NameLabel, FieldRequirement.Required, Model.SentName ?? Model.Name, autocomplete: "name"), summary);
+    FieldView newEmailField = Fields.Bind(Fields.Email("Input.NewEmail", AccountTexts.NewEmailLabel, FieldRequirement.Required, Model.SentNewEmail), summary);
+    FieldView renewField = Fields.Bind(Fields.Concealed("Input.NewPassword", AccountTexts.NewPasswordLabel, FieldRequirement.Required, "new-password", PasswordResetTexts.PasswordHint), summary);
+    bool revertOpen = Model.RevertEndsAt is not null;
+}
+@section Head {
+    @Search.Head(ViewContext.HttpContext, RecordPages.ClosedScreen(AccountTexts.ScreenName, ViewContext.HttpContext.GetStorefrontFrame()?.Brand.BrandName, FramePaths.Account))
+}
+<h1>@AccountTexts.ScreenName</h1>
+<partial name="_AccountNav" model="FramePaths.Account" />
+@if (Model.Notice is not null)
+{
+    <partial name="_Message" model="Model.Notice" />
+}
+<partial name="_FormErrorSummary" model="summary" />
+
+<section class="account-section" id="account-name" aria-labelledby="account-name-heading">
+    <h2 id="account-name-heading">@AccountTexts.NameHeading</h2>
+    <form method="post" asp-antiforgery="true" action="@(FramePaths.Account)?handler=ChangeName" id="account-name-form" class="form" data-js="submit-once">
+        <div class="form-fields">
+            <partial name="_Field" model="nameField" />
+        </div>
+        <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(AccountTexts.NameButton)">@AccountTexts.NameButton</button>
+    </form>
+</section>
+
+<section class="account-section" id="account-email" aria-labelledby="account-email-heading">
+    <h2 id="account-email-heading">@AccountTexts.EmailHeading</h2>
+    <p id="account-email-current">@Model.Email</p>
+    @if (Model.EmailMessage is not null)
+    {
+        <partial name="_Message" model="Model.EmailMessage" />
+    }
+    @if (Model.Pending is not null)
+    {
+        <p id="account-email-pending">@AccountTexts.PendingLine(Model.Pending.NewEmail, Model.Pending.LinkEndsAt)</p>
+        <form method="post" asp-antiforgery="true" action="@(FramePaths.Account)?handler=ResendEmailChangeLink" id="account-email-resend-form" data-js="submit-once">
+            <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(AccountTexts.ResendLinkButton)">@AccountTexts.ResendLinkButton</button>
+            @if (Model.ResendLimitReached)
+            {
+                <partial name="_Message" model='Messages.NeutralLimit("account-resend-limit")' />
+            }
+        </form>
+    }
+    @if (revertOpen)
+    {
+        <partial name="_Message" model='Messages.InPlace(MessageMeaning.Info, AccountTexts.RevertOpen(Model.RevertEndsAt!.Value), "account-email-closed")' />
+    }
+    else if (Model.OpenOperation == ReauthenticationOperation.EmailChange)
+    {
+        <form method="post" asp-antiforgery="true" action="@(FramePaths.Account)?handler=ChangeEmail" id="account-email-form" class="form" data-js="submit-once">
+            @ReauthenticationValues.Hidden(Model.OpenToken!, "Input")
+            <div class="form-fields">
+                <partial name="_Field" model="newEmailField" />
+            </div>
+            <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(AccountTexts.NewEmailButton)">@AccountTexts.NewEmailButton</button>
+            @if (Model.EmailLimitReached)
+            {
+                <partial name="_Message" model='Messages.NeutralLimit("account-email-limit")' />
+            }
+        </form>
+    }
+    else
+    {
+        <a id="account-email-change" class="button button--secondary" href="@ReauthenticationAddresses.Screen(ReauthenticationOperation.EmailChange)">@AccountTexts.ChangeEmailLink</a>
+    }
+</section>
+
+<section class="account-section" id="account-password" aria-labelledby="account-password-heading">
+    <h2 id="account-password-heading">@AccountTexts.PasswordHeading</h2>
+    @if (Model.AccessMessage is not null)
+    {
+        <partial name="_Message" model="Model.AccessMessage" />
+    }
+    @if (!Model.Methods.HasPassword)
+    {
+        <a id="account-password-set" class="button button--secondary" href="@FramePaths.PasswordReset">@AccountTexts.SetPasswordLink</a>
+    }
+    else if (Model.OpenOperation == ReauthenticationOperation.PasswordChange)
+    {
+        <form method="post" asp-antiforgery="true" action="@(FramePaths.Account)?handler=ChangePassword" id="account-password-form" class="form" data-js="submit-once">
+            @ReauthenticationValues.Hidden(Model.OpenToken!, "Input")
+            <div class="form-fields">
+                <partial name="_Field" model="renewField" />
+            </div>
+            <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(AccountTexts.PasswordButton)">@AccountTexts.PasswordButton</button>
+        </form>
+    }
+    else
+    {
+        <a id="account-password-change" class="button button--secondary" href="@ReauthenticationAddresses.Screen(ReauthenticationOperation.PasswordChange)">@AccountTexts.ChangePasswordLink</a>
+    }
+</section>
+
+<section class="account-section" id="account-methods" aria-labelledby="account-methods-heading">
+    <h2 id="account-methods-heading">@AccountTexts.SignInMethodsHeading</h2>
+    <ul>
+        <li id="account-method-password">@AccountTexts.PasswordMethod(Model.Methods.HasPassword)</li>
+        <li id="account-method-google">@AccountTexts.GoogleMethod(Model.Methods.HasGoogleLink)</li>
+    </ul>
+</section>
+
+<section class="account-section" id="account-delete" aria-labelledby="account-delete-heading">
+    <h2 id="account-delete-heading">@AccountTexts.DeleteHeading</h2>
+    <p id="account-delete-summary">@AccountTexts.DeleteSummary</p>
+    @if (revertOpen)
+    {
+        <partial name="_Message" model="Model.DeleteMessage!" />
+    }
+    else if (Model.Confirmation is not null)
+    {
+        <partial name="_Confirm" model="Model.Confirmation" />
+    }
+    else
+    {
+        <a id="account-delete-start" class="button button--secondary" href="@ReauthenticationAddresses.Screen(ReauthenticationOperation.AccountDeletion)">@AccountTexts.DeleteLink</a>
+    }
+</section>

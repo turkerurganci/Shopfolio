@@ -77,6 +77,21 @@ internal sealed class ReauthenticationValues
         return updated == 1;
     }
 
+    /// <summary>
+    /// Whether the session holds the permission for <paramref name="operation"/> and its digest is the digest of <paramref name="value"/> - a plain read that spends nothing (T517; 07 UC-63: the account
+    /// screen opens the operation's form only when this is true; the single-use take is <see cref="TryRedeemAsync"/>).
+    /// </summary>
+    public async Task<bool> HoldsAsync(Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return false;
+        }
+
+        string digest = SecretKey.Hash(value);
+        return await _db.Sessions.AsNoTracking().AnyAsync(s => s.Id == sessionId && s.ReauthenticatedOperation == operation && s.ReauthenticationTokenHash == digest, ct);
+    }
+
     /// <summary>The hidden field of the operation's form (07 2.5.2); <paramref name="prefix"/> is the model path of the input, when it has one.</summary>
     public static IHtmlContent Hidden(string value, string prefix = "")
     {

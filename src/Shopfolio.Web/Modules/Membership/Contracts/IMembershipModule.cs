@@ -120,9 +120,14 @@ public interface IMembershipModule
     /// The account's request for a new address (02 3.13.14; 07 UC-66), in the caller's transaction: the address is checked (empty, form), an open revert link closes the change
     /// (<c>EmailChangeRevertPending</c>), an address of a verified account - or the account's own - is <c>EmailTakenByOtherAccount</c> (an unverified pending registration does not
     /// stop it); the pending change is written, taking the place of an earlier one (its link superseded, its life starting now), and the link goes to the NEW address; the account keeps the
-    /// old address until the link's button. The limit L-9 is counted only when the request replaces a live pending change. The reauthentication before this is the page's (T517).
+    /// old address until the link's button. The limit L-9 is counted only when the request replaces a live pending change. The single-use value of the reauthentication
+    /// (<see cref="ReauthenticateAsync"/>) is taken last, after every refusal above and inside the account's row lock: none or a wrong one is <c>ReauthenticationRequired</c> and the refusal rolls the
+    /// caller's transaction back, so a refusal never spends the value (T517; 07 UC-66; D-429).
     /// </summary>
-    Task<EmailChangeRequestResult> RequestEmailChangeAsync(Guid customerId, string newEmail, IPAddress? ipAddress, CancellationToken ct);
+    Task<EmailChangeRequestResult> RequestEmailChangeAsync(Guid customerId, Guid sessionId, string newEmail, string? reauthenticationValue, IPAddress? ipAddress, CancellationToken ct);
+
+    /// <summary>The account's pending e-mail change that still lives, for the account screen (T517; 04 5.25.4): the new address and the last day of its link, or nothing. A plain read.</summary>
+    Task<PendingEmailChangeReading?> ReadPendingEmailChangeAsync(Guid customerId, CancellationToken ct);
 
     /// <summary>The new address's link asked for again (02 3.13.14; 07 UC-67; L-9): the earlier links are superseded and the new one ends where the pending change ends.</summary>
     Task<EmailChangeResendResult> ResendEmailChangeLinkAsync(Guid customerId, IPAddress? ipAddress, CancellationToken ct);

@@ -46,6 +46,12 @@ internal static class FieldMessageCatalog
     /// </summary>
     private const string RequiredWithDefaultNamePattern = "Menü adı boş olamaz; varsayılan ad: {0}.";
 
+    /// <summary>
+    /// The text of a net quantity's refusal (04 7.2.4.13, 9.5.21; K-1013, K-1018): its code is the amount's (07 6.2.2 names none of its own), but the amount's text says two decimals and
+    /// the net quantity carries three - so the rule gives this pattern of the same form (<see cref="FieldRuleAttribute.MessagePattern"/>; T525 ⚠, D-1397).
+    /// </summary>
+    internal const string NetQuantityPattern = "{0} sıfırdan büyük bir sayı olmalıdır; en çok üç ondalık yazılabilir ve en çok {1} olabilir.";
+
     /// <summary>The patterns, by code.</summary>
     public static IReadOnlyDictionary<string, string> Patterns => _patterns;
 
@@ -53,12 +59,23 @@ internal static class FieldMessageCatalog
     public static bool NeedsParameter(string code) => _patterns.TryGetValue(code, out string? pattern) && pattern.Contains("{1}", StringComparison.Ordinal);
 
     /// <summary>The message of a code for a field with the given label (the field's display name); the parameter is the limit's value.</summary>
-    public static string Build(string code, string label, string? parameter)
+    public static string Build(string code, string label, string? parameter) => Build(code, label, parameter, null);
+
+    /// <summary>
+    /// The message of a code for a field whose rule gives its own pattern of the code (<paramref name="rulePattern"/>; <see cref="FieldRuleAttribute.MessagePattern"/>), or the code's
+    /// pattern when the rule gives none.
+    /// </summary>
+    public static string Build(string code, string label, string? parameter, string? rulePattern)
     {
         ArgumentNullException.ThrowIfNull(label);
         if (!_patterns.TryGetValue(code, out string? pattern))
         {
             throw new ArgumentException($"'{code}' has no message pattern.", nameof(code));
+        }
+
+        if (rulePattern is not null)
+        {
+            return string.Format(CultureInfo.InvariantCulture, rulePattern, label, parameter);
         }
 
         if (NeedsParameter(code) && parameter is null)

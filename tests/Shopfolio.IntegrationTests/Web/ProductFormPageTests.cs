@@ -7,8 +7,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Validation;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages;
 using Shopfolio.Modules.Catalog;
@@ -329,6 +332,209 @@ public sealed class ProductFormPageTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, response.StatusCode);
         Assert.Equal(imagesBefore, await ImageCountAsync());
+    }
+
+    [Fact]
+    public async Task SaveProduct_Saved_Is303ToTheProductsForm_AndWritesTheEntries_KK3()
+    {
+        (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage response = await PostAsync(client, productId, "SaveProduct", await SaveFieldsAsync(productId, variants[0], name: "Kupa yeni ad", stock: "9"));
+
+        Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
+        Assert.Equal(ProductFormModel.PathOf(productId), response.Headers.Location?.OriginalString);
+        Assert.Equal("Kupa yeni ad", await NameOfAsync(productId));
+        Assert.Equal(9, await StockOfAsync(variants[0]));
+    }
+
+    [Fact]
+    public async Task SaveProduct_OnAGoneRecord_Is404_BeforeAFieldsRefusal_AndTheSameFieldOnAnExistingRecordIs422_KK6()
+    {
+        (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
+        (string Name, string Value)[] broken = await SaveFieldsAsync(productId, variants[0], price: "on lira");
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage existing = await PostAsync(client, productId, "SaveProduct", broken);
+        using HttpResponseMessage gone = await PostAsync(client, Guid.NewGuid(), "SaveProduct", broken);
+        using HttpResponseMessage goneValid = await PostAsync(client, Guid.NewGuid(), "SaveProduct", await SaveFieldsAsync(productId, variants[0]));
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, existing.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, gone.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, goneValid.StatusCode);
+    }
+
+    [Fact]
+    public async Task SaveProduct_AFieldsRefusal_ComesBeforeAChangedVersion_AndWritesNothing_KK6()
+    {
+        (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
+        int version = await VersionOfAsync(productId);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage response = await PostAsync(client, productId, "SaveProduct", await SaveFieldsAsync(productId, variants[0], name: "Kupa yeni ad", price: "-5", version: version + 1));
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Equal("Kupa", await NameOfAsync(productId));
+        Assert.Equal(version, await VersionOfAsync(productId));
+    }
+
+    [Fact]
+    public async Task SaveProduct_AtAChangedVersion_Is409_WritesNothing_AndYineDeKaydetSavesWithTheCurrentVersion_KK6()
+    {
+        (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
+        int version = await VersionOfAsync(productId);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage stale = await PostAsync(client, productId, "SaveProduct", await SaveFieldsAsync(productId, variants[0], name: "Kupa yeni ad", version: version + 1));
+        string html = WebUtility.HtmlDecode(await stale.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.Conflict, stale.StatusCode);
+        Assert.Equal("Kupa", await NameOfAsync(productId));
+        Assert.Equal(version, await VersionOfAsync(productId));
+        Assert.Contains(ConflictControls.RecordMessage, html, StringComparison.Ordinal);
+        Assert.Contains(ConflictControls.OverwriteLabel, html, StringComparison.Ordinal);
+        Assert.Contains(ConflictControls.OpenCurrentLabel, html, StringComparison.Ordinal);
+        Assert.Contains("value=\"Kupa yeni ad\"", html, StringComparison.Ordinal);
+        Assert.Contains($"name=\"Input.Version\" type=\"hidden\" value=\"{version.ToString(CultureInfo.InvariantCulture)}\"", html, StringComparison.Ordinal);
+
+        using HttpResponseMessage overwrite = await PostAsync(client, productId, "SaveProduct", await SaveFieldsAsync(productId, variants[0], name: "Kupa yeni ad", version: version));
+
+        Assert.Equal(HttpStatusCode.SeeOther, overwrite.StatusCode);
+        Assert.Equal("Kupa yeni ad", await NameOfAsync(productId));
+    }
+
+    [Fact]
+    public async Task SaveProduct_AChangedShownStock_Is409BeforeTheReservedQuantitys422_AndTheResentFormIsRefusedBelowTheReservedQuantity_KK4_KK6()
+    {
+        (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
+        await ReserveAsync(variants[0], 3);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage stale = await PostAsync(client, productId, "SaveProduct", await SaveFieldsAsync(productId, variants[0], stock: "1", shownStock: "5"));
+        string html = WebUtility.HtmlDecode(await stale.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.Conflict, stale.StatusCode);
+        Assert.Equal(7, await StockOfAsync(variants[0]));
+        Assert.Contains("name=\"Input.Variants[0].OriginalStockQuantity\" value=\"7\"", html, StringComparison.Ordinal);
+        Assert.Contains(ConflictControls.OverwriteLabel, html, StringComparison.Ordinal);
+
+        using HttpResponseMessage resent = await PostAsync(client, productId, "SaveProduct", await SaveFieldsAsync(productId, variants[0], stock: "1", shownStock: "7"));
+        string refused = WebUtility.HtmlDecode(await resent.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, resent.StatusCode);
+        Assert.Contains(ProductSaveRefusals.BelowReservedText(3), refused, StringComparison.Ordinal);
+        Assert.Equal(7, await StockOfAsync(variants[0]));
+    }
+
+    [Fact]
+    public async Task SaveProduct_AnUnreadableShownStock_IsNoMatch_Is409_AndWritesNothing_KK6()
+    {
+        (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
+        int version = await VersionOfAsync(productId);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage response = await PostAsync(client, productId, "SaveProduct", await SaveFieldsAsync(productId, variants[0], name: "Kupa yeni ad", shownStock: "yedi"));
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal("Kupa", await NameOfAsync(productId));
+        Assert.Equal(version, await VersionOfAsync(productId));
+        Assert.Equal(7, await StockOfAsync(variants[0]));
+    }
+
+    [Fact]
+    public async Task SaveProduct_TheModulesRefusals_AreTheirFieldsMessages_AndTheNetQuantitysTextSaysThreeDecimals_KK5()
+    {
+        (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
+        (_, Guid[] others) = await AddProductAsync("Tabak", PublishStatus.Draft, PublishStatus.Draft, (12m, 4));
+        string otherSku = await SkuOfAsync(others[0]);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage duplicate = await PostAsync(client, productId, "SaveProduct", await SaveFieldsAsync(productId, variants[0], sku: otherSku));
+        using HttpResponseMessage zero = await PostAsync(client, productId, "SaveProduct", await SaveFieldsAsync(productId, variants[0], price: "0"));
+        using HttpResponseMessage netQuantity = await PostAsync(client, productId, "SaveProduct", [.. await SaveFieldsAsync(productId, variants[0]), ("Input.MeasurementUnit", "Gram"), ("Input.Variants[0].NetQuantity", "1,2345")]);
+        string netQuantityHtml = WebUtility.HtmlDecode(await netQuantity.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, duplicate.StatusCode);
+        Assert.Contains(ProductSaveRefusals.DuplicateStockCodeText, WebUtility.HtmlDecode(await duplicate.Content.ReadAsStringAsync(Ct)), StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, zero.StatusCode);
+        Assert.Contains("id=\"product-variant-0-sku-message\"", WebUtility.HtmlDecode(await zero.Content.ReadAsStringAsync(Ct)), StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, netQuantity.StatusCode);
+        Assert.Contains("en çok üç ondalık", netQuantityHtml, StringComparison.Ordinal);
+        Assert.DoesNotContain("iki ondalık", netQuantityHtml, StringComparison.Ordinal);
+        Assert.Equal("Kupa", await NameOfAsync(productId));
+    }
+
+    [Fact]
+    public async Task SaveProduct_ABodyAboveTheDefaultCeilingAndBelowTheLongTextOne_IsNot413_KK3()
+    {
+        (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        string description = new('a', (int)RequestBodyLimits.GeneralMaxBytes + 1024);
+        Assert.True(description.Length < RequestBodyLimits.LongTextMaxBytes);
+
+        using HttpResponseMessage response = await PostAsync(client, productId, "SaveProduct", [.. await SaveFieldsAsync(productId, variants[0]), ("Input.Description", description)]);
+
+        Assert.NotEqual(HttpStatusCode.RequestEntityTooLarge, response.StatusCode);
+    }
+
+    [Fact]
+    public void TheModulesRefusals_TakeK799sTexts_WithTheModulesValues_AndTheNetQuantityKeepsItsRulesText_KK5()
+    {
+        static string Name(string field) => field == "Variants[1].Price" ? "Kırmızı" : "?";
+
+        Assert.Equal(ProductSaveRefusals.PriceAboveZeroText, ProductSaveRefusals.TextOf(new("Variants[0].Price", ErrorCode.InvalidAmount), Name));
+        Assert.Null(ProductSaveRefusals.TextOf(new("Variants[0].NetQuantity", ErrorCode.InvalidAmount), Name));
+        Assert.Equal(new InvalidNetQuantityAttribute().ParameterText, ProductSaveRefusals.ParameterOf(new("Variants[0].NetQuantity", ErrorCode.InvalidAmount)));
+        Assert.Equal(ProductSaveRefusals.BelowReservedText(3), ProductSaveRefusals.TextOf(new("Variants[0].StockQuantity", ErrorCode.StockBelowReserved, 3), Name));
+        Assert.Equal(
+            ProductSaveRefusals.DiscountNotBelowReferenceText("Kırmızı", DisplayFormat.Amount(120m)),
+            ProductSaveRefusals.TextOf(new("Variants[1].Price", ErrorCode.DiscountedPriceNotBelowReference, 130m, 120m), Name));
+        Assert.Equal(ProductSaveRefusals.DiscountToZeroText, ProductSaveRefusals.TextOf(new("Variants[1].Price", ErrorCode.DiscountedPriceZero, 0m, 120m), Name));
+        Assert.Equal(ProductSaveRefusals.ShippingPeriodText(), ProductSaveRefusals.TextOf(new("ShippingPeriod", ErrorCode.ValueOutOfBounds), Name));
+        Assert.Null(ProductSaveRefusals.TextOf(new("Name", ErrorCode.TextTooLong, ProductConstants.ProductNameMaxLength), Name));
+        Assert.Equal(1, ProductSaveRefusals.VariantRowOf("Variants[1].Price"));
+        Assert.Null(ProductSaveRefusals.VariantRowOf("Images"));
+    }
+
+    private async Task<(string Name, string Value)[]> SaveFieldsAsync(
+        Guid productId, Guid variantId, string name = "Kupa", string price = "10", string stock = "7", string shownStock = "7", string? sku = null, int? version = null)
+    {
+        await using AppDbContext db = ListSeed.Open(_database.Dsn);
+        Product product = await db.Products.AsNoTracking().SingleOrDefaultAsync(p => p.Id == productId, Ct) ?? throw new InvalidOperationException("No product.");
+        string ownSku = await db.Variants.AsNoTracking().Where(v => v.Id == variantId).Select(v => v.SKU).SingleAsync(Ct);
+        return
+        [
+            ("Input.Version", (version ?? product.Version).ToString(CultureInfo.InvariantCulture)),
+            ("Input.ProductType", product.ProductType.ToString()),
+            ("Input.Name", name),
+            ("Input.VatRate", "20"),
+            ("Input.OriginCountryId", product.OriginCountryId?.ToString("D") ?? string.Empty),
+            ("Input.Variants[0].VariantId", variantId.ToString("D")),
+            ("Input.Variants[0].SKU", sku ?? ownSku),
+            ("Input.Variants[0].Price", price),
+            ("Input.Variants[0].StockQuantity", stock),
+            ("Input.Variants[0].OriginalStockQuantity", shownStock),
+        ];
+    }
+
+    private async Task<int?> StockOfAsync(Guid variantId)
+    {
+        await using AppDbContext db = ListSeed.Open(_database.Dsn);
+        return await db.Variants.AsNoTracking().Where(v => v.Id == variantId).Select(v => v.StockQuantity).SingleAsync(Ct);
+    }
+
+    private async Task<string> SkuOfAsync(Guid variantId)
+    {
+        await using AppDbContext db = ListSeed.Open(_database.Dsn);
+        return await db.Variants.AsNoTracking().Where(v => v.Id == variantId).Select(v => v.SKU).SingleAsync(Ct);
     }
 
     private static Task<HttpResponseMessage> UploadAsync(HttpClient client, string formPath, byte[] file, string target, params (string Name, string Value)[] fields)

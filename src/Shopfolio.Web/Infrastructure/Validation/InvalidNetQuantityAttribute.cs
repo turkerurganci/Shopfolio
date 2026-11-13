@@ -16,6 +16,8 @@ public sealed class InvalidNetQuantityAttribute : FieldRuleAttribute
 
     public override string? ParameterText => DisplayFormat.Number(Money.MaxNetQuantity);
 
+    public override string? MessagePattern => FieldMessageCatalog.NetQuantityPattern;
+
     public override bool OwnsConversionFailure => true;
 
     protected override bool Accepts(object? value)

@@ -37,7 +37,8 @@ public sealed record ProductSaveOptionValue(Guid? OptionValueId, string? Value);
 
 /// <summary>
 /// A variant row (06 4.6, 4.70): no key on a new row. <see cref="ShownStockQuantity"/> is the stock the form showed beside the field (07 2.4.3; K-980); the stock is written against it,
-/// never by the record's save.
+/// never by the record's save. <see cref="IsShownStockUnreadable"/> marks a shown value the form sent back that is no number (07 2.4.3; <c>ShownValue</c>, D-129): it is no match - the
+/// existing row's save is the 409 of a changed shown value, in its place of the order (K-800) - and no value stands for it.
 /// </summary>
 public sealed record ProductSaveVariant(
     Guid? VariantId,
@@ -49,7 +50,8 @@ public sealed record ProductSaveVariant(
     int? StockQuantity,
     int? ShownStockQuantity,
     Guid? ImageId,
-    Guid? DigitalFileId);
+    Guid? DigitalFileId,
+    bool IsShownStockUnreadable = false);
 
 /// <summary>The product's discount (06 4.12): all three filled, or the discount is removed.</summary>
 public sealed record ProductSaveDiscount(decimal? Percentage, DateOnly? StartDate, DateOnly? EndDate);

@@ -65,8 +65,6 @@ internal sealed class ProductFormModel : PageModel
 {
     public const string NewTitle = "Yeni ürün";
 
-    public const string SaveLabel = "Kaydet";
-
     public const string DeleteLabel = "Kalıcı olarak sil";
 
     public const string PreviewLabel = "Önizle";
@@ -183,14 +181,22 @@ internal sealed class ProductFormModel : PageModel
         PageHandlerExecutedContext executed = await next();
         if (!_ran && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
         {
-            if (context.HandlerArguments.TryGetValue("id", out object? key) && key is Guid productId)
+            // K-800: a record that is gone is 404 before its fields' 422 (07 UC-114), as the handler would have answered.
+            if (context.HandlerArguments.TryGetValue("id", out object? key) && key is Guid productId && !await LoadAsync(productId, HttpContext.RequestAborted))
             {
-                await LoadAsync(productId, HttpContext.RequestAborted);
+                executed.Result = NotFound();
+                return;
             }
 
             Form = context.HandlerArguments.Values.OfType<SaveProductInput>().FirstOrDefault() ?? Form;
         }
     }
+
+    /// <summary>
+    /// True when the last save met a changed record - its version, or a variant's shown stock (07 2.4.5; K-800): the save control is the conflict's message, "Güncel hâli aç" and
+    /// "Yine de kaydet" (<see cref="ConflictControls.RecordSaveControl"/>).
+    /// </summary>
+    public bool IsConflicted { get; private set; }
 
     /// <summary>UC-88: the form. The new product's form is empty; an existing one's key that is no product is 404.</summary>
     public async Task<IActionResult> OnGetAsync(Guid? id, string? returnUrl, CancellationToken ct)
@@ -280,10 +286,21 @@ internal sealed class ProductFormModel : PageModel
         List<ProductSaveVariant> variants = [];
         foreach (SaveProductVariantRow row in input.Variants)
         {
-            // The shown stock is read as text (07 2.4.3): a value that is no shown number is a mismatch, so the row's stock goes to the module as changed against an impossible value.
-            int? shown = ShownValue.TryReadNumber(row.OriginalStockQuantity, out int? read) ? read : int.MinValue;
+            // The shown stock is read as text (07 2.4.3): a value that is no shown number is no match (D-129) - the module answers it with the shown value's 409 in its place of the order.
+            bool readable = ShownValue.TryReadNumber(row.OriginalStockQuantity, out int? shown);
+            bool existing = row.VariantId is not null;
             variants.Add(new ProductSaveVariant(
-                row.VariantId, row.FirstOptionValueId, row.SecondOptionValueId, row.SKU, row.Price, row.NetQuantity, row.StockQuantity, row.VariantId is null ? row.StockQuantity : shown, row.ImageId, row.DigitalFileId));
+                row.VariantId,
+                row.FirstOptionValueId,
+                row.SecondOptionValueId,
+                row.SKU,
+                row.Price,
+                row.NetQuantity,
+                row.StockQuantity,
+                existing ? shown : row.StockQuantity,
+                row.ImageId,
+                row.DigitalFileId,
+                existing && !readable));
         }
 
         ProductSaveCommand command = new(
@@ -319,22 +336,53 @@ internal sealed class ProductFormModel : PageModel
             return NotFound();
         }
 
+        PanelProductRecord? current = Record;
         Form = input;
         _rejections.Rejected(code);
-        if (code == ErrorCode.RecordVersionConflict)
+        if (code is ErrorCode.RecordVersionConflict or ErrorCode.DisplayedValueConflict && current is not null)
         {
+            // 07 2.4.5, 2.4.8: the typed entries stay; the form carries the record's current version and each variant's current stock as the shown value, so "Yine de kaydet" is a
+            // save like any other - and a stock below the reserved quantity meanwhile is refused again.
+            IsConflicted = true;
+            input.Version = current.Version;
+            foreach (SaveProductVariantRow row in input.Variants)
+            {
+                if (current.Variants.FirstOrDefault(v => v.Id == row.VariantId) is { } variant)
+                {
+                    row.OriginalStockQuantity = variant.StockQuantity?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty;
+                }
+            }
+
+            ModelState.Clear();
             return FormResults.Conflict(this);
         }
 
-        foreach (ProductSaveFieldError error in result.FieldErrors)
+        ProductSaveRefusals.AddTo(ModelState, result.FieldErrors, field => VariantName(input, field));
+        return FormResults.Redisplay(this);
+    }
+
+    /// <summary>
+    /// The field messages of the refused save whose key starts with <paramref name="prefix"/> (a variant row <c>Input.Variants[0].</c>, the gallery <c>Input.Images</c>, the lists of
+    /// categories, options and the discount): the rows and lists are drawn by this page, not by the field partial, so their messages are drawn beside them (04 2.12.1.1).
+    /// </summary>
+    public IReadOnlyList<MessageView> RefusalsOf(string prefix, string fieldId) =>
+    [
+        .. ModelState
+            .Where(entry => entry.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            .SelectMany(entry => entry.Value?.Errors.Select(error => error.ErrorMessage) ?? [])
+            .Select(text => Messages.ForField(fieldId, text)),
+    ];
+
+    /// <summary>The name of the variant row a field belongs to (K-799 "{seçenek}"): the record's label of the row's variant, else its stock code, else the product's name.</summary>
+    private string VariantName(SaveProductInput input, string field)
+    {
+        SaveProductVariantRow? row = ProductSaveRefusals.VariantRowOf(field) is { } n && n < input.Variants.Count ? input.Variants[n] : null;
+        if (row?.VariantId is { } variantId && Variants.FirstOrDefault(v => v.Id == variantId) is { } view)
         {
-            ModelState.AddFieldError(
-                "Input." + error.Field,
-                error.Code.ToString(),
-                error.Amount is { } amount ? DisplayFormat.Number(amount) : null);
+            return view.Label;
         }
 
-        return code == ErrorCode.DisplayedValueConflict ? FormResults.Conflict(this) : FormResults.Redisplay(this);
+        return row?.SKU is { Length: > 0 } sku ? sku : input.Name ?? Title;
     }
 
     /// <summary>The row of a variant image target <c>Variants[n].ImageId</c> (07 5.2.3); null when the target is no variant row of the sent form.</summary>

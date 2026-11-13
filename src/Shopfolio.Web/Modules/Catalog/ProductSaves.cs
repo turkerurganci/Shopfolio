@@ -620,18 +620,19 @@ internal sealed class ProductSaves
 
     /// <summary>
     /// The stock and capacity fields (K-980; 07 2.4.3): each changed one is written by its conditional update against the value the form showed, in the order of the variants' keys (05 7.3.5).
-    /// The 409 of a shown value comes before any reserved quantity's 422 (K-800): every shown value is compared first.
+    /// The 409 of a shown value comes before any reserved quantity's 422 (K-800): every shown value is compared first. A shown value the form sent back unreadable is no match (D-129):
+    /// that row is the 409 whatever the record holds.
     /// </summary>
     private async Task<ProductSaveResult> WriteStockAsync(Guid productId, List<(int Row, Variant Variant, ProductSaveVariant Input)> rows, CancellationToken ct)
     {
         List<(int Row, Variant Variant, ProductSaveVariant Input)> changed = [.. rows
-            .Where(r => _db.Entry(r.Variant).State != EntityState.Added && r.Input.StockQuantity != r.Input.ShownStockQuantity)
+            .Where(r => _db.Entry(r.Variant).State != EntityState.Added && (r.Input.IsShownStockUnreadable || r.Input.StockQuantity != r.Input.ShownStockQuantity))
             .OrderBy(r => r.Variant.Id.ToString("D"), StringComparer.Ordinal)];
         List<Guid> ids = [.. changed.Select(r => r.Variant.Id)];
         Dictionary<Guid, int?> current = await _db.Variants.AsNoTracking()
             .Where(v => ids.Contains(v.Id))
             .ToDictionaryAsync(v => v.Id, v => v.StockQuantity, ct);
-        if (changed.FirstOrDefault(r => current[r.Variant.Id] != r.Input.ShownStockQuantity) is { Variant: not null } stale)
+        if (changed.FirstOrDefault(r => r.Input.IsShownStockUnreadable || current[r.Variant.Id] != r.Input.ShownStockQuantity) is { Variant: not null } stale)
         {
             return ProductSaveResult.ShownStockChanged(Field(stale.Row, nameof(ProductSaveVariant.StockQuantity)));
         }

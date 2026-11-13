@@ -59,6 +59,10 @@
                 <input type="text" id="product-image-@i-alt" name="Input.Images[@i].AltText" value="@image.AltText" />
             </div>
         }
+        @foreach (MessageView refusal in Model.RefusalsOf("Input.Images", "product-images"))
+        {
+            <partial name="_Message" model="refusal" />
+        }
         @if (Model.UploadRefusal is not null && Model.UploadRefusalTarget == ProductFormModel.GalleryTarget)
         {
             <partial name="_Message" model="Model.UploadRefusal" />
@@ -93,6 +97,15 @@
                 <label for="product-variant-@i-stock">Stok</label>
                 <input type="text" inputmode="numeric" id="product-variant-@i-stock" name="Input.Variants[@i].StockQuantity" value="@Whole(row.StockQuantity)" />
                 <input type="hidden" name="Input.Variants[@i].OriginalStockQuantity" value="@row.OriginalStockQuantity" />
+                @if (entries.MeasurementUnit is not null)
+                {
+                    <label for="product-variant-@i-net">Net miktar</label>
+                    <input type="text" inputmode="decimal" id="product-variant-@i-net" name="Input.Variants[@i].NetQuantity" value="@Decimal(row.NetQuantity)" />
+                }
+                @foreach (MessageView refusal in Model.RefusalsOf($"Input.Variants[{i}].", $"product-variant-{i}-sku"))
+                {
+                    <partial name="_Message" model="refusal" />
+                }
                 @if (row.ImageId is { } imageId)
                 {
                     <input type="hidden" name="Input.Variants[@i].ImageId" value="@imageId.ToString("D")" />
@@ -105,7 +118,14 @@
             </div>
         }
     </fieldset>
-    <button type="submit" class="button">@ProductFormModel.SaveLabel</button>
+    @foreach (string list in new[] { "Input.Categories", "Input.Options", "Input.Discount", "Input.DigitalFileId" })
+    {
+        foreach (MessageView refusal in Model.RefusalsOf(list, "product-save"))
+        {
+            <partial name="_Message" model="refusal" />
+        }
+    }
+    @ConflictControls.RecordSaveControl(Model.IsConflicted, Model.FormPath)
 </form>
 @if (record is not null)
 {

@@ -101,14 +101,20 @@ public sealed class AccountProfilePageTests : IAsyncLifetime
 
         (_, string closedOther, _) = await GetAsync(client, $"{FramePaths.Account}?reauthenticatedOperation=EmailChange&reauthenticationToken={Uri.EscapeDataString(permit)}", session);
         (_, string closedWrong, _) = await GetAsync(client, $"{FramePaths.Account}?reauthenticatedOperation=PasswordChange&reauthenticationToken=not-the-value", session);
+
+        // A page request that does not show the form drops the permission (K-1186 (5)), so the value is obtained again before the request that opens the form.
+        (_, string dropped, _) = await GetAsync(client, address, session);
+        address = await ReauthenticateAsync(client, session, "PasswordChange");
+        permit = TokenOf(address);
         (_, string opened, _) = await GetAsync(client, address, session);
         (_, string reloaded, _) = await GetAsync(client, address, session);
+        Assert.DoesNotContain("name=\"Input.NewPassword\"", dropped, StringComparison.Ordinal);
 
         Assert.DoesNotContain("name=\"Input.NewPassword\"", closedOther, StringComparison.Ordinal);
         Assert.DoesNotContain("name=\"Input.NewEmail\"", closedOther, StringComparison.Ordinal);
         Assert.DoesNotContain("name=\"Input.NewPassword\"", closedWrong, StringComparison.Ordinal);
         Assert.Contains("name=\"Input.NewPassword\"", opened, StringComparison.Ordinal);
-        Assert.Contains($"name=\"Input.ReauthenticationToken\" value=\"{permit}\"", opened, StringComparison.Ordinal);
+        Assert.Contains($"name=\"Input.ReauthenticationToken\" type=\"hidden\" value=\"{permit}\"", opened, StringComparison.Ordinal);
         Assert.Contains("name=\"Input.NewPassword\"", reloaded, StringComparison.Ordinal);
     }
 
@@ -288,7 +294,7 @@ public sealed class AccountProfilePageTests : IAsyncLifetime
         using HttpResponseMessage accepted = await PostAsync(client, FramePaths.Account, "ChangePassword", [("Input.NewPassword", NewPassword), ("Input.ReauthenticationToken", permit)], session);
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, refused.StatusCode);
-        Assert.Contains($"name=\"Input.ReauthenticationToken\" value=\"{permit}\"", body, StringComparison.Ordinal);
+        Assert.Contains($"name=\"Input.ReauthenticationToken\" type=\"hidden\" value=\"{permit}\"", body, StringComparison.Ordinal);
         Assert.DoesNotContain(weak, body.Replace("1234567890", string.Empty, StringComparison.Ordinal).Replace("short", string.Empty, StringComparison.Ordinal), StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.SeeOther, accepted.StatusCode);
         Assert.Equal($"{FramePaths.Account}?notice={NoticeCode.PasswordChanged}", accepted.Headers.Location!.OriginalString);
@@ -347,7 +353,7 @@ public sealed class AccountProfilePageTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.UnprocessableEntity, broken.StatusCode);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, taken.StatusCode);
         Assert.Contains(AccountTexts.EmailTaken, takenBody, StringComparison.Ordinal);
-        Assert.Contains($"name=\"Input.ReauthenticationToken\" value=\"{permit}\"", takenBody, StringComparison.Ordinal);
+        Assert.Contains($"name=\"Input.ReauthenticationToken\" type=\"hidden\" value=\"{permit}\"", takenBody, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.SeeOther, unverified.StatusCode);
         await using AppDbContext db = NewContext();
         Assert.Equal("bekleyen@example.com", (await db.PendingEmailChanges.AsNoTracking().SingleAsync(Ct)).NewEmail);
@@ -385,7 +391,7 @@ public sealed class AccountProfilePageTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.TooManyRequests, last);
         Assert.Contains(NeutralMessages.LimitExceeded, body, StringComparison.Ordinal);
-        Assert.Contains($"name=\"Input.ReauthenticationToken\" value=\"{permit}\"", body, StringComparison.Ordinal);
+        Assert.Contains($"name=\"Input.ReauthenticationToken\" type=\"hidden\" value=\"{permit}\"", body, StringComparison.Ordinal);
         Assert.NotNull((await ReadSessionAsync()).ReauthenticationTokenHash);
     }
 
@@ -490,7 +496,7 @@ public sealed class AccountProfilePageTests : IAsyncLifetime
 
         Assert.Equal(FramePaths.AccountDeleted, deleted.Headers.Location!.OriginalString);
         Assert.DoesNotContain(deleted.Headers.TryGetValues("Set-Cookie", out IEnumerable<string>? set) ? set : [], c => c.StartsWith(CookieNames.Session + "=", StringComparison.Ordinal));
-        Assert.Equal(HttpStatusCode.Found, again.StatusCode);
+        Assert.Equal(HttpStatusCode.SeeOther, again.StatusCode);
         Assert.Equal(HttpStatusCode.OK, shown);
         Assert.Contains(AccountDeletedTexts.Deleted, html, StringComparison.Ordinal);
         Assert.Contains(AccountDeletedTexts.OrdersGoOn, html, StringComparison.Ordinal);

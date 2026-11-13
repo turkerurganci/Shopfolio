@@ -1,6 +1,6 @@
 # T526 — Kategori ağacı ve kuponlar (E-34, E-35)
 
-**Faz:** F5 | **Durum:** ⏳ Yapım tamam, doğrulama bekliyor | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-12
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -89,10 +89,18 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulama chat'i doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-13; bağımsız doğrulama ajanı) — `901e0cdc` |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 — K1: `06 §4.13` "Kısıtlar" toplam adedin panel yazımındaki tabanı "§2.6.5'in kalıbı" (koşullu güncelleme) diye yazar; kod tabanı `CouponLocks` satır kilidi altında okuyup `RecordSave` ile yazar. Sonuç aynı (yarış testi), yöntem farklı → D-1407'ye eklendi (bu PR'da, `DEFERRED_BACKLOG.d/T526.md`) |
+| Başlangıç kapıları | Working tree temiz; hook yolu `scripts/git-hooks`; main CI son 3: 43313032090 ✓, 43313031981 ✓, 43276977661 ✓ |
+| Kabul kriterleri | 1–10 ✓ — kanıtlar yapım tablosundaki testler, doğrulayıcı tarafından yeniden koşuldu ve kodda okundu (sıra Türkçe harmanlamayla veritabanında; menü satırı `GetMenuAsync`; kategori yazımları ağacın danışma kilidiyle; kupon: 404 → kilit → 409 → alan kuralları, `07 §2.4.8`; hak tabanı kilit altında; değişiklik yalnız yeni sepete; iz yok; K-799 metinleri birebir; sayfa tutar hesaplamaz) |
+| KK1–KK10, `09 §25` | ✓ — sayfalı liste `Id` ile biter + sınır testi; kilit `LockSequence`'e bildirilir, gövde `RunAsync` lambda'sı; sayfada `DbContext` yok |
+| Bekçi istisnası | Dar: izin yalnız `src/Shopfolio.Web/Modules/Catalog/CouponLocks.cs` tam yoluna ve yalnız düz `FOR UPDATE`'e; aynı dosyada danışma, `NO KEY`, `SHARE` ve sayaç yazımı yine bulgu (`Scan_InTheCouponLocksFile_…`); aynı adlı başka yer ve `Coupons.cs` izinsiz |
+| Testler (doğrulayıcı) | build `-warnaserror` 0/0; format Web/Unit/Integration temiz; Unit 7476/7476; betik 4/4; Integration CouponTests + CouponsPageTests + CategoriesPageTests 58/58, CategoryTreeAndListsTests + ConcurrencyTests + PageFormPatternTests 90/90 — TAM: CI |
+| Güvenlik | Temiz — `/Panel` klasörü yönetici politikasıyla kapalı; formlar antiforgery'li; ham SQL parametreli ve tek yerde; yabancı/bozuk anahtar 404; yeni bağımlılık yok |
+| `12` satırları | PASS: VAL-A184, A185, A196, A197, A198, A520, A521, A522, A523, A524, A726, A727. BEKLEMEDE kalır: A181, A182 (vitrin gözlemi), A183 (ürün formu, T525), A191–A195 (indirim), A456, A508, A554 (öteki ekranlarla ortak), B045, B082 (`[tarayıcı]`). `12_matris_denetle.py --kapsam 1-77` hata 0 |
+| Yapım raporu karşılaştırması | Uyumlu; tek fark: öz denetim VAL-A554'ü ✓ saydı — satır ürün ve adres kaydını da kapsadığı için doğrulamada BEKLEMEDE kaldı |
 
 ## Altyapı Değişiklikleri
 
@@ -105,7 +113,7 @@
 
 - **Branch:** `task/T526-kategori-kupon`
 - **PR:** PR açıklamasında
-- **CI:** *(doğrulama chat'i)*
+- **CI:** dal run 43303039201 ✓ (Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate) — head `901e0cdc`
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

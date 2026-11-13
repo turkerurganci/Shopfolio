@@ -1,0 +1,9 @@
+@page "/siparis/erisim/{accessKey:regex(^[A-Za-z0-9_-]+\z)}/ayip-talebi"
+@model Shopfolio.Pages.Orders.AccessDefectClaimModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = Shopfolio.Pages.Orders.OrderScreenTexts.DefectClaimName;
+}
+@* UC-44…UC-46 under the access-key root (07 4.19); the screen itself is the shared E-19 view. *@
+<partial name="_DefectClaimScreen" model="Model" />

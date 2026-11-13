@@ -46,6 +46,7 @@ internal sealed class MembershipModule : IMembershipModule
     private readonly EmailChanges _emailChanges;
     private readonly AccountDeletions _deletions;
     private readonly MemberRecords _memberRecords;
+    private readonly GoogleReauthentications _googleReauthentications;
 
     public MembershipModule(
         AppDbContext db,
@@ -63,8 +64,10 @@ internal sealed class MembershipModule : IMembershipModule
         GoogleSignIns google,
         EmailChanges emailChanges,
         AccountDeletions deletions,
-        MemberRecords memberRecords)
+        MemberRecords memberRecords,
+        GoogleReauthentications googleReauthentications)
     {
+        _googleReauthentications = googleReauthentications;
         _deletions = deletions;
         _memberRecords = memberRecords;
         _google = google;
@@ -356,6 +359,21 @@ internal sealed class MembershipModule : IMembershipModule
         return await _db.Customers.AsNoTracking().Where(c => c.Id == customerId).Select(c => new MemberContact(c.Name, c.Email)).SingleOrDefaultAsync(ct);
     }
 
+    public async Task<SignInMethods?> GetSignInMethodsAsync(Guid customerId, CancellationToken ct)
+    {
+        return await _db.Customers.AsNoTracking()
+            .Where(c => c.Id == customerId)
+            .Select(c => new SignInMethods(c.Email, c.PasswordHash != null && c.PasswordHash != string.Empty, c.GoogleLinkedAt != null))
+            .SingleOrDefaultAsync(ct);
+    }
+
+    public Task<GoogleReauthenticationResult> GrantGoogleReauthenticationAsync(
+        Guid customerId, Guid sessionId, ReauthenticationOperation operation, GoogleReauthenticationIdentity identity, DateTimeOffset flowStartedAt, CancellationToken ct)
+    {
+        RequireTransaction("The Google re-authentication is written only inside a transaction (09 6 item 3).");
+        return _googleReauthentications.GrantAsync(customerId, sessionId, operation, identity, flowStartedAt, ct);
+    }
+
     public async Task<NameChangeResult> ChangeNameAsync(Guid customerId, string name, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(name);
@@ -469,6 +487,7 @@ internal static class MembershipModuleRegistration
         services.AddScoped<IMembershipModule, MembershipModule>();
         services.AddScoped<CustomerPasswords>();
         services.AddScoped<GoogleSignIns>();
+        services.AddScoped<GoogleReauthentications>();
         services.AddScoped<EmailChanges>();
         services.AddScoped<AccountDeletions>();
         services.AddScoped<MemberRecords>();

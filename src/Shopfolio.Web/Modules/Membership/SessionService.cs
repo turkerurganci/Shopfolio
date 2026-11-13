@@ -25,6 +25,9 @@ internal sealed class SessionService : ISessionService
     public Task<string?> GrantReauthenticationAsync(Guid customerId, Guid sessionId, ReauthenticationOperation operation, CancellationToken ct)
         => _store.GrantReauthenticationAsync(AccountType.Customer, customerId, sessionId, operation, ct);
 
+    public Task DropReauthenticationAsync(Guid customerId, Guid sessionId, CancellationToken ct)
+        => _store.DropReauthenticationAsync(AccountType.Customer, customerId, sessionId, ct);
+
     public Task<bool> TryRedeemReauthenticationAsync(Guid customerId, Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct)
         => _store.TryRedeemReauthenticationAsync(AccountType.Customer, customerId, sessionId, operation, value, ct);
 

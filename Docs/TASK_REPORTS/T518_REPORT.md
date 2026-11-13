@@ -64,10 +64,13 @@ Test sınıfı `AccountAddressAndOrderHistoryPageTests` (kısaltma: S).
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-14) |
+| Bulgu sayısı | 0 bloke eden; 2 K-notu (D-1471, D-1472) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 |
+| Kanıt | Kriter 1–10 ve KK1–KK10: testler doğrulayıcı tarafından head `00854fd6` (main `edf4eb2a`'yı içerir) üzerinde yeniden koşuldu — Integration `AccountAddressAndOrderHistoryPageTests` 17/17, `SessionAccessTests` 27/27; Unit TAM 7557/7557 (`OutageIndependenceSourceScanTests` tekrarlamadı); derleme `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` üç projede temiz; betik testleri 4/4; CI run 43505372903 (Integration TAM dahil) yeşil. Kod okuması: `OrderVisibility.ShownToCustomer` `02 §3.17.8`'in dört kendiliğinden iptal sebebini gizler, Ö1 kaydı olanı gösterir; liste `CreatedAt`, `Id` azalan, `PageSizes.OrderHistory` 25; satır `OrderRoutes.MemberPath`; adres POST'ları sahipliği modülde denetler, ret 404 yazmaz |
+| `12` | `VAL-A101`, `VAL-A635` → PASS; paylı satırlar (`VAL-A059`, `VAL-A603`, `VAL-A554`) ve tarayıcı satırları (`VAL-B040`, `VAL-B041`, `VAL-B108`) BEKLEMEDE (D-1471) |
+| Uyuşmazlık | Öz denetim tablosu `12` satırlarını eşlemiyor (doğrulamada eşlendi); başka uyuşmazlık yok |
 
 ## Altyapı Değişiklikleri
 
@@ -79,7 +82,7 @@ Test sınıfı `AccountAddressAndOrderHistoryPageTests` (kısaltma: S).
 ## Commit & PR
 
 - **Branch:** `task/T518-adres-siparis-gecmisi`
-- **PR:** PR açıldığında yazılır
+- **PR:** #566
 - **CI:** yapım işçisi beklemez; yönetici izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

@@ -47,7 +47,7 @@ public sealed class ChangePasswordInput : IFormInput
 /// <summary>The form of UC-66 (07 5.1.5; 04 7.1.15.2): the new address (06 4.40) and the single-use value of the re-authentication, in the hidden field.</summary>
 public sealed class ChangeEmailInput : IFormInput
 {
-    [Display(Name = "Yeni e-posta adresi")]
+    [Display(Name = "Yeni e-posta")]
     [FieldRequired]
     [InvalidEmail]
     public string NewEmail { get; set; } = string.Empty;

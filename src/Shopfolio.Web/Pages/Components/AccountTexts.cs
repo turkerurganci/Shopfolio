@@ -4,8 +4,9 @@ namespace Shopfolio.Pages.Components;
 
 /// <summary>
 /// The account screen's texts (T517; 04 E-25 5.25; 02 3.13.10, 3.13.14, 3.15; K-779 (2), (6), K-785, K-786). Forms and account screens speak "siz" (04 8.2.9). Written here once; the page, the deletion's result
-/// state and their tests read them from here. The sentences the sources fix word for word (K-779, K-785, K-786) are quoted; the others have no wording in the sources and are written in the voice of the
-/// re-authentication and password reset screens (listed as a note in the task report).
+/// state and their tests read them from here. The wording the sources fix is quoted: K-779 (2) and (6), K-785, K-786, the field names of 04 7.1.15 ("Ad", "Yeni e-posta", "Yeni şifre"), the section and
+/// operation names of 04 5.25.3-5.25.7 and 9.21.4-9.21.5. Where 04 and 07 give no wording (the form buttons, the password-changed and no-password sentences, the pending-change line, the deletion's
+/// result state) the sentence is the minimal one that says what 04 describes; those are open in the backlog (D-1452) and listed as a warning in the task report.
 /// </summary>
 public static class AccountTexts
 {
@@ -31,11 +32,10 @@ public static class AccountTexts
 
     public const string ChangeEmailLink = "E-postayı değiştir";
 
-    public const string NewEmailLabel = "Yeni e-posta adresi";
+    public const string NewEmailLabel = "Yeni e-posta";
 
     public const string NewEmailButton = "Doğrulama bağlantısı gönder";
 
-    public const string ResendLinkButton = "Bağlantıyı yeniden iste";
 
     /// <summary>04 5.25.11 (K-786): the field message of an address that belongs to another verified account.</summary>
     public const string EmailTaken = "Bu e-posta adresi başka bir hesapta kayıtlı.";

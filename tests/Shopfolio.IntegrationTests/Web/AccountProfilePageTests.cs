@@ -318,7 +318,7 @@ public sealed class AccountProfilePageTests : IAsyncLifetime
         Assert.Equal(FramePaths.Account, second.Headers.Location!.OriginalString);
         Assert.Contains("yeni@example.com", html, StringComparison.Ordinal);
         Assert.Contains("id=\"account-email-pending\"", html, StringComparison.Ordinal);
-        Assert.Contains(AccountTexts.ResendLinkButton, html, StringComparison.Ordinal);
+        Assert.Contains(RegistrationTexts.ResendLabel, html, StringComparison.Ordinal);
         await using AppDbContext db = NewContext();
         Customer account = await db.Customers.AsNoTracking().SingleAsync(Ct);
         PendingEmailChange pending = await db.PendingEmailChanges.AsNoTracking().SingleAsync(Ct);
@@ -461,6 +461,14 @@ public sealed class AccountProfilePageTests : IAsyncLifetime
         string permit = TokenOf(address);
 
         (_, string opened, _) = await GetAsync(client, address, session);
+
+        // The GET only shows the last step (K-1163 (4); 07 2.2.5): the account, its session and the permission are all still there, the deletion is the POST's.
+        await using (AppDbContext afterGet = NewContext())
+        {
+            Assert.Equal(1, await afterGet.Customers.CountAsync(Ct));
+        }
+
+        Assert.NotNull((await ReadSessionAsync()).ReauthenticationTokenHash);
         using HttpResponseMessage unconfirmed = await PostAsync(client, FramePaths.Account, "DeleteAccount", [("Input.ReauthenticationToken", permit)], session);
         string body = await BodyOf(unconfirmed);
 

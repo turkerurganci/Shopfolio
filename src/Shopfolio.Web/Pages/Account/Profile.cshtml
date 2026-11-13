@@ -55,7 +55,7 @@
     {
         <p id="account-email-pending">@AccountTexts.PendingLine(Model.Pending.NewEmail, Model.Pending.LinkEndsAt)</p>
         <form method="post" asp-antiforgery="true" action="@(FramePaths.Account)?handler=ResendEmailChangeLink" id="account-email-resend-form" data-js="submit-once">
-            <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(AccountTexts.ResendLinkButton)">@AccountTexts.ResendLinkButton</button>
+            <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(RegistrationTexts.ResendLabel)">@RegistrationTexts.ResendLabel</button>
             @if (Model.ResendLimitReached)
             {
                 <partial name="_Message" model='Messages.NeutralLimit("account-resend-limit")' />

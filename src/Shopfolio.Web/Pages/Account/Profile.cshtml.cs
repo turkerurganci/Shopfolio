@@ -123,6 +123,9 @@ internal sealed class ProfileModel : PageModel, IOutcomeTarget
     /// <summary>The single-use value the open form carries in its hidden field.</summary>
     public string? OpenToken { get; private set; }
 
+    /// <summary>The open form's value for the hidden field; empty when no form is open.</summary>
+    public string OpenValue => OpenToken ?? string.Empty;
+
     /// <summary>The name the form shows again after a refusal; null shows the stored name.</summary>
     public string? SentName { get; private set; }
 
@@ -476,7 +479,7 @@ internal sealed class ProfileModel : PageModel, IOutcomeTarget
                 "DeleteAccount",
                 FramePaths.Account,
                 [
-                    new("Input." + ReauthenticationValues.FieldName, permitValue),
+                    new("Input." + nameof(DeleteAccountInput.ReauthenticationToken), permitValue),
                     new("Input." + nameof(DeleteAccountInput.Confirmed), "true"),
                 ]);
         }

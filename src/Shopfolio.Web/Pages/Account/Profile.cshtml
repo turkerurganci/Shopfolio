@@ -21,7 +21,6 @@
     FieldView nameField = Fields.Bind(Fields.Text("Input.Name", AccountTexts.NameLabel, FieldRequirement.Required, Model.SentName ?? Model.Name, autocomplete: "name"), summary);
     FieldView newEmailField = Fields.Bind(Fields.Email("Input.NewEmail", AccountTexts.NewEmailLabel, FieldRequirement.Required, Model.SentNewEmail), summary);
     FieldView renewField = Fields.Bind(Fields.Concealed("Input.NewPassword", AccountTexts.NewPasswordLabel, FieldRequirement.Required, "new-password", PasswordResetTexts.PasswordHint), summary);
-    bool revertOpen = Model.RevertEndsAt is not null;
 }
 @section Head {
     @Search.Head(ViewContext.HttpContext, RecordPages.ClosedScreen(AccountTexts.ScreenName, ViewContext.HttpContext.GetStorefrontFrame()?.Brand.BrandName, FramePaths.Account))
@@ -62,14 +61,14 @@
             }
         </form>
     }
-    @if (revertOpen)
+    @if (Model.RevertEndsAt is { } revertEnds)
     {
-        <partial name="_Message" model='Messages.InPlace(MessageMeaning.Info, AccountTexts.RevertOpen(Model.RevertEndsAt!.Value), "account-email-closed")' />
+        <partial name="_Message" model='Messages.InPlace(MessageMeaning.Info, AccountTexts.RevertOpen(revertEnds), "account-email-closed")' />
     }
     else if (Model.OpenOperation == ReauthenticationOperation.EmailChange)
     {
         <form method="post" asp-antiforgery="true" action="@(FramePaths.Account)?handler=ChangeEmail" id="account-email-form" class="form" data-js="submit-once">
-            @ReauthenticationValues.Hidden(Model.OpenToken!, "Input")
+            @ReauthenticationValues.Hidden(Model.OpenValue, "Input")
             <div class="form-fields">
                 <partial name="_Field" model="newEmailField" />
             </div>
@@ -99,7 +98,7 @@
     else if (Model.OpenOperation == ReauthenticationOperation.PasswordChange)
     {
         <form method="post" asp-antiforgery="true" action="@(FramePaths.Account)?handler=ChangePassword" id="account-password-form" class="form" data-js="submit-once">
-            @ReauthenticationValues.Hidden(Model.OpenToken!, "Input")
+            @ReauthenticationValues.Hidden(Model.OpenValue, "Input")
             <div class="form-fields">
                 <partial name="_Field" model="renewField" />
             </div>
@@ -123,9 +122,9 @@
 <section class="account-section" id="account-delete" aria-labelledby="account-delete-heading">
     <h2 id="account-delete-heading">@AccountTexts.DeleteHeading</h2>
     <p id="account-delete-summary">@AccountTexts.DeleteSummary</p>
-    @if (revertOpen)
+    @if (Model.DeleteMessage is { } deleteMessage)
     {
-        <partial name="_Message" model="Model.DeleteMessage!" />
+        <partial name="_Message" model="deleteMessage" />
     }
     else if (Model.Confirmation is not null)
     {

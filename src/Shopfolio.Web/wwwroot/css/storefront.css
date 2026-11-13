@@ -1152,3 +1152,182 @@
         align-items: start;
     }
 }
+
+/* The account screens (T517, T518; 04 5.25 to 5.27): the inner navigation and the content. Narrow and medium class: the navigation is a row of tabs at the head; wide class: a vertical list at the left (04 5.25.18). */
+.account-layout {
+    display: grid;
+    gap: var(--space-4);
+}
+
+.account-layout__content {
+    min-width: 0;
+}
+
+.account-nav__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.account-nav__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+    padding-inline: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-1);
+    text-decoration: none;
+}
+
+.account-nav__link--current {
+    background: var(--color-surface-alt);
+    font-weight: 600;
+}
+
+/* The address book (E-26; 04 5.26.10): the entries are cards, one under the other on the narrow class, two columns on the wide class. */
+.address-cards {
+    display: grid;
+    gap: var(--space-3);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.address-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-1);
+    padding: var(--space-3) var(--space-4);
+}
+
+.address-card p {
+    margin: 0;
+}
+
+.address-card__name {
+    margin: 0 0 var(--space-2);
+    font-size: var(--font-size-large);
+}
+
+.address-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-block-start: var(--space-3);
+}
+
+.address-book-form {
+    margin-block: var(--space-4);
+}
+
+.address-book-form .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-block-start: var(--space-3);
+}
+
+/* The order history (E-27; 04 5.27.11): one markup. Narrow and medium class: every order is a card - the number and the badges on top, the day, the first item and the total under; wide class: a table.
+   The whole row opens the order: the number's link is stretched over the row. Nothing scrolls sideways. */
+.order-history {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.order-history__head {
+    display: none;
+}
+
+.order-history__row {
+    position: relative;
+    display: grid;
+    gap: var(--space-1);
+    margin-block-end: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-1);
+    padding: var(--space-3) var(--space-4);
+}
+
+.order-history tbody {
+    display: block;
+}
+
+.order-history__row > th,
+.order-history__row > td {
+    display: block;
+    padding: 0;
+    text-align: start;
+    font-weight: 400;
+}
+
+.order-history__number {
+    order: -2;
+    font-weight: 600;
+}
+
+.order-history__link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+
+.order-history__status {
+    order: -1;
+}
+
+@media (min-width: 768px) {
+    .address-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .account-layout {
+        grid-template-columns: 12rem minmax(0, 1fr);
+        align-items: start;
+    }
+
+    .account-nav__list {
+        flex-direction: column;
+    }
+
+    .order-history__head {
+        display: table-header-group;
+    }
+
+    .order-history tbody {
+        display: table-row-group;
+    }
+
+    .order-history__head th {
+        padding: var(--space-2) var(--space-3);
+        border-block-end: 1px solid var(--color-border);
+        text-align: start;
+    }
+
+    .order-history__row {
+        display: table-row;
+        margin: 0;
+        border: 0;
+        padding: 0;
+    }
+
+    .order-history__row > th,
+    .order-history__row > td {
+        display: table-cell;
+        padding: var(--space-3);
+        border-block-end: 1px solid var(--color-border);
+        vertical-align: middle;
+    }
+
+    .order-history__row:hover {
+        background: var(--color-surface-alt);
+    }
+
+    .order-history__number,
+    .order-history__status {
+        order: 0;
+    }
+}

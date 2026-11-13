@@ -1,0 +1,92 @@
+@page "/hesap/adresler"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Modules.Membership.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@model Shopfolio.Pages.Account.AddressesModel
+@inject SearchEngineData Search
+@*
+    The address book (E-26; T518; 04 5.26; 07 UC-70 to UC-73), the storefront frame around it. Order of the content (04 5.26.3): the inner navigation, the add button, the entries - each with its name, the recipient,
+    the district and province, the open address, the telephone when there is one, and its edit link and delete button. A form (04 5.26.4: OB-13's book variant) opens inside the screen, in the place of the add button
+    (the add form from <c>create=true</c>, the edit form from <c>addressBookId</c>), and carries the sentence about the orders under it (04 5.26.5). The empty book says there is no saved address and its way out is the add
+    button (04 5.26.9). A delete needs no confirmation (04 5.26.6). The buttons do not stand twice: every form is <c>submit-once</c> (04 2.7.2).
+*@
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = AddressBookTexts.ScreenName;
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, Model.Form?.FieldOrder ?? []);
+    AddressFormView? form = Model.Form?.Bind(summary);
+    bool editing = Model.EditingId is not null;
+    string path = FramePaths.AccountAddresses;
+    string addPath = path + "?create=true";
+}
+@section Head {
+    @Search.Head(ViewContext.HttpContext, RecordPages.ClosedScreen(AddressBookTexts.ScreenName, ViewContext.HttpContext.GetStorefrontFrame()?.Brand.BrandName, path))
+}
+<h1>@AddressBookTexts.ScreenName</h1>
+<div class="account-layout">
+    <partial name="_AccountNav" model="path" />
+    <div class="account-layout__content">
+        @if (Model.Notice is { } notice)
+        {
+            <partial name="_Message" model="notice" />
+        }
+        @if (form is not null)
+        {
+            <section class="address-book-form" id="address-form-section" aria-labelledby="address-form-heading">
+                <h2 id="address-form-heading">@(editing ? AddressBookTexts.EditHeading : AddressBookTexts.NewHeading)</h2>
+                <partial name="_FormErrorSummary" model="summary" />
+                <form method="post" asp-antiforgery="true" action="@path?handler=@(editing ? "UpdateAddressBook" : "CreateAddressBook")" id="address-form" class="form" data-js="submit-once">
+                    @if (editing)
+                    {
+                        <input type="hidden" name="Input.AddressBookId" value="@Model.EditingId" />
+                    }
+                    <partial name="_AddressForm" model="form" />
+                    <div class="form-actions">
+                        <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(AddressBookTexts.SaveButton)">@AddressBookTexts.SaveButton</button>
+                        <a id="address-cancel" class="button button--secondary" href="@path">@AddressBookTexts.CancelLink</a>
+                    </div>
+                </form>
+                <p id="address-orders-frozen">@AddressBookTexts.OrdersAreFrozen</p>
+            </section>
+        }
+        else if (Model.Entries.Count > 0)
+        {
+            <p><a id="address-add" class="button button--primary" href="@addPath">@AddressBookTexts.AddButton</a></p>
+        }
+        @if (Model.Entries.Count == 0)
+        {
+            @if (form is null)
+            {
+                <partial name="_EmptyRow" model="EmptyStates.WithFirstRecordButton(AddressBookTexts.EmptySentence, AddressBookTexts.AddButton, addPath)" />
+            }
+        }
+        else
+        {
+            <ul class="address-cards" id="address-list">
+                @foreach (AddressBookEntry entry in Model.Entries)
+                {
+                    <li class="address-card" id="address-@entry.Id.ToString("D")">
+                        <h2 class="address-card__name">@entry.Name</h2>
+                        <p class="address-card__recipient">@entry.RecipientName</p>
+                        <p class="address-card__place">@AddressBookTexts.PlaceLine(entry.District, entry.ProvinceName)</p>
+                        <p class="address-card__line">@entry.AddressLine</p>
+                        @if (!string.IsNullOrEmpty(entry.Phone))
+                        {
+                            <p class="address-card__phone">@DisplayFormat.Phone(entry.Phone)</p>
+                        }
+                        <div class="address-card__actions">
+                            <a class="button button--secondary" href="@path?addressBookId=@entry.Id.ToString("D")" aria-label="@AddressBookTexts.EditLabel(entry.Name)">@AddressBookTexts.EditLink</a>
+                            <form method="post" asp-antiforgery="true" action="@path?handler=DeleteAddressBook" data-js="submit-once">
+                                <input type="hidden" name="Input.AddressBookId" value="@entry.Id.ToString("D")" />
+                                <button type="submit" class="button button--secondary" aria-label="@AddressBookTexts.DeleteLabel(entry.Name)" data-busy-label="@LoadingViews.BusyLabelOf(AddressBookTexts.DeleteButton)">@AddressBookTexts.DeleteButton</button>
+                            </form>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</div>

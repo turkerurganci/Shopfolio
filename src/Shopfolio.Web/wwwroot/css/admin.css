@@ -835,3 +835,88 @@
 form[data-js="download-once"][aria-busy="true"] button[type="submit"] {
     animation: export-busy 10s linear;
 }
+
+/* E-35, the coupons screen (T526; 04 9.7.11): on the wide class the form opens beside the list; on the medium and narrow classes it takes the list's place and carries the way back. */
+.coupons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+.coupons--form-open .coupons__list {
+    display: none;
+}
+
+.coupons__rights {
+    margin: 0;
+    font-weight: 600;
+}
+
+@media (min-width: 1024px) {
+    .coupons--form-open {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .coupons--form-open .coupons__list {
+        display: block;
+        flex: 3 1 0;
+    }
+
+    .coupons__form {
+        flex: 2 1 0;
+    }
+
+    .coupons__back {
+        display: none;
+    }
+}
+
+/* E-34, the category tree (T526; 04 9.6.3, 9.6.11): the levels are indented; the node's operations sit in its own menu; a long name breaks its line. */
+.category-new {
+    margin: var(--space-4) 0;
+}
+
+.category-tree {
+    margin: var(--space-4) 0;
+    padding: 0;
+    list-style: none;
+}
+
+.category-tree__node {
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--color-border);
+    overflow-wrap: anywhere;
+}
+
+.category-tree__node--level-2 {
+    padding-left: var(--space-5);
+}
+
+.category-tree__node--level-3 {
+    padding-left: var(--space-7);
+}
+
+.category-tree__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    align-items: baseline;
+}
+
+.category-tree__name {
+    font-weight: 600;
+}
+
+.category-tree__counts,
+.category-tree__menu-hidden {
+    color: var(--color-text-muted);
+}
+
+.category-tree__actions {
+    margin-top: var(--space-2);
+}
+
+.category-tree__form {
+    margin: var(--space-3) 0;
+}

@@ -27,23 +27,39 @@ public sealed record CouponProblem(string Field, ErrorCode Code);
 /// </summary>
 public sealed class CouponWriteResult : IOperationResult
 {
-    private CouponWriteResult(Guid? couponId, IReadOnlyList<CouponProblem> problems)
+    private CouponWriteResult(Guid? couponId, IReadOnlyList<CouponProblem> problems, bool isNotFound = false, bool isVersionConflict = false, int usedAndReserved = 0)
     {
         CouponId = couponId;
         Problems = problems;
+        IsNotFound = isNotFound;
+        IsVersionConflict = isVersionConflict;
+        UsedAndReserved = usedAndReserved;
     }
 
     /// <summary>The coupon written; empty on a refusal.</summary>
     public Guid? CouponId { get; }
 
-    /// <summary>The fields that block the save; empty when the coupon was written.</summary>
+    /// <summary>The fields that block the save; empty when the coupon was written, and on a missing coupon or a version conflict.</summary>
     public IReadOnlyList<CouponProblem> Problems { get; }
 
-    public bool IsRejected => Problems.Count > 0;
+    /// <summary>The coupon to change does not exist (07 UC-122: 404).</summary>
+    public bool IsNotFound { get; }
+
+    /// <summary>The coupon's version is no longer the one the form carried (07 UC-122: 409, decided before the field rules - 07 2.4.8).</summary>
+    public bool IsVersionConflict { get; }
+
+    /// <summary>The used and reserved rights the usage count was measured against (02 3.10.6; K-654) - K-799's message names them; zero for a new coupon.</summary>
+    public int UsedAndReserved { get; }
+
+    public bool IsRejected => Problems.Count > 0 || IsNotFound || IsVersionConflict;
+
+    public static CouponWriteResult NotFound { get; } = new(null, [], isNotFound: true);
+
+    public static CouponWriteResult VersionConflict(Guid couponId) => new(couponId, [], isVersionConflict: true);
 
     public static CouponWriteResult Written(Guid couponId) => new(couponId, []);
 
-    public static CouponWriteResult Refused(IReadOnlyList<CouponProblem> problems)
+    public static CouponWriteResult Refused(IReadOnlyList<CouponProblem> problems, int usedAndReserved = 0)
     {
         ArgumentNullException.ThrowIfNull(problems);
         if (problems.Count == 0)
@@ -51,7 +67,7 @@ public sealed class CouponWriteResult : IOperationResult
             throw new ArgumentException("A refusal names at least one problem.", nameof(problems));
         }
 
-        return new CouponWriteResult(null, problems);
+        return new CouponWriteResult(null, problems, usedAndReserved: usedAndReserved);
     }
 }
 

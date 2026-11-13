@@ -30,10 +30,14 @@ internal sealed class Discounts
     public async Task<DiscountSaveResult> SaveAsync(Guid productId, decimal percentage, DateOnly startDate, DateOnly endDate, CancellationToken ct)
     {
         RequireTransaction();
-        var product = await _db.Products.AsNoTracking()
-            .Where(p => p.Id == productId)
-            .Select(p => new { p.ProductType, p.WithdrawalExemptionReason })
-            .SingleOrDefaultAsync(ct);
+
+        // The product form's save (UC-114) gives the discount to a product it writes in the same unit of work - a new product is not in the table yet, and a changed type is not
+        // stored yet: the product as this unit of work leaves it is the one whose rule applies.
+        var product = _db.Products.Local.Where(p => p.Id == productId).Select(p => new { p.ProductType, p.WithdrawalExemptionReason }).SingleOrDefault()
+            ?? await _db.Products.AsNoTracking()
+                .Where(p => p.Id == productId)
+                .Select(p => new { p.ProductType, p.WithdrawalExemptionReason })
+                .SingleOrDefaultAsync(ct);
         if (product is null)
         {
             return DiscountSaveResult.ProductNotFound;

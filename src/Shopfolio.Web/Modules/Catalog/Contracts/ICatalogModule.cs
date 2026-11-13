@@ -234,6 +234,13 @@ public interface ICatalogModule
     Task<VariantPriceResult> ChangeVariantPriceAsync(Guid variantId, decimal price, CancellationToken ct);
 
     /// <summary>
+    /// Saves the product form (07 UC-114): the product, its options and values, variants, categories, gallery, variant images, digital files and discount in the caller's one transaction
+    /// (it joins it and never opens one; outside one it throws). A new product and variant are born Draft; the stock is written against the shown value (K-980); the price history gets
+    /// each changed price. The refusals come in the order 404, the fields' 422, the 409 of the version and of the shown stock, the 422 below the reserved quantity (K-800).
+    /// </summary>
+    Task<ProductSaveResult> SaveProductAsync(ProductSaveCommand command, CancellationToken ct);
+
+    /// <summary>
     /// The amounts of one item in the fixed order of 02 3.8.3: the unit price - the discounted one, already rounded, in a discount - times the quantity, the
     /// coupon share taken off, the VAT separated from the rest at the item's rate and rounded to the kuruş in the item, the net amount the rest. A pure calculation.
     /// </summary>

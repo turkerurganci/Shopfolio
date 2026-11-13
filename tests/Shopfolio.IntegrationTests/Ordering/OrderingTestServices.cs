@@ -70,6 +70,7 @@ internal static class OrderingTestServices
         services.AddScoped<Shopfolio.Modules.Administration.IAuditActorSource, NoAuditActor>();
         services.AddScoped<Shopfolio.Modules.Administration.Contracts.IAuditTrail, Shopfolio.Modules.Administration.AuditTrail>();
         services.AddSettingsModule();
+        OpenSalesGate.Register(services);
 
         // The Notifications module's open face and the writers it needs; the firm's contact e-mail is a fixed address, not the Settings module's.
         services.AddScoped<INotificationsModule, NotificationsModule>();

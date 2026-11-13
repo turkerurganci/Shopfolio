@@ -38,12 +38,19 @@ internal sealed class OrderPlacementLimits
             return AttemptLimit.L7;
         }
 
-        if (method == PaymentMethod.BankTransfer
-            && (await _open.IsFullByIpAsync(address, ct) || (memberId is { } member && await _open.IsFullByMemberAsync(member, ct))))
+        if (method == PaymentMethod.BankTransfer && await ClosesBankTransferAsync(address, memberId, null, ct))
         {
             return AttemptLimit.L8;
         }
 
         return null;
     }
+
+    /// <summary>
+    /// L-8's verdict on the bank transfer (02 8.2.3): true when either axis is full - the IP axis, and for a signed-in member the account's. The payment step's read asks it with the
+    /// cart's id <paramref name="exceptCartId"/>, whose placed unpaid orders the confirmation cancels before it asks (K-837), so the list shows the transfer unselectable exactly
+    /// when the confirmation would refuse it (07 4.13.1; 04 5.13.8); the confirmation asks it without, after that cancellation.
+    /// </summary>
+    public async Task<bool> ClosesBankTransferAsync(IPAddress? address, Guid? memberId, Guid? exceptCartId, CancellationToken ct) =>
+        await _open.IsFullByIpAsync(address, exceptCartId, ct) || (memberId is { } member && await _open.IsFullByMemberAsync(member, exceptCartId, ct));
 }

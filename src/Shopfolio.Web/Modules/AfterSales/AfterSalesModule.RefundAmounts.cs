@@ -101,6 +101,38 @@ internal sealed partial class AfterSalesModule
         }
     }
 
+    public async Task<IReadOnlyDictionary<Guid, int>?> WithdrawalFeeUnitsAsync(IReadOnlyCollection<ShippedItem> physicalItems, DateTimeOffset handedToCarrierAt, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(physicalItems);
+        Dictionary<Guid, int> units = physicalItems.GroupBy(i => i.OrderItemId).ToDictionary(g => g.Key, g => g.First().Quantity);
+        Guid[] ids = [.. units.Keys];
+        if (ids.Length == 0)
+        {
+            return null;
+        }
+
+        // A unit rejected or closed as not come back stayed with the customer: no withdrawal brings the fee back any more (02 7.4.6; K-1076).
+        int kept = (await LocalAsync(_db.ReturnRejections, r => ids.Contains(r.OrderItemId), ct)).Sum(r => r.Quantity)
+            + (await LocalAsync(_db.NotReturnedClosures, n => ids.Contains(n.OrderItemId), ct)).Where(n => n.ReopenedAt == null).Sum(n => n.Quantity);
+        if (kept > 0)
+        {
+            return null;
+        }
+
+        // The units the carrier took (IsWithdrawalTriggerAsync's count), less the ones every earlier declaration withdrew - the receipt after the delivery follows its declaration.
+        List<(Guid ItemId, int Quantity)> moved =
+        [
+            .. (await StandingCancellationsAsync(ids, ct)).Where(c => c.CreatedAt < handedToCarrierAt).Select(c => (c.OrderItemId, c.Quantity)),
+            .. (await LocalAsync(_db.ItemRemovals, r => ids.Contains(r.OrderItemId), ct)).Where(r => r.CreatedAt < handedToCarrierAt).Select(r => (r.OrderItemId, r.Quantity)),
+            .. (await LocalAsync(_db.Withdrawals, w => ids.Contains(w.OrderItemId), ct)).Select(w => (w.OrderItemId, w.Quantity)),
+        ];
+        Dictionary<Guid, int> undeclared = units
+            .Select(u => (u.Key, Units: u.Value - moved.Where(m => m.ItemId == u.Key).Sum(m => m.Quantity)))
+            .Where(u => u.Units > 0)
+            .ToDictionary(u => u.Key, u => u.Units);
+        return undeclared.Count == 0 ? null : undeclared;
+    }
+
     /// <summary>
     /// 02 7.4.6: the units the carrier took - each physical item's units less those cancelled or removed before it - all back with the firm, a declaration before the
     /// delivery counting at its moment and a receipt after it at its own; no unit rejected or closed as not come back.

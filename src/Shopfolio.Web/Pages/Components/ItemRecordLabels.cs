@@ -15,8 +15,11 @@ public enum ItemRecordName
     DeliveryMark,
 }
 
-/// <summary>One record on an item's row: its name, the units it covers when it covers units, and the moment it was born (04 2.5.2; 03 1.7.1).</summary>
-public sealed record ItemRecordEntry(ItemRecordName Name, int? Quantity, DateTimeOffset? At)
+/// <summary>
+/// One record on an item's row: its name, the units it covers when it covers units, and the moment it was born (04 2.5.2; 03 1.7.1); a withdrawal of a physical item its return
+/// address as written into it, a defect claim its claim's badge (04 5.16.5). The item itself still has no badge.
+/// </summary>
+public sealed record ItemRecordEntry(ItemRecordName Name, int? Quantity, DateTimeOffset? At, string? Detail = null, Badge? Badge = null)
 {
     /// <summary>The moment as the row writes it, or null when the record carries no moment (the view only prints it; it derives nothing from the date).</summary>
     public string? MomentText => At is DateTimeOffset moment ? Infrastructure.DisplayFormat.Date(moment) : null;

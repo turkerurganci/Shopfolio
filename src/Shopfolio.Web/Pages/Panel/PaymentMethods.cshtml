@@ -26,7 +26,7 @@
     @VersionFields.SectionVersion("PaymentMethodsVersion", Model.FormVersion, "Input")
     <section class="form-section" id="kart" aria-labelledby="card-heading">
         <h2 id="card-heading">Kart</h2>
-        <p class="payment-methods__card" id="card-line">@(Model.IsCardOpen ? PaymentMethodsModel.CardOpenText : PaymentMethodsModel.CardNotDefinedText)</p>
+        <p class="payment-methods__card" id="card-line">@(Model.IsCardOpen ? PaymentMethodsModel.CardOpenText : PaymentMethodsModel.CardUndefinedText)</p>
     </section>
     <section class="form-section" id="havale" aria-labelledby="transfer-heading">
         <h2 id="transfer-heading">Havale/EFT</h2>

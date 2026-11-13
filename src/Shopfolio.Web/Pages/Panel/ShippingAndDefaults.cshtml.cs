@@ -45,6 +45,7 @@ public sealed class SaveShippingFeeInput : IFormInput
 public sealed class SaveDeliveryProvincesInput : IFormInput
 {
     [Display(Name = "Teslimat illeri")]
+    [SpecAssignedName]
     public List<string> ProvinceIds { get; set; } = [];
 
     public int DeliveryProvincesVersion { get; set; }
@@ -100,6 +101,7 @@ public sealed class SaveReturnAddressInput : IFormInput
     public int ReturnAddressVersion { get; set; }
 
     /// <summary>True when the confirmation window's button sent the form (07 2.2.4; K-1194 (2)).</summary>
+    [SpecAssignedName]
     public bool Confirmed { get; set; }
 }
 
@@ -250,34 +252,34 @@ public sealed class ShippingAndDefaultsModel : PageModel
     public IActionResult OnGet() => Page();
 
     /// <summary>UC-168: the fee and the two amounts; 422 by field, 409 on the section's version.</summary>
-    public Task<IActionResult> OnPostSaveShippingFeeAsync(SaveShippingFeeInput input, CancellationToken ct)
+    public async Task<IActionResult> OnPostSaveShippingFeeAsync(SaveShippingFeeInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
-        return SaveAsync(input, ShippingFeeSection, token => _settings.SaveShippingFeeAsync(new ShippingFeeInput(input.ShippingFee, input.FreeShippingThreshold, input.MinimumOrderAmount), input.ShippingFeeVersion, token), ct);
+        return await AnswerAsync(input, ShippingFeeSection, await Runner.RunAsync(token => _settings.SaveShippingFeeAsync(new ShippingFeeInput(input.ShippingFee, input.FreeShippingThreshold, input.MinimumOrderAmount), input.ShippingFeeVersion, token), ct), ct);
     }
 
     /// <summary>UC-169: the selected provinces in one transaction; a province off the closed list is 422; no selection at all is saved (K-817).</summary>
-    public Task<IActionResult> OnPostSaveDeliveryProvincesAsync(SaveDeliveryProvincesInput input, CancellationToken ct)
+    public async Task<IActionResult> OnPostSaveDeliveryProvincesAsync(SaveDeliveryProvincesInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
 
         // A value that is no id cannot be on the list of 81: it is the same refusal as an unknown id (07 UC-169 422).
         List<Guid> ids = [.. input.ProvinceIds.Select(v => Guid.TryParse(v, out Guid id) ? id : Guid.Empty)];
-        return SaveAsync(input, ProvincesSection, token => _settings.SaveDeliveryProvincesAsync(ids, input.DeliveryProvincesVersion, token), ct);
+        return await AnswerAsync(input, ProvincesSection, await Runner.RunAsync(token => _settings.SaveDeliveryProvincesAsync(ids, input.DeliveryProvincesVersion, token), ct), ct);
     }
 
     /// <summary>UC-170: the two periods; a value over P-5's upper fence or outside P-7's fences is 422 with K-817's text.</summary>
-    public Task<IActionResult> OnPostSavePeriodsAsync(SavePeriodsInput input, CancellationToken ct)
+    public async Task<IActionResult> OnPostSavePeriodsAsync(SavePeriodsInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
-        return SaveAsync(input, PeriodsSection, token => _settings.SavePeriodsAsync(new PeriodsInput(input.DefaultShippingPeriod, input.BankTransferPaymentWindow), input.PeriodsVersion, token), ct);
+        return await AnswerAsync(input, PeriodsSection, await Runner.RunAsync(token => _settings.SavePeriodsAsync(new PeriodsInput(input.DefaultShippingPeriod, input.BankTransferPaymentWindow), input.PeriodsVersion, token), ct), ct);
     }
 
     /// <summary>UC-171: the allowance and the VAT default; a value outside the fence is 422. The rate of an existing product does not change.</summary>
-    public Task<IActionResult> OnPostSaveProductDefaultsAsync(SaveProductDefaultsInput input, CancellationToken ct)
+    public async Task<IActionResult> OnPostSaveProductDefaultsAsync(SaveProductDefaultsInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
-        return SaveAsync(input, DefaultsSection, token => _settings.SaveProductDefaultsAsync(new ProductDefaultsInput(input.DownloadAllowance, input.DefaultVatRate), input.ProductDefaultsVersion, token), ct);
+        return await AnswerAsync(input, DefaultsSection, await Runner.RunAsync(token => _settings.SaveProductDefaultsAsync(new ProductDefaultsInput(input.DownloadAllowance, input.DefaultVatRate), input.ProductDefaultsVersion, token), ct), ct);
     }
 
     /// <summary>
@@ -318,7 +320,7 @@ public sealed class ShippingAndDefaultsModel : PageModel
             input.ReturnDistrict,
             input.ReturnAddressLine,
             input.ReturnPhone);
-        return await SaveAsync(input, ReturnAddressSection, token => _settings.SaveReturnAddressAsync(values, input.ReturnAddressVersion, token), ct);
+        return await AnswerAsync(input, ReturnAddressSection, await Runner.RunAsync(token => _settings.SaveReturnAddressAsync(values, input.ReturnAddressVersion, token), ct), ct);
     }
 
     /// <summary>K-814: the return address change's sentence with the number of the items marked "iade malı bekleniyor".</summary>
@@ -352,10 +354,12 @@ public sealed class ShippingAndDefaultsModel : PageModel
             || !string.Equals(phone ?? Trimmed(input.ReturnPhone), stored.Phone ?? string.Empty, StringComparison.Ordinal);
     }
 
-    private async Task<IActionResult> SaveAsync(object input, string section, Func<CancellationToken, Task<SettingsSaveResult>> save, CancellationToken ct)
+    // Each handler hands the runner its work as a lambda written at the call, so the transaction body scan reads it (D-82).
+    private ITransactionRunner Runner => HttpContext.RequestServices.GetRequiredService<ITransactionRunner>();
+
+    /// <summary>The section's answer after its save: 303 with the notice, or the screen again with the section's 422 or 409.</summary>
+    private async Task<IActionResult> AnswerAsync(object input, string section, SettingsSaveResult result, CancellationToken ct)
     {
-        ITransactionRunner runner = HttpContext.RequestServices.GetRequiredService<ITransactionRunner>();
-        SettingsSaveResult result = await runner.RunAsync(save, ct);
         if (result.IsSaved)
         {
             return FormResults.SeeOther(PanelFramePaths.ShippingAndDefaults, NoticeCode.Saved);

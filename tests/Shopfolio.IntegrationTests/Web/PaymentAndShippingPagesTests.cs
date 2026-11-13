@@ -127,7 +127,7 @@ public sealed partial class PaymentAndShippingPagesTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.OK, status);
         bool cardOpen = await CardOpenAsync(factory);
-        Assert.Contains(cardOpen ? PaymentMethodsModel.CardOpenText : PaymentMethodsModel.CardNotDefinedText, html, StringComparison.Ordinal);
+        Assert.Contains(cardOpen ? PaymentMethodsModel.CardOpenText : PaymentMethodsModel.CardUndefinedText, html, StringComparison.Ordinal);
         Assert.Equal("TR33 0006 1005 1978 6457 8413 26", FieldValue(html, "Input.BankTransferIban"));
         Assert.Equal("1", FieldValue(html, "Input.PaymentMethodsVersion"));
         Assert.Matches(new Regex("id=\"transfer-switch\"[^>]*checked", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), html);

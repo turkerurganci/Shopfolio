@@ -36,6 +36,7 @@ public sealed class SavePaymentMethodsInput : IFormInput
     public int PaymentMethodsVersion { get; set; }
 
     /// <summary>True when the confirmation window's button sent the form (07 2.2.4; K-1194 (2)).</summary>
+    [SpecAssignedName]
     public bool Confirmed { get; set; }
 }
 
@@ -49,7 +50,7 @@ public sealed class PaymentMethodsModel : PageModel
 {
     public const string CardOpenText = "Kart ile ödeme açık: sağlayıcı anahtarları kurulumda tanımlı. Kart panelden açılıp kapatılmaz.";
 
-    public const string CardNotDefinedText = "Kart ile ödeme kurulumda tanımlı değil; ödeme adımında görünmez.";
+    public const string CardUndefinedText = "Kart ile ödeme kurulumda tanımlı değil; ödeme adımında görünmez.";
 
     public const string OnlyTransferText = "Satış yalnız havaleyle açık.";
 

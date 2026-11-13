@@ -1164,3 +1164,29 @@
         align-items: start;
     }
 }
+
+/* E-14 — the order confirmation and waiting screen and the payment page (T510; 04 5.14.6, 5.14.11; 08 2.1.4 item 2; K-1558) */
+.order-confirmation {
+    display: grid;
+    gap: var(--space-4);
+}
+
+/* The IBAN stays on one line at every width and can be selected and copied as one block (04 5.14.11). */
+.order-confirmation__iban {
+    white-space: nowrap;
+    overflow-x: auto;
+}
+
+/* The frame is the screen's height on the narrow class and a fixed height on the wide one; what does not fit scrolls inside the frame (K-1558). */
+.payment-page__frame {
+    display: block;
+    width: 100%;
+    height: 100vh;
+    border: 0;
+}
+
+@media (min-width: 1024px) {
+    .payment-page__frame {
+        height: 45rem;
+    }
+}

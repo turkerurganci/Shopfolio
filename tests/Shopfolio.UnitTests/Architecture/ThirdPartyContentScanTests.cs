@@ -64,9 +64,13 @@ public sealed class ThirdPartyContentScanTests
     }
 
     [Fact]
-    public void PaymentFramePages_IsClosedAndEmptyUntilThePaymentPageTaskAddsItsPage()
+    public void PaymentFramePages_IsClosedToThePaymentPagesFrameView_AndThatViewHoldsTheOneFrame_T510_KK4()
     {
-        Assert.Empty(ThirdPartyContentScan.PaymentFramePages);
+        Assert.Equal(["src/Shopfolio.Web/Pages/Orders/_PaymentFrame.cshtml"], ThirdPartyContentScan.PaymentFramePages);
+        string view = File.ReadAllText(Path.Combine(RepositoryRoot.Find(), "src/Shopfolio.Web/Pages/Orders/_PaymentFrame.cshtml"));
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(view, "<iframe\\b"));
+        Assert.Contains("src=\"@Model.PaymentFrameAddress\"", view, StringComparison.Ordinal);
+        Assert.DoesNotContain("sandbox", view.Split("*@")[^1], StringComparison.Ordinal);
     }
 
     [Fact]
@@ -131,6 +135,9 @@ public sealed class ThirdPartyContentScanTests
     [Theory]
     [InlineData("<iframe src=\"https://www.paytr.com/odeme/guvenli/tok\"></iframe>", false)]
     [InlineData("<iframe src=\"/odeme/gecis\"></iframe>", false)]
+    [InlineData("<iframe class=\"payment-page__frame\" src=\"@Model.PaymentFrameAddress\" title=\"x\"></iframe>", false)]
+    [InlineData("<iframe src=\"@Model.OtherAddress\"></iframe>", true)]
+    [InlineData("<iframe src=\"@Model.PaymentFrameAddressOfAnotherKind\"></iframe>", true)]
     [InlineData("<iframe title=\"x\" src='https://www.paytr.com/x'></iframe>", false)]
     [InlineData("<iframe src=\"https://www.paytr.com.example.net/odeme\"></iframe>", true)]
     [InlineData("<iframe src=\"https://www.paytr.com@example.net/odeme\"></iframe>", true)]

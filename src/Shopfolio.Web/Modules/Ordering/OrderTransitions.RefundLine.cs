@@ -200,20 +200,13 @@ internal sealed partial class OrderTransitions
     /// <summary>The shipping fee rule's question for the record (02 7.2.9, 7.4.6): the order's physical items and the moment the carrier first took the order.</summary>
     private async Task<bool> IsShippingFeeIncludedAsync(Order order, RefundSubject subject, CancellationToken ct)
     {
-        List<ShippedItem> physical = await _db.OrderItems
-            .Where(i => i.OrderId == order.Id && i.ProductType == ProductType.Physical)
-            .Select(i => new ShippedItem(i.Id, i.Quantity, i.DeliveryDate))
-            .ToListAsync(ct);
+        List<ShippedItem> physical = await OrderPeriods.ShippedItemsAsync(_db, order.Id, ct);
         if (physical.Count == 0)
         {
             return false;
         }
 
-        DateTimeOffset? handed = await OrderPeriods.Shipments(_db)
-            .Where(t => t.OrderId == order.Id && t.TransitionCode == TransitionCode.S5)
-            .OrderBy(t => t.CreatedAt)
-            .Select(t => (DateTimeOffset?)t.CreatedAt)
-            .FirstOrDefaultAsync(ct);
+        DateTimeOffset? handed = await OrderPeriods.HandedToCarrierAtAsync(_db, order.Id, ct);
         return await _afterSales.IsShippingFeeIncludedAsync(new ShippingFeeQuery(physical, handed, subject), ct);
     }
 

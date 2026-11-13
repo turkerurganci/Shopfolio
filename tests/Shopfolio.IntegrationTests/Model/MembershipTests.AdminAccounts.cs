@@ -427,8 +427,9 @@ public sealed partial class MembershipTests
         Assert.Equal("iletisim@firma.example", await ScalarAsync<string>("SELECT email FROM companies"));
         Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM customers WHERE normalized_email = 'yeni@example.com'"));
         Assert.Contains(await DispatchesAsync(DispatchType.EmailChangeNotice), d => d.RecipientEmail == "ilk@example.com");
-        Assert.Equal(1L, await ScalarAsync<long>($"SELECT count(*) FROM audit_logs WHERE operation = 'ChangeAdminEmail' AND admin_id = '{me.Id}'"));
-        string details = await ScalarAsync<string>("SELECT details::text FROM audit_logs WHERE operation = 'ChangeAdminEmail'");
+        // The request and the verification each write a row (07 9.21.3).
+        Assert.Equal(2L, await ScalarAsync<long>($"SELECT count(*) FROM audit_logs WHERE operation = 'ChangeAdminEmail' AND admin_id = '{me.Id}'"));
+        string details = await ScalarAsync<string>("SELECT details::text FROM audit_logs WHERE operation = 'ChangeAdminEmail' ORDER BY created_at DESC LIMIT 1");
         Assert.Contains("ilk@example.com", details);
         Assert.Contains("Yeni@Example.com", details);
 

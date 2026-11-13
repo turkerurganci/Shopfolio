@@ -73,10 +73,11 @@ Backlog (hedefi T517): kapandı D-428, D-429, D-555; payı kapandı D-254, D-606
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-14), head `65932f9f` |
+| Bulgu sayısı | 1 (S1, ORTA, güvenlik): e-posta değiştirmede "adres doğrulanmış başka bir hesabın" sorgusu yeniden doğrulamadan önce yanıtlanıyor — değersiz `ChangeEmail` gönderimi dolu adreste 422 ve K-786 mesajını alıyor (`02 §3.13.11`: "sorgu oturumun ve yeniden doğrulamanın arkasındadır"; KK2: değer yoksa 303). Aynı sıralama kökü: değersiz gönderimde biçim hatası ve zayıf şifre 422, onaysız silme 200 |
+| Düzeltme gerekli mi | Evet — `EmailChanges.RequestAsync` (ya da sayfa) değerin tutup tutmadığını yalnız okuyarak (`HoldsReauthenticationAsync`) ret denetimlerinden önce sormalı, tüketim en sonda kalmalı; değersiz/tutmayan değerli gönderimin dolu adreste 303 verdiği test. Öteki üç işleyicide de değersiz gönderim 303 olmalı |
+| Bloke-etmeyen not (K) sayısı | 4 — K1 KK6 testindeki etkisiz `DoesNotContain` (düzeltme turunda); K2 KK10 test adı "MarksTheOrder" sipariş tohumlamıyor, KK4 kanıtı rapordaki P testinde değil `Model.MembershipTests.TheName_ChangesWithoutANewVerification_AndLeavesTheOrdersRecipientNameAlone`'da (düzeltme turunda); K3 → D-1473 (yönetici tarafı aynı sıralama); K4 → D-1474 (UC-67 422'de L-9 satırı, `VAL-A441` BEKLEMEDE) |
+| `12` | `VAL-A098`, `A099`, `A103`, `A503`, `A505`, `C030` → PASS; `A441`, `A504`, `A672` (tarayıcı gözlemi yok), `D022` ve öteki paylı satırlar BEKLEMEDE |
 
 ## Altyapı Değişiklikleri
 

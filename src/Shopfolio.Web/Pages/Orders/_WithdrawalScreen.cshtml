@@ -1,0 +1,122 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Modules.Catalog.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Orders
+@model WithdrawalPageModel
+@*
+    E-18 (04 5.18; 07 UC-42, UC-43): the operation's name, the items the withdrawal is open for with their open units (the default and the upper limit are the server's; K-1170 (2)), the conditional
+    exemption's line (K-509), the return information when a physical item is listed (K-665, K-838), the refund's way and the moment its period starts, the IBAN field on the transfer line, and the
+    last step. The last step of the script-free path is the server's answer to the first POST (07 2.2.4). No reason field, no label, no upload (04 5.18.8).
+*@
+@{
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState);
+}
+<article class="operation-screen" aria-labelledby="operation-screen-title">
+    <h1 id="operation-screen-title">@OrderScreenTexts.WithdrawalName</h1>
+    @if (Model.Confirm is ConfirmView confirm)
+    {
+        <ul class="operation-screen__chosen" id="withdrawal-chosen">
+            @foreach ((string name, int quantity) in Model.ChosenItems)
+            {
+                <li>@name — @DisplayFormat.Number(quantity) adet</li>
+            }
+        </ul>
+        @if (Model.RefundsShippingFee)
+        {
+            <p class="operation-screen__fee" id="withdrawal-fee">@OrderScreenTexts.ShippingFeeRefundedText</p>
+        }
+        <partial name="_Confirm" model="confirm" />
+    }
+    else
+    {
+        <partial name="_FormErrorSummary" model="summary" />
+        <form method="post" asp-antiforgery="true" action="@(Model.ScreenPath)?handler=@WithdrawalPageModel.Handler" class="operation-screen__form" data-js="submit-once">
+            <fieldset class="operation-screen__items" id="Items">
+                <legend>@OrderScreenTexts.WithdrawalItemsLabel</legend>
+                @for (int index = 0; index < Model.Rows.Count; index++)
+                {
+                    WithdrawalRowView row = Model.Rows[index];
+                    string prefix = $"Items[{index}]";
+                    string quantityName = prefix + ".Quantity";
+                    bool chosen = Model.SentValue(prefix + ".OrderItemId") == row.OrderItemId.ToString();
+                    string quantityValue = Model.SentValue(quantityName) ?? DisplayFormat.Number(row.OpenQuantity);
+                    <div class="operation-screen__item" data-item="@row.OrderItemId">
+                        <label class="operation-screen__choice">
+                            <input type="checkbox" name="@(prefix).OrderItemId" value="@row.OrderItemId" checked="@chosen" />
+                            <span>@row.Name</span>
+                        </label>
+                        <input type="hidden" name="@(prefix).OriginalOpenQuantity" value="@row.OpenQuantity" />
+                        @if (row.HasQuantityField)
+                        {
+                            FieldView quantity = Fields.Bind(Fields.Number(quantityName, "Adet", FieldRequirement.Required, quantityValue), summary);
+                            <partial name="_Field" model="quantity" />
+                        }
+                        else
+                        {
+                            <input type="hidden" name="@quantityName" value="@row.OpenQuantity" />
+                        }
+                        <span class="operation-screen__limit">@OrderScreenTexts.OpenUnits(row.Quantity, row.OpenQuantity)</span>
+                        @if (row.LastDay is DateOnly lastDay)
+                        {
+                            <span class="operation-screen__last-day">@OrderScreenTexts.WindowLastDay(lastDay)</span>
+                        }
+                        @if (row.PackagingCondition)
+                        {
+                            <span class="operation-screen__condition">@OrderScreenTexts.PackagingConditionText</span>
+                        }
+                    </div>
+                }
+            </fieldset>
+            @if (Model.HasPhysicalItem)
+            {
+                <section class="operation-screen__return" aria-labelledby="withdrawal-return-title" id="withdrawal-return">
+                    <h2 id="withdrawal-return-title">@OrderScreenTexts.ReturnAddressTitle</h2>
+                    @if (Model.CarrierReturns)
+                    {
+                        <p>@OrderScreenTexts.CarrierReturnsText</p>
+                    }
+                    @if (Model.ReturnAddress is ReturnAddressView address)
+                    {
+                        <address class="operation-screen__address">
+                            @address.RecipientName<br />
+                            @address.AddressLine<br />
+                            @address.District / @address.ProvinceName
+                            @if (address.Phone is string phone)
+                            {
+                                <br />@DisplayFormat.Phone(phone)
+                            }
+                        </address>
+                    }
+                    @if (Model.SendingPeriodText is string sending)
+                    {
+                        <p>@sending</p>
+                    }
+                    <p>@OrderScreenTexts.SendingWayText</p>
+                </section>
+            }
+            <section class="operation-screen__refund" id="withdrawal-refund">
+                @foreach (string refund in Model.RefundTexts)
+                {
+                    <p>@refund</p>
+                }
+                @if (Model.HasServiceItem)
+                {
+                    <p>@OrderScreenTexts.PartlyPerformedServiceText</p>
+                }
+                @if (Model.ShippingFeeCanReturn)
+                {
+                    <p class="operation-screen__fee">@OrderScreenTexts.ShippingFeeText</p>
+                }
+            </section>
+            @if (Model.IbanField is IbanFieldView iban)
+            {
+                <partial name="_IbanField" model="iban" />
+            }
+            <div class="operation-screen__buttons">
+                <a class="button button--secondary" href="@Model.RootPath">@OrderScreenTexts.CancelLabel</a>
+                <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(OrderScreenTexts.WithdrawalConfirmLabel)">@OrderScreenTexts.WithdrawalConfirmLabel</button>
+            </div>
+        </form>
+    }
+</article>

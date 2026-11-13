@@ -39,16 +39,29 @@ internal static class ShippingFeeRefunds
     /// items' open units as the units to cover and the selection as the moves of one moment. Units already closed are not in <paramref name="openPhysicalUnits"/>, so the
     /// moves before this moment did not meet the trigger - it is met now or not at all. An order with no open physical unit has no trigger.
     /// </summary>
-    public static bool OnCancellationPreview(IReadOnlyDictionary<Guid, int> openPhysicalUnits, IReadOnlyDictionary<Guid, int> selectedUnits)
+    public static bool OnCancellationPreview(IReadOnlyDictionary<Guid, int> openPhysicalUnits, IReadOnlyDictionary<Guid, int> selectedUnits) =>
+        IsMetAtOnce(openPhysicalUnits, selectedUnits);
+
+    /// <summary>
+    /// (4) read before the customer's last step (T513; 04 5.18.6; K-789, K-1076): whether withdrawing <paramref name="selectedUnits"/> now covers <paramref name="undeclaredUnits"/> -
+    /// the units the carrier took that no earlier declaration withdrew (<see cref="AfterSalesModule.WithdrawalFeeUnitsAsync"/>). The caller hands no units when a unit was
+    /// rejected or closed as not come back, or the fee is zero: then nothing triggers. The fee itself goes back with the refund that meets the trigger - the declaration's before
+    /// the delivery, the last receipt's after it.
+    /// </summary>
+    public static bool OnWithdrawalPreview(IReadOnlyDictionary<Guid, int> undeclaredUnits, IReadOnlyDictionary<Guid, int> selectedUnits) =>
+        IsMetAtOnce(undeclaredUnits, selectedUnits);
+
+    /// <summary>The selection, taken as the moves of one moment, meets the trigger over <paramref name="units"/>: every unit still to cover is in it.</summary>
+    private static bool IsMetAtOnce(IReadOnlyDictionary<Guid, int> units, IReadOnlyDictionary<Guid, int> selectedUnits)
     {
-        ArgumentNullException.ThrowIfNull(openPhysicalUnits);
+        ArgumentNullException.ThrowIfNull(units);
         ArgumentNullException.ThrowIfNull(selectedUnits);
         DateTimeOffset moment = DateTimeOffset.UnixEpoch;
         List<UnitMove> moves =
         [
-            .. selectedUnits.Where(s => s.Value > 0 && openPhysicalUnits.ContainsKey(s.Key)).Select(s => new UnitMove(s.Key, s.Key, moment, s.Value)),
+            .. selectedUnits.Where(s => s.Value > 0 && units.ContainsKey(s.Key)).Select(s => new UnitMove(s.Key, s.Key, moment, s.Value)),
         ];
-        return moves.Exists(m => OnCancellationBeforeShipment(openPhysicalUnits, moves, m));
+        return moves.Exists(m => IsTriggeredBy(units, moves, m));
     }
 
     private static bool IsFirstOfItsMoment(IReadOnlyCollection<UnitMove> moves, UnitMove subject)

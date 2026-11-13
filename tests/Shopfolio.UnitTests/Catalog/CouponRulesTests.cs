@@ -268,6 +268,46 @@ public sealed class CouponRulesTests
 
     // ---- The lines are items ----
 
+    // ---- T526: the panel's validity line and the usage floor (07 UC-90, UC-122; KK8, KK10) ----
+
+    [Fact]
+    public void TheValidityLine_ReadsTheDatesInTurkeyTime_TheStartDayFromMidnight_TheEndDayAsAWhole_T526_KK8()
+    {
+        // 1 November 00:00 in Turkey is 31 October 21:00 UTC; 1 December 00:00 is 30 November 21:00 UTC (02 4.1.4; Z-22).
+        DateTimeOffset beforeStart = new(2026, 10, 31, 20, 59, 59, TimeSpan.Zero);
+        DateTimeOffset startMidnight = new(2026, 10, 31, 21, 0, 0, TimeSpan.Zero);
+        DateTimeOffset lastMomentOfEnd = new DateTimeOffset(2026, 11, 30, 21, 0, 0, TimeSpan.Zero).AddTicks(-1);
+        DateTimeOffset afterEnd = new(2026, 11, 30, 21, 0, 0, TimeSpan.Zero);
+
+        Assert.Equal(CouponValidity.NotStarted, CouponRules.ValidityOf(Start, End, 5, 0, 0, beforeStart));
+        Assert.Equal(CouponValidity.Valid, CouponRules.ValidityOf(Start, End, 5, 0, 0, startMidnight));
+        Assert.Equal(CouponValidity.Valid, CouponRules.ValidityOf(Start, End, 5, 0, 0, lastMomentOfEnd));
+        Assert.Equal(CouponValidity.Expired, CouponRules.ValidityOf(Start, End, 5, 0, 0, afterEnd));
+    }
+
+    [Fact]
+    public void TheValidityLine_IsRightsUsedUp_WhenTheUsedAndReservedRightsFillTheTotal_AndTheDatesComeFirst_T526_KK8()
+    {
+        Assert.Equal(CouponValidity.RightsUsedUp, CouponRules.ValidityOf(Start, End, 3, 2, 1, Now));
+        Assert.Equal(CouponValidity.RightsUsedUp, CouponRules.ValidityOf(Start, End, 0, 0, 0, Now));
+        Assert.Equal(CouponValidity.Valid, CouponRules.ValidityOf(Start, End, 3, 1, 1, Now));
+        Assert.Equal(CouponValidity.Expired, CouponRules.ValidityOf(Start, End, 1, 1, 0, Now.AddDays(30)));
+        Assert.Equal(CouponValidity.NotStarted, CouponRules.ValidityOf(Start, End, 1, 0, 1, Now.AddDays(-30)));
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(4)]
+    public void TheUsageCount_MayEqualTheUsedAndReservedRights_ButNotGoUnderThem_T526_KK10(int usedAndReserved)
+    {
+        CouponDefinition atTheFloor = Percent(10m) with { TotalUsageLimit = usedAndReserved };
+        CouponDefinition underTheFloor = Percent(10m) with { TotalUsageLimit = usedAndReserved - 1 };
+
+        Assert.Empty(CouponRules.CheckDefinition(atTheFloor, usedAndReserved));
+        Assert.Equal([new CouponProblem("TotalUsageLimit", ErrorCode.CouponUsageBelowUsed)], CouponRules.CheckDefinition(underTheFloor, usedAndReserved));
+        Assert.Throws<ArgumentOutOfRangeException>(() => CouponRules.CheckDefinition(atTheFloor, -1));
+    }
+
     [Fact]
     public void AnEmptyBasket_OrALineThatIsNoItem_IsAProgrammingError()
     {

@@ -28,10 +28,18 @@ internal sealed partial class AfterSalesModule
                 m.Quantity,
                 m.At)),
         ];
-        records.AddRange(await _db.Withdrawals.AsNoTracking()
+        var withdrawals = await _db.Withdrawals.AsNoTracking()
             .Where(w => ids.Contains(w.OrderItemId))
-            .Select(w => new ItemRecordFact(w.OrderItemId, ItemRecordFactKind.Withdrawal, w.Quantity, w.CreatedAt))
-            .ToListAsync(ct));
+            .Select(w => new { w.OrderItemId, w.Quantity, w.CreatedAt, w.ReturnRecipientName, w.ReturnProvinceId, w.ReturnDistrict, w.ReturnAddressLine, w.ReturnPhone })
+            .ToListAsync(ct);
+        records.AddRange(withdrawals.Select(w => new ItemRecordFact(
+            w.OrderItemId,
+            ItemRecordFactKind.Withdrawal,
+            w.Quantity,
+            w.CreatedAt,
+            w is { ReturnRecipientName: { } name, ReturnProvinceId: { } province, ReturnDistrict: { } district, ReturnAddressLine: { } line }
+                ? new ItemReturnAddress(name, province, district, line, w.ReturnPhone)
+                : null)));
         records.AddRange(await _db.Returns.AsNoTracking()
             .Where(r => ids.Contains(r.OrderItemId))
             .Select(r => new ItemRecordFact(r.OrderItemId, ItemRecordFactKind.ReturnReceipt, r.Quantity, r.CreatedAt))
@@ -46,7 +54,7 @@ internal sealed partial class AfterSalesModule
             .ToListAsync(ct));
         records.AddRange(await _db.DefectClaims.AsNoTracking()
             .Where(d => ids.Contains(d.OrderItemId))
-            .Select(d => new ItemRecordFact(d.OrderItemId, ItemRecordFactKind.DefectClaim, d.Quantity, d.CreatedAt))
+            .Select(d => new ItemRecordFact(d.OrderItemId, ItemRecordFactKind.DefectClaim, d.Quantity, d.CreatedAt, null, d.DefectClaimStatus))
             .ToListAsync(ct));
         return [.. records.OrderBy(r => r.At).ThenBy(r => r.Kind)];
     }

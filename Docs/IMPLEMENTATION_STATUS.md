@@ -269,7 +269,7 @@
 | T510 | Sipariş teyit ve bekleme ekranı, ödeme sağlayıcısına geçiş ve dönüş (E-14) | ⬚ | — | — | — |
 | T511 | Sipariş takibi girişi, sipariş sayfası ve indirme bağlantısı (E-15, E-16) | ✓ | ✓ PASS (tur 1) | `20c8bbcc` | #545 |
 | T512 | İptal ve gecikme feshi ekranı, geri ödeme IBAN girişi (E-17, E-16 IBAN formu) | ✓ | ✓ PASS (tur 2) | `f76de0e3` | #553 |
-| T513 | Cayma beyanı ve ayıp talebi ekranları (E-18, E-19) | ⬚ | — | — | — |
+| T513 | Cayma beyanı ve ayıp talebi ekranları (E-18, E-19) | ✓ | ✓ PASS (tur 2) | — | #558 |
 | T514 | Kayıt ve doğrulama bağlantısının inişi (E-20, E-21) | ✓ | ✓ PASS (tur 3) | `34a477dc` | #548 |
 | T515 | Müşteri girişi ve Google ile giriş (E-22) | ✓ | ✓ PASS (tur 1) | `0cc6a93a` | #560 |
 | T516 | Şifre sıfırlama ve yeniden doğrulama (E-23, E-24) | ✓ | ✓ PASS (tur 1) | `29a613e0` | #564 |
@@ -279,10 +279,10 @@
 | T520 | Panel girişi, şifre sıfırlama, davet kabulü ve yönetici çıkışı (E-29, E-30) | ✓ | ✓ PASS (tur 1) | `fd6c275e` | #549 |
 | T521 | Panel ana sayfası ve yönetici hesabının doğrulama ekranları (E-31, E-54) | ✓ | ✓ PASS (tur 3) | `3cec5c9c` | #554 |
 | T522 | Yönetici hesapları ve işlem izi (E-49, E-52) | ✓ | ✓ PASS (tur 1) | `794aed66` | #557 |
-| T523 | Yöneticinin kendi hesabı (E-50) | ⬚ | — | — | — |
+| T523 | Yöneticinin kendi hesabı (E-50) | ✓ | ✓ PASS (tur 2) | `71a256a8` | #561 |
 | T524 | Satış özeti ve dışa aktarma (E-51, E-53) | ✓ | ✓ PASS (tur 1) | `c5add538` | #562 |
 | T525 | Ürün listesi ve ürün formu, görsel yükleme (E-32, E-33) | ⬚ | — | — | — |
-| T526 | Kategori ağacı ve kuponlar (E-34, E-35) | ⬚ | — | — | — |
+| T526 | Kategori ağacı ve kuponlar (E-34, E-35) | ✓ | ✓ PASS (tur 1) | `901e0cdc` | #563 |
 | T527 | Sipariş listesi, sipariş ayrıntısı ve durum geçişleri (E-36, E-37) | ⬚ | — | — | — |
 | T528 | Sipariş ayrıntısı: firma iptali, bildirim kaydı, kalem çıkarma, iade malı ve ayıp talebi (E-37) | ⬚ | — | — | — |
 | T529 | Sipariş ayrıntısı: geri ödeme işlemleri (E-37) | ⬚ | — | — | — |

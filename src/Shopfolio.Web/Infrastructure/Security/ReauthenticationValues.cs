@@ -47,6 +47,21 @@ internal sealed class ReauthenticationValues
         return updated == 1 ? value : null;
     }
 
+    /// <summary>
+    /// Reads whether the session holds the permission for <paramref name="operation"/> and its digest is the digest of <paramref name="value"/> - the test the account page's GET makes before it opens an
+    /// operation's form (07 9.21.1; 05 6.1.5). It only reads: the value is consumed by the form's POST, not by the form's display.
+    /// </summary>
+    public async Task<bool> HoldsAsync(Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return false;
+        }
+
+        string digest = SecretKey.Hash(value);
+        return await _db.Sessions.AsNoTracking().AnyAsync(s => s.Id == sessionId && s.ReauthenticatedOperation == operation && s.ReauthenticationTokenHash == digest, ct);
+    }
+
     /// <summary>Drops the session's permission and its value (the re-verification page opens: the earlier form's value is void, 05 6.1.5); a session without one is left as it is.</summary>
     public async Task DropAsync(Guid sessionId, CancellationToken ct)
     {
@@ -75,21 +90,6 @@ internal sealed class ReauthenticationValues
                 s => s.SetProperty(x => x.ReauthenticatedOperation, (ReauthenticationOperation?)null).SetProperty(x => x.ReauthenticationTokenHash, (string?)null),
                 ct);
         return updated == 1;
-    }
-
-    /// <summary>
-    /// Whether the session holds the permission for <paramref name="operation"/> and its digest is the digest of <paramref name="value"/> - a plain read that spends nothing (T517; 07 UC-63: the account
-    /// screen opens the operation's form only when this is true; the single-use take is <see cref="TryRedeemAsync"/>).
-    /// </summary>
-    public async Task<bool> HoldsAsync(Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct)
-    {
-        if (string.IsNullOrEmpty(value))
-        {
-            return false;
-        }
-
-        string digest = SecretKey.Hash(value);
-        return await _db.Sessions.AsNoTracking().AnyAsync(s => s.Id == sessionId && s.ReauthenticatedOperation == operation && s.ReauthenticationTokenHash == digest, ct);
     }
 
     /// <summary>The hidden field of the operation's form (07 2.5.2); <paramref name="prefix"/> is the model path of the input, when it has one.</summary>

@@ -6,7 +6,7 @@ namespace Shopfolio.UnitTests.Architecture;
 /// <summary>
 /// Source scan of the concurrency code's single places (T228 KK9 and criterion 5; 09 10.2 items 4-6, 9.1 item 5, 10.9 item 2): the advisory lock
 /// and the row lock text (<c>pg_advisory</c>, <c>pg_try_advisory</c>, <c>FOR UPDATE</c>, <c>FOR NO KEY UPDATE</c>) stands only in <c>AdvisoryLocks.cs</c> and
-/// <c>OrderLocks.cs</c>; the plain <c>FOR UPDATE</c> text is also allowed in <c>CompanySettingsWriter.cs</c> (the settings row lock of 09 10.3 item 2, T330), which is also the one place that bulk-writes the settings row (09 10.3 item 4: <c>ExecuteUpdate</c>, <c>ExecuteDelete</c>, <c>SaveChanges</c> in a file that names the row's type, or a raw <c>UPDATE</c>/<c>DELETE</c> of <c>company_settings</c> elsewhere is a finding); the two more places are the digital file's row lock (<c>DigitalFileLocks.cs</c>, T312), the account row lock (<c>AccountLocks.cs</c>, T342) and the job queue's
+/// <c>OrderLocks.cs</c>; the plain <c>FOR UPDATE</c> text is also allowed in <c>CompanySettingsWriter.cs</c> (the settings row lock of 09 10.3 item 2, T330), which is also the one place that bulk-writes the settings row (09 10.3 item 4: <c>ExecuteUpdate</c>, <c>ExecuteDelete</c>, <c>SaveChanges</c> in a file that names the row's type, or a raw <c>UPDATE</c>/<c>DELETE</c> of <c>company_settings</c> elsewhere is a finding); the more places are the digital file's row lock (<c>DigitalFileLocks.cs</c>, T312), the account row lock (<c>AccountLocks.cs</c>, T342), the coupon row lock of the panel change (<c>CouponLocks.cs</c>, T526) and the job queue's
 /// <c>JobClaim.cs</c>, and only for the plain <c>FOR UPDATE</c> text (the row lock of taking a row, T220; no advisory text, no <c>NO KEY</c> form there); the shared row lock text (<c>FOR SHARE</c>, <c>FOR KEY SHARE</c>) only in
 /// <c>OrderLocks.cs</c>; and a counter - the stock or capacity field, the reserved quantity, the coupon's used and reserved rights - is written
 /// by a bulk update (<c>SetProperty</c>) or a raw <c>UPDATE ... SET</c> only in <c>StockCounters.cs</c>. The places are full paths, not file
@@ -36,6 +36,8 @@ internal static partial class ConcurrencySourceScan
 
     public const string DigitalFileLocksFile = "src/Shopfolio.Web/Modules/Catalog/DigitalFileLocks.cs";
 
+    public const string CouponLocksFile = "src/Shopfolio.Web/Modules/Catalog/CouponLocks.cs";
+
     public const string StockCountersFile = "src/Shopfolio.Web/Modules/Catalog/StockCounters.cs";
 
     public const string DownloadCountersFile = "src/Shopfolio.Web/Modules/Ordering/DownloadCounters.cs";
@@ -61,9 +63,10 @@ internal static partial class ConcurrencySourceScan
         {
             Add(findings, RowLockText, AdvisoryText(), clean);
             Add(findings, RowLockText, WeakRowLockText(), clean);
-            if (path is not (JobClaimFile or CompanySettingsWriterFile or DigitalFileLocksFile or AccountLocksFile))
+            if (path is not (JobClaimFile or CompanySettingsWriterFile or DigitalFileLocksFile or AccountLocksFile or CouponLocksFile))
             {
-                // The job queue's taking file, the settings writer and the digital file row lock (T312; 09 15.7 item 6) and the account row lock (T342; 09 15.1 item 3) are the places with the plain row lock text,
+                // The job queue's taking file, the settings writer and the digital file row lock (T312; 09 15.7 item 6), the account row lock (T342; 09 15.1 item 3) and the
+                // coupon row lock of the panel change (T526; 05 7.3.5, 02 3.10.6) are the places with the plain row lock text,
                 // and only that text (T220; 09 13.1 item 3; T330, 09 10.3 item 2 (a)).
                 Add(findings, RowLockText, PlainRowLockText(), clean);
             }

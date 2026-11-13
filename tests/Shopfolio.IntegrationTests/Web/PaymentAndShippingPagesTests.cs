@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
@@ -9,6 +10,8 @@ using Microsoft.Net.Http.Headers;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
@@ -154,6 +157,39 @@ public sealed partial class PaymentAndShippingPagesTests : IAsyncLifetime
         Assert.Equal(string.Empty, FieldValue(html, "Input.BankTransferIban"));
     }
 
+    // ---- KK1: the four states of 04 9.17.11 with the card line bound both ways, so neither half depends on the test installation ----
+
+    [Theory]
+    [InlineData(true, false, null)]
+    [InlineData(true, true, null)]
+    [InlineData(false, true, PaymentMethodsModel.OnlyTransferText)]
+    [InlineData(false, false, PaymentMethodsModel.NoMethodText)]
+    public async Task ThePaymentScreen_ShowsEachOfTheFourStates_KK1(bool cardOpen, bool transferOpen, string? stateLine)
+    {
+        if (transferOpen)
+        {
+            await ExecuteAsync($"UPDATE company_settings SET is_bank_transfer_enabled = true, bank_transfer_iban = '{Iban}'");
+        }
+
+        await using WebApplicationFactory<Program> factory = Open().WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddScoped<ICardPaymentCondition>(_ => new FixedCardCondition(cardOpen))));
+        using HttpClient client = ClientOf(factory);
+
+        (HttpStatusCode status, string html) = await GetAsync(client, PaymentPath);
+
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.Contains(cardOpen ? PaymentMethodsModel.CardOpenText : PaymentMethodsModel.CardUndefinedText, html, StringComparison.Ordinal);
+        Assert.DoesNotContain(cardOpen ? PaymentMethodsModel.CardUndefinedText : PaymentMethodsModel.CardOpenText, html, StringComparison.Ordinal);
+        Assert.Equal(transferOpen, new Regex("id=\"transfer-switch\"[^>]*checked", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)).IsMatch(html));
+        if (stateLine is null)
+        {
+            Assert.DoesNotContain("id=\"payment-state\"", html, StringComparison.Ordinal);
+        }
+        else
+        {
+            Assert.Contains(stateLine, html, StringComparison.Ordinal);
+        }
+    }
+
     // ---- KK2, KK4: opening and the first IBAN without a confirmation; F-5 to every administrator; the trail ----
 
     [Fact]
@@ -287,6 +323,32 @@ public sealed partial class PaymentAndShippingPagesTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Conflict, stale.StatusCode);
         Assert.Equal(Iban, await ScalarAsync<string>("SELECT bank_transfer_iban FROM company_settings"));
         Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM audit_logs"));
+    }
+
+    // ---- KK3: both IBAN refusals log 07 6.2.8's one code (VAL-A539), the emptied one with the field's "boşaltılamaz" text ----
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task BothIbanRefusals_LogBankTransferIbanRequired_KK3(bool filled)
+    {
+        if (filled)
+        {
+            await ExecuteAsync($"UPDATE company_settings SET is_bank_transfer_enabled = true, bank_transfer_iban = '{Iban}'");
+        }
+
+        CollectingLoggerProvider logs = new();
+        await using WebApplicationFactory<Program> factory = new ShopfolioWebApplicationFactory(_database.Dsn, loggerProvider: logs)
+            .WithWebHostBuilder(b => b.ConfigureServices(s => s.AddRazorPages().AddApplicationPart(typeof(ForgeryTokenSampleModel).Assembly)));
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage refused = await client.PostAsync(PaymentPath + "?handler=SavePaymentMethods", PaymentForm(true, string.Empty, 1), Ct);
+        string html = WebUtility.HtmlDecode(await refused.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, refused.StatusCode);
+        Assert.Contains(filled ? PaymentMethodsModel.IbanClearedText : PaymentMethodsModel.IbanRequiredText, html, StringComparison.Ordinal);
+        List<string> lines = [.. logs.Lines.Where(l => l.Contains("RejectionLog|", StringComparison.Ordinal) && l.Contains(LogEvents.ValidationRejected, StringComparison.Ordinal))];
+        Assert.EndsWith(" " + ErrorCode.BankTransferIbanRequired, Assert.Single(lines), StringComparison.Ordinal);
     }
 
     // ---- KK5: five sections with their own versions; the empty states; a stale version is 409 on that section only ----
@@ -582,6 +644,11 @@ public sealed partial class PaymentAndShippingPagesTests : IAsyncLifetime
     {
         using IServiceScope scope = factory.Services.CreateScope();
         return await scope.ServiceProvider.GetRequiredService<ICardPaymentCondition>().IsOpenAsync(Ct);
+    }
+
+    private sealed class FixedCardCondition(bool open) : ICardPaymentCondition
+    {
+        public Task<bool> IsOpenAsync(CancellationToken ct) => Task.FromResult(open);
     }
 
     private static async Task SynchronizeTextsAsync(WebApplicationFactory<Program> factory)

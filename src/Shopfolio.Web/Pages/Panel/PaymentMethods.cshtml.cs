@@ -65,6 +65,9 @@ public sealed class PaymentMethodsModel : PageModel
     /// <summary>K-817: the message of a transfer switched on without an IBAN.</summary>
     public const string IbanRequiredText = "Havaleyi açmak için IBAN girin.";
 
+    /// <summary>04 7.2.20.2: the message of a filled IBAN emptied while the transfer is on - the catalog's "boşaltılamaz" pattern with the field's label.</summary>
+    public static readonly string IbanClearedText = FieldMessageCatalog.Build(FieldCodes.FilledFieldCleared, IbanFields.Label, null);
+
     public const string ChangeIbanLabel = "IBAN'ı değiştir";
 
     public const string CloseTransferLabel = "Havaleyi kapat";
@@ -232,16 +235,10 @@ public sealed class PaymentMethodsModel : PageModel
         string field = "Input." + rejection.Field;
         if (rejection.Code == FieldCodes.FieldRequired && rejection.Field == nameof(PaymentMethodsInput.BankTransferIban))
         {
-            if (current.BankTransferIban is not null)
-            {
-                // 04 7.2.20.2: a filled IBAN cannot be emptied while the transfer is on.
-                ModelState.AddFieldError(field, FieldCodes.FilledFieldCleared);
-                return;
-            }
-
-            // K-817: the transfer is not switched on without an IBAN; the text is the decision's, the log line carries the code (09 8.2 item 3).
+            // 07 6.2.8: both refusals - the transfer switched on without an IBAN and a filled IBAN emptied while the transfer is on - carry BankTransferIbanRequired; the texts are the
+            // field's own (K-817 for the first, 04 7.2.20.2 "boşaltılamaz" for the second), so the log line carries the code (09 8.2 item 3) and the message is set as text.
             HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.BankTransferIbanRequired);
-            ModelState.AddModelError(field, IbanRequiredText);
+            ModelState.AddModelError(field, current.BankTransferIban is not null ? IbanClearedText : IbanRequiredText);
             return;
         }
 

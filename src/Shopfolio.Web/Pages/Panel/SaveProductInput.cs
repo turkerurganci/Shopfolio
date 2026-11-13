@@ -101,7 +101,7 @@ public sealed class SaveProductVariantRow
     [InvalidAmount]
     public decimal? Price { get; set; }
 
-    [InvalidAmount]
+    [InvalidNetQuantity]
     public decimal? NetQuantity { get; set; }
 
     public int? StockQuantity { get; set; }

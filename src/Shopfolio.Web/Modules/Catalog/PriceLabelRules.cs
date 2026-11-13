@@ -50,11 +50,15 @@ internal static class PriceLabelRules
             return netQuantity is null ? NetQuantityProblem.None : NetQuantityProblem.WithoutUnit;
         }
 
-        if (netQuantity is not { } quantity)
-        {
-            return NetQuantityProblem.Missing;
-        }
+        return netQuantity is { } quantity ? CheckNetQuantityValue(quantity) : NetQuantityProblem.Missing;
+    }
 
+    /// <summary>
+    /// The verdict on a net quantity's value alone - above zero, at most <see cref="NetQuantityDecimals"/> decimals (04 7.2.4.13; K-1018): the one rule that the form field's rule
+    /// (<see cref="Contracts.InvalidNetQuantityAttribute"/>) and the verdict against the unit above share.
+    /// </summary>
+    public static NetQuantityProblem CheckNetQuantityValue(decimal quantity)
+    {
         if (quantity <= 0)
         {
             return NetQuantityProblem.NotAboveZero;

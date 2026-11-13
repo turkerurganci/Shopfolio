@@ -69,6 +69,11 @@ namespace Shopfolio.Pages.Samples
         [InvalidPercentage]
         public decimal? Rate { get; set; }
 
+        // The net quantity's rule (three decimals; T525) is the third decimal rule: no DecimalWithoutRule either.
+        [SpecAssignedName]
+        [Shopfolio.Modules.Catalog.Contracts.InvalidNetQuantity]
+        public decimal? NetWeight { get; set; }
+
         [SpecAssignedName]
         [InvalidDate]
         public DateOnly? ShipOn { get; set; }

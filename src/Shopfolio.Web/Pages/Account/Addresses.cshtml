@@ -29,9 +29,9 @@
 <div class="account-layout">
     <partial name="_AccountNav" model="path" />
     <div class="account-layout__content">
-        @if (Model.Notice is { } notice)
+        @if (Model.Notice is { } savedMessage)
         {
-            <partial name="_Message" model="notice" />
+            <partial name="_Message" model="savedMessage" />
         }
         @if (form is not null)
         {

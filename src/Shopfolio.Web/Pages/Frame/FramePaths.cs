@@ -21,7 +21,10 @@ internal static class FramePaths
     /// <summary>UC-54: the customer's sign-in page.</summary>
     public const string SignIn = "/giris";
 
-    /// <summary>UC-56: the password reset page (E-23); the sign-in screen's "şifremi unuttum" link goes there (T516 draws the page).</summary>
+    /// <summary>UC-60: the re-authentication page (E-24); the account page's three operations go there (T517) and Google's return lands there with a code (UC-51).</summary>
+    public const string Reauthentication = "/hesap/yeniden-dogrulama";
+
+    /// <summary>UC-56: the password reset page (E-23); the sign-in screen's "şifremi unuttum" link goes there. The key of a reset link follows it (UC-58).</summary>
     public const string PasswordReset = "/sifre-sifirlama";
 
     /// <summary>UC-47: the registration page (E-20).</summary>

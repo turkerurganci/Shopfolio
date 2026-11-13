@@ -90,7 +90,7 @@ internal sealed class EmailChanges
         DateTimeOffset now = _time.GetUtcNow();
 
         // An open revert link closes the change (02 3.13.14, 3.15.6): a following change must not shut the earlier address's way back.
-        DateTimeOffset? revertEnds = await OpenRevertEndAsync(_db, customerId, now, ct);
+        DateTimeOffset? revertEnds = await EmailChangeRules.OpenRevertEndAsync(_db, AccountType.Customer, customerId, now, ct);
         if (revertEnds is { } ends)
         {
             return EmailChangeRequestResult.RevertPending(ends);
@@ -104,8 +104,8 @@ internal sealed class EmailChanges
         }
 
         PendingEmailChange? pending = await _db.PendingEmailChanges.SingleOrDefaultAsync(p => p.CustomerId == customerId, ct);
-        bool replaces = pending is not null && !IsEnded(pending.CreatedAt, now);
-        if (replaces && await CountedOverLimitAsync(account.NormalizedEmail, ipAddress, ct))
+        bool replaces = pending is not null && !EmailChangeRules.IsEnded(pending.CreatedAt, now);
+        if (replaces && await EmailChangeRules.CountedOverLimitAsync(_attempts, account.NormalizedEmail, ipAddress, ct))
         {
             return EmailChangeRequestResult.Refused(ErrorCode.VerificationLinkLimitExceeded);
         }
@@ -140,7 +140,7 @@ internal sealed class EmailChanges
         string normalizedEmail = await _db.Customers.AsNoTracking().Where(c => c.Id == customerId).Select(c => c.NormalizedEmail).SingleAsync(ct);
 
         // L-9 is counted on every request, on the e-mail and on the IP (02 3.13.14, 8.2); over the limit the earlier link stays valid.
-        if (await CountedOverLimitAsync(normalizedEmail, ipAddress, ct))
+        if (await EmailChangeRules.CountedOverLimitAsync(_attempts, normalizedEmail, ipAddress, ct))
         {
             return EmailChangeResendResult.Limited();
         }
@@ -150,13 +150,13 @@ internal sealed class EmailChanges
             .Where(p => p.CustomerId == customerId)
             .Select(p => new { p.NewEmail, p.CreatedAt })
             .SingleOrDefaultAsync(ct);
-        if (pending is null || IsEnded(pending.CreatedAt, now))
+        if (pending is null || EmailChangeRules.IsEnded(pending.CreatedAt, now))
         {
             return EmailChangeResendResult.Nothing();
         }
 
         // The new link ends where the pending change ends: asking again does not lengthen it (02 3.13.5).
-        DateTimeOffset expiresAt = pending.CreatedAt.AddHours(ProductConstants.EmailVerificationLinkHours);
+        DateTimeOffset expiresAt = EmailChangeRules.LinkEnd(pending.CreatedAt);
         LinkRecord link = LinkRecord.ForCustomer(_keys, LinkType.NewEmailVerification, customerId, expiresAt, now);
         _links.Add(link);
         await _links.SupersedeEarlierAsync(LinkType.NewEmailVerification, customerId, null, link.Id, ct);
@@ -192,7 +192,7 @@ internal sealed class EmailChanges
             .Where(p => p.CustomerId == customerId)
             .Select(p => new { p.Id, p.NewEmail, p.NormalizedNewEmail, p.CreatedAt })
             .SingleOrDefaultAsync(ct);
-        if (pending is null || IsEnded(pending.CreatedAt, now))
+        if (pending is null || EmailChangeRules.IsEnded(pending.CreatedAt, now))
         {
             return NewEmailVerificationResult.LinkInvalid(VerificationLinkStatus.Expired);
         }
@@ -260,28 +260,6 @@ internal sealed class EmailChanges
         // The binding rule of 02 3.13.2 works for the new address; the orders of the old address stay on the account and none is unbound (02 3.13.14).
         int linked = await _ordering.LinkGuestOrdersAsync(customerId, pending.NewEmail, ct);
         return NewEmailVerificationResult.Verified(customerId, linked, revert.Id, revertEnds);
-    }
-
-    // The life of a pending change is the first link's: P-12 hours from the request (PendingRecordExpiry.EndedEmailChange reads the same rule at night).
-    private static bool IsEnded(DateTimeOffset createdAt, DateTimeOffset now) => createdAt <= now - TimeSpan.FromHours(ProductConstants.EmailVerificationLinkHours);
-
-    /// <summary>The end of the account's open revert link (not used, not superseded, not ended), or nothing; the account's deletion reads the same rule (02 3.15.6).</summary>
-    internal static async Task<DateTimeOffset?> OpenRevertEndAsync(AppDbContext db, Guid customerId, DateTimeOffset now, CancellationToken ct)
-    {
-        return await db.LinkRecords.AsNoTracking()
-            .Where(l => l.CustomerId == customerId && l.LinkType == LinkType.EmailChangeRevert && l.UsedAt == null && l.SupersededAt == null && l.ExpiresAt > now)
-            .OrderByDescending(l => l.ExpiresAt)
-            .Select(l => (DateTimeOffset?)l.ExpiresAt)
-            .FirstOrDefaultAsync(ct);
-    }
-
-    private async Task<bool> CountedOverLimitAsync(string normalizedEmail, IPAddress? ipAddress, CancellationToken ct)
-    {
-        AttemptSubject byEmail = AttemptSubject.Email(normalizedEmail);
-        AttemptSubject byIp = AttemptSubject.Ip(ipAddress);
-        await _attempts.RecordAsync(AttemptLimit.L9, byEmail, ct);
-        await _attempts.RecordAsync(AttemptLimit.L9, byIp, ct);
-        return await _attempts.IsExceededAsync(AttemptLimit.L9, byEmail, ct) || await _attempts.IsExceededAsync(AttemptLimit.L9, byIp, ct);
     }
 
     private void RequireTransaction(string message)

@@ -171,6 +171,15 @@ internal sealed class SessionStore
         }
     }
 
+    /// <summary>
+    /// True when the session is the account's and holds the permission for the operation bound to the value (the account page opens the operation's form only then; 07 9.21.1). A plain read: the
+    /// permission stays, the form's POST consumes it.
+    /// </summary>
+    public async Task<bool> HoldsReauthenticationAsync(AccountType type, Guid accountId, Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct)
+    {
+        return await OwnsAsync(type, accountId, sessionId, ct) && await _reauthentication.HoldsAsync(sessionId, operation, value, ct);
+    }
+
     /// <summary>Takes the permission with one conditional update (the session must be the account's); false means the operation must not run.</summary>
     public async Task<bool> TryRedeemReauthenticationAsync(AccountType type, Guid accountId, Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct)
     {

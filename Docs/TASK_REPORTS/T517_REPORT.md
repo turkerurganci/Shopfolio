@@ -1,0 +1,108 @@
+# T517 — Hesap — profil ve güvenlik (E-25)
+
+**Faz:** F5 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-13
+
+> Taslağı yapım chat'i doldurdu; doğrulama chat'i finalize eder.
+
+---
+
+## Yapılan İşler
+
+- `/hesap` (`Pages/Account/Profile.cshtml(.cs)`, UC-63 ila UC-68): ad, e-posta, şifre, giriş yolları, hesabı sil bölümleri ve iç gezinme (`_AccountNav`). İşlemin formu yalnız oturumun izni o işlem içinse ve değerin özeti oturumdakiyle aynıysa açık gelir; tutmayan parametre yok sayılır; izin formun gösterimi dışındaki `/hesap` GET'inde düşer.
+- `/hesap/silindi` (`Pages/Account/Deleted.cshtml(.cs)`, UC-69): oturum çerezinin gösterdiği silinmiş oturumla bir kez görünen sonuç hâli; yenilenirse 303 → `/`.
+- Modül: `RequestEmailChangeAsync(customerId, sessionId, newEmail, reauthenticationValue, ip, ct)` yeniden doğrulama değerini en sonda tüketir (D-429); `ReadPendingEmailChangeAsync` (bekleyen değişiklik, son gün); `ISessionService.HoldsReauthenticationAsync` (yalnız okur).
+- Silme: son adım GET'te yalnız gösterilir (kayıt yazmaz, izni tüketmez); onaysız POST 200 son adımı yeniden gösterir; onaylı POST tek işlemde siler, siparişi işaretler, 303 → `/hesap/silindi`, `InstantDeletion` denetim satırı işlem tamamlanınca yazılır (D-700).
+- Şifre değişimi bu tarayıcının "tanınan tarayıcı" işaretini yeniler, ötekileri düşürür (D-806).
+- Devir kararları (yönetici): (a) `AccountTexts` belgede sözü olan yerlerde belgenin birebir sözüne çekildi (`Yeni e-posta`, `Bağlantıyı yeniden gönder`); sözü olmayanlar ⚠ + D-1452; (b) silme son adımı GET'te yan etkisiz, silme POST'ta (testle kilitlendi); (c) UC-63 izin düşmesi `07` UC-63 ve UC-60'ın istediği iki istekte uygulandı, genel sayfa düzeyi D-1454.
+- Main ile iki kez birleştirildi (`7fc11ffa`, `edf4eb2a`): `SessionStore.HoldsReauthenticationAsync` ve `ReauthenticationValues.HoldsAsync` main'de (T523) de vardı, yinelenen kopya silindi.
+
+## Etkilenen Modüller / Dosyalar
+
+- `src/Shopfolio.Web/Pages/Account/Profile.cshtml(.cs)`, `Deleted.cshtml(.cs)`, `Pages/Shared/_AccountNav.cshtml`, `Pages/Components/AccountTexts.cs`, `Pages/Frame/FramePaths.cs`
+- `src/Shopfolio.Web/Modules/Membership/` (`EmailChanges.cs`, `MembershipModule.cs`, `SessionService.cs`, `Contracts/IMembershipModule.cs`, `ISessionService.cs`, `EmailChangeRecords.cs`), `Infrastructure/Security/SessionStore.cs`, `ReauthenticationValues.cs`
+- Testler: `Web/AccountProfilePageTests.cs` (yeni, 21), `Web/SessionAccessTests.cs`, `Web/RegistrationPageTests.cs`, `Model/MembershipGoogleTests.cs`, `Model/MembershipAccountDeletionTests.cs`, `Consistency/OutcomeUncertainConsistencyTests.cs`, `Pages/AccessSamples.cs` ve örnek `.cshtml`'ler (silindi)
+
+## Kabul Kriterleri Kontrolü
+
+Test sınıfı `AccountProfilePageTests` (kısaltma: P).
+
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | `GET /hesap` beş bölüm; oturum yoksa 302 girişe | ✓ | `P.TheScreen_GivesTheFiveSections_AndNoSessionGoesToTheSignIn_T517_KK1` |
+| 2 | İşlemin formu yalnız izin ve özet tutunca açık; tutmayan parametre yok sayılır; üç işlemde değer yok/tutmuyorsa 303 → yeniden doğrulama | ✓ | `P.TheFormOpens_OnlyForTheOperationAndTheValueTheSessionHolds_...KK2`, `P.APageRequestOutsideTheForm_DropsThePermission_...KK2`, `P.ThePosts_WithoutTheValue_Go303ToTheReauthentication_...KK2` (üç işlem, Theory) |
+| 3 | Geri alma açıkken e-posta değiştirme ve silme sebep ve bitiş tarihiyle kapalı; şifresizde şifre belirleme | ✓ | `P.WhileTheRevertLinkIsOpen_...KK3`, `P.TheEmailChangeAndTheDeletion_OfAClosedAccount_Give422AndSpendNothing_...KK3`, `P.AnAccountWithoutAPassword_IsShownThePasswordSetting_...KK3` |
+| 4 | `ChangeName` yazar, 303 → `/hesap`; boş ad 422; geçmiş siparişin alıcı adı değişmez | ✓ | `P.TheName_IsWritten_With303AndTheSavedNotice_AndAnEmptyNameIs422_...KK4` (alıcı adı sabiti aynı testte) |
+| 5 | `ChangePassword` tek koşullu güncellemeyle tüketir, öteki oturumları siler, öteki işaretler düşer | ✓ | `P.ThePasswordChange_TakesTheValueOnce_EndsTheOtherSessions_AndKeepsThisOne_...KK5`; `Model.MembershipTests` (işaret) |
+| 6 | P-17 altı ya da yaygın şifre 422, değer tüketilmez; şifresizde işlem sunulmaz | ✓ | `P.AWeakOrCommonPassword_Gives422_AndTheValueStaysUnspent_...KK6` (Theory), KK3'ün şifresiz testi |
+| 7 | `ChangeEmail` bekleyen değişikliği yazar, öncekinin yerine geçer, yeni adrese bağlantı; hesap eski adresle çalışır | ✓ | `P.TheEmailChange_WritesThePendingChange_SendsTheLinkToTheNewAddress_AndTheAccountKeepsTheOldOne_...KK7` |
+| 8 | 422: biçim, doğrulanmış başka hesap, açık geri alma; 429 (L-9) yalnız yerine geçende; değer tüketilmez | ✓ | `P.TheEmailChange_RefusesABrokenAddress_AVerifiedOthersAddress_ButNotAnUnverifiedOnes_...KK8`, `P.TheEmailChange_Gives429OnlyWhenItReplacesAPendingChange_...KK8` |
+| 9 | `ResendEmailChangeLink` yeni bağlantı, öncekiler `SupersededAt`, ömür uzamaz; bekleyen yoksa 422, 429 | ✓ | `P.TheLinkAskedForAgain_IsNew_TheEarlierOnesAreSuperseded_AndTheLifeIsNotLengthened_...KK9`, `P.TheLinkAskedForAgain_WithNothingPendingIs422_AndTooManyAskingsGive429_...KK9` |
+| 10 | `DeleteAccount` onaysız 200, yazmaz; onaylı tek işlemde siler, siparişi işaretler, 303 → `/hesap/silindi`; sonuç bir kez | ✓ | `P.TheDeletion_WithoutTheMark_IsTheLastStep200_WritesNothing_AndSpendsNoValue_...KK10` (GET sonrası da hesap duruyor), `P.TheConfirmedDeletion_DeletesInOneTransaction_MarksTheOrder_...KK10`, `P.TheResultState_GoesHome_...KK10`, `P.TheDeletion_NeedsTheValue_...KK10` |
+
+### Öz denetim (bitiş kapısı 2)
+
+Önceki işçilerin yaptığı dahil kriter 1–10 ve KK1–KK10 diff'te baştan denetlendi; `sik-fail-nedenleri.md` okundu. Bu turda: (1) tarama kuralları (`SessionWriteSourceScan` alan adı, `NullForgivingSourceScan` Razor `!`) Unit TAM'da kırmızıydı, giderildi; (2) `AccountTexts`'te belge sözü olan iki yer düzeltildi; (3) main birleştirmesinde yinelenen yöntem silindi; (4) silme son adımının GET'te yazmadığı teste bağlandı. Sık FAIL nedenleri: bekçi istisnası eklenmedi (kapalı listeler dokunulmadı); kaynak taramaları çalıştırıldı; 06 varsayılan/FK dizini değişmedi (şema değişikliği yok); sayıları anan öteki yerler (`OutcomeUncertainConsistencyTests` UC-68 listesi, `SessionAccessTests` açık adres listesi) güncellendi; belge kuralını değiştiren 09 metni yok; hedefi T517 olan backlog kalemleri taranıp kapatıldı ya da ilerletildi (aşağıda).
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| KK1 oturumsuz 302 | ✓ | `P...KK1` |
+| KK2 izin, özet; üç işlemde 303 | ✓ | `P...KK2` (üç test) |
+| KK3 geri alma açıkken kapalı işlemler | ✓ | `P...KK3` (üç test) |
+| KK4 ad değişir, sipariş adı sabit | ✓ | `P...KK4` |
+| KK5 tek tüketim; öteki oturum ve işaret silinir | ✓ | `P...KK5`, `Model.MembershipTests` |
+| KK6 iki ret sebebi | ✓ | `P...KK6` |
+| KK7 bekleyen değişiklik ve yeni bağlantı | ✓ | `P...KK7` |
+| KK8 üç 422 sebebi, L-9 | ✓ | `P...KK8` (iki test) |
+| KK9 eski bağlantılar geçersiz | ✓ | `P...KK9` (iki test) |
+| KK10 onaysız yazmaz; onaylı 303, sipariş işareti; sonuç bir kez | ✓ | `P...KK10` (dört test) |
+| `09 §25` ilgili satırlar | ✓ | Unit TAM (mimari taramalar: `SessionWriteSourceScan`, `NullForgivingSourceScan`, `OutcomeUncertainConsistency`, `CookieSourceScan`, `NoticeParameter`, `FormSource`, `Frame`) |
+| Güvenlik taraması | ✓ | işlem formu yalnız izinle; değer gizli alanda; GET yazmaz; silme POST'ta; `[OutcomeUncertain("UC-68")]` |
+| `12` T517 satırları | ~ | paylı satırlar `BEKLEMEDE` kalır (D-1455); T517 kanıtı: `VAL-A098`, `A099`, `A441`, `A505`, `A672` tam; `A100`, `A103`, `A362`, `A494`, `A504`, `A554`, `A560`, `A566` T517 payı |
+
+Backlog (hedefi T517): kapandı D-428, D-429, D-555; payı kapandı D-254, D-606 (UC-157 paneli kalır), D-693, D-700 (T522 payı kalır), D-801 (A362 L-1 payı T516), D-806; ileri: D-665 (yarışma testi yazılmadı, kalır), D-683 (eskimiş açıklama temizliği kalır), D-1434 (T516 k-note, T517 değil, hedefte).
+
+## Test Sonuçları
+
+| Tür | Sonuç | Komut | Çıktı özeti |
+|---|---|---|---|
+| Unit | TAM yeşil | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | 7546 test, 0 kırmızı; ilk koşuda 3 tarama kırmızıydı (oturum izni alan adı, Razor null-forgiving, bir düzenli ifade zaman aşımı yük altında), giderildi, üç sınıf 46/46 |
+| Integration | İlgili sınıflar yeşil, **TAM: CI** | `dotnet test --project tests/Shopfolio.IntegrationTests --no-build --filter-class ...` | `AccountProfilePageTests` 21/21, `Model.MembershipTests` 136/136, `SessionAccessTests`+`StorefrontFrameTests`+`AccountProfilePageTests` 84/84; önceki işçi: `SecurityHeadersTests`, `SitemapEndpointTests`, `OneTimeValueTests`, `CustomerPasswordResetAndReauthenticationPageTests`, `RegistrationPageTests` yeşil |
+| Biçim | Temiz | `dotnet format Shopfolio.slnx --no-restore --verify-no-changes` | çıkış 0 |
+
+## Doğrulama
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | bekliyor |
+| Bulgu sayısı | — |
+| Düzeltme gerekli mi | — |
+| Bloke-etmeyen not (K) sayısı | — |
+
+## Altyapı Değişiklikleri
+
+- **Şema/migration:** Yok
+- **Config / ortam değişkeni:** Yok
+- **Paketleme / dağıtım:** Yok
+- **Yeni bağımlılık:** Yok
+
+## Commit & PR
+
+- **Branch:** `task/T517-hesap-profil-guvenlik`
+- **Commit:** PR'ın head'i
+- **PR:** açıldığında yönetici yardımcıya bildirilir
+- **CI:** yönetici yardımcı izler
+- **Post-merge run'lar:** *(validator doldurur)*
+
+## Dış Varsayımlar
+
+Dış varsayım: yok. (Google yeniden doğrulaması T516'nın ucundadır; bu task Google'a istek atmaz.)
+
+## Known Limitations / Follow-up
+
+| # | Kalem | Backlog ID | Neden ertelendi |
+|---|---|---|---|
+| 1 | ⚠ Belgede sözü olmayan metinler (`AccountTexts`) | D-1452 | `04` ve `07` cümleyi vermiyor |
+| 2 | ⚠ İç gezinme `/hesap/adresler` ve `/hesap/siparisler` T518'e kadar 404 | D-1453 | iki ekran T518'in işi |
+| 3 | ⚠ İzin düşmesi yalnız `/hesap` GET'inde ve yeniden doğrulama açılışında (`05` 6.1.5 genel sayfa der) | D-1454 | katman task'ı gerektirir |
+| 4 | Paylı `12` satırları | D-1455 | öteki paylar başka task'ın ucunda |
+| 5 | 320 genişlik ve klavye gezintisi tarayıcıyla sınanmadı | D-1456 | Integration kapsamı dışı |

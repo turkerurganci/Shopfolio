@@ -93,8 +93,8 @@ public sealed partial class MembershipTests
         await using AppDbContext db = NewContext();
         Dictionary<DisposalRecordType, int?> records = await db.DisposalRecords.AsNoTracking().ToDictionaryAsync(r => r.DisposalRecordType, r => r.Count, Ct);
         Assert.Equal(1, records[DisposalRecordType.Customer]);
-        Assert.Equal(1, records[DisposalRecordType.Session]);
-        Assert.Equal(1, records[DisposalRecordType.RecognizedBrowserMark]);
+        Assert.Equal(2, records[DisposalRecordType.Session]); // the account's own session and the one the e-mail change request of the seed opened (T517)
+        Assert.Equal(2, records[DisposalRecordType.RecognizedBrowserMark]); // each sign-in of the seed leaves a mark
         Assert.Equal(1, records[DisposalRecordType.Cart]);
         Assert.Equal(1, records[DisposalRecordType.PendingEmailChange]);
         Assert.True(records[DisposalRecordType.LinkRecord] >= 1);

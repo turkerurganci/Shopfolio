@@ -654,19 +654,17 @@ public sealed class RegistrationPageTests : IAsyncLifetime
         IMembershipModule membership = scope.ServiceProvider.GetRequiredService<IMembershipModule>();
         LinkKeys keys = scope.ServiceProvider.GetRequiredService<LinkKeys>();
         ISessionService sessions = scope.ServiceProvider.GetRequiredService<ISessionService>();
+        // The session is saved before the permission is granted: the grant reads the session row from the database.
+        GrantedPermission opened = await transactions.RunAsync(async cancel => new GrantedPermission((await sessions.SignInAsync(customerId, true, null, cancel)).SessionId, null), Ct);
         GrantedPermission granted = await transactions.RunAsync(
-            async token =>
-            {
-                SessionOpening opened = await sessions.SignInAsync(customerId, true, null, token);
-                return new GrantedPermission(opened.SessionId, await sessions.GrantReauthenticationAsync(customerId, opened.SessionId, ReauthenticationOperation.EmailChange, token));
-            },
+            async cancel => opened with { Held = await sessions.GrantReauthenticationAsync(customerId, opened.SessionId, ReauthenticationOperation.EmailChange, cancel) },
             Ct);
-        EmailChangeRequestResult result = await transactions.RunAsync(async token => await membership.RequestEmailChangeAsync(customerId, granted.SessionId, newEmail, granted.Value, null, token), Ct);
+        EmailChangeRequestResult result = await transactions.RunAsync(async cancel => await membership.RequestEmailChangeAsync(customerId, granted.SessionId, newEmail, granted.Held, null, cancel), Ct);
         Assert.True(result.IsRequested);
         return keys.Derive(result.LinkId!.Value);
     }
 
-    private sealed record GrantedPermission(Guid SessionId, string? Value) : IOperationResult
+    private sealed record GrantedPermission(Guid SessionId, string? Held) : IOperationResult
     {
         public bool IsRejected => false;
     }

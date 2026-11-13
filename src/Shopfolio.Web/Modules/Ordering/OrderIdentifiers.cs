@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Modules.Ordering.Contracts;
 
 namespace Shopfolio.Modules.Ordering;
 
@@ -20,9 +21,9 @@ internal sealed class OrderIdentifiers
 {
     /// <summary>
     /// The unique indexes of the order table that a clash of a made value breaks, in the form the transaction runner takes (09 5.2): the number's and the access key's.
-    /// The confirmation key's index is the payment step's own (T510).
+    /// The list's one home is the confirmation's request (<see cref="PlaceOrderRequest.RetryOnUniqueIndexes"/>), which the payment step runs with.
     /// </summary>
-    public static readonly IReadOnlyCollection<string> UniqueIndexes = ["ix_orders_order_number", "ix_orders_order_access_key"];
+    public static readonly IReadOnlyCollection<string> UniqueIndexes = PlaceOrderRequest.RetryOnUniqueIndexes;
 
     private readonly AppDbContext _db;
 

@@ -184,6 +184,18 @@ public sealed class ConfirmationStepTests
         Assert.Contains("indirme başladıktan sonra cayma hakkı kullanılamaz", text, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(ProductType.Digital)]
+    [InlineData(ProductType.Service)]
+    public void TheWithdrawalSummary_OfACartWithoutAPhysicalLine_HasNoPhysicalPeriodOrReturnCarrierSentence_D743(ProductType type)
+    {
+        string text = ConfirmationStepRules.WithdrawalSummary([Line(type)]);
+
+        Assert.DoesNotContain("Fiziksel ürünlerde", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("taşıyıcı belirlenmemiştir", text, StringComparison.Ordinal);
+        Assert.False(string.IsNullOrWhiteSpace(text));
+    }
+
     // ---- the summary: one shape for the step and the frozen item (KK3: the form equals the summary) ----
 
     [Fact]

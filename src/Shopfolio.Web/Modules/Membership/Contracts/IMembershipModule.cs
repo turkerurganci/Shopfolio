@@ -153,6 +153,12 @@ public interface IMembershipModule
     Task<string?> GetMemberNameAsync(Guid customerId, CancellationToken ct);
 
     /// <summary>
+    /// The signed-in member's verified e-mail (T509; 07 UC-22; 04 5.13.5): the payment step shows it as the order's contact e-mail and the order is placed with it. Empty when no account holds
+    /// the id or its address is not verified - such an account places no order (02 3.13.1). A plain read.
+    /// </summary>
+    Task<string?> GetVerifiedEmailAsync(Guid customerId, CancellationToken ct);
+
+    /// <summary>
     /// The signed-in member's name and e-mail for the contact form's starting values (T506; 02 3.32.1; 04 5.10.11): the account's own values, which the member may change on the form, or null when
     /// no account holds the id. A plain read; the form stores nothing back on the account.
     /// </summary>

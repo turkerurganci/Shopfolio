@@ -46,6 +46,7 @@ public sealed record PanelOrderPage(IReadOnlyList<PanelOrderRow> Rows, int PageN
 /// What the panel's order page shows beside the customer's order page (T527; 07 UC-92; 04 9.9.4, 9.9.6, 9.9.10-9.9.12; K-788, K-1188 (3)): the order's marks, each item's facts the
 /// operation decision reads (open quantity, the item's marks, its periods' last days), the refunds still pending with the amount the system worked out, the firm's running periods, and the
 /// three panel-only parts - the address history, the e-mail history and the internal note. Every number is the server's; the page works out none. Read at every drawing, never stored.
+/// <see cref="TransferLastPaymentDay"/> is a transfer order's last payment day (Z-8), the same day the list shows (D-1436); null on a card order.
 /// </summary>
 public sealed record PanelOrderDetailFacts(
     PanelOrderMarkFacts Marks,
@@ -56,7 +57,8 @@ public sealed record PanelOrderDetailFacts(
     IReadOnlyList<PanelEmailChange> EmailCorrections,
     IReadOnlyList<Shopfolio.Modules.Notifications.Contracts.OrderNoticeLine> Notices,
     PanelInternalNote? InternalNote,
-    bool PersonalDataDisposed);
+    bool PersonalDataDisposed,
+    DateOnly? TransferLastPaymentDay);
 
 /// <summary>The order-level marks whose condition holds now (04 9.9.4; 03 1.7.3.1, 1.7.3.2, 1.7.3.3, 1.7.3.6, 1.7.3.7).</summary>
 public sealed record PanelOrderMarkFacts(bool EmailNotDelivered, bool PaymentResultMissing, bool RefundNotRealized, bool RefundOutcomePending, bool EmailCorrected);

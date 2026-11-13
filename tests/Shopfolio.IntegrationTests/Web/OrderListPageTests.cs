@@ -8,7 +8,11 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Modules.AfterSales;
+using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Notifications;
+using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Pages.Components;
@@ -133,6 +137,57 @@ public sealed class OrderListPageTests
         int runningAt = timed.IndexOf(running, StringComparison.Ordinal);
         int unapprovedAt = timed.IndexOf(unapproved, StringComparison.Ordinal);
         Assert.True(overrunAt >= 0 && overrunAt < runningAt && runningAt < unapprovedAt);
+    }
+
+    [Fact]
+    public async Task ThePaymentDeliveryIbanAndEmailFilters_EachKeepOnlyTheirOwnOrder_KK1()
+    {
+        (string key, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
+        string email = UniqueEmail();
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+
+        // One order per filter, each outside the other three: a transfer awaiting its payment; a shipped order with an open physical item; a delivered order whose item has an open IBAN
+        // request (K-621); a cancelled order with an undelivered e-mail.
+        (_, string awaiting) = await OrderAsync(email, now.AddMinutes(-4));
+        (Guid shippedId, string shipped) = await OrderAsync(email, now.AddMinutes(-3));
+        (Guid ibanId, string iban) = await OrderAsync(email, now.AddMinutes(-2));
+        (Guid emailId, string undelivered) = await OrderAsync(email, now.AddMinutes(-1));
+        await using (AppDbContext db = NewContext())
+        {
+            db.OrderItems.Add(OrderItem.Create(shippedId, null, null, ProductType.Physical, "Ürün", 1, 100m, 20m, 16.67m, now));
+            OrderItem ibanItem = OrderItem.Create(ibanId, null, null, ProductType.Physical, "Ürün", 1, 100m, 20m, 16.67m, now);
+            ibanItem.DeliveryMarkedAt = now;
+            ibanItem.DeliveryDate = TurkeyTime.DateOf(now);
+            db.OrderItems.Add(ibanItem);
+            db.RefundIbanRequests.Add(RefundIbanRequest.ForItem(ibanItem.Id, RefundIbanRequestReason.AdminRequest, null, adminId, "Yönetici Bir", now));
+            DispatchRecord row = DispatchRecord.Queue(DispatchType.B1, email, emailId, null, null, now);
+            row.DispatchState = DispatchState.Undelivered;
+            row.LastOutcome = DispatchOutcome.RecipientError;
+            row.AttemptCount = 3;
+            db.DispatchRecords.Add(row);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await SetStatusAsync(shippedId, OrderStatus.Shipped, PaymentStatus.Paid);
+        await SetStatusAsync(ibanId, OrderStatus.Delivered, PaymentStatus.Paid);
+        await SetStatusAsync(emailId, OrderStatus.Cancelled, PaymentStatus.Failed);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string[] numbers = [awaiting, shipped, iban, undelivered];
+        (PanelOrderWork Work, string Number)[] filters =
+        [
+            (PanelOrderWork.AwaitingPayment, awaiting),
+            (PanelOrderWork.AwaitingDeliveryMark, shipped),
+            (PanelOrderWork.IbanPendingMark, iban),
+            (PanelOrderWork.EmailUndeliveredMark, undelivered),
+        ];
+
+        foreach ((PanelOrderWork work, string number) in filters)
+        {
+            string html = await ListAsync(client, $"search={Uri.EscapeDataString(email)}&pendingWork={work}", key);
+
+            Assert.Equal([number], numbers.Where(n => html.Contains(n, StringComparison.Ordinal)));
+        }
     }
 
     [Fact]

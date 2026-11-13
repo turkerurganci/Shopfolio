@@ -55,9 +55,9 @@
             <p class="order-detail__transfer">
                 IBAN: @(Model.Summary.TransferIban is { } iban ? DisplayFormat.Iban(iban) : "-") ·
                 Ödenecek toplam: @DisplayFormat.Amount(Model.Detail.Breakdown.Total)
-                @if (Model.Summary.TransferPaymentEndsAt is { } endsAt)
+                @if (Model.Facts.TransferLastPaymentDay is { } lastDay)
                 {
-                    <span> · Son ödeme günü: @DisplayFormat.Date(endsAt)</span>
+                    <span> · Son ödeme günü: @DisplayFormat.Date(lastDay)</span>
                 }
             </p>
             <form method="post" action="@(Model.PagePath)?handler=MarkPaid" asp-antiforgery="true" class="form" data-js="submit-once" id="mark-paid-form">

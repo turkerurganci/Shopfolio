@@ -56,7 +56,7 @@ public sealed class OrderDetailModel : PageModel
     public const string NotOpenText = "Bu işlem siparişin şu anki hâlinde açık değil; işlem uygulanmadı. Siparişin güncel hâli aşağıda.";
 
     /// <summary>K-799: the shipment form without the carrier and the tracking number or the own-vehicle declaration (04 9.9.36).</summary>
-    public const string ShipmentMissingText = "Kargo şirketini ve takip numarasını girin ya da \"kendi aracımızla teslim\"i seçin.";
+    public const string ShipmentMissingText = "Kargo şirketini ve takip numarasını girin ya da kendi aracınızla teslimi seçin.";
 
     public const string DeliveryDateMissingText = "Teslim tarihini girin.";
 
@@ -239,26 +239,27 @@ public sealed class OrderDetailModel : PageModel
         await LoadAsync(id, ct) ? Page() : NotFound();
 
     /// <summary>UC-123: the transfer order's "paid" mark; unconfirmed, the window repeats the frozen IBAN and the total (200); confirmed, Ö1 and its effects (303).</summary>
+    [GatedOperation]
     public async Task<IActionResult> OnPostMarkPaidAsync(Guid id, MarkPaidInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
-        if (!input.Confirmed)
-        {
-            return await AskAsync(id, input.Version, OrderOperation.MarkTransferPaid, () => MarkPaidConfirm(id, input.Version), ct);
-        }
-
         TransitionAdmin admin = await AdminAsync(ct);
-        PanelStepResult result = await RunAsync((steps, token) => steps.MarkPaidAsync(id, admin, input.Version, true, token), ct);
-        return await AnswerAsync(id, result, ct);
+        PanelStepResult result = await RunStepAsync((steps, token) => steps.MarkPaidAsync(id, admin, input.Version, input.Confirmed, token), ct);
+        return result.Refusal == TransitionRefusal.ConfirmationRequired
+            ? await AskAsync(id, () => MarkPaidConfirm(id, input.Version), ct)
+            : await AnswerAsync(id, result, ct);
     }
 
     /// <summary>UC-124: the shipment; the carrier and the tracking number or the own-vehicle declaration are required (422); unconfirmed 200, confirmed 303.</summary>
+    [GatedOperation]
     public Task<IActionResult> OnPostMarkShippedAsync(Guid id, MarkShippedInput input, CancellationToken ct) => SendAsync(id, input, false, ct);
 
     /// <summary>UC-125: the re-sending of a returned order; as UC-124.</summary>
+    [GatedOperation]
     public Task<IActionResult> OnPostMarkReshippedAsync(Guid id, MarkShippedInput input, CancellationToken ct) => SendAsync(id, input, true, ct);
 
     /// <summary>UC-126: the delivery mark and date; a future date or one before the shipment's day is 422, a declaration's day without the order's answer is 422 with the question (K-608).</summary>
+    [GatedOperation]
     public async Task<IActionResult> OnPostMarkDeliveredAsync(Guid id, MarkDeliveredInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -269,7 +270,7 @@ public sealed class OrderDetailModel : PageModel
         }
 
         TransitionAdmin admin = await AdminAsync(ct);
-        PanelStepResult result = await RunAsync(
+        PanelStepResult result = await RunStepAsync(
             (steps, token) => steps.MarkDeliveredAsync(new MarkDeliveredRequest(id, admin, input.Version, date), input.IsDeliveredBeforeDeclaration, token),
             ct);
         if (result.AsksDeliveryOrder)
@@ -283,67 +284,50 @@ public sealed class OrderDetailModel : PageModel
     }
 
     /// <summary>UC-127: the returned shipment's mark (S7; S11 when a delivered item leaves no open item).</summary>
+    [GatedOperation]
     public async Task<IActionResult> OnPostMarkDeliveryFailedAsync(Guid id, MarkDeliveryFailedInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
         TransitionAdmin admin = await AdminAsync(ct);
-        PanelStepResult result = await RunAsync((steps, token) => steps.MarkDeliveryFailedAsync(new AdminOrderRequest(id, admin, input.Version), token), ct);
+        PanelStepResult result = await RunStepAsync((steps, token) => steps.MarkDeliveryFailedAsync(new AdminOrderRequest(id, admin, input.Version), token), ct);
         return await AnswerAsync(id, result, ct);
     }
 
     /// <summary>UC-128: the reasonless closing of a returned order; no cancellation record, no refund, no B-7 (K-717).</summary>
+    [GatedOperation]
     public async Task<IActionResult> OnPostCloseDeliveryFailedAsync(Guid id, CloseDeliveryFailedInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
         TransitionAdmin admin = await AdminAsync(ct);
-        PanelStepResult result = await RunAsync((steps, token) => steps.CloseDeliveryFailedAsync(new AdminOrderRequest(id, admin, input.Version), token), ct);
+        PanelStepResult result = await RunStepAsync((steps, token) => steps.CloseDeliveryFailedAsync(new AdminOrderRequest(id, admin, input.Version), token), ct);
         return await AnswerAsync(id, result, ct);
     }
 
+    // UC-124, UC-125: the carrier data is the module's to check (K-799; one rule with the transition unit): a value it refuses is 422 with the form's message, before the lock and the version.
     private async Task<IActionResult> SendAsync(Guid id, MarkShippedInput input, bool isResending, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
         Ship = input;
-        ShipmentInfo shipment = new(Blank(input.Carrier), Blank(input.OtherCarrierName), Blank(input.TrackingNumber), input.IsOwnVehicleDelivery);
-        if (!IsComplete(shipment))
-        {
-            return await RefuseAsync(id, ShipmentMissingText, ErrorCode.ShipmentInfoMissing, ct);
-        }
-
-        OrderOperation operation = isResending ? OrderOperation.ResendOrder : OrderOperation.ShipOrder;
-        if (!input.Confirmed)
-        {
-            return await AskAsync(id, input.Version, operation, () => ShipmentConfirm(id, input, isResending), ct);
-        }
-
+        ShipmentInfo shipment = new(input.Carrier, input.OtherCarrierName, input.TrackingNumber, input.IsOwnVehicleDelivery);
         TransitionAdmin admin = await AdminAsync(ct);
-        ShipOrderRequest request = new(id, admin, input.Version, true, shipment);
-        PanelStepResult result = await RunAsync(
+        ShipOrderRequest request = new(id, admin, input.Version, input.Confirmed, shipment);
+        PanelStepResult result = await RunStepAsync(
             (steps, token) => isResending ? steps.MarkReshippedAsync(request, token) : steps.MarkShippedAsync(request, token),
             ct);
-        return await AnswerAsync(id, result, ct);
+        return result.Refusal switch
+        {
+            TransitionRefusal.InvalidInput => await RefuseAsync(id, ShipmentMissingText, ErrorCode.ShipmentInfoMissing, ct),
+            TransitionRefusal.ConfirmationRequired => await AskAsync(id, () => ShipmentConfirm(id, input, isResending), ct),
+            _ => await AnswerAsync(id, result, ct),
+        };
     }
 
-    // The unconfirmed first POST: the step must be open (else 422) and the version current (else 409); then the window (200). Nothing is written.
-    private async Task<IActionResult> AskAsync(Guid id, int version, OrderOperation operation, Func<ConfirmView> confirm, CancellationToken ct)
+    // The unconfirmed first POST that passed the module's checks under the lock - the version first (409), then the operation's rule (422) - and wrote nothing: the window (200).
+    private async Task<IActionResult> AskAsync(Guid id, Func<ConfirmView> confirm, CancellationToken ct)
     {
         if (!await LoadAsync(id, ct))
         {
             return NotFound();
-        }
-
-        if (!Operations.IsOpen(operation))
-        {
-            Reject(ErrorCode.OperationNotAvailable);
-            RefusalText = NotOpenText;
-            return FormResults.Redisplay(this);
-        }
-
-        if (Operations.Version != version)
-        {
-            Reject(ErrorCode.OrderVersionConflict);
-            IsConflict = true;
-            return FormResults.Conflict(this);
         }
 
         Confirm = confirm();
@@ -423,11 +407,21 @@ public sealed class OrderDetailModel : PageModel
     // The one rejection line of a refused step with its code (07 6.1.3, 6.2; 09 8.2 item 3; K-1198): the screen shows the text, the log keeps the code.
     private void Reject(ErrorCode code) => HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(code);
 
-    private async Task<PanelStepResult> RunAsync(Func<IPanelOrderSteps, CancellationToken, Task<PanelStepResult>> step, CancellationToken ct)
+    // The page opens the operation's transaction (09 8.3 item 3); the module's write method locks, compares the version, asks the rule and writes. A rejected step rolls it back.
+    private async Task<PanelStepResult> RunStepAsync(Func<IPanelOrderSteps, CancellationToken, Task<PanelStepResult>> step, CancellationToken ct)
     {
         IServiceProvider services = HttpContext.RequestServices;
         IPanelOrderSteps steps = services.GetRequiredService<IPanelOrderSteps>();
-        return await services.GetRequiredService<ITransactionRunner>().RunAsync(token => step(steps, token), ct);
+        OperationRunner runner = services.GetRequiredService<OperationRunner>();
+        PanelStepResult? outcome = null;
+        await runner.RunAsync(
+            async token =>
+            {
+                outcome = await step(steps, token);
+                return outcome.Gate;
+            },
+            ct);
+        return outcome!; // non-null: the runner runs the step once before it returns
     }
 
     private async Task<TransitionAdmin> AdminAsync(CancellationToken ct)
@@ -504,11 +498,6 @@ public sealed class OrderDetailModel : PageModel
 
         return operations.IsOpen(OrderOperation.MarkDelivered) ? OrderPrimaryStep.MarkDelivered : OrderPrimaryStep.None;
     }
-
-    private static bool IsComplete(ShipmentInfo shipment) =>
-        shipment.IsOwnVehicleDelivery || ((shipment.Carrier is not null || shipment.OtherCarrierName is not null) && shipment.TrackingNumber is not null);
-
-    private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private static KeyValuePair<string, string> Field(string name, int value) => new(name, value.ToString(CultureInfo.InvariantCulture));
 

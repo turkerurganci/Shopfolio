@@ -65,7 +65,7 @@ internal sealed class PanelOrderReader : IPanelOrderReader
             .Where(o => ids.Contains(o.Id))
             .Where(PaymentWindowRules.Awaiting(PaymentMethod.BankTransfer))
             .ToListAsync(ct);
-        periods.AddRange(awaiting.Select(o => new OrderRunningPeriod(o.Id, CountedPeriod.BankTransferPaymentWindow, TurkeyTime.DateOf(o.PaymentWindowEndsAt.AddTicks(-1)))));
+        periods.AddRange(awaiting.Select(o => new OrderRunningPeriod(o.Id, CountedPeriod.BankTransferPaymentWindow, PaymentWindowRules.LastPaymentDay(o.PaymentWindowEndsAt))));
 
         // Z-16, Z-17: each refund not yet sent runs from its start, as on the order's page (04 9.9.6) - the AfterSales rule gives the last day.
         IReadOnlyList<PendingRefundStart> refunds = await _payment.ListPendingRefundStartsAsync(ids, ct);
@@ -175,7 +175,8 @@ internal sealed class PanelOrderReader : IPanelOrderReader
             emailCorrections,
             await _notifications.ListOrderNoticesAsync(orderId, ct),
             note,
-            facts.PersonalDataDisposed);
+            facts.PersonalDataDisposed,
+            order.PaymentMethod == PaymentMethod.BankTransfer ? PaymentWindowRules.LastPaymentDay(order.PaymentWindowEndsAt) : null);
     }
 
     // The IBAN a transfer refund goes to: the one on file for the refund itself, else the one on file for its item (04 9.9.6; OB-14, read only in the panel).

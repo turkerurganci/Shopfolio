@@ -283,7 +283,7 @@
 | T524 | Satış özeti ve dışa aktarma (E-51, E-53) | ✓ | ✓ PASS (tur 1) | `c5add538` | #562 |
 | T525 | Ürün listesi ve ürün formu, görsel yükleme (E-32, E-33) | ⬚ | — | — | — |
 | T526 | Kategori ağacı ve kuponlar (E-34, E-35) | ⬚ | — | — | — |
-| T527 | Sipariş listesi, sipariş ayrıntısı ve durum geçişleri (E-36, E-37) | ⏳ | ✗ FAIL (tur 1); onaysız ilk gönderim sürümden önce açıklığı sorar (eski sürüm kapalı adımda 409 yerine 422), panelin altı işlem POST'u `[GatedOperation]` ve `OperationRunner` taşımıyor, onaylı yazım `03 §1.11` kararını kilit altında sormuyor (`09 §8.3`) — düzeltme bekliyor | — | #565 |
+| T527 | Sipariş listesi, sipariş ayrıntısı ve durum geçişleri (E-36, E-37) | ⏳ | Düzeltme 1 (tur 1 ✗ FAIL'in B1, B2, K1, K2'si): altı POST `[GatedOperation]` + `OperationRunner`, `PanelOrderSteps` kilit altında sürüm (409) sonra `03 §1.11` kararı (422), onaysız gönderim dahil; doğrulama tur 2 bekliyor | — | #565 |
 | T528 | Sipariş ayrıntısı: firma iptali, bildirim kaydı, kalem çıkarma, iade malı ve ayıp talebi (E-37) | ⬚ | — | — | — |
 | T529 | Sipariş ayrıntısı: geri ödeme işlemleri (E-37) | ⬚ | — | — | — |
 | T530 | Sipariş ayrıntısı: adres, kargo, teslim tarihi, durum geçişi ve e-posta düzeltmeleri (E-37) | ⬚ | — | — | — |

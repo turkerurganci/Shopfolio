@@ -23,11 +23,11 @@
 | 2 | En yeni önce; süreli süzgeçte en az kalan, aşılmış en başta; kendiliğinden iptal edilen ödenmemiş sipariş görünür | ✓ | `TheList_IsNewestFirst_ShowsTheSystemCancelledUnpaidOrder_AndPagesWithoutLossOnEqualMoments_KK2` (sayfa sınırı dahil), `ATimedPendingWorkFilter_..._KK1_KK2`; Unit `PanelOrderListOrderTests` |
 | 3 | Bölümler, işaretler, açık işlemler; birincil düğme sıradaki adım; yabancı anahtar 404 | ✓ | `OrderDetailPageTests.TheScreen_ShowsTheOrderAndItsNextStepAsThePrimaryButton_AndAForeignKeyIsNotFound_KK3` |
 | 4 | Açık adet, süre, kalanı, bekleyen geri ödeme sunucunun; adres/e-posta geçmişi, iç not yalnız panelde | ✓ | `TheScreen_ShowsThePanelOnlyParts_TheInternalNoteAndTheEmailHistory_FromTheServer_KK4`, `TheScreen_ShowsTheDefectClaimsSection_..._KK4`, `TheScreen_WithoutAClaim_HasNoClaimsSection_KK4`, `OrderListPageTests.TheRow_ShowsTheListMarks_AndTheRunningPeriodTheServerWorkedOut_KK4` |
-| 5 | `MarkPaid` onaysız 200 (donmuş IBAN, tutar); onaylı Ö1 etkileri; açık değilse 422 | ✓ | `MarkPaid_Unconfirmed_Is200WithTheFrozenIbanAndTheAmount_AndWritesNothing_KK5`, `MarkPaid_Confirmed_Is303_MovesTheOrder_AndWritesTheAuditRow_KK5_KK10`, `MarkPaid_Confirmed_CommitsTheReservedUnitsAndTheCoupon_AndTakesOnlyTheOrderedVariantOutOfTheCart_KK5` (sayfadan: ayrılan adet kesin düşer, kupon hakkı kullanılmış olur, ayırma satırları silinir, sepetten yalnız siparişteki varyant çıkar); 422 `AStepThatIsNotOpen_Is422_..._KK6_KK8` |
-| 6 | `MarkShipped`/`MarkReshipped` kargo bilgisi ya da beyan; onaysız 200, onaylı 303; yalnız açık fiziksel kalem; eksikse 422 | ✓ | `MarkShipped_Unconfirmed_Is200AndWritesNothing_Confirmed_Is303_SendsOnlyTheOpenPhysicalItem_AndWritesTheAuditRow_KK6_KK10`, `MarkReshipped_AfterTheReturn_Is303_..._KK6_KK10`, `AStepThatIsNotOpen_Is422_AndTheShipmentWithoutItsCarrierData_Is422_KK6_KK8` |
+| 5 | `MarkPaid` onaysız 200 (donmuş IBAN, tutar); onaylı Ö1 etkileri; açık değilse 422 | ✓ | `MarkPaid_Unconfirmed_Is200WithTheFrozenIbanAndTheAmount_AndWritesNothing_KK5`, `MarkPaid_Confirmed_Is303_MovesTheOrder_AndWritesTheAuditRow_KK5_KK10`, `MarkPaid_Confirmed_CommitsTheReservedUnitsAndTheCoupon_AndTakesOnlyTheOrderedVariantOutOfTheCart_KK5` (sayfadan: ayrılan adet kesin düşer, kupon hakkı kullanılmış olur, ayırma satırları silinir, sepetten yalnız siparişteki varyant çıkar); 422 `AStepThatIsNotOpen_Is422_..._KK6_KK8`, `MarkPaid_OnACancelledTransferOrderAndOnACardOrder_Is422Unconfirmed_AndConfirmed_AndWritesNothing_KK5` (düzeltme 1) |
+| 6 | `MarkShipped`/`MarkReshipped` kargo bilgisi ya da beyan; onaysız 200, onaylı 303; yalnız açık fiziksel kalem; eksikse 422 | ✓ | `MarkShipped_Unconfirmed_Is200AndWritesNothing_Confirmed_Is303_SendsOnlyTheOpenPhysicalItem_AndWritesTheAuditRow_KK6_KK10`, `MarkReshipped_AfterTheReturn_Is303_..._KK6_KK10`, `AStepThatIsNotOpen_Is422_AndTheShipmentWithoutItsCarrierData_Is422_KK6_KK8`; düzeltme 1: `MarkShipped_WithTheOwnVehicleDeclaration_..._VAL_C041`, `MarkReshipped_OnAReturnedOrderWhosePhysicalItemsClosedByATerminationAndAWithdrawal_Is422_AndChangesNothing_VAL_C046`, `AnInvalidCarrierValue_Is422WithTheFormsMessageAndShipmentInfoMissing_OnBothSendings_K799` |
 | 7 | `MarkDelivered` tarih; ileri ya da kargodan önce 422; beyanla çakışan tarih sıra sorusu | ✓ | `MarkDelivered_AFutureDateAndOneBeforeTheShipment_Are422_ADeclarationsDayAsksTheOrder_AndTheAnsweredDateIsWritten_KK7_KK10` |
 | 8 | `MarkDeliveryFailed` S11 ya da Teslim edilemedi; `CloseDeliveryFailed` iptal kaydı ve geri ödeme açmaz | ✓ | `MarkDeliveryFailed_WithADeliveredItemAndNoOpenOne_EndsInDelivered_WithoutOne_StaysReturned_KK8_KK10`, `CloseDeliveryFailed_ClosesTheReturnedOrder_WithoutACancellationRecordOrARefund_AndWritesTheAuditRow_KK8_KK10` |
-| 9 | `Version`; eşzamanlı ikinci gönderim yazmaz | ✓ | `ASecondSendingWithTheOldVersion_Is409_AndWritesNothing_KK9` |
+| 9 | `Version`; eşzamanlı ikinci gönderim yazmaz | ✓ | onaylı yol `ASecondSendingWithTheOldVersion_Is409_AndWritesNothing_KK9`; onaysız yol (düzeltme 1, B1) `AnUnconfirmedSendingWithTheOldVersion_AfterAnotherAdministratorsStep_Is409_NotTheClosedSteps422_KK9` — `MarkPaid`, `MarkShipped`, `MarkReshipped` başka yöneticinin adımından sonra eski sürümle 409, yazım yok |
 | 10 | Her geçiş işlem izine | ✓ | KK5, KK6, KK7, KK8 testlerinin `AuditLogs` iddiaları (`MarkBankTransferPaid`, `MarkShipped`, `MarkDelivered`, `MarkDeliveryFailed`) |
 
 ### Öz denetim (bitiş kapısı 2)
@@ -52,14 +52,17 @@
 | Para: tutar sunucunun tek kural evinden | ✓ | bekleyen geri ödeme ve tutarlar `IPanelOrderReader` / `IPaymentModule`'den; sayfa hesaplamaz |
 | Devredilen backlog kalemleri | ✓ | D-648 ✅; D-308, D-614, D-645, D-875, D-1306 T527 payı kapandı; D-646, D-774, D-776, D-854 → T528/T531; D-874, D-898, D-906 → T529; D-981 C079 payı; D-1348, D-1365, D-1373 → faz kapısı |
 | `09 §25` / güvenlik | ✓ | panel oturumu ve sürüm; yabancı anahtar 404; onaylı adımlar geri alınamaz onay ister; kod sayfaya yazılmaz; yeni bağımlılık, sır, şema yok |
+| `09 §8.3` m.1–4 işlem kapısı (düzeltme 1, B2) | ✓ | altı POST `[GatedOperation]` + `OperationRunner` (`OperationSourceScan` yeşil); `PanelOrderSteps.GateAsync` kilit → `ShownVersion.Matches` (409) → `OrderOperationCatalog.Check` (GET'in kural örneği; 422) → geçiş birimi; onaylı ve onaysız gönderim aynı yol, sayfada karar kopyası yok; `OperationHandlerMarkTests.EveryPostHandlerOfThePanelOrderPage_CarriesTheGatedOperationMark` + ihlal örneği `AnUnmarkedStepOfAPanelOrderPage_IsAFinding_AndItsMarkedStepIsNot` |
+| Tek kural evi (sık FAIL "kendi denetimini yazdı") | ✓ | kargo değeri yalnız `OrderTransitions.TryNormalizeShipment` (sayfanın `IsComplete` kopyası silindi); son ödeme günü yalnız `PaymentWindowRules.LastPaymentDay` (liste + ayrıntı) |
+| Devredilen backlog (düzeltme 1) | ✓ | D-1435 ✅, D-1436 ✅, D-610 ve D-614 T527 payı kapandı; yeni D-1450 (müşteri sayfasının son günü, faz kapısı) |
 
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests` | TAM: 7477/7477 |
-| Integration | ✓ (ilgili sınıflar) | `--filter-class`, Postgres 18 (`track_commit_timestamp=on`), main 73e36672 birleşik | koşulan: `OrderDetailPageTests` 15/15, `OrderListPageTests` 5/5, `PanelHomeTests` + `SessionAccessTests` 52/52; `Files.OrderPageTests` 10/10 (önceki tur). **TAM: CI** |
-| Biçim | ✓ | `dotnet format <proje> --verify-no-changes` | Web, IntegrationTests, UnitTests: temiz (çıkış 0) |
+| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests` | TAM: 7477/7477; düzeltme 1 (main 9b2a9db8 birleşik): 7522/7522 |
+| Integration | ✓ (ilgili sınıflar) | `--filter-class`, Postgres 18 (`track_commit_timestamp=on`), main 73e36672 birleşik | koşulan: `OrderDetailPageTests` 15/15, `OrderListPageTests` 5/5, `PanelHomeTests` + `SessionAccessTests` 52/52; `Files.OrderPageTests` 10/10 (önceki tur). Düzeltme 1: `OrderDetailPageTests` + `OrderListPageTests` 27/27; `OrderOperationsTests`, `PanelHomeTests`, `SessionAccessTests`, `ShipmentTransitionsTests` 152/152. **TAM: CI** |
+| Biçim | ✓ | `dotnet format <proje> --verify-no-changes` | Web, IntegrationTests, UnitTests: temiz (çıkış 0); düzeltme 1 aynı |
 
 ## Altyapı Değişiklikleri
 
@@ -105,6 +108,7 @@
 
 ## Notlar
 
+- **Düzeltme 1 (2026-11-13, tur 1 FAIL → B1, B2, K1, K2):** (B1) sürüm denetimi açıklıktan önce: onaysız ilk gönderim de modülden geçer; `PanelOrderSteps` kilit altında önce sürümü (409, güncel hâl), sonra işlem açıklığını (422) sorar — sayfadaki `AskAsync` kararı kaldırıldı, pencere yalnız iki denetimden geçen ve hiçbir şey yazmayan gönderimde (200). (B2) işlem kapısı: altı POST `[GatedOperation]` taşır ve `OperationRunner` ile açılır; onaylı ve onaysız yazım GET'in kullandığı `OrderOperationCatalog` karar örneğini kilit altında işletir (`CustomerOperations` kalıbı; `PanelStepResult.Gate`); `OperationHandlerMarkTests` panel sipariş sayfasını tarar; D-610/D-614 T527 payı kapandı. (K1) dört kalıcı test (D-1435 ✅). (K2) geçersiz kargo değeri K-799 metni ve `ShipmentInfoMissing` ile 422 (tek ev `TryNormalizeShipment`; metin K-799'la birebir yapıldı), son ödeme günü liste ve ayrıntıda `PaymentWindowRules.LastPaymentDay` (D-1436 ✅); müşteri sayfasının aynı kalıbı D-1450. Kabul kriterleri 1–10 ve KK1–KK10 bütünüyle yeniden denetlendi (tablo yukarıda). ⚠ Süre bütçesi (45 dk) yaklaşık 10 dk aşıldı; iş bölünmedi.
 - **Working tree (Adım -1):** temiz
 - **Ana dal CI startup (Adım 0):** devam işçisi; yönetici izler
 - **Repo memory (bitiş kapısı 9):** parça dosyalarıyla (STATUS tablo satırı, `STATUS_CHANGELOG.d/T527.md`, `DEFERRED_BACKLOG.d/T527.md`)

@@ -42,6 +42,53 @@
     {
         @VersionFields.Version(version, "Input")
     }
+    @* UC-114 writes the form whole: the parts the form does not edit on this screen are carried as they stand, so a save that does not touch them keeps them. *@
+    @if (entries.OriginCountryId is { } origin)
+    {
+        <input type="hidden" name="Input.OriginCountryId" value="@origin.ToString("D")" />
+    }
+    @if (entries.MeasurementUnit is { } unit)
+    {
+        <input type="hidden" name="Input.MeasurementUnit" value="@unit.ToString()" />
+    }
+    @if (entries.WithdrawalExemptionReason is { } exemption)
+    {
+        <input type="hidden" name="Input.WithdrawalExemptionReason" value="@exemption.ToString()" />
+    }
+    @for (int c = 0; c < entries.Categories.Count; c++)
+    {
+        SaveProductCategoryRow category = entries.Categories[c];
+        <input type="hidden" name="Input.Categories[@c].CategoryId" value="@category.CategoryId.ToString("D")" />
+        <input type="hidden" name="Input.Categories[@c].IsPrimaryCategory" value="@(category.IsPrimaryCategory ? "true" : "false")" />
+    }
+    @for (int o = 0; o < entries.Options.Count; o++)
+    {
+        SaveProductOptionRow option = entries.Options[o];
+        if (option.OptionId is { } optionId)
+        {
+            <input type="hidden" name="Input.Options[@o].OptionId" value="@optionId.ToString("D")" />
+        }
+        <input type="hidden" name="Input.Options[@o].Name" value="@option.Name" />
+        for (int v = 0; v < option.Values.Count; v++)
+        {
+            SaveProductOptionValueRow value = option.Values[v];
+            if (value.OptionValueId is { } valueId)
+            {
+                <input type="hidden" name="Input.Options[@o].Values[@v].OptionValueId" value="@valueId.ToString("D")" />
+            }
+            <input type="hidden" name="Input.Options[@o].Values[@v].Value" value="@value.Value" />
+        }
+    }
+    @if (entries.DigitalFileId is { } productFile)
+    {
+        <input type="hidden" name="Input.DigitalFileId" value="@productFile.ToString("D")" />
+    }
+    @if (entries.Discount is { } discount)
+    {
+        <input type="hidden" name="Input.Discount.Percentage" value="@Decimal(discount.Percentage)" />
+        <input type="hidden" name="Input.Discount.StartDate" value="@(discount.StartDate?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture))" />
+        <input type="hidden" name="Input.Discount.EndDate" value="@(discount.EndDate?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture))" />
+    }
     @foreach (FieldView field in Model.ProductFields())
     {
         <partial name="_Field" model="field" />
@@ -109,6 +156,10 @@
                 @if (row.ImageId is { } imageId)
                 {
                     <input type="hidden" name="Input.Variants[@i].ImageId" value="@imageId.ToString("D")" />
+                }
+                @if (row.DigitalFileId is { } variantFile)
+                {
+                    <input type="hidden" name="Input.Variants[@i].DigitalFileId" value="@variantFile.ToString("D")" />
                 }
                 @if (Model.UploadRefusal is not null && Model.UploadRefusalTarget == target)
                 {

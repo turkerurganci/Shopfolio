@@ -15,10 +15,25 @@ public sealed record PanelVariantRow(
     int? StockQuantity,
     int ReservedQuantity,
     PublishStatus PublishStatus,
-    Guid? ImageId);
+    Guid? ImageId,
+    Guid? FirstOptionValueId = null,
+    Guid? SecondOptionValueId = null,
+    Guid? DigitalFileId = null);
 
 /// <summary>One image of the product's gallery (T525; 06 4.71; 04 7.2.4.5): the image, its place, the main mark and the alternative text.</summary>
 public sealed record PanelImageRow(Guid ImageId, int SortOrder, bool IsMain, string? AltText);
+
+/// <summary>A category the product is linked to (06 4.10; 04 7.2.4.3) and whether it is the main one.</summary>
+public sealed record PanelCategoryRow(Guid CategoryId, bool IsPrimaryCategory);
+
+/// <summary>An option dimension of the product and its values in their order (06 4.7, 4.8; 04 7.2.4.6).</summary>
+public sealed record PanelOptionRow(Guid OptionId, string Name, IReadOnlyList<PanelOptionValueRow> Values);
+
+/// <summary>A value of an option dimension (06 4.8).</summary>
+public sealed record PanelOptionValueRow(Guid OptionValueId, string Value);
+
+/// <summary>The product's discount (06 4.12; 04 7.2.4.18).</summary>
+public sealed record PanelDiscountRow(decimal Percentage, DateOnly StartDate, DateOnly EndDate);
 
 /// <summary>
 /// The product form's record as it stands when the form opens (T525; 07 UC-88): the product's fields of 06 4.5, its <c>Version</c> (06 2.6), its variants, its gallery, the publish gate's unmet conditions
@@ -42,7 +57,20 @@ public sealed record PanelProductRecord(
     bool IsSlugFixed,
     IReadOnlyList<PanelVariantRow> Variants,
     IReadOnlyList<PanelImageRow> Images,
-    IReadOnlyList<string> UnmetGateConditions);
+    IReadOnlyList<string> UnmetGateConditions)
+{
+    /// <summary>The product's categories (06 4.10): the form carries them, so a save that does not touch them keeps them (07 5.1.5 <c>SaveProductInput</c>).</summary>
+    public IReadOnlyList<PanelCategoryRow> Categories { get; init; } = [];
+
+    /// <summary>The product's option dimensions with their values (06 4.7, 4.8).</summary>
+    public IReadOnlyList<PanelOptionRow> Options { get; init; } = [];
+
+    /// <summary>The product's discount (06 4.12); null when it has none.</summary>
+    public PanelDiscountRow? Discount { get; init; }
+
+    /// <summary>The product-level file attached now (06 4.70); null when none.</summary>
+    public Guid? DigitalFileId { get; init; }
+}
 
 /// <summary>The panel's product form read (T525; 07 UC-88). A plain read; it writes nothing.</summary>
 public interface IPanelProductForm

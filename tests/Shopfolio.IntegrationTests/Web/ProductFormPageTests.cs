@@ -350,6 +350,57 @@ public sealed class ProductFormPageTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task SaveProduct_OfTheFormAsItWasShown_KeepsTheCategoriesTheOptionsTheDiscountAndTheFiles_KK2_KK3()
+    {
+        // UC-114 writes the form whole: the form carries every part the record holds, so posting it back as shown - with only the name changed - keeps them all.
+        Category category = Category.Create("Kitaplar", $"kitaplar-{Guid.NewGuid():N}"[..20], null, 1, Base);
+        Product product = Product.Create("E-kitap", $"p-{Guid.NewGuid():N}", ProductType.Digital, 20m, Base);
+        Option option = Option.Create(product.Id, "Biçim", 1, Base);
+        OptionValue pdf = OptionValue.Create(option.Id, "PDF", 1, Base);
+        OptionValue epub = OptionValue.Create(option.Id, "EPUB", 2, Base);
+        Variant variant = Variant.Create(product.Id, $"S-{Guid.NewGuid():N}"[..20], 100m, Base, null);
+        variant.FirstOptionValueId = pdf.Id;
+        DigitalFile productFile = AttachedFile(product.Id, null);
+        DigitalFile variantFile = AttachedFile(null, variant.Id);
+        DateOnly start = new(2027, 1, 1);
+        DateOnly end = new(2027, 1, 31);
+        await using (AppDbContext db = ListSeed.Open(_database.Dsn))
+        {
+            db.Categories.Add(category);
+            db.Products.Add(product);
+            db.Options.Add(option);
+            db.OptionValues.AddRange(pdf, epub);
+            db.Variants.Add(variant);
+            db.PriceHistories.Add(PriceHistory.Create(variant.Id, 100m, Base, Base));
+            db.ProductCategories.Add(ProductCategory.Create(product.Id, category.Id, true, Base));
+            db.Discounts.Add(Discount.Create(product.Id, 10m, start, end, Base));
+            db.DigitalFiles.AddRange(productFile, variantFile);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        (_, string html) = await GetAsync(client, ProductFormModel.PathOf(product.Id));
+        List<(string Name, string Value)> fields = [.. SaveFormFieldsOf(html).Where(f => f.Name != "Input.Name"), ("Input.Name", "E-kitap yeni"), ("Input.ProductType", nameof(ProductType.Digital))];
+
+        using HttpResponseMessage response = await PostAsync(client, product.Id, "SaveProduct", [.. fields]);
+
+        Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
+        await using AppDbContext check = ListSeed.Open(_database.Dsn);
+        Assert.Equal("E-kitap yeni", await NameOfAsync(product.Id));
+        ProductCategory link = await check.ProductCategories.AsNoTracking().SingleAsync(l => l.ProductId == product.Id, Ct);
+        Assert.Equal((category.Id, true), (link.CategoryId, link.IsPrimaryCategory));
+        Assert.Equal(["PDF", "EPUB"], await check.OptionValues.AsNoTracking().Where(v => v.OptionId == option.Id).OrderBy(v => v.SortOrder).Select(v => v.Value).ToListAsync(Ct));
+        Assert.Equal("Biçim", await check.Options.AsNoTracking().Where(o => o.Id == option.Id).Select(o => o.Name).SingleAsync(Ct));
+        Assert.Equal(pdf.Id, await check.Variants.AsNoTracking().Where(v => v.Id == variant.Id).Select(v => v.FirstOptionValueId).SingleAsync(Ct));
+        Discount kept = await check.Discounts.AsNoTracking().SingleAsync(d => d.ProductId == product.Id, Ct);
+        Assert.Equal((10m, start, end), (kept.Percentage, kept.StartDate, kept.EndDate));
+        Assert.Equal(
+            [productFile.Id, variantFile.Id],
+            await check.DigitalFiles.AsNoTracking().Where(f => f.DetachedAt == null && f.AttachedAt != null).OrderBy(f => f.VariantId != null).Select(f => f.Id).ToListAsync(Ct));
+    }
+
+    [Fact]
     public async Task SaveProduct_OnAGoneRecord_Is404_BeforeAFieldsRefusal_AndTheSameFieldOnAnExistingRecordIs422_KK6()
     {
         (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
@@ -602,6 +653,33 @@ public sealed class ProductFormPageTests : IAsyncLifetime
     {
         using HttpResponseMessage response = await client.GetAsync(new Uri(path, UriKind.Relative), Ct);
         return (response.StatusCode, WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct)));
+    }
+
+    private static DigitalFile AttachedFile(Guid? productId, Guid? variantId)
+    {
+        DigitalFile file = DigitalFile.Create(EntityIds.NewStorageKey(), "kitap.pdf", 100, Base);
+        file.UploadCompletedAt = Base;
+        file.ProductId = productId;
+        file.VariantId = variantId;
+        file.AttachedAt = Base;
+        return file;
+    }
+
+    /// <summary>The entries the save form posts as shown: its inputs with a value (text and hidden), the description's text; the buttons, the file field and the closed lists are left out.</summary>
+    private static IEnumerable<(string Name, string Value)> SaveFormFieldsOf(string html)
+    {
+        int start = html.IndexOf("id=\"product-save\"", StringComparison.Ordinal);
+        string form = html[start..html.IndexOf("</form>", start, StringComparison.Ordinal)];
+        foreach (System.Text.RegularExpressions.Match input in System.Text.RegularExpressions.Regex.Matches(form, "<input(?<attrs>[^>]*)>"))
+        {
+            string attrs = input.Groups["attrs"].Value;
+            System.Text.RegularExpressions.Match name = System.Text.RegularExpressions.Regex.Match(attrs, "\\sname=\"(?<v>[^\"]*)\"");
+            System.Text.RegularExpressions.Match value = System.Text.RegularExpressions.Regex.Match(attrs, "\\svalue=\"(?<v>[^\"]*)\"");
+            if (name.Success && !attrs.Contains("type=\"file\"", StringComparison.Ordinal))
+            {
+                yield return (name.Groups["v"].Value, value.Success ? value.Groups["v"].Value : string.Empty);
+            }
+        }
     }
 
     private static Task<HttpResponseMessage> PostAsync(HttpClient client, Guid productId, string handler, params (string Name, string Value)[] fields) =>

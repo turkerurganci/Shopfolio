@@ -688,7 +688,10 @@ internal sealed class ProductFormModel : PageModel
         return true;
     }
 
-    /// <summary>The form's entries of a record as it stands (07 UC-88): its fields, variants with the shown stock value, gallery and <c>Version</c>.</summary>
+    /// <summary>
+    /// The form's entries of a record as it stands (07 UC-88): its fields, categories, options, variants with their option values, files and the shown stock value, gallery, discount and
+    /// <c>Version</c>. UC-114 writes the form whole, so every part the record holds is carried: a save that does not touch a part keeps it.
+    /// </summary>
     public static SaveProductInput InputOf(PanelProductRecord record)
     {
         ArgumentNullException.ThrowIfNull(record);
@@ -715,9 +718,26 @@ internal sealed class ProductFormModel : PageModel
                     StockQuantity = v.StockQuantity,
                     OriginalStockQuantity = v.StockQuantity?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
                     ImageId = v.ImageId,
+                    FirstOptionValueId = v.FirstOptionValueId,
+                    SecondOptionValueId = v.SecondOptionValueId,
+                    DigitalFileId = v.DigitalFileId,
                 }),
             ],
             Images = [.. record.Images.Select(i => new SaveProductImageRow { ImageId = i.ImageId, SortOrder = i.SortOrder, IsMain = i.IsMain, AltText = i.AltText })],
+            Categories = [.. record.Categories.Select(c => new SaveProductCategoryRow { CategoryId = c.CategoryId, IsPrimaryCategory = c.IsPrimaryCategory })],
+            Options =
+            [
+                .. record.Options.Select(o => new SaveProductOptionRow
+                {
+                    OptionId = o.OptionId,
+                    Name = o.Name,
+                    Values = [.. o.Values.Select(v => new SaveProductOptionValueRow { OptionValueId = v.OptionValueId, Value = v.Value })],
+                }),
+            ],
+            Discount = record.Discount is { } discount
+                ? new SaveProductDiscountRow { Percentage = discount.Percentage, StartDate = discount.StartDate, EndDate = discount.EndDate }
+                : null,
+            DigitalFileId = record.DigitalFileId,
             Version = record.Version,
         };
     }

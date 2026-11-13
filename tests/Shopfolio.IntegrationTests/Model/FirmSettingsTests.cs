@@ -87,6 +87,9 @@ public sealed class FirmSettingsTests : IAsyncLifetime
         Assert.Equal(
             [new AuditValueChange("ShippingFee", "0.00", "49.90"), new AuditValueChange("FreeShippingThreshold", null, "500.00")],
             row.Details.Changes);
+
+        // The fee feeds the two texts: each gets a version and its trail row (D-681, D-220).
+        Assert.Equal(2, await ReadTextVersionTrailCountAsync());
     }
 
     [Fact]
@@ -456,10 +459,17 @@ public sealed class FirmSettingsTests : IAsyncLifetime
 
     // ---- Helpers ----
 
+    /// <summary>The settings rows of the trail; a save that feeds the two texts also writes their version rows (D-220; T536), read by <see cref="ReadTextVersionTrailCountAsync"/>.</summary>
     private async Task<List<AuditLog>> ReadTrailAsync()
     {
         await using AppDbContext context = NewContext();
-        return await context.AuditLogs.AsNoTracking().OrderBy(l => l.CreatedAt).ThenBy(l => l.Id).ToListAsync(Ct);
+        return await context.AuditLogs.AsNoTracking().Where(l => l.AuditArea == AuditArea.Settings).OrderBy(l => l.CreatedAt).ThenBy(l => l.Id).ToListAsync(Ct);
+    }
+
+    private async Task<int> ReadTextVersionTrailCountAsync()
+    {
+        await using AppDbContext context = NewContext();
+        return await context.AuditLogs.AsNoTracking().CountAsync(l => l.AuditArea == AuditArea.LegalTextVersion, Ct);
     }
 
     private ServiceProvider BuildProvider(Admin? admin)

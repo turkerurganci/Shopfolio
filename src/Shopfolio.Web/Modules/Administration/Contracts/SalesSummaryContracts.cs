@@ -16,6 +16,12 @@ public interface ISalesSummary
     /// counted. It is the order count of the one-day summary of that day.
     /// </summary>
     Task<int> CountDailyOrdersAsync(DateOnly day, CancellationToken ct);
+
+    /// <summary>
+    /// The Turkey day sales were first opened on in this installation (02 10.6.3 m6; K-486): the first day the four conditions of 02 3.1.5 were met together. It is not stored; it is derived from the
+    /// operation trail, where the conditions' changes stand with their old and new values (06 10.6 m6). Null when sales never opened: the Measurement window is then not offered.
+    /// </summary>
+    Task<DateOnly?> FindSalesOpenDayAsync(CancellationToken ct);
 }
 
 /// <summary>

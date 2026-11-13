@@ -753,6 +753,73 @@
     border-bottom: 1px solid var(--color-border);
 }
 
+/* E-51, the sales summary (T524; 04 9.22.12): the cards are rows on the wide class, two by two on the middle class, one under the other on the narrow class. */
+.summary-period__range {
+    margin: var(--space-2) 0;
+    padding: 0;
+    border: 0;
+}
+
+.summary-region {
+    margin: var(--space-4) 0;
+}
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+}
+
+.summary-card {
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+}
+
+.summary-card__name,
+.summary-card__value,
+.summary-card__detail,
+.summary-card__note {
+    margin: 0;
+}
+
+.summary-card__value {
+    font-size: var(--font-size-title);
+    font-weight: 600;
+}
+
+.summary-card__note {
+    font-size: var(--font-size-small);
+}
+
+@media (min-width: 768px) {
+    .summary-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .summary-cards {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+/* E-53, the export screen (T524; 04 9.24.11): the sections one under the other on every class. */
+.export-section {
+    margin: var(--space-4) 0;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--color-border);
+}
+
+/* The export button's busy time (04 9.24.7): the file leaves the screen as it is, so the end of this animation makes the form ready again (common.js, download-once). */
+@keyframes export-busy {
+    from { opacity: 1; }
+    to { opacity: 1; }
+}
+
+form[data-js="download-once"][aria-busy="true"] button[type="submit"] {
+    animation: export-busy 10s linear;
+}
+
 /* E-35, the coupons screen (T526; 04 9.7.11): on the wide class the form opens beside the list; on the medium and narrow classes it takes the list's place and carries the way back. */
 .coupons {
     display: flex;

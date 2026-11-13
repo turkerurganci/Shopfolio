@@ -51,7 +51,7 @@ public sealed class DataExportDefinition : ICollectionFixture<CollectionDatabase
 /// are the unit tests' (CsvExportWriterTests, OrderExportTests, DataExportRulesTests).
 /// </summary>
 [Collection(DataExportDefinition.Name)]
-public sealed class DataExportTests : IAsyncLifetime
+public sealed partial class DataExportTests : IAsyncLifetime
 {
     private static readonly DateOnly Today = TurkeyTime.DateOf(DateTimeOffset.UtcNow);
 
@@ -995,6 +995,9 @@ public sealed class DataExportTests : IAsyncLifetime
         public Task<AuditPage> ListAsync(AuditQuery query, CancellationToken ct) => inner.ListAsync(query, ct);
 
         public Task<IReadOnlyList<AuditAdminOption>> ListAdminsAsync(CancellationToken ct) => inner.ListAdminsAsync(ct);
+
+        public Task<IReadOnlyList<AuditFieldChangeAt>> ListFieldChangesAsync(AuditOperation operation, string targetRecordType, CancellationToken ct) =>
+            inner.ListFieldChangesAsync(operation, targetRecordType, ct);
     }
 
     /// <summary>A stand-in for the content module that answers the contact request write only; every other call is a test mistake.</summary>

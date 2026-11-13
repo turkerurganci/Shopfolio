@@ -10,7 +10,10 @@ using Shopfolio.Infrastructure.Lists;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
+using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Catalog.Contracts.Categories;
+using Shopfolio.Modules.Catalog.Contracts.Pricing;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.Pages.Components;
@@ -107,6 +110,7 @@ internal sealed class ProductFormModel : PageModel
     private readonly ITransactionRunner _transactions;
     private readonly RejectionLog _rejections;
     private readonly IOrderingModule _ordering;
+    private readonly ICountryList _countries;
 
     // True once a handler ran: the validation filter's 422 runs none (OnPageHandlerExecutionAsync).
     private bool _ran;
@@ -119,7 +123,8 @@ internal sealed class ProductFormModel : PageModel
         ISettingsModule settings,
         ITransactionRunner transactions,
         RejectionLog rejections,
-        IOrderingModule ordering)
+        IOrderingModule ordering,
+        ICountryList countries)
     {
         ArgumentNullException.ThrowIfNull(form);
         ArgumentNullException.ThrowIfNull(transitions);
@@ -131,6 +136,8 @@ internal sealed class ProductFormModel : PageModel
         ArgumentNullException.ThrowIfNull(rejections);
         ArgumentNullException.ThrowIfNull(ordering);
         _ordering = ordering;
+        ArgumentNullException.ThrowIfNull(countries);
+        _countries = countries;
         _form = form;
         _transitions = transitions;
         _removal = removal;
@@ -202,7 +209,114 @@ internal sealed class ProductFormModel : PageModel
 
             Form = context.HandlerArguments.Values.OfType<SaveProductInput>().FirstOrDefault() ?? Form;
         }
+
+        if (executed.Exception is null && executed.Result is PageResult)
+        {
+            await LoadChoicesAsync(HttpContext.RequestAborted);
+        }
     }
+
+    /// <summary>The category tree the form's categories are chosen from, in E-34's order (04 9.5.3; K-805).</summary>
+    public IReadOnlyList<CategoryNode> CategoryTree { get; private set; } = [];
+
+    /// <summary>The closed country list of the place of origin (04 9.5.6; K-1023).</summary>
+    public IReadOnlyList<CountryInfo> Countries { get; private set; } = [];
+
+    /// <summary>
+    /// The discount as the server computed it (04 9.5.8; 02 3.9.3): the state and, for each variant, its price, the reference price and the discounted price - read only; null when the product has
+    /// no discount or is new. The page computes no amount.
+    /// </summary>
+    public DiscountView? DiscountView { get; private set; }
+
+    /// <summary>The digital file's update sentence (04 9.5.9; 02 3.12.7, 3.12.8).</summary>
+    public const string FileUpdateText = "Dosyayı güncellerseniz daha önce satın alanlar da yeni hâli indirir; her indirme haktan düşer.";
+
+    /// <summary>The hook of the chunked upload script on the digital file inputs (T548; 09 16.2 item 6).</summary>
+    public const string DigitalFileUploadHook = "digital-file-upload";
+
+    /// <summary>The sentence of the delivery and withdrawal section (04 9.5.7; 02 3.23.1; 03 8.1.4).</summary>
+    public const string NewOrdersOnlyText = "Bu alanlardaki değişiklik yalnız yeni siparişlere işler.";
+
+    // The page's lists for a shown form: read once the handler chose to show the page.
+    private async Task LoadChoicesAsync(CancellationToken ct)
+    {
+        CategoryTree = await _catalog.GetCategoryTreeAsync(ct);
+        Countries = await _countries.ListAsync(ct);
+        DiscountView = Record is { Discount: not null } record ? await _catalog.GetDiscountAsync(record.Id, ct) : null;
+    }
+
+    /// <summary>
+    /// The blank new entries are not read (07 5.1.5; K-1189 (2)): an unticked category, a new option or value left empty, a new variant row left empty while another row stands, and a discount
+    /// whose three fields are empty.
+    /// </summary>
+    public static void OmitBlankEntries(SaveProductInput input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        // The category boxes are keyed (Input.Categories.Index): an unticked box binds no row or a row without its key.
+        input.Categories = [.. input.Categories.Where(c => c is not null && c.CategoryId != Guid.Empty)];
+        input.Options = [.. input.Options.Where(o => o is not null)];
+        foreach (SaveProductOptionRow option in input.Options)
+        {
+            option.Values = [.. option.Values.Where(v => v is not null && (v.OptionValueId is not null || !string.IsNullOrWhiteSpace(v.Value)))];
+        }
+
+        input.Options = [.. input.Options.Where(o => o.OptionId is not null || !string.IsNullOrWhiteSpace(o.Name) || o.Values.Count > 0)];
+        List<SaveProductVariantRow> filled = [.. input.Variants.Where(v => v is not null && !IsBlank(v))];
+        input.Variants = filled.Count > 0 ? filled : [.. input.Variants.Take(1)];
+        if (input.Discount is { Percentage: null, StartDate: null, EndDate: null })
+        {
+            input.Discount = null;
+        }
+    }
+
+    private static bool IsBlank(SaveProductVariantRow row) =>
+        row.VariantId is null && string.IsNullOrWhiteSpace(row.SKU) && row.Price is null && row.NetQuantity is null && row.StockQuantity is null && row.ImageId is null
+        && row.DigitalFileId is null && row.FirstOptionValueId is null && row.SecondOptionValueId is null;
+
+    /// <summary>The state of the discount as its line says it (04 9.5.8; 03 1.10.1).</summary>
+    public static string DiscountStateText(DiscountState state) => state switch
+    {
+        DiscountState.NotStarted => "İndirim henüz başlamadı.",
+        DiscountState.Running => "İndirim sürüyor.",
+        DiscountState.Ended => "İndirim bitti.",
+        _ => throw new ArgumentOutOfRangeException(nameof(state), state, "Unknown discount state."),
+    };
+
+    /// <summary>The unit's name on the form (04 9.5.6, 9.5.5: the net quantity's column carries it, "Net miktar (gram)").</summary>
+    public static string UnitName(MeasurementUnit unit) => unit switch
+    {
+        MeasurementUnit.Kilogram => "kilogram",
+        MeasurementUnit.Gram => "gram",
+        MeasurementUnit.Litre => "litre",
+        MeasurementUnit.Millilitre => "mililitre",
+        MeasurementUnit.Metre => "metre",
+        MeasurementUnit.Centimetre => "santimetre",
+        MeasurementUnit.SquareMetre => "metrekare",
+        MeasurementUnit.CubicMetre => "metreküp",
+        MeasurementUnit.Piece => "adet",
+        _ => throw new ArgumentOutOfRangeException(nameof(unit), unit, "Unknown measurement unit."),
+    };
+
+    /// <summary>The discount's three fields (04 9.5.8; OB-16): the rate and the two dates.</summary>
+    public IReadOnlyList<FieldView> DiscountFields()
+    {
+        FormErrorSummary summary = FormErrorSummary.From(ModelState);
+        static string? Day(DateOnly? value) => value?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        SaveProductDiscountRow? discount = Form.Discount;
+        FieldView[] fields =
+        [
+            Fields.Number("Input.Discount.Percentage", "İndirim (%)", FieldRequirement.Optional, discount?.Percentage is { } rate ? RequestFormat.FormatDecimal(rate) : null),
+            Fields.Date("Input.Discount.StartDate", "Başlangıç", FieldRequirement.Optional, Day(discount?.StartDate)),
+            Fields.Date("Input.Discount.EndDate", "Bitiş", FieldRequirement.Optional, Day(discount?.EndDate)),
+        ];
+        return Fields.BindAll(fields, summary);
+    }
+
+    /// <summary>The option values a variant row chooses from (04 9.5.5): the values of the option at <paramref name="optionIndex"/> that already have their key.</summary>
+    public IReadOnlyList<FieldOption> OptionValueChoices(int optionIndex) =>
+        optionIndex < Form.Options.Count
+            ? [.. Form.Options[optionIndex].Values.Where(v => v.OptionValueId is not null).Select(v => new FieldOption(v.OptionValueId!.Value.ToString("D"), v.Value ?? string.Empty))]
+            : [];
 
     /// <summary>
     /// True when the last save met a changed record - its version, or a variant's shown stock (07 2.4.5; K-800): the save control is the conflict's message, "Güncel hâli aç" and
@@ -295,6 +409,7 @@ internal sealed class ProductFormModel : PageModel
         ArgumentNullException.ThrowIfNull(input);
         _ran = true;
         ReturnPath = ListReturn.Target(returnUrl, PanelFramePaths.Products);
+        OmitBlankEntries(input);
         List<ProductSaveVariant> variants = [];
         foreach (SaveProductVariantRow row in input.Variants)
         {
@@ -548,16 +663,30 @@ internal sealed class ProductFormModel : PageModel
             new(nameof(ProductType.Service), ProductsModel.TypeOf(ProductType.Service)),
             new(nameof(ProductType.Digital), ProductsModel.TypeOf(ProductType.Digital)),
         ];
-        FieldView[] fields =
+        // The closed lists of 04 9.5.6 and 9.5.7: the country list (K-1023), the units (K-1019) and the Regulation's reasons (K-509). The country list is start data; the field stands when it is read.
+        List<FieldOption> countries = [.. Countries.Select(c => new FieldOption(c.Id.ToString("D"), c.Name))];
+        List<FieldOption> units = [.. Enum.GetValues<MeasurementUnit>().Select(u => new FieldOption(u.ToString(), UnitName(u)))];
+        List<FieldOption> exemptions = [.. Enum.GetValues<WithdrawalExemptionReason>().Select(r => new FieldOption(r.ToString(), WithdrawalExemptionReasonNames.Of(r)))];
+        List<FieldView> fields =
         [
             Fields.Text("Input.Name", "Ürün adı", FieldRequirement.Required, Form.Name, ProductConstants.ProductNameMaxLength),
             Fields.ClosedList("Input.ProductType", "Tip", FieldRequirement.Required, types, Form.ProductType?.ToString()),
             Fields.TextArea("Input.Description", "Açıklama", FieldRequirement.Optional, Form.Description),
             Fields.Number("Input.VatRate", "KDV oranı (%)", FieldRequirement.Required, Form.VatRate is { } vat ? RequestFormat.FormatDecimal(vat) : null),
+        ];
+        if (countries.Count > 0)
+        {
+            fields.Add(Fields.ClosedList("Input.OriginCountryId", "Üretim yeri", FieldRequirement.Optional, countries, Form.OriginCountryId?.ToString("D")));
+        }
+
+        fields.AddRange(
+        [
+            Fields.ClosedList("Input.MeasurementUnit", "Ölçü birimi", FieldRequirement.Optional, units, Form.MeasurementUnit?.ToString()),
             Fields.Number("Input.ShippingPeriod", "Kargoya verme süresi (gün)", FieldRequirement.Optional, Whole(Form.ShippingPeriod)),
             Fields.Number("Input.FulfilmentPeriod", "İfa süresi (gün)", FieldRequirement.Optional, Whole(Form.FulfilmentPeriod)),
             Fields.Number("Input.MaxQuantityPerOrder", "Siparişte en çok adet", FieldRequirement.Optional, Whole(Form.MaxQuantityPerOrder)),
-        ];
+            Fields.ClosedList("Input.WithdrawalExemptionReason", "Cayma hakkı istisnası", FieldRequirement.Optional, exemptions, Form.WithdrawalExemptionReason?.ToString(), NewOrdersOnlyText),
+        ]);
         return Fields.BindAll(fields, summary);
     }
 

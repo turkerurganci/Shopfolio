@@ -42,57 +42,72 @@
     {
         @VersionFields.Version(version, "Input")
     }
-    @* UC-114 writes the form whole: the parts the form does not edit on this screen are carried as they stand, so a save that does not touch them keeps them. *@
-    @if (entries.OriginCountryId is { } origin)
-    {
-        <input type="hidden" name="Input.OriginCountryId" value="@origin.ToString("D")" />
-    }
-    @if (entries.MeasurementUnit is { } unit)
-    {
-        <input type="hidden" name="Input.MeasurementUnit" value="@unit.ToString()" />
-    }
-    @if (entries.WithdrawalExemptionReason is { } exemption)
-    {
-        <input type="hidden" name="Input.WithdrawalExemptionReason" value="@exemption.ToString()" />
-    }
-    @for (int c = 0; c < entries.Categories.Count; c++)
-    {
-        SaveProductCategoryRow category = entries.Categories[c];
-        <input type="hidden" name="Input.Categories[@c].CategoryId" value="@category.CategoryId.ToString("D")" />
-        <input type="hidden" name="Input.Categories[@c].IsPrimaryCategory" value="@(category.IsPrimaryCategory ? "true" : "false")" />
-    }
-    @for (int o = 0; o < entries.Options.Count; o++)
-    {
-        SaveProductOptionRow option = entries.Options[o];
-        if (option.OptionId is { } optionId)
-        {
-            <input type="hidden" name="Input.Options[@o].OptionId" value="@optionId.ToString("D")" />
-        }
-        <input type="hidden" name="Input.Options[@o].Name" value="@option.Name" />
-        for (int v = 0; v < option.Values.Count; v++)
-        {
-            SaveProductOptionValueRow value = option.Values[v];
-            if (value.OptionValueId is { } valueId)
-            {
-                <input type="hidden" name="Input.Options[@o].Values[@v].OptionValueId" value="@valueId.ToString("D")" />
-            }
-            <input type="hidden" name="Input.Options[@o].Values[@v].Value" value="@value.Value" />
-        }
-    }
-    @if (entries.DigitalFileId is { } productFile)
-    {
-        <input type="hidden" name="Input.DigitalFileId" value="@productFile.ToString("D")" />
-    }
-    @if (entries.Discount is { } discount)
-    {
-        <input type="hidden" name="Input.Discount.Percentage" value="@Decimal(discount.Percentage)" />
-        <input type="hidden" name="Input.Discount.StartDate" value="@(discount.StartDate?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture))" />
-        <input type="hidden" name="Input.Discount.EndDate" value="@(discount.EndDate?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture))" />
-    }
+    @* 04 9.5.3-9.5.9: every part UC-114 writes is a visible field of the form; a blank new entry is not read (07 5.1.5; K-1189 (2)). *@
     @foreach (FieldView field in Model.ProductFields())
     {
         <partial name="_Field" model="field" />
     }
+    <fieldset class="product-form__categories" id="product-categories">
+        <legend>Kategoriler</legend>
+        @if (Model.CategoryTree.Count == 0)
+        {
+            <p>Henüz kategori yok.</p>
+        }
+        @for (int c = 0; c < Model.CategoryTree.Count; c++)
+        {
+            Shopfolio.Modules.Catalog.Contracts.Categories.CategoryNode node = Model.CategoryTree[c];
+            SaveProductCategoryRow? chosen = entries.Categories.FirstOrDefault(x => x.CategoryId == node.Id);
+            string key = c.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            <div class="product-form__category" data-level="@node.Level.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                <input type="hidden" name="Input.Categories.Index" value="@key" />
+                <input type="checkbox" id="product-category-@key" name="Input.Categories[@key].CategoryId" value="@node.Id.ToString("D")" checked="@(chosen is not null)" />
+                <label for="product-category-@key">@node.Name</label>
+                <input type="checkbox" id="product-category-@key-primary" name="Input.Categories[@key].IsPrimaryCategory" value="true" checked="@(chosen?.IsPrimaryCategory == true)" />
+                <label for="product-category-@key-primary">Ana kategori</label>
+            </div>
+        }
+        @foreach (MessageView refusal in Model.RefusalsOf("Input.Categories", "product-categories"))
+        {
+            <partial name="_Message" model="refusal" />
+        }
+    </fieldset>
+    <fieldset class="product-form__options" id="product-options">
+        <legend>Seçenekler</legend>
+        @{
+            int optionSlots = Math.Min(entries.Options.Count + 1, Shopfolio.Infrastructure.ProductConstants.OptionDimensionMax);
+        }
+        @for (int o = 0; o < Math.Max(optionSlots, entries.Options.Count); o++)
+        {
+            SaveProductOptionRow? option = o < entries.Options.Count ? entries.Options[o] : null;
+            string ok = o.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            <div class="product-form__option">
+                @if (option?.OptionId is { } optionId)
+                {
+                    <input type="hidden" name="Input.Options[@ok].OptionId" value="@optionId.ToString("D")" />
+                }
+                <label for="product-option-@ok-name">Seçenek adı</label>
+                <input type="text" id="product-option-@ok-name" name="Input.Options[@ok].Name" value="@option?.Name" />
+                @{
+                    int valueCount = option?.Values.Count ?? 0;
+                }
+                @for (int v = 0; v <= valueCount; v++)
+                {
+                    SaveProductOptionValueRow? value = v < valueCount ? option!.Values[v] : null;
+                    string vk = v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    if (value?.OptionValueId is { } valueId)
+                    {
+                        <input type="hidden" name="Input.Options[@ok].Values[@vk].OptionValueId" value="@valueId.ToString("D")" />
+                    }
+                    <label for="product-option-@ok-value-@vk">@(value is null ? "Yeni değer" : "Değer")</label>
+                    <input type="text" id="product-option-@ok-value-@vk" name="Input.Options[@ok].Values[@vk].Value" value="@value?.Value" />
+                }
+            </div>
+        }
+        @foreach (MessageView refusal in Model.RefusalsOf("Input.Options", "product-options"))
+        {
+            <partial name="_Message" model="refusal" />
+        }
+    </fieldset>
     <fieldset class="product-form__gallery" id="product-images">
         <legend>Görseller</legend>
         @for (int i = 0; i < entries.Images.Count; i++)
@@ -120,33 +135,62 @@
     </fieldset>
     <fieldset class="product-form__variant-entries">
         <legend>Varyant bilgileri</legend>
-        @for (int i = 0; i < entries.Variants.Count; i++)
+        @{
+            // An existing product's form has one blank row for a new variant (K-1189 (2)); left blank, it is not read.
+            int rowCount = entries.Variants.Count + (record is null ? 0 : 1);
+            bool digital = entries.ProductType == ProductType.Digital;
+        }
+        @for (int i = 0; i < rowCount; i++)
         {
-            SaveProductVariantRow row = entries.Variants[i];
+            bool isNew = i >= entries.Variants.Count;
+            SaveProductVariantRow row = isNew ? new SaveProductVariantRow() : entries.Variants[i];
             string target = $"Variants[{i}].ImageId";
             <div class="product-form__variant-entry" id="@ProductFormModel.UploadFieldId(target)">
+                @if (isNew)
+                {
+                    <p class="product-form__new-variant">Yeni varyant</p>
+                }
                 @if (row.VariantId is { } variantId)
                 {
                     <input type="hidden" name="Input.Variants[@i].VariantId" value="@variantId.ToString("D")" />
                 }
-                @if (row.FirstOptionValueId is { } first)
+                @for (int o = 0; o < 2; o++)
                 {
-                    <input type="hidden" name="Input.Variants[@i].FirstOptionValueId" value="@first.ToString("D")" />
-                }
-                @if (row.SecondOptionValueId is { } second)
-                {
-                    <input type="hidden" name="Input.Variants[@i].SecondOptionValueId" value="@second.ToString("D")" />
+                    IReadOnlyList<FieldOption> choices = Model.OptionValueChoices(o);
+                    Guid? current = o == 0 ? row.FirstOptionValueId : row.SecondOptionValueId;
+                    string field = o == 0 ? "FirstOptionValueId" : "SecondOptionValueId";
+                    if (choices.Count > 0)
+                    {
+                        <label for="product-variant-@i-option-@o">@entries.Options[o].Name</label>
+                        <select id="product-variant-@i-option-@o" name="Input.Variants[@i].@field">
+                            <option value="" selected="@(current is null)">Seçiniz</option>
+                            @foreach (FieldOption choice in choices)
+                            {
+                                <option value="@choice.Value" selected="@(current?.ToString("D") == choice.Value)">@choice.Text</option>
+                            }
+                        </select>
+                    }
+                    else if (current is { } carried)
+                    {
+                        <input type="hidden" name="Input.Variants[@i].@field" value="@carried.ToString("D")" />
+                    }
                 }
                 <label for="product-variant-@i-sku">Stok kodu</label>
                 <input type="text" id="product-variant-@i-sku" name="Input.Variants[@i].SKU" value="@row.SKU" />
                 <label for="product-variant-@i-price">Fiyat (TL)</label>
                 <input type="text" inputmode="decimal" id="product-variant-@i-price" name="Input.Variants[@i].Price" value="@Decimal(row.Price)" />
-                <label for="product-variant-@i-stock">Stok</label>
-                <input type="text" inputmode="numeric" id="product-variant-@i-stock" name="Input.Variants[@i].StockQuantity" value="@Whole(row.StockQuantity)" />
-                <input type="hidden" name="Input.Variants[@i].OriginalStockQuantity" value="@row.OriginalStockQuantity" />
-                @if (entries.MeasurementUnit is not null)
+                @if (!digital)
                 {
-                    <label for="product-variant-@i-net">Net miktar</label>
+                    <label for="product-variant-@i-stock">@(entries.ProductType == ProductType.Service ? "Kontenjan" : "Stok")</label>
+                    <input type="text" inputmode="numeric" id="product-variant-@i-stock" name="Input.Variants[@i].StockQuantity" value="@Whole(row.StockQuantity)" />
+                }
+                @if (!isNew)
+                {
+                    <input type="hidden" name="Input.Variants[@i].OriginalStockQuantity" value="@row.OriginalStockQuantity" />
+                }
+                @if (entries.MeasurementUnit is { } unit)
+                {
+                    <label for="product-variant-@i-net">Net miktar (@ProductFormModel.UnitName(unit))</label>
                     <input type="text" inputmode="decimal" id="product-variant-@i-net" name="Input.Variants[@i].NetQuantity" value="@Decimal(row.NetQuantity)" />
                 }
                 @foreach (MessageView refusal in Model.RefusalsOf($"Input.Variants[{i}].", $"product-variant-{i}-sku"))
@@ -157,7 +201,15 @@
                 {
                     <input type="hidden" name="Input.Variants[@i].ImageId" value="@imageId.ToString("D")" />
                 }
-                @if (row.DigitalFileId is { } variantFile)
+                @if (digital)
+                {
+                    string fileField = $"Input.Variants[{i}].DigitalFileId";
+                    <input type="hidden" id="product-variant-@i-file" name="@fileField" value="@(row.DigitalFileId?.ToString("D"))" />
+                    <label for="product-variant-@i-file-upload">Varyantın dosyası</label>
+                    <span class="product-form__file-state">@(row.DigitalFileId is null ? "Dosya yok" : "Dosya ekli")</span>
+                    <input type="file" id="product-variant-@i-file-upload" data-js="@ProductFormModel.DigitalFileUploadHook" data-target-field="@fileField" />
+                }
+                else if (row.DigitalFileId is { } variantFile)
                 {
                     <input type="hidden" name="Input.Variants[@i].DigitalFileId" value="@variantFile.ToString("D")" />
                 }
@@ -165,17 +217,64 @@
                 {
                     <partial name="_Message" model="Model.UploadRefusal" />
                 }
-                <button type="submit" class="button button--secondary" formaction="@uploadAction" name="Input.ImageTarget" value="@target">Varyant görseli yükle</button>
+                @if (!isNew)
+                {
+                    <button type="submit" class="button button--secondary" formaction="@uploadAction" name="Input.ImageTarget" value="@target">Varyant görseli yükle</button>
+                }
             </div>
         }
     </fieldset>
-    @foreach (string list in new[] { "Input.Categories", "Input.Options", "Input.Discount", "Input.DigitalFileId" })
+    @if (digital || entries.DigitalFileId is not null)
     {
-        foreach (MessageView refusal in Model.RefusalsOf(list, "product-save"))
+        <fieldset class="product-form__file" id="product-file">
+            <legend>Dijital dosya</legend>
+            <input type="hidden" id="product-file-id" name="Input.DigitalFileId" value="@(entries.DigitalFileId?.ToString("D"))" />
+            <p class="product-form__file-state">@(entries.DigitalFileId is null ? "Dosya yok" : "Dosya ekli")</p>
+            <label for="product-file-upload">Ürünün dosyası</label>
+            <input type="file" id="product-file-upload" data-js="@ProductFormModel.DigitalFileUploadHook" data-target-field="Input.DigitalFileId" />
+            <p class="field__hint">@ProductFormModel.FileUpdateText</p>
+            @foreach (MessageView refusal in Model.RefusalsOf("Input.DigitalFileId", "product-file"))
+            {
+                <partial name="_Message" model="refusal" />
+            }
+        </fieldset>
+    }
+    <fieldset class="product-form__discount" id="product-discount">
+        <legend>İndirim</legend>
+        @foreach (FieldView field in Model.DiscountFields())
+        {
+            <partial name="_Field" model="field" />
+        }
+        @if (Model.DiscountView is { } shown)
+        {
+            <p class="product-form__discount-state">@ProductFormModel.DiscountStateText(shown.State)</p>
+            <table class="panel-table" id="product-discount-prices">
+                <thead>
+                    <tr>
+                        <th scope="col">Varyant</th>
+                        <th scope="col">Fiyat</th>
+                        <th scope="col">Referans fiyat</th>
+                        <th scope="col">İndirimli fiyat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (Shopfolio.Modules.Catalog.Contracts.Pricing.DiscountVariantLine line in shown.Variants)
+                    {
+                        <tr data-variant="@line.VariantId.ToString("D")">
+                            <td>@(Model.Variants.FirstOrDefault(v => v.Id == line.VariantId)?.Label)</td>
+                            <td>@Shopfolio.Infrastructure.DisplayFormat.Amount(line.Price)</td>
+                            <td>@Shopfolio.Infrastructure.DisplayFormat.Amount(line.ReferencePrice)</td>
+                            <td>@Shopfolio.Infrastructure.DisplayFormat.Amount(line.DiscountedPrice)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        @foreach (MessageView refusal in Model.RefusalsOf("Input.Discount", "product-discount"))
         {
             <partial name="_Message" model="refusal" />
         }
-    }
+    </fieldset>
     @ConflictControls.RecordSaveControl(Model.IsConflicted, Model.FormPath)
 </form>
 @if (record is not null)

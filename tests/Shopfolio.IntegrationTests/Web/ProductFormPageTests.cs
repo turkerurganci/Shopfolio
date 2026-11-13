@@ -423,6 +423,169 @@ public sealed class ProductFormPageTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task TheForm_ShowsEveryPartItWrites_AsAVisibleField_AndTheDiscountsPricesAsTheServerComputedThem_KK2()
+    {
+        // 04 9.5.3-9.5.9: categories, options, the variant's option values, the place of origin, the unit, the exemption, the discount and its read-only prices are fields of the form.
+        Category category = Category.Create("Kupalar", $"kupalar-{Guid.NewGuid():N}"[..20], null, 1, Base);
+        Product product = Product.Create("Kupa", $"p-{Guid.NewGuid():N}", ProductType.Physical, 20m, Base).WithSeededOrigin();
+        product.MeasurementUnit = MeasurementUnit.Gram;
+        product.WithdrawalExemptionReason = Shopfolio.Modules.AfterSales.Contracts.WithdrawalExemptionReason.Perishable;
+        Option option = Option.Create(product.Id, "Renk", 1, Base);
+        OptionValue red = OptionValue.Create(option.Id, "Kırmızı", 1, Base);
+        OptionValue blue = OptionValue.Create(option.Id, "Mavi", 2, Base);
+        Variant variant = Variant.Create(product.Id, $"S-{Guid.NewGuid():N}"[..20], 100m, Base, null);
+        variant.FirstOptionValueId = blue.Id;
+        variant.NetQuantity = 250m;
+        variant.StockQuantity = 4;
+        await using (AppDbContext db = ListSeed.Open(_database.Dsn))
+        {
+            db.Categories.Add(category);
+            db.Products.Add(product);
+            db.Options.Add(option);
+            db.OptionValues.AddRange(red, blue);
+            db.Variants.Add(variant);
+            db.PriceHistories.Add(PriceHistory.Create(variant.Id, 100m, Base, Base));
+            db.ProductCategories.Add(ProductCategory.Create(product.Id, category.Id, true, Base));
+            db.Discounts.Add(Discount.Create(product.Id, 10m, new DateOnly(2090, 1, 1), new DateOnly(2090, 1, 31), Base));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        (HttpStatusCode status, string html) = await GetAsync(client, ProductFormModel.PathOf(product.Id));
+
+        Assert.Equal(HttpStatusCode.OK, status);
+        List<(string Name, string Value)> sent = [.. SaveFormFieldsOf(html)];
+        Assert.Contains(sent, f => f.Name.EndsWith("].CategoryId", StringComparison.Ordinal) && f.Value == category.Id.ToString("D"));
+        Assert.Contains(sent, f => f.Name.EndsWith("].IsPrimaryCategory", StringComparison.Ordinal) && f.Value == "true");
+        Assert.Contains(("Input.Options[0].Name", "Renk"), sent);
+        Assert.Contains(("Input.Options[0].Values[1].Value", "Mavi"), sent);
+        Assert.Contains(("Input.Variants[0].FirstOptionValueId", blue.Id.ToString("D")), sent);
+        Assert.Contains(("Input.OriginCountryId", SeededCountry.Turkey.ToString("D")), sent);
+        Assert.Contains(("Input.MeasurementUnit", nameof(MeasurementUnit.Gram)), sent);
+        Assert.Contains(("Input.WithdrawalExemptionReason", nameof(Shopfolio.Modules.AfterSales.Contracts.WithdrawalExemptionReason.Perishable)), sent);
+        Assert.Contains(("Input.Discount.StartDate", "2090-01-01"), sent);
+        Assert.Contains($"Net miktar ({ProductFormModel.UnitName(MeasurementUnit.Gram)})", html, StringComparison.Ordinal);
+        Assert.Contains(Shopfolio.Modules.AfterSales.Contracts.WithdrawalExemptionReasonNames.Of(Shopfolio.Modules.AfterSales.Contracts.WithdrawalExemptionReason.Perishable), html, StringComparison.Ordinal);
+        Assert.Contains(ProductFormModel.NewOrdersOnlyText, html, StringComparison.Ordinal);
+        string prices = html[html.IndexOf("id=\"product-discount-prices\"", StringComparison.Ordinal)..];
+        prices = prices[..prices.IndexOf("</table>", StringComparison.Ordinal)];
+        Assert.Contains(DisplayFormat.Amount(DiscountRules.DiscountedPrice(100m, 10m)), prices, StringComparison.Ordinal);
+        Assert.Contains(DisplayFormat.Amount(100m), prices, StringComparison.Ordinal);
+        Assert.Contains(ProductFormModel.DiscountStateText(Shopfolio.Modules.Catalog.Contracts.Pricing.DiscountState.NotStarted), html, StringComparison.Ordinal);
+        // The existing product's form has one blank new variant row (K-1189 (2)).
+        Assert.Contains("name=\"Input.Variants[1].SKU\"", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task SaveProduct_ThroughTheVisibleFields_WritesTheCategoryTheOptionValueTheDiscountAndTheExemption_AndTheBlankNewEntriesAreNotRead_KK3()
+    {
+        Category category = Category.Create("Bardaklar", $"bardak-{Guid.NewGuid():N}"[..20], null, 1, Base);
+        Product product = Product.Create("Bardak", $"p-{Guid.NewGuid():N}", ProductType.Physical, 20m, Base).WithSeededOrigin();
+        Option option = Option.Create(product.Id, "Renk", 1, Base);
+        OptionValue red = OptionValue.Create(option.Id, "Kırmızı", 1, Base);
+        Variant variant = Variant.Create(product.Id, $"S-{Guid.NewGuid():N}"[..20], 100m, Base, null);
+        variant.FirstOptionValueId = red.Id;
+        variant.StockQuantity = 3;
+        await using (AppDbContext db = ListSeed.Open(_database.Dsn))
+        {
+            db.Categories.Add(category);
+            db.Products.Add(product);
+            db.Options.Add(option);
+            db.OptionValues.Add(red);
+            db.Variants.Add(variant);
+            db.PriceHistories.Add(PriceHistory.Create(variant.Id, 100m, Base, Base));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        (_, string html) = await GetAsync(client, ProductFormModel.PathOf(product.Id));
+        string key = System.Text.RegularExpressions.Regex.Match(html, $"name=\"Input\\.Categories\\[(?<k>\\d+)\\]\\.CategoryId\" value=\"{category.Id:D}\"").Groups["k"].Value;
+        Dictionary<string, string> changed = new(StringComparer.Ordinal)
+        {
+            [$"Input.Categories[{key}].CategoryId"] = category.Id.ToString("D"),
+            [$"Input.Categories[{key}].IsPrimaryCategory"] = "true",
+            ["Input.Options[0].Values[0].Value"] = "Koyu kırmızı",
+            ["Input.Discount.Percentage"] = "15",
+            ["Input.Discount.StartDate"] = "2090-02-01",
+            ["Input.Discount.EndDate"] = "2090-02-28",
+            ["Input.WithdrawalExemptionReason"] = nameof(Shopfolio.Modules.AfterSales.Contracts.WithdrawalExemptionReason.MadeToOrder),
+        };
+        List<(string Name, string Value)> fields = [.. SaveFormFieldsOf(html).Where(f => !changed.ContainsKey(f.Name)), .. changed.Select(c => (c.Key, c.Value))];
+
+        using HttpResponseMessage response = await PostAsync(client, product.Id, "SaveProduct", [.. fields]);
+
+        Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
+        await using AppDbContext check = ListSeed.Open(_database.Dsn);
+        ProductCategory link = await check.ProductCategories.AsNoTracking().SingleAsync(l => l.ProductId == product.Id, Ct);
+        Assert.Equal((category.Id, true), (link.CategoryId, link.IsPrimaryCategory));
+        Assert.Equal(["Koyu kırmızı"], await check.OptionValues.AsNoTracking().Where(v => v.OptionId == option.Id).Select(v => v.Value).ToListAsync(Ct));
+        Assert.Equal(1, await check.Options.AsNoTracking().CountAsync(o => o.ProductId == product.Id, Ct));
+        Discount saved = await check.Discounts.AsNoTracking().SingleAsync(d => d.ProductId == product.Id, Ct);
+        Assert.Equal((15m, new DateOnly(2090, 2, 1), new DateOnly(2090, 2, 28)), (saved.Percentage, saved.StartDate, saved.EndDate));
+        Assert.Equal(
+            Shopfolio.Modules.AfterSales.Contracts.WithdrawalExemptionReason.MadeToOrder,
+            await check.Products.AsNoTracking().Where(p => p.Id == product.Id).Select(p => p.WithdrawalExemptionReason).SingleAsync(Ct));
+        // The blank new variant row, the blank option slot and the blank value slot are not read (07 5.1.5; K-1189 (2)).
+        Assert.Equal([variant.Id], await check.Variants.AsNoTracking().Where(v => v.ProductId == product.Id).Select(v => v.Id).ToListAsync(Ct));
+    }
+
+    [Fact]
+    public void TheBlankNewEntries_AreNotRead_AndAnEmptyDiscountIsNone_KK3()
+    {
+        Guid kept = Guid.NewGuid();
+        SaveProductInput input = new()
+        {
+            Categories = [new SaveProductCategoryRow { CategoryId = Guid.Empty }, null!, new SaveProductCategoryRow { CategoryId = kept, IsPrimaryCategory = true }],
+            Options =
+            [
+                new SaveProductOptionRow { Name = "Renk", Values = [new SaveProductOptionValueRow { Value = "Mavi" }, new SaveProductOptionValueRow { Value = " " }] },
+                new SaveProductOptionRow { Name = string.Empty, Values = [new SaveProductOptionValueRow()] },
+            ],
+            Variants = [new SaveProductVariantRow { SKU = "A-1", Price = 5m }, new SaveProductVariantRow()],
+            Discount = new SaveProductDiscountRow(),
+        };
+
+        ProductFormModel.OmitBlankEntries(input);
+
+        Assert.Equal([kept], input.Categories.Select(c => c.CategoryId));
+        Assert.Equal(["Mavi"], input.Options.Single().Values.Select(v => v.Value));
+        Assert.Equal(["A-1"], input.Variants.Select(v => v.SKU));
+        Assert.Null(input.Discount);
+
+        // A new product's only row stays even when blank: the module says what it lacks.
+        SaveProductInput blank = new() { Variants = [new SaveProductVariantRow()] };
+        ProductFormModel.OmitBlankEntries(blank);
+        Assert.Single(blank.Variants);
+    }
+
+    [Fact]
+    public async Task ADigitalProductsForm_CarriesTheFileFields_HookedForTheChunkedUpload_KK2()
+    {
+        Product product = Product.Create("E-kitap", $"p-{Guid.NewGuid():N}", ProductType.Digital, 20m, Base);
+        Variant variant = Variant.Create(product.Id, $"S-{Guid.NewGuid():N}"[..20], 100m, Base, null);
+        DigitalFile productFile = AttachedFile(product.Id, null);
+        await using (AppDbContext db = ListSeed.Open(_database.Dsn))
+        {
+            db.Products.Add(product);
+            db.Variants.Add(variant);
+            db.PriceHistories.Add(PriceHistory.Create(variant.Id, 100m, Base, Base));
+            db.DigitalFiles.Add(productFile);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        (_, string html) = await GetAsync(client, ProductFormModel.PathOf(product.Id));
+
+        Assert.Contains($"data-js=\"{ProductFormModel.DigitalFileUploadHook}\" data-target-field=\"Input.DigitalFileId\"", html, StringComparison.Ordinal);
+        Assert.Contains($"data-js=\"{ProductFormModel.DigitalFileUploadHook}\" data-target-field=\"Input.Variants[0].DigitalFileId\"", html, StringComparison.Ordinal);
+        Assert.Contains(("Input.DigitalFileId", productFile.Id.ToString("D")), SaveFormFieldsOf(html));
+        Assert.Contains(ProductFormModel.FileUpdateText, html, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task SaveProduct_OnAGoneRecord_Is404_BeforeAFieldsRefusal_AndTheSameFieldOnAnExistingRecordIs422_KK6()
     {
         (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
@@ -687,19 +850,42 @@ public sealed class ProductFormPageTests : IAsyncLifetime
         return file;
     }
 
-    /// <summary>The entries the save form posts as shown: its inputs with a value (text and hidden), the description's text; the buttons, the file field and the closed lists are left out.</summary>
+    /// <summary>The entries the save form posts as a browser sends it: its inputs (text and hidden; a box only when ticked), each closed list's chosen option and the description's text; the buttons and the file fields are left out.</summary>
     private static IEnumerable<(string Name, string Value)> SaveFormFieldsOf(string html)
     {
         int start = html.IndexOf("id=\"product-save\"", StringComparison.Ordinal);
         string form = html[start..html.IndexOf("</form>", start, StringComparison.Ordinal)];
+        // As a browser sends the form: an unticked box is not sent, a select sends its chosen option, a file input sends no text.
+        static string? Attribute(string attrs, string attribute)
+        {
+            System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(attrs, $"\\s{attribute}=\"(?<v>[^\"]*)\"");
+            return match.Success ? System.Net.WebUtility.HtmlDecode(match.Groups["v"].Value) : null;
+        }
+
         foreach (System.Text.RegularExpressions.Match input in System.Text.RegularExpressions.Regex.Matches(form, "<input(?<attrs>[^>]*)>"))
         {
             string attrs = input.Groups["attrs"].Value;
-            System.Text.RegularExpressions.Match name = System.Text.RegularExpressions.Regex.Match(attrs, "\\sname=\"(?<v>[^\"]*)\"");
-            System.Text.RegularExpressions.Match value = System.Text.RegularExpressions.Regex.Match(attrs, "\\svalue=\"(?<v>[^\"]*)\"");
-            if (name.Success && !attrs.Contains("type=\"file\"", StringComparison.Ordinal))
+            bool box = attrs.Contains("type=\"checkbox\"", StringComparison.Ordinal) || attrs.Contains("type=\"radio\"", StringComparison.Ordinal);
+            if (Attribute(attrs, "name") is { } name && !attrs.Contains("type=\"file\"", StringComparison.Ordinal) && (!box || attrs.Contains(" checked", StringComparison.Ordinal)))
             {
-                yield return (name.Groups["v"].Value, value.Success ? value.Groups["v"].Value : string.Empty);
+                yield return (name, Attribute(attrs, "value") ?? (box ? "on" : string.Empty));
+            }
+        }
+
+        foreach (System.Text.RegularExpressions.Match select in System.Text.RegularExpressions.Regex.Matches(form, "<select(?<attrs>[^>]*)>(?<body>.*?)</select>", System.Text.RegularExpressions.RegexOptions.Singleline))
+        {
+            System.Text.RegularExpressions.Match chosen = System.Text.RegularExpressions.Regex.Match(select.Groups["body"].Value, "<option(?<attrs>[^>]*\\sselected[^>]*)>");
+            if (Attribute(select.Groups["attrs"].Value, "name") is { } name)
+            {
+                yield return (name, chosen.Success ? Attribute(chosen.Groups["attrs"].Value, "value") ?? string.Empty : string.Empty);
+            }
+        }
+
+        foreach (System.Text.RegularExpressions.Match area in System.Text.RegularExpressions.Regex.Matches(form, "<textarea(?<attrs>[^>]*)>(?<body>.*?)</textarea>", System.Text.RegularExpressions.RegexOptions.Singleline))
+        {
+            if (Attribute(area.Groups["attrs"].Value, "name") is { } name)
+            {
+                yield return (name, System.Net.WebUtility.HtmlDecode(area.Groups["body"].Value).TrimStart('\n', '\r'));
             }
         }
     }

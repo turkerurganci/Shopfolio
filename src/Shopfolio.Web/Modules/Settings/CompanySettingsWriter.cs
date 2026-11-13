@@ -183,7 +183,7 @@ internal sealed class CompanySettingsWriter
     /// together; once they are filled none can be emptied; the telephone is optional and, like the address, is not accepted alone. A version that is
     /// not the section's now writes nothing and is a result (09 10.3 item 2).
     /// </summary>
-    public async Task<SettingsSaveResult> SaveReturnAddressAsync(ReturnAddressInput input, int formVersion, CancellationToken ct)
+    public async Task<SettingsSaveResult> SaveReturnAddressAsync(ReturnAddressInput input, int formVersion, CancellationToken ct, Action<ReturnAddressSection>? readUnderLock = null)
     {
         ArgumentNullException.ThrowIfNull(input);
         await LockAsync(ct);
@@ -196,6 +196,7 @@ internal sealed class CompanySettingsWriter
         bool[] filled = [recipient is not null, province is not null, district is not null, addressLine is not null];
 
         ReturnAddressSection current = await ReadReturnAddressAsync(ct);
+        readUnderLock?.Invoke(current);
         List<FieldRejection> rejections = [];
         if (phone is not null && new InvalidPhoneAttribute().GetValidationResult(phone, new System.ComponentModel.DataAnnotations.ValidationContext(phone)) is not null)
         {

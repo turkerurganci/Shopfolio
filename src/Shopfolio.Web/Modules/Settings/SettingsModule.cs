@@ -76,8 +76,24 @@ internal sealed class SettingsModule : ISettingsModule
 
     public Task<SettingsSaveResult> SaveHomepageAsync(HomepageInput input, int formVersion, CancellationToken ct) => _firm.SaveHomepageAsync(input, formVersion, ct);
 
-    public Task<SettingsSaveResult> SaveShippingFeeAsync(ShippingFeeInput input, int formVersion, CancellationToken ct) =>
-        _firm.SaveShippingFeeAsync(input, formVersion, ct);
+    public async Task<SettingsSaveResult> SaveShippingFeeAsync(ShippingFeeInput input, int formVersion, CancellationToken ct) =>
+        await RegenerateWhenFedAsync(await _firm.SaveShippingFeeAsync(input, formVersion, ct), ct);
+
+    /// <summary>
+    /// After a section's save that changed a value feeding the two generated texts - the shipping fee, the firm default of the shipping period, the delivery provinces - their new versions are
+    /// written under the row lock the save still holds, and the trail rows of those versions with them (T536; 02 3.33.3, 10.3.1 (5); 03 8.7.2.3; 04 9.18.9; D-681, D-493). A save that changed
+    /// no feeding value writes no version (K-1215).
+    /// </summary>
+    private async Task<SettingsSaveResult> RegenerateWhenFedAsync(SectionSaveOutcome outcome, CancellationToken ct)
+    {
+        if (outcome.Result.IsSaved && outcome.FeedsGeneratedTexts)
+        {
+            IReadOnlyList<GeneratedVersion> versions = await _generator.RegenerateAsync(feedingSettingChanged: true, ct);
+            await _generator.WriteTrailAsync(versions, ct);
+        }
+
+        return outcome.Result;
+    }
 
     public Task<PeriodsSection> GetPeriodsAsync(CancellationToken ct) => _firm.ReadPeriodsAsync(ct);
 
@@ -85,8 +101,8 @@ internal sealed class SettingsModule : ISettingsModule
 
     public Task<string?> GetWhatsAppNumberAsync(CancellationToken ct) => _firm.ReadWhatsAppNumberAsync(ct);
 
-    public Task<SettingsSaveResult> SavePeriodsAsync(PeriodsInput input, int formVersion, CancellationToken ct) =>
-        _firm.SavePeriodsAsync(input, formVersion, ct);
+    public async Task<SettingsSaveResult> SavePeriodsAsync(PeriodsInput input, int formVersion, CancellationToken ct) =>
+        await RegenerateWhenFedAsync(await _firm.SavePeriodsAsync(input, formVersion, ct), ct);
 
     public Task<ProductDefaultsSection> GetProductDefaultsAsync(CancellationToken ct) => _firm.ReadProductDefaultsAsync(ct);
 
@@ -95,11 +111,12 @@ internal sealed class SettingsModule : ISettingsModule
 
     public async Task<SettingsSaveResult> SaveReturnAddressAsync(ReturnAddressInput input, int formVersion, CancellationToken ct)
     {
-        SettingsSaveResult result = await _writer.SaveReturnAddressAsync(input, formVersion, ct);
+        SettingsSaveResult result = await _firm.SaveReturnAddressAsync(input, formVersion, ct);
         if (result.IsSaved)
         {
-            // The return address is written into both generated texts (02 7.4.4): same order as the identity's.
-            await _generator.RegenerateAsync(ct);
+            // The return address is written into both generated texts (02 7.4.4): same order as the identity's - a version only when the text changed, with its trail row (D-220).
+            IReadOnlyList<GeneratedVersion> versions = await _generator.RegenerateAsync(ct);
+            await _generator.WriteTrailAsync(versions, ct);
         }
 
         return result;
@@ -131,18 +148,9 @@ internal sealed class SettingsModule : ISettingsModule
 
     public Task<DeliveryProvincesSection> GetDeliveryProvincesAsync(CancellationToken ct) => _delivery.ReadAsync(ct);
 
-    public async Task<SettingsSaveResult> SaveDeliveryProvincesAsync(IReadOnlyCollection<Guid> provinceIds, int formVersion, CancellationToken ct)
-    {
-        SettingsSaveResult result = await _delivery.SaveAsync(provinceIds, formVersion, ct);
-        if (result.IsSaved)
-        {
-            // The delivery restriction belongs to the pre-information form (02 3.24.3, 3.33.3): the generator runs under the row lock this save still holds and writes a version only
-            // when the generated text differs (D-221, D-493).
-            await _generator.RegenerateAsync(ct);
-        }
-
-        return result;
-    }
+    // The delivery restriction belongs to the pre-information form (02 3.24.3, 3.33.3): a changed selection writes the texts' new versions under the row lock this save still holds (D-493).
+    public async Task<SettingsSaveResult> SaveDeliveryProvincesAsync(IReadOnlyCollection<Guid> provinceIds, int formVersion, CancellationToken ct) =>
+        await RegenerateWhenFedAsync(await _delivery.SaveAsync(provinceIds, formVersion, ct), ct);
 
     public Task<DeliveryArea> GetDeliveryAreaAsync(CancellationToken ct) => _delivery.GetAreaAsync(ct);
 }

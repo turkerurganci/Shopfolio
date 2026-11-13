@@ -1,7 +1,6 @@
 using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Notices;
-using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Payment;
 using Shopfolio.UnitTests.Fakes;
 
@@ -86,12 +85,12 @@ public sealed class OutageRulesTests
         GoogleIdentityResult unavailable = new GoogleIdentityResult.Unavailable("timeout");
         GoogleIdentityResult failed = new GoogleIdentityResult.Failed("unrecognized");
 
-        Assert.Null(GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.SignInOrRegistration, success));
-        Assert.Null(GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.Reauthentication, success));
-        Assert.Equal(NoticeCode.SocialLoginFailed, GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.SignInOrRegistration, unavailable));
-        Assert.Equal(NoticeCode.SocialReauthenticationUnavailable, GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.Reauthentication, unavailable));
-        Assert.Equal(NoticeCode.SocialLoginFailed, GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.SignInOrRegistration, failed));
-        Assert.Equal(NoticeCode.SocialReauthenticationFailed, GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.Reauthentication, failed));
+        Assert.Null(GoogleIdentityFailureRule.FailureOf(GoogleFlowKind.SignInOrRegistration, success));
+        Assert.Null(GoogleIdentityFailureRule.FailureOf(GoogleFlowKind.Reauthentication, success));
+        Assert.Equal(NoticeCode.SocialLoginFailed, GoogleIdentityFailureRule.FailureOf(GoogleFlowKind.SignInOrRegistration, unavailable));
+        Assert.Equal(NoticeCode.SocialReauthenticationUnavailable, GoogleIdentityFailureRule.FailureOf(GoogleFlowKind.Reauthentication, unavailable));
+        Assert.Equal(NoticeCode.SocialLoginFailed, GoogleIdentityFailureRule.FailureOf(GoogleFlowKind.SignInOrRegistration, failed));
+        Assert.Equal(NoticeCode.SocialReauthenticationFailed, GoogleIdentityFailureRule.FailureOf(GoogleFlowKind.Reauthentication, failed));
     }
 
     [Theory]
@@ -102,8 +101,8 @@ public sealed class OutageRulesTests
         FakeGoogleIdentityGateway fake = new() { Outage = kind };
         IdentityCodeExchange exchange = new("code", "verifier");
 
-        NoticeCode? signIn = GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.SignInOrRegistration, await fake.VerifyIdentityAsync(exchange, Ct));
-        NoticeCode? reauthentication = GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.Reauthentication, await fake.VerifyIdentityAsync(exchange, Ct));
+        NoticeCode? signIn = GoogleIdentityFailureRule.FailureOf(GoogleFlowKind.SignInOrRegistration, await fake.VerifyIdentityAsync(exchange, Ct));
+        NoticeCode? reauthentication = GoogleIdentityFailureRule.FailureOf(GoogleFlowKind.Reauthentication, await fake.VerifyIdentityAsync(exchange, Ct));
 
         Assert.Equal(NoticeCode.SocialLoginFailed, signIn);
         Assert.Equal(NoticeCode.SocialReauthenticationUnavailable, reauthentication);

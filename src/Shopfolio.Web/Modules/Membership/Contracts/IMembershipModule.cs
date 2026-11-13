@@ -153,6 +153,20 @@ public interface IMembershipModule
     /// </summary>
     Task<MemberContact?> GetMemberContactAsync(Guid customerId, CancellationToken ct);
 
+    /// <summary>
+    /// The ways the account is entered (T516; 02 3.13.8, 3.13.13): its e-mail, whether it has a password and whether it is linked to Google; null when no account holds the id. A plain read: the reset
+    /// page names the password-setting for an account without a password, and the re-authentication page shows the password field and the Google button by it.
+    /// </summary>
+    Task<SignInMethods?> GetSignInMethodsAsync(Guid customerId, CancellationToken ct);
+
+    /// <summary>
+    /// The Google re-authentication's return (T516; 02 3.13.13; 05 6.1.5; K-968), in the caller's transaction: grants the session the permission for the one operation and returns the form's value
+    /// only when the account is linked to Google, Google gave the e-mail as verified and it is the account's, the sign-in moment (<c>auth_time</c>) is after <paramref name="flowStartedAt"/>, and
+    /// the session is the account's. It binds nothing, makes no confirmation link and does not count to L-1 (02 3.13.17); in every other case nothing is written.
+    /// </summary>
+    Task<GoogleReauthenticationResult> GrantGoogleReauthenticationAsync(
+        Guid customerId, Guid sessionId, ReauthenticationOperation operation, GoogleReauthenticationIdentity identity, DateTimeOffset flowStartedAt, CancellationToken ct);
+
     /// <summary>The member changes the account's name (02 3.13.21): an empty name is refused; no verification is asked again and no order's recipient name is touched.</summary>
     Task<NameChangeResult> ChangeNameAsync(Guid customerId, string name, CancellationToken ct);
 

@@ -146,7 +146,7 @@ internal sealed class EmailChanges
             .Where(p => p.CustomerId == customerId)
             .Select(p => new { p.NewEmail, p.CreatedAt })
             .SingleOrDefaultAsync(ct);
-        return pending is null || IsEnded(pending.CreatedAt, now)
+        return pending is null || EmailChangeRules.IsEnded(pending.CreatedAt, now)
             ? null
             : new PendingEmailChangeReading(pending.NewEmail, pending.CreatedAt.AddHours(ProductConstants.EmailVerificationLinkHours));
     }

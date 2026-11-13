@@ -16,6 +16,7 @@ using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Ordering;
 using Shopfolio.Pages.Components;
 using Shopfolio.Pages.Panel;
 using Shopfolio.UnitTests.Imaging;
@@ -82,6 +83,27 @@ public sealed class ProductFormPageTests : IAsyncLifetime
         Assert.Contains($"<li>{ProductFormModel.ConditionName(PublishCondition.PublishedVariant)}</li>", html, StringComparison.Ordinal);
         Assert.DoesNotContain($"<li>{ProductFormModel.ConditionName(PublishCondition.Name)}</li>", html, StringComparison.Ordinal);
         Assert.DoesNotContain("style=", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TheReservedUnits_NameTheOrdersThatHoldThem_EachALinkToItsOrder_KK2()
+    {
+        (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
+        (Guid orderId, string number, _) = await TestSessions.OrderAsync(_database.Dsn, null);
+        await ReserveAsync(variants[0], 2);
+        await using (AppDbContext db = ListSeed.Open(_database.Dsn))
+        {
+            db.StockReservations.Add(StockReservation.ForVariant(orderId, variants[0], 2, Base));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        (_, string html) = await GetAsync(client, ProductFormModel.PathOf(productId));
+
+        string row = RowOf(html, variants[0]);
+        Assert.Contains($"<a href=\"/panel/siparisler/{orderId:D}\">{number}</a> (2)", row, StringComparison.Ordinal);
     }
 
     [Fact]

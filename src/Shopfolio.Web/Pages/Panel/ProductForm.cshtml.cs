@@ -11,6 +11,7 @@ using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.Pages.Components;
 using Shopfolio.Pages.Frame;
@@ -47,8 +48,12 @@ public sealed class DeleteVariantInput : IFormInput
     public bool Confirmed { get; set; }
 }
 
-/// <summary>One variant row of the form (04 9.5.5): the values the table shows, the badge, the stock's shown value and the reserved units.</summary>
-public sealed record ProductVariantView(Guid Id, string Label, string StockCode, string Price, int? StockQuantity, int ReservedQuantity, Badge Badge, PublishStatus PublishStatus);
+/// <summary>
+/// One variant row of the form (04 9.5.5): the values the table shows, the badge, the stock's shown value, the reserved units and the orders that hold them - each a link to its
+/// order (UC-92; 02 3.6.7; K-653).
+/// </summary>
+public sealed record ProductVariantView(
+    Guid Id, string Label, string StockCode, string Price, int? StockQuantity, int ReservedQuantity, Badge Badge, PublishStatus PublishStatus, IReadOnlyList<ReservationHolder> Holders);
 
 /// <summary>One publish move button of the side column (04 9.5.10, 9.5.22): the target status and the button's name.</summary>
 public sealed record PublishMoveView(PublishStatus Target, string Label);
@@ -101,6 +106,7 @@ internal sealed class ProductFormModel : PageModel
     private readonly ISettingsModule _settings;
     private readonly ITransactionRunner _transactions;
     private readonly RejectionLog _rejections;
+    private readonly IOrderingModule _ordering;
 
     // True once a handler ran: the validation filter's 422 runs none (OnPageHandlerExecutionAsync).
     private bool _ran;
@@ -112,7 +118,8 @@ internal sealed class ProductFormModel : PageModel
         ICatalogModule catalog,
         ISettingsModule settings,
         ITransactionRunner transactions,
-        RejectionLog rejections)
+        RejectionLog rejections,
+        IOrderingModule ordering)
     {
         ArgumentNullException.ThrowIfNull(form);
         ArgumentNullException.ThrowIfNull(transitions);
@@ -122,6 +129,8 @@ internal sealed class ProductFormModel : PageModel
         _settings = settings;
         ArgumentNullException.ThrowIfNull(transactions);
         ArgumentNullException.ThrowIfNull(rejections);
+        ArgumentNullException.ThrowIfNull(ordering);
+        _ordering = ordering;
         _form = form;
         _transitions = transitions;
         _removal = removal;
@@ -169,6 +178,9 @@ internal sealed class ProductFormModel : PageModel
     public const string NewPath = PanelFramePaths.Products + "/yeni";
 
     public static string PathOf(Guid productId) => $"{PanelFramePaths.Products}/{productId:D}";
+
+    /// <summary>The order detail's address (07 UC-92: <c>/panel/siparisler/{iç anahtar}</c>) a reserving order links to (04 3.4.19).</summary>
+    public static string OrderPathOf(Guid orderId) => $"{PanelFramePaths.Orders}/{orderId:D}";
 
     /// <summary>
     /// A form whose fields break their rules is answered 422 by the validation filter without the handler (09 3.4 item 3): the form it shows again needs the record as it stands and the sent
@@ -670,9 +682,12 @@ internal sealed class ProductFormModel : PageModel
 
         Record = record;
         FormPath = PathOf(productId);
-        Variants =
-        [
-            .. record.Variants.Select(v => new ProductVariantView(
+        // The orders that hold the reserved units (02 3.6.7; K-653): asked of the ordering module, only for a variant that has reserved units.
+        List<ProductVariantView> views = [];
+        foreach (PanelVariantRow v in record.Variants)
+        {
+            IReadOnlyList<ReservationHolder> holders = v.ReservedQuantity > 0 ? await _ordering.ListReservationHoldersAsync(v.Id, ct) : [];
+            views.Add(new ProductVariantView(
                 v.Id,
                 v.OptionValues.Count > 0 ? string.Join(" / ", v.OptionValues) : record.Name,
                 v.StockCode,
@@ -680,8 +695,11 @@ internal sealed class ProductFormModel : PageModel
                 v.StockQuantity,
                 v.ReservedQuantity,
                 StatusBadges.For(v.PublishStatus),
-                v.PublishStatus)),
-        ];
+                v.PublishStatus,
+                holders));
+        }
+
+        Variants = views;
         UnmetConditions = [.. record.UnmetGateConditions.Select(ConditionName)];
         ProductMoves = MovesOf(record.PublishStatus);
         Form = InputOf(record);

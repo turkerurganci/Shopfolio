@@ -239,7 +239,15 @@
                             @if (record.ProductType != ProductType.Digital)
                             {
                                 <td>@(variant.StockQuantity?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? ProductsModel.UnlimitedText)</td>
-                                <td>@variant.ReservedQuantity.ToString(System.Globalization.CultureInfo.InvariantCulture)</td>
+                                <td>@variant.ReservedQuantity.ToString(System.Globalization.CultureInfo.InvariantCulture)@if (variant.Holders.Count > 0)
+                                    {
+                                        <ul class="product-form__holders" aria-label="Ayıran siparişler">
+                                            @foreach (Shopfolio.Modules.Ordering.Contracts.ReservationHolder holder in variant.Holders)
+                                            {
+                                                <li><a href="@ProductFormModel.OrderPathOf(holder.OrderId)">@holder.OrderNumber</a> (@holder.Quantity.ToString(System.Globalization.CultureInfo.InvariantCulture))</li>
+                                            }
+                                        </ul>
+                                    }</td>
                             }
                             <td><partial name="_Badge" model="variant.Badge" /></td>
                             <td>

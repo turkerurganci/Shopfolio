@@ -139,6 +139,9 @@
 | Düzeltme gerekli mi | Evet — kriter 1 (`07 4.13.1` görünümü `04` 5.13.2–5.13.11; `04` E-13 bütünüyle T509'un): **B5 (KRİTİK, `VAL-A841`, `VAL-A842`; K-756):** onay bölümünde Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi'nin tam metni kapalı `<details><summary>…</summary>` içinde (`Checkout.cshtml`, `open` yok, açan CSS/JS yok); `04` 5.13.9 (c)–(d) "sayfanın içinde kaydırılan bir kutuda, açık", 5.13.9 "hiçbirini bir bağlantının ya da pencerenin arkasına koymadan", 5.13.32 "hiçbir sınıfta metinler katlanmaz" der. Önceki iki turda gözden kaçtı. **B6 (DÜŞÜK, `04` 5.13.9 (b), (h), 2.12.7.2):** misafirin "Siparişiniz şu adrese gönderilecek: …" satırı ve "Düzelt" bağlantısı onay özetinde (b) değil, onay kutularıyla ödenecek toplam/düğme arasında çizilir; kutularla düğme arasına başka içerik girmez |
 | Yapım raporu karşılaştırması (tur 3) | 1 uyuşmazlık: kriter 1 ve öz denetimin KK1 satırı ✓; onay bölümünün yasal metinlerinin açık durması (5.13.9 (c)–(d)) ne öz denetimde ne testte sınanmış. Düzeltme 2'nin iddiaları ve kanıtları doğrulayıcınınkiyle uyumlu |
 | Düzeltme 3 | B5, B6 düzeltildi (ayrıntı "Yapılan İşler" > Düzeltme 3). K-756: iki yasal metin onay bölümünde açık, sabit yükseklikte kaydırılan kutuda; bağlantı, pencere ya da katlama yok. E-posta satırı onay özetinin (b) parçası, kutular ile düğme arasında değil. Yapım raporu karşılaştırmasının uyuşmazlığı kapandı: öz denetim KK1'i `04` 5.13.9'un (a)–(h) sırasıyla ayrı satırlarda denetler, test sınar. K-notu yoktu. Yeni backlog kalemi yok (D-1448–1449 kullanılmadı). Diff yalnız B5–B6 (`Checkout.cshtml`, `storefront.css`, `CheckoutPageTests` + `.Helpers`) |
+| Doğrulama durumu (tur 4, tam yeniden doğrulama) | ✓ PASS (2026-11-13; dal ucu `a46fcd0f`, origin/main `9474668f` ile çakışmasız birleştirildi — `10f11d13`) — build `-warnaserror` 0 uyarı, format ×3 temiz, Unit 7538/7538, betik 4/4, Integration parçalı 64/64 (CheckoutPageTests, OpenUnpaidOrderLimitTests, OrderPlacementLimitTests, CartPageTests) + 227/227 (OrderConfirmationTests, MainFlowTests, MembershipTests, StorefrontFrameTests, PanelHomeTests), TAM: CI — dal CI (run 43489405862, `a46fcd0f`) yeşil; `restore --locked-mode` 0 |
+| Bulgu sayısı (tur 4) | 0 yeni; tur 3 bulguları B5 (KRİTİK) ve B6 (DÜŞÜK) kapandı: iki yasal metin açık, `h3` başlıklı, sabit yükseklikte (`16rem`, `overflow-y: auto`, medya sorgusu yok, metin `--font-size-base`) kaydırılan kutuda, sayfada `<details>`/`<summary>` yok; onay bölümü sırası `04` 5.13.9 (a)–(h) ile birebir, e-posta satırı (b) içinde. `VAL-A841`, `VAL-A842` uç yanıtı yarısı karşılandı, tarayıcı gözlemi yarısı üretilmedi → `BEKLEMEDE` (FAIL'den). K-notu yok |
+| Yapım raporu karşılaştırması (tur 4) | Tam uyumlu: düzeltme 3'ün iddiaları, öz denetim satırları ve test kanıtı doğrulayıcının bulgularıyla aynı |
 
 ## Altyapı Değişiklikleri
 
@@ -152,7 +155,7 @@
 - **Branch:** `task/T509-odeme-adimi`
 - **Commit:** son baş SHA PR açıklamasında
 - **PR:** #559
-- **CI:** tur 1: run 43262776784 yeşil
+- **CI:** tur 1: run 43262776784 yeşil · tur 4: run 43489405862 (`a46fcd0f`) yeşil
 
 ## Dış Varsayımlar
 

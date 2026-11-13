@@ -173,7 +173,8 @@ public sealed partial class AccountAddressAndOrderHistoryPageTests : IAsyncLifet
 
         Assert.Equal(HttpStatusCode.OK, addStatus);
         Assert.Contains("handler=CreateAddressBook", add, StringComparison.Ordinal);
-        Assert.DoesNotContain("name=\"Input.AddressBookId\"", add, StringComparison.Ordinal);
+        string addSection = add[add.IndexOf("id=\"address-form-section\"", StringComparison.Ordinal)..add.IndexOf("id=\"address-orders-frozen\"", StringComparison.Ordinal)];
+        Assert.DoesNotContain("name=\"Input.AddressBookId\"", addSection, StringComparison.Ordinal);
         Assert.Contains("name=\"Input.Name\"", add, StringComparison.Ordinal);
         Assert.Contains("name=\"Input.RecipientName\"", add, StringComparison.Ordinal);
         Assert.Contains("name=\"Input.ProvinceId\"", add, StringComparison.Ordinal);
@@ -465,10 +466,13 @@ public sealed partial class AccountAddressAndOrderHistoryPageTests : IAsyncLifet
         Assert.DoesNotContain(foreignNumber, first + second, StringComparison.Ordinal);
         Assert.Contains("rel=\"next\"", first, StringComparison.Ordinal);
         Assert.Contains("rel=\"prev\"", second, StringComparison.Ordinal);
-        Assert.DoesNotContain("name=\"search\"", first, StringComparison.Ordinal);
-        Assert.DoesNotContain("<select", first, StringComparison.Ordinal);
-        Assert.DoesNotContain("<form", first, StringComparison.Ordinal);
-        Assert.DoesNotContain("<button", first, StringComparison.Ordinal);
+
+        // The site header carries its own search box, so the "no search, filter or sort" check looks only inside the screen content.
+        string content = first[first.IndexOf("account-layout__content", StringComparison.Ordinal)..first.IndexOf("<footer", StringComparison.Ordinal)];
+        Assert.DoesNotContain("name=\"search\"", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("<select", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("<form", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("<button", content, StringComparison.Ordinal);
         Assert.Contains("badge-pair", first, StringComparison.Ordinal);
     }
 
@@ -668,7 +672,9 @@ public sealed partial class AccountAddressAndOrderHistoryPageTests : IAsyncLifet
         await using AppDbContext db = NewContext();
         for (int i = 0; i < itemNames.Length; i++)
         {
-            db.OrderItems.Add(OrderItem.Create(id, null, null, ProductType.Digital, itemNames[i], 1, 100m, 20m, 16.67m, createdAt.AddSeconds(i)));
+            OrderItem item = OrderItem.Create(id, null, null, ProductType.Digital, itemNames[i], 1, 100m, 20m, 16.67m, createdAt.AddSeconds(i));
+            item.DownloadAllowance = 5;
+            db.OrderItems.Add(item);
         }
 
         await db.SaveChangesAsync(Ct);

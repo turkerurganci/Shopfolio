@@ -34,7 +34,7 @@ internal sealed class PanelProductListReader : IPanelProductList
 
         // Only the columns the row shows and the order's two are read - the description is not (09 20 item 3).
         PagedList<RowHead> paged = await products
-            .Select(p => new RowHead { Id = p.Id, Name = p.Name, ProductType = p.ProductType, PublishStatus = p.PublishStatus, CreatedAt = p.CreatedAt })
+            .Select(p => new RowHead { Id = p.Id, Name = p.Name, ProductType = p.ProductType, Status = p.PublishStatus, CreatedAt = p.CreatedAt })
             .OrderByDescending(r => r.CreatedAt)
             .ThenByDescending(r => r.Id)
             .ToPageAsync(requestedPage, pageSize, ct);
@@ -60,7 +60,7 @@ internal sealed class PanelProductListReader : IPanelProductList
                 head.Id,
                 head.Name,
                 head.ProductType,
-                head.PublishStatus,
+                head.Status,
                 image?.ImageId,
                 image is null ? null : ImageAltText.Choose(image.AltText, () => ImageAltText.ForCard(head.Name)),
                 variants.Count,
@@ -106,7 +106,7 @@ internal sealed class PanelProductListReader : IPanelProductList
 
         public required ProductType ProductType { get; init; }
 
-        public required PublishStatus PublishStatus { get; init; }
+        public required PublishStatus Status { get; init; }
 
         public required DateTimeOffset CreatedAt { get; init; }
     }

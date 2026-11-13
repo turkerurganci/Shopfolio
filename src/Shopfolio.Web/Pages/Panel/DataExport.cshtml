@@ -1,0 +1,89 @@
+@page "/panel/disa-aktarma"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Panel
+@model DataExportModel
+@*
+    E-53, the export screen (T524; 04 9.24; 07 UC-107, UC-182-UC-184): the responsibility line at the head (K-823), then the three sections one under the other - orders with the range, the member list,
+    the contact requests. Every button is "CSV olarak indir"; the file comes down as the browser's download and the screen does not change. With a script the form is sent in the background and the
+    button says that the file is being prepared until the answer comes (04 9.24.7, 2.7.2); without one the browser's own download does the same. No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Dışa aktarma";
+    FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, [DataExportModel.StartField, DataExportModel.EndField]);
+    IReadOnlyList<FieldView> range = Fields.BindAll(
+        DateFields.RangeFields(DataExportModel.StartField, DataExportModel.EndField, Model.Today, DateRangePolicy.NoFuture, startRequired: true, endRequired: true, Model.StartDate, Model.EndDate),
+        Model.Section == DataExportSection.Orders ? summary : null);
+    string busy = LoadingViews.BusyLabelOf(DataExportModel.DownloadLabel);
+}
+<h1>Dışa aktarma</h1>
+<p class="export-responsibility" id="export-responsibility">@DataExportModel.ResponsibilityText</p>
+
+<section class="export-section" aria-labelledby="export-orders-heading" id="export-orders">
+    <h2 id="export-orders-heading">Siparişler</h2>
+    <p>@DataExportModel.OrdersFieldsText</p>
+    @if (Model.Section == DataExportSection.Orders)
+    {
+        <partial name="_FormErrorSummary" model="summary" />
+        @if (Model.IsEmpty)
+        {
+            <partial name="_Message" model='Messages.InPlace(MessageMeaning.Info, DataExportModel.NoOrdersText, "export-orders-empty")' />
+        }
+
+        @foreach (string message in summary.FormMessages)
+        {
+            <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, message, "export-orders-error")' />
+        }
+    }
+    <form method="post" action="@(PanelFramePaths.Export)?handler=ExportOrders" asp-antiforgery="true" class="form" data-js="download-once">
+        <div class="form-fields form-fields--paired">
+            @foreach (FieldView field in range)
+            {
+                <partial name="_Field" model="field" />
+            }
+        </div>
+        <button type="submit" class="button button--primary" data-busy-label="@busy">@DataExportModel.DownloadLabel</button>
+    </form>
+</section>
+
+<section class="export-section" aria-labelledby="export-customers-heading" id="export-customers">
+    <h2 id="export-customers-heading">Üye listesi</h2>
+    <p>@DataExportModel.CustomersText</p>
+    @if (Model.Section == DataExportSection.Customers)
+    {
+        @if (Model.IsEmpty)
+        {
+            <partial name="_Message" model='Messages.InPlace(MessageMeaning.Info, DataExportModel.NothingToWriteText, "export-customers-empty")' />
+        }
+
+        @foreach (string message in summary.FormMessages)
+        {
+            <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, message, "export-customers-error")' />
+        }
+    }
+    <form method="post" action="@(PanelFramePaths.Export)?handler=ExportCustomers" asp-antiforgery="true" class="form" data-js="download-once">
+        <button type="submit" class="button button--secondary" data-busy-label="@busy">@DataExportModel.DownloadLabel</button>
+    </form>
+</section>
+
+<section class="export-section" aria-labelledby="export-contact-requests-heading" id="export-contact-requests">
+    <h2 id="export-contact-requests-heading">İletişim talepleri</h2>
+    <p>@DataExportModel.ContactRequestsText</p>
+    @if (Model.Section == DataExportSection.ContactRequests)
+    {
+        @if (Model.IsEmpty)
+        {
+            <partial name="_Message" model='Messages.InPlace(MessageMeaning.Info, DataExportModel.NothingToWriteText, "export-contact-requests-empty")' />
+        }
+
+        @foreach (string message in summary.FormMessages)
+        {
+            <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, message, "export-contact-requests-error")' />
+        }
+    }
+    <form method="post" action="@(PanelFramePaths.Export)?handler=ExportContactRequests" asp-antiforgery="true" class="form" data-js="download-once">
+        <button type="submit" class="button button--secondary" data-busy-label="@busy">@DataExportModel.DownloadLabel</button>
+    </form>
+</section>

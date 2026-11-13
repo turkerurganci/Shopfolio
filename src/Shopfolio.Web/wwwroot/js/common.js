@@ -234,6 +234,57 @@ function bindSubmitOnce(form) {
     });
 }
 
+// A form whose answer is a file (the panel's exports, 04 9.24.7; T524): while the file is prepared the button can not be pressed twice and says the work goes on (04 2.7.2). The form is sent the
+// plain way: a field message, an empty set or an error is a new page, which starts ready. A file leaves the screen as it is and the browser gives the page no sign when the download begins (and the
+// scripts load nothing from the network, so the answer is not read here); the button is therefore ready again when its busy animation ends (admin.css, export-busy). A second export is a new file
+// and a new trail row, never a repeat.
+function bindDownloadOnce(form) {
+    const ready = () => {
+        form.removeAttribute("aria-busy");
+        for (const button of form.querySelectorAll("button[data-original-label]")) {
+            button.textContent = button.dataset.originalLabel;
+        }
+    };
+    form.addEventListener("submit", (event) => {
+        if (form.getAttribute("aria-busy") === "true") {
+            event.preventDefault();
+            return;
+        }
+
+        form.setAttribute("aria-busy", "true");
+        const submitter = event.submitter ?? form.querySelector('button[type="submit"]');
+        if (submitter && submitter.dataset.busyLabel) {
+            submitter.dataset.originalLabel = submitter.dataset.originalLabel ?? submitter.textContent;
+            submitter.textContent = submitter.dataset.busyLabel;
+        }
+    });
+    form.addEventListener("animationend", (event) => {
+        if (event.animationName === "export-busy") {
+            ready();
+        }
+    });
+    window.addEventListener("pageshow", (event) => {
+        if (event.persisted) {
+            ready();
+        }
+    });
+}
+
+// A reading form whose choice applies at once (the sales summary's period, 04 9.22.8): a change of the closed list sends the form, unless the choice is the custom range, whose two dates are sent by
+// the form's button. Without a script the button sends the form.
+for (const form of document.querySelectorAll('[data-js="submit-on-change"]')) {
+    const choice = form.querySelector("select");
+    choice?.addEventListener("change", () => {
+        if (choice.value !== "Custom") {
+            form.submit();
+        }
+    });
+}
+
+for (const form of document.querySelectorAll('[data-js="download-once"]')) {
+    bindDownloadOnce(form);
+}
+
 for (const form of document.querySelectorAll('[data-js="submit-once"]')) {
     bindSubmitOnce(form);
 }

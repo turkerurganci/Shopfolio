@@ -43,7 +43,7 @@ public sealed class SalesSummaryDefinition : ICollectionFixture<CollectionDataba
 /// real contact request store. The pure rules and the surface are the unit tests' (SalesSummaryRulesTests).
 /// </summary>
 [Collection(SalesSummaryDefinition.Name)]
-public sealed class SalesSummaryTests : IAsyncLifetime
+public sealed partial class SalesSummaryTests : IAsyncLifetime
 {
     private static readonly DateOnly Day = new(2026, 11, 10);
     private static readonly DateTimeOffset DayStart = TurkeyTime.StartOf(Day);
@@ -51,8 +51,6 @@ public sealed class SalesSummaryTests : IAsyncLifetime
     private static readonly DateTimeOffset LongAgo = DayStart.AddDays(-90);
     private const string Iban = "TR330006100519786457841326";
     private static readonly RecordAmounts Amounts = new(250m, 0m, 50m);
-
-    private static int _versionNumber = 5000;
 
     private readonly CollectionDatabaseFixture _collection;
 
@@ -343,7 +341,7 @@ public sealed class SalesSummaryTests : IAsyncLifetime
         AppDbContext db = services.GetRequiredService<AppDbContext>();
         TimeProvider time = services.GetRequiredService<TimeProvider>();
         ContactCount content = new(new ContactRequests(db, new UnusedNotifications(), time));
-        return new SalesSummaryService(services.GetRequiredService<IOrderingModule>(), services.GetRequiredService<IAfterSalesModule>(), content, time);
+        return new SalesSummaryService(services.GetRequiredService<IOrderingModule>(), services.GetRequiredService<IAfterSalesModule>(), content, services.GetRequiredService<ISettingsModule>(), time);
     }
 
     private Task<Guid> SavePaidPhysicalAsync(DateTimeOffset approvedAt) => SavePaidPromiseAsync(approvedAt, (_shirt, 1));
@@ -397,7 +395,13 @@ public sealed class SalesSummaryTests : IAsyncLifetime
 
     private async Task SaveWithVersionsAsync(Order order, List<OrderItem> items)
     {
-        int n = Interlocked.Increment(ref _versionNumber);
+        // The next number is read, not counted: the page tests' opened application writes the generated texts' next versions too (LegalTextGenerator).
+        int n;
+        await using (AppDbContext db = NewContext())
+        {
+            n = (await db.LegalTextVersions.AsNoTracking().MaxAsync(l => l.VersionNumber, Ct) ?? 0) + 1;
+        }
+
         LegalTextVersion form = LegalTextVersion.CreatePublished(LegalTextType.PreInformationForm, n, LongAgo, "metin", LongAgo);
         LegalTextVersion contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, n, LongAgo, "metin", LongAgo);
         LegalTextVersion notice = LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, n, LongAgo, "metin", LongAgo).WithHosting();

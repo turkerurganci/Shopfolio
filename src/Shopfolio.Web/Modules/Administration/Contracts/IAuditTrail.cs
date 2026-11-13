@@ -55,4 +55,13 @@ public interface IAuditTrail
 
     /// <summary>The closed list of the administrator filter: the current administrators and the removed ones that left rows, each once.</summary>
     Task<IReadOnlyList<AuditAdminOption>> ListAdminsAsync(CancellationToken ct);
+
+    /// <summary>
+    /// Every field change the trail holds for one operation on one kind of record, oldest first, each with its row's moment (02 10.3.1 (6); 06 10.6 m6). A reader that
+    /// derives a past state - the day sales first opened (02 10.6.3) - rewinds the current values with the old values of these changes; nothing else is stored for it.
+    /// </summary>
+    Task<IReadOnlyList<AuditFieldChangeAt>> ListFieldChangesAsync(AuditOperation operation, string targetRecordType, CancellationToken ct);
 }
+
+/// <summary>One changed field of a trail row with the row's moment (see <see cref="IAuditTrail.ListFieldChangesAsync"/>).</summary>
+public sealed record AuditFieldChangeAt(DateTimeOffset At, string Field, string? OldValue, string? NewValue);

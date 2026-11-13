@@ -20,6 +20,7 @@ public static class DisplayFormat
     private const string WholeFormat = "#,0";
     private const string KurusFormat = "#,0.00";
     private const string DecimalFormat = "#,0.############################";
+    private const string OneDecimalFormat = "#,0.#";
     private const string RangeSeparator = " – ";
     private const string DateTimeSeparator = ", ";
     private const string PercentSign = "%";
@@ -54,6 +55,16 @@ public static class DisplayFormat
 
     /// <summary>A percentage (04 8.2.3): the sign before the number, no space - "%20", "%12,5" (06 2.5.1: "20" is 20 percent).</summary>
     public static string Percent(decimal rate) => PercentSign + Number(rate);
+
+    /// <summary>
+    /// A ratio as a percentage (04 9.22.5): the part of the whole, shown with one decimal place - "%33,3", "%100". It is a display, not an amount: the format string shortens the
+    /// shown digits and nothing is rounded for a calculation (money is rounded only in <see cref="Money"/>). <paramref name="whole"/> is positive.
+    /// </summary>
+    public static string Share(int part, int whole)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(whole);
+        return PercentSign + (100m * part / whole).ToString(OneDecimalFormat, Culture);
+    }
 
     /// <summary>
     /// An amount (04 8.2.4): the number, one space and "TL"; an amount with kuruş has two decimals ("266,67 TL"), an amount without has none ("1.200 TL").

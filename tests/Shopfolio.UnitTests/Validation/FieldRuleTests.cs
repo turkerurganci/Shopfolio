@@ -194,7 +194,7 @@ public sealed class FieldRuleTests
     [InlineData("1000000000", false)]
     public void InvalidNetQuantity_IsAboveZero_WithThreeDecimals_FromThePriceLabelsRule_AndWithinTheColumn(string text, bool valid)
     {
-        Shopfolio.Modules.Catalog.Contracts.InvalidNetQuantityAttribute rule = new();
+        InvalidNetQuantityAttribute rule = new();
         decimal quantity = decimal.Parse(text, System.Globalization.CultureInfo.InvariantCulture);
 
         Assert.True(rule.OwnsConversionFailure);

@@ -9,6 +9,7 @@ using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Lists;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.Pages.Components;
@@ -264,6 +265,76 @@ internal sealed class ProductFormModel : PageModel
         // The form is drawn from Form, not from the posted model state: the new image's id reaches its hidden field.
         ModelState.Clear();
         return Page();
+    }
+
+    /// <summary>
+    /// UC-114: the whole form in one transaction through the module's one writer (<see cref="ICatalogModule.SaveProductAsync"/>); the amounts are the module's rules, the page computes none.
+    /// The order of the refusals is the module's (K-800): 404, the fields' 422 at their fields, 409 (the version or a variant's shown stock; "Yine de kaydet"), the reserved quantity's 422.
+    /// Saved: 303 to the product's form.
+    /// </summary>
+    public async Task<IActionResult> OnPostSaveProductAsync(Guid? id, SaveProductInput input, string? returnUrl, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        _ran = true;
+        ReturnPath = ListReturn.Target(returnUrl, PanelFramePaths.Products);
+        List<ProductSaveVariant> variants = [];
+        foreach (SaveProductVariantRow row in input.Variants)
+        {
+            // The shown stock is read as text (07 2.4.3): a value that is no shown number is a mismatch, so the row's stock goes to the module as changed against an impossible value.
+            int? shown = ShownValue.TryReadNumber(row.OriginalStockQuantity, out int? read) ? read : int.MinValue;
+            variants.Add(new ProductSaveVariant(
+                row.VariantId, row.FirstOptionValueId, row.SecondOptionValueId, row.SKU, row.Price, row.NetQuantity, row.StockQuantity, row.VariantId is null ? row.StockQuantity : shown, row.ImageId, row.DigitalFileId));
+        }
+
+        ProductSaveCommand command = new(
+            id,
+            id is null ? null : input.Version,
+            input.ProductType,
+            input.Name,
+            input.Description,
+            input.VatRate,
+            input.OriginCountryId,
+            input.MeasurementUnit,
+            input.ShippingPeriod,
+            input.FulfilmentPeriod,
+            input.MaxQuantityPerOrder,
+            input.WithdrawalExemptionReason,
+            [.. input.Categories.Select(c => c.CategoryId)],
+            input.Categories.FirstOrDefault(c => c.IsPrimaryCategory)?.CategoryId,
+            [.. input.Options.Select(o => new ProductSaveOption(o.OptionId, o.Name, [.. o.Values.Select(v => new ProductSaveOptionValue(v.OptionValueId, v.Value))]))],
+            variants,
+            [.. input.Images.OrderBy(i => i.SortOrder).Select(i => new GalleryEntry(i.ImageId, i.AltText, i.IsMain))],
+            input.DigitalFileId,
+            input.Discount is null ? null : new ProductSaveDiscount(input.Discount.Percentage, input.Discount.StartDate, input.Discount.EndDate));
+
+        ProductSaveResult result = await _transactions.RunAsync(inner => _catalog.SaveProductAsync(command, inner), ct);
+        if (!result.IsRejected && result.ProductId is { } savedId)
+        {
+            return FormResults.SeeOther(FormAddress(savedId, returnUrl));
+        }
+
+        ErrorCode code = result.Code ?? throw new InvalidOperationException("A rejected product save carries its code.");
+        if (code == ErrorCode.NotFound || (id is { } productId && !await LoadAsync(productId, ct)))
+        {
+            return NotFound();
+        }
+
+        Form = input;
+        _rejections.Rejected(code);
+        if (code == ErrorCode.RecordVersionConflict)
+        {
+            return FormResults.Conflict(this);
+        }
+
+        foreach (ProductSaveFieldError error in result.FieldErrors)
+        {
+            ModelState.AddFieldError(
+                "Input." + error.Field,
+                error.Code.ToString(),
+                error.Amount is { } amount ? DisplayFormat.Number(amount) : null);
+        }
+
+        return code == ErrorCode.DisplayedValueConflict ? FormResults.Conflict(this) : FormResults.Redisplay(this);
     }
 
     /// <summary>The row of a variant image target <c>Variants[n].ImageId</c> (07 5.2.3); null when the target is no variant row of the sent form.</summary>

@@ -143,7 +143,7 @@ internal sealed class ProductSaves
         // The prices: an existing variant's change goes through the price's one writer (the history and the discount's zero); a new variant's first price enters the history below.
         foreach ((int row, Variant variant, ProductSaveVariant input) in rows.Where(r => _db.Entry(r.Variant).State != EntityState.Added))
         {
-            VariantPriceResult price = await _prices.ChangeAsync(variant.Id, input.Price!.Value, ct);
+            VariantPriceResult price = await _prices.ChangeAsync(variant.Id, input.Price ?? variant.Price, ct);
             if (price == VariantPriceResult.DiscountedPriceZero)
             {
                 errors.Add(new ProductSaveFieldError(Field(row, nameof(ProductSaveVariant.Price)), ErrorCode.DiscountedPriceZero));
@@ -385,20 +385,20 @@ internal sealed class ProductSaves
                 errors.Add(new ProductSaveFieldError(Field(i, nameof(ProductSaveVariant.StockQuantity)), ErrorCode.InvalidQuantity));
             }
 
-            if (errors.Count > before)
+            if (errors.Count > before || string.IsNullOrEmpty(sku) || row.Price is not decimal rowPrice)
             {
                 continue;
             }
 
             if (variant is null)
             {
-                variant = Variant.Create(product.Id, sku!, row.Price!.Value, now, row.StockQuantity);
+                variant = Variant.Create(product.Id, sku, rowPrice, now, row.StockQuantity);
                 variants.Add(variant);
                 _db.Variants.Add(variant);
             }
             else
             {
-                variant.SetSku(sku!);
+                variant.SetSku(sku);
             }
 
             variant.FirstOptionValueId = row.FirstOptionValueId;
@@ -431,7 +431,7 @@ internal sealed class ProductSaves
         CancellationToken ct)
     {
         List<Guid> galleryIds = [.. command.Gallery.Select(e => e.ImageId)];
-        List<Guid> asked = [.. galleryIds, .. rows.Where(r => r.Input.ImageId is not null).Select(r => r.Input.ImageId!.Value)];
+        List<Guid> asked = [.. galleryIds, .. rows.Select(r => r.Input.ImageId).OfType<Guid>()];
         HashSet<Guid> known = [.. await _db.Images.Where(i => asked.Contains(i.Id)).Select(i => i.Id).ToListAsync(ct)];
         if (galleryIds.Distinct().Count() != galleryIds.Count || galleryIds.Any(id => !known.Contains(id)))
         {
@@ -449,7 +449,7 @@ internal sealed class ProductSaves
             variant.ImageId = input.ImageId;
         }
 
-        IEnumerable<Guid> variantImages = variants.Where(v => v.ImageId is not null).Select(v => v.ImageId!.Value);
+        IEnumerable<Guid> variantImages = variants.Select(v => v.ImageId).OfType<Guid>();
         if (GalleryRules.IsOverTheLimit(GalleryRules.ImageCount(galleryIds, variantImages)))
         {
             errors.Add(new ProductSaveFieldError("Images", ErrorCode.ImageLimitExceeded, ProductConstants.ImagesPerProductMax));
@@ -524,8 +524,9 @@ internal sealed class ProductSaves
 
         if (currentId is Guid current)
         {
-            // Detached by its own statement before the new link is written: one current file per level at any moment (06 4.70).
-            await _db.DigitalFiles.Where(f => f.Id == current).ExecuteUpdateAsync(s => s.SetProperty(f => f.DetachedAt, now), ct);
+            // Through the tracker, not a bulk statement (the product form's records are written only so; 09 10.2): the current file is detached in the same unit of work.
+            DigitalFile detached = await _db.DigitalFiles.SingleAsync(f => f.Id == current, ct);
+            detached.DetachedAt = now;
         }
 
         if (file is not null)

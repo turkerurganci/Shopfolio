@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Binding;
 using Shopfolio.Infrastructure.Validation;
-using Shopfolio.Modules.Catalog.Contracts;
 
 namespace Shopfolio.UnitTests.Architecture;
 

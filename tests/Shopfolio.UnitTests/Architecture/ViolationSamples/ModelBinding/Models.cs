@@ -71,7 +71,7 @@ namespace Shopfolio.Pages.Samples
 
         // The net quantity's rule (three decimals; T525) is the third decimal rule: no DecimalWithoutRule either.
         [SpecAssignedName]
-        [Shopfolio.Modules.Catalog.Contracts.InvalidNetQuantity]
+        [InvalidNetQuantity]
         public decimal? NetWeight { get; set; }
 
         [SpecAssignedName]

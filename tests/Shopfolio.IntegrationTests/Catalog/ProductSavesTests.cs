@@ -115,7 +115,7 @@ public sealed class ProductSavesTests : IAsyncLifetime
     {
         ProductSaveResult result = await RunAsync(Command(variants: [Row(sku: "KUPA-3", price: 0.001m)]));
 
-        AssertField(result, "Variants[0].Price", ErrorCode.InvalidAmount);
+        Assert.Contains(result.FieldErrors, e => e.Field == "Variants[0].Price" && e.Code == ErrorCode.InvalidAmount);
         Assert.Equal(0L, await CountAsync("products"));
     }
 
@@ -124,8 +124,8 @@ public sealed class ProductSavesTests : IAsyncLifetime
     {
         ProductSaveResult result = await RunAsync(Command(name: "", variants: [Row(sku: null)]));
 
-        AssertField(result, "Name", ErrorCode.FieldRequired);
-        AssertField(result, "Variants[0].SKU", ErrorCode.FieldRequired);
+        Assert.Contains(result.FieldErrors, e => e.Field == "Name" && e.Code == ErrorCode.FieldRequired);
+        Assert.Contains(result.FieldErrors, e => e.Field == "Variants[0].SKU" && e.Code == ErrorCode.FieldRequired);
     }
 
     [Fact]
@@ -135,7 +135,7 @@ public sealed class ProductSavesTests : IAsyncLifetime
 
         ProductSaveResult result = await RunAsync(Command(variants: [Row(sku: "ayni-kod")]));
 
-        AssertField(result, "Variants[0].SKU", ErrorCode.DuplicateSku);
+        Assert.Contains(result.FieldErrors, e => e.Field == "Variants[0].SKU" && e.Code == ErrorCode.DuplicateSku);
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public sealed class ProductSavesTests : IAsyncLifetime
     {
         ProductSaveResult result = await RunAsync(Command(variants: [Row(sku: "KUPA-4")], gallery: [new GalleryEntry(Guid.NewGuid(), null, true)]));
 
-        AssertField(result, "Images", ErrorCode.UploadMissing);
+        Assert.Contains(result.FieldErrors, e => e.Field == "Images" && e.Code == ErrorCode.UploadMissing);
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public sealed class ProductSavesTests : IAsyncLifetime
 
         ProductSaveResult result = await RunAsync(Command(variants: [Row(sku: "KUPA-5")], categories: [gone], primary: gone));
 
-        AssertField(result, "Categories", ErrorCode.InvalidListValue);
+        Assert.Contains(result.FieldErrors, e => e.Field == "Categories" && e.Code == ErrorCode.InvalidListValue);
     }
 
     [Fact]
@@ -164,7 +164,7 @@ public sealed class ProductSavesTests : IAsyncLifetime
 
         ProductSaveResult result = await RunAsync(Command(variants: [Row(sku: "KUPA-6")], digitalFileId: file.Id));
 
-        AssertField(result, "DigitalFileId", ErrorCode.UploadMissing);
+        Assert.Contains(result.FieldErrors, e => e.Field == "DigitalFileId" && e.Code == ErrorCode.UploadMissing);
     }
 
     [Fact]
@@ -177,7 +177,7 @@ public sealed class ProductSavesTests : IAsyncLifetime
             Discount = new ProductSaveDiscount(60m, Today, Today.AddDays(2)),
         });
 
-        AssertField(result, "Variants[0].Price", ErrorCode.DiscountedPriceZero);
+        Assert.Contains(result.FieldErrors, e => e.Field == "Variants[0].Price" && e.Code == ErrorCode.DiscountedPriceZero);
         Assert.Equal(0L, await CountAsync("discounts"));
     }
 
@@ -190,7 +190,7 @@ public sealed class ProductSavesTests : IAsyncLifetime
 
         ProductSaveResult result = await RunAsync(Existing(product, variant, price: 100m, stock: null, shown: null) with { Name = "", DigitalFileId = fileId });
 
-        AssertField(result, "Name", ErrorCode.PublishedRecordGateBroken);
+        Assert.Contains(result.FieldErrors, e => e.Field == "Name" && e.Code == ErrorCode.PublishedRecordGateBroken);
     }
 
     [Fact]
@@ -219,7 +219,7 @@ public sealed class ProductSavesTests : IAsyncLifetime
         Assert.Equal(refused, result.IsRejected);
         if (refused)
         {
-            AssertField(result, "Variants[0].NetQuantity", ErrorCode.InvalidAmount);
+            Assert.Contains(result.FieldErrors, e => e.Field == "Variants[0].NetQuantity" && e.Code == ErrorCode.InvalidAmount);
         }
     }
 
@@ -230,7 +230,7 @@ public sealed class ProductSavesTests : IAsyncLifetime
 
         ProductSaveResult result = await RunAsync(Existing(product, variant, price: 100m, stock: null, shown: null));
 
-        AssertField(result, "Variants[0].DigitalFileId", ErrorCode.DigitalFileRequired);
+        Assert.Contains(result.FieldErrors, e => e.Field == "Variants[0].DigitalFileId" && e.Code == ErrorCode.DigitalFileRequired);
         await using AppDbContext db = NewContext();
         Assert.True(await db.DigitalFiles.AnyAsync(f => f.ProductId == product.Id && f.DetachedAt == null, Ct));
     }

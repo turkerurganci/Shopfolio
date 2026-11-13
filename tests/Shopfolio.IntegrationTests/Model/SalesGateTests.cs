@@ -407,6 +407,40 @@ public sealed class SalesGateTests : IAsyncLifetime
 
     // ---- helpers ----
 
+    // ---- T524 KK3: the first moment sales were open, the start of the measurement window (02 10.6.3 m6; 06 10.6 m6) ----
+
+    [Fact]
+    public async Task FirstOpenedAt_IsNone_WhileAConditionWasNeverMet_AndIsTheMomentTheLastOneWasMet()
+    {
+        await ArrangeAsync(broken: null);
+
+        DateTimeOffset? withoutNotice = await RunAsync(m => m.FindSalesFirstOpenedAtAsync(Ct));
+        await PublishPrivacyNoticeAsync(Now.AddDays(-3));
+        DateTimeOffset? opened = await RunAsync(m => m.FindSalesFirstOpenedAtAsync(Ct));
+        DateTimeOffset? noPaymentLine = await RunAsync(m => m.FindSalesFirstOpenedAtAsync(Ct), Bindings.Transfer);
+
+        Assert.Null(withoutNotice);
+        Assert.Equal(Now, opened); // the cookie policy (published at Now) is the later of the two texts
+        Assert.Null(noPaymentLine); // the card line closed and the transfer line never switched on
+    }
+
+    [Fact]
+    public async Task FirstOpenedAt_RewindsTheSwitchFromTheTrail_SoAClosureBeforeTheTextsHoldsItUntilTheReopening_AndALaterClosureDoesNotMoveIt()
+    {
+        await ArrangeAsync(broken: null);
+        await RunAsync(m => m.CloseSalesTemporarilyAsync(false, Ct), Bindings.AllOpen, _admin, now: Now.AddDays(-10));
+        await PublishPrivacyNoticeAsync(Now.AddDays(-5));
+        await RunAsync(m => m.ReopenSalesAsync(true, Ct), Bindings.AllOpen, _admin, now: Now.AddDays(2));
+        await RunAsync(m => m.CloseSalesTemporarilyAsync(false, Ct), Bindings.AllOpen, _admin, now: Now.AddDays(4));
+
+        DateTimeOffset? opened = await RunAsync(m => m.FindSalesFirstOpenedAtAsync(Ct));
+        SalesGate gate = await ReadGateAsync(Bindings.AllOpen);
+
+        Assert.Equal(Now.AddDays(2), opened);
+        Assert.Equal([SalesGateCondition.TemporaryClosure], gate.UnmetConditions);
+        Assert.Equal(3, (await ReadTrailAsync()).Count);
+    }
+
     private CompanyIdentityInput CompleteInput(CompanyType type)
     {
         bool tradesman = type == CompanyType.Tradesman;
@@ -525,12 +559,19 @@ public sealed class SalesGateTests : IAsyncLifetime
         return await context.AuditLogs.AsNoTracking().Where(l => l.Operation == "UpdateSettings").OrderBy(l => l.CreatedAt).ThenBy(l => l.Id).ToListAsync(Ct);
     }
 
-    private ServiceProvider BuildProvider(Bindings? bindings, Admin? admin = null)
+    private async Task PublishPrivacyNoticeAsync(DateTimeOffset at)
+    {
+        LegalTextVersion notice = LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, 1, at, "aydınlatma metni", at);
+        notice.HostingLocation = "Türkiye";
+        await SaveAsync(c => c.LegalTextVersions.Add(notice));
+    }
+
+    private ServiceProvider BuildProvider(Bindings? bindings, Admin? admin = null, DateTimeOffset? now = null)
     {
         ServiceCollection services = new();
         services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, _collection.Dsn));
         services.AddScoped<CacheInvalidations>();
-        services.AddSingleton<TimeProvider>(new FixedTime(Now));
+        services.AddSingleton<TimeProvider>(new FixedTime(now ?? Now));
         services.AddScoped<IAuditActorSource>(_ => new FixedActor(admin));
         services.AddScoped<IAuditTrail, AuditTrail>();
 
@@ -546,9 +587,9 @@ public sealed class SalesGateTests : IAsyncLifetime
     }
 
     /// <summary>Calls the module the way a command does: in one scope with one context, inside the caller's transaction, committed or rolled back by the caller.</summary>
-    private async Task<T> RunAsync<T>(Func<ISettingsModule, Task<T>> call, Bindings? bindings = null, Admin? admin = null, bool commit = true)
+    private async Task<T> RunAsync<T>(Func<ISettingsModule, Task<T>> call, Bindings? bindings = null, Admin? admin = null, bool commit = true, DateTimeOffset? now = null)
     {
-        await using ServiceProvider provider = BuildProvider(bindings ?? Bindings.AllOpen, admin);
+        await using ServiceProvider provider = BuildProvider(bindings ?? Bindings.AllOpen, admin, now);
         await using AsyncServiceScope scope = provider.CreateAsyncScope();
         AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await using IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(Ct);

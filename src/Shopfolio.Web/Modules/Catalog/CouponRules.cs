@@ -44,9 +44,16 @@ internal static class CouponRules
     /// a usage count under the used and reserved rights - a new coupon has none, so under zero (<c>CouponUsageBelowUsed</c>). The code's uniqueness needs the table and is
     /// <see cref="Coupons"/>'.
     /// </summary>
-    public static IReadOnlyList<CouponProblem> CheckDefinition(CouponDefinition definition)
+    public static IReadOnlyList<CouponProblem> CheckDefinition(CouponDefinition definition) => CheckDefinition(definition, 0);
+
+    /// <summary>
+    /// The same rules for a coupon that already holds rights (07 UC-122; 02 3.10.6; K-654): the total usage count may not go under <paramref name="usedAndReserved"/>, the used
+    /// and reserved rights together; a new coupon passes zero.
+    /// </summary>
+    public static IReadOnlyList<CouponProblem> CheckDefinition(CouponDefinition definition, int usedAndReserved)
     {
         ArgumentNullException.ThrowIfNull(definition);
+        ArgumentOutOfRangeException.ThrowIfNegative(usedAndReserved);
         List<CouponProblem> problems = [];
         if (string.IsNullOrWhiteSpace(definition.Code))
         {
@@ -79,12 +86,32 @@ internal static class CouponRules
             problems.Add(new CouponProblem(nameof(CouponDefinition.EndDate), ErrorCode.InvalidDateRange));
         }
 
-        if (definition.TotalUsageLimit < 0)
+        if (definition.TotalUsageLimit < usedAndReserved)
         {
             problems.Add(new CouponProblem(nameof(CouponDefinition.TotalUsageLimit), ErrorCode.CouponUsageBelowUsed));
         }
 
         return problems;
+    }
+
+    /// <summary>
+    /// The validity line of a coupon at <paramref name="now"/> (03 1.10.2; 04 9.7.3, 9.7.9; Z-22), on the same reading as <see cref="Evaluate"/>: the start day from 00:00 and
+    /// the end day included as a whole, in Turkey time (02 4.1.4). Expired when the end day has passed, not started when the start day has not come, its rights used up
+    /// when the used and reserved rights fill the total, valid otherwise - so a coupon is valid exactly when <see cref="Evaluate"/> looks past its dates and rights.
+    /// </summary>
+    public static CouponValidity ValidityOf(DateOnly startDate, DateOnly endDate, int totalUsageLimit, int usedCount, int reservedCount, DateTimeOffset now)
+    {
+        if (now >= TurkeyTime.EndOfRange(endDate))
+        {
+            return CouponValidity.Expired;
+        }
+
+        if (now < TurkeyTime.StartOf(startDate))
+        {
+            return CouponValidity.NotStarted;
+        }
+
+        return usedCount + reservedCount >= totalUsageLimit ? CouponValidity.RightsUsedUp : CouponValidity.Valid;
     }
 
     /// <summary>
@@ -99,7 +126,7 @@ internal static class CouponRules
         IReadOnlyList<decimal> amounts = AmountsOf(lines);
         decimal basketTotal = amounts.Sum();
 
-        if (!TurkeyTime.IsWithinRange(now, terms.StartDate, terms.EndDate) || terms.UsedCount + terms.ReservedCount >= terms.TotalUsageLimit)
+        if (ValidityOf(terms.StartDate, terms.EndDate, terms.TotalUsageLimit, terms.UsedCount, terms.ReservedCount, now) != CouponValidity.Valid)
         {
             return CouponApplication.Rejected(basketTotal);
         }

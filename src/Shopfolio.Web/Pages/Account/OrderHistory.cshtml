@@ -1,0 +1,59 @@
+@page "/hesap/siparisler"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Pages.Account
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@model Shopfolio.Pages.Account.OrderHistoryModel
+@inject SearchEngineData Search
+@*
+    The order history (E-27; T518; 04 5.27; 07 UC-74), the storefront frame around it. Order of the content (04 5.27.3): the inner navigation, the order list (OB-20), the page navigation. A row (04 5.27.4): the order
+    number, the day, the first item's name and the count of the others, the total and the two badges side by side; the whole row opens the order's member root. One markup, two layouts by the style sheet: a table
+    on the wide class and a card per order on the narrow class (04 5.27.11); nothing scrolls sideways. There is no search, no filter, no sort and no action in a row (04 5.27.6). A member without an order sees the
+    empty line (04 5.27.10).
+*@
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = OrderHistoryTexts.ScreenName;
+}
+@section Head {
+    @Search.Head(ViewContext.HttpContext, RecordPages.ClosedScreen(OrderHistoryTexts.ScreenName, ViewContext.HttpContext.GetStorefrontFrame()?.Brand.BrandName, FramePaths.AccountOrders))
+}
+<h1>@OrderHistoryTexts.ScreenName</h1>
+<div class="account-layout">
+    <partial name="_AccountNav" model="FramePaths.AccountOrders" />
+    <div class="account-layout__content">
+        @if (Model.Empty is { } empty)
+        {
+            <partial name="_EmptyRow" model="empty" />
+        }
+        else
+        {
+            <table class="order-history" id="order-history">
+                <caption class="u-visually-hidden">@OrderHistoryTexts.Caption</caption>
+                <thead class="order-history__head">
+                    <tr>
+                        <th scope="col">@OrderHistoryTexts.NumberColumn</th>
+                        <th scope="col">@OrderHistoryTexts.DateColumn</th>
+                        <th scope="col">@OrderHistoryTexts.ItemsColumn</th>
+                        <th scope="col">@OrderHistoryTexts.TotalColumn</th>
+                        <th scope="col">@OrderHistoryTexts.StatusColumn</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (OrderHistoryRow row in Model.Rows)
+                    {
+                        <tr class="order-history__row">
+                            <th scope="row" class="order-history__number"><a class="order-history__link" href="@row.Path">@row.Number</a></th>
+                            <td class="order-history__date">@row.Date</td>
+                            <td class="order-history__items">@row.ItemsLine</td>
+                            <td class="order-history__total">@row.Total</td>
+                            <td class="order-history__status"><partial name="_OrderBadges" model="row.Badges" /></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        <partial name="_Pager" model="Model.Pager" />
+    </div>
+</div>

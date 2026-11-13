@@ -123,8 +123,11 @@ public sealed class PaymentMethodsModel : PageModel
         PaymentMethodsSection current = await _methods.GetAsync(ct);
         string? iban = string.IsNullOrWhiteSpace(input.BankTransferIban) ? null : RequestFormat.CompactIban(input.BankTransferIban);
         bool changesIban = current.BankTransferIban is not null && iban is not null && !string.Equals(current.BankTransferIban, iban, StringComparison.Ordinal);
+        // 07 9.17 (K-1194 (2)): a filled IBAN's change asks for the confirmation; emptying it while the transfer stays off is such a change too - the document names only the opening and the
+        // first IBAN as unconfirmed. With the transfer on, an emptied IBAN is the 422 below (04 7.2.20.2).
+        bool clearsIban = current.BankTransferIban is not null && iban is null;
         bool closesTransfer = current.IsBankTransferEnabled && !input.IsBankTransferEnabled;
-        if (!input.Confirmed && (changesIban || closesTransfer) && input.PaymentMethodsVersion == current.Version && (iban is not null || !input.IsBankTransferEnabled))
+        if (!input.Confirmed && (changesIban || clearsIban || closesTransfer) && input.PaymentMethodsVersion == current.Version && (iban is not null || !input.IsBankTransferEnabled))
         {
             int awaiting = await _ordering.CountBankTransferOrdersAwaitingPaymentAsync(ct);
             bool cardOpen = await _card.IsOpenAsync(ct);
@@ -132,6 +135,11 @@ public sealed class PaymentMethodsModel : PageModel
             if (changesIban)
             {
                 sentences.Add(IbanChangeSentence(awaiting));
+            }
+
+            if (clearsIban)
+            {
+                sentences.Add(IbanClearSentence(awaiting));
             }
 
             if (closesTransfer)
@@ -184,6 +192,13 @@ public sealed class PaymentMethodsModel : PageModel
             : "Yeni IBAN yalnız yeni siparişlere işleyecek.";
         return first + " Değişiklik bütün yöneticilere e-postayla bildirilecek.";
     }
+
+    /// <summary>
+    /// The emptied IBAN's sentence, on K-814's IBAN change pattern: the waiting orders keep the frozen IBAN; an emptied IBAN tells no one (02 9.3.3 - neither entered nor changed to a value).
+    /// </summary>
+    public static string IbanClearSentence(int awaiting) => awaiting > 0
+        ? $"IBAN silinecek; ödemesi beklenen {Number(awaiting)} havale siparişi eski IBAN'ı göstermeye devam edecek."
+        : "IBAN silinecek.";
 
     /// <summary>K-814: the closing's sentence; the sales gate sentence only when no other method is open.</summary>
     public static string CloseSentence(int awaiting, bool otherMethodOpen)

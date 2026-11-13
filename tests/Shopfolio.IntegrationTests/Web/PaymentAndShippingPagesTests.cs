@@ -232,6 +232,31 @@ public sealed partial class PaymentAndShippingPagesTests : IAsyncLifetime
         Assert.False(await ScalarAsync<bool>("SELECT is_bank_transfer_enabled FROM company_settings"));
     }
 
+    [Fact]
+    public async Task EmptyingAFilledIbanWhileTheTransferIsOff_AsksTheConfirmation_WritesNothing_AndTheConfirmedSendEmptiesIt_KK2()
+    {
+        await ExecuteAsync($"UPDATE company_settings SET is_bank_transfer_enabled = false, bank_transfer_iban = '{Iban}'");
+        await using WebApplicationFactory<Program> factory = Open();
+        await SeedAwaitingTransferOrderAsync(factory);
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage first = await client.PostAsync(PaymentPath + "?handler=SavePaymentMethods", PaymentForm(false, string.Empty, 1), Ct);
+        string html = WebUtility.HtmlDecode(await first.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+        Assert.Contains(PaymentMethodsModel.IbanClearSentence(1), html, StringComparison.Ordinal);
+        Assert.Contains(PaymentMethodsModel.ChangeIbanLabel, html, StringComparison.Ordinal);
+        Assert.Equal(Iban, await ScalarAsync<string>("SELECT bank_transfer_iban FROM company_settings"));
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM audit_logs WHERE target_record_type = 'CompanySettings'"));
+
+        using HttpResponseMessage confirmed = await client.PostAsync(PaymentPath + "?handler=SavePaymentMethods", PaymentForm(false, string.Empty, 1, confirmed: true), Ct);
+
+        Assert.Equal(HttpStatusCode.SeeOther, confirmed.StatusCode);
+        Assert.True(await ScalarAsync<bool>("SELECT bank_transfer_iban IS NULL FROM company_settings"));
+        Assert.Equal(Iban, await ScalarAsync<string>("SELECT bank_transfer_iban FROM orders"));
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM dispatch_records"));
+    }
+
     // ---- KK3: three 422s and the 409; a new IBAN reaches only new orders (the waiting order keeps its frozen IBAN, above) ----
 
     [Fact]

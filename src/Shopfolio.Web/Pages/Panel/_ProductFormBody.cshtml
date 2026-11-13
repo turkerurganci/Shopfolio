@@ -92,7 +92,7 @@
                 }
                 @for (int v = 0; v <= valueCount; v++)
                 {
-                    SaveProductOptionValueRow? value = v < valueCount ? option!.Values[v] : null;
+                    SaveProductOptionValueRow? value = v < valueCount ? option?.Values[v] : null;
                     string vk = v.ToString(System.Globalization.CultureInfo.InvariantCulture);
                     if (value?.OptionValueId is { } valueId)
                     {
@@ -207,7 +207,7 @@
                     <input type="hidden" id="product-variant-@i-file" name="@fileField" value="@(row.DigitalFileId?.ToString("D"))" />
                     <label for="product-variant-@i-file-upload">Varyantın dosyası</label>
                     <span class="product-form__file-state">@(row.DigitalFileId is null ? "Dosya yok" : "Dosya ekli")</span>
-                    <input type="file" id="product-variant-@i-file-upload" data-js="@ProductFormModel.DigitalFileUploadHook" data-target-field="@fileField" />
+                    <input upload-file="DigitalFile" id="product-variant-@i-file-upload" data-js="@ProductFormModel.DigitalFileUploadHook" data-target-field="@fileField" />
                 }
                 else if (row.DigitalFileId is { } variantFile)
                 {
@@ -231,7 +231,7 @@
             <input type="hidden" id="product-file-id" name="Input.DigitalFileId" value="@(entries.DigitalFileId?.ToString("D"))" />
             <p class="product-form__file-state">@(entries.DigitalFileId is null ? "Dosya yok" : "Dosya ekli")</p>
             <label for="product-file-upload">Ürünün dosyası</label>
-            <input type="file" id="product-file-upload" data-js="@ProductFormModel.DigitalFileUploadHook" data-target-field="Input.DigitalFileId" />
+            <input upload-file="DigitalFile" id="product-file-upload" data-js="@ProductFormModel.DigitalFileUploadHook" data-target-field="Input.DigitalFileId" />
             <p class="field__hint">@ProductFormModel.FileUpdateText</p>
             @foreach (MessageView refusal in Model.RefusalsOf("Input.DigitalFileId", "product-file"))
             {

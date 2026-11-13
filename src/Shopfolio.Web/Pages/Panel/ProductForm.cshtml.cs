@@ -315,7 +315,7 @@ internal sealed class ProductFormModel : PageModel
     /// <summary>The option values a variant row chooses from (04 9.5.5): the values of the option at <paramref name="optionIndex"/> that already have their key.</summary>
     public IReadOnlyList<FieldOption> OptionValueChoices(int optionIndex) =>
         optionIndex < Form.Options.Count
-            ? [.. Form.Options[optionIndex].Values.Where(v => v.OptionValueId is not null).Select(v => new FieldOption(v.OptionValueId!.Value.ToString("D"), v.Value ?? string.Empty))]
+            ? [.. Form.Options[optionIndex].Values.Where(v => v.OptionValueId is not null).Select(v => new FieldOption(v.OptionValueId.GetValueOrDefault().ToString("D"), v.Value ?? string.Empty))]
             : [];
 
     /// <summary>

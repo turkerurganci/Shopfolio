@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.RegularExpressions;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
@@ -564,6 +565,27 @@ public sealed partial class PaymentAndShippingPagesTests : IAsyncLifetime
         Assert.Contains("\"35\"", details, StringComparison.Ordinal);
     }
 
+    // ---- D-176: the first panel request that writes the trail; the actor is the session's administrator, and a removed account's session has none ----
+
+    [Fact]
+    public async Task TheTrailActor_IsTheSessionsAdministratorWithItsNameAndEmail_AndARemovedAccountHasNone_D176()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage saved = await client.PostAsync(ShippingPath + "?handler=SaveReturnAddress", ReturnForm("Depo Sorumlusu", _ankara.ToString(), "Çankaya", 1), Ct);
+
+        Assert.Equal(HttpStatusCode.SeeOther, saved.StatusCode);
+        Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM audit_logs WHERE target_record_type = 'CompanySettings'"));
+        Assert.Equal(1L, await ScalarAsync<long>(
+            "SELECT count(*) FROM audit_logs l JOIN admins a ON a.id = l.admin_id AND a.name = l.admin_name AND a.email = l.admin_email WHERE l.target_record_type = 'CompanySettings'"));
+
+        Guid adminId = await ScalarAsync<Guid>("SELECT id FROM admins");
+        Assert.Equal(adminId, (await ActorOfTheSessionAsync(factory))?.AdminId);
+        await ExecuteAsync($"DELETE FROM admins WHERE id = '{adminId}'");
+        Assert.Null(await ActorOfTheSessionAsync(factory));
+    }
+
     [Fact]
     public async Task TheReturnAddressConfirmation_CountsTheItemsMarkedAwaitingTheReturnGoods_NotTheOtherAwaitedOnes_KK10()
     {
@@ -718,6 +740,24 @@ public sealed partial class PaymentAndShippingPagesTests : IAsyncLifetime
         });
         await ExecuteAsync($"UPDATE orders SET order_status = 'Delivered', payment_status = 'Paid' WHERE id = '{orderId}'");
         return items;
+    }
+
+    // The trail's actor source of the application, asked inside a request that carries this class's administrator session cookie.
+    private async Task<AuditActor?> ActorOfTheSessionAsync(WebApplicationFactory<Program> factory)
+    {
+        using IServiceScope scope = factory.Services.CreateScope();
+        DefaultHttpContext context = new() { RequestServices = scope.ServiceProvider };
+        context.Request.Headers.Cookie = $"{CookieNames.AdminSession}={_adminKey}";
+        IHttpContextAccessor accessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
+        accessor.HttpContext = context;
+        try
+        {
+            return await scope.ServiceProvider.GetRequiredService<IAuditActorSource>().CurrentAsync(Ct);
+        }
+        finally
+        {
+            accessor.HttpContext = null;
+        }
     }
 
     private async Task<Guid> SeedOrderAsync(WebApplicationFactory<Program> factory, PaymentMethod method, Action<Order, AppDbContext> rows)

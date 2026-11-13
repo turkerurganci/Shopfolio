@@ -57,7 +57,7 @@
                             {
                                 FieldView quantity = Fields.Bind(Fields.Number(quantityName, "Adet", FieldRequirement.Required, quantityValue), summary);
                                 <partial name="_Field" model="quantity" />
-                                <span class="operation-screen__limit">Açık adet: @DisplayFormat.Number(item.OpenQuantity) · en çok @DisplayFormat.Number(item.MaxQuantity)</span>
+                                <span class="operation-screen__limit">Siparişteki adet: @DisplayFormat.Number(item.Quantity) · açık adet: @DisplayFormat.Number(item.OpenQuantity) · en çok @DisplayFormat.Number(item.MaxQuantity)</span>
                             }
                             else
                             {

@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Membership.Contracts;
 
 namespace Shopfolio.Modules.Membership;
@@ -46,10 +48,10 @@ internal sealed class MemberRecords
         }
 
         IReadOnlyList<AddressBookEntry> book = await _addresses.ListAsync(row.Id, ct);
-        DateTimeOffset? blockedUntil = await EmailChanges.OpenRevertEndAsync(_db, row.Id, _time.GetUtcNow(), ct);
+        DateTimeOffset? blockedUntil = await EmailChangeRules.OpenRevertEndAsync(_db, AccountType.Customer, row.Id, _time.GetUtcNow(), ct);
         return new MemberRecord(true, true, row.Id, row.Name, row.Email, row.CreatedAt, !string.IsNullOrEmpty(row.PasswordHash), row.GoogleLinkedAt is not null, book, blockedUntil);
     }
 
     /// <summary>The end of the open revert link that closes the account's deletion, or nothing (02 3.15.6): the account screen shows the reason and the date.</summary>
-    public Task<DateTimeOffset?> DeletionBlockedUntilAsync(Guid customerId, CancellationToken ct) => EmailChanges.OpenRevertEndAsync(_db, customerId, _time.GetUtcNow(), ct);
+    public Task<DateTimeOffset?> DeletionBlockedUntilAsync(Guid customerId, CancellationToken ct) => EmailChangeRules.OpenRevertEndAsync(_db, AccountType.Customer, customerId, _time.GetUtcNow(), ct);
 }

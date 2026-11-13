@@ -1,6 +1,7 @@
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Values;
 
 namespace Shopfolio.Modules.Administration.Contracts.Results;
 
@@ -285,6 +286,13 @@ public sealed class AdminEmailVerificationResult : IOperationResult
 
     internal static AdminEmailVerificationResult Taken() => new(null, null, null, null, true);
 }
+
+/// <summary>
+/// What the administrator's own account page shows (07 UC-104; 04 9.21): the name, the address, the pending change with the last day of its link (nothing when there is none or it has ended), the end
+/// of the open revert link (nothing when none is open; the address change is closed while it is) and the operation whose form stands open - the one the session's reauthentication permission is bound to
+/// by the presented value (<see cref="ReauthenticationOperation"/>; 05 6.1.5), or nothing.
+/// </summary>
+public sealed record AdminOwnAccount(string Name, string Email, string? PendingEmail, DateTimeOffset? PendingLinkEnd, DateTimeOffset? RevertEndsAt, ReauthenticationOperation? OpenOperation);
 
 /// <summary>What the landing page of a new-address or revert link shows when it opens (07 UC-108; 05 6.4.6): only reads. The status is the link's state; a key of another type is missing.</summary>
 public sealed record AdminLinkReading(AccountLinkStatus Status);

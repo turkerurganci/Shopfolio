@@ -41,6 +41,9 @@ public sealed partial class ExportSurfaceTests
 
         // The command-line reader of the log files has its own file export (a log is not one of the three; 09 18).
         "LogExportFile",
+
+        // The panel's screen of the three (T524; 07 9.24, 5.2.2 ExportOrdersInput): the page, its model, its form, its sections and its three handlers.
+        "Pages_Panel_DataExport", "DataExportModel", "DataExportSection", "ExportOrdersInput", "OnPostExportOrdersAsync", "OnPostExportCustomersAsync", "OnPostExportContactRequestsAsync",
     };
 
     private static readonly string[] ExportWords = ["export", "exports", "exported", "exporter", "exporting"];

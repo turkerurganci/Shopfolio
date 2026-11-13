@@ -47,12 +47,6 @@ public abstract class OrderPageModel : PageModel
     /// <summary>The words of the card order cancelled because its payment failed (04 5.16.4; 03 2.5.1.3): the cart stays as it was.</summary>
     public const string CardFailedText = "Kart ödemesi gerçekleşmedi ve sipariş iptal edildi. Sepetiniz olduğu gibi duruyor; sepetinizden yeni bir siparişle yeniden deneyebilirsiniz.";
 
-    /// <summary>The reason of a screen's 303 when the operation is not open (07 6.3.3 <c>OperationClosed</c>; 04 5.17.11): the page below is the order as it is now.</summary>
-    public const string OperationClosedText = "Bu işlem şu anda siparişinizde açık değil ya da o arada kapandı; işlem uygulanmadı. Siparişin güncel hâli aşağıda.";
-
-    /// <summary>The reason of <c>QuantityExceedsOpen</c> (07 6.3.3; K-1202): nothing was applied.</summary>
-    public const string QuantityExceedsOpenText = "İstediğiniz adet, ürünün şu anki açık adedini aşıyor ya da açık adet o arada değişti; isteğiniz uygulanmadı. Güncel adetlerle yeniden deneyin.";
-
     private readonly IOrderingModule _ordering;
     private readonly IOrderPage _page;
     private readonly IOrderOperations _operations;
@@ -60,6 +54,7 @@ public abstract class OrderPageModel : PageModel
     private readonly ISettingsModule _settings;
     private readonly IAfterSalesModule _afterSales;
     private IReadOnlyList<ItemRecordFact> _records = [];
+    private IReadOnlyList<ProvinceInfo> _provinces = [];
     private bool _loaded;
 
     protected OrderPageModel(IOrderingModule ordering, IOrderPage page, IOrderOperations operations, IOrderDocuments documents, ISettingsModule settings, IAfterSalesModule afterSales)
@@ -79,7 +74,12 @@ public abstract class OrderPageModel : PageModel
     public IReadOnlyList<ItemRecordEntry> RecordsOf(OrderPageItem item)
     {
         ArgumentNullException.ThrowIfNull(item);
-        return ItemRecordLabels.EntriesOf(_records, item.OrderItemId, item.Quantity, item.DeliveryMarkedAt);
+        return ItemRecordLabels.EntriesOf(
+            _records,
+            item.OrderItemId,
+            item.Quantity,
+            item.DeliveryMarkedAt,
+            address => OrderScreenTexts.RecordReturnAddress(address.RecipientName, address.AddressLine, address.District, AfterSalesScreenModel.ProvinceNameOf(_provinces, address.ProvinceId)));
     }
 
     /// <summary>The address the page was opened from - the member's root or the access-key root, as written (the key is case sensitive; 07 2.1.7): the forms and the screens hang under it.</summary>
@@ -371,13 +371,10 @@ public abstract class OrderPageModel : PageModel
         PrivacyNotice = await _settings.GetLegalTextVersionAsync(detail.PrivacyNoticeVersionId, ct);
         ScreenLinks = OrderScreenLink.From(operations, RootPath);
         _records = await _afterSales.ListItemRecordsAsync([.. detail.Items.Select(i => i.OrderItemId)], ct);
+        _provinces = _records.Any(r => r.ReturnAddress is not null) ? await _settings.GetProvincesAsync(ct) : [];
         RefundIbanFields = await HttpContext.RequestServices.GetRequiredService<ICustomerOperations>().ReadRefundIbanFieldsAsync(orderId, ct);
-        OperationReasonText = NoticeParameter.Read(Request, NoticeKind.Reason) switch
-        {
-            NoticeCode.OperationClosed => OperationClosedText,
-            NoticeCode.QuantityExceedsOpen => QuantityExceedsOpenText,
-            _ => null,
-        };
+        // The reason of a return from an operation screen (07 6.3.3; K-1170 (1), (4)): one home of the words for E-17, E-18 and E-19 (04 5.17.11, 5.18.11, 5.19.10).
+        OperationReasonText = OrderScreenTexts.ReasonOf(NoticeParameter.Read(Request, NoticeKind.Reason));
         SavedText = NoticeParameter.Read(Request, NoticeKind.ShortLived) is { } saved && NoticeTexts.TryShortLived(saved, out string? text) ? text : null;
         return true;
     }
@@ -403,37 +400,6 @@ public sealed class MemberOrderModel(IOrderingModule ordering, IOrderPage page, 
     private readonly IOrderingModule _ordering = ordering;
 
     protected override Task<OrderRootResult> ResolveAsync(CancellationToken ct) => OrderRoots.ResolveMemberAsync(this, _ordering, ct);
-}
-
-/// <summary>The two roots' lookups (07 2.1.3, 2.3.2–2.3.5), shared by the order page and the screens under it, so a screen's root holds exactly when the page's does.</summary>
-public static class OrderRoots
-{
-    /// <summary>The member's root: no session is 302 to the sign-in; an administrator's session alone, another account's order or no such number is the one 404.</summary>
-    public static async Task<OrderRootResult> ResolveMemberAsync(PageModel page, IOrderingModule ordering, CancellationToken ct)
-    {
-        ArgumentNullException.ThrowIfNull(page);
-        ArgumentNullException.ThrowIfNull(ordering);
-        if (page.User.AccountId() is not Guid customerId)
-        {
-            return OrderRootResult.Denied(await page.HttpContext.HasAdminSessionAsync()
-                ? AccessDenial.NotFound()
-                : page.Challenge(SessionSchemes.CustomerScheme));
-        }
-
-        string number = page.RouteData.Values["orderNumber"] as string ?? string.Empty;
-        Guid? orderId = await ordering.FindMemberOrderAsync(number, customerId, ct);
-        return orderId is Guid id ? OrderRootResult.Found(id) : OrderRootResult.Denied(AccessDenial.NotFound());
-    }
-
-    /// <summary>The access-key root: a key that is not valid, a renewed key and a disposed order are the one 404 (04 5.16.20).</summary>
-    public static async Task<OrderRootResult> ResolveAccessAsync(PageModel page, IOrderingModule ordering, CancellationToken ct)
-    {
-        ArgumentNullException.ThrowIfNull(page);
-        ArgumentNullException.ThrowIfNull(ordering);
-        string key = page.RouteData.Values["accessKey"] as string ?? string.Empty;
-        Guid? orderId = await ordering.FindOrderByAccessKeyAsync(key, ct);
-        return orderId is Guid id ? OrderRootResult.Found(id) : OrderRootResult.Denied(AccessDenial.NotFound());
-    }
 }
 
 /// <summary>

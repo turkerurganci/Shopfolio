@@ -1,7 +1,8 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @using Shopfolio.Infrastructure
 @using Shopfolio.Pages.Components
 @model IReadOnlyList<ItemRecordEntry>
-@* The records on an order item's row, each under its own name (T542; 04 2.5.2; 02 5.8): the item has no status badge, so no badge is drawn here. *@
+@* The records on an order item's row, each under its own name (T542; 04 2.5.2; 02 5.8): the item has no status badge; only a defect claim's record carries its claim's badge (04 5.16.5). *@
 @if (Model.Count > 0)
 {
     <ul class="item-records">
@@ -9,6 +10,10 @@
         {
             <li class="item-records__item">
                 <span class="item-records__name">@ItemRecordLabels.Of(record.Name)</span>
+                @if (record.Badge is Badge badge)
+                {
+                    <partial name="_Badge" model="badge" />
+                }
                 @if (record.Quantity is int quantity)
                 {
                     <span class="item-records__quantity">@DisplayFormat.Number(quantity) adet</span>
@@ -16,6 +21,10 @@
                 @if (record.MomentText is string moment)
                 {
                     <span class="item-records__moment">@moment</span>
+                }
+                @if (record.Detail is string detail)
+                {
+                    <span class="item-records__detail">@detail</span>
                 }
             </li>
         }

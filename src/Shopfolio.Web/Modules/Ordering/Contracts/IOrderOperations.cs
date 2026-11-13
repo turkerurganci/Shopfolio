@@ -38,4 +38,17 @@ public interface IOrderOperations
     /// order or item, a digital item, a physical item not shipped yet (its way is the cancellation, 02 7.3.7), the window closed, an absolute exemption, no open units.
     /// </summary>
     Task<WithdrawalScreen?> ReadWithdrawalScreenAsync(Guid orderId, Guid orderItemId, CancellationToken ct);
+
+    /// <summary>
+    /// E-18's screen at once (T513; 07 UC-42; 09 20 item 4): the declaration screen of every item the customer's withdrawal button is open for now - in the order's item
+    /// order, each as <see cref="ReadWithdrawalScreenAsync"/> reads it - and the shipping fee trigger's units still to withdraw (<see cref="WithdrawalScreens.ShippingFeeUnits"/>),
+    /// from one load of the order's facts; the number of queries does not grow with the items. Null when there is no such order.
+    /// </summary>
+    Task<WithdrawalScreens?> ReadWithdrawalScreensAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
+    /// The last step of E-18 (04 5.18.6; 02 7.4.6; K-789, K-1076): whether withdrawing <paramref name="selectedUnits"/> pays the shipping fee back - the AfterSales shipping fee
+    /// rule's answer over <paramref name="screens"/>' units, so the page works out nothing itself (09 3.4 item 1). A pure answer.
+    /// </summary>
+    bool WithdrawalRefundsShippingFee(WithdrawalScreens screens, IReadOnlyDictionary<Guid, int> selectedUnits);
 }

@@ -15,8 +15,11 @@ public enum ItemRecordName
     DeliveryMark,
 }
 
-/// <summary>One record on an item's row: its name, the units it covers when it covers units, and the moment it was born (04 2.5.2; 03 1.7.1).</summary>
-public sealed record ItemRecordEntry(ItemRecordName Name, int? Quantity, DateTimeOffset? At)
+/// <summary>
+/// One record on an item's row: its name, the units it covers when it covers units, and the moment it was born (04 2.5.2; 03 1.7.1); a withdrawal of a physical item its return
+/// address as written into it, a defect claim its claim's badge (04 5.16.5). The item itself still has no badge.
+/// </summary>
+public sealed record ItemRecordEntry(ItemRecordName Name, int? Quantity, DateTimeOffset? At, string? Detail = null, Badge? Badge = null)
 {
     /// <summary>The moment as the row writes it, or null when the record carries no moment (the view only prints it; it derives nothing from the date).</summary>
     public string? MomentText => At is DateTimeOffset moment ? Infrastructure.DisplayFormat.Date(moment) : null;
@@ -61,12 +64,28 @@ public static class ItemRecordLabels
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Not a record of the item's row."),
     };
 
-    /// <summary>The item's row entries: the after-sales records of the item, then its delivery mark (04 2.5.2); the units show only on an item of more than one unit.</summary>
-    public static IReadOnlyList<ItemRecordEntry> EntriesOf(IEnumerable<Modules.AfterSales.Contracts.ItemRecordFact> records, Guid orderItemId, int quantity, DateTimeOffset? deliveryMarkedAt)
+    /// <summary>
+    /// The item's row entries: the after-sales records of the item, then its delivery mark (04 2.5.2); the units show only on an item of more than one unit. When
+    /// <paramref name="returnAddressText"/> is given (the customer's page, 04 5.16.5; T513) a withdrawal's return address is written with it and a defect claim carries its claim's badge.
+    /// </summary>
+    public static IReadOnlyList<ItemRecordEntry> EntriesOf(
+        IEnumerable<Modules.AfterSales.Contracts.ItemRecordFact> records,
+        Guid orderItemId,
+        int quantity,
+        DateTimeOffset? deliveryMarkedAt,
+        Func<Modules.AfterSales.Contracts.ItemReturnAddress, string>? returnAddressText = null)
     {
         ArgumentNullException.ThrowIfNull(records);
         bool showsUnits = quantity > 1;
-        List<ItemRecordEntry> entries = [.. records.Where(r => r.OrderItemId == orderItemId).Select(r => new ItemRecordEntry(NameOf(r.Kind), showsUnits ? r.Quantity : null, r.At))];
+        List<ItemRecordEntry> entries =
+        [
+            .. records.Where(r => r.OrderItemId == orderItemId).Select(r => new ItemRecordEntry(
+                NameOf(r.Kind),
+                showsUnits ? r.Quantity : null,
+                r.At,
+                returnAddressText is not null && r.ReturnAddress is { } address ? returnAddressText(address) : null,
+                returnAddressText is not null && r.ClaimStatus is { } status ? StatusBadges.For(status) : null)),
+        ];
         if (deliveryMarkedAt is { } marked)
         {
             entries.Add(new ItemRecordEntry(ItemRecordName.DeliveryMark, null, marked));

@@ -170,6 +170,12 @@ public sealed class SitemapSourceTests
 
         public Task<CouponWriteResult> CreateCouponAsync(CouponDefinition definition, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<CouponWriteResult> UpdateCouponAsync(Guid couponId, CouponDefinition definition, int formVersion, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<CouponListPage> ListCouponsAsync(int page, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<CouponRecord?> GetCouponAsync(Guid couponId, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<CouponApplication> EvaluateCouponAsync(string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<CouponApplication> ApplyCouponAsync(Guid cartId, string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct) => throw new NotSupportedException();

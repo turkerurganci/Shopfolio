@@ -90,6 +90,13 @@ public interface IAdministrationModule
     /// <summary>The administrator's name for the panel frame's top row (T540; 07 5.5.1; 04 2.2.8); null when the account is gone. A plain read.</summary>
     Task<string?> GetAdminNameAsync(Guid adminId, CancellationToken ct);
 
+    /// <summary>
+    /// What the account page shows (07 UC-104; 05 6.1.5): the account, its pending change and open revert link, and the operation whose form opens - only while the session holds the permission for that
+    /// operation bound to the presented value. Any other request of the page drops the session's permission (the page's first request outside the form's display). Joins the caller's transaction; null when
+    /// the account is gone.
+    /// </summary>
+    Task<AdminOwnAccount?> ReadOwnAccountAsync(Guid adminId, Guid sessionId, ReauthenticationOperation? operation, string? reauthenticationValue, CancellationToken ct);
+
     /// <summary>The administrator's own name (07 UC-178; 02 10.2.4): no reauthentication.</summary>
     Task<AdminNameChangeResult> ChangeNameAsync(Guid adminId, string name, CancellationToken ct);
 

@@ -182,17 +182,33 @@ internal sealed partial class AfterSalesModule
         return new ItemRecordWriteResult(null, withdrawal.Id, null, copied);
     }
 
-    public async Task<WithdrawalNotes> WithdrawalNotesAsync(ProductType productType, bool shippedNotDelivered, WithdrawalExemptionReason? exemption, CancellationToken ct)
+    public async Task<IReadOnlyList<WithdrawalNotes>> WithdrawalNotesAsync(IReadOnlyList<WithdrawalNoteQuery> items, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(items);
+
+        // Z-16's start for a declaration sent now (02 7.4.1): the customer's own declaration never carries the firm's same-day answer, so the delivery day counts as before it.
+        DateOnly today = TurkeyTime.DateOf(_time.GetUtcNow());
+
         // A physical item's screen shows the current return address and the sending period; in transit it first says the carrier brings the goods back (K-838). A service
-        // item's shows neither (K-530). The packaging condition is the conditional exemption's (K-509), the one rule of WithdrawalExemptions.
-        bool physical = productType == ProductType.Physical;
-        ReturnAddress? address = physical ? await FirmReturnAddressAsync(ct) : null;
-        return new WithdrawalNotes(
-            address is { } a ? new ItemReturnAddress(a.RecipientName, a.ProvinceId, a.District, a.AddressLine, a.Phone) : null,
-            physical ? AfterSalesPeriodRules.ReturnShipmentPeriodDays : null,
-            physical && shippedNotDelivered,
-            WithdrawalExemptions.IsConditional(exemption) ? exemption : null);
+        // item's shows neither (K-530). The packaging condition is the conditional exemption's (K-509), the one rule of WithdrawalExemptions. The address is read once for
+        // the whole screen (09 20 item 4).
+        ReturnAddress? address = items.Any(i => i.ProductType == ProductType.Physical) ? await FirmReturnAddressAsync(ct) : null;
+        ItemReturnAddress? shown = address is { } a ? new ItemReturnAddress(a.RecipientName, a.ProvinceId, a.District, a.AddressLine, a.Phone) : null;
+        return
+        [
+            .. items.Select(item =>
+            {
+                bool physical = item.ProductType == ProductType.Physical;
+                return new WithdrawalNotes(
+                    physical ? shown : null,
+                    physical ? AfterSalesPeriodRules.ReturnShipmentPeriodDays : null,
+                    physical ? PeriodCounting.LastDay(CountedPeriod.ReturnShipmentPeriod, today, AfterSalesPeriodRules.ReturnShipmentPeriodDays, BusinessCalendar.Product) : null,
+                    physical && item.ShippedNotDelivered,
+                    WithdrawalExemptions.IsConditional(item.Exemption) ? item.Exemption : null,
+                    AfterSalesPeriodRules.RefundPeriodDays,
+                    AfterSalesPeriodRules.IsAfterDelivery(item.ProductType, item.DeliveryDate, today, null));
+            }),
+        ];
     }
 
     public async Task<ItemRecordWriteResult> AddReturnReceiptAsync(ReturnReceiptEntry entry, CancellationToken ct)
@@ -336,7 +352,7 @@ internal sealed partial class AfterSalesModule
         ItemReturnAddress? address = claim is { ReturnRecipientName: { } name, ReturnProvinceId: { } province, ReturnDistrict: { } district, ReturnAddressLine: { } line }
             ? new ItemReturnAddress(name, province, district, line, claim.ReturnPhone)
             : null;
-        return new DefectClaimInfo(claim.Id, claim.OrderItemId, claim.DefectClaimStatus, claim.Quantity, claim.CreatedAt, address);
+        return new DefectClaimInfo(claim.Id, claim.OrderItemId, claim.DefectClaimStatus, claim.Quantity, claim.CreatedAt, address, claim.Description);
     }
 
     /// <summary>

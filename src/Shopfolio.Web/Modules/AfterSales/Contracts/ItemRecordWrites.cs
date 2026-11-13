@@ -151,15 +151,26 @@ public sealed record ReturnRejectionEntry(ItemRecordSubject Subject, Guid Withdr
 /// <summary>
 /// What a withdrawal declaration's screen tells the customer (02 7.3.5): the firm's current return address and the days to send the goods back - a physical item's only
 /// (K-530); whether the carrier brings back goods not taken in - a shipped physical item not yet marked delivered (K-838); and the conditional exemption whose protective
-/// packaging condition is shown (K-509), null on any other item.
+/// packaging condition is shown (K-509), null on any other item. <paramref name="RefundPeriodDays"/> is Z-16 and <paramref name="RefundFromGoodsArrival"/> says where it starts
+/// for a declaration sent now (02 7.4.1; 04 5.18.6): from the goods' arrival at the firm after the delivery, from the declaration before it and on a service item.
 /// </summary>
-public sealed record WithdrawalNotes(ItemReturnAddress? ReturnAddress, int? SendingPeriodDays, bool CarrierReturnsUnreceivedGoods, WithdrawalExemptionReason? PackagingCondition);
+public sealed record WithdrawalNotes(
+    ItemReturnAddress? ReturnAddress,
+    int? SendingPeriodDays,
+    DateOnly? SendingLastDay,
+    bool CarrierReturnsUnreceivedGoods,
+    WithdrawalExemptionReason? PackagingCondition,
+    int RefundPeriodDays,
+    bool RefundFromGoodsArrival);
+
+/// <summary>One item of the declaration screen as <see cref="IAfterSalesModule.WithdrawalNotesAsync"/> reads it: its type, whether it is shipped and not marked delivered, its frozen exemption and its delivery date.</summary>
+public sealed record WithdrawalNoteQuery(ProductType ProductType, bool ShippedNotDelivered, WithdrawalExemptionReason? Exemption, DateOnly? DeliveryDate);
 
 /// <summary>The firm's return address a claim copied (06 4.30; K-817), as the notice writes it.</summary>
 public sealed record ItemReturnAddress(string RecipientName, Guid ProvinceId, string District, string AddressLine, string? Phone);
 
-/// <summary>An item's defect claim as it stands (06 4.30): its id, status, defective units and the return address it copied.</summary>
-public sealed record DefectClaimInfo(Guid Id, Guid OrderItemId, DefectClaimStatus Status, int Quantity, DateTimeOffset CreatedAt, ItemReturnAddress? ReturnAddress);
+/// <summary>An item's defect claim as it stands (06 4.30): its id, status, defective units, the return address it copied and the customer's first description (04 5.19.4).</summary>
+public sealed record DefectClaimInfo(Guid Id, Guid OrderItemId, DefectClaimStatus Status, int Quantity, DateTimeOffset CreatedAt, ItemReturnAddress? ReturnAddress, string Description);
 
 /// <summary>
 /// A defect claim on the panel's order screen (04 9.9.7): its defective units, the customer's description, the opening moment, the latest reopening (null when never reopened), the

@@ -256,6 +256,19 @@ public interface ICatalogModule
     Task<CouponWriteResult> CreateCouponAsync(CouponDefinition definition, CancellationToken ct);
 
     /// <summary>
+    /// Changes a coupon (07 UC-122; 02 3.10.5, 3.10.6; K-806): a missing coupon, then a version other than <paramref name="formVersion"/> - before the field rules (07 2.4.8) -,
+    /// then every field problem together - the usage count under the used and reserved rights included - refuse it, and nothing is written. The change reaches only new
+    /// orders; the rights are not touched; no trail row (K-310). Joins the caller's transaction and never opens one (09 9.1 item 3).
+    /// </summary>
+    Task<CouponWriteResult> UpdateCouponAsync(Guid couponId, CouponDefinition definition, int formVersion, CancellationToken ct);
+
+    /// <summary>The panel's coupon list (07 UC-90): newest first, at the panel's page size, each row with the validity read for today (03 1.10.2) and its rights. A plain read.</summary>
+    Task<CouponListPage> ListCouponsAsync(int page, CancellationToken ct);
+
+    /// <summary>One coupon for its form (07 UC-90), with its version and its rights; null when no coupon has the key. A plain read.</summary>
+    Task<CouponRecord?> GetCouponAsync(Guid couponId, CancellationToken ct);
+
+    /// <summary>
     /// The verdict on a coupon code for a basket now (02 3.10.1-3.10.5): accepted with every item's share - a percentage rounded in each item, a fixed amount spread in
     /// proportion with the left-over kuruş on the largest item - and the VAT separated after it; not accepted when unknown, outside its dates, its rights used up, equal
     /// to or above the basket, or rounded to a total of zero; its own outcome under the minimum basket amount. The basket total before the coupon is the base of the

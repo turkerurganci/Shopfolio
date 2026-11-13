@@ -188,17 +188,20 @@
         }
         <div class="checkout__legal">
             <pre class="checkout__summary-text">@confirmation.SummaryText</pre>
-            <details><summary>Ön Bilgilendirme Formu</summary><div>@confirmation.PreInformationFormText</div></details>
-            <details><summary>Mesafeli Satış Sözleşmesi</summary><div>@confirmation.DistanceSalesContractText</div></details>
+            @if (confirmation.ContactEmailLine is not null)
+            {
+                <p class="checkout__email-line">@confirmation.ContactEmailLine <a href="#@FormErrorSummary.FieldIdOf(nameof(PlaceOrderInput.ContactEmail))">@CheckoutTexts.CorrectEmail</a></p>
+            }
+            @* 04 5.13.9 (c)-(d), 5.13.32 (K-756): the two texts are open on the page, each in a box that scrolls; never folded, never behind a link. *@
+            <h3 id="checkout-pre-information">Ön Bilgilendirme Formu</h3>
+            <div class="checkout__legal-box" role="region" aria-labelledby="checkout-pre-information" tabindex="0"><pre class="legal-text__plain">@confirmation.PreInformationFormText</pre></div>
+            <h3 id="checkout-distance-sales">Mesafeli Satış Sözleşmesi</h3>
+            <div class="checkout__legal-box" role="region" aria-labelledby="checkout-distance-sales" tabindex="0"><pre class="legal-text__plain">@confirmation.DistanceSalesContractText</pre></div>
             <p>@confirmation.HowTheOrderIsPlacedText</p>
             <p><a href="@FramePaths.PrivacyNotice">@FramePaths.PrivacyNoticeTitle</a></p>
             <p>@confirmation.WithdrawalSummaryText</p>
         </div>
         <partial name="_ConsentBoxes" model="boxes" />
-        @if (confirmation.ContactEmailLine is not null)
-        {
-            <p class="checkout__email-line">@confirmation.ContactEmailLine <a href="#@FormErrorSummary.FieldIdOf(nameof(PlaceOrderInput.ContactEmail))">@CheckoutTexts.CorrectEmail</a></p>
-        }
         <p class="checkout__total">Ödenecek toplam: <strong>@DisplayFormat.Amount(summary.Total)</strong></p>
         @if (Model.ActionMessage is not null)
         {

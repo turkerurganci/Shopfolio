@@ -130,6 +130,15 @@ public sealed partial class CheckoutPageTests
         return value.Success ? value.Groups[1].Value : string.Empty;
     }
 
+    // The text of a legal text's scrolling box, labelled by its heading (04 5.13.9 (c)-(d)).
+    private static string LegalBox(string html, string headingId)
+    {
+        Assert.Contains($"<h3 id=\"{headingId}\">", html, StringComparison.Ordinal);
+        Match box = Regex.Match(html, $"<div class=\"checkout__legal-box\" role=\"region\" aria-labelledby=\"{Regex.Escape(headingId)}\" tabindex=\"0\"><pre class=\"legal-text__plain\">(.*?)</pre></div>", RegexOptions.Singleline);
+        Assert.True(box.Success, $"The page has no open box for {headingId}.");
+        return box.Groups[1].Value;
+    }
+
     // The values the page carries back - the key, the fingerprint, the versions - and, for a guest's form, the e-mail field.
     private static IEnumerable<(string Name, string Value)> Fields(string page, bool guest, string email = "")
     {

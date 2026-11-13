@@ -150,6 +150,37 @@ public sealed partial class CheckoutPageTests : IAsyncLifetime
         Assert.Contains("href=\"#ContactEmail\"", recalculatedHtml, StringComparison.Ordinal); // D-729: the summary's e-mail line links to the field it is corrected in
     }
 
+    // 04 5.13.9 (b)-(d), (h), 5.13.32 (K-756): the two legal texts are open in a scrolling box, never folded; the guest's e-mail line is in the summary, not between the boxes and the button.
+    [Fact]
+    public async Task TheConfirmation_ShowsBothLegalTextsOpenInAScrollingBox_AndTheEmailLineInTheSummary_T509_KK1()
+    {
+        string guest = await SeedGuestCartAsync(ProductType.Physical);
+        await using WebApplicationFactory<Program> factory = Open(salesOpen: true);
+        (_, string page, _) = await GetAsync(factory, GuestCart(guest));
+
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        using HttpResponseMessage recalculated = await PostAsync(client, "Recalculate", [.. Fields(page, guest: true, email: "misafir@example.com")], GuestCart(guest));
+        string html = await BodyOf(recalculated);
+
+        Assert.DoesNotContain("<details", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("<summary", html, StringComparison.Ordinal);
+        string form = LegalBox(html, "checkout-pre-information");
+        string contract = LegalBox(html, "checkout-distance-sales");
+        Assert.False(string.IsNullOrWhiteSpace(form), "the form's whole text is in its box");
+        Assert.False(string.IsNullOrWhiteSpace(contract), "the contract's whole text is in its box");
+        Assert.NotEqual(form, contract);
+
+        int summaryText = html.IndexOf("class=\"checkout__summary-text\"", StringComparison.Ordinal);
+        int emailLine = html.IndexOf("class=\"checkout__email-line\"", StringComparison.Ordinal);
+        int firstBox = html.IndexOf("class=\"checkout__legal-box\"", StringComparison.Ordinal);
+        int consents = html.IndexOf("class=\"consents\"", StringComparison.Ordinal);
+        int consentsEnd = html.IndexOf("</fieldset>", consents, StringComparison.Ordinal);
+        int total = html.IndexOf("class=\"checkout__total\"", consentsEnd, StringComparison.Ordinal);
+        Assert.True(summaryText >= 0 && summaryText < emailLine && emailLine < firstBox && firstBox < consents, "the e-mail line follows the summary and comes before the legal texts and the boxes");
+        Assert.Equal(1, Regex.Count(html, "class=\"checkout__email-line\""));
+        Assert.DoesNotContain("checkout__email-line", html[consentsEnd..total], StringComparison.Ordinal);
+    }
+
     // ---- KK2: three reasons, four ends ----
 
     [Fact]

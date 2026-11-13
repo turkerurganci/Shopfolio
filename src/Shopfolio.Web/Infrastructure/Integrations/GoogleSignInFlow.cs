@@ -9,7 +9,7 @@ using Shopfolio.Infrastructure.Security;
 
 namespace Shopfolio.Infrastructure.Integrations;
 
-/// <summary>The two flows that go through Google (08 2.3; 07 UC-50, UC-62): sign-in and registration share one, the reauthentication is the other (T516's).</summary>
+/// <summary>The two flows that go through Google (08 2.3; 07 UC-50, UC-62): sign-in and registration share one, the reauthentication is the other (T516).</summary>
 internal enum GoogleFlowKind
 {
     SignInOrRegistration,
@@ -136,10 +136,17 @@ internal sealed class GoogleSignInFlow
     /// unreachable Google, an error answer, a failed verification and a nonce that is not the flow's are all the same ending, null (08 2.3; 05 10.1.5).
     /// </summary>
     public async Task<GoogleIdentityResult.Succeeded?> VerifyAsync(GoogleFlowValues flow, string code, CancellationToken ct)
+        => await ExchangeAsync(flow, code, ct) as GoogleIdentityResult.Succeeded;
+
+    /// <summary>
+    /// The same verification with the kind of ending kept (T516): the re-authentication tells an unreachable Google (<see cref="GoogleIdentityResult.Unavailable"/>) from a failed verification
+    /// (<see cref="GoogleIdentityResult.Failed"/>, a nonce that is not the flow's included) - <see cref="GoogleIdentityFailureRule"/> turns the two into the notice codes. A success carries the flow's nonce.
+    /// </summary>
+    public async Task<GoogleIdentityResult> ExchangeAsync(GoogleFlowValues flow, string code, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(flow);
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
         GoogleIdentityResult answer = await _gateway.VerifyIdentityAsync(new IdentityCodeExchange(code, flow.CodeVerifier), ct);
-        return answer is GoogleIdentityResult.Succeeded identity && NonceMatches(flow, identity.Nonce) ? identity : null;
+        return answer is GoogleIdentityResult.Succeeded identity && !NonceMatches(flow, identity.Nonce) ? new GoogleIdentityResult.Failed("nonce") : answer;
     }
 }

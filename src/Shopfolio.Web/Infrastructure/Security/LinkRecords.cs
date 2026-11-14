@@ -80,14 +80,15 @@ internal sealed class LinkRecords
 
     /// <summary>
     /// Consumes the link with one conditional update (05 6.4.6; 07 2.5.3): the row is taken only while it is unused, not superseded and not
-    /// expired. False means no row changed - the caller does nothing and shows the link's present state. Runs in the caller's transaction.
+    /// expired. False means no row changed - the caller does nothing and shows the link's present state. Runs in the caller's transaction. The same update empties the
+    /// revert link's earlier address (06 4.42: it is emptied in the transaction that uses the link, the value having returned to the account's e-mail).
     /// </summary>
     public async Task<bool> TryConsumeAsync(Guid linkId, CancellationToken ct)
     {
         DateTimeOffset now = _time.GetUtcNow();
         int changed = await _db.LinkRecords
             .Where(l => l.Id == linkId && l.UsedAt == null && l.SupersededAt == null && l.ExpiresAt > now)
-            .ExecuteUpdateAsync(set => set.SetProperty(l => l.UsedAt, now), ct);
+            .ExecuteUpdateAsync(set => set.SetProperty(l => l.UsedAt, now).SetProperty(l => l.PreviousEmail, (string?)null), ct);
         return changed == 1;
     }
 

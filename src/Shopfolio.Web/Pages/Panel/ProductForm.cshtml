@@ -1,0 +1,12 @@
+@page "/panel/urunler/{id:guid}"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Panel
+@model ProductFormModel
+@*
+    E-33, the existing product's form (T525; 04 9.5; 07 UC-88): the body is shared with the new product's address (K-1175 (7)). No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = Model.Title;
+}
+<partial name="_ProductFormBody" model="Model" />

@@ -4,7 +4,8 @@ namespace Shopfolio.Infrastructure;
 /// The kinds of database lock an application transaction takes, in the order of 05 7.3.5: the cart's advisory lock, the order rows, the variant
 /// rows, the coupon row. The category tree, the administrator set and one digital file row (the chunked upload, 05 7.7.3) are their own families: a transaction that takes one of them takes no
 /// order, variant or coupon lock; the company settings row, which the identity save, the settings sections and the generated legal text take (05 7.3.5;
-/// K-1088), is a family of its own too; so is one customer or administrator account row (the sign-in, the password reset and change, T342; 05 6.1.2). Not stored; the order of the members is the lock order.
+/// K-1088), is a family of its own too; so is one customer or administrator account row (the sign-in, the password reset and change, T342; 05 6.1.2). The product row of the panel's
+/// product writes (T525; 09 10.2 item 5) heads its transaction: one product, then the variant rows by id or one digital file row. Not stored; the order of the members is the lock order.
 /// </summary>
 internal enum LockKind
 {
@@ -17,4 +18,5 @@ internal enum LockKind
     DigitalFile,
     CompanySettings,
     Account,
+    Product,
 }

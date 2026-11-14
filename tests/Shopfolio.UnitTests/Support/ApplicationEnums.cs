@@ -50,6 +50,8 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.Administration.Contracts.ExportRangeError",
         // T382: the panel home's six counters, the list each leads to, the setup checklist's five items and the order sets the counters read - computed at every call, never a column (02 10.6.1, 10.8.2).
         "Shopfolio.Modules.Administration.Contracts.PanelCounterKind",
+        // T525: the stock column of a panel product row - computed per read from the variants' stock and reserved units, never a column (04 9.4.3; K-802).
+        "Shopfolio.Modules.Catalog.Contracts.PanelStockKind",
         "Shopfolio.Modules.Administration.Contracts.PanelListTarget",
         "Shopfolio.Modules.Administration.Contracts.SetupChecklistItemKind",
         "Shopfolio.Modules.Ordering.Contracts.PendingWorkSet",

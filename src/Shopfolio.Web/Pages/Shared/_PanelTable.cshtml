@@ -29,6 +29,10 @@
                         {
                             <partial name="_Badge" model="badge" />
                         }
+                        else if (row.ImageAt(i) is { } image)
+                        {
+                            <img class="panel-table__image" src="@image.Path" alt="@image.AltText" loading="lazy" />
+                        }
                         else
                         {
                             @row.Cells[i]

@@ -1,0 +1,12 @@
+@page "/panel/urunler/yeni"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Panel
+@model ProductFormModel
+@*
+    E-33, the new product's empty form (T525; 04 9.5.23; 07 UC-88): the same model and body as the existing product's address (K-1175 (7)). No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = Model.Title;
+}
+<partial name="_ProductFormBody" model="Model" />

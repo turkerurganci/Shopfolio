@@ -333,6 +333,81 @@ public sealed class DigitalDeliveryTests
         Assert.Equal(Other, await second.Content.ReadAsByteArrayAsync(Ct));
     }
 
+    // --- D-527 (T525): the form's binding, the removal and the deletion move the item's last known file (06 4.70 "Uygulamada") ---
+
+    [Fact]
+    public async Task AFileTheFormBinds_ThenTheProductDeleted_LeavesTheItemTheBoundFile_D527()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (Guid item, Guid variantId, _) = await host.SeedDownloadAsync(Hundred);
+        Guid bound = await SeedUploadAsync(host, Other);
+        (Guid productId, int version, string sku) = await ProductOfAsync(host, variantId);
+
+        ProductSaveResult saved = await host.InTransactionAsync((s, ct) => s.GetRequiredService<ProductSaves>().SaveAsync(BindCommand(productId, version, variantId, sku, bound), ct));
+        Guid? afterBinding = await ItemFileAsync(host, item);
+        RemovalResult deleted = await host.InTransactionAsync((s, ct) => s.GetRequiredService<IProductRemoval>().DeleteProductAsync(productId, version + 1, ct));
+
+        Assert.False(saved.IsRejected);
+        Assert.Equal(bound, afterBinding);
+        Assert.Same(RemovalResult.Done, deleted);
+        Assert.Equal(bound, await ItemFileAsync(host, item));
+        using HttpResponseMessage response = await host.Client.GetAsync(Link((await IssueAsync(host, item)).Value!), Ct);
+        Assert.Equal(Other, await response.Content.ReadAsByteArrayAsync(Ct));
+    }
+
+    [Fact]
+    public async Task AFileTheFormBinds_ThenRemovedWithoutANewOne_StaysTheItemsLastFile_D527()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (Guid item, Guid variantId, _) = await host.SeedDownloadAsync(Hundred);
+        Guid bound = await SeedUploadAsync(host, Other);
+        (Guid productId, int version, string sku) = await ProductOfAsync(host, variantId);
+
+        await host.InTransactionAsync((s, ct) => s.GetRequiredService<ProductSaves>().SaveAsync(BindCommand(productId, version, variantId, sku, bound), ct));
+        RemovalResult removed = await host.InTransactionAsync((s, ct) => s.GetRequiredService<IProductRemoval>().RemoveDigitalFileAsync(bound, ct));
+
+        Assert.Same(RemovalResult.Done, removed);
+        Assert.Equal(bound, await ItemFileAsync(host, item));
+        using HttpResponseMessage response = await host.Client.GetAsync(Link((await IssueAsync(host, item)).Value!), Ct);
+        Assert.Equal(Other, await response.Content.ReadAsByteArrayAsync(Ct));
+    }
+
+    private static ProductSaveCommand BindCommand(Guid productId, int version, Guid variantId, string sku, Guid fileId)
+        => new(
+            productId, version, ProductType.Digital, "Kitap", null, 20m, null, null, null, null, null, null,
+            [], null, [], [new ProductSaveVariant(variantId, null, null, sku, 10m, null, null, null, null, fileId)], [], null, null);
+
+    private static async Task<(Guid ProductId, int Version, string Sku)> ProductOfAsync(FileEndpointsHost host, Guid variantId)
+    {
+        await using AppDbContext db = host.NewContext();
+        Variant variant = await db.Variants.AsNoTracking().SingleAsync(v => v.Id == variantId, Ct);
+        int version = await db.Products.Where(p => p.Id == variant.ProductId).Select(p => p.Version).SingleAsync(Ct);
+        return (variant.ProductId, version, variant.SKU);
+    }
+
+    private static async Task<Guid?> ItemFileAsync(FileEndpointsHost host, Guid itemId)
+    {
+        await using AppDbContext db = host.NewContext();
+        return await db.OrderItems.Where(i => i.Id == itemId).Select(i => i.DigitalFileId).SingleAsync(Ct);
+    }
+
+    /// <summary>A completed upload of the given bytes that no plane holds yet - what the form binds.</summary>
+    private static async Task<Guid> SeedUploadAsync(FileEndpointsHost host, byte[] content)
+    {
+        DateTimeOffset now = host.Time.GetUtcNow();
+        DigitalFile file = DigitalFile.Create(EntityIds.NewStorageKey(), "yeni.pdf", content.Length, now);
+        file.UploadCompletedAt = now;
+        using (MemoryStream stream = new(content))
+        {
+            await host.Files.WriteAsync(Shopfolio.Infrastructure.Files.FileArea.DigitalFile, file.StorageKey, stream, Ct);
+        }
+
+        await using AppDbContext db = host.NewContext();
+        db.DigitalFiles.Add(file);
+        await db.SaveChangesAsync(Ct);
+        return file.Id;
+    }
+
     // --- KK9: the repurchase warning (criterion 9) ---
 
     [Fact]

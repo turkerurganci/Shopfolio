@@ -139,6 +139,17 @@ public interface IMembershipModule
     /// </summary>
     Task<NewEmailVerificationResult> VerifyNewEmailAsync(string key, CancellationToken ct);
 
+    /// <summary>What the revert link's landing page shows (T519; 07 UC-75; 05 6.4.6, 6.4.7): only reads, writes nothing, so opening the link reverts nothing (K-839). Another type's key and an administrator's link are <see cref="VerificationLinkStatus.Missing"/>.</summary>
+    Task<EmailRevertLinkReading> ReadEmailRestoreLinkAsync(string key, CancellationToken ct);
+
+    /// <summary>
+    /// The revert link's button (T519; 02 3.13.14; 07 UC-76), in the caller's transaction, under the account's row lock: the earlier address must not be another verified account's (nothing is
+    /// written, the refusal rolls the transaction back, K-1210); an unverified pending registration of it is deleted and counted in the disposal record (K-1080); the link is consumed with one conditional
+    /// update; the address goes back, the Google link goes, every session of the account ends - the open one too -, the recognized-browser marks end, the password becomes unusable and, only for an
+    /// account that had one, the earlier address gets a reset link; every earlier reset, confirmation and new-address link ends. The orders bound meanwhile stay on the account. Opens no session.
+    /// </summary>
+    Task<EmailRevertResult> RestorePreviousEmailAsync(string key, CancellationToken ct);
+
     /// <summary>
     /// The account an order belongs to (02 3.13.1, 3.13.3, 3.13.4; read only): a signed-in verified customer's order is theirs; a guest whose address belongs to a verified
     /// account gets the order bound to it at once, in full; every other guest order stays a guest order and no verification is asked; a signed-in customer whose account is not

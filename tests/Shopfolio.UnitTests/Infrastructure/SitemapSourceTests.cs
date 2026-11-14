@@ -162,6 +162,8 @@ public sealed class SitemapSourceTests
 
         public Task<VariantPriceResult> ChangeVariantPriceAsync(Guid variantId, decimal price, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<ProductSaveResult> SaveProductAsync(ProductSaveCommand command, CancellationToken ct) => throw new NotSupportedException();
+
         public ItemAmounts PriceItem(ItemPriceInput input) => throw new NotSupportedException();
 
         public IReadOnlyList<ShippingVatPart> SplitShippingFee(decimal shippingFee, IReadOnlyList<ShippingBasisLine> lines) => throw new NotSupportedException();

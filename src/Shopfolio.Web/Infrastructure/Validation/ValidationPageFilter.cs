@@ -85,7 +85,9 @@ internal sealed class ValidationPageFilter : IAsyncPageFilter
                     continue;
                 }
 
-                entry.Errors[i] = new ModelError(FieldMessageCatalog.Build(code, target.Label, parameter));
+                // A rule that shares its code with another limit gives its own pattern of that code (the net quantity's three decimals under the amount's code).
+                string? rulePattern = target.ConversionRule is { } fieldRule && string.Equals(fieldRule.Code, code, StringComparison.Ordinal) ? fieldRule.MessagePattern : null;
+                entry.Errors[i] = new ModelError(FieldMessageCatalog.Build(code, target.Label, parameter, rulePattern));
                 rejected.Add(new FieldRejection(pair.Key, code));
             }
         }

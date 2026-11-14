@@ -430,6 +430,10 @@ internal sealed class MembershipModule : IMembershipModule
 
     public Task<NewEmailVerificationResult> VerifyNewEmailAsync(string key, CancellationToken ct) => _emailChanges.VerifyNewEmailAsync(key, ct);
 
+    public Task<EmailRevertLinkReading> ReadEmailRestoreLinkAsync(string key, CancellationToken ct) => _emailChanges.ReadRestoreLinkAsync(key, ct);
+
+    public Task<EmailRevertResult> RestorePreviousEmailAsync(string key, CancellationToken ct) => _emailChanges.RestorePreviousEmailAsync(key, ct);
+
     public Task<IReadOnlyList<AddressBookEntry>> GetAddressBookAsync(Guid customerId, CancellationToken ct) => _addresses.ListAsync(customerId, ct);
 
     public Task<AddressBookEntry?> GetAddressBookEntryAsync(Guid customerId, Guid entryId, CancellationToken ct) => _addresses.GetAsync(customerId, entryId, ct);

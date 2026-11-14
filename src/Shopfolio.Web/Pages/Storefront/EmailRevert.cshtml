@@ -1,0 +1,28 @@
+@page "/geri-al/{key}"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@model Shopfolio.Pages.Storefront.EmailRevertModel
+@inject SearchEngineData Search
+@*
+    The revert link's landing screen (T519; 04 5.28): one sentence in place and, only in the revert step, the one button - no question, no confirmation window and no password field (K-839; 04 5.28.5).
+    Opening the page writes nothing; the button is a form of its own (K-904). The result, the invalid hâl and the not-applied hâl have no button: the next step is in the e-mail (04 5.28.2).
+*@
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = EmailRevertLandings.ScreenName;
+    EmailRevertLanding landing = Model.Landing;
+}
+@section Head {
+    @Search.Head(ViewContext.HttpContext, RecordPages.ClosedScreen(EmailRevertLandings.ScreenName, ViewContext.HttpContext.GetStorefrontFrame()?.Brand.BrandName, FramePaths.EmailRevert))
+}
+<h1>@EmailRevertLandings.ScreenName</h1>
+<partial name="_Message" model="Messages.InPlace(landing.Meaning, landing.Sentence)" />
+@if (landing.ButtonLabel is not null)
+{
+    <form method="post" asp-antiforgery="true" action="@(FramePaths.EmailRevert)/@Uri.EscapeDataString(Model.LinkKey)?handler=RevertPendingEmailChange" data-js="submit-once">
+        <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(landing.ButtonLabel)">@landing.ButtonLabel</button>
+    </form>
+}

@@ -22,6 +22,8 @@ internal sealed class SessionService : ISessionService
 
     public Task<int> EndAllAsync(Guid customerId, Guid? exceptSessionId, CancellationToken ct) => _store.EndAllAsync(AccountType.Customer, customerId, exceptSessionId, ct);
 
+    public Task<int> InvalidateMarksAsync(Guid customerId, CancellationToken ct) => _store.InvalidateMarksAsync(AccountType.Customer, customerId, null, ct);
+
     public Task<string?> GrantReauthenticationAsync(Guid customerId, Guid sessionId, ReauthenticationOperation operation, CancellationToken ct)
         => _store.GrantReauthenticationAsync(AccountType.Customer, customerId, sessionId, operation, ct);
 

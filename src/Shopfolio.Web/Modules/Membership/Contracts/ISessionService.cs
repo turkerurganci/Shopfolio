@@ -23,6 +23,9 @@ public interface ISessionService
     /// <summary>Ends every session of the customer except the named one; null ends them all.</summary>
     Task<int> EndAllAsync(Guid customerId, Guid? exceptSessionId, CancellationToken ct);
 
+    /// <summary>Ends every recognized-browser mark of the customer (T519; 02 8.2.6, 3.13.14): the revert of an e-mail change drops them all, the way a reset does. Joins the caller's transaction.</summary>
+    Task<int> InvalidateMarksAsync(Guid customerId, CancellationToken ct);
+
     /// <summary>Gives the session the permission for one operation and returns the form's value; null when the session is not the customer's.</summary>
     Task<string?> GrantReauthenticationAsync(Guid customerId, Guid sessionId, ReauthenticationOperation operation, CancellationToken ct);
 

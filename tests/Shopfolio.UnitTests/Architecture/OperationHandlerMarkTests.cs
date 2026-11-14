@@ -16,8 +16,13 @@ namespace Shopfolio.UnitTests.Architecture;
 /// </summary>
 public sealed class OperationHandlerMarkTests
 {
-    // The order lookup finds an order by its number and e-mail address; it applies no operation of 03 1.11 (07 UC-32).
-    private static readonly string[] _notOperations = [$"{nameof(TrackingModel)}.{nameof(TrackingModel.OnPostFindOrderAsync)}"];
+    // The order lookup finds an order by its number and e-mail address; it applies no operation of 03 1.11 (07 UC-32). The payment page (07 UC-29; T510) starts the confirmed
+    // order's payment: it is the ordering flow's step, not an operation of 03 1.11, and an order that no longer awaits its payment is the screen's 303 (K-1209 (1)).
+    private static readonly string[] _notOperations =
+    [
+        $"{nameof(TrackingModel)}.{nameof(TrackingModel.OnPostFindOrderAsync)}",
+        $"{nameof(ConfirmationPageModel)}.{nameof(ConfirmationPageModel.OnPostStartPaymentAsync)}",
+    ];
 
     // The panel's order page: its six line steps are 03 1.11.15-1.11.19 and 1.11.40 (07 UC-123...UC-128). Every POST of the page is an operation (07 9.9: the page's ends are UC-123...UC-154).
     private static readonly Type[] _panelOrderPages = [typeof(OrderDetailModel)];

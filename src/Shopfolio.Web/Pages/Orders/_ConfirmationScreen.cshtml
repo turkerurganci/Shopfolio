@@ -1,0 +1,61 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Orders
+@model ConfirmationPageModel
+@*
+    E-14 (04 5.14; 07 UC-28, UC-29): the order is received and its number; on the card the payment page's button (5.14.3), on the transfer the frozen IBAN, the total, the last
+    payment day and the way to the order (5.14.4). No status badge (5.14.9) and no refresh of any kind: the screen never redirects by itself (K-776). The payment page (UC-29's
+    200) is the same screen with the provider's form in its frame (_PaymentFrame).
+*@
+<article class="order-confirmation" aria-labelledby="order-confirmation-title">
+    <header class="order-confirmation__heading">
+        <h1 id="order-confirmation-title">Sipariş @Model.Facts.OrderNumber</h1>
+        <p>@ConfirmationPageModel.ReceivedText</p>
+    </header>
+
+    @if (Model.ShowsPaymentPage)
+    {
+        <partial name="_PaymentFrame" model="Model" />
+    }
+    else if (Model.IsCard)
+    {
+        <section class="order-confirmation__card">
+            <p>@ConfirmationPageModel.CardWaitingText</p>
+            <form method="post" asp-antiforgery="true" action="@(Model.ScreenPath)?handler=@ConfirmationPageModel.StartPaymentHandler" class="order-confirmation__form" data-js="submit-once">
+                <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(ConfirmationPageModel.OpenPaymentLabel)">@ConfirmationPageModel.OpenPaymentLabel</button>
+            </form>
+        </section>
+    }
+    else
+    {
+        <section class="order-confirmation__transfer" aria-labelledby="order-confirmation-transfer-title">
+            <h2 id="order-confirmation-transfer-title">Havale/EFT bilgileri</h2>
+            <p>@ConfirmationPageModel.TransferInstructionText</p>
+            <dl>
+                <dt>IBAN</dt>
+                <dd class="order-confirmation__iban">
+                    @Model.IbanText
+                    <span class="copy">
+                        <button type="button" class="button button--secondary copy-button" data-copy="@Model.Facts.TransferIban" hidden>IBAN'ı kopyala</button>
+                        <span class="copy-result" role="status" aria-live="polite" data-copy-result data-copied="IBAN kopyalandı." data-failed="IBAN kopyalanamadı."></span>
+                    </span>
+                </dd>
+                <dt>Ödenecek toplam</dt>
+                <dd>@Model.TotalText</dd>
+                <dt>Sipariş numarası</dt>
+                <dd>@Model.Facts.OrderNumber</dd>
+                <dt>Son ödeme günü</dt>
+                <dd>@Model.LastPaymentDayText</dd>
+            </dl>
+            @if (Model.IsMember)
+            {
+                <p><a href="@Model.MemberOrderPath">@ConfirmationPageModel.MemberOrderLinkText</a></p>
+            }
+            else
+            {
+                <p>@ConfirmationPageModel.GuestOrderWayText</p>
+                <p><a href="@ConfirmationPageModel.OrderTrackingPath">@ConfirmationPageModel.OrderTrackingLinkText</a></p>
+            }
+        </section>
+    }
+</article>

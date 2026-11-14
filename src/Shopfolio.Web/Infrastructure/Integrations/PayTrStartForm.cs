@@ -20,8 +20,11 @@ internal static class PayTrStartForm
     /// <summary>The token request's address: server to server, form-encoded (08 2.1.4).</summary>
     public static readonly Uri TokenAddress = new("https://www.paytr.com/odeme/api/get-token");
 
+    /// <summary>The origin of the hosted form: the payment page's frame permission names it (05 6.5.4; <see cref="PaymentFrameSource"/>).</summary>
+    public const string FrameOrigin = "https://www.paytr.com";
+
     /// <summary>The frame's address root: the payment page opens <c>{root}{token}</c> in its frame (08 2.1.4).</summary>
-    public const string FrameAddressRoot = "https://www.paytr.com/odeme/guvenli/";
+    public const string FrameAddressRoot = FrameOrigin + "/odeme/guvenli/";
 
     /// <summary>The fixed currency (08 2.1.4 <c>currency</c>).</summary>
     public const string Currency = "TL";

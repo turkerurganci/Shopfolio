@@ -12,6 +12,7 @@ internal static class PayTrRegistration
         ArgumentNullException.ThrowIfNull(services);
         services.AddSingleton<PaymentFailureReasonLog>();
         services.AddSingleton<IPaymentGateway, PayTrPaymentGateway>();
+        services.AddSingleton(new PaymentFrameSource(PayTrStartForm.FrameOrigin, PayTrStartForm.FrameAddressRoot));
         return services;
     }
 }

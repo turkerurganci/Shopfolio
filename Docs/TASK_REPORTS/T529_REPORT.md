@@ -1,6 +1,6 @@
 # T529 — Sipariş ayrıntısı: geri ödeme işlemleri (E-37)
 
-**Faz:** F5 | **Durum:** ⏳ Doğrulama bekliyor | **Tarih:** 2026-11-14
+**Faz:** F5 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-14
 
 ---
 
@@ -104,3 +104,18 @@
 8. İz adları: ProcessRefund/AmountBased → `RefundManually`, UC-132 → `ReportRefundTransferNotCompleted`, UC-134 → `OpenRefundIbanRequest`, UC-135 → `RetryCardRefund`, UC-136 → `RefundByBankTransfer`, UC-137 → `MarkCardRefundNotCompleted`.
 9. `RefundIbanChanged` 409: onay penceresi `ShownIban` gizli alanını taşır; sürüm çakışmasında güncel IBAN farklıysa bu kod ve metin.
 10. KK5 testi iş çalıştırıcısız açılır: kart işinin arka planda sonuçlanması sürümü testin adımları arasında artırıyordu.
+
+---
+
+## Doğrulama — tur 1 (2026-11-14): ✗ FAIL
+
+- **Durum:** FAIL · **Bulgu:** 3 (S1 ×3, ORTA) · **K-notu:** 3 · **Düzeltme gerekli:** evet (aynı PR'da).
+- **Kabul kriterleri (validator):** 1–5, 7–10 ✓ · 6 ✗ (bulgu 1). KK9 karşılandı; ancak onay penceresi U4'ü yineliyor (bulgu 2). KK7'nin dört 422'si var; `07 §2.9.4`'ün iki ondalık sınırı yok (bulgu 3).
+- **Bulgu 1 (KK6, D-912):** doğmuş ayıp çözümü havale geri ödemesi siparişin dosyadaki IBAN'ına ödeniyor (`IbanOf` 3. basamak; D-907 kuralı); ekran "Havale gerçekleşmedi" düğmesini çiziyor, POST 422 dönüyor, IBAN silinmiyor (`ReportTransferFailedAsync` adayları yalnız kalemin kayıt/isteklerinden). Doğrulayıcının geçici testi: `buttonShown=True status=422 ibanLeft=True`. F3 kapısı D-912'yi T529'a ve KK6'ya bağlamıştı; kural D-907'de yazılı olduğundan "karar ister" gerekçesi geçerli değil.
+- **Bulgu 2 (`12 §12.13` K-1514 (3), `VAL-B147`):** `RetryConfirm` pencereye `Warning = CardRefundNotRealizedWarning` koyuyor; 200 yanıtında U4 hem satırda hem pencerede. Kural: pencere uyarıyı yinelemez (tek istisna "ödendi"nin U5'i).
+- **Bulgu 3 (`07 §2.9.4`; UC-133 alan mesajı):** `Input.Amount=10,505` onaylı gönderim 500 (`DisplayFormat.Amount` iki ondalık bekçisi); 422 `InvalidAmount` olmalı. Yazım yok (işlem geri alındı).
+- **K-notları:** K1 `ProcessRefundInput`'un 8. bağı `RefundId` `07` girdi tablosunda yok (⚠ 3) · K2 tutar bazlı form yalnız `RequestRefundIban` açıkken de çiziliyor (POST 422), UC-133'te yabancı kalem "IBAN istenecek kalemi seçin." metniyle reddediliyor · K3 geri ödeme satırı `04` 9.9.6'nın kalem satırında değil ayrı bölümde (⚠ 6). Üçü düzeltme turunda bu PR'da kapatılır ya da gerekçeyle backlog parçasına yazılır.
+- **⚠ kararların denetimi:** ⚠ 2 (kapanışın kendiliğinden bağlanması) `07` UC-133 "kapanış da seçilir ve geri ödeme ona bağlanır" ile uyumlu, düşüm kalem düzeyinde olduğundan tutarı değiştirmez · ⚠ 4 (UC-133 tavanı) güvenli yönde · ⚠ 7 IBAN önceliği D-907 kuralı · ⚠ 10 KK5'in iş çalıştırıcısız koşması davranışı gizlemiyor (düşüm bağlı geri ödemenin gönderim hâline bakmaz).
+- **Testler:** Unit 7636/7636; Integration `OrderDetailPageTests`, `PanelHomeTests`, `RefundAmountTests`, `ItemRecordsTests`, `PaymentTransitionsTests`, `StatusCorrectionTests` 224/224 + `BranchFlowTests`, `CustomerOperationsTests`, `OrderCorrectionTests` 88/88 (TAM: CI); betik testleri 4/4; biçim temiz; derleme 0 uyarı.
+- **CI:** PR #575 main'le çakışık (`OrderingModule.cs`, `OperationHandlerMarkTests.cs` — T531 #572); dalda CI koşusu yok.
+- **`12`:** `VAL-A211`, `A212`, `A215`, `A216`, `A221`, `A222`, `A224` → PASS; `VAL-A230`, `VAL-B147` → FAIL.

@@ -221,6 +221,44 @@ public sealed partial class OrderDetailPageTests
         Assert.Equal(PaymentStatus.PartiallyRefunded, (await db.Orders.AsNoTracking().SingleAsync(o => o.Id == seeded.OrderId, Ct)).PaymentStatus);
     }
 
+    // ---- D-878: the defect remedy's born transfer refund is sent from the page by the axis's one path ----
+
+    [Fact]
+    public async Task ProcessRefund_OnADefectRemedysBornTransferRefund_SendsIt_AndMovesTheAxis_D878()
+    {
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        Seeded seeded = await SeedPaidAsync(PaymentMethod.BankTransfer, withIban: true, withCancellation: false);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DefectClaim claim = DefectClaim.Create(seeded.ItemId, 1, "Kusurlu", null, now);
+        Refund remedy = Refund.BySystem(seeded.OrderId, RefundType.DefectClaimRescission, PaymentMethod.BankTransfer, 50m, now);
+        remedy.DefectClaimId = claim.Id;
+        remedy.OrderItemId = seeded.ItemId;
+        remedy.Quantity = 1;
+        remedy.CouponShare = 0m;
+        remedy.VatAmount = 8.33m;
+        await using (AppDbContext db = NewContext())
+        {
+            db.DefectClaims.Add(claim);
+            db.Refunds.Add(remedy);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (_, string screen) = await GetAsync(client, Path(seeded), key);
+        (HttpStatusCode done, _) = await PostForLocationAsync(
+            client, Path(seeded, "ProcessRefund"), [("Input.DefectClaimId", claim.Id.ToString("D")), ("Input.Version", "1"), ("Input.Confirmed", "true"), ("Input.ShownIban", ValidRefundIban)], key);
+
+        Assert.Contains($"name=\"Input.DefectClaimId\" value=\"{claim.Id:D}\"", screen, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.SeeOther, done);
+        await using AppDbContext after = NewContext();
+        Refund sent = await after.Refunds.AsNoTracking().SingleAsync(r => r.Id == remedy.Id, Ct);
+        Assert.NotNull(sent.SentAt);
+        Assert.Equal(PaymentStatus.PartiallyRefunded, (await after.Orders.AsNoTracking().SingleAsync(o => o.Id == seeded.OrderId, Ct)).PaymentStatus);
+        Assert.Equal(1, await after.DispatchRecords.CountAsync(d => d.OrderId == seeded.OrderId && d.DispatchType == DispatchType.B8, Ct));
+    }
+
     // ---- KK5: the binding to the item's open "mal dönmedi" closure; the later receipt bears it ----
 
     [Fact]

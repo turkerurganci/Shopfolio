@@ -260,6 +260,12 @@ public interface IOrderingModule
     Task<int> CountCardOrdersAwaitingPaymentAsync(CancellationToken ct);
 
     /// <summary>
+    /// The number of bank transfer orders that wait for their payment (T536; 02 3.21.5; K-663, K-664; D-833): received, payment pending, paid by bank transfer - the orders that keep the IBAN they froze when
+    /// the firm changes its IBAN or switches the transfer off. The payment methods screen's confirmation says this number. Counted by the database; a plain read.
+    /// </summary>
+    Task<int> CountBankTransferOrdersAwaitingPaymentAsync(CancellationToken ct);
+
+    /// <summary>
     /// The items of the orders paid by card whose payment is not fully refunded (T389; 05 8.5.6; 08 2.1.2): the facts the AfterSales module needs to tell which of them could still
     /// cause a card refund. Read one page at a time: the items of the next <paramref name="maxOrders"/> such orders after <paramref name="afterOrderId"/> (by order id; null starts
     /// from the first), an empty list at the end - the set grows with every paid order, so it is never taken whole (09 20 item 2). A plain read; it writes nothing.

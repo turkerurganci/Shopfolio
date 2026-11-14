@@ -292,7 +292,7 @@
 | T533 | Üye kaydı görünümü (E-40) | ✓ | ✓ PASS (tur 1) | `d1a1729a` | #556 |
 | T534 | Kurumsal içerik ve marka yönetimi (E-41, E-43) | ⬚ | — | — | — |
 | T535 | Ana sayfa ve menü, firma kimliği ve satış (E-42, E-44) | ✓ | ✓ PASS (tur 2) | `5e42c12b` | #555 |
-| T536 | Ödeme yöntemleri, kargo, süreler ve varsayılanlar (E-45, E-46) | ⬚ | — | — | — |
+| T536 | Ödeme yöntemleri, kargo, süreler ve varsayılanlar (E-45, E-46) | ✓ | ✓ PASS (tur 2) | `c39d6399` | #568 |
 | T537 | Vitrin çerçevesinin modeli: marka, menü, duyuru şeridi, hesap alanı, sepet sayısı | ✓ | ✓ PASS (tur 1) | `b69ac697` | #532 |
 | T538 | Uç ve model eşitlik denetimleri: uç envanteri, form girdi ve sorgu modelleri, makine ucu gövdeleri | ⬚ | — | — | — |
 | T539 | Betiksiz yol: JavaScript kapalıyken temel akışlar ve betikli iyileştirme | ⬚ | — | — | — |

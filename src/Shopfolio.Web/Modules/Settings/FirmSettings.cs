@@ -32,6 +32,8 @@ internal sealed class FirmSettings
 
     internal const string HomepageDisplayName = "Ana sayfa ve menü";
 
+    internal const string ReturnAddressDisplayName = "İade adresi";
+
     /// <summary>The prefix of a social link in the trail row's field name; the platform's name follows.</summary>
     internal const string SocialLinkFieldPrefix = "SocialLink.";
 
@@ -166,7 +168,8 @@ internal sealed class FirmSettings
         }
     }
 
-    public async Task<SettingsSaveResult> SaveShippingFeeAsync(ShippingFeeInput input, int formVersion, CancellationToken ct)
+    /// <summary>The save of the shipping fee section; the outcome says whether the fee itself changed - the fee feeds the generated texts, the two amounts do not (04 9.18.9; K-1215).</summary>
+    public async Task<SectionSaveOutcome> SaveShippingFeeAsync(ShippingFeeInput input, int formVersion, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
         await _writer.LockAsync(ct);
@@ -178,7 +181,7 @@ internal sealed class FirmSettings
         CheckOptionalAmount(rejections, nameof(ShippingFeeInput.MinimumOrderAmount), input.MinimumOrderAmount);
         if (rejections.Count > 0)
         {
-            return SettingsSaveResult.Refused(rejections);
+            return new SectionSaveOutcome(SettingsSaveResult.Refused(rejections), false);
         }
 
         decimal fee = input.ShippingFee!.Value; // non-null: CheckRequiredAmount refuses an empty fee, refused above
@@ -188,14 +191,16 @@ internal sealed class FirmSettings
         Track(changes, nameof(CompanySettings.MinimumOrderAmount), current.MinimumOrderAmount, input.MinimumOrderAmount);
         if (changes.Count == 0)
         {
-            return Unchanged(current.Version, formVersion);
+            return new SectionSaveOutcome(Unchanged(current.Version, formVersion), false);
         }
 
         bool written = await _writer.WriteShippingFeeAsync(fee, input.FreeShippingThreshold, input.MinimumOrderAmount, formVersion, ct);
-        return await FinishAsync(written, ShippingFeeDisplayName, changes, ct);
+        SettingsSaveResult result = await FinishAsync(written, ShippingFeeDisplayName, changes, ct);
+        return new SectionSaveOutcome(result, result.IsSaved && current.ShippingFee != fee);
     }
 
-    public async Task<SettingsSaveResult> SavePeriodsAsync(PeriodsInput input, int formVersion, CancellationToken ct)
+    /// <summary>The save of the periods section; the outcome says whether the firm default of the shipping period changed - it feeds the generated texts, the payment window does not (04 9.18.9).</summary>
+    public async Task<SectionSaveOutcome> SavePeriodsAsync(PeriodsInput input, int formVersion, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
         await _writer.LockAsync(ct);
@@ -206,7 +211,7 @@ internal sealed class FirmSettings
         CheckFenced(rejections, nameof(PeriodsInput.BankTransferPaymentWindow), "P-7", input.BankTransferPaymentWindow);
         if (rejections.Count > 0)
         {
-            return SettingsSaveResult.Refused(rejections);
+            return new SectionSaveOutcome(SettingsSaveResult.Refused(rejections), false);
         }
 
         int shipping = input.DefaultShippingPeriod!.Value; // non-null: CheckFenced refuses an empty period, refused above
@@ -216,11 +221,45 @@ internal sealed class FirmSettings
         Track(changes, nameof(CompanySettings.BankTransferPaymentWindow), current.BankTransferPaymentWindow, window);
         if (changes.Count == 0)
         {
-            return Unchanged(current.Version, formVersion);
+            return new SectionSaveOutcome(Unchanged(current.Version, formVersion), false);
         }
 
         bool written = await _writer.WritePeriodsAsync(shipping, window, formVersion, ct);
-        return await FinishAsync(written, PeriodsDisplayName, changes, ct);
+        SettingsSaveResult result = await FinishAsync(written, PeriodsDisplayName, changes, ct);
+        return new SectionSaveOutcome(result, result.IsSaved && current.DefaultShippingPeriod != shipping);
+    }
+
+    /// <summary>
+    /// The save of the return address section (T536; 07 UC-172; 02 3.1.7): the writer's checks and its conditional update (<see cref="CompanySettingsWriter.SaveReturnAddressAsync"/>), then the trail row with
+    /// the old and new value of each changed part in the same transaction (02 10.3.1 (6); K-523; D-165 (a), D-1377). The province is written by its plate code. A save that changes no part writes no row.
+    /// </summary>
+    public async Task<SettingsSaveResult> SaveReturnAddressAsync(ReturnAddressInput input, int formVersion, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        // The writer takes the row lock and reads the section under it; the value it read is the "before" of the trail row.
+        ReturnAddressSection? read = null;
+        SettingsSaveResult result = await _writer.SaveReturnAddressAsync(input, formVersion, ct, section => read = section);
+        if (!result.IsSaved || read is not { } before)
+        {
+            return result;
+        }
+
+        ReturnAddressSection after = await _writer.ReadReturnAddressAsync(ct);
+        Dictionary<Guid, string> codes = await _db.Provinces.AsNoTracking().ToDictionaryAsync(p => p.Id, p => p.Code, ct);
+        string? Code(ReturnAddressSnapshot? address) => address is null ? null : codes.GetValueOrDefault(address.ProvinceId);
+        List<AuditValueChange> changes = [];
+        TrackText(changes, nameof(CompanySettings.ReturnRecipientName), before.Address?.RecipientName, after.Address?.RecipientName);
+        TrackText(changes, nameof(CompanySettings.ReturnProvinceId), Code(before.Address), Code(after.Address));
+        TrackText(changes, nameof(CompanySettings.ReturnDistrict), before.Address?.District, after.Address?.District);
+        TrackText(changes, nameof(CompanySettings.ReturnAddressLine), before.Address?.AddressLine, after.Address?.AddressLine);
+        TrackText(changes, nameof(CompanySettings.ReturnPhone), before.Address?.Phone, after.Address?.Phone);
+        if (changes.Count > 0)
+        {
+            Guid rowId = await _db.CompanySettings.AsNoTracking().Select(s => s.Id).SingleAsync(ct);
+            await _trail.WriteAsync(new AuditEntry(AuditOperation.UpdateSettings, nameof(CompanySettings), rowId, new AuditDetails(ReturnAddressDisplayName, changes)), ct);
+        }
+
+        return result;
     }
 
     public async Task<SettingsSaveResult> SaveProductDefaultsAsync(ProductDefaultsInput input, int formVersion, CancellationToken ct)
@@ -331,3 +370,6 @@ internal sealed class FirmSettings
 
     private static string? Text(decimal? value) => value?.ToString("0.00", CultureInfo.InvariantCulture);
 }
+
+/// <summary>The result of a section's save and whether a value that feeds the two generated texts really changed (02 3.33.3; K-1215): only then does the caller write their new versions.</summary>
+internal sealed record SectionSaveOutcome(SettingsSaveResult Result, bool FeedsGeneratedTexts);

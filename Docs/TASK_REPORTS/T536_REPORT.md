@@ -39,7 +39,7 @@
 
 ### Öz denetim (bitiş kapısı 2)
 
-Önceki dört yapım turunun yaptıkları dahil bütün maddeler diff'te yeniden denetlendi.
+Önceki dört yapım turunun yaptıkları dahil bütün maddeler diff'te yeniden denetlendi. Düzeltme 1'de (main `49ba60f0` birleşik ağaç) tablonun bütün maddeleri yeniden denetlendi: kanıt testlerinin hepsi dalda duruyor ve yeşil (PaymentAndShippingPagesTests 44/44, CompanyIdentityTests ve FirmSettingsTests yeşil); hedefi T536 olan açık backlog kalemi yok (D-165, D-176, D-220, D-256, D-681, D-833, D-1377 kapalı; D-493 sürüm payı).
 
 | Madde | Sonuç | Kanıt |
 |---|---|---|
@@ -72,15 +72,15 @@
 
 ### Sık FAIL nedenleri
 
-- (1) Bekçi/tarama istisnası eklenmedi. (2) Yeni tarama yazılmadı; var olan taramalar (`[SpecAssignedName]`, D-82 lambda, kart verisi adı) düzeltilerek geçirildi. (3) Şema değişmedi. (4) KK10 sayısı ile ana sayfa sayacı ayrıştı; sayacın kendisi değişmedi, ayrışma D-1444'e yazıldı. (5) 09 metni değişmedi.
+- (1) Bekçi/tarama istisnası eklenmedi. (2) Yeni tarama yazılmadı; var olan taramalar (`[SpecAssignedName]`, D-82 lambda, kart verisi adı) düzeltilerek geçirildi. (3) Şema değişmedi. (4) KK10 sayısı ile ana sayfa sayacı ayrıştı; sayacın kendisi değişmedi, ayrışma D-1444'e yazıldı. (5) 09 metni değişmedi. (6) Düzeltme 1: test sırasına bağımlılık (koleksiyon içi yalıtım) giderildi — düzenek bilinen durumu kendisi kurar.
 
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Not |
 |---|---|---|---|
-| Build | ✓ | `dotnet build Shopfolio.slnx` | main `edf4eb2a` birleşik ağaçta 0 uyarı 0 hata |
-| Unit | ✓ TAM | `dotnet test --project tests/Shopfolio.UnitTests` | 7546/7546 (birleşik ağaç) |
-| Integration | ✓ hedefli — TAM: CI | `--filter-class <ad>` | PaymentAndShippingPagesTests 44/44 (birleşik ağaç); önceki turlarda Model 161 (FirmSettings, SalesGate, Address, SettingsTables, LegalText, CompanyIdentity, AuditTrail) + AuditTrail 22, Web/Admin 97 (AppCache, StartupDatabaseCheck, HomeAndFirmPage, PanelHomeAndVerificationPages, SecurityHeaders, Administration.PanelHomeTests) |
+| Build | ✓ | `dotnet build -warnaserror` | düzeltme 1: main `49ba60f0` birleşik ağaçta 0 uyarı 0 hata (önce `edf4eb2a`) |
+| Unit | ✓ TAM | `dotnet test --project tests/Shopfolio.UnitTests` | düzeltme 1: Consistency 295/295 + kalan 7262/7262, betik testleri 4/4 (önce 7546/7546) |
+| Integration | ✓ hedefli — TAM: CI | `--filter-class <ad>` | düzeltme 1: FirmSettingsTests + PaymentAndShippingPagesTests + SalesGateTests + LegalTextTests 116/116, CompanyIdentityTests + FirmSettingsTests 53/53; kırmızı test tek başına da yeşil (düzeltmeden önce tek başına 0 ≠ 2 ile kırmızıydı). İlk tur: PaymentAndShippingPagesTests 44/44 (birleşik ağaç); önceki turlarda Model 161 (FirmSettings, SalesGate, Address, SettingsTables, LegalText, CompanyIdentity, AuditTrail) + AuditTrail 22, Web/Admin 97 (AppCache, StartupDatabaseCheck, HomeAndFirmPage, PanelHomeAndVerificationPages, SecurityHeaders, Administration.PanelHomeTests) |
 | Format | ✓ | `dotnet format <proje> --verify-no-changes` | Web, UnitTests, IntegrationTests temiz; birleştirmede değişen `OutcomeUncertainConsistencyTests.cs` ayrıca temiz |
 
 ## Doğrulama
@@ -120,4 +120,5 @@
 
 ## Notlar
 
+- **Düzeltme 1 (CI Integration kırmızısı, run 43513685960):** `FirmSettingsTests.SaveShippingFee_WritesTheSection_StepsOnlyItsVersion_AndWritesOneTrailRowWithTheChangedFields` 2 metin sürümü iz satırı beklerken 0 aldı. Kök neden test düzeneği: sınıf iki üretilen metnin yayımlanmış sürümünü kurmuyordu; test, sınıfın öteki testlerinin (ör. süre kaydı) bıraktığı sürümlere dayanıyordu. Tek başına ya da önce koşunca ücret kaydının doğurduğu sürüm türün ilk sürümü olur — `02 §3.33.3` "yeni şablonun ilk kullanıldığı anda" doğan sürüm sistem olayıdır, ize yazılmaz (`LegalTextGenerator`: `last is null` → `IsTemplateChange`); kod belgeye uygun, değişmedi. Düzeltme: `InitializeAsync` uygulama açılışının bıraktığı durumu kurar (`SynchronizeGeneratedLegalTextsAsync`); iddia gevşetilmedi. Yeni test yok. main `49ba60f0` (T518) çakışmasız birleştirildi.
 - **Yapım beş turda bölündü (süre).** Son tur: main `edf4eb2a` birleştirildi (tek çakışma `OutcomeUncertainConsistencyTests.NotMarkedYet` — main UC-27'yi, dal UC-167/UC-172'yi çıkarmıştı; ikisi de çıktı), derleme, PaymentAndShippingPagesTests, Unit TAM, format, kayıtlar ve PR.

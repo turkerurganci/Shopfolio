@@ -62,13 +62,13 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
     public async Task<PanelRefundStepResult> ProcessRefundAsync(PanelRefundRequest request, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
-        (Order? order, OrderOperationFacts? facts, PanelRefundStepResult? refused) = await GateAsync(request.OrderId, request.ExpectedVersion, ct);
-        if (refused is not null)
+        (Order? Order, OrderOperationFacts? Facts, PanelRefundStepResult? Refused) gate = await GateAsync(request.OrderId, request.ExpectedVersion, ct);
+        if (gate is not ({ } order, { } facts, _))
         {
-            return refused;
+            return gate.Refused ?? new PanelRefundStepResult(TransitionRefusal.OrderNotFound);
         }
 
-        Lines lines = await ReadAsync(order!, ct); // non-null: GateAsync returns the order whenever it does not refuse
+        Lines lines = await ReadAsync(order, ct);
         PanelRefundFacts? born = lines.BornOf(request.Key);
         OwedRefundRecord? owed = born is null ? lines.Owed.FirstOrDefault(o => o.CauseId == request.Key) : null;
         if (born is null && owed is null)
@@ -76,7 +76,7 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
             return new PanelRefundStepResult(TransitionRefusal.OrderNotFound);
         }
 
-        PaymentMethod way = born?.Way ?? Way(order!);
+        PaymentMethod way = born?.Way ?? Way(order);
         string? iban = way == PaymentMethod.BankTransfer ? lines.IbanOf(born?.RefundId, born?.OrderItemId ?? owed!.OrderItemId) : null; // non-null: one of the two was found above
 
         // The system's own card refund and a refund that was sent are not the firm's step (02 7.2.8); the transfer line without an IBAN asks for one first (K-686).
@@ -90,12 +90,12 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
             return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet) { Obstacle = PanelRefundObstacle.IbanMissing };
         }
 
-        if (!OrderOperationCatalog.Check(facts!, OrderOperation.ProcessRefund, null, null).IsAllowed) // non-null: GateAsync returns the facts with the order
+        if (!OrderOperationCatalog.Check(facts, OrderOperation.ProcessRefund, null, null).IsAllowed)
         {
             return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet);
         }
 
-        (decimal amount, bool fee) = born is not null ? (born.Amount, born.IsShippingFeeIncluded) : await FirmRefundAmounts.OfAsync(_db, _afterSales, order!, owed!, lines.Refunds, ct);
+        (decimal amount, bool fee) = born is not null ? (born.Amount, born.IsShippingFeeIncluded) : await FirmRefundAmounts.OfAsync(_db, _afterSales, order, owed!, lines.Refunds, ct); // non-null: without a born refund the owed record was found above
         if (!request.Confirmed)
         {
             return new PanelRefundStepResult(TransitionRefusal.ConfirmationRequired) { Amount = amount, Iban = iban };
@@ -106,7 +106,7 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
         {
             // A born transfer refund - a defect remedy's, a late payment's, a card refund the customer's IBAN turned - is sent by the axis's one path (T317).
             PaymentTransitionResult sent = await _transitions.ProcessTransferRefundAsync(
-                new TransferRefundProcessing(order!.Id, born.RefundId, request.Admin.AdminId, request.Admin.AdminName, request.ExpectedVersion, true), ct);
+                new TransferRefundProcessing(order.Id, born.RefundId, request.Admin.AdminId, request.Admin.AdminName, request.ExpectedVersion, true), ct);
             if (RefusalOf(sent) is { } refusal)
             {
                 return new PanelRefundStepResult(refusal);
@@ -118,7 +118,7 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
         {
             RefundFacts started = await _payment.StartFirmRefundAsync(
                 new FirmRefundStart(
-                    order!.Id, order.PaymentMethod, owed!.Type, amount, fee, owed.OrderItemId, owed.Quantity, owed.RecordId, owed.ReturnId, null, request.Admin.AdminId, request.Admin.AdminName),
+                    order.Id, order.PaymentMethod, owed!.Type, amount, fee, owed.OrderItemId, owed.Quantity, owed.RecordId, owed.ReturnId, null, request.Admin.AdminId, request.Admin.AdminName), // non-null: without a born refund the owed record was found above
                 ct);
             if (await SentAsync(order, started, request.Admin, ct) is { } refusal)
             {
@@ -135,13 +135,13 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
     public async Task<PanelRefundStepResult> MarkBankTransferRefundFailedAsync(PanelRefundRequest request, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
-        (Order? order, OrderOperationFacts? facts, PanelRefundStepResult? refused) = await GateAsync(request.OrderId, request.ExpectedVersion, ct);
-        if (refused is not null)
+        (Order? Order, OrderOperationFacts? Facts, PanelRefundStepResult? Refused) gate = await GateAsync(request.OrderId, request.ExpectedVersion, ct);
+        if (gate is not ({ } order, { } facts, _))
         {
-            return refused;
+            return gate.Refused ?? new PanelRefundStepResult(TransitionRefusal.OrderNotFound);
         }
 
-        Lines lines = await ReadAsync(order!, ct); // non-null: GateAsync returns the order whenever it does not refuse
+        Lines lines = await ReadAsync(order, ct);
         PanelRefundFacts? born = lines.BornOf(request.Key);
         OwedRefundRecord? owed = born is null ? lines.Owed.FirstOrDefault(o => o.CauseId == request.Key) : null;
         if (born is null && owed is null)
@@ -151,14 +151,14 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
 
         // A processed transfer's return is outside the product (03 8.3.3.8): the step is open only before the refund was sent.
         if ((born is not null && (born.IsSent || born.Way != PaymentMethod.BankTransfer))
-            || !OrderOperationCatalog.Check(facts!, OrderOperation.ReportTransferRefundFailed, null, null).IsAllowed) // non-null: GateAsync returns the facts with the order
+            || !OrderOperationCatalog.Check(facts, OrderOperation.ReportTransferRefundFailed, null, null).IsAllowed)
         {
             return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet);
         }
 
         Guid? itemId = born?.OrderItemId ?? owed?.OrderItemId;
         OrderTransitionResult result = await _transitions.ReportTransferFailedAsync(
-            new ReportTransferFailedRequest(order!.Id, itemId, itemId is null ? born?.RefundId : null, request.Admin, request.ExpectedVersion), ct);
+            new ReportTransferFailedRequest(order.Id, itemId, itemId is null ? born?.RefundId : null, request.Admin, request.ExpectedVersion), ct);
         if (result.Refusal is { } refusal)
         {
             return new PanelRefundStepResult(refusal);
@@ -171,26 +171,26 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
     public async Task<PanelRefundStepResult> ProcessAmountBasedRefundAsync(AmountBasedRefundRequest request, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
-        (Order? order, OrderOperationFacts? facts, PanelRefundStepResult? refused) = await GateAsync(request.OrderId, request.ExpectedVersion, ct);
-        if (refused is not null)
+        (Order? Order, OrderOperationFacts? Facts, PanelRefundStepResult? Refused) gate = await GateAsync(request.OrderId, request.ExpectedVersion, ct);
+        if (gate is not ({ } order, { } facts, _))
         {
-            return refused;
+            return gate.Refused ?? new PanelRefundStepResult(TransitionRefusal.OrderNotFound);
         }
 
-        if (request.OrderItemId is { } item && !await _db.OrderItems.AsNoTracking().AnyAsync(i => i.Id == item && i.OrderId == order!.Id, ct)) // non-null: GateAsync returns the order
+        if (request.OrderItemId is { } item && !await _db.OrderItems.AsNoTracking().AnyAsync(i => i.Id == item && i.OrderId == order.Id, ct))
         {
             return new PanelRefundStepResult(TransitionRefusal.InvalidInput) { Obstacle = PanelRefundObstacle.ItemNotSelected };
         }
 
-        Lines lines = await ReadAsync(order!, ct);
-        PaymentMethod way = Way(order!);
+        Lines lines = await ReadAsync(order, ct);
+        PaymentMethod way = Way(order);
         string? iban = way == PaymentMethod.BankTransfer ? lines.IbanOf(null, request.OrderItemId) : null;
         if (way == PaymentMethod.BankTransfer && iban is null)
         {
             return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet) { Obstacle = PanelRefundObstacle.IbanMissing };
         }
 
-        if (!OrderOperationCatalog.Check(facts!, OrderOperation.ProcessRefund, null, null).IsAllowed) // non-null: GateAsync returns the facts with the order
+        if (!OrderOperationCatalog.Check(facts, OrderOperation.ProcessRefund, null, null).IsAllowed)
         {
             return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet);
         }
@@ -199,10 +199,10 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
         decimal owedTotal = 0m;
         foreach (OwedRefundRecord owed in lines.Owed)
         {
-            owedTotal += (await FirmRefundAmounts.OfAsync(_db, _afterSales, order!, owed, lines.Refunds, ct)).Amount;
+            owedTotal += (await FirmRefundAmounts.OfAsync(_db, _afterSales, order, owed, lines.Refunds, ct)).Amount;
         }
 
-        decimal left = order!.Total - await _payment.CommittedRefundTotalAsync(order.Id, ct) - owedTotal;
+        decimal left = order.Total - await _payment.CommittedRefundTotalAsync(order.Id, ct) - owedTotal;
         if (request.Amount <= 0m || request.Amount > left)
         {
             return new PanelRefundStepResult(TransitionRefusal.InvalidInput) { Obstacle = PanelRefundObstacle.AmountExceeded };
@@ -236,19 +236,19 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
             return new PanelRefundStepResult(TransitionRefusal.InvalidInput) { Obstacle = PanelRefundObstacle.ItemNotSelected };
         }
 
-        (Order? order, OrderOperationFacts? facts, PanelRefundStepResult? refused) = await GateAsync(request.OrderId, request.ExpectedVersion, ct);
-        if (refused is not null)
+        (Order? Order, OrderOperationFacts? Facts, PanelRefundStepResult? Refused) gate = await GateAsync(request.OrderId, request.ExpectedVersion, ct);
+        if (gate is not ({ } order, { } facts, _))
         {
-            return refused;
+            return gate.Refused ?? new PanelRefundStepResult(TransitionRefusal.OrderNotFound);
         }
 
         // Tracked, under the order lock: the version guard tells the new request's order from its item (D-95; 09 10.2 item 3).
-        if (await _db.OrderItems.SingleOrDefaultAsync(i => i.Id == request.Key && i.OrderId == order!.Id, ct) is null) // non-null: GateAsync returns the order
+        if (await _db.OrderItems.SingleOrDefaultAsync(i => i.Id == request.Key && i.OrderId == order.Id, ct) is null)
         {
             return new PanelRefundStepResult(TransitionRefusal.InvalidInput) { Obstacle = PanelRefundObstacle.ItemNotSelected };
         }
 
-        if (!OrderOperationCatalog.Check(facts!, OrderOperation.RequestRefundIban, null, null).IsAllowed) // non-null: GateAsync returns the facts with the order
+        if (!OrderOperationCatalog.Check(facts, OrderOperation.RequestRefundIban, null, null).IsAllowed)
         {
             return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet);
         }
@@ -256,15 +256,15 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
         // The reason is the server's (K-1201): the firm never types it, and never the IBAN (02 10.1.2).
         RefundIbanRequestOpened opened = await _afterSales.OpenRefundIbanRequestAsync(
             new RefundIbanRequestEntry(request.Key, null, RefundIbanRequestReason.AdminRequest, request.Admin.AdminId, request.Admin.AdminName, _time.GetUtcNow()), ct);
-        if (opened.IsNew && order!.ContactEmail is { Length: > 0 } email)
+        if (opened.IsNew && order.ContactEmail is { Length: > 0 } email)
         {
             await _notifications.QueueCustomerNoticeAsync(new RefundIbanRequestedNotice(order.Id, RefundIbanRequestReason.AdminRequest), email, ct);
         }
 
-        OrderTransitions.RaiseVersionOnce(_db, order!);
+        OrderTransitions.RaiseVersionOnce(_db, order);
         await WriteAsync(
             AuditOperation.OpenRefundIbanRequest,
-            order!.Id,
+            order.Id,
             [new AuditValue("ItemId", request.Key.ToString("D")), new AuditValue("Reason", nameof(RefundIbanRequestReason.AdminRequest))],
             ct);
         return PanelRefundStepResult.Done;
@@ -273,19 +273,19 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
     public async Task<PanelRefundStepResult> RetryCardRefundAsync(PanelRefundRequest request, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
-        (Order? order, OrderOperationFacts? facts, PanelRefundStepResult? refused) = await GateAsync(request.OrderId, request.ExpectedVersion, ct);
-        if (refused is not null)
+        (Order? Order, OrderOperationFacts? Facts, PanelRefundStepResult? Refused) gate = await GateAsync(request.OrderId, request.ExpectedVersion, ct);
+        if (gate is not ({ } order, { } facts, _))
         {
-            return refused;
+            return gate.Refused ?? new PanelRefundStepResult(TransitionRefusal.OrderNotFound);
         }
 
-        PanelRefundFacts? refund = (await _payment.ListPanelRefundsAsync(order!.Id, ct)).FirstOrDefault(r => r.RefundId == request.Key);
+        PanelRefundFacts? refund = (await _payment.ListPanelRefundsAsync(order.Id, ct)).FirstOrDefault(r => r.RefundId == request.Key);
         if (refund is null)
         {
             return new PanelRefundStepResult(TransitionRefusal.OrderNotFound);
         }
 
-        if (!OrderOperationCatalog.CheckCardRefundStep(facts!, CardRefundOperationStep.RetryOrRedirect).IsAllowed) // non-null: GateAsync returns the facts with the order
+        if (!OrderOperationCatalog.CheckCardRefundStep(facts, CardRefundOperationStep.RetryOrRedirect).IsAllowed)
         {
             return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet);
         }
@@ -308,19 +308,19 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
     public async Task<PanelRefundStepResult> SwitchRefundToBankTransferAsync(PanelRefundRequest request, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
-        (Order? order, OrderOperationFacts? facts, PanelRefundStepResult? refused) = await GateAsync(request.OrderId, request.ExpectedVersion, ct);
-        if (refused is not null)
+        (Order? Order, OrderOperationFacts? Facts, PanelRefundStepResult? Refused) gate = await GateAsync(request.OrderId, request.ExpectedVersion, ct);
+        if (gate is not ({ } order, { } facts, _))
         {
-            return refused;
+            return gate.Refused ?? new PanelRefundStepResult(TransitionRefusal.OrderNotFound);
         }
 
-        PanelRefundFacts? refund = (await _payment.ListPanelRefundsAsync(order!.Id, ct)).FirstOrDefault(r => r.RefundId == request.Key);
+        PanelRefundFacts? refund = (await _payment.ListPanelRefundsAsync(order.Id, ct)).FirstOrDefault(r => r.RefundId == request.Key);
         if (refund is null)
         {
             return new PanelRefundStepResult(TransitionRefusal.OrderNotFound);
         }
 
-        if (!OrderOperationCatalog.CheckCardRefundStep(facts!, CardRefundOperationStep.RetryOrRedirect).IsAllowed) // non-null: GateAsync returns the facts with the order
+        if (!OrderOperationCatalog.CheckCardRefundStep(facts, CardRefundOperationStep.RetryOrRedirect).IsAllowed)
         {
             return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet);
         }
@@ -342,20 +342,20 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
     public async Task<PanelRefundStepResult> MarkCardRefundFailedAsync(PanelRefundRequest request, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
-        (Order? order, OrderOperationFacts? facts, PanelRefundStepResult? refused) = await GateAsync(request.OrderId, request.ExpectedVersion, ct);
-        if (refused is not null)
+        (Order? Order, OrderOperationFacts? Facts, PanelRefundStepResult? Refused) gate = await GateAsync(request.OrderId, request.ExpectedVersion, ct);
+        if (gate is not ({ } order, { } facts, _))
         {
-            return refused;
+            return gate.Refused ?? new PanelRefundStepResult(TransitionRefusal.OrderNotFound);
         }
 
-        IReadOnlySet<Guid> orders = await _payment.OrderRefundIdsAsync(order!.Id, [request.Key], ct); // non-null: GateAsync returns the order whenever it does not refuse
+        IReadOnlySet<Guid> orders = await _payment.OrderRefundIdsAsync(order.Id, [request.Key], ct);
         if (!orders.Contains(request.Key))
         {
             return new PanelRefundStepResult(TransitionRefusal.OrderNotFound);
         }
 
         // The mark is open only while the result is awaited (K-940); no notice goes to the customer (02 7.2.8).
-        if (!OrderOperationCatalog.CheckCardRefundStep(facts!, CardRefundOperationStep.MarkNotRealized).IsAllowed // non-null: GateAsync returns the facts with the order
+        if (!OrderOperationCatalog.CheckCardRefundStep(facts, CardRefundOperationStep.MarkNotRealized).IsAllowed
             || !await _payment.MarkCardRefundFailedByAdminAsync(order.Id, request.Key, ct))
         {
             return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet);

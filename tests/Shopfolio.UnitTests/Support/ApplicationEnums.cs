@@ -73,6 +73,8 @@ internal static class ApplicationEnums
         // T510: what the payment start told the confirmation screen to do (UC-29) and how the cancellation of an unopened payment page ended - result codes, never a column.
         "Shopfolio.Modules.Payment.Contracts.PaymentStartDecision",
         "Shopfolio.Modules.Ordering.Contracts.UnopenedPaymentCancellation",
+        // T529: why a refund step of E-37 was refused (the named 422 reasons of UC-131, UC-133, UC-134) - a result code, never a column.
+        "Shopfolio.Modules.Ordering.Contracts.PanelRefundObstacle",
     };
 
     /// <summary>All enums of the application assembly, by simple name; a name used twice is a failure of the naming rule (09 5.1).</summary>

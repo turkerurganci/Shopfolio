@@ -50,11 +50,18 @@ public sealed class OperationHandlerMarkTests
         Assert.Equal(
             [
                 nameof(OrderDetailModel.OnPostCloseDeliveryFailedAsync),
+                nameof(OrderDetailModel.OnPostMarkBankTransferRefundFailedAsync),
+                nameof(OrderDetailModel.OnPostMarkCardRefundFailedAsync),
                 nameof(OrderDetailModel.OnPostMarkDeliveredAsync),
                 nameof(OrderDetailModel.OnPostMarkDeliveryFailedAsync),
                 nameof(OrderDetailModel.OnPostMarkPaidAsync),
                 nameof(OrderDetailModel.OnPostMarkReshippedAsync),
                 nameof(OrderDetailModel.OnPostMarkShippedAsync),
+                nameof(OrderDetailModel.OnPostProcessAmountBasedRefundAsync),
+                nameof(OrderDetailModel.OnPostProcessRefundAsync),
+                nameof(OrderDetailModel.OnPostRequestRefundIbanAsync),
+                nameof(OrderDetailModel.OnPostRetryCardRefundAsync),
+                nameof(OrderDetailModel.OnPostSwitchRefundToBankTransferAsync),
             ],
             Handlers(typeof(OrderDetailModel)).Select(m => m.Name).Order(StringComparer.Ordinal));
     }

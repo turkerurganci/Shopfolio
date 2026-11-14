@@ -68,7 +68,7 @@ public sealed partial class OrderDetailModel
     public IReadOnlyList<PanelRefundLine> RefundLines { get; private set; } = [];
 
     /// <summary>The amount based refund form as sent, kept on a refusal (04 9.9.41).</summary>
-    public AmountBasedRefundInput AmountBased { get; private set; } = new();
+    public ProcessAmountBasedRefundInput AmountBased { get; private set; } = new();
 
     /// <summary>The name of a refund line's item, or the order's own line (a late payment's refund, an itemless amount based refund).</summary>
     public string RefundLineNameOf(PanelRefundLine line)
@@ -86,10 +86,10 @@ public sealed partial class OrderDetailModel
 
     /// <summary>UC-131: the refund the line's record causes; unconfirmed, the window repeats the amount and - on the transfer - the IBAN (200); confirmed 303.</summary>
     [GatedOperation]
-    public async Task<IActionResult> OnPostProcessRefundAsync(Guid id, RefundStepInput input, CancellationToken ct)
+    public async Task<IActionResult> OnPostProcessRefundAsync(Guid id, ProcessRefundInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
-        if (input.Key is not { } key)
+        if (input.SelectedKey() is not { } key)
         {
             return NotFound();
         }
@@ -121,10 +121,10 @@ public sealed partial class OrderDetailModel
 
     /// <summary>UC-132: "havale gerçekleşmedi" - no confirmation; a processed refund is 422.</summary>
     [GatedOperation]
-    public async Task<IActionResult> OnPostMarkBankTransferRefundFailedAsync(Guid id, RefundStepInput input, CancellationToken ct)
+    public async Task<IActionResult> OnPostMarkBankTransferRefundFailedAsync(Guid id, ProcessRefundInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
-        if (input.Key is not { } key)
+        if (input.SelectedKey() is not { } key)
         {
             return NotFound();
         }
@@ -136,7 +136,7 @@ public sealed partial class OrderDetailModel
 
     /// <summary>UC-133: the amount based partial refund; the amount is the administrator's, the cap the server's (K-1078); unconfirmed 200, confirmed 303.</summary>
     [GatedOperation]
-    public async Task<IActionResult> OnPostProcessAmountBasedRefundAsync(Guid id, AmountBasedRefundInput input, CancellationToken ct)
+    public async Task<IActionResult> OnPostProcessAmountBasedRefundAsync(Guid id, ProcessAmountBasedRefundInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
         AmountBased = input;
@@ -173,7 +173,7 @@ public sealed partial class OrderDetailModel
 
     /// <summary>UC-135: a new card refund request; confirmed (03 1.6.1.4) with K-798's warning; unconfirmed 200, confirmed 303.</summary>
     [GatedOperation]
-    public async Task<IActionResult> OnPostRetryCardRefundAsync(Guid id, CardRefundStepInput input, CancellationToken ct)
+    public async Task<IActionResult> OnPostRetryCardRefundAsync(Guid id, RetryCardRefundInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
         TransitionAdmin admin = await AdminAsync(ct);
@@ -187,7 +187,7 @@ public sealed partial class OrderDetailModel
 
     /// <summary>UC-136: the transfer path of a failed card refund; no confirmation.</summary>
     [GatedOperation]
-    public async Task<IActionResult> OnPostSwitchRefundToBankTransferAsync(Guid id, CardRefundStepInput input, CancellationToken ct)
+    public async Task<IActionResult> OnPostSwitchRefundToBankTransferAsync(Guid id, RetryCardRefundInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
         TransitionAdmin admin = await AdminAsync(ct);
@@ -199,7 +199,7 @@ public sealed partial class OrderDetailModel
 
     /// <summary>UC-137: the "gerçekleşmedi" mark on a card refund whose result is awaited; no confirmation (04 2.4.2), no notice.</summary>
     [GatedOperation]
-    public async Task<IActionResult> OnPostMarkCardRefundFailedAsync(Guid id, CardRefundStepInput input, CancellationToken ct)
+    public async Task<IActionResult> OnPostMarkCardRefundFailedAsync(Guid id, RetryCardRefundInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
         TransitionAdmin admin = await AdminAsync(ct);
@@ -238,11 +238,11 @@ public sealed partial class OrderDetailModel
         return outcome!; // non-null: the runner runs the step once before it returns
     }
 
-    private static ConfirmView ProcessRefundConfirm(Guid id, RefundStepInput input, PanelRefundStepResult result)
+    private static ConfirmView ProcessRefundConfirm(Guid id, ProcessRefundInput input, PanelRefundStepResult result)
     {
         List<KeyValuePair<string, string>> fields =
         [
-            new("Input." + input.KeyName, input.Key?.ToString("D") ?? string.Empty),
+            new("Input." + input.SelectedKeyName(), input.SelectedKey()?.ToString("D") ?? string.Empty),
             Field("Input.Version", input.Version),
             new("Input.ShownIban", result.Iban ?? string.Empty),
             new("Input.Confirmed", "true"),
@@ -251,7 +251,7 @@ public sealed partial class OrderDetailModel
             IrreversibleConfirmations.RefundProcessing(result.Amount ?? 0m, result.Iban), ProcessRefundLabel, ProcessRefundLabel, PathOf(id), "ProcessRefund", PathOf(id), fields);
     }
 
-    private static ConfirmView AmountBasedConfirm(Guid id, AmountBasedRefundInput input, PanelRefundStepResult result)
+    private static ConfirmView AmountBasedConfirm(Guid id, ProcessAmountBasedRefundInput input, PanelRefundStepResult result)
     {
         List<KeyValuePair<string, string>> fields =
         [
@@ -264,7 +264,7 @@ public sealed partial class OrderDetailModel
             IrreversibleConfirmations.RefundProcessing(result.Amount ?? 0m, result.Iban), AmountBasedRefundLabel, AmountBasedRefundLabel, PathOf(id), "ProcessAmountBasedRefund", PathOf(id), fields);
     }
 
-    private static ConfirmView RetryConfirm(Guid id, CardRefundStepInput input, PanelRefundStepResult result)
+    private static ConfirmView RetryConfirm(Guid id, RetryCardRefundInput input, PanelRefundStepResult result)
     {
         List<KeyValuePair<string, string>> fields =
         [
@@ -281,7 +281,7 @@ public sealed partial class OrderDetailModel
 /// UC-131, UC-132 <c>ProcessRefundInput</c> · <c>MarkBankTransferRefundFailedInput</c>: exactly one of the links of 06 4.33 - the record that causes the refund (07 9.9.10) - or the refund's own id
 /// for a refund that has none; the version, the confirmation and the IBAN the window showed.
 /// </summary>
-public sealed class RefundStepInput : IFormInput
+public sealed class ProcessRefundInput : IFormInput
 {
     public Guid? CancellationId { get; set; }
 
@@ -309,18 +309,18 @@ public sealed class RefundStepInput : IFormInput
     [SpecAssignedName]
     public string? ShownIban { get; set; }
 
-    /// <summary>The one link the request carries; null when none or more than one is given (07 UC-131: exactly one - otherwise 404).</summary>
-    public Guid? Key
+    /// <summary>
+    /// The one link the request carries; null when none or more than one is given (07 UC-131: exactly one - otherwise 404). A method and not a property: the model's fields are the
+    /// form's (07 5.1.2), this is read from them.
+    /// </summary>
+    public Guid? SelectedKey()
     {
-        get
-        {
-            Guid?[] given = [.. Links().Select(l => l.Value).Where(v => v is not null)];
-            return given.Length == 1 ? given[0] : null;
-        }
+        Guid?[] given = [.. Links().Select(l => l.Value).Where(v => v is not null)];
+        return given.Length == 1 ? given[0] : null;
     }
 
-    /// <summary>The field name of <see cref="Key"/> (<see cref="PanelRefundKeys"/>), for the confirmation window's hidden field.</summary>
-    public string KeyName => Links().FirstOrDefault(l => l.Value is not null).Name ?? PanelRefundKeys.RefundId;
+    /// <summary>The field name of <see cref="SelectedKey"/> (<see cref="PanelRefundKeys"/>), for the confirmation window's hidden field.</summary>
+    public string SelectedKeyName() => Links().FirstOrDefault(l => l.Value is not null).Name ?? PanelRefundKeys.RefundId;
 
     private IEnumerable<(string Name, Guid? Value)> Links() =>
     [
@@ -336,7 +336,7 @@ public sealed class RefundStepInput : IFormInput
 }
 
 /// <summary>UC-133 <c>ProcessAmountBasedRefundInput</c>: the amount (text, so a wrong value is a refusal and not a binding error; 07 2.9.4), the optional item, the version and the confirmation.</summary>
-public sealed class AmountBasedRefundInput : IFormInput
+public sealed class ProcessAmountBasedRefundInput : IFormInput
 {
     public string? Amount { get; set; }
 
@@ -358,7 +358,7 @@ public sealed class RequestRefundIbanInput : IFormInput
 }
 
 /// <summary>UC-135...UC-137 <c>RetryCardRefundInput</c> · <c>SwitchRefundToBankTransferInput</c> · <c>MarkCardRefundFailedInput</c>: the refund, the version and - on the retry - the confirmation.</summary>
-public sealed class CardRefundStepInput : IFormInput
+public sealed class RetryCardRefundInput : IFormInput
 {
     public Guid? RefundId { get; set; }
 

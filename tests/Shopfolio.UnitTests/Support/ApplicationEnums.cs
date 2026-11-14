@@ -65,6 +65,9 @@ internal static class ApplicationEnums
         // T509: how the placing of an order ended (UC-28) and which part of the cart summary changed since the step was shown - a result code and a read shape, never a column.
         "Shopfolio.Modules.Ordering.Contracts.PlaceOrderOutcome",
         "Shopfolio.Modules.Ordering.Contracts.SummaryChangeKind",
+        // T510: what the payment start told the confirmation screen to do (UC-29) and how the cancellation of an unopened payment page ended - result codes, never a column.
+        "Shopfolio.Modules.Payment.Contracts.PaymentStartDecision",
+        "Shopfolio.Modules.Ordering.Contracts.UnopenedPaymentCancellation",
     };
 
     /// <summary>All enums of the application assembly, by simple name; a name used twice is a failure of the naming rule (09 5.1).</summary>

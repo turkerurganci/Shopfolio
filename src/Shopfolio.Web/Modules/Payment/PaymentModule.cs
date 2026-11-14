@@ -684,6 +684,7 @@ internal static class PaymentModuleRegistration
         services.TryAddSingleton<CardUnavailability>();
         services.TryAddSingleton<PaymentStartFailureSeries>();
         services.AddScoped<PaymentStarts>();
+        services.AddScoped<IPaymentStart, PaymentStartFace>(); // the payment page's face of the start (T510; 07 UC-29)
         services.AddDisposalPart<InboundNotificationDisposalPart>();
         services.AddScoped<PaymentNotificationEndpoint>();
         services.AddTransactionalJobHandler<InboundNotificationJobHandler>(JobType.InboundNotificationProcessing);

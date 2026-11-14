@@ -9,8 +9,10 @@ namespace Shopfolio.UnitTests.Architecture;
 /// <see cref="Scan"/> reads a page, a script, a style sheet or a code file and finds (1) an analytics, pixel or advertising name, (2) a consent banner name,
 /// (3) an embedded frame, object or embed element, or a map, video or social embed address, (4) a script, style sheet, image, source or font taken from
 /// another origin; <see cref="ScanPackages"/> reads a package file (props, project, lock) and finds an analytics, advertising or tag package.
-/// The inline frame (iframe) is the only allowed exception and only on a page of <see cref="PaymentFramePages"/>, a closed list that is empty until the
-/// payment page task adds its page; there its address must be a path of the site or under https://www.paytr.com/ (<see cref="FrameSource"/>). A frame
+/// The inline frame (iframe) is the only allowed exception and only on a page of <see cref="PaymentFramePages"/>, a closed list of one view (T510: the payment
+/// page's frame); there its address must be a path of the site, an address under https://www.paytr.com/ or the payment page's one checked property
+/// <c>@Model.PaymentFrameAddress</c> - the layer's address, which the page model takes only under the provider's form root (<c>PaymentFrameSource.Holds</c>; the
+/// application's text may not name the provider outside the layer, 08 3.1 rule 1) - (<see cref="FrameSource"/>). A frame
 /// (frame, frameset), object or embed element is a finding on every page, and the other rules hold on the payment page too. Full-line comments of code files are blanked first and keep their line.
 /// </summary>
 internal static partial class ThirdPartyContentScan
@@ -23,10 +25,10 @@ internal static partial class ThirdPartyContentScan
     public const string TrackingPackage = "references an analytics, advertising or tag package (02 12.2.5; KD-19)";
 
     /// <summary>
-    /// The pages that may hold the payment provider's frame element, as repository-relative paths. Closed and empty: the payment page task adds its page here
-    /// (and the provider's cookies to the cookie policy draft placeholder, 02 12.2.5); nothing else may hold a frame.
+    /// The pages that may hold the payment provider's frame element, as repository-relative paths. Closed: the payment page's frame view (T510; 07 UC-29) and
+    /// nothing else may hold a frame. The provider's cookies stay the cookie policy draft's placeholder until the test mode shows them (02 12.2.5; D-1467).
     /// </summary>
-    public static readonly IReadOnlyCollection<string> PaymentFramePages = [];
+    public static readonly IReadOnlyCollection<string> PaymentFramePages = ["src/Shopfolio.Web/Pages/Orders/_PaymentFrame.cshtml"];
 
     /// <summary>The files whose text is markup: only these are searched for an element in angle brackets (D-114).</summary>
     public static readonly string[] MarkupExtensions = [".cshtml", ".razor", ".html", ".htm", ".svg"];
@@ -128,7 +130,7 @@ internal static partial class ThirdPartyContentScan
     // On a payment frame page the frame takes its address from the provider's origin or from the site itself (05 6.5.4: frame-src is 'self' and https://www.paytr.com):
     // a src that is neither a path of the site nor an address under https://www.paytr.com/, and a srcdoc, are findings.
     [GeneratedRegex(
-        @"<\s*iframe\b[^>]*?\bsrc\s*=\s*(?>[""']?\s*)(?!https://www\.paytr\.com/|/(?!/))|<\s*iframe\b[^>]*?\bsrcdoc\s*=",
+        @"<\s*iframe\b[^>]*?\bsrc\s*=\s*(?>[""']?\s*)(?!https://www\.paytr\.com/|/(?!/)|@Model\.PaymentFrameAddress[""'\s>])|<\s*iframe\b[^>]*?\bsrcdoc\s*=",
         RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline,
         matchTimeoutMilliseconds: 5000)]
     private static partial Regex ForeignFrameSource();

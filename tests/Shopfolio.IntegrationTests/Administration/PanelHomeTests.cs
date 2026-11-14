@@ -869,6 +869,20 @@ public sealed class PanelHomeTests : IAsyncLifetime
 
         public Task<BrandingSection> GetBrandingAsync(CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<PanelContentList> GetPanelContentListAsync(CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<PanelContentForm?> GetPanelContentFormAsync(PanelContentType type, Guid? id, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<Guid?> FindSinglePanelContentAsync(PanelContentType type, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<PanelContentSaveResult> SavePanelContentAsync(PanelContentSaveCommand command, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<PanelContentChangeResult> ChangePanelContentStatusAsync(PanelContentType type, Guid id, PublishStatus target, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<PanelContentDeleteResult> DeletePanelContentAsync(PanelContentType type, Guid id, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<PanelContentReorderResult> ReorderPanelContentAsync(PanelContentType type, Guid id, PanelContentMove move, int shownOrder, int shownNeighbourOrder, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<BrandingSaveResult> SaveBrandingAsync(BrandingInput input, int formVersion, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<BrandIdentity> GetBrandIdentityAsync(CancellationToken ct) => throw new NotSupportedException();

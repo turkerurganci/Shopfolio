@@ -134,9 +134,13 @@ public static class ListCatalog
         _ => false,
     };
 
+    /// <summary>Whether the list is paged: the corporate content's hand-ordered groups are not (04 2.13.3, 9.13.3; K-843).</summary>
+    public static bool IsPaged(ListKind kind) => kind != ListKind.PanelContent;
+
     /// <summary>The page size the list shows (04 2.13.3; 09 10.5 item 4): the sizes of <see cref="PageSizes"/>, written there once.</summary>
     public static int PageSizeOf(ListKind kind) => kind switch
     {
+        ListKind.PanelContent => throw new InvalidOperationException("The corporate content list is not paged (04 2.13.3, 9.13.3; K-843); ask IsPaged first."),
         ListKind.StorefrontProducts => PageSizes.StorefrontProducts,
         ListKind.ContentList => PageSizes.ContentList,
         ListKind.MemberOrders => PageSizes.OrderHistory,

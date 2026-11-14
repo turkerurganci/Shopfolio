@@ -8,7 +8,7 @@ using Shopfolio.Pages.Lists;
 
 namespace Shopfolio.IntegrationTests.Pages;
 
-/// <summary>The product grid with a pager (T545 KK1-KK5, KK8): four cards - a plain one with an image, a discounted one, a sold-out one and a long-named one - and the navigation of a list of seven pages.</summary>
+/// <summary>The product grid with a pager (T545 KK1-KK5, KK8): four cards - a plain one with an image, a discounted one, a sold-out one and a long-named one - and the navigation of a list of twelve pages (<c>PageCount</c>).</summary>
 public sealed class ProductGridSampleModel : PageModel
 {
     public const string Root = "/odeme/liste-urunler";

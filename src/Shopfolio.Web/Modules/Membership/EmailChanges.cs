@@ -22,7 +22,7 @@ namespace Shopfolio.Modules.Membership;
 /// The customer's change of the account's e-mail address (02 3.13.14, 3.13.17; 07 UC-66, UC-67, UC-53; T343): the request writes a pending change and sends a link to the NEW address; the
 /// account keeps working with the old address until the button of that link is pressed. Verifying changes the address, drops the Google link, sends the old address a notice with the
 /// revert link (Z-45; its outcome is T519's) and lets the new address's guest orders fall to the account. Everything joins the caller's transaction and never saves; the account's row
-/// is locked first, then the pending and link rows (05 6.1.2). The reauthentication that must stand before the request is T517's (D-429); the administrator's change is the panel's task.
+/// is locked first, then the pending and link rows (05 6.1.2). The request takes the reauthentication's single-use value last (T517; D-429); the administrator's change is the panel's task.
 /// </summary>
 internal sealed class EmailChanges
 {
@@ -38,9 +38,12 @@ internal sealed class EmailChanges
     private readonly INotificationsModule _notifications;
     private readonly IOrderingModule _ordering;
     private readonly TimeProvider _time;
+    private readonly ISessionService _sessions;
 
-    public EmailChanges(AppDbContext db, LinkRecords links, LinkKeys keys, AttemptCounter attempts, INotificationsModule notifications, IOrderingModule ordering, TimeProvider time)
+    public EmailChanges(AppDbContext db, LinkRecords links, LinkKeys keys, AttemptCounter attempts, INotificationsModule notifications, IOrderingModule ordering, TimeProvider time, ISessionService sessions)
     {
+        ArgumentNullException.ThrowIfNull(sessions);
+        _sessions = sessions;
         ArgumentNullException.ThrowIfNull(db);
         ArgumentNullException.ThrowIfNull(links);
         ArgumentNullException.ThrowIfNull(keys);
@@ -57,7 +60,7 @@ internal sealed class EmailChanges
         _time = time;
     }
 
-    public async Task<EmailChangeRequestResult> RequestAsync(Guid customerId, string newEmail, IPAddress? ipAddress, CancellationToken ct)
+    public async Task<EmailChangeRequestResult> RequestAsync(Guid customerId, Guid sessionId, string newEmail, string? reauthenticationValue, IPAddress? ipAddress, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(newEmail);
         RequireTransaction("The e-mail change is written only inside a transaction (09 6 item 3).");
@@ -65,6 +68,13 @@ internal sealed class EmailChanges
         if (!await AccountLocks.LockAsync(_db, AccountType.Customer, customerId, ct))
         {
             return EmailChangeRequestResult.Refused(ErrorCode.NotFound);
+        }
+
+        // The value of the re-authentication is read first (a plain read; it is taken last, below), so no refusal that follows - the address's format, an address another account holds, the limit - is shown to a
+        // session that does not hold the permission, and L-9 counts no line for it (02 3.13.11; K-786; VAL-A504).
+        if (!await _sessions.HoldsReauthenticationAsync(customerId, sessionId, ReauthenticationOperation.EmailChange, reauthenticationValue, ct))
+        {
+            return EmailChangeRequestResult.Refused(ErrorCode.ReauthenticationRequired);
         }
 
         var account = await _db.Customers.AsNoTracking()
@@ -110,6 +120,12 @@ internal sealed class EmailChanges
             return EmailChangeRequestResult.Refused(ErrorCode.VerificationLinkLimitExceeded);
         }
 
+        // The single-use value of the reauthentication is taken last, so a refusal above takes nothing and a refusal here rolls the caller's transaction back (07 2.5.2; K-971; D-429).
+        if (!await _sessions.TryRedeemReauthenticationAsync(customerId, sessionId, ReauthenticationOperation.EmailChange, reauthenticationValue, ct))
+        {
+            return EmailChangeRequestResult.Refused(ErrorCode.ReauthenticationRequired);
+        }
+
         // The pending change takes the place of the earlier one and its life starts now; the earlier link is no longer valid (02 3.13.14; K-734).
         if (pending is null)
         {
@@ -127,6 +143,19 @@ internal sealed class EmailChanges
         await _links.SupersedeEarlierAsync(LinkType.NewEmailVerification, customerId, null, link.Id, ct);
         await _notifications.QueueAccountEmailAsync(new NewAddressVerificationEmail(DispatchRelatedRecordType.Customer, customerId, link.Id, entered), ct);
         return EmailChangeRequestResult.Requested(link.Id, expiresAt, replaces);
+    }
+
+    /// <summary>The account's pending change that still lives (T517; 04 5.25.4; read only): the new address and the last day of its link, or nothing when there is none or its life has ended.</summary>
+    public async Task<PendingEmailChangeReading?> ReadPendingAsync(Guid customerId, CancellationToken ct)
+    {
+        DateTimeOffset now = _time.GetUtcNow();
+        var pending = await _db.PendingEmailChanges.AsNoTracking()
+            .Where(p => p.CustomerId == customerId)
+            .Select(p => new { p.NewEmail, p.CreatedAt })
+            .SingleOrDefaultAsync(ct);
+        return pending is null || EmailChangeRules.IsEnded(pending.CreatedAt, now)
+            ? null
+            : new PendingEmailChangeReading(pending.NewEmail, pending.CreatedAt.AddHours(ProductConstants.EmailVerificationLinkHours));
     }
 
     public async Task<EmailChangeResendResult> ResendAsync(Guid customerId, IPAddress? ipAddress, CancellationToken ct)

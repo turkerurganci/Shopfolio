@@ -420,8 +420,10 @@ internal sealed class MembershipModule : IMembershipModule
         return kind is null ? new EmailLinkReading(null, VerificationLinkStatus.Missing, null) : new EmailLinkReading(kind, StatusOf(state), customerId);
     }
 
-    public Task<EmailChangeRequestResult> RequestEmailChangeAsync(Guid customerId, string newEmail, IPAddress? ipAddress, CancellationToken ct) =>
-        _emailChanges.RequestAsync(customerId, newEmail, ipAddress, ct);
+    public Task<EmailChangeRequestResult> RequestEmailChangeAsync(Guid customerId, Guid sessionId, string newEmail, string? reauthenticationValue, IPAddress? ipAddress, CancellationToken ct) =>
+        _emailChanges.RequestAsync(customerId, sessionId, newEmail, reauthenticationValue, ipAddress, ct);
+
+    public Task<PendingEmailChangeReading?> ReadPendingEmailChangeAsync(Guid customerId, CancellationToken ct) => _emailChanges.ReadPendingAsync(customerId, ct);
 
     public Task<EmailChangeResendResult> ResendEmailChangeLinkAsync(Guid customerId, IPAddress? ipAddress, CancellationToken ct) =>
         _emailChanges.ResendAsync(customerId, ipAddress, ct);

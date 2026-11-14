@@ -40,7 +40,6 @@ internal sealed class ProductSaves
     private readonly StockCodes _stockCodes;
     private readonly ProductLocks _locks;
     private readonly IServiceProvider _services;
-    private readonly IAuditTrail _trail;
 
     public ProductSaves(
         AppDbContext db,
@@ -53,12 +52,10 @@ internal sealed class ProductSaves
         StockCounters counters,
         StockCodes stockCodes,
         ProductLocks locks,
-        IServiceProvider services,
-        IAuditTrail trail)
+        IServiceProvider services)
     {
         _locks = locks;
         _services = services;
-        _trail = trail;
         _db = db;
         _time = time;
         _links = links;
@@ -215,7 +212,7 @@ internal sealed class ProductSaves
         AddChange(changes, nameof(Product.FulfilmentPeriod), before.FulfilmentPeriod, product.FulfilmentPeriod);
         if (changes.Count > 0)
         {
-            await _trail.WriteAsync(new AuditEntry(AuditOperation.UpdateSettings, nameof(Product), product.Id, new AuditDetails(product.Name, changes)), ct);
+            await Trail.WriteAsync(new AuditEntry(AuditOperation.UpdateSettings, nameof(Product), product.Id, new AuditDetails(product.Name, changes)), ct);
         }
     }
 
@@ -267,6 +264,9 @@ internal sealed class ProductSaves
     // The ordering module takes the catalog module in its constructor and the catalog module holds this class, so it is resolved when the items' file links are written, not when this
     // class is built (the pattern of OrderExport's after-sales module).
     private IOrderingModule Ordering => _services.GetRequiredService<IOrderingModule>();
+
+    // The trail is resolved when a setting changed, so a host that builds the catalog module without the administration module (the concurrency tests) still builds it.
+    private IAuditTrail Trail => _services.GetRequiredService<IAuditTrail>();
 
     private sealed record SettingsBefore(int? ShippingPeriod, int? MaxQuantityPerOrder, int? FulfilmentPeriod);
 

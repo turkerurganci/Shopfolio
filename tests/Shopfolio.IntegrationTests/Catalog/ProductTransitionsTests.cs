@@ -324,10 +324,14 @@ public sealed class ProductTransitionsTests : IAsyncLifetime
     public async Task AGateThatRefuses_LeavesTheStatusAsItWas_NoRowAndNoVersionRise_KK5(PublishStatus from)
     {
         (Product product, List<Variant> variants) = await SeedAsync(from, from);
+
+        // The variant's gate is asked only under a published product (T525 criterion 8; 07 UC-115): the refused variant is a second variant of a published product.
+        (Product published, List<Variant> underPublished) = await SeedAsync(PublishStatus.Published, PublishStatus.Published, from);
         _gate.Refuse("name", "variant");
 
         PublishChangeResult productMove = await RunAsync((unit, token) => unit.ChangeProductStatusAsync(product.Id, PublishStatus.Published, product.Version, token));
-        PublishChangeResult variantMove = await RunAsync((unit, token) => unit.ChangeVariantStatusAsync(variants[0].Id, PublishStatus.Published, product.Version, token));
+        PublishChangeResult variantMove = await RunAsync((unit, token) => unit.ChangeVariantStatusAsync(underPublished[1].Id, PublishStatus.Published, published.Version, token));
+        Assert.Equal((PublishStatus.Published, PublishStatus.Published, from), await StatusesAsync(published.Id, underPublished));
 
         foreach (PublishChangeResult result in new[] { productMove, variantMove })
         {

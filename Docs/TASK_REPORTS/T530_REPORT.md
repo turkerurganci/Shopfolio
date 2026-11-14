@@ -90,7 +90,7 @@
 
 - **Branch:** `task/T530-siparis-duzeltmeleri`
 - **Commit:** `e947183b` — kod ve testler
-- **PR:** (PR açılınca dönüşte bildirilir)
+- **PR:** #573
 - **CI:** — (yardımcı izler)
 - **Post-merge run'lar:** *(validator doldurur)*
 

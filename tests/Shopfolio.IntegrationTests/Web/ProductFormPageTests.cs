@@ -14,6 +14,7 @@ using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages;
+using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering;
@@ -705,6 +706,58 @@ public sealed class ProductFormPageTests : IAsyncLifetime
         Assert.Contains("en çok üç ondalık", netQuantityHtml, StringComparison.Ordinal);
         Assert.DoesNotContain("iki ondalık", netQuantityHtml, StringComparison.Ordinal);
         Assert.Equal("Kupa", await NameOfAsync(productId));
+    }
+
+    [Fact]
+    public async Task SaveProduct_AShippingPeriodAboveItsFence_Is422WithItsFieldsText_AndWritesNothing_D496()
+    {
+        (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
+        int version = await VersionOfAsync(productId);
+        string above = (ParameterFences.ShippingPeriodUpper + 1).ToString(CultureInfo.InvariantCulture);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage response = await PostAsync(client, productId, "SaveProduct", [.. await SaveFieldsAsync(productId, variants[0], name: "Kupa yeni ad"), ("Input.ShippingPeriod", above)]);
+        string html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Contains(ProductSaveRefusals.ShippingPeriodText(), html, StringComparison.Ordinal);
+        Assert.Equal("Kupa", await NameOfAsync(productId));
+        Assert.Equal(version, await VersionOfAsync(productId));
+    }
+
+    [Fact]
+    public async Task SaveProduct_AServicesExemption_AndAFulfilmentPeriodBelowItsFence_Are422AtTheirFields_AndWriteNothing_D246()
+    {
+        Guid productId;
+        Guid variantId;
+        await using (AppDbContext db = ListSeed.Open(_database.Dsn))
+        {
+            Product service = Product.Create("Ders", $"p-{Guid.NewGuid():N}", ProductType.Service, 20m, Base);
+            db.Products.Add(service);
+            Variant variant = Variant.Create(service.Id, $"S-{Guid.NewGuid():N}"[..20], 10m, Base);
+            db.Variants.Add(variant);
+            await db.SaveChangesAsync(Ct);
+            (productId, variantId) = (service.Id, variant.Id);
+        }
+
+        int version = await VersionOfAsync(productId);
+        string below = (ParameterFences.FulfilmentPeriodLower - 1).ToString(CultureInfo.InvariantCulture);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        (string Name, string Value)[] fields = await SaveFieldsAsync(productId, variantId, name: "Ders yeni ad", stock: string.Empty, shownStock: string.Empty);
+
+        using HttpResponseMessage exemption = await PostAsync(client, productId, "SaveProduct", [.. fields, ("Input.WithdrawalExemptionReason", Enum.GetValues<WithdrawalExemptionReason>()[0].ToString())]);
+        using HttpResponseMessage fulfilment = await PostAsync(client, productId, "SaveProduct", [.. fields, ("Input.FulfilmentPeriod", below)]);
+        string fulfilmentHtml = WebUtility.HtmlDecode(await fulfilment.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, exemption.StatusCode);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, fulfilment.StatusCode);
+        Assert.Contains(ProductSaveRefusals.OutOfBoundsText, fulfilmentHtml, StringComparison.Ordinal);
+        Assert.Equal("Ders", await NameOfAsync(productId));
+        Assert.Equal(version, await VersionOfAsync(productId));
+        await using AppDbContext check = ListSeed.Open(_database.Dsn);
+        Assert.Null(await check.Products.AsNoTracking().Where(p => p.Id == productId).Select(p => p.WithdrawalExemptionReason).SingleAsync(Ct));
     }
 
     [Fact]

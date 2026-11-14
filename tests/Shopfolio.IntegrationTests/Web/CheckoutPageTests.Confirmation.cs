@@ -7,8 +7,10 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Status;
 using Shopfolio.IntegrationTests.Pages;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Payment;
 using Shopfolio.Pages.Components;
 using Shopfolio.Pages.Frame;
 using Shopfolio.Pages.Orders;
@@ -148,6 +150,9 @@ public sealed partial class CheckoutPageTests
         Assert.Equal("O2,S3", await ScalarTextAsync("SELECT string_agg(transition_code, ',' ORDER BY transition_code) FROM transition_records WHERE transition_reason = 'PaymentPageNotOpened' AND actor_kind = 'System'"));
         Assert.DoesNotContain(Shopfolio.Modules.Ordering.Contracts.TransitionReason.PaymentPageNotOpened, Shopfolio.Modules.Ordering.UnpaidCancellationLimit.CountedReasons);
         Assert.Equal(0, await ScalarAsync("SELECT count(*) FROM stock_reservations"));
+        // VAL-E094: the connection error makes the card unavailable for two minutes and is the series' first error.
+        Assert.True(factory.Services.GetRequiredService<CardUnavailability>().IsUnavailable);
+        Assert.Equal(1, factory.Services.GetRequiredService<PaymentStartFailureSeries>().Snapshot().Count);
 
         using HttpClient plain = PlainClient(factory);
         string told = await BodyOf(await SendAsync(plain, HttpMethod.Get, FramePaths.Cart, GuestCart(guest)));
@@ -169,14 +174,33 @@ public sealed partial class CheckoutPageTests
     {
         FakePaymentGateway gateway = new();
         await using WebApplicationFactory<Program> factory = OpenWithGateway(gateway);
-        (string screen, _) = await PlaceGuestOrderAsync(factory, "Card");
+        (string screen, string guest) = await PlaceGuestOrderAsync(factory, "Card");
+        long reserved = await ScalarAsync("SELECT count(*) FROM stock_reservations");
+        // VAL-E089: two connection errors stand in the series before the refusal; the refusal neither counts nor ends it.
+        PaymentStartFailureSeries series = factory.Services.GetRequiredService<PaymentStartFailureSeries>();
+        series.RecordFailure();
+        series.RecordFailure();
         gateway.EnqueueStart(new PaymentStartResult.SecondTokenRejected("token-reuse"));
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
 
-        using HttpResponseMessage refused = await SendAsync(client, HttpMethod.Post, screen + "?handler=StartPayment");
+        using HttpResponseMessage refused = await SendAsync(client, HttpMethod.Post, screen + "?handler=StartPayment", GuestCart(guest));
         Assert.Equal(HttpStatusCode.SeeOther, refused.StatusCode);
         Assert.Equal(screen, refused.Headers.Location?.OriginalString);
         Assert.Equal("Placed+Pending", await OrderStateAsync());
+        Assert.True(reserved > 0);
+        Assert.Equal(reserved, await ScalarAsync("SELECT count(*) FROM stock_reservations"));
+        Assert.Equal(0, await ScalarAsync("SELECT count(*) FROM transition_records"));
+        Assert.Equal(2, series.Snapshot().Count);
+        Assert.False(factory.Services.GetRequiredService<CardUnavailability>().IsUnavailable);
+        using (HttpClient plain = PlainClient(factory))
+        {
+            Assert.DoesNotContain(CartTexts.PaymentUnavailable, await BodyOf(await SendAsync(plain, HttpMethod.Get, FramePaths.Cart, GuestCart(guest))), StringComparison.Ordinal);
+            using HttpResponseMessage reopened = await SendAsync(plain, HttpMethod.Get, screen);
+            string html = await BodyOf(reopened);
+            Assert.Equal(HttpStatusCode.OK, reopened.StatusCode);
+            Assert.Contains(ConfirmationPageModel.CardWaitingText, html, StringComparison.Ordinal);
+            Assert.Contains($"action=\"{screen}?handler=StartPayment\"", html, StringComparison.Ordinal);
+        }
 
         await ExecuteAsync("UPDATE orders SET payment_status = 'Paid'");
         using HttpResponseMessage paid = await SendAsync(client, HttpMethod.Post, screen + "?handler=StartPayment");

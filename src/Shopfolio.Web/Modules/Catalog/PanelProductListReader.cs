@@ -94,6 +94,21 @@ internal sealed class PanelProductListReader : IPanelProductList
         return anyLeft ? (PanelStockKind.Counted, total) : (PanelStockKind.SoldOut, total);
     }
 
+    public async Task<IReadOnlyList<PanelProductName>> NamesOfAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(productIds);
+        if (productIds.Count == 0)
+        {
+            return [];
+        }
+
+        Dictionary<Guid, PanelProductName> found = await _db.Products.AsNoTracking()
+            .Where(p => productIds.Contains(p.Id))
+            .Select(p => new PanelProductName(p.Id, p.Name, p.PublishStatus))
+            .ToDictionaryAsync(p => p.Id, ct);
+        return [.. productIds.Distinct().Where(found.ContainsKey).Select(id => found[id])];
+    }
+
     internal sealed record VariantFigure(Guid ProductId, decimal Price, int? StockQuantity, int ReservedQuantity);
 
     private sealed record MainImageRow(Guid ProductId, Guid ImageId, string? AltText);

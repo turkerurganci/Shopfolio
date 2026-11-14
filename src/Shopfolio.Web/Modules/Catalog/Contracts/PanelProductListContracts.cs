@@ -31,4 +31,13 @@ public interface IPanelProductList
     /// number of reads is the same for every page size: one count and one list, one figure read and one image read for the page (09 20 item 4).
     /// </summary>
     Task<PanelProductPage> ListAsync(string? search, PublishStatus? status, int requestedPage, int pageSize, CancellationToken ct);
+
+    /// <summary>
+    /// The name and publish status of the products among <paramref name="productIds"/> (T534; 07 UC-158): what the corporate content form shows beside a linked product. An id that is no product is
+    /// left out; the rows come in the order of the ids given. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<PanelProductName>> NamesOfAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct);
 }
+
+/// <summary>A product's name and publish status as the corporate content form lists a linked product (T534; 07 UC-158).</summary>
+public sealed record PanelProductName(Guid Id, string Name, PublishStatus PublishStatus);

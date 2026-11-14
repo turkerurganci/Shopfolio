@@ -92,7 +92,12 @@ internal static partial class ConcurrencySourceScan
             Add(findings, CompanySettingsWrite, CompanySettingsRawWrite(), clean);
         }
 
-        if (path != OrderLocksFile)
+        if (path == ProductLocksFile)
+        {
+            // The product row lock (T534; D-720; 09 10.2 item 5) is also the one place with the FOR KEY SHARE text - the mode a foreign key to the product row asks for -, and only that form.
+            Add(findings, ShareLockText, PlainShareLock(), clean);
+        }
+        else if (path != OrderLocksFile)
         {
             Add(findings, ShareLockText, ShareLock(), clean);
         }
@@ -194,6 +199,9 @@ internal static partial class ConcurrencySourceScan
 
     [GeneratedRegex(@"\bFOR\s+(?:KEY\s+)?SHARE\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex ShareLock();
+
+    [GeneratedRegex(@"\bFOR\s+SHARE\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex PlainShareLock();
 
     [GeneratedRegex(@"\bUPDATE\s+[\w.""]+\s+SET\b[^;]*?\b(?:stock_quantity|reserved_quantity|used_count|reserved_count)\s*=", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex StockCounterColumnUpdate();

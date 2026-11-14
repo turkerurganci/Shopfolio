@@ -154,7 +154,9 @@ public sealed class ConcurrencySourceScanTests
         Assert.Contains((ConcurrencySourceScan.RowLockText, 5), findings);
         Assert.Contains((ConcurrencySourceScan.RowLockText, 6), findings);
         Assert.DoesNotContain((ConcurrencySourceScan.RowLockText, 7), findings);
+        // The FOR KEY SHARE text (line 9) stands here too (T534; D-720); the plain FOR SHARE (line 8) does not.
         Assert.Contains((ConcurrencySourceScan.ShareLockText, 8), findings);
+        Assert.DoesNotContain((ConcurrencySourceScan.ShareLockText, 9), findings);
         Assert.Contains((ConcurrencySourceScan.CounterWrite, 10), findings);
     }
 

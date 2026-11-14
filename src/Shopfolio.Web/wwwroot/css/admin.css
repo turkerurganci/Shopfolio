@@ -920,3 +920,121 @@ form[data-js="download-once"][aria-busy="true"] button[type="submit"] {
 .category-tree__form {
     margin: var(--space-3) 0;
 }
+
+/* Corporate content list and form, brand screen (T534; 04 2.13, 9.13). */
+.content-group {
+    margin: var(--space-4) 0;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+}
+
+.content-group__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+.content-group__count,
+.content-group__empty,
+.content-row__note,
+.content-row__dates,
+.content-form__hit-note,
+.content-form__linked-note,
+.content-form__empty {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-small);
+}
+
+.content-group__menu,
+.content-group__rows {
+    margin: var(--space-2) 0;
+}
+
+.content-group__rows {
+    padding: 0;
+    list-style: none;
+}
+
+.content-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    align-items: center;
+    padding: var(--space-2) 0;
+    border-top: 1px solid var(--color-border);
+}
+
+.content-row__title {
+    flex: 1 1 12rem;
+    font-weight: 600;
+}
+
+.content-row__mark {
+    font-size: var(--font-size-small);
+}
+
+.content-row__moves,
+.content-row__move,
+.content-form__move {
+    display: inline-flex;
+    gap: var(--space-1);
+}
+
+.content-form__main,
+.content-form__side {
+    margin: var(--space-3) 0;
+}
+
+.content-form__back,
+.content-form__heading {
+    display: block;
+    margin-bottom: var(--space-2);
+}
+
+.content-form__gate,
+.content-form__address {
+    padding: var(--space-3);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-2);
+}
+
+.content-form__gallery,
+.content-form__entries,
+.content-form__products,
+.content-form__hits,
+.content-form__linked {
+    margin: var(--space-3) 0;
+    padding: 0;
+    list-style: none;
+}
+
+.content-form__linked-item,
+.content-form__hit,
+.content-form__image {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    align-items: center;
+    padding: var(--space-2) 0;
+}
+
+.content-form__linked-name,
+.content-form__hit-name {
+    flex: 1 1 10rem;
+}
+
+.content-form__thumb,
+.content-form__branch-image,
+.brand-form__logo,
+.brand-form__favicon,
+.brand-form__sample {
+    max-width: 8rem;
+    max-height: 8rem;
+}
+
+.content-form__delete {
+    margin-top: var(--space-4);
+}

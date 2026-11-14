@@ -1,0 +1,108 @@
+@page "/panel/marka"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper Shopfolio.Pages.Components.Upload*, Shopfolio.Web
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Panel
+@model BrandModel
+@*
+    E-43, the brand screen (T534; 04 9.15; 07 UC-98, UC-163, UC-117): one form, five sections - the name, the logo, the site icon, the colour with its sample and the platform signature - and one "Kaydet". An empty part
+    says what the site falls back to. The samples are drawn with SVG presentation attributes - the page carries no style attribute and no style block - and their text colour is the system's contrast choice
+    (K-742). The two image fields upload on their own button (UC-117); the form cannot be saved while a file waits to be uploaded only by the browser's own behaviour (no script is needed). No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = BrandModel.Title;
+    SaveBrandingInput entries = Model.Form;
+    string logoUpload = PanelFramePaths.Brand + "?handler=UploadImage";
+    string? nameFallback = string.IsNullOrWhiteSpace(entries.BrandName) ? BrandModel.NameFallbackPrefix + Model.Identity.DisplayName : null;
+    FrameBrand sample = Model.SampleBrand;
+}
+<h1>@BrandModel.Title</h1>
+@if (Model.Notice is not null)
+{
+    <partial name="_Message" model="Model.Notice" />
+}
+<p id="brand-applied">@BrandModel.AppliedNote</p>
+<partial name="_FormErrorSummary" model="Model.Summary" />
+<form method="post" asp-antiforgery="true" action="@(PanelFramePaths.Brand)?handler=SaveBranding" upload-form="Logo" class="form brand-form" data-js="submit-once" id="brand-save">
+    @VersionFields.Version(entries.Version, "Input")
+    @{
+        IReadOnlyList<FieldView> fields = Model.FormFields();
+    }
+    <section class="form-section" aria-labelledby="brand-name-heading">
+        <h2 id="brand-name-heading">Marka adı</h2>
+        <partial name="_Field" model="fields[0]" />
+        @if (nameFallback is not null)
+        {
+            <p class="field__hint" id="brand-name-fallback">@nameFallback</p>
+        }
+    </section>
+    <section class="form-section" aria-labelledby="brand-logo-heading" id="brand-logo">
+        <h2 id="brand-logo-heading">Logo <span class="field__requirement">(isteğe bağlı)</span></h2>
+        @if (entries.LogoId is { } logoId)
+        {
+            <input type="hidden" name="Input.LogoId" value="@logoId.ToString("D")" />
+            <img class="brand-form__logo" src="@FrameStyle.ImagePath(logoId)" alt="Logo" width="160" height="80" />
+            <div class="field field--check">
+                <input type="checkbox" id="brand-remove-logo" name="Input.RemoveLogo" value="true" checked="@entries.RemoveLogo" />
+                <label for="brand-remove-logo">@BrandModel.RemoveLogoLabel</label>
+            </div>
+        }
+        else
+        {
+            <p class="field__hint" id="brand-logo-fallback">@BrandModel.LogoFallbackText</p>
+        }
+        @if (Model.UploadRefusal is not null && Model.UploadRefusalTarget == BrandModel.LogoTarget)
+        {
+            <partial name="_Message" model="Model.UploadRefusal" />
+        }
+        <label class="field__label" for="brand-logo-file">Logo dosyası</label>
+        <input upload-file="Logo" id="brand-logo-file" name="@BrandModel.ImageFileName" />
+        <button type="submit" class="button button--secondary" formaction="@logoUpload" name="Input.ImageTarget" value="@BrandModel.LogoTarget">Logoyu yükle</button>
+    </section>
+    <section class="form-section" aria-labelledby="brand-favicon-heading" id="brand-favicon">
+        <h2 id="brand-favicon-heading">Site simgesi <span class="field__requirement">(isteğe bağlı)</span></h2>
+        @if (entries.FaviconId is { } faviconId)
+        {
+            <input type="hidden" name="Input.FaviconId" value="@faviconId.ToString("D")" />
+            <img class="brand-form__favicon" src="@FrameStyle.ImagePath(faviconId)" alt="Site simgesi" width="64" height="64" />
+            <div class="field field--check">
+                <input type="checkbox" id="brand-remove-favicon" name="Input.RemoveFavicon" value="true" checked="@entries.RemoveFavicon" />
+                <label for="brand-remove-favicon">@BrandModel.RemoveFaviconLabel</label>
+            </div>
+        }
+        else
+        {
+            <p class="field__hint" id="brand-favicon-fallback">Simge yüklenmediyse marka adının baş harfi, marka renginin üzerinde gösterilir.</p>
+            <svg class="brand-form__sample" id="brand-favicon-sample" role="img" aria-label="Site simgesi örneği: @sample.FaviconInitial" width="64" height="64" viewBox="0 0 64 64">
+                <rect width="64" height="64" rx="12" fill="@sample.BrandColor" />
+                <text x="32" y="43" text-anchor="middle" font-size="32" font-weight="700" fill="@sample.BrandTextColor">@sample.FaviconInitial</text>
+            </svg>
+        }
+        <label class="field__label" for="brand-favicon-file">Site simgesi dosyası</label>
+        <input upload-file="SiteIcon" id="brand-favicon-file" name="@BrandModel.ImageFileName" />
+        <button type="submit" class="button button--secondary" formaction="@logoUpload" name="Input.ImageTarget" value="@BrandModel.FaviconTarget">Simgeyi yükle</button>
+    </section>
+    <section class="form-section" aria-labelledby="brand-color-heading" id="brand-color">
+        <h2 id="brand-color-heading">Marka rengi</h2>
+        <partial name="_Field" model="fields[1]" />
+        <p class="field__hint" id="brand-color-use">@BrandModel.ColorUseText</p>
+        <svg class="brand-form__sample" id="brand-color-sample" role="img" aria-label="Renk örneği: bir birincil düğme ve bir duyuru şeridi" width="320" height="104" viewBox="0 0 320 104">
+            <rect width="140" height="40" rx="6" fill="@sample.BrandColor" />
+            <text x="70" y="26" text-anchor="middle" font-size="15" font-weight="600" fill="@sample.BrandTextColor">Sepete ekle</text>
+            <rect y="56" width="320" height="40" fill="@sample.BrandColor" />
+            <text x="160" y="82" text-anchor="middle" font-size="15" fill="@sample.BrandTextColor">Duyuru şeridi örneği</text>
+        </svg>
+    </section>
+    <section class="form-section" aria-labelledby="brand-signature-heading" id="brand-signature">
+        <h2 id="brand-signature-heading">Platform imzası</h2>
+        <div class="field field--check">
+            <input type="checkbox" id="brand-signature-switch" name="Input.IsPlatformSignatureEnabled" value="true" checked="@entries.IsPlatformSignatureEnabled" />
+            <label for="brand-signature-switch">@BrandModel.SignatureLabel</label>
+        </div>
+        <p class="field__hint">@BrandModel.SignatureNote</p>
+    </section>
+    @ConflictControls.RecordSaveControl(Model.IsConflicted, PanelFramePaths.Brand)
+</form>

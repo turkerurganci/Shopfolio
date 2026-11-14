@@ -43,4 +43,24 @@ internal sealed class ProductLocks
             .ToListAsync(ct);
         return locked.Count > 0;
     }
+
+    /// <summary>
+    /// Share-locks the rows of the products among <paramref name="productIds"/> (<c>FOR KEY SHARE</c>, the mode a foreign key to the row asks for) for the rest of the transaction and returns their ids
+    /// (D-720; 06 4.53): a content record's link to a product is written on a product the same transaction saw and kept, so the product's deletion waits for the commit instead of stopping the
+    /// link with a foreign key error. The mode does not conflict with <see cref="LockAsync"/>'s, so a product's own edit is not held up and no wait cycle closes. Not a family of
+    /// <see cref="LockSequence"/>: it orders nothing against another writer, it only holds the rows.
+    /// </summary>
+    public async Task<IReadOnlyList<Guid>> ShareKeysAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(productIds);
+        if (_db.Database.CurrentTransaction is null)
+        {
+            throw new InvalidOperationException("The product key share is taken only inside a transaction (09 9.1 item 5).");
+        }
+
+        Guid[] ids = [.. productIds.Distinct()];
+        return await _db.Database
+            .SqlQuery<Guid>($"SELECT id AS \"Value\" FROM products WHERE id = ANY({ids}) ORDER BY id FOR KEY SHARE")
+            .ToListAsync(ct);
+    }
 }

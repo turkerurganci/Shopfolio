@@ -1,0 +1,64 @@
+@page "/panel/siparisler"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Panel
+@model OrdersModel
+@*
+    E-36, the order list (T527; 04 9.8; 07 UC-91): the search (the order number or the contact e-mail, matched whole), the order and payment status filters (several values each), the one pending work
+    filter and the page navigation. No primary button, no bulk action and no action on a row (04 9.8.2, 9.8.8). A row opens the order; the list's address travels in returnUrl. No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Siparişler";
+}
+<h1>Siparişler</h1>
+@if (Model.Chips.Count > 0)
+{
+    <ul class="request-filter__chosen" id="order-filter-chosen" aria-label="Seçili arama ve süzgeçler">
+        @foreach (OrderFilterChip chip in Model.Chips)
+        {
+            <li class="request-filter__chip">
+                <span class="request-filter__chip-label">@chip.Label</span>
+                <a class="request-filter__chip-remove" href="@chip.RemovePath" aria-label="@chip.Label süzgecini kaldır">Kaldır</a>
+            </li>
+        }
+    </ul>
+}
+<details class="request-filter" open="@Model.IsFilterApplied">
+    <summary class="request-filter__summary">Arama ve süzgeçler</summary>
+    <form class="request-filter__form" method="get" action="@Model.ListRoot">
+        <label class="request-filter__search" for="order-search">Sipariş numarası ya da e-posta</label>
+        <input id="order-search" type="search" name="search" value="@Model.Search" />
+        <fieldset class="request-filter__group">
+            <legend>Sipariş durumu</legend>
+            @foreach (OrderFilterOption option in Model.OrderStatusOptions)
+            {
+                <label class="request-filter__option"><input type="checkbox" name="orderStatus" value="@option.Value" checked="@option.IsSelected" /> @option.Label</label>
+            }
+        </fieldset>
+        <fieldset class="request-filter__group">
+            <legend>Ödeme durumu</legend>
+            @foreach (OrderFilterOption option in Model.PaymentStatusOptions)
+            {
+                <label class="request-filter__option"><input type="checkbox" name="paymentStatus" value="@option.Value" checked="@option.IsSelected" /> @option.Label</label>
+            }
+        </fieldset>
+        <fieldset class="request-filter__group">
+            <legend>Bekleyen iş ve işaret</legend>
+            <label class="request-filter__option"><input type="radio" name="pendingWork" value="" checked="@(!Model.WorkOptions.Any(o => o.IsSelected))" /> Hepsi</label>
+            @foreach (OrderFilterOption option in Model.WorkOptions)
+            {
+                <label class="request-filter__option"><input type="radio" name="pendingWork" value="@option.Value" checked="@option.IsSelected" /> @option.Label</label>
+            }
+        </fieldset>
+        <button class="button button--secondary" type="submit">Ara ve süz</button>
+    </form>
+</details>
+@if (Model.Table is not null)
+{
+    <partial name="_PanelTable" model="Model.Table" />
+    <partial name="_Pager" model="Model.Pager" />
+}
+else if (Model.Empty is not null)
+{
+    <partial name="_EmptyRow" model="Model.Empty" />
+}

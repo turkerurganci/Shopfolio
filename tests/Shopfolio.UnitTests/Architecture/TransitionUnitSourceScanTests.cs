@@ -74,6 +74,15 @@ public sealed class TransitionUnitSourceScanTests
     }
 
     [Fact]
+    public void Scan_LeavesOutOnlyTheQueryModelsArrayOfTexts_AndStillReportsEveryOtherTypeOfAStatusName()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = TransitionUnitSourceScan.Scan(AnotherFile, ReadSample("QueryFilters.cs"));
+
+        // 4, 5 the repeated text filters (07 2.6.4); 7 another name. 6 a single text, 8 a list, 9 an array of the status are still findings.
+        Assert.Equal([(TransitionUnitSourceScan.OpenSetter, 6), (TransitionUnitSourceScan.OpenSetter, 8), (TransitionUnitSourceScan.OpenSetter, 9)], findings);
+    }
+
+    [Fact]
     public void Scan_InTheUnitFile_AllowsTheCallsOfThisUnitsWriters_ButNotTheDefectClaimsOne()
     {
         IReadOnlyList<(string Rule, int Line)> findings = TransitionUnitSourceScan.Scan(TransitionUnitSourceScan.UnitFile, ReadSample("WriterAndSetters.cs"));

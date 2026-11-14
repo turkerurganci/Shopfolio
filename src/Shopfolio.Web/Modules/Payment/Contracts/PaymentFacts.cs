@@ -27,8 +27,17 @@ public sealed record RefundFacts(
 /// </summary>
 public sealed record RefundMarks(bool IsNotRealized, bool IsOutcomePending);
 
+/// <summary>The order of a refund not yet sent nor voided that has a period counter, and the moment it started (T527; 04 9.8.5): the start of its refund period (Z-16, Z-17).</summary>
+public sealed record PendingRefundStart(Guid OrderId, DateTimeOffset StartedAt);
+
 /// <summary>One carried-out refund as the order page shows it (04 5.16.7): the moment it was sent, its amount and way, and the item and units it covered (empty when amount based).</summary>
 public sealed record SentRefund(DateTimeOffset SentAt, decimal Amount, PaymentMethod Way, Guid? OrderItemId, int? Quantity);
+
+/// <summary>
+/// A refund that has started and is neither sent nor voided (T527; 04 9.9.6 "bekleyen geri ödeme"): the item and the units it covers (empty when amount based), the amount the system worked
+/// out when the refund started (02 7.1.7; K-788), the way and the moment it started; <paramref name="HasPeriod"/> is false for a refund with no period counter - a defect claim's, an amount based one, a late payment's (04 9.3.6; K-716).
+/// </summary>
+public sealed record PendingRefund(Guid RefundId, Guid? OrderItemId, int? Quantity, decimal Amount, PaymentMethod Way, DateTimeOffset StartedAt, bool HasPeriod);
 
 /// <summary>The units, coupon share and VAT an item's defect claim rescissions set aside (06 4.33 <c>Quantity</c>, <c>CouponShare</c>, <c>VatAmount</c>; K-1024 (3)).</summary>
 public sealed record RescindedShares(int Quantity, decimal CouponShare, decimal VatAmount);

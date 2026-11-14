@@ -88,8 +88,26 @@ public interface IPaymentModule
     /// </summary>
     Task<IReadOnlyList<SentRefund>> ListSentRefundsAsync(Guid orderId, CancellationToken ct);
 
+    /// <summary>
+    /// The order's refunds that have started and are neither sent nor voided, oldest first (T527; 04 9.9.6 "bekleyen geri ödeme"): the amount is the one the refund was started with - the panel
+    /// works out no amount of its own (K-788). A plain read.
+    /// </summary>
+    Task<IReadOnlyList<PendingRefund>> ListPendingRefundsAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
+    /// The start of every refund of the given orders that is neither sent nor voided (T527; 04 9.8.5, 9.8.7): the refund period (Z-16, Z-17) of the panel's order list runs from it, as on the order's page
+    /// (<see cref="ListPendingRefundsAsync"/>). One query whatever the number of orders; a plain read.
+    /// </summary>
+    Task<IReadOnlyList<PendingRefundStart>> ListPendingRefundStartsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct);
+
     /// <summary>The panel marks of the order's card refunds (02 7.2.8; 05 4.6.2), the changes of the open transaction included.</summary>
     Task<RefundMarks> ReadRefundMarksAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
+    /// The panel marks of the card refunds of many orders at once (T527; 04 9.8.5): the rule of <see cref="ReadRefundMarksAsync"/> over the saved rows, in two queries whatever the number of orders.
+    /// An order with no mark is not in the answer. A plain read.
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, RefundMarks>> ReadRefundMarksOfOrdersAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct);
 
     /// <summary>
     /// The payment records of the given orders, as the values a caller needs to tell whether an order's payment was taken (06 4.32; 06 9.1 Z-28, Z-41, Z-43): the
@@ -204,6 +222,9 @@ public interface IPaymentModule
     /// AfterSales module's (K-525). Read by the database; a plain read.
     /// </summary>
     Task<IReadOnlyList<OpenRefundWork>> ListOpenRefundWorkAsync(CancellationToken ct);
+
+    /// <summary>The orders of the given refunds (T527; 06 4.32 <c>OrderId</c>), each once; a refund that does not exist is not in the answer. A plain read.</summary>
+    Task<IReadOnlySet<Guid>> FindOrdersOfRefundsAsync(IReadOnlyCollection<Guid> refundIds, CancellationToken ct);
 
     /// <summary>
     /// The orders whose card refund did not go through, for the panel home's warnings (T521; 02 10.6.1; 04 3.4.3; K-940): the orders with a card refund, neither sent nor voided, whose latest request failed,

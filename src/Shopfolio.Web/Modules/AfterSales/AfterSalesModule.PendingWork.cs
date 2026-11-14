@@ -16,6 +16,18 @@ internal sealed partial class AfterSalesModule
 {
     private const int AwaitedPageSize = 500;
 
+    public async Task<OpenIbanRequestSubjects> ListOpenIbanRequestSubjectsAsync(CancellationToken ct)
+    {
+        // The open request is the mark (06 4.29): neither fulfilled nor closed. An item request names its item; the itemless request of a late payment's refund names the refund (K-1075).
+        var open = await _db.RefundIbanRequests.AsNoTracking()
+            .Where(r => r.FulfilledAt == null && r.ClosedAt == null)
+            .Select(r => new { r.OrderItemId, r.RefundId })
+            .ToListAsync(ct);
+        return new OpenIbanRequestSubjects(
+            [.. open.Where(r => r.OrderItemId is not null).Select(r => r.OrderItemId!.Value).Distinct()], // non-null: the Where on this line keeps only requests with an item
+            [.. open.Where(r => r.OrderItemId is null && r.RefundId is not null).Select(r => r.RefundId!.Value).Distinct()]); // non-null: the Where on this line keeps only requests with a refund
+    }
+
     public Task<int> CountOpenDefectClaimsAsync(CancellationToken ct) =>
         _db.DefectClaims.AsNoTracking().CountAsync(c => c.DefectClaimStatus == DefectClaimStatus.Open, ct);
 

@@ -1,0 +1,311 @@
+@page "/panel/siparisler/{id:guid}"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Modules.AfterSales.Contracts
+@using Shopfolio.Modules.Catalog.Contracts
+@using Shopfolio.Modules.Ordering.Contracts
+@using Shopfolio.Modules.Payment.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model OrderDetailModel
+@*
+    E-37, the order's screen (T527; 04 9.9; 07 UC-92): the heading with the two badges, the primary button - the line's next required step -, the order's other open line steps, the items with their
+    open quantities and records, the amount and the payment record, the delivery, the customer and the addresses, the documents. Every value is the server's; the screen derives no state (04 9.9.37). Every
+    form carries the order's version. No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = Model.Summary.OrderNumber;
+    string versionText = Model.Operations.Version.ToString(System.Globalization.CultureInfo.InvariantCulture);
+}
+@if (Model.IsConflict)
+{
+    @ConflictControls.OrderNotice(ConflictControls.OrderMessage)
+}
+@if (Model.Confirm is not null)
+{
+    <partial name="_Confirm" model="Model.Confirm" />
+}
+<header class="order-detail__header" id="siparis-baslik">
+    <h1>@Model.Summary.OrderNumber</h1>
+    <partial name="_OrderBadges" model="Model.Badges" />
+    <p class="order-detail__meta">
+        <span>@DisplayFormat.Date(Model.Detail.CreatedAt)</span>
+        <span>@(Model.Detail.PaymentMethod == PaymentMethod.Card ? "Kart" : "Havale")</span>
+    </p>
+    <a class="order-detail__back" href="@Model.BackPath">@OrderDetailModel.BackLabel</a>
+</header>
+<section class="order-detail__section" id="isaretler" aria-label="İşaretler">
+    <partial name="_PanelMarks" model="Model.Marks" />
+    <partial name="_UndeliveredEmails" model="Model.UndeliveredEmails" />
+    @foreach (PeriodIndicator period in Model.RunningPeriods)
+    {
+        <partial name="_PeriodIndicator" model="period" />
+    }
+</section>
+@if (Model.RefusalText is not null)
+{
+    <partial name="_Message" model="Model.RefusalMessage" />
+}
+<section class="order-detail__section" id="siradaki-adim" aria-label="Sıradaki adım">
+    @switch (Model.PrimaryStep)
+    {
+        case OrderPrimaryStep.MarkPaid:
+            <p class="order-detail__transfer">
+                IBAN: @(Model.Summary.TransferIban is { } iban ? DisplayFormat.Iban(iban) : "-") ·
+                Ödenecek toplam: @DisplayFormat.Amount(Model.Detail.Breakdown.Total)
+                @if (Model.Facts.TransferLastPaymentDay is { } lastDay)
+                {
+                    <span> · Son ödeme günü: @DisplayFormat.Date(lastDay)</span>
+                }
+            </p>
+            <form method="post" action="@(Model.PagePath)?handler=MarkPaid" asp-antiforgery="true" class="form" data-js="submit-once" id="mark-paid-form">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.MarkPaidLabel)">@OrderDetailModel.MarkPaidLabel</button>
+            </form>
+            break;
+        case OrderPrimaryStep.MarkShipped:
+            <form method="post" action="@(Model.PagePath)?handler=MarkShipped" asp-antiforgery="true" class="form" data-js="submit-once" id="mark-shipped-form">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <partial name="_OrderShipmentFields" model="Model" />
+                <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.ShipLabel)">@OrderDetailModel.ShipLabel</button>
+            </form>
+            break;
+        case OrderPrimaryStep.MarkDelivered:
+            <form method="post" action="@(Model.PagePath)?handler=MarkDelivered" asp-antiforgery="true" class="form" data-js="submit-once" id="mark-delivered-form">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <partial name="_OrderDeliveryFields" model="Model" />
+                <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.MarkDeliveredLabel)">@OrderDetailModel.MarkDeliveredLabel</button>
+            </form>
+            break;
+    }
+</section>
+@if (Model.IsOpen(OrderOperation.MarkDeliveryFailed) || Model.IsOpen(OrderOperation.ResendOrder) || Model.IsOpen(OrderOperation.CloseOrder))
+{
+    <section class="order-detail__section" id="siparis-islemleri" aria-labelledby="order-operations-heading">
+        <h2 id="order-operations-heading">Sipariş işlemleri</h2>
+        @if (Model.IsOpen(OrderOperation.MarkDeliveryFailed))
+        {
+            <form method="post" action="@(Model.PagePath)?handler=MarkDeliveryFailed" asp-antiforgery="true" class="form" data-js="submit-once" id="mark-delivery-failed-form">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.MarkDeliveryFailedLabel)">@OrderDetailModel.MarkDeliveryFailedLabel</button>
+            </form>
+        }
+        @if (Model.IsOpen(OrderOperation.ResendOrder))
+        {
+            <form method="post" action="@(Model.PagePath)?handler=MarkReshipped" asp-antiforgery="true" class="form" data-js="submit-once" id="mark-reshipped-form">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <partial name="_OrderShipmentFields" model="Model" />
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.ReshipLabel)">@OrderDetailModel.ReshipLabel</button>
+            </form>
+        }
+        @if (Model.IsOpen(OrderOperation.CloseOrder))
+        {
+            <form method="post" action="@(Model.PagePath)?handler=CloseDeliveryFailed" asp-antiforgery="true" class="form" data-js="submit-once" id="close-delivery-failed-form">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.CloseLabel)">@OrderDetailModel.CloseLabel</button>
+            </form>
+        }
+    </section>
+}
+<section class="order-detail__section" id="kalemler" aria-labelledby="order-items-heading">
+    <h2 id="order-items-heading">Kalemler</h2>
+    <ul class="order-detail__items">
+        @foreach (OrderPageItem item in Model.Detail.Items)
+        {
+            <li class="order-detail__item" id="kalem-@item.OrderItemId.ToString("D")">
+                <p class="order-detail__item-name">@item.Name</p>
+                <p>Adet: @item.Quantity@(item.OpenQuantity != item.Quantity ? $" · Açık adet: {item.OpenQuantity}" : string.Empty)</p>
+                <p>Birim fiyat: @DisplayFormat.Amount(item.UnitPrice) · Satır tutarı: @DisplayFormat.Amount(item.LineAmount)</p>
+                @if (item.ExemptionNote is not null)
+                {
+                    <p class="order-detail__exemption">@item.ExemptionNote</p>
+                }
+                @if (item.DeliveryDate is { } delivered)
+                {
+                    <p>Teslim tarihi: @DisplayFormat.Date(delivered)</p>
+                }
+                <partial name="_ItemRecords" model="Model.RecordsOf(item)" />
+                @if (Model.ItemFactsOf(item) is { } facts)
+                {
+                    <partial name="_PanelMarks" model="Model.ItemMarksOf(facts)" />
+                    @if (facts.ReturnGoodsPendingUnits > 0)
+                    {
+                        <p>İade malı bekleniyor: @facts.ReturnGoodsPendingUnits adet</p>
+                    }
+                    @if (facts.WithdrawalLastDay is { } withdrawalLastDay)
+                    {
+                        <partial name="_PeriodIndicator" model="Model.PeriodOf(OrderDetailModel.WithdrawalPeriodLabel, CountedPeriod.WithdrawalWindow, withdrawalLastDay)" />
+                    }
+                    @if (facts.DefectLastDay is { } defectLastDay)
+                    {
+                        <partial name="_PeriodIndicator" model="Model.PeriodOf(OrderDetailModel.DefectPeriodLabel, CountedPeriod.DefectClaimPeriod, defectLastDay)" />
+                    }
+                }
+                @foreach (PanelPendingRefund refund in Model.PendingRefundsOf(item))
+                {
+                    <div class="order-detail__pending-refund">
+                        <p>Bekleyen geri ödeme: @(refund.Quantity is { } units ? $"{units} adet · " : string.Empty)@DisplayFormat.Amount(refund.Amount) · @(refund.Way == PaymentMethod.Card ? "Kart" : "Havale")@(refund.Iban is { } iban ? $" · IBAN {iban}" : string.Empty)</p>
+                        @if (refund.LastDay is { } refundLastDay)
+                        {
+                            <partial name="_PeriodIndicator" model="Model.PeriodOf(OrderDetailModel.RefundPeriodLabel, CountedPeriod.RefundPeriod, refundLastDay)" />
+                        }
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+</section>
+@if (Model.Claims.Count > 0)
+{
+    <section class="order-detail__section" id="ayip-talepleri" aria-labelledby="order-claims-heading">
+        <h2 id="order-claims-heading">Ayıp talepleri</h2>
+        <ul class="order-detail__claims">
+            @foreach (OrderDefectClaim claim in Model.Claims)
+            {
+                <li class="order-detail__claim" id="ayip-talebi-@claim.Id.ToString("D")">
+                    <p class="order-detail__item-name">@Model.ItemNameOf(claim.OrderItemId) · Ayıplı adet: @claim.Quantity</p>
+                    <partial name="_Badge" model="StatusBadges.For(claim.Status)" />
+                    <p class="order-detail__claim-text">@claim.Description</p>
+                    <p>Açılış: @DisplayFormat.Date(claim.OpenedAt)@(claim.ReopenedAt is { } reopened ? $" · Yeniden açılış: {DisplayFormat.Date(reopened)}" : string.Empty)</p>
+                    @if (claim.ReturnAddress is { } returnAddress)
+                    {
+                        <p>İade adresi: @returnAddress.RecipientName · @returnAddress.AddressLine · @returnAddress.District / @Model.ProvinceNameOf(returnAddress.ProvinceId)</p>
+                    }
+                    <partial name="_PanelMarks" model="Model.ClaimMarksOf(claim)" />
+                </li>
+            }
+        </ul>
+    </section>
+}
+<section class="order-detail__section" id="tutar" aria-labelledby="order-amount-heading">
+    <h2 id="order-amount-heading">Tutar ve ödeme kaydı</h2>
+    <dl class="order-detail__facts">
+        <dt>Kalemlerin toplamı</dt>
+        <dd>@DisplayFormat.Amount(Model.Detail.Breakdown.ItemsTotal)</dd>
+        @if (Model.Detail.Breakdown.CouponShare != 0)
+        {
+            <dt>Kupon@(Model.Detail.Breakdown.CouponCode is { } coupon ? $" ({coupon})" : string.Empty)</dt>
+            <dd>@DisplayFormat.Amount(Model.Detail.Breakdown.CouponShare)</dd>
+        }
+        <dt>KDV</dt>
+        <dd>@DisplayFormat.Amount(Model.Detail.Breakdown.Vat)</dd>
+        <dt>Kargo ücreti</dt>
+        <dd>@(Model.Detail.Breakdown.IsShippingFree ? "Kargo ücretsiz" : DisplayFormat.Amount(Model.Detail.Breakdown.ShippingFee))</dd>
+        <dt>Ödenen toplam</dt>
+        <dd>@DisplayFormat.Amount(Model.Detail.Breakdown.Total)</dd>
+    </dl>
+    @if (Model.Detail.Refunds.Count > 0)
+    {
+        <ul class="order-detail__refunds">
+            @foreach (OrderPageRefund refund in Model.Detail.Refunds)
+            {
+                <li>@DisplayFormat.Date(refund.At) · @DisplayFormat.Amount(refund.Amount) · @(refund.Way == PaymentMethod.Card ? "Kart" : "Havale")@(refund.ItemName is { } name ? $" · {name}" : string.Empty)@(refund.Quantity is { } units ? $" · {units} adet" : string.Empty)</li>
+            }
+        </ul>
+    }
+    @foreach (PanelPendingRefund refund in Model.OrderPendingRefunds)
+    {
+        <div class="order-detail__pending-refund">
+            <p>Bekleyen geri ödeme: @DisplayFormat.Amount(refund.Amount) · @(refund.Way == PaymentMethod.Card ? "Kart" : "Havale")@(refund.Iban is { } iban ? $" · IBAN {iban}" : string.Empty)</p>
+            @if (refund.LastDay is { } refundLastDay)
+            {
+                <partial name="_PeriodIndicator" model="Model.PeriodOf(OrderDetailModel.RefundPeriodLabel, CountedPeriod.RefundPeriod, refundLastDay)" />
+            }
+        </div>
+    }
+</section>
+@if (Model.HasPhysicalItem)
+{
+    <section class="order-detail__section" id="teslimat" aria-labelledby="order-delivery-heading">
+        <h2 id="order-delivery-heading">Teslimat</h2>
+        @if (Model.Shipping?.PromiseText is { } promise)
+        {
+            <p>Kargoya verme sözü: @promise</p>
+        }
+        @if (Model.Shipping?.Display is { } display)
+        {
+            <p>
+                @(display.IsOwnVehicleDeclaration ? "Kendi aracımızla teslim" : $"{display.CarrierName} · {display.TrackingNumber}")
+                @if (display.Link is { } link)
+                {
+                    <a href="@link.Href" rel="noopener noreferrer" target="_blank">Takip et</a>
+                }
+            </p>
+        }
+    </section>
+}
+<section class="order-detail__section" id="musteri" aria-labelledby="order-customer-heading">
+    <h2 id="order-customer-heading">Müşteri ve adresler</h2>
+    <dl class="order-detail__facts">
+        <dt>E-posta</dt>
+        <dd>@Model.Detail.Addresses.ContactEmail</dd>
+        @if (Model.Detail.Addresses.Shipping is { } shipping)
+        {
+            <dt>Teslimat adresi</dt>
+            <dd>@shipping.RecipientName · @shipping.Phone · @shipping.AddressLine · @shipping.District / @shipping.ProvinceName</dd>
+        }
+        @if (Model.Detail.Addresses.Billing is { } billing)
+        {
+            <dt>Fatura adresi</dt>
+            <dd>@billing.RecipientName · @billing.AddressLine · @billing.District / @billing.ProvinceName</dd>
+        }
+    </dl>
+    @if (Model.Facts.AddressHistory.Count > 0)
+    {
+        <h3>Adres geçmişi</h3>
+        <ul class="order-detail__history" id="adres-gecmisi">
+            @foreach (PanelAddressChange change in Model.Facts.AddressHistory)
+            {
+                <li>
+                    @DisplayFormat.Date(change.At) · @(change.AddressType == AddressType.ShippingAddress ? "Teslimat adresi" : "Fatura adresi") · @change.AdminName
+                    <br />Eski: @change.Old.RecipientName · @change.Old.Phone · @change.Old.AddressLine · @change.Old.District / @change.Old.ProvinceName
+                    <br />Yeni: @change.New.RecipientName · @change.New.Phone · @change.New.AddressLine · @change.New.District / @change.New.ProvinceName
+                </li>
+            }
+        </ul>
+    }
+</section>
+<section class="order-detail__section" id="ic-not" aria-labelledby="order-note-heading">
+    <h2 id="order-note-heading">İç not</h2>
+    <p class="order-detail__note-hint">@OrderDetailModel.InternalNoteHiddenText</p>
+    @if (!Model.Facts.PersonalDataDisposed && Model.Facts.InternalNote is { } note)
+    {
+        <p class="order-detail__note">@note.Text</p>
+        <p class="order-detail__note-author">@note.AdminName</p>
+    }
+</section>
+<section class="order-detail__section" id="e-posta-gecmisi" aria-labelledby="order-email-heading">
+    <h2 id="order-email-heading">E-posta geçmişi</h2>
+    @if (Model.Facts.Notices.Count > 0)
+    {
+        <ul class="order-detail__history">
+            @foreach (Shopfolio.Modules.Notifications.Contracts.OrderNoticeLine notice in Model.Facts.Notices)
+            {
+                <li>@OrderDetailModel.NoticeNameOf(notice.Type) · @DisplayFormat.Date(notice.At) · @notice.RecipientEmail · @OrderDetailModel.NoticeStateOf(notice.State)@(notice.IsRepeat ? " · yeniden gönderim" : string.Empty)</li>
+            }
+        </ul>
+    }
+    @if (Model.Facts.EmailCorrections.Count > 0)
+    {
+        <h3>E-posta düzeltmeleri</h3>
+        <ul class="order-detail__history">
+            @foreach (PanelEmailChange change in Model.Facts.EmailCorrections)
+            {
+                <li>@DisplayFormat.Date(change.At) · @change.OldEmail → @change.NewEmail · @change.AdminName</li>
+            }
+        </ul>
+    }
+</section>
+<section class="order-detail__section" id="belgeler" aria-labelledby="order-documents-heading">
+    <h2 id="order-documents-heading">Belgeler</h2>
+    <details>
+        <summary>Ön Bilgilendirme Formu</summary>
+        <div class="order-detail__document">@Model.PreInformationFormText</div>
+    </details>
+    <details>
+        <summary>Mesafeli Satış Sözleşmesi</summary>
+        <div class="order-detail__document">@Model.DistanceSalesContractText</div>
+    </details>
+</section>

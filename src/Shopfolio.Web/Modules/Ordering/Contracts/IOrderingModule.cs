@@ -292,6 +292,24 @@ public interface IOrderingModule
     /// </summary>
     Task<MemberOrderPage> ListMemberOrdersAsync(Guid customerId, int page, CancellationToken ct);
 
+    /// <summary>The ids of the orders of one of the two sets <see cref="CountPendingOrdersAsync"/> counts (T527; 04 9.8.4): the list's filter and the home's counter share the rule. A plain read.</summary>
+    Task<IReadOnlyList<Guid>> ListPendingOrderIdsAsync(PendingOrderKind kind, CancellationToken ct);
+
+    /// <summary>
+    /// One page of the panel's order list (T527; 07 UC-91; 04 9.8): the orders the filter keeps - the auto-cancelled unpaid ones included (04 9.8.12) -, newest first, <paramref name="pageSize"/> a page; a page past
+    /// the last shows the last. A plain read; the items of the page are one read (09 20 item 4).
+    /// </summary>
+    Task<PanelOrderPage> ListPanelOrdersAsync(PanelOrderFilter filter, int page, int pageSize, CancellationToken ct);
+
+    /// <summary>
+    /// The orders the filter keeps inside its pending work set (<see cref="PanelOrderFilter.Within"/> is required), newest first: a timed pending work filter sorts them by the remaining period
+    /// outside the database (04 9.8.7) and cuts its page from them. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<PanelOrderKey>> FindPanelOrderKeysAsync(PanelOrderFilter filter, CancellationToken ct);
+
+    /// <summary>The panel list rows of the given orders, in the given order; an id with no order is not in the answer. A plain read of two queries whatever the number of ids.</summary>
+    Task<IReadOnlyList<PanelOrderRow>> ReadPanelOrderRowsAsync(IReadOnlyList<Guid> orderIds, CancellationToken ct);
+
     /// <summary>The orders of the given items whose payment was approved (T383; 02 10.6.3); the items of a Failed or pending order are left out. A plain read.</summary>
     Task<IReadOnlyList<OrderOfItem>> FindPaidOrdersOfItemsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
 

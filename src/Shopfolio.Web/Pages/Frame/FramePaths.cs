@@ -42,6 +42,9 @@ internal static class FramePaths
     /// <summary>UC-63: the account page ("Hesabım").</summary>
     public const string Account = "/hesap";
 
+    /// <summary>UC-70: the address book ("Adres defteri"); the account screens' inner navigation points to it (T517).</summary>
+    public const string AccountAddresses = "/hesap/adresler";
+
     /// <summary>UC-74: the order history ("Siparişlerim").</summary>
     public const string AccountOrders = "/hesap/siparisler";
 

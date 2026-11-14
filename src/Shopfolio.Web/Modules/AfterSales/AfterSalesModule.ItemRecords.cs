@@ -235,6 +235,62 @@ internal sealed partial class AfterSalesModule
         return new ItemRecordWriteResult(null, receipt.Id, null, null, ibanRequested);
     }
 
+    public async Task<ItemRecordWriteResult> AddTakenBackReceiptAsync(TakenBackReceiptEntry entry, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        ItemRecordSubject subject = entry.Subject;
+        RequireOrderLock(subject);
+
+        // The same rule as a withdrawal's receipt (ReceiptRefusalAsync): a physical item's own termination or claim, at most the units still to come back, the date not
+        // before the entered delivery date (03 1.7.1.6, 1.11.28, 8.3.2.1; D-656, D-911).
+        int awaiting = subject.ProductType == ProductType.Physical ? await TakenBackAwaitingAsync(subject.OrderItemId, entry.Source, ct) : 0;
+        if (awaiting == 0)
+        {
+            return ItemRecordWriteResult.Rejected(ItemRecordRefusal.WithdrawalNotAwaiting);
+        }
+
+        if (!ItemQuantities.IsSelectable(entry.Quantity, awaiting))
+        {
+            return ItemRecordWriteResult.Rejected(ItemRecordRefusal.QuantityExceedsOpen);
+        }
+
+        if (subject.DeliveryDate is { } delivered && entry.ArrivalDate < delivered)
+        {
+            return ItemRecordWriteResult.Rejected(ItemRecordRefusal.ArrivalDateOutOfRange);
+        }
+
+        Return receipt = entry.Source.Kind == TakenBackKind.LateDeliveryTermination
+            ? Return.ForLateDeliveryTermination(subject.OrderItemId, entry.Source.Id, entry.Quantity, entry.ArrivalDate, entry.Admin.AdminId, entry.Admin.AdminName, entry.At)
+            : Return.ForDefectClaim(subject.OrderItemId, entry.Source.Id, entry.Quantity, entry.ArrivalDate, entry.Admin.AdminId, entry.Admin.AdminName, entry.At);
+        _db.Returns.Add(receipt);
+        return new ItemRecordWriteResult(null, receipt.Id, null);
+    }
+
+    /// <summary>
+    /// The units of a termination or a defect claim of the item still to come back, the caller's unsaved receipts included: the terminated units, or the units rescinded on the
+    /// claim (06 4.33 <c>Quantity</c>; K-1077), minus those received against it. Zero when the record is not the item's.
+    /// </summary>
+    private async Task<int> TakenBackAwaitingAsync(Guid orderItemId, TakenBackSource source, CancellationToken ct)
+    {
+        Guid id = source.Id;
+        if (source.Kind == TakenBackKind.LateDeliveryTermination)
+        {
+            int? terminated = await _db.LateDeliveryTerminations.AsNoTracking().Where(t => t.Id == id && t.OrderItemId == orderItemId).Select(t => (int?)t.Quantity).SingleOrDefaultAsync(ct);
+            int received = await _db.Returns.Where(r => r.LateDeliveryTerminationId == id).SumAsync(r => r.Quantity, ct)
+                + AddedSum<Return>(r => r.LateDeliveryTerminationId == id, r => r.Quantity);
+            return Math.Max(0, (terminated ?? 0) - received);
+        }
+
+        if (!await _db.DefectClaims.AsNoTracking().AnyAsync(c => c.Id == id && c.OrderItemId == orderItemId, ct))
+        {
+            return 0;
+        }
+
+        int rescinded = (await _payment.RescindedSharesAsync([orderItemId], ct)).TryGetValue(orderItemId, out RescindedShares? shares) ? shares.Quantity : 0;
+        int taken = await _db.Returns.Where(r => r.DefectClaimId == id).SumAsync(r => r.Quantity, ct) + AddedSum<Return>(r => r.DefectClaimId == id, r => r.Quantity);
+        return Math.Max(0, rescinded - taken);
+    }
+
     public async Task<ItemRecordWriteResult> AddNotReturnedClosureAsync(NotReturnedClosureEntry entry, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(entry);

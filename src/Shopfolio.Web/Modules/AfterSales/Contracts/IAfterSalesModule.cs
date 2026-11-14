@@ -169,6 +169,9 @@ public interface IAfterSalesModule
     /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
     Task<ItemRecordWriteResult> AddReturnReceiptAsync(ReturnReceiptEntry entry, CancellationToken ct);
 
+    /// <inheritdoc cref="TakenBackReceiptEntry" path="/summary"/>
+    Task<ItemRecordWriteResult> AddTakenBackReceiptAsync(TakenBackReceiptEntry entry, CancellationToken ct);
+
     /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
     Task<ItemRecordWriteResult> AddReturnRejectionAsync(ReturnRejectionEntry entry, CancellationToken ct);
 

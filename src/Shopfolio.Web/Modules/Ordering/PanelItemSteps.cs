@@ -411,14 +411,18 @@ internal sealed class PanelItemSteps : IPanelItemSteps
             return refused;
         }
 
-        IReadOnlyList<ReturnableWithdrawal> returnable = (await _afterSales.ReturnStepFactsAsync([request.OrderItemId], ct)).Withdrawals;
-        ReturnableWithdrawal? withdrawal = returnable.Count > 0 ? returnable[0] : null;
-        int quantity = request.Quantity ?? withdrawal?.Awaiting ?? 0;
-        OrderOperation operation = isRejection ? OrderOperation.RejectReturnedGoods : OrderOperation.ReceiveReturnedGoods;
+        ReturnStepFacts steps = await _afterSales.ReturnStepFactsAsync([request.OrderItemId], ct);
+        ReturnableWithdrawal? withdrawal = steps.Withdrawals.Count > 0 ? steps.Withdrawals[0] : null;
         if (withdrawal is null)
         {
-            return PanelItemStepResult.NotOpen;
+            // No declaration's goods on the way back: the receipt takes in the goods of a termination or of a defect claim's rescission (03 1.11.28, 8.3.2.1; D-656,
+            // D-911); a rejection is a withdrawal's only (02 7.4.9).
+            ReturnableTakenBack? takenBack = isRejection || steps.TakenBack.Count == 0 ? null : steps.TakenBack[0];
+            return takenBack is null ? PanelItemStepResult.NotOpen : await TakeBackAsync(request, facts!, takenBack, ct); // non-null: LockAsync returns the facts
         }
+
+        int quantity = request.Quantity ?? withdrawal.Awaiting;
+        OrderOperation operation = isRejection ? OrderOperation.RejectReturnedGoods : OrderOperation.ReceiveReturnedGoods;
 
         if (VerdictObstacle(OrderOperationCatalog.Check(facts!, operation, request.OrderItemId, quantity)) is { } closed) // non-null: LockAsync returns the facts
         {
@@ -451,6 +455,35 @@ internal sealed class PanelItemSteps : IPanelItemSteps
         AuditOperation code = isRejection ? AuditOperation.RejectReturn : ibanRequested ? AuditOperation.ReceiveReturnWithIbanRequest : AuditOperation.ReceiveReturn;
         await WriteAsync(
             code,
+            request.OrderId,
+            [new AuditValue("ItemId", request.OrderItemId.ToString("D")), new AuditValue("Quantity", Count(quantity)), new AuditValue("ArrivalDate", DateText(request.ArrivalDate))],
+            ct);
+        return PanelItemStepResult.Done;
+    }
+
+    // UC-140 on a taken-back good: the oldest termination first, then the item's defect claim; the quantity defaults to its units still to come back, the trail row is the receipt's.
+    private async Task<PanelItemStepResult> TakeBackAsync(PanelReturnArrival request, OrderOperationFacts facts, ReturnableTakenBack takenBack, CancellationToken ct)
+    {
+        int quantity = request.Quantity ?? takenBack.Awaiting;
+        if (VerdictObstacle(OrderOperationCatalog.Check(facts, OrderOperation.ReceiveReturnedGoods, request.OrderItemId, quantity)) is { } closed)
+        {
+            return closed;
+        }
+
+        if (quantity > takenBack.Awaiting)
+        {
+            return PanelItemStepResult.Refused(PanelItemObstacle.QuantityExceedsOpen);
+        }
+
+        ItemRecordResult result = await _transitions.ReceiveTakenBackAsync(
+            new ReceiveTakenBackRequest(request.OrderId, request.OrderItemId, takenBack.Source, request.Admin, request.ExpectedVersion, quantity, request.ArrivalDate), ct);
+        if (result.Refusal is { } refusal)
+        {
+            return new PanelItemStepResult(refusal) { Obstacle = refusal == TransitionRefusal.InvalidInput ? PanelItemObstacle.DateInvalid : PanelItemObstacle.None };
+        }
+
+        await WriteAsync(
+            AuditOperation.ReceiveReturn,
             request.OrderId,
             [new AuditValue("ItemId", request.OrderItemId.ToString("D")), new AuditValue("Quantity", Count(quantity)), new AuditValue("ArrivalDate", DateText(request.ArrivalDate))],
             ct);

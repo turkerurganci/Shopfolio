@@ -102,6 +102,17 @@ public sealed partial class OrderDetailModel
         return ReturnSteps.Withdrawals.Where(w => w.OrderItemId == item.OrderItemId).Sum(w => w.Awaiting);
     }
 
+    /// <summary>
+    /// The receipt's default units: the declarations' units on the way back, or - with none - those of the first termination or defect claim whose taken-back goods the step takes
+    /// in (D-656, D-911; the step's own order, PanelItemSteps).
+    /// </summary>
+    public int ReceivableUnitsOf(OrderPageItem item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        int awaited = AwaitedUnitsOf(item);
+        return awaited > 0 ? awaited : ReturnSteps.TakenBack.FirstOrDefault(t => t.OrderItemId == item.OrderItemId)?.Awaiting ?? 0;
+    }
+
     /// <summary>UC-129: the firm's cancellation; unconfirmed 200 with the window (K-797), confirmed 303.</summary>
     [GatedOperation]
     public async Task<IActionResult> OnPostCancelOrderByCompanyAsync(Guid id, CancelOrderByCompanyInput input, CancellationToken ct)

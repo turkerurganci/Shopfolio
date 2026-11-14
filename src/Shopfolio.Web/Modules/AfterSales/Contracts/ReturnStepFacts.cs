@@ -9,8 +9,17 @@ public sealed record ReturnableWithdrawal(Guid WithdrawalId, Guid OrderItemId, D
 /// <summary>A receipt of returned goods (06 4.26): its units, its arrival date and when its units were added to the stock (null: "Stoğa ekle" not done yet).</summary>
 public sealed record ReturnReceiptFact(Guid ReturnId, Guid OrderItemId, int Quantity, DateOnly ArrivalDate, DateTimeOffset? StockAddedAt);
 
-/// <summary>The return steps' facts of an order's items (T528; 04 9.9.27, 9.9.28): the withdrawals the receipt and the closure act on, and the receipts "Stoğa ekle" acts on.</summary>
-public sealed record ReturnStepFacts(IReadOnlyList<ReturnableWithdrawal> Withdrawals, IReadOnlyList<ReturnReceiptFact> Receipts)
+/// <summary>
+/// A termination or a defect claim whose taken-back goods the receipt step may still take in (T528; 03 1.11.28, 8.3.2.1; D-656, D-911): the units terminated or rescinded and not
+/// received yet. Terminations first, oldest first, then the item's claim.
+/// </summary>
+public sealed record ReturnableTakenBack(TakenBackSource Source, Guid OrderItemId, int Awaiting);
+
+/// <summary>
+/// The return steps' facts of an order's items (T528; 04 9.9.27, 9.9.28): the withdrawals the receipt and the closure act on, the terminations and defect claims whose goods the
+/// receipt also takes in, and the receipts "Stoğa ekle" acts on.
+/// </summary>
+public sealed record ReturnStepFacts(IReadOnlyList<ReturnableWithdrawal> Withdrawals, IReadOnlyList<ReturnableTakenBack> TakenBack, IReadOnlyList<ReturnReceiptFact> Receipts)
 {
-    public static ReturnStepFacts Empty { get; } = new([], []);
+    public static ReturnStepFacts Empty { get; } = new([], [], []);
 }

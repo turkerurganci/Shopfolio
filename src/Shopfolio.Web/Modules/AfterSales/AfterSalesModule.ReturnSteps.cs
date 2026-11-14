@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Modules.AfterSales.Contracts;
+using Shopfolio.Modules.Payment.Contracts;
 
 namespace Shopfolio.Modules.AfterSales;
 
@@ -31,10 +32,19 @@ internal sealed partial class AfterSalesModule
                 .Where(w => w.Awaiting + w.NotReturned > 0)
                 .OrderBy(w => w.DeclaredAt),
         ];
+        // The taken-back goods of a termination or of a defect claim's rescission (D-656, D-911), counted like the operation decision's ReceivableUnits.
+        IReadOnlyDictionary<Guid, RescindedShares> rescinded = await _payment.RescindedSharesAsync(ids, ct);
+        List<ReturnableTakenBack> takenBack =
+        [
+            .. (await TerminationStandingsAsync(ids, ct)).Where(t => t.Awaiting > 0)
+                .Select(t => new ReturnableTakenBack(new TakenBackSource(TakenBackKind.LateDeliveryTermination, t.Id), t.OrderItemId, t.Awaiting)),
+            .. (await ClaimTakenBackStandingsAsync(ids, rescinded, ct)).Where(c => c.Awaiting > 0)
+                .Select(c => new ReturnableTakenBack(new TakenBackSource(TakenBackKind.DefectClaim, c.Id), c.OrderItemId, c.Awaiting)),
+        ];
         List<ReturnReceiptFact> receipts = await _db.Returns.AsNoTracking().Where(r => ids.Contains(r.OrderItemId))
             .OrderBy(r => r.CreatedAt)
             .Select(r => new ReturnReceiptFact(r.Id, r.OrderItemId, r.Quantity, r.ArrivalDate, r.StockAddedAt))
             .ToListAsync(ct);
-        return new ReturnStepFacts(withdrawals, receipts);
+        return new ReturnStepFacts(withdrawals, takenBack, receipts);
     }
 }

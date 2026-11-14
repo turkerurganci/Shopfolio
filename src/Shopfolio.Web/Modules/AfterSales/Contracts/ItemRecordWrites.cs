@@ -133,6 +133,26 @@ public sealed record ItemQuantityAt(Guid OrderItemId, int Quantity, DateTimeOffs
 public sealed record ReturnReceiptEntry(
     ItemRecordSubject Subject, Guid WithdrawalId, int Quantity, DateOnly ArrivalDate, ItemRecordAdmin Admin, DateTimeOffset At, bool IsTransferLine = false);
 
+/// <summary>What a taken-back good comes back on, besides a withdrawal (03 1.11.28, 8.3.2.1; 06 4.26; K-808): a late-delivery termination or a defect claim's rescission.</summary>
+public enum TakenBackKind
+{
+    /// <summary>A terminated physical item's goods back from the carrier or the customer (03 1.11.28; D-656).</summary>
+    LateDeliveryTermination,
+
+    /// <summary>The goods of the units rescinded on the item's defect claim (03 8.3.2.1; K-808; D-911).</summary>
+    DefectClaim,
+}
+
+/// <summary>The termination or the defect claim a taken-back good's receipt belongs to (06 4.26: <c>LateDeliveryTerminationId</c>, <c>DefectClaimId</c>).</summary>
+public sealed record TakenBackSource(TakenBackKind Kind, Guid Id);
+
+/// <summary>
+/// The receipt of goods taken back on a late-delivery termination or on a defect claim's rescission (03 1.7.1.6, 1.11.28, 8.3.2.1; K-794, K-808; D-656, D-911): like a withdrawal's,
+/// every partial arrival is a record of its own, at most the units terminated or rescinded and not yet received, the arrival date not before the item's entered delivery date. The
+/// refund of either starts with its own record (07 UC-130; K-1077), so the receipt asks for no IBAN and starts no refund.
+/// </summary>
+public sealed record TakenBackReceiptEntry(ItemRecordSubject Subject, TakenBackSource Source, int Quantity, DateOnly ArrivalDate, ItemRecordAdmin Admin, DateTimeOffset At);
+
 /// <summary>The "mal dönmedi" closure of a withdrawal's units not come back (03 1.7.1.8; 02 10.4.9; K-496, K-794): only after the sending period (Z-42), at most the units awaited.</summary>
 public sealed record NotReturnedClosureEntry(ItemRecordSubject Subject, Guid WithdrawalId, int Quantity, ItemRecordAdmin Admin, DateTimeOffset At);
 

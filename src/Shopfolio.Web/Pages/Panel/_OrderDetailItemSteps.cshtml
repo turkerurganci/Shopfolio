@@ -124,7 +124,7 @@
         @foreach (OrderPageItem item in receiveItems)
         {
             string key = item.OrderItemId.ToString("D");
-            int awaited = Model.AwaitedUnitsOf(item);
+            int awaited = Model.ReceivableUnitsOf(item);
             bool rejectable = Model.Operations.IsOpen(OrderOperation.RejectReturnedGoods, item.OrderItemId);
             <form method="post" action="@(Model.PagePath)?handler=ReceiveReturn" asp-antiforgery="true" class="form" data-js="submit-once" id="receive-return-form-@key">
                 @VersionFields.Version(Model.Operations.Version, "Input")

@@ -24,7 +24,7 @@ public enum ItemRecordRefusal
     /// <summary>The item carries no conditional exemption: its return cannot be rejected (02 7.4.9; K-656).</summary>
     NotConditionalExemption,
 
-    /// <summary>The withdrawal is not the item's, or none of its units is on the way back.</summary>
+    /// <summary>The withdrawal - or the termination or defect claim of a taken-back good - is not the item's, or none of its units is on the way back.</summary>
     WithdrawalNotAwaiting,
 
     /// <summary>The arrival date is before the item's entered delivery date (02 7.4.7; 06 4.26); the caller refuses a date in the future.</summary>

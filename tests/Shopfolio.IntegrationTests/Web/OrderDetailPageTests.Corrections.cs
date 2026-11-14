@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -45,7 +46,15 @@ public sealed partial class OrderDetailPageTests
         (HttpStatusCode page, string html) = await GetAsync(client, $"{OrdersPath}/{orderId:D}", key);
         (HttpStatusCode shipping, string? location) = await PostForLocationAsync(client, $"{OrdersPath}/{orderId:D}?handler=CorrectAddress", AddressFields(1, AddressType.ShippingAddress, province, "Yeni Sokak 7", "05329998877"), key);
         (HttpStatusCode billing, _) = await PostForLocationAsync(client, $"{OrdersPath}/{orderId:D}?handler=CorrectAddress", AddressFields(2, AddressType.BillingAddress, province, "Fatura Caddesi 9", null), key);
+        (_, string after) = await GetAsync(client, $"{OrdersPath}/{orderId:D}", key);
 
+        // VAL-D026: the page's address history shows the old and the new address with the change's date.
+        string customer = SectionOf(after, "musteri");
+        Assert.Contains("id=\"adres-gecmisi\"", customer, StringComparison.Ordinal);
+        Assert.Contains($"{DisplayFormat.Date(DateTimeOffset.UtcNow)} · Teslimat adresi", customer, StringComparison.Ordinal);
+        Assert.Contains("Eski Sokak 1", customer, StringComparison.Ordinal);
+        Assert.Contains("Yeni Sokak 7", customer, StringComparison.Ordinal);
+        Assert.Contains("Fatura Caddesi 9", customer, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.OK, page);
         string corrections = SectionOf(html, "duzeltmeler");
         Assert.Contains(OrderDetailModel.AddressReminderText, corrections, StringComparison.Ordinal);
@@ -88,9 +97,22 @@ public sealed partial class OrderDetailPageTests
         (HttpStatusCode delivered, string deliveredHtml) = await PostAsync(client, $"{OrdersPath}/{digitalDeliveredId:D}?handler=CorrectAddress", AddressFields(1, AddressType.BillingAddress, province, "Fatura Caddesi 9", null), key);
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, field);
-        Assert.Contains(OrderDetailModel.AddressFieldsText, fieldHtml, StringComparison.Ordinal);
+
+        // B1: the refused field is marked with its own message under it, the summary at the head of its form links to it, and the sent values stay; the other form is untouched.
+        string shippingForm = FormOf(fieldHtml, OrderDetailModel.ShippingAddressFormId);
+        Assert.Contains($"id=\"{Shopfolio.Pages.Components.FormErrorSummary.ElementId}\"", shippingForm, StringComparison.Ordinal);
+        Assert.Contains("href=\"#Input_ShippingAddressLine\"", shippingForm, StringComparison.Ordinal);
+        string line = FieldOf(shippingForm, "Input_ShippingAddressLine");
+        Assert.Contains("aria-invalid=\"true\"", line, StringComparison.Ordinal);
+        Assert.Contains("id=\"Input_ShippingAddressLine-message\"", line, StringComparison.Ordinal);
+        Assert.Contains("value=\"Ayşe Kaya\"", shippingForm, StringComparison.Ordinal);
+        Assert.DoesNotContain("aria-invalid=\"true\"", FieldOf(shippingForm, "Input_ShippingRecipientName"), StringComparison.Ordinal);
+        Assert.DoesNotContain("aria-invalid", FormOf(fieldHtml, OrderDetailModel.BillingAddressFormId), StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, shipped);
-        Assert.Contains(OrderDetailModel.NotOpenText, shippedHtml, StringComparison.Ordinal);
+
+        // B2: the closed correction's message is in the corrections' place (its form is no longer drawn), not in the next step's.
+        Assert.Contains(OrderDetailModel.NotOpenText, SectionOf(shippedHtml, "duzeltmeler"), StringComparison.Ordinal);
+        Assert.DoesNotContain("order-step-message", shippedHtml, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.SeeOther, beforeDelivered);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, delivered);
         Assert.Contains(OrderDetailModel.NotOpenText, deliveredHtml, StringComparison.Ordinal);
@@ -98,14 +120,94 @@ public sealed partial class OrderDetailPageTests
         Assert.Equal(1, await reader.OrderAddressHistories.CountAsync(h => h.OrderId == preparingId || h.OrderId == shippedId || h.OrderId == digitalPreparingId || h.OrderId == digitalDeliveredId, Ct));
     }
 
+    [Fact]
+    public async Task TheCorrections_RepeatNoElementId_AndEachAddressFormsLabelsAreItsOwnFields_B3()
+    {
+        (string key, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
+        (Guid orderId, _) = await StepOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid, (ProductType.Physical, false));
+        await WithShippingAddressAsync(orderId);
+        TransitionRecord paid = TransitionRecord.Create(orderId, TransitionCode.O1, ActorKind.Admin, adminId, CorrectionAdminName, null, null, null, null, null, DateTimeOffset.UtcNow.AddHours(-2));
+        TransitionRecord shipment = TransitionRecord.Create(orderId, TransitionCode.S5, ActorKind.Admin, adminId, CorrectionAdminName, null, null, null, null, null, DateTimeOffset.UtcNow.AddHours(-1));
+        await using (AppDbContext db = NewContext())
+        {
+            db.TransitionRecords.AddRange(paid, shipment);
+            await db.SaveChangesAsync(Ct);
+            await db.Orders.Where(o => o.Id == orderId).ExecuteUpdateAsync(s => s.SetProperty(o => o.OrderStatus, OrderStatus.Shipped), Ct);
+        }
+
+        (Guid preparingId, _) = await StepOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid, (ProductType.Physical, false));
+        await WithShippingAddressAsync(preparingId);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (HttpStatusCode shipped, string shippedHtml) = await GetAsync(client, $"{OrdersPath}/{orderId:D}", key);
+        (HttpStatusCode preparing, string preparingHtml) = await GetAsync(client, $"{OrdersPath}/{preparingId:D}", key);
+
+        Assert.Equal((HttpStatusCode.OK, HttpStatusCode.OK), (shipped, preparing));
+        AssertNoRepeatedId(shippedHtml);
+        AssertNoRepeatedId(preparingHtml);
+
+        // Two correctable transitions share one form and one reason field; the form asks which one.
+        string transition = FormOf(shippedHtml, OrderDetailModel.TransitionFormId);
+        Assert.Contains($"name=\"Input.TransitionRecordId\" value=\"{paid.Id:D}\"", transition, StringComparison.Ordinal);
+        Assert.Contains($"name=\"Input.TransitionRecordId\" value=\"{shipment.Id:D}\"", transition, StringComparison.Ordinal);
+        Assert.Equal(1, transition.Split("name=\"Input.CorrectionReason\"", StringSplitOptions.None).Length - 1);
+
+        // Each address form's labels are tied to its own fields.
+        string shipping = FormOf(preparingHtml, OrderDetailModel.ShippingAddressFormId);
+        string billing = FormOf(preparingHtml, OrderDetailModel.BillingAddressFormId);
+        foreach (string member in new[] { "RecipientName", "ProvinceId", "District", "AddressLine" })
+        {
+            Assert.Contains($"for=\"Input_Shipping{member}\"", shipping, StringComparison.Ordinal);
+            Assert.Contains($"id=\"Input_Shipping{member}\" name=\"Input.Shipping{member}\"", shipping, StringComparison.Ordinal);
+            Assert.Contains($"for=\"Input_Billing{member}\"", billing, StringComparison.Ordinal);
+            Assert.Contains($"id=\"Input_Billing{member}\" name=\"Input.Billing{member}\"", billing, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("for=\"Input_ShippingPhone\"", shipping, StringComparison.Ordinal);
+        Assert.DoesNotContain("Phone", billing, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task CorrectAddress_ThatNamesNoAddress_Is422WithItsOwnMessage_AndOneWithoutTheVersion_Is409_K4()
+    {
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        (Guid orderId, _) = await StepOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid, (ProductType.Physical, false));
+        Guid province = await WithShippingAddressAsync(orderId);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string path = $"{OrdersPath}/{orderId:D}?handler=CorrectAddress";
+        (string Name, string Value)[] fields = AddressFields(1, AddressType.ShippingAddress, province, "Yeni Sokak 7", "05329998877");
+
+        (HttpStatusCode undefined, string undefinedHtml) = await PostAsync(client, path, [.. fields.Select(f => f.Name == "Input.AddressType" ? (f.Name, "7") : f)], key);
+        (HttpStatusCode versionless, string versionlessHtml) = await PostAsync(client, path, [.. fields.Where(f => f.Name != "Input.Version")], key);
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, undefined);
+        Assert.Contains(OrderDetailModel.AddressTypeMissingText, SectionOf(undefinedHtml, "duzeltmeler"), StringComparison.Ordinal);
+        Assert.DoesNotContain(OrderDetailModel.UnchangedText, undefinedHtml, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.Conflict, versionless);
+        Assert.Contains(ConflictControlsText, versionlessHtml, StringComparison.Ordinal);
+        Assert.DoesNotContain(OrderDetailModel.UnchangedText, versionlessHtml, StringComparison.Ordinal);
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(0, await reader.OrderAddressHistories.CountAsync(h => h.OrderId == orderId, Ct));
+        Assert.Equal(1, await reader.Orders.Where(o => o.Id == orderId).Select(o => o.Version).SingleAsync(Ct));
+    }
+
     // ---- KK3: the carrier ----
 
     [Fact]
     public async Task CorrectCarrier_OnAShippedOrder_Is303_SendsB12_AndWritesTheTrail_TheEmptyInfoAndAnOrderNotShipped_Are422_KK3()
     {
-        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        (string key, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
         (Guid shippedId, _) = await StepOrderAsync(OrderStatus.Shipped, PaymentStatus.Paid, (ProductType.Physical, false));
         (Guid preparingId, _) = await StepOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid, (ProductType.Physical, false));
+        await using (AppDbContext db = NewContext())
+        {
+            // The shipment's record: the delivery section shows the carrier from the shipment on.
+            db.TransitionRecords.Add(TransitionRecord.Create(shippedId, TransitionCode.S5, ActorKind.Admin, adminId, CorrectionAdminName, null, null, null, null, null, DateTimeOffset.UtcNow.AddHours(-1)));
+            await db.SaveChangesAsync(Ct);
+        }
+
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
         (string, string)[] carrier = [("Input.Version", "1"), ("Input.Carrier", "YurticiKargo"), ("Input.TrackingNumber", "TR-2002")];
@@ -113,9 +215,13 @@ public sealed partial class OrderDetailPageTests
         (HttpStatusCode empty, string emptyHtml) = await PostAsync(client, $"{OrdersPath}/{shippedId:D}?handler=CorrectCarrier", [("Input.Version", "1")], key);
         (HttpStatusCode notShipped, string notShippedHtml) = await PostAsync(client, $"{OrdersPath}/{preparingId:D}?handler=CorrectCarrier", carrier, key);
         (HttpStatusCode done, _) = await PostForLocationAsync(client, $"{OrdersPath}/{shippedId:D}?handler=CorrectCarrier", carrier, key);
+        (_, string after) = await GetAsync(client, $"{OrdersPath}/{shippedId:D}", key);
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, empty);
-        Assert.Contains(OrderDetailModel.ShipmentMissingText, emptyHtml, StringComparison.Ordinal);
+        Assert.Contains(OrderDetailModel.ShipmentMissingText, FormOf(emptyHtml, OrderDetailModel.CarrierFormId), StringComparison.Ordinal);
+
+        // VAL-A240: the corrected tracking number is on the order's page.
+        Assert.Contains("TR-2002", SectionOf(after, "teslimat"), StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, notShipped);
         Assert.Contains(OrderDetailModel.NotOpenText, notShippedHtml, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.SeeOther, done);
@@ -194,6 +300,43 @@ public sealed partial class OrderDetailPageTests
         Assert.Equal(0, await reader.AuditLogs.CountAsync(a => a.TargetRecordId == orderId || a.TargetRecordId == unmarkedId, Ct));
     }
 
+    [Fact]
+    public async Task CorrectDeliveryDate_OnAWithdrawalDeclarationsDay_AsksWhichCameFirstInItsForm_ThenTheAnswerWritesTheDate_ShownOnThePage_K608()
+    {
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateOnly today = TurkeyTime.DateOf(now);
+        DateOnly declared = today.AddDays(-2);
+        (Guid orderId, Guid[] items) = await StepOrderAsync(OrderStatus.Delivered, PaymentStatus.Paid, (ProductType.Physical, true));
+        await using (AppDbContext db = NewContext())
+        {
+            db.Withdrawals.Add(Withdrawal.ByBuyer(items[0], 1, declared, null, StepAmounts, null, now.AddDays(-2)));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string path = $"{OrdersPath}/{orderId:D}?handler=CorrectDeliveryDate";
+
+        (HttpStatusCode asked, string askedHtml) = await PostAsync(client, path, [("Input.Version", "1"), ("Input.DeliveryDate", DateText(declared))], key);
+        (HttpStatusCode done, _) = await PostForLocationAsync(client, path, [("Input.Version", "1"), ("Input.DeliveryDate", DateText(declared)), ("Input.IsDeliveredBeforeDeclaration", "true")], key);
+        (_, string after) = await GetAsync(client, $"{OrdersPath}/{orderId:D}", key);
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, asked);
+        string form = FormOf(askedHtml, OrderDetailModel.DeliveryDateFormId);
+        Assert.Contains("id=\"correction-delivery-order-question\"", form, StringComparison.Ordinal);
+        Assert.Contains("Beyanın anı: ", form, StringComparison.Ordinal);
+        Assert.Contains($"value=\"{DateText(declared)}\"", form, StringComparison.Ordinal);
+        Assert.Contains(OrderDetailModel.DeliveryOrderQuestionText, form, StringComparison.Ordinal);
+        Assert.DoesNotContain("order-step-message", askedHtml, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.SeeOther, done);
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(declared, await reader.OrderItems.Where(i => i.Id == items[0]).Select(i => i.DeliveryDate).SingleAsync(Ct));
+
+        // VAL-A240: the corrected delivery date is on the order's page.
+        Assert.Contains($"Teslim tarihi: {DisplayFormat.Date(declared)}", SectionOf(after, "kalemler"), StringComparison.Ordinal);
+    }
+
     // ---- KK5: the arrival date ----
 
     [Fact]
@@ -224,13 +367,22 @@ public sealed partial class OrderDetailPageTests
         (HttpStatusCode future, string futureHtml) = await PostAsync(client, path, [("Input.Version", "1"), ("Input.ArrivalRecordId", record), ("Input.ArrivalDate", DateText(today.AddDays(1)))], key);
         (HttpStatusCode early, string earlyHtml) = await PostAsync(client, path, [("Input.Version", "1"), ("Input.ArrivalRecordId", record), ("Input.ArrivalDate", DateText(today.AddDays(-7)))], key);
         (HttpStatusCode done, _) = await PostForLocationAsync(client, path, [("Input.Version", "1"), ("Input.ArrivalRecordId", record), ("Input.ArrivalDate", DateText(today.AddDays(-3)))], key);
+        (_, string after) = await GetAsync(client, $"{OrdersPath}/{orderId:D}", key);
 
         Assert.Equal(HttpStatusCode.OK, page);
         Assert.Contains($"id=\"correct-arrival-date-form-{record}\"", SectionOf(html, "duzeltmeler"), StringComparison.Ordinal);
         Assert.Equal((HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity), (future, early));
-        Assert.Contains(OrderDetailModel.ArrivalDateInvalidText, futureHtml, StringComparison.Ordinal);
-        Assert.Contains(OrderDetailModel.ArrivalDateInvalidText, earlyHtml, StringComparison.Ordinal);
+
+        // B2: the message is in the receipt's own form and the form keeps the sent date.
+        string futureForm = FormOf(futureHtml, OrderDetailModel.ArrivalDateFormId(receipt.Id));
+        Assert.Contains(OrderDetailModel.ArrivalDateInvalidText, futureForm, StringComparison.Ordinal);
+        Assert.Contains($"value=\"{DateText(today.AddDays(1))}\"", futureForm, StringComparison.Ordinal);
+        Assert.Contains(OrderDetailModel.ArrivalDateInvalidText, FormOf(earlyHtml, OrderDetailModel.ArrivalDateFormId(receipt.Id)), StringComparison.Ordinal);
+        Assert.DoesNotContain("order-step-message", futureHtml, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.SeeOther, done);
+
+        // VAL-A240: the corrected arrival date is on the order's page.
+        Assert.Contains($"Ulaşma tarihi: {DisplayFormat.Date(today.AddDays(-3))}", FormOf(after, OrderDetailModel.ArrivalDateFormId(receipt.Id)), StringComparison.Ordinal);
         await using AppDbContext reader = NewContext();
         DateOnly? arrival = (await reader.Returns.AsNoTracking().SingleAsync(r => r.Id == receipt.Id, Ct)).ArrivalDate;
         Assert.Equal(today.AddDays(-3), arrival);
@@ -267,13 +419,13 @@ public sealed partial class OrderDetailPageTests
             client, path, [("Input.Version", "1"), ("Input.TransitionRecordId", record), ("Input.CorrectionReason", nameof(CorrectionReason.Other)), ("Input.ReasonNote", "Yanlış sipariş seçildi")], key);
 
         Assert.Equal(HttpStatusCode.OK, page);
-        string form = SectionOf(html, "duzeltmeler");
-        Assert.Contains($"id=\"correct-transition-form-{record}\"", form, StringComparison.Ordinal);
+        string form = FormOf(html, OrderDetailModel.TransitionFormId);
+        Assert.Contains($"name=\"Input.TransitionRecordId\" value=\"{record}\"", form, StringComparison.Ordinal);
         Assert.Contains("Düzeltilecek geçiş: Kargoya verildi işareti", form, StringComparison.Ordinal);
         Assert.Contains($"Dönülecek durum: {Shopfolio.Pages.Components.StatusBadges.For(OrderStatus.Preparing).Text}", form, StringComparison.Ordinal);
         Assert.Equal((HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity), (noReason, noNote));
-        Assert.Contains(OrderDetailModel.ReasonMissingText, noReasonHtml, StringComparison.Ordinal);
-        Assert.Contains(OrderDetailModel.ReasonMissingText, noNoteHtml, StringComparison.Ordinal);
+        Assert.Contains(OrderDetailModel.ReasonMissingText, FormOf(noReasonHtml, OrderDetailModel.TransitionFormId), StringComparison.Ordinal);
+        Assert.Contains(OrderDetailModel.ReasonMissingText, FormOf(noNoteHtml, OrderDetailModel.TransitionFormId), StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.SeeOther, done);
         await using AppDbContext reader = NewContext();
         Assert.Equal(OrderStatus.Preparing, await reader.Orders.Where(o => o.Id == orderId).Select(o => o.OrderStatus).SingleAsync(Ct));
@@ -308,7 +460,39 @@ public sealed partial class OrderDetailPageTests
         (HttpStatusCode status, string html) = await PostCorrectionAsync(key, cancelled.OrderId, cancelled.TransitionRecordId);
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, status);
-        Assert.Contains(OrderDetailModel.ObstacleTextOf(CorrectionObstacle.RefundPending), html, StringComparison.Ordinal);
+
+        // B2: the obstacle is said in the status correction's form (04 2.3.3), which keeps the chosen reason - not in the next step's place.
+        string form = FormOf(html, OrderDetailModel.TransitionFormId);
+        Assert.Contains(OrderDetailModel.ObstacleTextOf(CorrectionObstacle.RefundPending), form, StringComparison.Ordinal);
+        Assert.Contains($"id=\"{OrderDetailModel.CorrectionMessageId}\"", form, StringComparison.Ordinal);
+        Assert.Contains($"<option value=\"{nameof(CorrectionReason.WrongOrder)}\" selected=\"selected\"", form, StringComparison.Ordinal);
+        Assert.DoesNotContain("order-step-message", html, StringComparison.Ordinal);
+        await AssertStillCancelledAsync(cancelled.OrderId);
+    }
+
+    [Fact]
+    public async Task CorrectTransition_OfAWrongCancellation_WhileTheCardRefundsOutcomeIsAwaited_Is422_RefundPending_KK7()
+    {
+        (string key, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
+        CancelledOrder cancelled = await FirmCancelledOrderAsync(adminId, stock: 5);
+        await using (AppDbContext db = NewContext())
+        {
+            await db.Orders.Where(o => o.Id == cancelled.OrderId).ExecuteUpdateAsync(s => s.SetProperty(o => o.PaymentMethod, PaymentMethod.Card).SetProperty(o => o.BankTransferIban, (string?)null), Ct);
+            Refund refund = Refund.ByAdmin(cancelled.OrderId, RefundType.Cancellation, PaymentMethod.Card, 200m, adminId, CorrectionAdminName, DateTimeOffset.UtcNow);
+            refund.CancellationId = cancelled.CancellationId;
+            refund.OrderItemId = cancelled.ItemId;
+            refund.Quantity = 2;
+            db.Refunds.Add(refund);
+            RefundRecord record = RefundRecord.Sending(refund.Id, DateTimeOffset.UtcNow);
+            record.State = RefundRecordState.OutcomePending;
+            db.RefundRecords.Add(record);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        (HttpStatusCode status, string html) = await PostCorrectionAsync(key, cancelled.OrderId, cancelled.TransitionRecordId);
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, status);
+        Assert.Contains(OrderDetailModel.ObstacleTextOf(CorrectionObstacle.RefundPending), FormOf(html, OrderDetailModel.TransitionFormId), StringComparison.Ordinal);
         await AssertStillCancelledAsync(cancelled.OrderId);
     }
 
@@ -423,7 +607,10 @@ public sealed partial class OrderDetailPageTests
 
         (HttpStatusCode page, string html) = await GetAsync(client, $"{OrdersPath}/{orderId:D}", key);
         (HttpStatusCode done, _) = await PostForLocationAsync(client, $"{OrdersPath}/{orderId:D}?handler=CorrectOrderEmail", [("Input.Version", "1"), ("Input.ContactEmail", "yeni.adres@example.com")], key);
+        (_, string after) = await GetAsync(client, $"{OrdersPath}/{orderId:D}", key);
 
+        // VAL-D027: the page's e-mail history shows the old and the new address with the change's date.
+        Assert.Contains($"{DisplayFormat.Date(DateTimeOffset.UtcNow)} · alici@example.com → yeni.adres@example.com", SectionOf(after, "e-posta-gecmisi"), StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.OK, page);
         string corrections = SectionOf(html, "duzeltmeler");
         Assert.Contains(OrderDetailModel.EmailReminderText, corrections, StringComparison.Ordinal);
@@ -494,7 +681,9 @@ public sealed partial class OrderDetailPageTests
         (HttpStatusCode disposed, string disposedHtml) = await PostAsync(client, $"{OrdersPath}/{disposedId:D}?handler=CorrectOrderEmail", fields, key);
 
         Assert.Equal((HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity), (invalid, member, disposed));
-        Assert.Contains(OrderDetailModel.EmailInvalidText, invalidHtml, StringComparison.Ordinal);
+        string invalidForm = FormOf(invalidHtml, OrderDetailModel.OrderEmailFormId);
+        Assert.Contains(OrderDetailModel.EmailInvalidText, invalidForm, StringComparison.Ordinal);
+        Assert.Contains("value=\"yeni@@example\"", invalidForm, StringComparison.Ordinal);
         Assert.Contains(OrderDetailModel.NotOpenText, memberHtml, StringComparison.Ordinal);
         Assert.Contains(OrderDetailModel.NotOpenText, disposedHtml, StringComparison.Ordinal);
         await using AppDbContext reader = NewContext();
@@ -563,16 +752,44 @@ public sealed partial class OrderDetailPageTests
         return province;
     }
 
-    private static (string, string)[] AddressFields(int version, AddressType type, Guid province, string line, string? phone) =>
-    [
-        ("Input.Version", version.ToString(CultureInfo.InvariantCulture)),
-        ("Input.AddressType", type.ToString()),
-        ("Input.RecipientName", "Ayşe Kaya"),
-        ("Input.ProvinceId", province.ToString("D")),
-        ("Input.District", "Yenimahalle"),
-        ("Input.AddressLine", line),
-        .. phone is null ? Array.Empty<(string, string)>() : [("Input.Phone", phone)],
-    ];
+    // The fields one address form sends: its own names (07 UC-146 Shipping…/Billing…) and the address type.
+    private static (string Name, string Value)[] AddressFields(int version, AddressType type, Guid province, string line, string? phone)
+    {
+        string prefix = type == AddressType.ShippingAddress ? OrderDetailModel.ShippingAddressPrefix : OrderDetailModel.BillingAddressPrefix;
+        return
+        [
+            ("Input.Version", version.ToString(CultureInfo.InvariantCulture)),
+            ("Input.AddressType", type.ToString()),
+            (prefix + "RecipientName", "Ayşe Kaya"),
+            (prefix + "ProvinceId", province.ToString("D")),
+            (prefix + "District", "Yenimahalle"),
+            (prefix + "AddressLine", line),
+            .. phone is null ? Array.Empty<(string, string)>() : [(prefix + "Phone", phone)],
+        ];
+    }
+
+    // The form with the element id, up to its closing tag (the forms do not nest).
+    private static string FormOf(string html, string id)
+    {
+        int start = html.IndexOf($"id=\"{id}\"", StringComparison.Ordinal);
+        Assert.True(start >= 0, $"The screen has no form {id}.");
+        return html[start..html.IndexOf("</form>", start, StringComparison.Ordinal)];
+    }
+
+    // A field's control and what follows it up to the first closing div: its message when it has one.
+    private static string FieldOf(string form, string id)
+    {
+        int start = form.IndexOf($"id=\"{id}\"", StringComparison.Ordinal);
+        Assert.True(start >= 0, $"The form has no field {id}.");
+        return form[start..form.IndexOf("</div>", start, StringComparison.Ordinal)];
+    }
+
+    // 04 2.3.1.1: a label and a summary link find one element; no element id is repeated on the page.
+    private static void AssertNoRepeatedId(string html)
+    {
+        string[] repeated = [.. Regex.Matches(html, "\\sid=\"([^\"]+)\"").Select(m => m.Groups[1].Value).GroupBy(i => i, StringComparer.Ordinal).Where(g => g.Count() > 1).Select(g => g.Key)];
+        Assert.Empty(repeated);
+    }
 
     private static async Task<PanelItemFacts> ItemFactsAsync(WebApplicationFactory<Program> factory, Guid orderId, Guid itemId)
     {

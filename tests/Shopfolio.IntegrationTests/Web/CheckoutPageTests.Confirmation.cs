@@ -31,8 +31,7 @@ public sealed partial class CheckoutPageTests
         Open(salesOpen: true, cardOpen: true, extra: s =>
         {
             s.RemoveAll<IPaymentGateway>();
-            s.AddSingleton<IPaymentGateway>(gateway);
-        });
+            s.AddSingleton<IPaymentGateway>(gateway);        });
 
     private static async Task<HttpResponseMessage> SendAsync(HttpClient client, HttpMethod method, string path, params string[] cookies)
     {
@@ -144,7 +143,8 @@ public sealed partial class CheckoutPageTests
         Assert.Equal(HttpStatusCode.SeeOther, start.StatusCode);
         Assert.Equal(FramePaths.Cart, start.Headers.Location?.OriginalString);
         Assert.Equal("Cancelled+Failed", await OrderStateAsync());
-        Assert.Equal(1, await ScalarAsync("SELECT count(*) FROM transition_records WHERE transition_reason = 'PaymentPageNotOpened'"));
+        // The system's cancellation writes the order's and the payment's records (O2, S3), both with the reason that L-7 does not count.
+        Assert.Equal("O2,S3", await ScalarTextAsync("SELECT string_agg(transition_code, ',' ORDER BY transition_code) FROM transition_records WHERE transition_reason = 'PaymentPageNotOpened' AND actor_kind = 'System'"));
         Assert.DoesNotContain(Shopfolio.Modules.Ordering.Contracts.TransitionReason.PaymentPageNotOpened, Shopfolio.Modules.Ordering.UnpaidCancellationLimit.CountedReasons);
         Assert.Equal(0, await ScalarAsync("SELECT count(*) FROM stock_reservations"));
 

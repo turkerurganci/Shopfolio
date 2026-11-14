@@ -73,6 +73,8 @@ internal sealed class OrderConfirmationScreens : IOrderConfirmationScreen
 
     public async Task<UnopenedPaymentCancellationResult> CancelUnopenedAsync(Guid orderId, TransitionReason reason, CartOwner? cartOwner, CancellationToken ct)
     {
+        // 05 7.3.5: the cart's lock is the head of the order - the requesting browser's cart is locked before the order and its variants, and marked under that lock.
+        Guid? cartId = cartOwner is null ? null : await _carts.LockCartAsync(cartOwner, ct);
         await _locks.LockAsync([orderId], ct);
         var state = await _db.Orders.AsNoTracking()
             .Where(o => o.Id == orderId)
@@ -90,9 +92,9 @@ internal sealed class OrderConfirmationScreens : IOrderConfirmationScreen
         }
 
         // 07 UC-29; K-1200, K-1212 (2): the requesting browser's cart tells it once; a browser without a cart is told nothing (the remaining risk of 06 4.15).
-        if (cartOwner is not null)
+        if (cartId is Guid lockedCart)
         {
-            await _carts.MarkPaymentUnavailableAsync(cartOwner, ct);
+            await _carts.MarkPaymentUnavailableLockedAsync(lockedCart, ct);
         }
 
         return new UnopenedPaymentCancellationResult(UnopenedPaymentCancellation.Cancelled);

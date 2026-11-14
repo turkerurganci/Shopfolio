@@ -664,7 +664,7 @@ public sealed partial class ItemRecordsTests : IAsyncLifetime
         return (order, item);
     }
 
-    private ServiceProvider BuildProvider()
+    private ServiceProvider BuildProvider(IAuditActorSource? actor = null)
     {
         ServiceCollection services = new();
         services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, _collection.Dsn));
@@ -688,6 +688,13 @@ public sealed partial class ItemRecordsTests : IAsyncLifetime
 
         // F-3 goes to the firm's contact e-mail (08 2.2.7): a fixed address here, so the firm notice is written without the Settings module's legal identity.
         services.AddScoped<ICompanyContactEmail, FixedCompanyContactEmail>();
+
+        // The panel's item steps write their trail row as the signed-in administrator (T528; 09 9.2): the last registration names them.
+        if (actor is not null)
+        {
+            services.AddScoped(_ => actor);
+        }
+
         return services.BuildServiceProvider();
     }
 

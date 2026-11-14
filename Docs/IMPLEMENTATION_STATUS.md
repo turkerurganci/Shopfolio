@@ -273,7 +273,7 @@
 | T514 | Kayıt ve doğrulama bağlantısının inişi (E-20, E-21) | ✓ | ✓ PASS (tur 3) | `34a477dc` | #548 |
 | T515 | Müşteri girişi ve Google ile giriş (E-22) | ✓ | ✓ PASS (tur 1) | `0cc6a93a` | #560 |
 | T516 | Şifre sıfırlama ve yeniden doğrulama (E-23, E-24) | ✓ | ✓ PASS (tur 1) | `29a613e0` | #564 |
-| T517 | Hesap — profil ve güvenlik (E-25) | ⏳ | — | — | — |
+| T517 | Hesap — profil ve güvenlik (E-25) | ✓ | ✓ PASS (tur 2) | `d682fc7a` | #567 |
 | T518 | Adres defteri ve sipariş geçmişi (E-26, E-27) | ✓ | ✓ PASS (tur 1) | `00854fd6` | #566 |
 | T519 | E-posta değişikliğini geri alma ve müşteri çıkışı (E-28) | ⬚ | — | — | — |
 | T520 | Panel girişi, şifre sıfırlama, davet kabulü ve yönetici çıkışı (E-29, E-30) | ✓ | ✓ PASS (tur 1) | `fd6c275e` | #549 |

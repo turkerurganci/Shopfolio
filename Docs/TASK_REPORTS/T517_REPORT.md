@@ -80,7 +80,10 @@ Backlog (hedefi T517): kapandı D-428, D-429, D-555; payı kapandı D-254, D-606
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-14), head `65932f9f` |
+| Doğrulama durumu | ✓ PASS — tur 2 (2026-11-14), head `d682fc7a` (main 49ba60f0 birleşik); tur 1 bulgusu kapandı |
+| Tur 2 kanıtı | Correction1 testleri (değersiz/tutmayan değerli dolu adres, biçim, boş adres, zayıf ve yaygın şifre, onaysız silme → 303; değersiz yerine geçen istekte L-9 satırı yok) yeşil; doğrulayıcı sondası (silindi): şifresiz hesap izinle 422 + "şifre yok", şifre yazılmaz, değer tüketilmez; GET `?handler=ChangeEmail` 200, `ChangeName` 303 kaydedildi, bağlantı yenileme 422 — yanlış 303 yok; değerli dolu ve bozuk adres 422, değer gizli alanda. Unit 7557/7557; Integration ilgili sınıflar 316/316, TAM: CI (run 43546906906 yeşil) |
+| Tur 2 bulgu / K | Bulgu 0. K: rapor `12` öz denetim satırı `A441`, `A672`'yi "tam" sayıyor, tur 1'deki gibi BEKLEMEDE kalır (D-1455, D-1474); D-1453 kapandı (T518 birleşik) |
+| Tur 1 | ✗ FAIL — 2026-11-14, head `65932f9f` |
 | Bulgu sayısı | 1 (S1, ORTA, güvenlik): e-posta değiştirmede "adres doğrulanmış başka bir hesabın" sorgusu yeniden doğrulamadan önce yanıtlanıyor — değersiz `ChangeEmail` gönderimi dolu adreste 422 ve K-786 mesajını alıyor (`02 §3.13.11`: "sorgu oturumun ve yeniden doğrulamanın arkasındadır"; KK2: değer yoksa 303). Aynı sıralama kökü: değersiz gönderimde biçim hatası ve zayıf şifre 422, onaysız silme 200 |
 | Düzeltme gerekli mi | Evet — `EmailChanges.RequestAsync` (ya da sayfa) değerin tutup tutmadığını yalnız okuyarak (`HoldsReauthenticationAsync`) ret denetimlerinden önce sormalı, tüketim en sonda kalmalı; değersiz/tutmayan değerli gönderimin dolu adreste 303 verdiği test. Öteki üç işleyicide de değersiz gönderim 303 olmalı |
 | Bloke-etmeyen not (K) sayısı | 4 — K1 KK6 testindeki etkisiz `DoesNotContain` (düzeltme turunda); K2 KK10 test adı "MarksTheOrder" sipariş tohumlamıyor, KK4 kanıtı rapordaki P testinde değil `Model.MembershipTests.TheName_ChangesWithoutANewVerification_AndLeavesTheOrdersRecipientNameAlone`'da (düzeltme turunda); K3 → D-1473 (yönetici tarafı aynı sıralama); K4 → D-1474 (UC-67 422'de L-9 satırı, `VAL-A441` BEKLEMEDE) |

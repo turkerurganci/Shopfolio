@@ -37,9 +37,9 @@ internal sealed partial class AfterSalesModule
         List<ReturnableTakenBack> takenBack =
         [
             .. (await TerminationStandingsAsync(ids, ct)).Where(t => t.Awaiting > 0)
-                .Select(t => new ReturnableTakenBack(new TakenBackSource(TakenBackKind.LateDeliveryTermination, t.Id), t.OrderItemId, t.Awaiting)),
+                .Select(t => new ReturnableTakenBack(TakenBackSource.Termination(t.Id), t.OrderItemId, t.Awaiting)),
             .. (await ClaimTakenBackStandingsAsync(ids, rescinded, ct)).Where(c => c.Awaiting > 0)
-                .Select(c => new ReturnableTakenBack(new TakenBackSource(TakenBackKind.DefectClaim, c.Id), c.OrderItemId, c.Awaiting)),
+                .Select(c => new ReturnableTakenBack(TakenBackSource.Claim(c.Id), c.OrderItemId, c.Awaiting)),
         ];
         List<ReturnReceiptFact> receipts = await _db.Returns.AsNoTracking().Where(r => ids.Contains(r.OrderItemId))
             .OrderBy(r => r.CreatedAt)

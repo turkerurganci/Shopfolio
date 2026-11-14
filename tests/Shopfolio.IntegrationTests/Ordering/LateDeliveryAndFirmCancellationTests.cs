@@ -286,6 +286,23 @@ public sealed class LateDeliveryAndFirmCancellationTests : IAsyncLifetime
         Assert.Empty(warned);
     }
 
+    [Fact]
+    public async Task TheLegalInterestWarning_MarksTheCustomersCancellationAfterThePromise_NotTheOneBefore_T528_D838()
+    {
+        (Order order, List<OrderItem> items) = await SeedAsync(OrderStatus.Preparing, new Line(ProductType.Physical, 2));
+        await ApproveAsync(order.Id, shippingPeriod: 2);
+        DateTimeOffset promiseEnd = DeliveryPeriodRules.ShippingPeriodEnd(Start, 2, BusinessCalendar.Product);
+        ItemAmounts amounts = new(100m, 0m, 16.67m);
+        Cancellation before = Cancellation.ByBuyer(items[0].Id, 1, amounts, null, promiseEnd.AddMinutes(-1));
+        Cancellation after = Cancellation.ByBuyer(items[0].Id, 1, amounts, null, promiseEnd.AddHours(1));
+        await SaveAsync(c => c.Cancellations.AddRange(before, after));
+
+        // The reading takes the cancellation's moment, whoever cancelled (ClosingRecordMomentsAsync; D-793): the customer's after the promise is warned like the firm's.
+        IReadOnlySet<Guid> warned = await PeriodsAsync(p => p.LegalInterestWarningsAsync(order.Id, Ct));
+
+        Assert.Equal(new HashSet<Guid> { after.Id }, warned.ToHashSet());
+    }
+
     // ---- KK7, KK8: the firm's item cancellation ----
 
     [Fact]

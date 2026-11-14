@@ -24,7 +24,7 @@ public sealed partial class ItemRecordsTests
         (Order order, OrderItem item) = await SeedAsync(OrderStatus.Shipped, PaymentStatus.Paid, ProductType.Physical, 3, delivered: false, exemption: null);
         LateDeliveryTermination termination = LateDeliveryTermination.ByBuyer(item.Id, 2, DeliveryDay, Amounts, null, Start);
         await SaveAsync(c => c.LateDeliveryTerminations.Add(termination));
-        TakenBackSource source = new(TakenBackKind.LateDeliveryTermination, termination.Id);
+        TakenBackSource source = TakenBackSource.Termination(termination.Id);
         Assert.Equal([2], await TakenBackAwaitingAsync(item.Id));
 
         int version = await VersionAsync(order.Id);
@@ -55,7 +55,7 @@ public sealed partial class ItemRecordsTests
     {
         (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.Card);
         Guid claimId = (await FindClaimAsync(item.Id))!.Id;
-        TakenBackSource source = new(TakenBackKind.DefectClaim, claimId);
+        TakenBackSource source = TakenBackSource.Claim(claimId);
         DateOnly arrival = DeliveryDay.AddDays(2);
 
         // Nothing rescinded yet: no goods come back on the claim.

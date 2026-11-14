@@ -133,18 +133,26 @@ public sealed record ItemQuantityAt(Guid OrderItemId, int Quantity, DateTimeOffs
 public sealed record ReturnReceiptEntry(
     ItemRecordSubject Subject, Guid WithdrawalId, int Quantity, DateOnly ArrivalDate, ItemRecordAdmin Admin, DateTimeOffset At, bool IsTransferLine = false);
 
-/// <summary>What a taken-back good comes back on, besides a withdrawal (03 1.11.28, 8.3.2.1; 06 4.26; K-808): a late-delivery termination or a defect claim's rescission.</summary>
-public enum TakenBackKind
+/// <summary>
+/// What a taken-back good comes back on, besides a withdrawal (03 1.11.28, 8.3.2.1; 06 4.26 <c>LateDeliveryTerminationId</c>, <c>DefectClaimId</c>; K-808): a late-delivery
+/// termination - the terminated physical item's goods (D-656) - or a defect claim - the goods of the units rescinded on it (D-911). Exactly one is set.
+/// </summary>
+public sealed record TakenBackSource
 {
-    /// <summary>A terminated physical item's goods back from the carrier or the customer (03 1.11.28; D-656).</summary>
-    LateDeliveryTermination,
+    private TakenBackSource(Guid? lateDeliveryTerminationId, Guid? defectClaimId)
+    {
+        LateDeliveryTerminationId = lateDeliveryTerminationId;
+        DefectClaimId = defectClaimId;
+    }
 
-    /// <summary>The goods of the units rescinded on the item's defect claim (03 8.3.2.1; K-808; D-911).</summary>
-    DefectClaim,
+    public Guid? LateDeliveryTerminationId { get; }
+
+    public Guid? DefectClaimId { get; }
+
+    public static TakenBackSource Termination(Guid lateDeliveryTerminationId) => new(lateDeliveryTerminationId, null);
+
+    public static TakenBackSource Claim(Guid defectClaimId) => new(null, defectClaimId);
 }
-
-/// <summary>The termination or the defect claim a taken-back good's receipt belongs to (06 4.26: <c>LateDeliveryTerminationId</c>, <c>DefectClaimId</c>).</summary>
-public sealed record TakenBackSource(TakenBackKind Kind, Guid Id);
 
 /// <summary>
 /// The receipt of goods taken back on a late-delivery termination or on a defect claim's rescission (03 1.7.1.6, 1.11.28, 8.3.2.1; K-794, K-808; D-656, D-911): like a withdrawal's,

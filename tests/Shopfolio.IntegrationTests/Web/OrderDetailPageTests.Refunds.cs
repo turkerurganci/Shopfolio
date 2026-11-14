@@ -669,7 +669,7 @@ public sealed partial class OrderDetailPageTests
         // 02 7.4.5: the item is back to "IBAN bekleniyor" - not paid to B, the other refund's IBAN on file; no step on its line, the POSTs refuse alike.
         Assert.Null(LineIbanOf(after, seeded.ItemKey));
         Assert.Contains(OrderDetailModel.IbanAwaitedText, LineHtmlOf(after, seeded.ItemKey), StringComparison.Ordinal);
-        Assert.DoesNotContain($"name=\"Input.DefectClaimId\" value=\"{seeded.ItemKey:D}\"", after, StringComparison.Ordinal);
+        Assert.DoesNotContain($"name=\"Input.DefectClaimId\" value=\"{seeded.ItemKey:D}\"", WithoutClaimStep(after, seeded.ItemKey), StringComparison.Ordinal);
         Assert.Equal(DisplayFormat.Iban(OtherRefundIban), LineIbanOf(after, seeded.ItemlessKey));
         Assert.Equal(HttpStatusCode.UnprocessableEntity, window);
         Assert.Contains(OrderDetailModel.RefundIbanMissingText, refused, StringComparison.Ordinal);
@@ -1275,6 +1275,23 @@ public sealed partial class OrderDetailPageTests
     }
 
     // The markup of one refund line, to its first closing tag or the next line.
+    /// <summary>
+    /// The page without the claim's own "resolve / reopen" form (T528 UC-144, UC-145), which carries the claim's key under the same input name as the refund line's steps: what is left
+    /// shows whether any refund step still offers the claim's line.
+    /// </summary>
+    private static string WithoutClaimStep(string html, Guid claimId)
+    {
+        int id = html.IndexOf($"id=\"defect-claim-form-{claimId:D}\"", StringComparison.Ordinal);
+        if (id < 0)
+        {
+            return html;
+        }
+
+        int start = html.LastIndexOf("<form", id, StringComparison.Ordinal);
+        int end = html.IndexOf("</form>", id, StringComparison.Ordinal) + "</form>".Length;
+        return string.Concat(html.AsSpan(0, start), html.AsSpan(end));
+    }
+
     private static string LineHtmlOf(string html, Guid key)
     {
         int line = html.IndexOf($"id=\"geri-odeme-{key:D}\"", StringComparison.Ordinal);

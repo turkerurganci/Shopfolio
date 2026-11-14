@@ -259,9 +259,9 @@ internal sealed partial class AfterSalesModule
             return ItemRecordWriteResult.Rejected(ItemRecordRefusal.ArrivalDateOutOfRange);
         }
 
-        Return receipt = entry.Source.Kind == TakenBackKind.LateDeliveryTermination
-            ? Return.ForLateDeliveryTermination(subject.OrderItemId, entry.Source.Id, entry.Quantity, entry.ArrivalDate, entry.Admin.AdminId, entry.Admin.AdminName, entry.At)
-            : Return.ForDefectClaim(subject.OrderItemId, entry.Source.Id, entry.Quantity, entry.ArrivalDate, entry.Admin.AdminId, entry.Admin.AdminName, entry.At);
+        Return receipt = entry.Source.LateDeliveryTerminationId is { } terminationId
+            ? Return.ForLateDeliveryTermination(subject.OrderItemId, terminationId, entry.Quantity, entry.ArrivalDate, entry.Admin.AdminId, entry.Admin.AdminName, entry.At)
+            : Return.ForDefectClaim(subject.OrderItemId, entry.Source.DefectClaimId!.Value, entry.Quantity, entry.ArrivalDate, entry.Admin.AdminId, entry.Admin.AdminName, entry.At); // non-null: a source without a termination is a claim's (TakenBackSource)
         _db.Returns.Add(receipt);
         return new ItemRecordWriteResult(null, receipt.Id, null);
     }
@@ -272,16 +272,17 @@ internal sealed partial class AfterSalesModule
     /// </summary>
     private async Task<int> TakenBackAwaitingAsync(Guid orderItemId, TakenBackSource source, CancellationToken ct)
     {
-        Guid id = source.Id;
-        if (source.Kind == TakenBackKind.LateDeliveryTermination)
+        if (source.LateDeliveryTerminationId is { } terminationId)
         {
-            int? terminated = await _db.LateDeliveryTerminations.AsNoTracking().Where(t => t.Id == id && t.OrderItemId == orderItemId).Select(t => (int?)t.Quantity).SingleOrDefaultAsync(ct);
-            int received = await _db.Returns.Where(r => r.LateDeliveryTerminationId == id).SumAsync(r => r.Quantity, ct)
-                + AddedSum<Return>(r => r.LateDeliveryTerminationId == id, r => r.Quantity);
+            int? terminated = await _db.LateDeliveryTerminations.AsNoTracking()
+                .Where(t => t.Id == terminationId && t.OrderItemId == orderItemId).Select(t => (int?)t.Quantity).SingleOrDefaultAsync(ct);
+            int received = await _db.Returns.Where(r => r.LateDeliveryTerminationId == terminationId).SumAsync(r => r.Quantity, ct)
+                + AddedSum<Return>(r => r.LateDeliveryTerminationId == terminationId, r => r.Quantity);
             return Math.Max(0, (terminated ?? 0) - received);
         }
 
-        if (!await _db.DefectClaims.AsNoTracking().AnyAsync(c => c.Id == id && c.OrderItemId == orderItemId, ct))
+        Guid? id = source.DefectClaimId;
+        if (id is null || !await _db.DefectClaims.AsNoTracking().AnyAsync(c => c.Id == id && c.OrderItemId == orderItemId, ct))
         {
             return 0;
         }

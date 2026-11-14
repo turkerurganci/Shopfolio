@@ -1,5 +1,6 @@
 @page "/panel/urunler/{id:guid}"
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Frame
 @using Shopfolio.Pages.Panel
 @model ProductFormModel
 @*
@@ -10,3 +11,7 @@
     ViewData["Title"] = Model.Title;
 }
 <partial name="_ProductFormBody" model="Model" />
+
+@section Scripts {
+    <script type="module" src="@ViewContext.HttpContext.StaticAsset("js/pages/panel/product-form.js")"></script>
+}

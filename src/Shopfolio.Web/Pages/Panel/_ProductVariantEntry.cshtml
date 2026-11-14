@@ -1,0 +1,102 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper Shopfolio.Pages.Components.Upload*, Shopfolio.Web
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Modules.Catalog.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model ProductVariantEntryView
+@*
+    One variant entry of the product form (T525; T539, 09 16.2 item 4): the row of the page and the script's row template are this same markup, so a row the script adds has the page's field names. The
+    index is a number on the page and the placeholder in the template. No inline style, no inline script.
+*@
+@{
+    ProductFormModel page = Model.Page;
+    SaveProductInput entries = page.Form;
+    SaveProductVariantRow row = Model.Row;
+    string i = Model.Index;
+    bool isNew = Model.IsNew;
+    bool digital = entries.ProductType == ProductType.Digital;
+    string target = $"Variants[{i}].ImageId";
+    string Decimal(decimal? value) => value is { } d ? Shopfolio.Infrastructure.RequestFormat.FormatDecimal(d) : string.Empty;
+    string Whole(int? value) => value?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty;
+}
+<div class="product-form__variant-entry" data-js="row" id="@(Model.IsTemplate ? null : ProductFormModel.UploadFieldId(target))">
+    @if (isNew)
+    {
+        <p class="product-form__new-variant">Yeni varyant</p>
+    }
+    @if (row.VariantId is { } variantId)
+    {
+        <input type="hidden" name="Input.Variants[@i].VariantId" value="@variantId.ToString("D")" />
+    }
+    @for (int o = 0; o < 2; o++)
+    {
+        IReadOnlyList<FieldOption> choices = page.OptionValueChoices(o);
+        Guid? current = o == 0 ? row.FirstOptionValueId : row.SecondOptionValueId;
+        string field = o == 0 ? "FirstOptionValueId" : "SecondOptionValueId";
+        if (choices.Count > 0)
+        {
+            <label for="product-variant-@i-option-@o">@entries.Options[o].Name</label>
+            <select id="product-variant-@i-option-@o" name="Input.Variants[@i].@field">
+                <option value="" selected="@(current is null)">Seçiniz</option>
+                @foreach (FieldOption choice in choices)
+                {
+                    <option value="@choice.Value" selected="@(current?.ToString("D") == choice.Value)">@choice.Text</option>
+                }
+            </select>
+        }
+        else if (current is { } carried)
+        {
+            <input type="hidden" name="Input.Variants[@i].@field" value="@carried.ToString("D")" />
+        }
+    }
+    <label for="product-variant-@i-sku">Stok kodu</label>
+    <input type="text" id="product-variant-@i-sku" name="Input.Variants[@i].SKU" value="@row.SKU" />
+    <label for="product-variant-@i-price">Fiyat (TL)</label>
+    <input type="text" inputmode="decimal" id="product-variant-@i-price" name="Input.Variants[@i].Price" value="@Decimal(row.Price)" />
+    @if (!digital)
+    {
+        <label for="product-variant-@i-stock">@(entries.ProductType == ProductType.Service ? "Kontenjan" : "Stok")</label>
+        <input type="text" inputmode="numeric" id="product-variant-@i-stock" name="Input.Variants[@i].StockQuantity" value="@Whole(row.StockQuantity)" />
+    }
+    @if (!isNew)
+    {
+        <input type="hidden" name="Input.Variants[@i].OriginalStockQuantity" value="@row.OriginalStockQuantity" />
+    }
+    @if (entries.MeasurementUnit is { } unit)
+    {
+        <label for="product-variant-@i-net">Net miktar (@ProductFormModel.UnitName(unit))</label>
+        <input type="text" inputmode="decimal" id="product-variant-@i-net" name="Input.Variants[@i].NetQuantity" value="@Decimal(row.NetQuantity)" />
+    }
+    @if (!Model.IsTemplate)
+    {
+        @foreach (MessageView refusal in page.RefusalsOf($"Input.Variants[{i}].", $"product-variant-{i}-sku"))
+        {
+            <partial name="_Message" model="refusal" />
+        }
+    }
+    @if (row.ImageId is { } imageId)
+    {
+        <input type="hidden" name="Input.Variants[@i].ImageId" value="@imageId.ToString("D")" />
+    }
+    @if (digital)
+    {
+        string fileField = $"Input.Variants[{i}].DigitalFileId";
+        <input type="hidden" id="product-variant-@i-file" name="@fileField" value="@(row.DigitalFileId?.ToString("D"))" />
+        <label for="product-variant-@i-file-upload">Varyantın dosyası</label>
+        <span class="product-form__file-state">@(row.DigitalFileId is null ? "Dosya yok" : "Dosya ekli")</span>
+        <input upload-file="DigitalFile" id="product-variant-@i-file-upload" data-js="@ProductFormModel.DigitalFileUploadHook" data-target-field="@fileField" />
+    }
+    else if (row.DigitalFileId is { } variantFile)
+    {
+        <input type="hidden" name="Input.Variants[@i].DigitalFileId" value="@variantFile.ToString("D")" />
+    }
+    @if (!Model.IsTemplate && page.UploadRefusal is not null && page.UploadRefusalTarget == target)
+    {
+        <partial name="_Message" model="page.UploadRefusal" />
+    }
+    @if (!isNew)
+    {
+        <button type="submit" class="button button--secondary" formaction="@Model.UploadAction" name="Input.ImageTarget" value="@target">Varyant görseli yükle</button>
+    }
+</div>

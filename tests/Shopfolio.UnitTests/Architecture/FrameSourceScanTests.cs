@@ -105,7 +105,7 @@ public sealed partial class FrameSourceScanTests
     [Fact]
     public void TheScripts_ImportNothing_WriteNoMarkupFromText_AndLoadNothingFromTheNetwork_KK4()
     {
-        string[] scripts = [.. Directory.EnumerateFiles(Path.Combine(RepositoryRoot.Find(), Web, "wwwroot", "js"), "*.js")];
+        string[] scripts = [.. Directory.EnumerateFiles(Path.Combine(RepositoryRoot.Find(), Web, "wwwroot", "js"), "*.js", SearchOption.AllDirectories)];
         Assert.NotEmpty(scripts);
         foreach (string script in scripts)
         {

@@ -110,3 +110,6 @@
         @ConflictControls.SectionSaveControl(ShippingAndDefaultsModel.ReturnAddressSection, Model.ConflictedSection, path)
     </form>
 </section>
+@section Scripts {
+    <script type="module" src="@ViewContext.HttpContext.StaticAsset("js/pages/panel/shipping-and-defaults.js")"></script>
+}

@@ -925,6 +925,61 @@ public sealed class ProductFormPageTests : IAsyncLifetime
         return await db.Variants.AsNoTracking().Where(v => v.Id == variantId).Select(v => v.ImageId).SingleAsync(Ct);
     }
 
+    /// <summary>The names of the fields in the markup, the row's number written as <c>N</c> where the page has its own number or the template its placeholder.</summary>
+    private static string[] FieldNamesOf(string markup, string number) =>
+    [
+        .. System.Text.RegularExpressions.Regex.Matches(markup, "\\sname=\"(?<n>[^\"]+)\"", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5))
+            .Select(m => m.Groups["n"].Value.Replace(number, "N", StringComparison.Ordinal))
+            .Where(n => n.Contains('N', StringComparison.Ordinal) && !n.StartsWith("Input.ImageTarget", StringComparison.Ordinal))
+            .Order(StringComparer.Ordinal),
+    ];
+
+    private static string TemplateOf(string html, string id)
+    {
+        int at = html.IndexOf($"<template id=\"{id}\"", StringComparison.Ordinal);
+        Assert.True(at >= 0, $"The form has no template {id}.");
+        return html[at..html.IndexOf("</template>", at, StringComparison.Ordinal)];
+    }
+
+    [Fact]
+    public async Task TheRowTemplates_AreTheServersMarkup_WithThePlaceholderAndThePagesFieldNames_AndTheAddButtonsAreHiddenWithoutScript_KK6()
+    {
+        (Guid productId, _) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        (_, string html) = await GetAsync(client, ProductFormModel.PathOf(productId));
+
+        // The page's own blank row is the last row of its list; the template names are the same names, the number being the placeholder (09 16.2 item 4).
+        string variantTemplate = TemplateOf(html, "product-variant-template");
+        int blankVariant = html.IndexOf("Input.Variants[1].SKU", StringComparison.Ordinal);
+        Assert.True(blankVariant >= 0, "The existing product's form has one blank variant row.");
+        string blankVariantRow = html[html.LastIndexOf("<div class=\"product-form__variant-entry\"", blankVariant, StringComparison.Ordinal)..html.IndexOf("</template>", blankVariant, StringComparison.Ordinal)];
+        blankVariantRow = blankVariantRow[..blankVariantRow.IndexOf("<template", StringComparison.Ordinal)];
+        Assert.Equal(FieldNamesOf(blankVariantRow, "Variants[1]"), FieldNamesOf(variantTemplate, "Variants[__index__]"));
+        Assert.Contains("Input.Variants[__index__].SKU", variantTemplate, StringComparison.Ordinal);
+
+        string valueTemplate = TemplateOf(html, "product-option-0-value-template");
+        Assert.Contains("name=\"Input.Options[0].Values[__index__].Value\"", valueTemplate, StringComparison.Ordinal);
+        Assert.Contains("name=\"Input.Options[0].Values[0].Value\"", html, StringComparison.Ordinal);
+        string optionTemplate = TemplateOf(html, "product-option-template");
+        Assert.Contains("name=\"Input.Options[__index__].Name\"", optionTemplate, StringComparison.Ordinal);
+        Assert.Contains("name=\"Input.Options[__index__].Values[0].Value\"", optionTemplate, StringComparison.Ordinal);
+
+        // Nothing outside a template carries the placeholder, and every add button is hidden in the markup (a button that does nothing is never shown without the script).
+        string outside = System.Text.RegularExpressions.Regex.Replace(html, "<template\\b.*?</template>", string.Empty, System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5));
+        Assert.DoesNotContain("__index__", outside, StringComparison.Ordinal);
+        foreach (System.Text.RegularExpressions.Match button in System.Text.RegularExpressions.Regex.Matches(html, "<button[^>]*data-js=\"row-add\"[^>]*>", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)))
+        {
+            Assert.Contains(" hidden", button.Value, StringComparison.Ordinal);
+            Assert.Contains("type=\"button\"", button.Value, StringComparison.Ordinal);
+        }
+
+        // The save form posts what a browser without the script posts: the templates add no field.
+        Assert.DoesNotContain(SaveFormFieldsOf(html), field => field.Name.Contains("__index__", StringComparison.Ordinal));
+        Assert.Contains("js/pages/panel/product-form", html, StringComparison.Ordinal);
+    }
+
     private static string RowOf(string html, Guid variantId)
     {
         int at = html.IndexOf($"data-variant=\"{variantId:D}\"", StringComparison.Ordinal);
@@ -969,6 +1024,9 @@ public sealed class ProductFormPageTests : IAsyncLifetime
     {
         int start = html.IndexOf("id=\"product-save\"", StringComparison.Ordinal);
         string form = html[start..html.IndexOf("</form>", start, StringComparison.Ordinal)];
+
+        // A <template> is inert: a browser sends nothing of it (T539; 09 16.2 item 4).
+        form = System.Text.RegularExpressions.Regex.Replace(form, "<template\\b.*?</template>", string.Empty, System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5));
         // As a browser sends the form: an unticked box is not sent, a select sends its chosen option, a file input sends no text.
         static string? Attribute(string attrs, string attribute)
         {

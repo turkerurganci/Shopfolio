@@ -128,6 +128,13 @@ public sealed partial class CheckoutPageTests : IAsyncLifetime
         Assert.Contains("id=\"checkout-shipping\"", first, StringComparison.Ordinal);
         Assert.Contains("id=\"checkout-billing\"", first, StringComparison.Ordinal);
         Assert.Contains("name=\"ContactEmail\"", first, StringComparison.Ordinal);
+
+        // T539 KK2, KK4, KK8: the intermediate sends are this form's own buttons (the script sends the same form with the button), the "teslimat adresimle aynı" box is in the billing form and is sent with it,
+        // the form's order button is the one-time button, and the page's script is the page's own module.
+        Assert.Contains("formaction=\"/odeme?handler=Recalculate\" formnovalidate data-js=\"recalculate\"", first, StringComparison.Ordinal);
+        Assert.Contains("name=\"IsBillingSameAsShipping\"", first, StringComparison.Ordinal);
+        Assert.Contains("data-js=\"submit-once\"", first, StringComparison.Ordinal);
+        Assert.Contains("js/pages/storefront/checkout", first, StringComparison.Ordinal);
         Assert.Contains("noindex", first, StringComparison.Ordinal);
         Assert.NotEqual(Hidden(first, "ConfirmationKey"), Hidden(second, "ConfirmationKey"));
         Assert.False(string.IsNullOrEmpty(Hidden(first, nameof(PlaceOrderInput.SummaryFingerprint))));

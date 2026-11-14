@@ -1,6 +1,6 @@
 # T530 — Sipariş ayrıntısı: adres, kargo, teslim tarihi, durum geçişi ve e-posta düzeltmeleri (E-37)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-14
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-14
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -80,6 +80,14 @@
 
 | Alan | Sonuç |
 |---|---|
+| Doğrulama durumu (tur 2) | ✓ PASS (2026-11-14; dal ucu `02146b34`, origin/main `6e6d4a41` dalda birleşik, main ilerlemedi) — build `-warnaserror` 0 uyarı, format ×3 (Web, UnitTests, IntegrationTests) temiz, Unit 7348/7348 + Consistency 295/295, betik 4/4, Integration parçalı `OrderDetailPageTests` 50/50 + `OrderCorrectionTests`, `PaymentWindowTests`, `StatusCorrectionTests`, `OrderOperationsTests` 146/146 (TAM: CI; konteyner `shopfolio-t530-val-pg`, port 56731, `track_commit_timestamp=on`, silindi); dal CI'ı run 43577917177 bütün işler yeşil; `dotnet restore --locked-mode` çıkış 0 |
+| Kabul kriterleri (tur 2, doğrulayıcı) | 10/10 ✓. Kriter 2: `_KK2` (boş açık adres 422, `Input_ShippingAddressLine` `aria-invalid="true"` + kendi mesajı, özet formun başında, fatura formu işaretsiz; Shipped 422, dijital Preparing 303, Delivered 422) + doğrulayıcının geçici sınaması (telefon reddinde `Input_ShippingPhone` işaretli ve özet bağlantısı, gönderilen hat korunur; fatura reddinde yalnız fatura formu işaretli). Kriter 7: dört engel ayrı testte + kart `OutcomePending` sayfa testi; mesaj durum düzeltmesi formunda, sebep korunur. Kriter 9: eski bağlantı uçta kapalı — geçici sınama: düzeltmeden sonra `/siparis/erisim/{eski anahtar}` 404, yeni anahtar 200. Öteki kriterler tur 1 kanıtlarıyla yeniden koşuldu |
+| Önceki bulgular (tur 2) | B1 kapandı (`KeepAddress` → `AddressForms.AddRefusals` + `FormErrorSummary.From` + `Bind`; `_KK2`). B2 kapandı (mesaj `RefusedCorrection` formunda, form çizilmiyorsa bölümün başında; `order-step-message` düzeltmelerde yok; ulaşma tarihi, geçiş seçimi, sebep, teslim tarihi, e-posta korunur — `_KK2`, `_KK3`, `_KK5`, `_KK6`, `_RefundPending_KK7`, `_K608`, `_KK10`). B3 kapandı (`Input.Shipping…`/`Input.Billing…` — `07` `CorrectAddressInput` adları; `_B3` iki sayfada yinelenen kimlik yok; doğrulayıcı ayrıca iki ulaşma formlu teslim edilmiş, teslim edilemedi ve reddedilmiş fatura formlu sayfalarda yinelenen kimlik bulmadı). K2, K3, K4 kapandı. ⚠ denetimi: iki geçişte tek form + seçim `04` 9.9.31 "form düzeltilecek geçişi ve dönülecek durumu gösterir" ile uyumlu (her seçenek geçişi ve dönülecek durumu gösterir), kapsam dışı değil; `AddressTypeMissingText` D-1527'nin iki form kararının sonucu, D-1527 notunda kayıtlı; D-1544 ortak sayfa riski, F5 kapısı uygun (yalnız elle bozulmuş istek, yazım yok, T527 uçları da aynı yolda) — doğrulayıcı notu D-1544'e eklendi |
+| `12` satırları (tur 2) | PASS: `VAL-C055`, `C056`, `C059`, `A246` (tur 1), `VAL-A240` (`_KK3` takip no, `_K608` teslim tarihi, `_KK5` ulaşma tarihi sayfada ve kayıtta), `VAL-D026` (`_KK1` adres geçmişi sayfada iki adres + tarih, kayıtta iki satır), `VAL-D027` (`_KK9_KK10` e-posta geçmişi sayfada + kayıt), `VAL-A245` (uç: geçici sınamada eski anahtar 404, yeni 200; veri: `_KK9_KK10` anahtar değişti). BEKLEMEDE: `VAL-A239`, `A244` (D-894 → D-1525), `VAL-D028` (D-884 m7, m8 T528), `A254` (B-11 T528), `A255` (mal dönmedi T528). `12 §12.3` satırları `VAL-C103`, `C104`, `C106` D-981'in F5 kapısı kapsamında, değişmedi. Matris betiği `--kapsam 1-77` hata 0 |
+| Bulgu sayısı (tur 2) | 0 |
+| Düzeltme gerekli mi (tur 2) | Hayır |
+| Bloke-etmeyen not (tur 2) | 3 — **K1** (forward → D-1550): kargo, teslim tarihi, ulaşma tarihi ve e-posta düzeltmesinin değer reddi formun içinde `role="alert"` mesajıdır, alana bağlı değildir (`aria-invalid`/`aria-describedby` yok); `04` 9.9.36 "Ret alan mesajıdır", 7.2.8.1, 7.2.8.3, 7.2.14.2, 7.2.14.4 "Alan mesajı" ile 2.3.3'ün "kural dışı değerin reddi yerinde kalıcı mesaj" cümlesi yan yana; T527'nin kargoya verme ve teslim işareti formları aynı düzende — sayfa düzeyinde karar. **K2** (forward → D-1551): UC-149 formu `ArrivalRecordId` (`[SpecAssignedName]`) taşır, `07` `CorrectArrivalDateInput` `ReturnId` der; alan teslim almanın ve iade reddinin kaydını alır (`04` 6.3.9.16 retta da ulaşma tarihi düzeltilir; `06 §4.27` `ArrivalDate`) — `07`'nin adı dar, kodun adı belgede yok. **K3** (D-1544'e not): doğrulayıcının geçici sınaması — T530'un kendi girişleri de (`Input.TransitionRecordId=abc`, `Input.IsOwnVehicleDelivery=maybe`, `Input.Version=abc`) 500 verir; T527'nin `MarkDelivered`'ı da; kalemin "T530 kendi riskini kapattı" cümlesi yalnız `AddressType` için doğru |
+| Yapım raporu karşılaştırması (tur 2) | 2 uyuşmazlık: (1) öz denetimin "09 §25: yeni adlar `06`/`07`'den ✓" satırı `ArrivalRecordId`'yi `07`'nin adı sayar; `07` `ReturnId` der (K2). (2) Known Limitations 4 "T530 kendi girişini metin aldı" — T530'un Guid, bool ve sürüm girişleri de 500'e düşer (K3). Öteki iddialar uyumlu: B1–B3, K2–K4 kapanışları testli; sayılar yeniden koşuldu (Unit 7643 = 7348 + 295; Integration sınıfları 50 + 146 doğrulayıcının seçimiyle) |
 | Doğrulama durumu (tur 1) | ✗ FAIL (2026-11-14; dal ucu `13c7393a`, origin/main `0289add9` ile birleşik, main ilerlemedi) — build `-warnaserror` 0 uyarı, format ×3 temiz, Unit 7345/7345 + Consistency 295/295, betik 4/4, Integration parçalı `OrderDetailPageTests` 38/38 + `OrderCorrectionTests`, `PaymentWindowTests`, `StatusCorrectionTests`, `OrderOperationsTests` 146/146 (TAM: CI); dal CI'ı run 43571321510 yeşil |
 | `12` satırları (tur 1) | PASS: `VAL-C055`, `C056`, `C059`, `A246`; BEKLEMEDE: `VAL-A239`, `A244` (KRİTİK; beklenen sonuç kaynağını aşıyor — D-894 okuması D-1525'e bağlandı), `VAL-A240`, `D026`, `D027` (yeni değerin sayfada görünmesi testte sınanmıyor — K3), `VAL-A245` (eski bağlantının uçta açılmaması yalnız servis düzeyinde), `VAL-D028`, `A254`, `A255` (T528/T531 payı var). Matris betiği hata 0 |
 | Bulgu sayısı (tur 1) | 3 (ORTA, S1) |
@@ -99,7 +107,7 @@
 - **Branch:** `task/T530-siparis-duzeltmeleri`
 - **Commit:** `e947183b` — kod ve testler; düzeltme 1 `92f5219f` + main birleştirmesi `1ce5cf11`
 - **PR:** #573
-- **CI:** — (yardımcı izler)
+- **CI:** run 43577917177 (head `02146b34`) yeşil; post-merge yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

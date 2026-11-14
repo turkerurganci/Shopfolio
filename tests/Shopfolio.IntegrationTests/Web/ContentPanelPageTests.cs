@@ -11,6 +11,8 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages;
+using Shopfolio.Modules.Catalog;
+using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.CorporateContent;
 using Shopfolio.Modules.CorporateContent.Contracts;
 using Shopfolio.Pages.Frame;
@@ -191,7 +193,62 @@ public sealed class ContentPanelPageTests : IAsyncLifetime
         Assert.Contains("Deneme Markası", after, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task TheProductSearch_WritesNothing_AndTheTickedResult_JoinsTheLinkedProducts_OfTheSameForm()
+    {
+        Guid product = await SeedProductAsync("Aranan masa");
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        string path = ContentRoutes.NewPath(PanelContentType.Offering);
+
+        using HttpResponseMessage searched = await PostAsync(client, path, "SearchProducts", ("Input.Name", "Yeni hizmet"), ("Input.Search", "Aranan"));
+        string searchedHtml = WebUtility.HtmlDecode(await searched.Content.ReadAsStringAsync(Ct));
+        using HttpResponseMessage chosen = await PostAsync(client, path, "SearchProducts", ("Input.Name", "Yeni hizmet"), ("Input.AddProducts", product.ToString("D")));
+        string chosenHtml = WebUtility.HtmlDecode(await chosen.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.OK, searched.StatusCode);
+        Assert.Contains("Aranan masa", searchedHtml, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.OK, chosen.StatusCode);
+        Assert.Contains($"Input.LinkedProducts[0].ProductId\" value=\"{product:D}\"", chosenHtml, StringComparison.Ordinal);
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM offerings"));
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM offering_products"));
+    }
+
+    [Fact]
+    public async Task AFilledBrandName_ThatIsEmptied_Is422_AndTheSavedNameStays()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        (_, string html) = await GetAsync(client, PanelFramePaths.Brand);
+        string version = System.Text.RegularExpressions.Regex.Match(System.Text.RegularExpressions.Regex.Match(html, @"<input[^>]*Input\.Version[^>]*>").Value, @"value=""(\d+)""").Groups[1].Value;
+        using HttpResponseMessage first = await PostAsync(client, PanelFramePaths.Brand, "SaveBranding", ("Input.BrandName", "Kalıcı ad"), ("Input.Version", version));
+        (_, string again) = await GetAsync(client, PanelFramePaths.Brand);
+        string next = System.Text.RegularExpressions.Regex.Match(System.Text.RegularExpressions.Regex.Match(again, @"<input[^>]*Input\.Version[^>]*>").Value, @"value=""(\d+)""").Groups[1].Value;
+
+        using HttpResponseMessage emptied = await PostAsync(client, PanelFramePaths.Brand, "SaveBranding", ("Input.BrandName", "  "), ("Input.Version", next));
+        (_, string after) = await GetAsync(client, PanelFramePaths.Brand);
+
+        Assert.Equal(HttpStatusCode.SeeOther, first.StatusCode);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, emptied.StatusCode);
+        Assert.Contains("Kalıcı ad", after, StringComparison.Ordinal);
+    }
+
     // ---- helpers ----
+
+    private async Task<Guid> SeedProductAsync(string name)
+    {
+        int n = Interlocked.Increment(ref _counter);
+        Category category = Category.Create("Mobilya", $"kategori-{n:D3}", null, 1, Base.AddMinutes(n));
+        Product product = Product.Create(name, $"urun-{n:D4}", ProductType.Physical, 20m, Base.AddMinutes(n)).WithSeededOrigin();
+        product.PublishStatus = PublishStatus.Published;
+        await SaveAsync(c =>
+        {
+            c.Categories.Add(category);
+            c.Products.Add(product);
+            c.ProductCategories.Add(ProductCategory.Create(product.Id, category.Id, true, Base));
+        });
+        return product.Id;
+    }
 
     private WebApplicationFactory<Program> Open() =>
         new ShopfolioWebApplicationFactory(_database.Dsn).WithWebHostBuilder(b => b.ConfigureServices(s => s.AddRazorPages().AddApplicationPart(typeof(ForgeryTokenSampleModel).Assembly)));

@@ -17,10 +17,12 @@ namespace Shopfolio.Modules.Catalog;
 internal sealed class StockCounters
 {
     private readonly AppDbContext _db;
+    private readonly ProductLocks _productLocks;
 
-    public StockCounters(AppDbContext db)
+    public StockCounters(AppDbContext db, ProductLocks productLocks)
     {
         _db = db;
+        _productLocks = productLocks;
     }
 
     /// <summary>Applies the movements in the lock order; false when a reservation did not fit (the rows already written fall with the transaction).</summary>
@@ -87,6 +89,14 @@ internal sealed class StockCounters
         if (_db.Database.CurrentTransaction is null)
         {
             throw new InvalidOperationException("The stock field is written only inside the caller's transaction (09 9.1 item 3).");
+        }
+
+        // The product's row first (D-362; 09 10.2 item 5): a type change of the form waits for this write, or this write reads the changed type. A variant never moves to another
+        // product, so its product is read before the lock; the product form's save already holds it and is not asked twice.
+        Guid? productId = await _db.Variants.AsNoTracking().Where(v => v.Id == variantId).Select(v => (Guid?)v.ProductId).SingleOrDefaultAsync(ct);
+        if (productId is Guid owner)
+        {
+            await _productLocks.LockAsync(owner, ct);
         }
 
         LockSequence.Enter(_db, LockKind.Variant, variantId);

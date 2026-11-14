@@ -53,6 +53,18 @@ internal sealed class ProductGallery
             return GallerySaveResult.LimitExceeded;
         }
 
+        await ApplyLinksAsync(productId, entries, ct);
+        return GallerySaveResult.Saved;
+    }
+
+    /// <summary>
+    /// Makes the gallery's links match <paramref name="entries"/>, after the checks: the save above and the product form's save (UC-114), which checks the images and the limit against the
+    /// form's own variant images. Joins the caller's transaction.
+    /// </summary>
+    internal async Task ApplyLinksAsync(Guid productId, IReadOnlyList<GalleryEntry> entries, CancellationToken ct)
+    {
+        RequireTransaction();
+        List<Guid> imageIds = [.. entries.Select(e => e.ImageId)];
         List<ProductImage> links = await _db.ProductImages.Where(p => p.ProductId == productId).ToListAsync(ct);
         ProductImage? currentMain = links.FirstOrDefault(l => l.IsMain);
         Guid? mainImageId = GalleryRules.MainOf(entries, currentMain?.ImageId);
@@ -83,8 +95,6 @@ internal sealed class ProductGallery
             link.AltText = altText;
             link.IsMain = isMain;
         }
-
-        return GallerySaveResult.Saved;
     }
 
     /// <summary>Gives the variant its own image, or - with null - takes it away so that it takes the product's again (02 3.11.1). The limit of 02 3.11.3 is checked with the new image counted.</summary>

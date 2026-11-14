@@ -324,10 +324,14 @@ public sealed class ProductTransitionsTests : IAsyncLifetime
     public async Task AGateThatRefuses_LeavesTheStatusAsItWas_NoRowAndNoVersionRise_KK5(PublishStatus from)
     {
         (Product product, List<Variant> variants) = await SeedAsync(from, from);
+
+        // The variant's gate is asked only under a published product (T525 criterion 8; 07 UC-115): the refused variant is a second variant of a published product.
+        (Product published, List<Variant> underPublished) = await SeedAsync(PublishStatus.Published, PublishStatus.Published, from);
         _gate.Refuse("name", "variant");
 
         PublishChangeResult productMove = await RunAsync((unit, token) => unit.ChangeProductStatusAsync(product.Id, PublishStatus.Published, product.Version, token));
-        PublishChangeResult variantMove = await RunAsync((unit, token) => unit.ChangeVariantStatusAsync(variants[0].Id, PublishStatus.Published, product.Version, token));
+        PublishChangeResult variantMove = await RunAsync((unit, token) => unit.ChangeVariantStatusAsync(underPublished[1].Id, PublishStatus.Published, published.Version, token));
+        Assert.Equal((PublishStatus.Published, PublishStatus.Published, from), await StatusesAsync(published.Id, underPublished));
 
         foreach (PublishChangeResult result in new[] { productMove, variantMove })
         {
@@ -611,6 +615,44 @@ public sealed class ProductTransitionsTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task AFileRemovalAndAPublishOfTheSameProduct_TakeTheProductsRowInTurn_TheGateIsAskedAfterTheRemoval_D401()
+    {
+        int n = Interlocked.Increment(ref _counter);
+        Product product = Product.Create("Kitap", $"kitap-{n:D4}", ProductType.Digital, 20m, Now);
+        Variant variant = Variant.Create(product.Id, $"SKU-K-{n:D4}", 100m, Now);
+        variant.PublishStatus = PublishStatus.Published;
+        DigitalFile file = DigitalFile.Create(EntityIds.NewStorageKey(), "kitap.pdf", 100, Now);
+        file.UploadCompletedAt = Now;
+        file.ProductId = product.Id;
+        file.AttachedAt = Now;
+        await SaveAsync(c =>
+        {
+            c.Products.Add(product);
+            c.Variants.Add(variant);
+            c.DigitalFiles.Add(file);
+        });
+
+        await using ServiceProvider provider = BuildProvider();
+        await using AsyncServiceScope first = provider.CreateAsyncScope();
+        AppDbContext firstDb = first.ServiceProvider.GetRequiredService<AppDbContext>();
+        await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction removal = await firstDb.Database.BeginTransactionAsync(Ct);
+        Assert.Same(RemovalResult.Done, await first.ServiceProvider.GetRequiredService<IProductRemoval>().RemoveDigitalFileAsync(file.Id, Ct));
+
+        Task<PublishChangeResult> publish = Task.Run(() => RunAsync((unit, token) => unit.ChangeProductStatusAsync(product.Id, PublishStatus.Published, product.Version, token)), Ct);
+        await WaitUntilATransactionWaitsOnALockAsync();
+
+        // The publish waits on the product's row: it has not asked the gate while the removal holds it.
+        Assert.False(publish.IsCompleted);
+        Assert.Empty(_gate.ProductQuestions);
+
+        await firstDb.SaveChangesAsync(Ct);
+        await removal.CommitAsync(Ct);
+        await publish;
+
+        Assert.Equal([product.Id], _gate.ProductQuestions);
+    }
+
+    [Fact]
     public async Task TemporarilyClosingTheSales_ChangesNoPublishStatus_AndTheListStays_KK8()
     {
         (Product product, List<Variant> variants) = await SeedAsync(PublishStatus.Published, PublishStatus.Published);
@@ -790,6 +832,26 @@ public sealed class ProductTransitionsTests : IAsyncLifetime
         });
         await ExecuteAsync($"UPDATE orders SET order_status = 'Preparing', payment_status = 'Paid' WHERE id = '{order.Id}'");
         return order.Id;
+    }
+
+    /// <summary>Waits until a transaction of this collection's database waits on a row lock (the second writer behind the product's row lock).</summary>
+    private async Task WaitUntilATransactionWaitsOnALockAsync()
+    {
+        for (int attempt = 0; attempt < 400; attempt++)
+        {
+            await using NpgsqlConnection connection = new(_collection.Dsn);
+            await connection.OpenAsync(Ct);
+            await using NpgsqlCommand command = new(
+                "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock' AND query ILIKE '%FOR NO KEY UPDATE%'", connection);
+            if ((long)(await command.ExecuteScalarAsync(Ct))! > 0)
+            {
+                return;
+            }
+
+            await Task.Delay(25, Ct);
+        }
+
+        Assert.Fail("No transaction waited on the product's row lock.");
     }
 
     private async Task<string> OrderFingerprintAsync(Guid orderId)

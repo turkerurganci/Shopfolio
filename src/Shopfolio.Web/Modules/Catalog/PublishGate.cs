@@ -80,6 +80,12 @@ internal static class PublishGateRules
     /// <summary>The unmet conditions of a variant's move to Published: a digital variant has no gate without its file (02 3.7.4); the other types add nothing.</summary>
     public static IReadOnlyList<string> UnmetOfVariant(ProductType type, bool hasFile)
         => type == ProductType.Digital && !hasFile ? [PublishCondition.DigitalFile] : [];
+
+    /// <summary>
+    /// Whether a variant's price lets it go Published under a published product (11 T525 criterion 8; 07 UC-115; 02 3.7.3: every Published variant's price is above zero). The
+    /// database's <c>ck_variants_price_above_zero</c> already keeps a zero price out of the table; the move asks again so that it never publishes one.
+    /// </summary>
+    public static bool HasSalePrice(decimal price) => price > 0m;
 }
 
 /// <summary>

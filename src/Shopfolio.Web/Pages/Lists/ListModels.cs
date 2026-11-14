@@ -164,10 +164,17 @@ public sealed record PanelTableColumn(string Title, bool IsPrimary);
 /// A row of a panel table: the text of every cell in the column order, and the address of the record the first primary cell links to (null for a row that opens nothing). A cell that stands for a status
 /// is drawn as its badge (04 2.5.1) when <paramref name="Badges"/> names the column's index; the cell's text stays the badge's text, so the table is complete without the badge's tone (02 6.1.6).
 /// </summary>
-public sealed record PanelTableRow(IReadOnlyList<string> Cells, string? RecordPath, IReadOnlyDictionary<int, Shopfolio.Pages.Components.Badge>? Badges = null)
+public sealed record PanelTableRow(
+    IReadOnlyList<string> Cells,
+    string? RecordPath,
+    IReadOnlyDictionary<int, Shopfolio.Pages.Components.Badge>? Badges = null,
+    IReadOnlyDictionary<int, CardImage>? Images = null)
 {
     /// <summary>The badge the cell at <paramref name="column"/> is drawn as, or null for a plain text cell.</summary>
     public Shopfolio.Pages.Components.Badge? BadgeAt(int column) => Badges is not null && Badges.TryGetValue(column, out Shopfolio.Pages.Components.Badge? badge) ? badge : null;
+
+    /// <summary>The image the cell at <paramref name="column"/> is drawn as (the product list's main image, 04 9.4.3), or null; the cell's text stays as the image's fallback.</summary>
+    public CardImage? ImageAt(int column) => Images is not null && Images.TryGetValue(column, out CardImage? image) ? image : null;
 }
 
 /// <summary>
@@ -177,7 +184,7 @@ public sealed record PanelTableRow(IReadOnlyList<string> Cells, string? RecordPa
 /// </summary>
 public sealed record PanelTable
 {
-    public PanelTable(string caption, IReadOnlyList<PanelTableColumn> columns, IReadOnlyList<PanelTableRow> rows)
+    public PanelTable(string caption, IReadOnlyList<PanelTableColumn> columns, IReadOnlyList<PanelTableRow> rows, int? linkColumn = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(caption);
         ArgumentNullException.ThrowIfNull(columns);
@@ -197,10 +204,23 @@ public sealed record PanelTable
             throw new ArgumentException("A badge belongs to a column of the table.", nameof(rows));
         }
 
+        if (rows.Any(r => r.Images is not null && r.Images.Keys.Any(k => k < 0 || k >= columns.Count)))
+        {
+            throw new ArgumentException("An image belongs to a column of the table.", nameof(rows));
+        }
+
+        if (linkColumn is { } link && (link < 0 || link >= columns.Count || !columns[link].IsPrimary))
+        {
+            throw new ArgumentException("The link is in a primary column of the table.", nameof(linkColumn));
+        }
+
         Caption = caption;
         Columns = columns;
         Rows = rows;
+        _linkColumn = linkColumn;
     }
+
+    private readonly int? _linkColumn;
 
     public string Caption { get; }
 
@@ -208,6 +228,6 @@ public sealed record PanelTable
 
     public IReadOnlyList<PanelTableRow> Rows { get; }
 
-    /// <summary>The index of the column whose cell carries the row's link: the first primary one.</summary>
-    public int LinkColumn => Columns.Select((c, i) => (c, i)).First(x => x.c.IsPrimary).i;
+    /// <summary>The index of the column whose cell carries the row's link: the one the table named, else the first primary one.</summary>
+    public int LinkColumn => _linkColumn ?? Columns.Select((c, i) => (c, i)).First(x => x.c.IsPrimary).i;
 }

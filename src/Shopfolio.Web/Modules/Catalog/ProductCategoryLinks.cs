@@ -35,20 +35,36 @@ internal sealed class ProductCategoryLinks
             return ProductCategoriesResult.Refused(ProductCategoriesOutcome.ProductNotFound);
         }
 
+        (ProductCategoriesResult result, bool changed) = await ApplyAsync(product.Id, wanted, primaryCategoryId, ct);
+        if (changed)
+        {
+            product.BumpVersion();
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Makes the links of <paramref name="productId"/> match the set and tells whether anything changed; the version is the caller's: <see cref="SetAsync"/> raises it, the product form's save
+    /// (UC-114) raises it once for the whole form. A new product of the same unit of work holds no link yet.
+    /// </summary>
+    internal async Task<(ProductCategoriesResult Result, bool Changed)> ApplyAsync(Guid productId, IReadOnlyCollection<Guid> categoryIds, Guid? primaryCategoryId, CancellationToken ct)
+    {
+        HashSet<Guid> wanted = [.. categoryIds];
         int known = await _db.Categories.CountAsync(c => wanted.Contains(c.Id), ct);
         if (known != wanted.Count)
         {
-            return ProductCategoriesResult.Refused(ProductCategoriesOutcome.CategoryNotFound);
+            return (ProductCategoriesResult.Refused(ProductCategoriesOutcome.CategoryNotFound), false);
         }
 
         if (wanted.Count > 0 && primaryCategoryId is null)
         {
-            return ProductCategoriesResult.Refused(ProductCategoriesOutcome.PrimaryMissing);
+            return (ProductCategoriesResult.Refused(ProductCategoriesOutcome.PrimaryMissing), false);
         }
 
         if (primaryCategoryId is Guid primary && !wanted.Contains(primary))
         {
-            return ProductCategoriesResult.Refused(ProductCategoriesOutcome.PrimaryNotAmongCategories);
+            return (ProductCategoriesResult.Refused(ProductCategoriesOutcome.PrimaryNotAmongCategories), false);
         }
 
         List<ProductCategory> held = await _db.ProductCategories.Where(l => l.ProductId == productId).ToListAsync(ct);
@@ -57,7 +73,7 @@ internal sealed class ProductCategoryLinks
         List<Guid> toAdd = [.. wanted.Where(id => held.All(l => l.CategoryId != id)), .. remarked.Select(l => l.CategoryId)];
         if (toRemove.Count == 0 && toAdd.Count == 0)
         {
-            return ProductCategoriesResult.Written;
+            return (ProductCategoriesResult.Written, false);
         }
 
         // The changes go through the tracker (a bulk statement would bypass the product's version guard, 09 10.2). A link whose mark changes is deleted and
@@ -71,10 +87,8 @@ internal sealed class ProductCategoryLinks
             _db.ProductCategories.Add(ProductCategory.Create(productId, categoryId, categoryId == primaryCategoryId, now));
         }
 
-        product.BumpVersion();
-
         // The categories a product hangs on decide which categories show in the menu (02 3.28.6; 05 7.10.1).
         _invalidations.Add(CacheArea.Menu);
-        return ProductCategoriesResult.Written;
+        return (ProductCategoriesResult.Written, true);
     }
 }

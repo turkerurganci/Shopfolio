@@ -275,6 +275,34 @@ internal sealed class OrderingModule : IOrderingModule
         return items.Count;
     }
 
+    public async Task<int> AdvanceItemFilesAsync(IReadOnlyDictionary<Guid, Guid> fileByVariant, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(fileByVariant);
+        if (fileByVariant.Count == 0)
+        {
+            return 0;
+        }
+
+        // Tracked rows saved by the transaction owner (09 6 item 3): the item's file link is a non-raising field of 06 2.6.4, so no order lock is taken and no version moves.
+        // An item whose link the disposal emptied (OrderDisposalPart) keeps it empty: only a link that is there advances.
+        Guid[] variantIds = [.. fileByVariant.Keys];
+        List<OrderItem> items = await _db.OrderItems
+            .Where(i => i.VariantId != null && variantIds.Contains(i.VariantId.Value) && i.ProductType == ProductType.Digital && i.DigitalFileId != null)
+            .ToListAsync(ct);
+        int written = 0;
+        foreach (OrderItem item in items)
+        {
+            Guid file = fileByVariant[item.VariantId.GetValueOrDefault()];
+            if (item.DigitalFileId != file)
+            {
+                item.DigitalFileId = file;
+                written++;
+            }
+        }
+
+        return written;
+    }
+
     public async Task<IReadOnlyList<string>> TakeRemovedItemNoticesAsync(Guid cartId, CancellationToken ct)
     {
         // The cart's lock heads the transaction: a request that arrived together with this one waits here, and once the first has committed it reads no

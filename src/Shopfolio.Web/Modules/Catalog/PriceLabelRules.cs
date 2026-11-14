@@ -31,7 +31,7 @@ internal enum NetQuantityProblem
 internal static class PriceLabelRules
 {
     /// <summary>The decimals of a net quantity (06 4.6 <c>numeric(12,3)</c>; 04 7.2.4.13).</summary>
-    public const int NetQuantityDecimals = 3;
+    public const int NetQuantityDecimals = Shopfolio.Infrastructure.Validation.InvalidNetQuantityAttribute.Decimals;
 
     /// <summary>Whether the product form asks for the place of origin as a required field: on a physical product (02 3.8.5; 04 7.2.4.12).</summary>
     public static bool IsOriginRequired(ProductType type) => type == ProductType.Physical;
@@ -50,11 +50,15 @@ internal static class PriceLabelRules
             return netQuantity is null ? NetQuantityProblem.None : NetQuantityProblem.WithoutUnit;
         }
 
-        if (netQuantity is not { } quantity)
-        {
-            return NetQuantityProblem.Missing;
-        }
+        return netQuantity is { } quantity ? CheckNetQuantityValue(quantity) : NetQuantityProblem.Missing;
+    }
 
+    /// <summary>
+    /// The verdict on a net quantity's value alone - above zero, at most <see cref="NetQuantityDecimals"/> decimals (04 7.2.4.13; K-1018): the one rule that the form field's rule
+    /// (<see cref="Shopfolio.Infrastructure.Validation.InvalidNetQuantityAttribute"/>, which owns the scale) and the verdict against the unit above share.
+    /// </summary>
+    public static NetQuantityProblem CheckNetQuantityValue(decimal quantity)
+    {
         if (quantity <= 0)
         {
             return NetQuantityProblem.NotAboveZero;

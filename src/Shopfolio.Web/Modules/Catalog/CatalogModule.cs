@@ -40,6 +40,7 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly ShippingPeriodReader _shippingPeriods;
     private readonly CatalogMenuReader _menu;
     private readonly Coupons _coupons;
+    private readonly ProductSaves _saves;
 
     public CatalogModule(
         StockCounters counters,
@@ -63,8 +64,10 @@ internal sealed class CatalogModule : ICatalogModule
         Coupons coupons,
         CartVariantReader cartVariants,
         CartQuantityReader cartQuantities,
-        OrderItemSourceReader orderItemSources)
+        OrderItemSourceReader orderItemSources,
+        ProductSaves saves)
     {
+        _saves = saves;
         _cartVariants = cartVariants;
         _cartQuantities = cartQuantities;
         _orderItemSources = orderItemSources;
@@ -124,6 +127,8 @@ internal sealed class CatalogModule : ICatalogModule
     public Task<DiscountView?> GetDiscountAsync(Guid productId, CancellationToken ct) => _discounts.GetAsync(productId, ct);
 
     public Task<VariantPriceResult> ChangeVariantPriceAsync(Guid variantId, decimal price, CancellationToken ct) => _variantPrices.ChangeAsync(variantId, price, ct);
+
+    public Task<ProductSaveResult> SaveProductAsync(ProductSaveCommand command, CancellationToken ct) => _saves.SaveAsync(command, ct);
 
     public ItemAmounts PriceItem(ItemPriceInput input) => ItemPricing.Price(input);
 
@@ -289,12 +294,18 @@ internal static class CatalogModuleRegistration
         services.AddScoped<CatalogMenuReader>();
         services.AddScoped<ProductCategoryLinks>();
         services.AddScoped<ProductListReader>();
+        services.AddScoped<IPanelProductList, PanelProductListReader>();
+        services.AddScoped<IPanelProductForm, PanelProductFormReader>();
         services.AddScoped<ProductGallery>();
 
         // The discount and the price history (T337): one writer of the history, the two writers that call it, and the scheduler's source of the discounts' bounds.
         services.AddScoped<PriceHistoryRecorder>();
         services.AddScoped<Discounts>();
         services.AddScoped<VariantPrices>();
+
+        // The product form's save (T525; UC-114): the one writer of the whole form, over the part writers above.
+        services.AddScoped<ProductLocks>();
+        services.AddScoped<ProductSaves>();
         services.AddDueRecordSource<DiscountBoundarySource>();
 
         // The coupon (T338): its application counts the cart's invalid attempts (L-6). The counter is infrastructure that Program.cs registers first; a host that builds

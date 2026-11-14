@@ -120,6 +120,13 @@ public static class Confirmations
         return Build(ConfirmSurface.AdminWindow, operationName, warning, confirmation.Sentence, true, confirmLabel, actionPath, handler, cancelPath, fields);
     }
 
+    /// <summary>
+    /// 04 2.4.2.2 (K-655, K-797): the administrator's window of a permanent deletion - a product or a variant (04 9.5.15). The deletion is irreversible but is not one of the eight of
+    /// <see cref="IrreversibleConfirmation"/>, whose list is closed; the screen writes K-797's sentence and the window adds "Bu işlem geri alınamaz.".
+    /// </summary>
+    public static ConfirmView ForPermanentDeletion(string sentence, string confirmLabel, string actionPath, string handler, string cancelPath, IReadOnlyList<KeyValuePair<string, string>> fields) =>
+        Build(ConfirmSurface.AdminWindow, confirmLabel, null, sentence, true, confirmLabel, actionPath, handler, cancelPath, fields);
+
     /// <summary>04 2.4.2.3: the administrator's window for a reversible setting whose result is told with a number - no "geri alınamaz" sentence.</summary>
     public static ConfirmView ForSettingChange(string operationName, string sentence, string confirmLabel, string actionPath, string handler, string cancelPath, IReadOnlyList<KeyValuePair<string, string>> fields) =>
         Build(ConfirmSurface.AdminWindow, operationName, null, sentence, false, confirmLabel, actionPath, handler, cancelPath, fields);

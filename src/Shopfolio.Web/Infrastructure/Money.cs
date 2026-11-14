@@ -21,6 +21,12 @@ public static class Money
     public static readonly decimal MaxPercentage = 100m - Step(DataModel.ModelBuilderExtensions.PercentType.Scale);
 
     /// <summary>
+    /// The largest net quantity a variant holds (06 4.6: <c>numeric(12,3)</c>), derived from the type like <see cref="MaxAmount"/>: the upper limit of the net quantity field
+    /// (04 7.2.4.13), so that a larger value is a field message, never a value the database refuses.
+    /// </summary>
+    public static readonly decimal MaxNetQuantity = Limit(DataModel.ModelBuilderExtensions.NetQuantityType);
+
+    /// <summary>
     /// One amount to the nearest kuruş, an exact half kuruş up (12,345 to 12,35; 0,005 to 0,01; 0,004 to 0,00). Amounts are never
     /// negative where the product rounds them (02 3.8.3), so a negative input is a programming error and throws (09 14.1 item 1). The
     /// check compares the value: a zero with the minus sign bit (<c>-0.00m</c>) is not negative and rounds to a plain zero.

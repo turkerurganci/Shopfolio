@@ -1,6 +1,6 @@
 # T531 — Sipariş ayrıntısı: hizmet kalemi, indirme hakkı, iç not ve e-posta yeniden gönderim (E-37)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-14
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-14
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -81,12 +81,22 @@
 
 ## Doğrulama
 
+**Tur 1 — 2026-11-14 — ✓ PASS** (head `16daa313`; doğrulamanın başında `origin/main` `0289add9` birleştirildi → `00bef140`, yalnız `IMPLEMENTATION_STATUS.md` tablo satırları çakıştı — iki taraf korundu: dalın T517/T518 squash hash'leri, main'in T519 satırı; kod temiz birleşti. Doğrulama birleşik ağaçta.)
+
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — 0 bulgu; düzeltme gerekmez |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 3 — K1 forward D-1542 (`PanelOrderUpkeep.GateAsync` `PanelOrderSteps.GateAsync`'in kopyası; `09 §24` madde 4); K2 bu PR'da kapatıldı (D-614'e T531 payı yazıldı, hedef T528–T530); K3 bu PR'da kapatıldı (D-1384 (2) iç not formu T531 ile kapandı, kalan (1)) |
+| Başlangıç kapıları | Working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks`; main son 3 run `success` (43570435627, 43568483257, 43568483263) |
+| Yerel sınama (birleşik ağaç `00bef140`) | Build `-warnaserror` 0/0; `dotnet format --verify-no-changes` üç proje temiz; Unit 7632/7632; betik testleri 4/4; Integration hedefli sınıflar: `OrderDetailPageTests` + `ComponentMarkupTests` 31/31, `DispatchRetryAndMarkTests` + `OrderCorrectionTests` 93/93, `DigitalDeliveryTests` 23/23 — TAM: CI; `restore --locked-mode` 0 |
+| PR CI (#572, run 43571702679, head `00bef140`) | ✓ bütün işler yeşil (Lint, Build, Unit, 4. Integration 13m51s, Contract, Migration, Paketleme, E2E) |
+| Kabul kriterleri | 9/9 ✓ — KK1 `CompleteServiceItem_…_KK1` (açık adetin tamamı, S10 kapanış, `CompleteService` izi `ItemId`+`TransitionCode`, müşteri tarafında cayma kapandı / "sorun bildir" açıldı; karışık siparişte birincil "Kargoya ver"); KK2 `…_Is422_…_KK2` (ödenmemiş, işaretli, fiziksel kalem 422, red kodu `OperationNotAvailable`, yazım yok); KK3 `ResetDownloadCount_…_KK3` (sayaç 5→0, bildirim ve iz yok, fiziksel 422, eski sürüm 409; yalnız o kalem — `DownloadCounters.RenewAsync` `WHERE Id = kalem`; müşterinin yeniden indirmesi `DigitalDeliveryTests.Renew_…_TheBuyerCanDownloadAgain_KK6`); KK4 `SaveInternalNote_…_KK4` (yaz/değiştir/boşalt, sürüm 1, üç iz satırında metin yok); KK5 `…_Is409…_Is422…_KK5`; KK6 `ResendNotification_…_KK6` (`OriginalDispatchId` ilk satır, Queued, sürüm 1, `ResendEmail` izi; yine ulaşmadı → kalıcı mesaj; gönderildi → işaret kalktı); KK7/KK8 `…TwoConcurrentRequests…_KK7_KK8` (bir 303 + bir 422, tek satır, üçüncü gönderim 422; B-1 gövdesi donmuş metinle `DispatchRetryAndMarkTests`); KK9 `ResendAllNotifications_…_KK9` (iki satır; B-15 adressiz siparişte 422 ve hiçbir satır; öteki siparişe dokunulmadı) |
+| `12` satırları | PASS: `VAL-A201` (KK3), `VAL-A241` (KK4; not yalnız panel bölümünde, müşteri yüzü `InternalNoteSourceScanTests`), `VAL-C048` (KK1, KK2; T527'den T531'e bırakılmıştı). BEKLEMEDE kalır: `VAL-D028` (KRİTİK; D-884 — kalan müdahaleler T528, T530), `VAL-A255` (dört müdahaleden yalnız iç not T531'in), `VAL-A199`/`A200` ve öteki KP-48 satırları (başka task'lar), `VAL-A335` (KP-68; 16 bildirim + yasal metin sürümü, T531 kaynağı değil), `VAL-A710` (bütün E-37 işleyicileri). `12_matris_denetle.py --kapsam 1-77` hata 0 |
+| `09 §25` | ✓ — beş POST `[GatedOperation]` + `OperationRunner`; kural evi `OrderOperationCatalog` (GET ile aynı satır); `AuditOperation` kod listesinde (`CompleteService`, `SaveInternalNote`, `ResendEmail`), `Details` kişisel veri ve not metni taşımıyor; sürüm `VersionFields` ile, `Original` ikizi `[SpecAssignedName]`; iç not paylaşımlı kilit + tekil dizin yeniden denemesi; yeni paket, göç, ayar yok. Tek sapma kopya kapı (K1) |
+| Güvenlik | Secret yok; uçlar panel oturumu + `AdminAsync`, antiforgery; girdiler `Guid`/`int`/metin (64 KB form sınırı); yeni bağımlılık yok |
+| Yapım raporu karşılaştırması | Tam uyumlu. Öz denetim tablosu her KK ve backlog kalemi için kanıtlı. Raporda 4 ⚠ var (ortak dosya ve kopya kapı → K1; yabancı/olmayan kalem 422 — UC-139/UC-143 hata listesiyle uyumlu; `ResendAll` döngüsü; "yine başarısız" okuması `04` 9.9.33, 2.5.4 ile uyumlu) |
 
 ## Altyapı Değişiklikleri
 
@@ -111,7 +121,7 @@ Dış varsayım: yok. Tetikleyici tarama (plan tier, kota, API key, sandbox …)
 
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
-| — | Yok | — | — |
+| 1 | Panel sipariş yazıcılarının kapısı iki kopya (`PanelOrderUpkeep.GateAsync` ↔ `PanelOrderSteps.GateAsync`) — doğrulama tur 1 K1 | D-1542 | Ortak dosya T529/T530 ile paralel; davranış aynı, birleştirme T528–T530 ya da F5 kapısında |
 
 ## Notlar
 

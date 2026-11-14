@@ -31,7 +31,8 @@ public sealed partial class CheckoutPageTests
         Open(salesOpen: true, cardOpen: true, extra: s =>
         {
             s.RemoveAll<IPaymentGateway>();
-            s.AddSingleton<IPaymentGateway>(gateway);        });
+            s.AddSingleton<IPaymentGateway>(gateway);
+        });
 
     private static async Task<HttpResponseMessage> SendAsync(HttpClient client, HttpMethod method, string path, params string[] cookies)
     {

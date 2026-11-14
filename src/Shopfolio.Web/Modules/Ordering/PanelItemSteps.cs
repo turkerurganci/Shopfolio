@@ -95,6 +95,11 @@ internal sealed class PanelItemSteps : IPanelItemSteps
 
         if (request.Items.GroupBy(i => i.OrderItemId).Any(g => g.Count() > 1))
         {
+            return PanelItemStepResult.Refused(PanelItemObstacle.ItemSelectionInvalid);
+        }
+
+        if (request.Items.Any(i => i.Quantity < 1))
+        {
             return PanelItemStepResult.Refused(PanelItemObstacle.QuantityInvalid);
         }
 
@@ -119,7 +124,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
                 new CancelItemByFirmRequest(request.OrderId, units.OrderItemId, units.Quantity, request.Admin, version, true, reason, request.ReasonNote, request.OwnerConfirmed), ct);
             if (result.Refusal is { } refusal)
             {
-                return new PanelItemStepResult(refusal) { Obstacle = refusal == TransitionRefusal.InvalidInput ? PanelItemObstacle.QuantityInvalid : PanelItemObstacle.None };
+                return new PanelItemStepResult(refusal) { Obstacle = refusal == TransitionRefusal.InvalidInput ? PanelItemObstacle.QuantityExceedsOpen : PanelItemObstacle.None };
             }
 
             await WriteAsync(
@@ -178,15 +183,15 @@ internal sealed class PanelItemSteps : IPanelItemSteps
             return new PanelItemStepResult(TransitionRefusal.InvalidInput) { Obstacle = PanelItemObstacle.DeliveryOrderMissing, Warnings = warnings };
         }
 
-        if (!request.Confirmed)
-        {
-            return new PanelItemStepResult(TransitionRefusal.ConfirmationRequired) { Warnings = warnings };
-        }
-
-        // 04 7.2.10.5: the separate box is required and unticked - the window does not open, the form says it.
+        // 04 7.2.10.5: the separate box is required and unticked - the window does not open (422 before the confirmation state), the form says it.
         if (warnings.NeedsConfirmation && !request.WarningsConfirmed)
         {
             return new PanelItemStepResult(TransitionRefusal.InvalidInput) { Obstacle = PanelItemObstacle.WarningsUnconfirmed, Warnings = warnings };
+        }
+
+        if (!request.Confirmed)
+        {
+            return new PanelItemStepResult(TransitionRefusal.ConfirmationRequired) { Warnings = warnings };
         }
 
         WithdrawalResult result = await _transitions.RecordWithdrawalAsync(request, ct);
@@ -266,7 +271,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
         // The correction writes the record, the refund line and its own trail row (OrderCorrections; 02 10.4.1 (2)).
         OrderTransitionResult result = await _corrections.RemoveItemAsync(request with { Confirmed = isCard }, ct);
         return result.Refusal is { } refusal
-            ? new PanelItemStepResult(refusal) { Obstacle = refusal == TransitionRefusal.InvalidInput ? PanelItemObstacle.QuantityInvalid : PanelItemObstacle.None }
+            ? new PanelItemStepResult(refusal) { Obstacle = refusal == TransitionRefusal.InvalidInput ? PanelItemObstacle.QuantityExceedsOpen : PanelItemObstacle.None }
             : PanelItemStepResult.Done;
     }
 
@@ -340,7 +345,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
 
         if (left > 0)
         {
-            return PanelItemStepResult.Refused(PanelItemObstacle.QuantityInvalid);
+            return PanelItemStepResult.Refused(PanelItemObstacle.QuantityExceedsOpen);
         }
 
         await WriteAsync(
@@ -413,7 +418,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
 
         if (quantity > withdrawal.Awaiting + withdrawal.NotReturned)
         {
-            return PanelItemStepResult.Refused(PanelItemObstacle.QuantityInvalid);
+            return PanelItemStepResult.Refused(PanelItemObstacle.QuantityExceedsOpen);
         }
 
         if (isRejection && !request.Confirmed)
@@ -469,7 +474,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
     private static PanelItemStepResult? VerdictObstacle(OperationVerdict verdict) => verdict.Decision switch
     {
         OperationDecision.Allowed => null,
-        OperationDecision.QuantityExceedsOpen => PanelItemStepResult.Refused(PanelItemObstacle.QuantityInvalid),
+        OperationDecision.QuantityExceedsOpen => PanelItemStepResult.Refused(PanelItemObstacle.QuantityExceedsOpen),
         _ => PanelItemStepResult.NotOpen,
     };
 

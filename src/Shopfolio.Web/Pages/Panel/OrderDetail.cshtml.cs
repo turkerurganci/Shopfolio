@@ -459,6 +459,7 @@ public sealed partial class OrderDetailModel : PageModel
         PrimaryStep = PrimaryOf(operations);
         await LoadRefundLinesAsync(id, ct);
         await LoadCorrectionsAsync(id, ct);
+        await LoadReturnStepsAsync(ct);
         return true;
     }
 

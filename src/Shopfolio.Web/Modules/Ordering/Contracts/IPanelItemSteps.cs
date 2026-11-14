@@ -16,8 +16,14 @@ public enum PanelItemObstacle
     /// <summary>UC-129, UC-130: no item was chosen where the operation needs one.</summary>
     ItemNotSelected,
 
-    /// <summary>A quantity under one or above the units open to the operation; the request is not applied at all (K-1188 (4)).</summary>
+    /// <summary>A quantity under one (07 6.2.7 <c>InvalidQuantity</c>).</summary>
     QuantityInvalid,
+
+    /// <summary>A quantity above the units open to the operation; the request is not applied at all (07 6.2.7 <c>QuantityExceedsOpen</c>; K-1188 (4)).</summary>
+    QuantityExceedsOpen,
+
+    /// <summary>The same item twice in <c>Items</c> - a hand-made request: the item choice is invalid, no row is applied (07 5.1.5).</summary>
+    ItemSelectionInvalid,
 
     /// <summary>A date in the future, or out of the operation's range (before the delivery, before the order).</summary>
     DateInvalid,

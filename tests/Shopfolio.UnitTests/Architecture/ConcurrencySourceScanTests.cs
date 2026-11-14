@@ -146,13 +146,14 @@ public sealed class ConcurrencySourceScanTests
     }
 
     [Fact]
-    public void Scan_InTheProductLocksFile_AllowsOnlyThePlainRowLockText_T525()
+    public void Scan_InTheProductLocksFile_AllowsOnlyTheNoKeyRowLockText_T525()
     {
         IReadOnlyList<(string Rule, int Line)> findings = ConcurrencySourceScan.Scan(ConcurrencySourceScan.ProductLocksFile, ReadSample());
 
+        // The plain FOR UPDATE (line 6) would block the order lines' foreign key lock on the product row; only the NO KEY form (line 7) stands here.
         Assert.Contains((ConcurrencySourceScan.RowLockText, 5), findings);
-        Assert.DoesNotContain((ConcurrencySourceScan.RowLockText, 6), findings);
-        Assert.Contains((ConcurrencySourceScan.RowLockText, 7), findings);
+        Assert.Contains((ConcurrencySourceScan.RowLockText, 6), findings);
+        Assert.DoesNotContain((ConcurrencySourceScan.RowLockText, 7), findings);
         Assert.Contains((ConcurrencySourceScan.ShareLockText, 8), findings);
         Assert.Contains((ConcurrencySourceScan.CounterWrite, 10), findings);
     }
@@ -166,6 +167,7 @@ public sealed class ConcurrencySourceScanTests
         IReadOnlyList<(string Rule, int Line)> findings = ConcurrencySourceScan.Scan(path, ReadSample());
 
         Assert.Contains((ConcurrencySourceScan.RowLockText, 6), findings);
+        Assert.Contains((ConcurrencySourceScan.RowLockText, 7), findings);
     }
 
     [Theory]

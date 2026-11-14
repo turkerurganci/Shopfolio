@@ -842,7 +842,7 @@ public sealed class ProductTransitionsTests : IAsyncLifetime
             await using NpgsqlConnection connection = new(_collection.Dsn);
             await connection.OpenAsync(Ct);
             await using NpgsqlCommand command = new(
-                "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock' AND query ILIKE '%FOR UPDATE%'", connection);
+                "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock' AND query ILIKE '%FOR NO KEY UPDATE%'", connection);
             if ((long)(await command.ExecuteScalarAsync(Ct))! > 0)
             {
                 return;

@@ -155,7 +155,14 @@ internal sealed class ProductSaves
 
         await AdvanceItemFilesAsync(product, command, rows, filesBefore, ct);
 
-        (ProductCategoriesResult _, bool _) = await _links.ApplyAsync(product.Id, command.CategoryIds, command.PrimaryCategoryId, ct);
+        // The categories were checked above without the tree's lock: a chosen category deleted since is the field's refusal here, not a save without its link (07 UC-114).
+        (ProductCategoriesResult links, bool _) = await _links.ApplyAsync(product.Id, command.CategoryIds, command.PrimaryCategoryId, ct);
+        if (links.IsRejected)
+        {
+            ErrorCode code = links.Outcome == ProductCategoriesOutcome.CategoryNotFound ? ErrorCode.InvalidListValue : ErrorCode.FieldRequired;
+            return ProductSaveResult.Refused([new ProductSaveFieldError("Categories", code)]);
+        }
+
         await _gallery.ApplyLinksAsync(product.Id, command.Gallery, ct);
 
         // The prices: an existing variant's change goes through the price's one writer (the history and the discount's zero); a new variant's first price enters the history below.

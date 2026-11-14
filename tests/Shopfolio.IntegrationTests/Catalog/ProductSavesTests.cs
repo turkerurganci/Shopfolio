@@ -10,6 +10,7 @@ using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.Imaging;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.IntegrationTests.Model;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.AfterSales;
@@ -17,7 +18,9 @@ using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Payment;
+using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
+using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.IntegrationTests.Catalog;
 
@@ -60,7 +63,7 @@ public sealed class ProductSavesTests : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         await ExecuteAsync(
-            "TRUNCATE audit_logs, admins, price_histories, discounts, product_images, product_categories, categories, digital_files, images, variants, option_values, options, products, countries CASCADE");
+            "TRUNCATE order_items, orders, legal_text_versions, provinces, audit_logs, admins, price_histories, discounts, product_images, product_categories, categories, digital_files, images, variants, option_values, options, products, countries CASCADE");
         Country country = Country.Create("TR", "Türkiye", Now);
         _admin = Admin.Create("Firma Yöneticisi", "yonetici@example.com", "digest-placeholder", Now);
         await SaveAsync(c =>
@@ -258,6 +261,37 @@ public sealed class ProductSavesTests : IAsyncLifetime
         Assert.Equal(9, await db.Variants.Where(v => v.Id == variant.Id).Select(v => v.StockQuantity).SingleAsync(Ct));
     }
 
+    [Fact]
+    public async Task TheFormsSave_AndAnOrderConfirmationOnTheSameVariant_BothComplete_WithoutADeadlock_KK4()
+    {
+        (Product product, Variant variant) = await SeedAsync(ProductType.Physical, stock: 5);
+        Guid orderId = await SeedOrderAsync();
+
+        // The order confirmation's order (05 7.3.5): the variant's reservation first, the order's lines at its end - their foreign key to the product asks the product row for KEY SHARE.
+        await using AsyncServiceScope confirmation = _provider.CreateAsyncScope();
+        AppDbContext orderDb = confirmation.ServiceProvider.GetRequiredService<AppDbContext>();
+        await using IDbContextTransaction orderTransaction = await orderDb.Database.BeginTransactionAsync(Ct);
+        Assert.True(await confirmation.ServiceProvider.GetRequiredService<StockCounters>()
+            .ApplyAsync([(new StockClaim([new VariantQuantity(variant.Id, 1)], null), CounterMove.Reserve)], Ct));
+
+        // The form's save takes the product's row and then waits for the variant the confirmation holds.
+        Task<ProductSaveResult> save = Task.Run(() => RunAsync(Existing(product, variant, price: 150m, stock: 5, shown: 5)), Ct);
+        await WaitUntilATransactionWaitsOnALockAsync("%");
+        Assert.False(save.IsCompleted);
+
+        // The product row's lock does not block the lines' key share (a plain FOR UPDATE would: Postgres breaks the cycle with 40P01).
+        orderDb.OrderItems.Add(OrderItem.Create(orderId, product.Id, variant.Id, ProductType.Physical, "Masa", 1, 100m, 20m, 16.67m, Now));
+        await orderDb.SaveChangesAsync(Ct);
+        await orderTransaction.CommitAsync(Ct);
+        ProductSaveResult saved = await save;
+
+        Assert.False(saved.IsRejected);
+        await using AppDbContext db = NewContext();
+        Variant after = await db.Variants.SingleAsync(v => v.Id == variant.Id, Ct);
+        Assert.Equal((150m, 5, 1), (after.Price, after.StockQuantity, after.ReservedQuantity));
+        Assert.Equal(1, await db.OrderItems.CountAsync(i => i.OrderId == orderId, Ct));
+    }
+
     // ---- KK5: the 422 reasons, each in its own test ----
 
     [Fact]
@@ -304,6 +338,24 @@ public sealed class ProductSavesTests : IAsyncLifetime
         ProductSaveResult result = await RunAsync(Command(variants: [Row(sku: "KUPA-5")], categories: [gone], primary: gone));
 
         Assert.Contains(result.FieldErrors, e => e.Field == "Categories" && e.Code == ErrorCode.InvalidListValue);
+    }
+
+    [Fact]
+    public async Task ACategoryDeletedAfterTheCheck_IsRefusedByTheLinksWrite_OnTheCategoryField_AndNothingIsWritten_KK5()
+    {
+        int n = ++_counter;
+        Category category = Category.Create($"Kategori {n}", $"kategori-{n}", null, 1, LongAgo);
+        await SaveAsync(c => c.Categories.Add(category));
+
+        // The save checks the categories without the tree's lock; the category goes before the links' write reads them again (the second count of the chosen categories).
+        DeleteCategoryBeforeTheSecondCount interceptor = new(category.Id, _collection.Dsn);
+        await using ServiceProvider provider = BuildProvider(interceptor);
+        ProductSaveResult result = await RunAsync(Command(variants: [Row(sku: "KUPA-5B")], categories: [category.Id], primary: category.Id), provider);
+
+        Assert.Equal(2, interceptor.Counts);
+        Assert.True(result.IsRejected);
+        AssertField(result, "Categories", ErrorCode.InvalidListValue);
+        Assert.Equal(0L, await CountAsync("products"));
     }
 
     [Fact]
@@ -471,9 +523,9 @@ public sealed class ProductSavesTests : IAsyncLifetime
         return (product, variant);
     }
 
-    private async Task<ProductSaveResult> RunAsync(ProductSaveCommand command)
+    private async Task<ProductSaveResult> RunAsync(ProductSaveCommand command, ServiceProvider? provider = null)
     {
-        await using AsyncServiceScope scope = _provider.CreateAsyncScope();
+        await using AsyncServiceScope scope = (provider ?? _provider).CreateAsyncScope();
         AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await using IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(Ct);
         ProductSaveResult result = await scope.ServiceProvider.GetRequiredService<ProductSaves>().SaveAsync(command, Ct);
@@ -489,10 +541,17 @@ public sealed class ProductSavesTests : IAsyncLifetime
     }
 
     /// <summary>The module's services as the application registers them (the save's lock, the items' file links and the trail are its dependencies), over the collection's database.</summary>
-    private ServiceProvider BuildProvider()
+    private ServiceProvider BuildProvider(Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor? interceptor = null)
     {
         ServiceCollection services = new();
-        services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, _collection.Dsn));
+        services.AddDbContext<AppDbContext>(options =>
+        {
+            AppDbContext.Configure(options, _collection.Dsn);
+            if (interceptor is not null)
+            {
+                options.AddInterceptors(interceptor);
+            }
+        });
         services.AddScoped<JobEnqueueTracker>();
         services.AddSingleton<IJobSignal, JobSignal>();
         services.AddScoped<ITransactionRunner, TransactionRunner>();
@@ -536,15 +595,19 @@ public sealed class ProductSavesTests : IAsyncLifetime
         await command.ExecuteNonQueryAsync(Ct);
     }
 
-    /// <summary>Waits until a transaction of this collection's database waits on a row lock (the second writer behind the product's row lock).</summary>
-    private async Task WaitUntilATransactionWaitsOnALockAsync()
+    /// <summary>
+    /// Waits until a transaction of this collection's database waits on a row lock with a statement like <paramref name="statement"/>: by default the second writer behind the
+    /// product's row lock.
+    /// </summary>
+    private async Task WaitUntilATransactionWaitsOnALockAsync(string statement = "%FOR NO KEY UPDATE%")
     {
         for (int attempt = 0; attempt < 400; attempt++)
         {
             await using NpgsqlConnection connection = new(_collection.Dsn);
             await connection.OpenAsync(Ct);
             await using NpgsqlCommand command = new(
-                "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock' AND query ILIKE '%FOR UPDATE%'", connection);
+                "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock' AND query ILIKE @statement", connection);
+            command.Parameters.AddWithValue("statement", statement);
             if ((long)(await command.ExecuteScalarAsync(Ct))! > 0)
             {
                 return;
@@ -553,7 +616,45 @@ public sealed class ProductSavesTests : IAsyncLifetime
             await Task.Delay(25, Ct);
         }
 
-        Assert.Fail("No transaction waited on the product's row lock.");
+        Assert.Fail("No transaction waited on a row lock.");
+    }
+
+    /// <summary>An order without lines (the lines are the test's): the order confirmation's header, as the module writes it.</summary>
+    private async Task<Guid> SeedOrderAsync()
+    {
+        int n = Interlocked.Increment(ref _counter);
+        Province province = Province.Create($"{n:D2}", $"İl {n}", Now);
+        LegalTextVersion form = LegalTextVersion.CreatePublished(LegalTextType.PreInformationForm, n, Now, "metin", Now);
+        LegalTextVersion contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, n, Now, "metin", Now);
+        LegalTextVersion notice = LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, n, Now, "metin", Now).WithHosting();
+        Order order = Order.Create(
+            $"2026-{n:D6}", $"access-placeholder-{n}", $"confirm-placeholder-{n}", PaymentMethod.Card, true, "Ali@Example.com", 120m, 0m, Now.AddHours(1), Now);
+        order.IpAddress = System.Net.IPAddress.Parse("203.0.113.5");
+        order.CartId = EntityIds.New();
+        order.BillingRecipientName = "Ali Veli";
+        order.BillingProvinceId = province.Id;
+        order.BillingDistrict = "Çankaya";
+        order.BillingAddressLine = "Atatürk Bulvarı 1";
+        order.CompanyType = CompanyType.Tradesman;
+        order.CompanyLegalName = "Örnek Ticaret";
+        order.CompanyTaxIdNumber = "1234567890";
+        order.CompanyProvinceId = province.Id;
+        order.CompanyDistrict = "Çankaya";
+        order.CompanyAddressLine = "Kızılay 2";
+        order.CompanyPhone = "3121234567";
+        order.CompanyEmail = "firma@example.com";
+        order.CompanyKepAddress = "firma@hs01.kep.tr";
+        order.PreInformationFormVersionId = form.Id;
+        order.DistanceSalesContractVersionId = contract.Id;
+        order.PrivacyNoticeVersionId = notice.Id;
+        order.FreezeDocuments("ön bilgilendirme", "mesafeli satış");
+        await SaveAsync(c =>
+        {
+            c.Provinces.Add(province);
+            c.LegalTextVersions.AddRange(form, contract, notice);
+            c.Orders.Add(order);
+        });
+        return order.Id;
     }
 
     private async Task<long> CountAsync(string table)
@@ -562,6 +663,32 @@ public sealed class ProductSavesTests : IAsyncLifetime
         await connection.OpenAsync(Ct);
         await using NpgsqlCommand command = new($"SELECT count(*) FROM {table}", connection);
         return (long)(await command.ExecuteScalarAsync(Ct))!;
+    }
+
+    /// <summary>Deletes the category on its own connection just before the save's second count of the chosen categories (the links' write) runs: the deletion that falls between the check and the write.</summary>
+    private sealed class DeleteCategoryBeforeTheSecondCount(Guid categoryId, string dsn) : Microsoft.EntityFrameworkCore.Diagnostics.DbCommandInterceptor
+    {
+        public int Counts { get; private set; }
+
+        public override async ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<System.Data.Common.DbDataReader>> ReaderExecutingAsync(
+            System.Data.Common.DbCommand command,
+            Microsoft.EntityFrameworkCore.Diagnostics.CommandEventData eventData,
+            Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<System.Data.Common.DbDataReader> result,
+            CancellationToken cancellationToken = default)
+        {
+            if (command.CommandText.Contains("count(*)", StringComparison.OrdinalIgnoreCase)
+                && command.CommandText.Contains("FROM categories", StringComparison.OrdinalIgnoreCase)
+                && ++Counts == 2)
+            {
+                await using NpgsqlConnection connection = new(dsn);
+                await connection.OpenAsync(cancellationToken);
+                await using NpgsqlCommand delete = new("DELETE FROM categories WHERE id = @id", connection);
+                delete.Parameters.AddWithValue("id", categoryId);
+                await delete.ExecuteNonQueryAsync(cancellationToken);
+            }
+
+            return result;
+        }
     }
 
     private sealed class FixedTime(DateTimeOffset now) : TimeProvider

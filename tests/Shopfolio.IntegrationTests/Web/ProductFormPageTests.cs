@@ -4,10 +4,12 @@ using System.Net;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Net.Http.Headers;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Security;
@@ -35,6 +37,9 @@ public sealed class ProductFormPageTests : IAsyncLifetime
 
     private readonly CollectionDatabaseFixture _database;
 
+    /// <summary>This test's own file store (the uploads' images), so no test writes under the production directories; removed when the test ends.</summary>
+    private readonly string _fileRoot = Path.Combine(Path.GetTempPath(), "shopfolio-t525-" + Guid.NewGuid().ToString("N"));
+
     private string _adminKey = string.Empty;
 
     public ProductFormPageTests(CollectionDatabaseFixture database)
@@ -50,7 +55,15 @@ public sealed class ProductFormPageTests : IAsyncLifetime
         _adminKey = (await TestSessions.AdminAsync(_database.Dsn)).Key;
     }
 
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    public ValueTask DisposeAsync()
+    {
+        if (Directory.Exists(_fileRoot))
+        {
+            Directory.Delete(_fileRoot, recursive: true);
+        }
+
+        return ValueTask.CompletedTask;
+    }
 
     [Fact]
     public async Task TheNewForm_IsEmpty_AndAnUnknownKeyIs404_KK2()
@@ -763,6 +776,47 @@ public sealed class ProductFormPageTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task SaveProduct_APriceRiseUnderADiscount_ThatLiftsTheDiscountedPriceToTheReference_Is422AtThePrice_AndWritesNothing_D488()
+    {
+        // 02 3.9.5 on the form's price change (D-488): the form saves the discount again with the new price, so a rise that takes the discounted price to or above the reference
+        // (the lowest price of the 30 days before the start) is the price field's refusal - 100 with 10% off is 90; 120 with 10% off is 108, not below 100.
+        (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (100m, 7));
+        DateOnly start = TurkeyTime.DateOf(DateTimeOffset.UtcNow).AddDays(3);
+        DateOnly end = start.AddDays(10);
+        await using (AppDbContext db = ListSeed.Open(_database.Dsn))
+        {
+            db.PriceHistories.Add(PriceHistory.Create(variants[0], 100m, Base, Base));
+            db.Discounts.Add(Discount.Create(productId, 10m, start, end, Base));
+            await db.SaveChangesAsync(Ct);
+
+            // On sale since before the window (02 3.9.3): the reference is the window's lowest price, not the price immediately before the start.
+            await db.Variants.Where(v => v.Id == variants[0]).ExecuteUpdateAsync(s => s.SetProperty(v => v.FirstOnSaleAt, Base), Ct);
+        }
+
+        int version = await VersionOfAsync(productId);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        (string Name, string Value)[] discount =
+        [
+            ("Input.Discount.Percentage", "10"),
+            ("Input.Discount.StartDate", start.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
+            ("Input.Discount.EndDate", end.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
+        ];
+
+        using HttpResponseMessage response = await PostAsync(client, productId, "SaveProduct", [.. await SaveFieldsAsync(productId, variants[0], price: "120"), .. discount]);
+        string html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Contains($"referans fiyatın ({DisplayFormat.Amount(100m)}) altına inmiyor", html, StringComparison.Ordinal);
+        Assert.Equal(version, await VersionOfAsync(productId));
+        await using AppDbContext check = ListSeed.Open(_database.Dsn);
+        Assert.Equal(100m, await check.Variants.AsNoTracking().Where(v => v.Id == variants[0]).Select(v => v.Price).SingleAsync(Ct));
+        Assert.Equal([100m], await check.PriceHistories.AsNoTracking().Where(h => h.VariantId == variants[0]).Select(h => h.Price).ToListAsync(Ct));
+        Discount kept = await check.Discounts.AsNoTracking().SingleAsync(d => d.ProductId == productId, Ct);
+        Assert.Equal((10m, start, end), (kept.Percentage, kept.StartDate, kept.EndDate));
+    }
+
+    [Fact]
     public async Task SaveProduct_ABodyAboveTheDefaultCeilingAndBelowTheLongTextOne_IsNot413_KK3()
     {
         (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
@@ -880,7 +934,12 @@ public sealed class ProductFormPageTests : IAsyncLifetime
     }
 
     private WebApplicationFactory<Program> Open() =>
-        new ShopfolioWebApplicationFactory(_database.Dsn).WithWebHostBuilder(b => b.ConfigureServices(s => s.AddRazorPages().AddApplicationPart(typeof(ForgeryTokenSampleModel).Assembly)));
+        new ShopfolioWebApplicationFactory(_database.Dsn).WithWebHostBuilder(b => b.ConfigureServices(s =>
+        {
+            s.RemoveAll<FileStoreDirectories>();
+            s.AddSingleton(new FileStoreDirectories(Path.Combine(_fileRoot, "images"), Path.Combine(_fileRoot, "digital")));
+            s.AddRazorPages().AddApplicationPart(typeof(ForgeryTokenSampleModel).Assembly);
+        }));
 
     private HttpClient ClientOf(WebApplicationFactory<Program> factory)
     {

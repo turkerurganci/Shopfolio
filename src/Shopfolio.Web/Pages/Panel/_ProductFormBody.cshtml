@@ -186,7 +186,7 @@
         <fieldset class="product-form__file" id="product-file">
             <legend>Dijital dosya</legend>
             <input type="hidden" id="product-file-id" name="Input.DigitalFileId" value="@(entries.DigitalFileId?.ToString("D"))" />
-            <p class="product-form__file-state">@(entries.DigitalFileId is null ? "Dosya yok" : "Dosya ekli")</p>
+            <p class="product-form__file-state" data-js="file-state">@(entries.DigitalFileId is null ? "Dosya yok" : "Dosya ekli")</p>
             <label for="product-file-upload">Ürünün dosyası</label>
             <input upload-file="DigitalFile" id="product-file-upload" data-js="@ProductFormModel.DigitalFileUploadHook" data-target-field="Input.DigitalFileId" />
             <p class="field__hint">@ProductFormModel.FileUpdateText</p>

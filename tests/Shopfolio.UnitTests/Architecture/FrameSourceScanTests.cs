@@ -96,10 +96,18 @@ public sealed partial class FrameSourceScanTests
 
     // ---- The scripts (09 16.1 items 3, 9) ----
 
-    private static List<string> ScriptViolations(string script)
+    /// <summary>The one module that may call <c>fetch(</c> (T548; 09 16.2 item 6): the chunked upload of the product form's page module. Every other script, and every other network form in this one, stays banned.</summary>
+    private const string UploadModule = "wwwroot/js/pages/panel/product-form.js";
+
+    private static List<string> ScriptViolations(string script, bool mayFetch = false)
     {
         string text = StripScriptComments(script);
-        return [.. ScriptImport().Matches(text).Select(m => $"import: {m.Value.Trim()}"), .. ScriptMarkupFromText().Matches(text).Select(m => $"markup from text: {m.Value}"), .. ScriptNetwork().Matches(text).Select(m => $"network: {m.Value}")];
+        return
+        [
+            .. ScriptImport().Matches(text).Select(m => $"import: {m.Value.Trim()}"),
+            .. ScriptMarkupFromText().Matches(text).Select(m => $"markup from text: {m.Value}"),
+            .. ScriptNetwork().Matches(text).Where(m => !(mayFetch && m.Value.StartsWith("fetch", StringComparison.Ordinal))).Select(m => $"network: {m.Value}"),
+        ];
     }
 
     [Fact]
@@ -109,8 +117,36 @@ public sealed partial class FrameSourceScanTests
         Assert.NotEmpty(scripts);
         foreach (string script in scripts)
         {
-            Assert.Empty(ScriptViolations(File.ReadAllText(script)));
+            bool mayFetch = Path.GetRelativePath(Path.Combine(RepositoryRoot.Find(), Web), script).Replace('\\', '/') == UploadModule;
+            Assert.Empty(ScriptViolations(File.ReadAllText(script), mayFetch));
         }
+    }
+
+    [Theory]
+    [InlineData("const response = await fetch('/panel/yukleme', { method: 'POST' });")]
+    [InlineData("const response = await fetch ( url );")]
+    public void TheUploadModule_MayCallFetch_KK4(string line) => Assert.Empty(ScriptViolations(line, mayFetch: true));
+
+    [Theory]
+    [InlineData("const response = await fetch('/panel/yukleme');", false)]
+    [InlineData("const s = 'https://tracker.example/p.js'; fetch(s);", true)]
+    [InlineData("const request = new XMLHttpRequest();", true)]
+    [InlineData("navigator.sendBeacon('/m');", true)]
+    [InlineData("const m = await import('./other.js');", true)]
+    public void TheFetchException_IsOnlyForTheUploadModule_AndOnlyForFetch_KK4(string line, bool mayFetch)
+    {
+        List<string> violations = ScriptViolations(line, mayFetch);
+        Assert.NotEmpty(violations);
+        Assert.DoesNotContain(violations, v => mayFetch && v.StartsWith("network: fetch", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void TheUploadModulesFetch_IsOne_ToTheUploadEndpoints_WithTheRedirectCaught_KK4()
+    {
+        string text = StripScriptComments(ReadWeb(UploadModule));
+        Assert.Single(Regex.Matches(text, @"\bfetch\s*\(", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
+        Assert.Contains("const UPLOAD_PATH = \"/panel/yukleme\";", text, StringComparison.Ordinal);
+        Assert.Contains("fetch(url, { ...init, redirect: \"manual\" })", text, StringComparison.Ordinal);
     }
 
     [Theory]

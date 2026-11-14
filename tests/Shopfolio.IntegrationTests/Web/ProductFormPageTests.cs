@@ -599,6 +599,10 @@ public sealed class ProductFormPageTests : IAsyncLifetime
         Assert.Contains($"data-js=\"{ProductFormModel.DigitalFileUploadHook}\" data-target-field=\"Input.Variants[0].DigitalFileId\"", html, StringComparison.Ordinal);
         Assert.Contains(("Input.DigitalFileId", productFile.Id.ToString("D")), SaveFormFieldsOf(html));
         Assert.Contains(ProductFormModel.FileUpdateText, html, StringComparison.Ordinal);
+
+        // T548: the script writes the file's name and size into the state line of each file field (a hook, not the style class).
+        Assert.Contains("<p class=\"product-form__file-state\" data-js=\"file-state\">", html, StringComparison.Ordinal);
+        Assert.Contains("<span class=\"product-form__file-state\" data-js=\"file-state\">", html, StringComparison.Ordinal);
     }
 
     [Fact]

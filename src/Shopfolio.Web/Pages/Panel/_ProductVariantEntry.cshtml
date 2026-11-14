@@ -84,7 +84,7 @@
         string fileField = $"Input.Variants[{i}].DigitalFileId";
         <input type="hidden" id="product-variant-@i-file" name="@fileField" value="@(row.DigitalFileId?.ToString("D"))" />
         <label for="product-variant-@i-file-upload">Varyantın dosyası</label>
-        <span class="product-form__file-state">@(row.DigitalFileId is null ? "Dosya yok" : "Dosya ekli")</span>
+        <span class="product-form__file-state" data-js="file-state">@(row.DigitalFileId is null ? "Dosya yok" : "Dosya ekli")</span>
         <input upload-file="DigitalFile" id="product-variant-@i-file-upload" data-js="@ProductFormModel.DigitalFileUploadHook" data-target-field="@fileField" />
     }
     else if (row.DigitalFileId is { } variantFile)

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
+using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
@@ -55,8 +56,8 @@ internal sealed partial class AfterSalesModule
 
     /// <summary>
     /// The order's refunds still pending on the transfer way - neither sent nor voided, whatever their source: a record's, a defect remedy's rescission or price
-    /// reduction (T374), the late payment's - and where each would be paid (02 7.4.5): to its record's IBAN; without one, to the IBANs fulfilled on its own
-    /// requests, then on its item's requests; without any, to the IBAN on the order's file - so it holds every IBAN of the order.
+    /// reduction (T374), the late payment's - and the IBAN each is paid to by the one rule the panel's refund line reads (<see cref="PayeeBook"/>; 02 7.4.5;
+    /// D-907): a refund waiting for its IBAN (its own or its item's request open) is no IBAN's payee (K-356).
     /// </summary>
     private async Task<IReadOnlyList<PendingPayee>> PendingTransferPayeesAsync(Guid orderId, CancellationToken ct)
     {
@@ -66,47 +67,10 @@ internal sealed partial class AfterSalesModule
             return [];
         }
 
-        Guid[] cancellationIds = [.. pending.Select(r => r.CancellationId).OfType<Guid>()];
-        Guid[] terminationIds = [.. pending.Select(r => r.LateDeliveryTerminationId).OfType<Guid>()];
-        Guid[] withdrawalIds = [.. pending.Select(r => r.WithdrawalId).OfType<Guid>()];
-        Dictionary<Guid, Guid> recordIbans = new(
-        [
-            .. await _db.Cancellations.Where(c => cancellationIds.Contains(c.Id) && c.RefundIbanId != null)
-                .Select(c => new KeyValuePair<Guid, Guid>(c.Id, c.RefundIbanId!.Value)).ToListAsync(ct), // non-null: the Where above keeps only cancellations with an IBAN
-            .. await _db.LateDeliveryTerminations.Where(t => terminationIds.Contains(t.Id) && t.RefundIbanId != null)
-                .Select(t => new KeyValuePair<Guid, Guid>(t.Id, t.RefundIbanId!.Value)).ToListAsync(ct), // non-null: the Where above keeps only terminations with an IBAN
-            .. await _db.Withdrawals.Where(w => withdrawalIds.Contains(w.Id) && w.RefundIbanId != null)
-                .Select(w => new KeyValuePair<Guid, Guid>(w.Id, w.RefundIbanId!.Value)).ToListAsync(ct), // non-null: the Where above keeps only withdrawals with an IBAN
-        ]);
-
-        Guid[] refundIds = [.. pending.Select(r => r.RefundId)];
-        Guid[] itemIds = [.. pending.Select(r => r.OrderItemId).OfType<Guid>().Distinct()];
-        List<RequestUse> fulfilled = await _db.RefundIbanRequests
-            .Where(r => r.RefundIbanId != null
-                && ((r.RefundId != null && refundIds.Contains(r.RefundId.Value)) || (r.RefundId == null && r.OrderItemId != null && itemIds.Contains(r.OrderItemId.Value))))
-            .Select(r => new RequestUse(r.OrderItemId, r.RefundId, r.RefundIbanId!.Value, r.FulfilledAt)) // non-null: the Where above keeps only requests with an IBAN
-            .ToListAsync(ct);
-
-        List<PendingPayee> payees = [];
-        foreach (RefundOfRecord refund in pending)
-        {
-            Guid? recordId = refund.CancellationId ?? refund.LateDeliveryTerminationId ?? refund.WithdrawalId;
-            if (recordId is { } record && recordIbans.TryGetValue(record, out Guid recordIban))
-            {
-                payees.Add(new PendingPayee(refund.RefundId, recordIban, []));
-                continue;
-            }
-
-            List<Guid> own = [.. fulfilled.Where(r => r.RefundId == refund.RefundId).Select(r => r.RefundIbanId)];
-            if (own.Count == 0 && refund.OrderItemId is { } itemId)
-            {
-                own = [.. fulfilled.Where(r => r.RefundId == null && r.OrderItemId == itemId).Select(r => r.RefundIbanId)];
-            }
-
-            payees.Add(new PendingPayee(refund.RefundId, null, own));
-        }
-
-        return payees;
+        RefundPayeeSubject[] subjects =
+            [.. pending.Select(r => RefundPayeeSubject.Of(r.RefundId, r.CancellationId, r.LateDeliveryTerminationId, r.WithdrawalId, r.OrderItemId))];
+        PayeeBook book = await LoadPayeeBookAsync(orderId, subjects, ct);
+        return [.. pending.Zip(subjects, (refund, subject) => new PendingPayee(refund.RefundId, book.PayeeOf(subject).RefundIbanId))];
     }
 
     /// <summary>
@@ -141,10 +105,10 @@ internal sealed partial class AfterSalesModule
     /// <summary>A request fulfilled with an IBAN: its item or refund, the IBAN and the moment it came.</summary>
     private sealed record RequestUse(Guid? OrderItemId, Guid? RefundId, Guid RefundIbanId, DateTimeOffset? FulfilledAt);
 
-    /// <summary>A refund pending on the transfer way: the record's IBAN it is paid to, or else the IBANs of its requests (none: every IBAN of the order).</summary>
-    private sealed record PendingPayee(Guid RefundId, Guid? RecordIban, IReadOnlyList<Guid> RequestIbans)
+    /// <summary>A refund pending on the transfer way and the one IBAN it is paid to (none: it waits for one and uses no IBAN).</summary>
+    private sealed record PendingPayee(Guid RefundId, Guid? RefundIbanId)
     {
-        public bool PaysTo(Guid ibanId) => RecordIban is { } record ? record == ibanId : RequestIbans.Count == 0 || RequestIbans.Contains(ibanId);
+        public bool PaysTo(Guid ibanId) => RefundIbanId == ibanId;
     }
 
     /// <summary>The users of the order's IBANs as one read loaded them; each IBAN is decided here without a further query.</summary>

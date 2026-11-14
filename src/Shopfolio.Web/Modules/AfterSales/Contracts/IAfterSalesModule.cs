@@ -257,6 +257,13 @@ public interface IAfterSalesModule
     Task<IReadOnlyList<RefundIbanField>> ListRefundIbanFieldsAsync(Guid orderId, IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
 
     /// <summary>
+    /// The IBAN each subject's transfer refund is paid to, or none while it waits for one (02 7.4.5; D-907; 09 25 one function): the one rule the panel's refund
+    /// line, its confirmation window, the firm's "işle" and "havale gerçekleşmedi" steps and the IBAN's life (<see cref="DeleteUnusedRefundIbansAsync"/>) read.
+    /// One result per subject, in order. A plain read, a fixed number of queries.
+    /// </summary>
+    Task<IReadOnlyList<RefundPayee>> ResolveRefundPayeesAsync(Guid orderId, IReadOnlyCollection<RefundPayeeSubject> subjects, CancellationToken ct);
+
+    /// <summary>
     /// Whether a cancellation of <paramref name="selectedUnits"/> before the carrier took the order pays the shipping fee back (T512; 02 7.2.9; 04 5.17.5; K-789): the
     /// shipping fee rule's trigger (1) over the order's physical items' open units, read for the screen before the last step so the page works it out not itself (09 3.4
     /// item 1). A pure answer; reads and writes nothing.

@@ -42,5 +42,19 @@ public sealed record RefundIbanWriteResult(Guid? RefundIbanId, bool IsInvalidIba
     public static RefundIbanWriteResult NotFound { get; } = new(null, false);
 }
 
+/// <summary>
+/// A transfer refund - born, or owed by an item record and not born yet - whose IBAN is asked (02 7.4.5; D-907): the refund, the record that causes it (a
+/// cancellation, a late delivery termination, a withdrawal; the only records that carry an IBAN of their own) and its item. Any of the three may be missing.
+/// </summary>
+public sealed record RefundPayeeSubject(Guid? RefundId, Guid? RecordId, Guid? OrderItemId)
+{
+    /// <summary>A born refund's subject from its links: the record of the three that carry an IBAN, in this order.</summary>
+    public static RefundPayeeSubject Of(Guid refundId, Guid? cancellationId, Guid? lateDeliveryTerminationId, Guid? withdrawalId, Guid? orderItemId) =>
+        new(refundId, cancellationId ?? lateDeliveryTerminationId ?? withdrawalId, orderItemId);
+}
+
+/// <summary>The IBAN the subject's refund is paid to, or none (<see cref="RefundIbanId"/> null): the refund waits for its IBAN and is no IBAN's payee.</summary>
+public sealed record RefundPayee(RefundPayeeSubject Subject, Guid? RefundIbanId, string? Iban);
+
 /// <summary>The firm's "havale gerçekleşmedi" on an item, or on the itemless refund of a late payment (02 7.4.5; K-575, K-1131).</summary>
 public sealed record TransferFailure(Guid OrderId, Guid? OrderItemId, Guid? RefundId, Guid AdminId, string AdminName, DateTimeOffset At);

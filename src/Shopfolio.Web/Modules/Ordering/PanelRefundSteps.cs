@@ -79,7 +79,7 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
         PaymentMethod way = born?.Way ?? Way(order);
         // A born refund may have no item (the late payment's, an amount based one; 04 9.9.21): its own item, never the owed record's, then its own IBAN.
         Guid? itemId = born is not null ? born.OrderItemId : owed!.OrderItemId; // non-null: without a born refund the owed record was found above
-        string? iban = way == PaymentMethod.BankTransfer ? lines.IbanOf(born?.RefundId, itemId) : null;
+        string? iban = way == PaymentMethod.BankTransfer ? lines.IbanOf(born, owed) : null;
 
         // The system's own card refund and a refund that was sent are not the firm's step (02 7.2.8); the transfer line without an IBAN asks for one first (K-686).
         if (born is not null && (born.IsSent || born.Way == PaymentMethod.Card))
@@ -161,7 +161,7 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
 
         // The line draws the step only with the IBAN the refund goes to: without one there is no transfer to fail (09 8.3 item 5).
         Guid? itemId = born?.OrderItemId ?? owed?.OrderItemId;
-        if (lines.IbanOf(born?.RefundId, itemId) is null)
+        if (lines.IbanOf(born, owed) is null)
         {
             return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet);
         }
@@ -202,7 +202,10 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
         Guid? closure = request.NotReturnedClosureId ?? (open.Count > 0 ? open[0].ClosureId : null);
         Lines lines = await ReadAsync(order, ct);
         PaymentMethod way = Way(order);
-        string? iban = way == PaymentMethod.BankTransfer ? lines.IbanOf(null, request.OrderItemId) : null;
+        // The refund to be born has no record: its item's IBAN, else the order's on file (the one rule; 02 7.4.5).
+        string? iban = way == PaymentMethod.BankTransfer
+            ? (await _afterSales.ResolveRefundPayeesAsync(order.Id, [new RefundPayeeSubject(null, null, request.OrderItemId)], ct))[0].Iban
+            : null;
         if (way == PaymentMethod.BankTransfer && iban is null)
         {
             return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet) { Obstacle = PanelRefundObstacle.IbanMissing };
@@ -429,7 +432,7 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
         foreach (OwedRefundRecord owed in lines.Owed)
         {
             (decimal amount, _) = await FirmRefundAmounts.OfAsync(_db, _afterSales, order, owed, lines.Refunds, ct);
-            string? iban = orderWay == PaymentMethod.BankTransfer ? lines.IbanOf(null, owed.OrderItemId) : null;
+            string? iban = orderWay == PaymentMethod.BankTransfer ? lines.IbanOf(null, owed) : null;
             result.Add(new PanelRefundLine(owed.CauseId, null, owed.OrderItemId, owed.Type, owed.Quantity, amount, orderWay, iban, owed.RecordedAt)
             {
                 KeyName = KeyNameOf(owed),
@@ -440,7 +443,7 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
 
         foreach (PanelRefundFacts refund in lines.Refunds.Where(r => !r.IsVoided && (!r.IsSent || r.LateSuccessAt is not null)))
         {
-            string? iban = refund.Way == PaymentMethod.BankTransfer ? lines.IbanOf(refund.RefundId, refund.OrderItemId) : null;
+            string? iban = refund.Way == PaymentMethod.BankTransfer ? lines.IbanOf(refund, null) : null;
             bool open = !refund.IsSent;
             bool ibanEntered = open && refund is { Way: PaymentMethod.Card, LatestState: RefundRecordState.Failed } && await _afterSales.IsRefundIbanEnteredForRefundAsync(refund.RefundId, ct);
             result.Add(new PanelRefundLine(KeyOf(refund), refund.RefundId, refund.OrderItemId, refund.RefundType, refund.Quantity, refund.Amount, refund.Way, iban, refund.CreatedAt)
@@ -461,10 +464,10 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
     private async Task<Lines> ReadAsync(Order order, CancellationToken ct)
     {
         Guid[] itemIds = await _db.OrderItems.AsNoTracking().Where(i => i.OrderId == order.Id).Select(i => i.Id).ToArrayAsync(ct);
-        return new Lines(
-            await _afterSales.ListOwedRefundRecordsAsync(itemIds, ct),
-            await _payment.ListPanelRefundsAsync(order.Id, ct),
-            await _afterSales.ListRefundIbanFieldsAsync(order.Id, itemIds, ct));
+        IReadOnlyList<OwedRefundRecord> owed = await _afterSales.ListOwedRefundRecordsAsync(itemIds, ct);
+        IReadOnlyList<PanelRefundFacts> refunds = await _payment.ListPanelRefundsAsync(order.Id, ct);
+        RefundPayeeSubject[] subjects = [.. owed.Select(Lines.SubjectOf), .. refunds.Where(r => r.Way == PaymentMethod.BankTransfer).Select(Lines.SubjectOf)];
+        return new Lines(owed, refunds, await _afterSales.ResolveRefundPayeesAsync(order.Id, subjects, ct));
     }
 
     // The key a born refund's line carries (07 UC-131): the record that causes it, the refund itself when it has none (an amount based refund).
@@ -531,23 +534,26 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
         await _trail.WriteAsync(new AuditEntry(operation, nameof(Order), orderId, new AuditDetails(number, values: values)), ct);
     }
 
-    /// <summary>What a refund step reads of the order's refunds under the lock: the records whose refund is owed, the refund rows and the IBAN fields.</summary>
-    private sealed record Lines(IReadOnlyList<OwedRefundRecord> Owed, IReadOnlyList<PanelRefundFacts> Refunds, IReadOnlyList<RefundIbanField> Fields)
+    /// <summary>What a refund step reads of the order's refunds under the lock: the records whose refund is owed, the refund rows and the IBAN each is paid to.</summary>
+    private sealed record Lines(IReadOnlyList<OwedRefundRecord> Owed, IReadOnlyList<PanelRefundFacts> Refunds, IReadOnlyList<RefundPayee> Payees)
     {
         /// <summary>The refund row the key names - by one of its cause links or by its own id -, an open one first.</summary>
         public PanelRefundFacts? BornOf(Guid key) =>
             Refunds.Where(r => !r.IsVoided && (r.RefundId == key || r.IsCausedBy(key))).OrderBy(r => r.IsSent).FirstOrDefault();
 
         /// <summary>
-        /// The IBAN a transfer refund goes to (04 9.9.6; OB-14; 02 7.4.5, the IBAN's life's order: PendingTransferPayeesAsync): the one its own request brought, else
-        /// its item's - its records' and the item's requests', not another refund's own -, else the order's on file. A refund whose own request is open waits for its
-        /// IBAN (VAL-A912; K-1131 (2)): none. The line, the window and the steps read it here.
+        /// The IBAN a transfer refund goes to (04 9.9.6; OB-14; 02 7.4.5): the After-sales module's one rule (<see cref="IAfterSalesModule.ResolveRefundPayeesAsync"/>), the one the
+        /// IBAN's life reads too; none while the refund waits for its IBAN. The line, the window and the steps read it here: the born refund's, else the owed record's.
         /// </summary>
-        public string? IbanOf(Guid? refundId, Guid? itemId) =>
-            refundId is not null && Fields.Any(f => f.RequestId is not null && f.RefundId == refundId)
-                ? null
-                : Fields.FirstOrDefault(f => f.Iban is not null && refundId is not null && f.RefundId == refundId)?.Iban
-            ?? Fields.FirstOrDefault(f => f.Iban is not null && itemId is not null && f.OrderItemId == itemId && (f.RefundId is null || f.RefundId == refundId))?.Iban
-            ?? Fields.FirstOrDefault(f => f.Iban is not null)?.Iban;
+        public string? IbanOf(PanelRefundFacts? born, OwedRefundRecord? owed)
+        {
+            RefundPayeeSubject subject = born is not null ? SubjectOf(born) : SubjectOf(owed!); // non-null: a step names a born refund or an owed record
+            return Payees.FirstOrDefault(p => p.Subject == subject)?.Iban;
+        }
+
+        public static RefundPayeeSubject SubjectOf(PanelRefundFacts refund) =>
+            RefundPayeeSubject.Of(refund.RefundId, refund.CancellationId, refund.LateDeliveryTerminationId, refund.WithdrawalId, refund.OrderItemId);
+
+        public static RefundPayeeSubject SubjectOf(OwedRefundRecord owed) => new(null, owed.RecordId, owed.OrderItemId);
     }
 }

@@ -287,7 +287,7 @@
 | T528 | Sipariş ayrıntısı: firma iptali, bildirim kaydı, kalem çıkarma, iade malı ve ayıp talebi (E-37) | ⬚ | — | — | — |
 | T529 | Sipariş ayrıntısı: geri ödeme işlemleri (E-37) | ⬚ | — | — | — |
 | T530 | Sipariş ayrıntısı: adres, kargo, teslim tarihi, durum geçişi ve e-posta düzeltmeleri (E-37) | ⬚ | — | — | — |
-| T531 | Sipariş ayrıntısı: hizmet kalemi, indirme hakkı, iç not ve e-posta yeniden gönderim (E-37) | ⏳ | — | — | — |
+| T531 | Sipariş ayrıntısı: hizmet kalemi, indirme hakkı, iç not ve e-posta yeniden gönderim (E-37) | ⏳ | — | — | #572 |
 | T532 | Talepler ve iletişim talebi ayrıntısı (E-38, E-39) | ✓ | ✓ PASS (tur 1) | `d202a668` | #552 |
 | T533 | Üye kaydı görünümü (E-40) | ✓ | ✓ PASS (tur 1) | `d1a1729a` | #556 |
 | T534 | Kurumsal içerik ve marka yönetimi (E-41, E-43) | ⬚ | — | — | — |

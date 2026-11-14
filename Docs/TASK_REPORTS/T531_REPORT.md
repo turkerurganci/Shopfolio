@@ -98,8 +98,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T531-hizmet-indirme-not`
-- **Commit:** *(PR açılışında)*
-- **PR:** *(PR açılışında)*
+- **Commit:** `1439a146` — T531: Sipariş ayrıntısı: hizmet kalemi, indirme hakkı, iç not ve e-posta yeniden gönderim (E-37)
+- **PR:** #572
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

@@ -24,13 +24,6 @@ public sealed record ConfirmationScreenFacts(
     string CompanyPhone,
     string? OrderAccessKey);
 
-/// <summary>The answer of the unopened payment form's cancellation (07 UC-29): cancelled with the cart's once-told mark, or the order no longer waited for its payment.</summary>
-public enum UnopenedPaymentCancellation
-{
-    Cancelled,
-    NoLongerAwaiting,
-}
-
 /// <summary>The cancellation's answer as the transaction runner takes it: everything but <see cref="UnopenedPaymentCancellation.Cancelled"/> is rolled back.</summary>
 public sealed record UnopenedPaymentCancellationResult(UnopenedPaymentCancellation Outcome) : Infrastructure.IOperationResult
 {

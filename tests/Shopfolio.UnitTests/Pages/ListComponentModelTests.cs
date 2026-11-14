@@ -158,6 +158,14 @@ public sealed class ListComponentModelTests
     [InlineData(ListKind.PanelOther, 25)]
     public void ThePageSize_IsTheTablesNumber_KK8(ListKind kind, int expected) => Assert.Equal(expected, ListCatalog.PageSizeOf(kind));
 
+    [Fact]
+    public void TheCorporateContentList_IsNotPaged_AndHasNoPageSize_D1177()
+    {
+        Assert.False(ListCatalog.IsPaged(ListKind.PanelContent));
+        Assert.True(ListCatalog.IsPaged(ListKind.PanelOrders));
+        Assert.Throws<InvalidOperationException>(() => ListCatalog.PageSizeOf(ListKind.PanelContent));
+    }
+
     private sealed class Query : PagedQuery
     {
         public string? Search { get; init; }

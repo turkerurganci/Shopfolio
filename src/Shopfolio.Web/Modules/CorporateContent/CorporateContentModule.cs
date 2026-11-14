@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure.Disposal;
+using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.CorporateContent.Contracts;
 
 namespace Shopfolio.Modules.CorporateContent;
@@ -19,6 +20,7 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     private readonly SocialLinks _socialLinks;
     private readonly ContentReaders _readers;
     private readonly StorefrontContentPages _contentPages;
+    private readonly PanelContentEditing _panelContent;
 
     public CorporateContentModule(
         CorporateContentSitemapReader sitemap,
@@ -31,8 +33,10 @@ internal sealed class CorporateContentModule : ICorporateContentModule
         ContactRequestExport contactRequestExport,
         SocialLinks socialLinks,
         ContentReaders readers,
-        StorefrontContentPages contentPages)
+        StorefrontContentPages contentPages,
+        PanelContentEditing panelContent)
     {
+        _panelContent = panelContent;
         _readers = readers;
         _contactRequestExport = contactRequestExport;
         _socialLinks = socialLinks;
@@ -58,6 +62,22 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     public Task<ContentListView> GetContentListAsync(ContentListKind kind, int page, CancellationToken ct) => _contentPages.ListAsync(kind, page, ct);
 
     public Task<ContentRecordPage?> GetContentPageAsync(ContentPageKind kind, string? slug, bool asAdministrator, CancellationToken ct) => _contentPages.FindAsync(kind, slug, asAdministrator, ct);
+
+    public Task<PanelContentList> GetPanelContentListAsync(CancellationToken ct) => _panelContent.ListAsync(ct);
+
+    public Task<PanelContentForm?> GetPanelContentFormAsync(PanelContentType type, Guid? id, CancellationToken ct) => _panelContent.GetFormAsync(type, id, ct);
+
+    public Task<Guid?> FindSinglePanelContentAsync(PanelContentType type, CancellationToken ct) => _panelContent.FindSingleAsync(type, ct);
+
+    public Task<PanelContentSaveResult> SavePanelContentAsync(PanelContentSaveCommand command, CancellationToken ct) => _panelContent.SaveAsync(command, ct);
+
+    public Task<PanelContentChangeResult> ChangePanelContentStatusAsync(PanelContentType type, Guid id, PublishStatus target, CancellationToken ct) =>
+        _panelContent.ChangeStatusAsync(type, id, target, ct);
+
+    public Task<PanelContentDeleteResult> DeletePanelContentAsync(PanelContentType type, Guid id, CancellationToken ct) => _panelContent.DeleteAsync(type, id, ct);
+
+    public Task<PanelContentReorderResult> ReorderPanelContentAsync(PanelContentType type, Guid id, PanelContentMove move, int shownOrder, int shownNeighbourOrder, CancellationToken ct) =>
+        _panelContent.ReorderAsync(type, id, move, shownOrder, shownNeighbourOrder, ct);
 
     public Task<BrandingSection> GetBrandingAsync(CancellationToken ct) => _branding.ReadSectionAsync(ct);
 
@@ -139,6 +159,7 @@ internal static class CorporateContentModuleRegistration
         services.AddScoped<ContentProductLinks>();
         services.AddScoped<ContentOrdering>();
         services.AddScoped<ContentGallery>();
+        services.AddScoped<PanelContentEditing>();
         services.AddScoped<StorefrontMenuReader>();
         services.AddScoped<HomepageReader>();
         services.AddScoped<StorefrontContentPages>();

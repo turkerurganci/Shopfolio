@@ -36,10 +36,12 @@ internal static class ShowcaseVisibility
 internal sealed class ShowcaseReader
 {
     private readonly AppDbContext _db;
+    private readonly ProductLocks _locks;
 
-    public ShowcaseReader(AppDbContext db)
+    public ShowcaseReader(AppDbContext db, ProductLocks locks)
     {
         _db = db;
+        _locks = locks;
     }
 
     /// <summary>
@@ -86,13 +88,21 @@ internal sealed class ShowcaseReader
         return await CardsOfAsync(products, ct);
     }
 
-    /// <summary>The ids among <paramref name="productIds"/> that are products, whatever their status (a link is made to a draft product too); a plain read.</summary>
+    /// <summary>
+    /// The ids among <paramref name="productIds"/> that are products, whatever their status (a link is made to a draft product too). Inside a transaction the rows are also share-locked until it
+    /// ends (<see cref="ProductLocks.ShareKeysAsync"/>), so a product cannot be deleted between this read and the link written on it (D-720); outside one it is a plain read.
+    /// </summary>
     public async Task<IReadOnlyList<Guid>> FindProductIdsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(productIds);
         if (productIds.Count == 0)
         {
             return [];
+        }
+
+        if (_db.Database.CurrentTransaction is not null)
+        {
+            return await _locks.ShareKeysAsync(productIds, ct);
         }
 
         return await _db.Products.AsNoTracking().Where(p => productIds.Contains(p.Id)).Select(p => p.Id).ToListAsync(ct);

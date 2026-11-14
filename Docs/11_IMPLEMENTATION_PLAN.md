@@ -5547,7 +5547,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Bağımlılık:** T525, T539
 - **Dokümanlar:** çekirdek; `09` §15 (§15.7), §16 (§16.1, §16.2); `07 §4.31.2`, §5.4.2; `04` 2.12.8; K-1354
 - **Kabul kriterleri:**
-  1. Modül `pages/panel/products/edit.js`'tedir ve `data-js="digital-file-upload"` kancasındaki dosya girdisine bağlanır; hedef alanın adı `data-target-field`'dan gelir (`09 §16.2` madde 6).
+  1. Modül `pages/panel/product-form.js`'tedir ve `data-js="digital-file-upload"` kancasındaki dosya girdisine bağlanır; hedef alanın adı `data-target-field`'dan gelir (`09 §16.2` madde 6).
   2. Seçimde boy karşılaştırılmaz; yükleme sürerken kayıt düğmesi `aria-disabled` alır, gönderim durur (`04` 2.12.8.4).
   3. Başlatma `POST /panel/yukleme` ile JSON `{ fileName, sizeBytes }` ve `RequestVerificationToken` başlığıyla gider; `id` ve `chunkSizeBytes` 201 yanıtından alınır(`09 §16.2` madde 6; `07 §5.4.2`).
   4. Parça `Blob.slice` ile `POST /panel/yukleme/{id}`'e aynı sahtecilik başlığıyla gider; `Content-Range` (`end` dahil) ilk, ortadaki, son ve tek parçada doğrudur (`09 §16.2`).

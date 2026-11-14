@@ -56,7 +56,7 @@ internal static partial class AddressSourceScan
 
     // An identifier, table or column that keeps a former address or maps an address: slug history, old/previous/former slug, redirect map or rule or table, rewrite rule, the rewrite middleware.
     [GeneratedRegex(
-        @"(?<![A-Za-z0-9])(?:Slug|Url|Path)History\w*|(?:Old|Previous|Former|Legacy|Prior)(?:Slug|Url|Path)\w*|\bSlugRedirect\w*|\bRedirect(?:Map|Rule|Table|Entry|s)\b|\bUrlRewrite\w*|\bAddRewrite\b|\bUseRewriter\b|\bAddRedirect\w*\b|slug_history|(?:old|previous|former)_(?:slug|url)|\bredirects?\b(?=\s*[(=:])",
+        @"(?<![A-Za-z0-9])(?:Slug|Url|Path)History\w*|(?:Old|Previous|Former|Legacy|Prior)(?:Slug|Url|Path)\w*|\bSlugRedirect\w*|\bRedirect(?:Map|Rule|Table|Entry|s)\b|\bUrlRewrite\w*|\bAddRewrite\b|\bUseRewriter\b|\bAddRedirect\w*\b|slug_history|(?:old|previous|former)_(?:slug|url)|\bredirects?\b(?=\s*[(=:])(?!\s*:\s*[""']manual[""'])",
         RegexOptions.CultureInvariant,
         matchTimeoutMilliseconds: 5000)]
     private static partial Regex OldAddress();

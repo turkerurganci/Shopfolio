@@ -76,6 +76,8 @@ public sealed partial class AddressSourceScanTests
     [InlineData("services.AddSingleton<RedirectMap>();")]
     [InlineData("var redirects = new Dictionary<string, string>();")]
     [InlineData("const redirect = lookup(path);")]
+    [InlineData("const options = { redirect: \"follow\" };")]
+    [InlineData("const options = { redirect: lookup(path) };")]
     public void Scan_OfAFormerAddressOrARedirectMap_IsAFinding(string code)
     {
         Assert.Contains(AddressSourceScan.Scan("src/Shopfolio.Web/Modules/Catalog/X.cs", code), f => f.Rule == AddressSourceScan.RedirectFromOldAddress);
@@ -87,6 +89,8 @@ public sealed partial class AddressSourceScanTests
     [InlineData("// OldSlug is not kept: there is no redirect")]
     [InlineData("string slug = Slug.From(name, root);")]
     [InlineData("bool redirected = response.Headers.Location is not null;")]
+    [InlineData("const response = await fetch(url, { ...init, redirect: \"manual\" });")]
+    [InlineData("if (response.type === \"opaqueredirect\") { return { kind: \"redirect\" }; }")]
     public void Scan_OfAnOrdinaryRedirectOrAComment_IsQuiet(string code)
     {
         Assert.DoesNotContain(AddressSourceScan.Scan("src/Shopfolio.Web/Modules/Catalog/X.cs", code), f => f.Rule == AddressSourceScan.RedirectFromOldAddress);

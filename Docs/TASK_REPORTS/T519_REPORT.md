@@ -73,6 +73,22 @@
 
 ## Doğrulama
 
+### Tur 2 (2026-11-14) — ✓ PASS
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✓ PASS (tur 2, tam yeniden doğrulama) |
+| Bulgu sayısı | 0; K-notu D-1508 (F5 kapısı, tur 1'den) açık kalır |
+| Düzeltme gerekli mi | Hayır |
+| Ana dal CI (son 3) | 43560690928, 43560690926, 43557742117 — success |
+| Dal CI | run 43564764095 (head `07338c0f`) — Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate success |
+| Yerel sınama | head `07338c0f`: build `-warnaserror` 0 uyarı; format 3 proje temiz; Unit TAM 7575/0; betik 4/4; Integration ilgili sınıflar (`EmailRevertPageTests`, `CustomerSignOutPageTests`, `PanelHomeAndVerificationPagesTests`, `MembershipTests`, `LinkRecordsTests`, `DisposalTests`, `PendingRecordDisposalTests`, `RevertLinkDigestRewriteTests`, `SecurityHeadersTests`, `SessionAccessTests`, `AccountProfilePageTests`, `CustomerPasswordResetAndReauthenticationPageTests`, `PanelAccessPagesTests`, `RegistrationPageTests`) 374/0. main `d847e947` (T527) ile birleşik ağaç: build temiz, Unit TAM 7587/0, `EmailRevertPageTests` + `CustomerSignOutPageTests` + `MembershipTests` 169/0; TAM: CI |
+| Tur 1 bulguları | B1 kapandı: `TryConsumeAsync` aynı güncellemede `PreviousEmail = null`; Web, modül ve yönetici testleri boş olduğunu, KK6 testi tek imha satırının `PendingRegistration` olduğunu (geri alma imha yazmaz), 422 ve ömrü dolmuş testleri adresin kaldığını iddia eder; yönetici geri alması kullanılmış bağlantıyı yine `Used` söyler (durum denetimi adres denetiminden önce), T521 testleri yeşil. B2 kapandı: `[OutcomeUncertain("UC-76")]`, `IOutcomeTarget` yok → hedef isteğin kendi yolu `/geri-al/{key}` (`07 §6.4.2` "aynı adres"); UC-76 `NotMarkedYet`'ten çıktı, tutarlılık testi yeşil. D-1509 kapandı (iki yarış ve iki VAL-C029 testi) |
+| `12` | VAL-A809 FAIL → PASS; VAL-C029 BEKLEMEDE → PASS; VAL-C028, VAL-A991 PASS (değişmedi); paylı satırlar BEKLEMEDE (D-1495, D-1496); `12_matris_denetle.py --kapsam 1-77` Hata 0 |
+| Yapım raporu karşılaştırması | Tam uyumlu — öz denetim tablosu her madde için kanıtlı; düzeltme 1 bölümü yapılanla birebir |
+
+### Tur 1 (2026-11-14) — ✗ FAIL
+
 | Alan | Sonuç |
 |---|---|
 | Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-14) |

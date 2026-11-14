@@ -275,7 +275,7 @@
 | T516 | Şifre sıfırlama ve yeniden doğrulama (E-23, E-24) | ✓ | ✓ PASS (tur 1) | `29a613e0` | #564 |
 | T517 | Hesap — profil ve güvenlik (E-25) | ✓ | ✓ PASS (tur 2) | `d682fc7a` | #567 |
 | T518 | Adres defteri ve sipariş geçmişi (E-26, E-27) | ✓ | ✓ PASS (tur 1) | `00854fd6` | #566 |
-| T519 | E-posta değişikliğini geri alma ve müşteri çıkışı (E-28) | ✗ | ✗ FAIL (tur 1); düzeltme 1 doğrulama bekliyor | — | #571 |
+| T519 | E-posta değişikliğini geri alma ve müşteri çıkışı (E-28) | ✓ | ✓ PASS (tur 2) | `07338c0f` | #571 |
 | T520 | Panel girişi, şifre sıfırlama, davet kabulü ve yönetici çıkışı (E-29, E-30) | ✓ | ✓ PASS (tur 1) | `fd6c275e` | #549 |
 | T521 | Panel ana sayfası ve yönetici hesabının doğrulama ekranları (E-31, E-54) | ✓ | ✓ PASS (tur 3) | `3cec5c9c` | #554 |
 | T522 | Yönetici hesapları ve işlem izi (E-49, E-52) | ✓ | ✓ PASS (tur 1) | `794aed66` | #557 |

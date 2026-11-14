@@ -110,7 +110,7 @@ Testler: **C** = `CheckoutPageTests` (Integration, `Web/CheckoutPageTests.Confir
 ## Commit & PR
 
 - **Branch:** `task/T510-siparis-teyit-donus`
-- **PR:** *(açılınca)*
+- **PR:** #569
 - **CI:** yapım işçisi beklemez; yönetici izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

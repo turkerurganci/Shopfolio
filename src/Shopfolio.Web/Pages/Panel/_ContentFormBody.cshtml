@@ -1,0 +1,233 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper Shopfolio.Pages.Components.Upload*, Shopfolio.Web
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Modules.Catalog.Contracts
+@using Shopfolio.Modules.CorporateContent.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Panel
+@model ContentFormModel
+@*
+    E-41's record form body (T534; 04 9.13.4, 9.13.5; 07 UC-96, UC-158...UC-160): the type's fields - the gate's fields labelled "yayın için zorunlu" -, the gallery or the branch's image, the linked products with the product
+    search, one "Kaydet"; and the side column: the badge, the gate's empty fields by name, "Önizle" or "Sitede gör", the publish move, the permanent deletion (not for Hakkımızda), the page address. The moves and the
+    deletion are their own forms and carry no version (K-1193 (1)). No inline style, no inline script.
+*@
+@{
+    PanelContentForm? record = Model.Record;
+    bool exists = record?.Id is not null;
+    SaveContentInput entries = Model.Form;
+    string uploadAction = Model.FormPath + "?handler=UploadImage";
+    string searchAction = Model.FormPath + "?handler=SearchProducts";
+    string Whole(int value) => value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+}
+<div class="content-form__heading">
+    <h1>@Model.Title</h1>
+    @if (exists && record is not null)
+    {
+        <partial name="_Badge" model="StatusBadges.ForCorporateContent(record.PublishStatus)" />
+    }
+    <a class="content-form__back" href="@Model.ListPath">@ContentListModel.Title</a>
+</div>
+@if (Model.Notice is not null)
+{
+    <partial name="_Message" model="Model.Notice" />
+}
+@if (Model.Refusal is not null)
+{
+    <partial name="_Message" model="Model.Refusal" />
+}
+@if (Model.Confirmation is not null)
+{
+    <partial name="_Confirm" model="Model.Confirmation" />
+}
+<partial name="_FormErrorSummary" model="FormErrorSummary.From(ViewContext.ModelState)" />
+@if (exists && record is not null)
+{
+    <aside class="content-form__side" id="content-side" aria-label="Yayın durumu">
+        <partial name="_Badge" model="StatusBadges.ForCorporateContent(record.PublishStatus)" />
+        @if (record.MissingFields.Count > 0)
+        {
+            <div class="content-form__gate" id="content-gate">
+                <h2>@ContentFormModel.GateHeading</h2>
+                <ul>
+                    @foreach (PanelContentField missing in record.MissingFields)
+                    {
+                        <li>@ContentFormModel.FieldName(missing)</li>
+                    }
+                </ul>
+            </div>
+        }
+        @if (record.PagePath is not null)
+        {
+            <p class="content-form__address" id="content-address">Sayfa adresi: <a href="@record.PagePath">@record.PagePath</a>@(record.IsAddressFixed ? " (sabitlendi)" : string.Empty)</p>
+        }
+        @if (record.PagePath is not null && record.PublishStatus == PublishStatus.Draft)
+        {
+            <a class="button button--secondary" id="content-preview" href="@record.PagePath">@ContentFormModel.PreviewLabel</a>
+        }
+        else if (record.PagePath is not null)
+        {
+            <a class="button button--secondary" id="content-view" href="@record.PagePath">@ContentFormModel.ViewOnSiteLabel</a>
+        }
+        @{
+            (PublishStatus moveTarget, string moveLabel) = ContentFormModel.MoveOf(record.PublishStatus);
+        }
+        <form method="post" asp-antiforgery="true" action="@(Model.FormPath)?handler=ChangePublishStatus" class="content-form__move" id="content-move">
+            <input type="hidden" name="Input.PublishStatus" value="@moveTarget" />
+            <button type="submit" class="button button--secondary">@moveLabel</button>
+        </form>
+        @if (Model.Type != PanelContentType.AboutPage)
+        {
+            <form method="post" asp-antiforgery="true" action="@(Model.FormPath)?handler=DeleteContent" class="content-form__delete" id="content-delete">
+                <button type="submit" class="button button--danger">@ContentFormModel.DeleteLabel</button>
+            </form>
+        }
+    </aside>
+}
+<form method="post" asp-antiforgery="true" action="@(Model.FormPath)?handler=SaveContent" upload-form="ContentGallery" class="content-form__entries form" id="content-save" data-js="submit-once">
+    @if (exists && entries.Version is { } version)
+    {
+        @VersionFields.Version(version, "Input")
+    }
+    @foreach (FieldView field in Model.TypeFields())
+    {
+        <partial name="_Field" model="field" />
+    }
+    @if (Model.HasMark)
+    {
+        <div class="field field--check">
+            <input type="checkbox" id="content-homepage-mark" name="Input.IsShownOnHomepage" value="true" checked="@entries.IsShownOnHomepage" />
+            <label for="content-homepage-mark">Ana sayfada göster</label>
+            <p class="field__hint" id="content-homepage-count">İşaretli kayıt: @Whole(record?.HomepageMarkedCount ?? 0); ana sayfada sıradaki ilk üç kayıt görünür.</p>
+        </div>
+    }
+    @if (Model.Type == PanelContentType.CustomPage)
+    {
+        <div class="field field--check">
+            <input type="checkbox" id="content-menu-mark" name="Input.IsShownInMenu" value="true" checked="@entries.IsShownInMenu" />
+            <label for="content-menu-mark">Menüde göster</label>
+        </div>
+    }
+    @if (Model.IsBranch)
+    {
+        <fieldset class="content-form__branch-image" id="content-branch-image">
+            <legend>Görsel</legend>
+            @if (entries.ImageId is { } branchImage)
+            {
+                <input type="hidden" name="Input.ImageId" value="@branchImage.ToString("D")" />
+                <img class="content-form__thumb" src="@FrameStyle.ImagePath(branchImage)" alt="@(entries.ImageAltText ?? "Şube görseli")" width="96" height="96" />
+                <label for="content-branch-image-alt">Alternatif metin</label>
+                <input type="text" id="content-branch-image-alt" name="Input.ImageAltText" value="@entries.ImageAltText" />
+            }
+            @foreach (MessageView refusal in Model.RefusalsOf("Input.ImageId", "content-branch-image"))
+            {
+                <partial name="_Message" model="refusal" />
+            }
+            @if (Model.UploadRefusal is not null && Model.UploadRefusalTarget == ContentFormModel.BranchImageTarget)
+            {
+                <partial name="_Message" model="Model.UploadRefusal" />
+            }
+            <label for="content-branch-image-file">Görsel dosyası</label>
+            <input upload-file="Logo" id="content-branch-image-file" name="@ContentFormModel.ImageFileName" />
+            <button type="submit" class="button button--secondary" formaction="@uploadAction" name="Input.ImageTarget" value="@ContentFormModel.BranchImageTarget">Görseli yükle</button>
+        </fieldset>
+    }
+    @if (Model.HasGallery)
+    {
+        <fieldset class="content-form__gallery" id="content-images">
+            <legend>Görseller</legend>
+            @for (int i = 0; i < entries.Images.Count; i++)
+            {
+                SaveContentImageRow image = entries.Images[i];
+                <div class="content-form__image" data-image="@image.ImageId.ToString("D")">
+                    <img class="content-form__thumb" src="@FrameStyle.ImagePath(image.ImageId)" alt="@(image.AltText ?? string.Empty)" width="96" height="96" />
+                    <input type="hidden" name="Input.Images[@i].ImageId" value="@image.ImageId.ToString("D")" />
+                    <label for="content-image-@i-order">Sıra</label>
+                    <input type="number" id="content-image-@i-order" name="Input.Images[@i].SortOrder" value="@Whole(image.SortOrder)" min="1" />
+                    <input type="hidden" name="Input.Images[@i].IsMain" value="@(image.IsMain ? "true" : "false")" />
+                    @if (image.IsMain)
+                    {
+                        <span class="content-form__main">Ana görsel</span>
+                    }
+                    <label for="content-image-@i-alt">Alternatif metin <span class="field__requirement">(isteğe bağlı)</span></label>
+                    <input type="text" id="content-image-@i-alt" name="Input.Images[@i].AltText" value="@image.AltText" />
+                </div>
+            }
+            @foreach (MessageView refusal in Model.RefusalsOf("Input.Images", "content-images"))
+            {
+                <partial name="_Message" model="refusal" />
+            }
+            @if (Model.UploadRefusal is not null && Model.UploadRefusalTarget == ContentFormModel.GalleryTarget)
+            {
+                <partial name="_Message" model="Model.UploadRefusal" />
+            }
+            <label for="content-image-file">Görsel dosyası</label>
+            <input upload-file="ContentGallery" id="content-image-file" name="@ContentFormModel.ImageFileName" />
+            <button type="submit" class="button button--secondary" formaction="@uploadAction" name="Input.ImageTarget" value="@ContentFormModel.GalleryTarget">Galeriye yükle</button>
+        </fieldset>
+    }
+    @if (Model.HasProducts)
+    {
+        <fieldset class="content-form__products" id="content-products">
+            <legend>İlgili ürünler</legend>
+            @if (Model.LinkedProducts.Count == 0)
+            {
+                <p class="content-form__empty">Henüz ürün seçilmedi.</p>
+            }
+            <ol class="content-form__linked">
+                @for (int p = 0; p < Model.LinkedProducts.Count; p++)
+                {
+                    LinkedProductView linked = Model.LinkedProducts[p];
+                    <li class="content-form__linked-item">
+                        <input type="hidden" name="Input.RelatedProducts[@p].ProductId" value="@linked.ProductId.ToString("D")" />
+                        <span class="content-form__linked-name">@linked.Name</span>
+                        <partial name="_Badge" model="StatusBadges.For(linked.PublishStatus)" />
+                        @if (linked.PublishStatus != PublishStatus.Published)
+                        {
+                            <span class="content-form__linked-note">@ContentFormModel.UnpublishedProductText</span>
+                        }
+                        <label for="content-product-@p-order">Sıra</label>
+                        <input type="number" id="content-product-@p-order" name="Input.RelatedProducts[@p].SortOrder" value="@Whole(linked.SortOrder)" min="1" />
+                        <input type="checkbox" id="content-product-@p-remove" name="Input.RelatedProducts[@p].Remove" value="true" />
+                        <label for="content-product-@p-remove">Çıkar</label>
+                    </li>
+                }
+            </ol>
+            <label for="content-product-search">Ürün ara <span class="field__requirement">(isteğe bağlı)</span></label>
+            <input type="search" id="content-product-search" name="Input.Search" value="@entries.Search" />
+            <button type="submit" class="button button--secondary" formaction="@searchAction">Ara</button>
+            @if (Model.HasSearched)
+            {
+                @if (Model.SearchHits.Count == 0)
+                {
+                    <p class="content-form__empty" id="content-product-no-hit">Aramaya uyan ürün yok.</p>
+                }
+                else
+                {
+                    <ul class="content-form__hits" id="content-product-hits">
+                        @for (int h = 0; h < Model.SearchHits.Count; h++)
+                        {
+                            ProductSearchHit hit = Model.SearchHits[h];
+                            <li class="content-form__hit">
+                                @if (hit.IsLinked)
+                                {
+                                    <span class="content-form__hit-name">@hit.Name</span>
+                                    <partial name="_Badge" model="StatusBadges.For(hit.PublishStatus)" />
+                                    <span class="content-form__hit-note">Zaten seçili.</span>
+                                }
+                                else
+                                {
+                                    <input type="checkbox" id="content-hit-@h" name="Input.AddProducts" value="@hit.ProductId.ToString("D")" />
+                                    <label for="content-hit-@h">@hit.Name</label>
+                                    <partial name="_Badge" model="StatusBadges.For(hit.PublishStatus)" />
+                                }
+                            </li>
+                        }
+                    </ul>
+                    <p class="field__hint">İşaretlediğiniz ürünler bir sonraki gönderimde listenin sonuna eklenir.</p>
+                }
+            }
+        </fieldset>
+    }
+    @ConflictControls.RecordSaveControl(Model.IsConflicted, Model.FormPath)
+</form>

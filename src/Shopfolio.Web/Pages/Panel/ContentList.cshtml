@@ -1,0 +1,112 @@
+@page "/panel/kurumsal-icerik"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Modules.CorporateContent.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Panel
+@model ContentListModel
+@*
+    E-41's list (T534; 04 9.13; 07 UC-96, UC-161): seven groups in their order - Hakkımızda, Hizmetlerimiz, Referanslarımız, SSS, Şubeler, Genel sayfalar, Duyuru -, each with every record in the firm's manual order (never
+    paged, K-843), the publish badge, the marks and the "yukarı" and "aşağı" forms that carry the orders of the two records that change places. Each group has its own "Yeni"; the two single records open from
+    their row. No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = ContentListModel.Title;
+}
+<h1>@ContentListModel.Title</h1>
+@if (Model.Refusal is not null)
+{
+    <partial name="_Message" model="Model.Refusal" />
+}
+@foreach (PanelContentGroup group in Model.List.Groups)
+{
+    string groupName = ContentRoutes.GroupNameOf(group.Type);
+    string headingId = "content-group-" + ContentRoutes.SegmentOf(group.Type);
+    bool single = ContentRoutes.IsSingle(group.Type);
+    <section class="content-group" id="@headingId" aria-labelledby="@(headingId)-heading">
+        <div class="content-group__head">
+            <h2 id="@(headingId)-heading">@groupName</h2>
+            @if (group.MenuName is not null && !string.Equals(group.MenuName, groupName, StringComparison.Ordinal))
+            {
+                <span class="content-group__menu">@(ContentListModel.MenuNamePrefix + group.MenuName)</span>
+            }
+            @if (!single)
+            {
+                <a class="button button--secondary" href="@ContentRoutes.NewPath(group.Type)">@ContentListModel.NewButtonLabel</a>
+            }
+        </div>
+        @if (group.Type is PanelContentType.Offering or PanelContentType.PortfolioItem)
+        {
+            <p class="content-group__count" id="@(headingId)-count">İşaretli kayıt: @group.HomepageMarkedCount.ToString(System.Globalization.CultureInfo.InvariantCulture); @ContentListModel.HomepageNoteText.</p>
+        }
+        @if (group.Rows.Count == 0)
+        {
+            <p class="content-group__empty">@ContentRoutes.EmptyTextOf(group.Type)</p>
+            @if (single)
+            {
+                <a class="button button--secondary" href="@ContentRoutes.NewPath(group.Type)">@ContentRoutes.NewLabelOf(group.Type)</a>
+            }
+        }
+        else
+        {
+            <ul class="content-group__rows">
+                @foreach (PanelContentRow row in group.Rows)
+                {
+                    string title = string.IsNullOrWhiteSpace(row.Title) ? groupName : row.Title;
+                    <li class="content-row">
+                        <a class="content-row__title" href="@ContentRoutes.FormPath(group.Type, row.Id)">@title</a>
+                        <partial name="_Badge" model="StatusBadges.ForCorporateContent(row.PublishStatus)" />
+                        @if (row.IsOnHomepage)
+                        {
+                            <span class="content-row__mark">Ana sayfada</span>
+                        }
+                        @if (row.IsInMenu)
+                        {
+                            <span class="content-row__mark">Menüde</span>
+                        }
+                        @if (group.Type == PanelContentType.Announcement)
+                        {
+                            @if (row.StartDate is not null || row.EndDate is not null)
+                            {
+                                <span class="content-row__dates">@(row.StartDate?.ToString("dd.MM.yyyy") ?? "…") – @(row.EndDate?.ToString("dd.MM.yyyy") ?? "…")</span>
+                            }
+                            @if (row.PublishStatus == Shopfolio.Modules.Catalog.Contracts.PublishStatus.Published && !row.IsShownNow)
+                            {
+                                <span class="content-row__note">@ContentListModel.NotShownNowText</span>
+                            }
+                        }
+                        @if (!single)
+                        {
+                            <span class="content-row__moves">
+                                @if (row.PreviousSortOrder is { } previous)
+                                {
+                                    <form method="post" asp-antiforgery="true" action="@(PanelFramePaths.CorporateContent)?handler=ReorderContent" class="content-row__move">
+                                        <input type="hidden" name="Input.ContentKind" value="@ContentRoutes.SegmentOf(group.Type)" />
+                                        <input type="hidden" name="Input.ContentId" value="@row.Id.ToString("D")" />
+                                        <input type="hidden" name="Input.Direction" value="@PanelContentMove.Up" />
+                                        @VersionFields.Original("SortOrder", row.SortOrder, "Input")
+                                        @VersionFields.Original("AdjacentSortOrder", previous, "Input")
+                                        <button type="submit" class="button button--secondary">@ContentListModel.UpLabel</button>
+                                    </form>
+                                }
+                                @if (row.NextSortOrder is { } next)
+                                {
+                                    <form method="post" asp-antiforgery="true" action="@(PanelFramePaths.CorporateContent)?handler=ReorderContent" class="content-row__move">
+                                        <input type="hidden" name="Input.ContentKind" value="@ContentRoutes.SegmentOf(group.Type)" />
+                                        <input type="hidden" name="Input.ContentId" value="@row.Id.ToString("D")" />
+                                        <input type="hidden" name="Input.Direction" value="@PanelContentMove.Down" />
+                                        @VersionFields.Original("SortOrder", row.SortOrder, "Input")
+                                        @VersionFields.Original("AdjacentSortOrder", next, "Input")
+                                        <button type="submit" class="button button--secondary">@ContentListModel.DownLabel</button>
+                                    </form>
+                                }
+                            </span>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+}

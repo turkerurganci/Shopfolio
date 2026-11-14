@@ -133,11 +133,12 @@ public sealed partial class ItemRecordsTests
         PanelItemStepResult closed = await StepAsync((s, t) => s.CloseNotReturnedAsync(order.Id, item.Id, null, AdminCaller, 2, t));
 
         Assert.Null(closed.Refusal);
-        Assert.Equal(2, await CountAsync(c => c.NotReturnedClosures.Where(n => n.OrderItemId == item.Id && n.Quantity == 2)));
+        // The one declaration's two units not come back: one closure row of that declaration (06 4.28), the empty field taking the units not come back (04 7.2.11.2).
+        Assert.Equal(1, await CountAsync(c => c.NotReturnedClosures.Where(n => n.OrderItemId == item.Id && n.Quantity == 2)));
         Assert.Empty(await RefundsOfOrderAsync(order.Id));
 
         // The goods arrive after all: the receipt reopens the closed units (07 UC-140), still without a refund of its own.
-        PanelItemStepResult received = await StepAsync((s, t) => s.ReceiveReturnAsync(Arrival(order, item, 3, 1, DeliveryDay.AddDays(20)), t));
+        PanelItemStepResult received = await StepAsync((s, t) => s.ReceiveReturnAsync(Arrival(order, item, 3, 1, DeliveryDay.AddDays(AfterSalesPeriodRules.ReturnShipmentPeriodDays + 2)), t));
         Assert.Null(received.Refusal);
         Assert.Equal(1, await CountAsync(c => c.Returns.Where(r => r.OrderItemId == item.Id)));
         Assert.Empty(await RefundsOfOrderAsync(order.Id));

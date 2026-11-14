@@ -111,6 +111,12 @@ internal sealed partial class OrderTransitions
 
             iban = RequestFormat.CompactIban(request.Iban);
         }
+        else if (admin is not null && order.PaymentMethod == PaymentMethod.BankTransfer && !string.IsNullOrWhiteSpace(request.Iban) && IbanRule.Allows(request.Iban))
+        {
+            // The firm's record carries a notice's IBAN only when the notice came from the order's contact e-mail (the panel passes it only then) and it passes the order
+            // page's check, as the withdrawal record does (04 7.2.10.4; 03 2.8.4.4; D-1590); otherwise the item gets an IBAN request and B-14 below.
+            iban = RequestFormat.CompactIban(request.Iban);
+        }
 
         List<Guid> recordIds = [];
         foreach ((OrderItem item, int open) in terminated)

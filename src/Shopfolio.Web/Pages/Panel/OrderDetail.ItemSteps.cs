@@ -178,15 +178,16 @@ public sealed partial class OrderDetailModel
             return await RefuseAsync(id, NoticeDateMissingText, string.IsNullOrWhiteSpace(input.DeclarationDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate, ct);
         }
 
-        // OB-14: a given IBAN passes the check; the termination's IBAN home is not wired yet (D-1590) - the transfer line asks the customer (K-706).
-        if (input.IsFromContactEmail && !string.IsNullOrWhiteSpace(input.Iban) && !NoticeIbanRule.Allows(input.Iban.Trim()))
+        // OB-14: a given IBAN passes the check; it is carried only when the notice came from the order's contact e-mail (04 7.2.10.4), otherwise the item asks with B-14.
+        string? iban = input.IsFromContactEmail && !string.IsNullOrWhiteSpace(input.Iban) ? input.Iban.Trim() : null;
+        if (iban is not null && !NoticeIbanRule.Allows(iban))
         {
             return await RefuseAsync(id, NoticeIbanInvalidText, ErrorCode.InvalidIban, ct);
         }
 
         TransitionAdmin admin = await AdminAsync(ct);
         PanelItemStepResult result = await RunItemStepAsync(
-            (steps, token) => steps.RecordLateDeliveryTerminationAsync(TerminateForLateDeliveryRequest.FromOtherChannel(id, admin, input.Version, input.Confirmed, date), token),
+            (steps, token) => steps.RecordLateDeliveryTerminationAsync(TerminateForLateDeliveryRequest.FromOtherChannel(id, admin, input.Version, input.Confirmed, date) with { Iban = iban }, token),
             ct);
         return result.Refusal == TransitionRefusal.ConfirmationRequired
             ? await AskAsync(id, () => TerminationConfirm(id, input, date), ct)

@@ -216,6 +216,12 @@ internal sealed class PanelItemSteps : IPanelItemSteps
             return PanelItemStepResult.Refused(PanelItemObstacle.DateInvalid);
         }
 
+        // OB-14: the IBAN of a notice from the order's contact e-mail (the page passes it only then) passes the order page's check; otherwise the record would drop it silently.
+        if (!string.IsNullOrWhiteSpace(request.Iban) && !NoticeIbanRule.Allows(request.Iban))
+        {
+            return PanelItemStepResult.Refused(PanelItemObstacle.IbanInvalid);
+        }
+
         (PanelItemStepResult? refused, OrderOperationFacts? facts) = await LockAsync(request.OrderId, request.ExpectedVersion ?? -1, ct);
         if (refused is not null)
         {
@@ -317,14 +323,17 @@ internal sealed class PanelItemSteps : IPanelItemSteps
             return refused;
         }
 
-        if (VerdictObstacle(OrderOperationCatalog.Check(facts!, OrderOperation.CloseAsNotReturned, orderItemId, quantity)) is { } closed) // non-null: LockAsync returns the facts
+        // The declarations' units not come back, oldest first: the closure is written per declaration (06 4.28), the quantity spread over them in that order.
+        IReadOnlyList<ReturnableWithdrawal> withdrawals = [.. (await _afterSales.ReturnStepFactsAsync([orderItemId], ct)).Withdrawals.Where(w => w.Awaiting > 0)];
+
+        // 04 7.2.11.2: an empty quantity field is the units not come back; the rule checks that default like a typed one (nothing awaiting: one unit, which the rule refuses).
+        int requested = quantity ?? Math.Max(1, withdrawals.Sum(w => w.Awaiting));
+        if (VerdictObstacle(OrderOperationCatalog.Check(facts!, OrderOperation.CloseAsNotReturned, orderItemId, requested)) is { } closed) // non-null: LockAsync returns the facts
         {
             return closed;
         }
 
-        // The declarations' units not come back, oldest first: the closure is written per declaration (06 4.28), the quantity spread over them in that order.
-        IReadOnlyList<ReturnableWithdrawal> withdrawals = [.. (await _afterSales.ReturnStepFactsAsync([orderItemId], ct)).Withdrawals.Where(w => w.Awaiting > 0)];
-        int left = quantity ?? withdrawals.Sum(w => w.Awaiting);
+        int left = requested;
         foreach (ReturnableWithdrawal withdrawal in withdrawals)
         {
             if (left == 0)

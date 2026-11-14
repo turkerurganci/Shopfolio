@@ -695,6 +695,11 @@ public sealed partial class ItemRecordsTests : IAsyncLifetime
             services.AddScoped(_ => actor);
         }
 
+        // The panel's item steps go through the order corrections, which hold the Membership module; only its address and account rules are used there.
+        services.AddScoped<Shopfolio.Modules.Membership.AddressBooks>();
+        services.AddScoped(provider => OrderCorrectionTests.CorrectionMembership.Create(
+            provider.GetRequiredService<AppDbContext>(), provider.GetRequiredService<Shopfolio.Modules.Membership.AddressBooks>()));
+
         return services.BuildServiceProvider();
     }
 

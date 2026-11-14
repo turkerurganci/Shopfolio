@@ -49,21 +49,21 @@ public sealed partial class OrderCorrectionTests
     [Fact]
     public async Task PanelFirmCancellation_OnTheTransferLine_SaysSoInTheWindow_AndAsksTheIban_ForEveryChosenItem_InsteadOfARefund_T528_KK1_KK3()
     {
-        Order order = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical, ProductType.Digital);
+        Order order = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical, ProductType.Service);
         await ExecuteAsync($"UPDATE orders SET payment_method = 'BankTransfer', bank_transfer_iban = '{TransferIban}' WHERE id = '{order.Id}'");
         order = await ReloadAsync(order.Id);
         Guid physical = await ItemIdAsync(order.Id, ProductType.Physical);
-        Guid digital = await ItemIdAsync(order.Id, ProductType.Digital);
+        Guid service = await ItemIdAsync(order.Id, ProductType.Service);
 
-        PanelItemStepResult window = await StepAsync(s => s.CancelByFirmAsync(FirmCancellation(order, false, (physical, 2), (digital, 1)), Ct));
+        PanelItemStepResult window = await StepAsync(s => s.CancelByFirmAsync(FirmCancellation(order, false, (physical, 2), (service, 2)), Ct));
         Assert.Equal((TransitionRefusal.ConfirmationRequired, true), (window.Refusal, window.IsTransferLine));
 
-        PanelItemStepResult done = await StepAsync(s => s.CancelByFirmAsync(FirmCancellation(order, true, (physical, 2), (digital, 1)), Ct));
+        PanelItemStepResult done = await StepAsync(s => s.CancelByFirmAsync(FirmCancellation(order, true, (physical, 2), (service, 2)), Ct));
 
         Assert.Null(done.Refusal);
-        Assert.Equal(2, await CountAsync(c => c.Cancellations.Where(x => x.OrderItemId == physical || x.OrderItemId == digital)));
+        Assert.Equal(2, await CountAsync(c => c.Cancellations.Where(x => x.OrderItemId == physical || x.OrderItemId == service)));
         Assert.Equal(0, await CountAsync(c => c.Refunds.Where(r => r.OrderId == order.Id)));
-        Assert.NotEqual(0, await CountAsync(c => c.RefundIbanRequests.Where(r => r.OrderItemId == physical || r.OrderItemId == digital)));
+        Assert.NotEqual(0, await CountAsync(c => c.RefundIbanRequests.Where(r => r.OrderItemId == physical || r.OrderItemId == service)));
         Assert.Equal(2, await CountAsync(c => c.AuditLogs.Where(a => a.TargetRecordId == order.Id)));
         Assert.Equal(OrderStatus.Cancelled, (await ReloadAsync(order.Id)).OrderStatus);
     }
@@ -106,9 +106,9 @@ public sealed partial class OrderCorrectionTests
         Assert.Equal(PanelItemObstacle.QuantityExceedsOpen, (await StepAsync(s => s.CancelByFirmAsync(FirmCancellation(order, true, (physical, 3)), Ct))).Obstacle);
         Assert.Equal(PanelItemObstacle.ItemSelectionInvalid, (await StepAsync(s => s.CancelByFirmAsync(FirmCancellation(order, true, (physical, 1), (physical, 1)), Ct))).Obstacle);
 
-        // The second line is over its open units: the first, valid one is not applied either (K-1188 (4)).
-        PanelItemStepResult partly = await StepAsync(s => s.CancelByFirmAsync(FirmCancellation(order, true, (physical, 1), (digital, 2)), Ct));
-        Assert.Equal((TransitionRefusal.InvalidInput, PanelItemObstacle.QuantityExceedsOpen), (partly.Refusal, partly.Obstacle));
+        // The second line is a paid digital item, never open to a cancellation (02 7.1.6, 1.11.21): the first, valid line is not applied either (K-1188 (4)).
+        PanelItemStepResult partly = await StepAsync(s => s.CancelByFirmAsync(FirmCancellation(order, true, (physical, 1), (digital, 1)), Ct));
+        Assert.Equal(TransitionRefusal.ConditionNotMet, partly.Refusal);
 
         // The item is not open to the cancellation once the order was handed to the carrier.
         Order shipped = await SeedAsync(OrderStatus.Shipped, PaymentStatus.Paid, ProductType.Physical);
@@ -205,6 +205,29 @@ public sealed partial class OrderCorrectionTests
         Assert.Equal(1, await CountAsync(c => c.LateDeliveryTerminations.Where(t => t.OrderItemId == item && t.Quantity == 2)));
         Assert.Equal(OrderStatus.Cancelled, (await ReloadAsync(order.Id)).OrderStatus);
         Assert.Equal(1, await CountAsync(c => c.AuditLogs.Where(a => a.TargetRecordId == order.Id)));
+    }
+
+    [Fact]
+    public async Task PanelLateTermination_OnTheTransferLine_RefusesAWrongIban_CarriesTheNoticeIban_AndWithoutOne_AsksForIt_T528_KK5_D1590()
+    {
+        Order carried = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical);
+        Order asked = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical);
+        await ExecuteAsync($"UPDATE orders SET payment_method = 'BankTransfer', bank_transfer_iban = '{TransferIban}' WHERE id IN ('{carried.Id}', '{asked.Id}')");
+        (carried, asked) = (await ReloadAsync(carried.Id), await ReloadAsync(asked.Id));
+        _clock.SetUtcNow(DeliveryPeriodRules.LegalDeliveryLimitEnd(Start).AddHours(1));
+        DateOnly today = TurkeyTime.DateOf(_clock.GetUtcNow());
+
+        PanelItemStepResult wrong = await StepAsync(s => s.RecordLateDeliveryTerminationAsync(Termination(carried, true, today) with { Iban = "TR000000000000000000000000" }, Ct));
+        Assert.Equal(PanelItemObstacle.IbanInvalid, wrong.Obstacle);
+        Assert.Equal(0, await CountAsync(c => c.LateDeliveryTerminations));
+
+        Assert.Null((await StepAsync(s => s.RecordLateDeliveryTerminationAsync(Termination(carried, true, today) with { Iban = TransferIban }, Ct))).Refusal);
+        Assert.Null((await StepAsync(s => s.RecordLateDeliveryTerminationAsync(Termination(asked, true, today), Ct))).Refusal);
+
+        Guid carriedItem = await ItemIdAsync(carried.Id, ProductType.Physical);
+        Guid askedItem = await ItemIdAsync(asked.Id, ProductType.Physical);
+        Assert.Equal(0, await CountAsync(c => c.RefundIbanRequests.Where(r => r.OrderItemId == carriedItem)));
+        Assert.NotEqual(0, await CountAsync(c => c.RefundIbanRequests.Where(r => r.OrderItemId == askedItem)));
     }
 
     // ---- KK6: the removal's two lines and its refusals ----

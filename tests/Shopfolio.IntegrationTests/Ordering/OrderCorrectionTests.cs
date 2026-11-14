@@ -561,6 +561,7 @@ public sealed partial class OrderCorrectionTests : IAsyncLifetime
             OrderItem item = OrderItem.Create(order.Id, null, null, type, "Ürün", quantity, 300m, 20m, 50m * quantity, orderedAt);
             item.CouponShare = 10m * quantity;
             item.DownloadAllowance = type == ProductType.Digital ? 5 : null;
+            item.FulfilmentPeriod = type == ProductType.Service ? 7 : null;
             items.Add(item);
         }
 

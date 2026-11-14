@@ -66,7 +66,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
         if (facts.PaymentStatus == PaymentStatus.Pending)
         {
             // Before the payment the whole order (S3 + Ö2): the request carries no item (07 UC-129).
-            if (request.Items.Count > 0 || !OrderOperationCatalog.Check(facts!, OrderOperation.CancelByFirm, null, null).IsAllowed)
+            if (request.Items.Count > 0 || !OrderOperationCatalog.Check(facts,OrderOperation.CancelByFirm, null, null).IsAllowed)
             {
                 return PanelItemStepResult.NotOpen;
             }
@@ -105,7 +105,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
 
         foreach (PanelItemUnits units in request.Items)
         {
-            if (VerdictObstacle(OrderOperationCatalog.Check(facts!, OrderOperation.CancelByFirm, units.OrderItemId, units.Quantity)) is { } obstacle)
+            if (VerdictObstacle(OrderOperationCatalog.Check(facts, OrderOperation.CancelByFirm, units.OrderItemId, units.Quantity)) is { } obstacle)
             {
                 return obstacle;
             }
@@ -168,7 +168,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
         }
 
         OperationItemFacts? item = facts!.Items.FirstOrDefault(i => i.ItemId == request.OrderItemId); // non-null: LockAsync returns the facts when it refuses nothing
-        OperationVerdict verdict = OrderOperationCatalog.Check(facts!, OrderOperation.RecordWithdrawalFromOtherChannel, request.OrderItemId, request.Quantity);
+        OperationVerdict verdict = OrderOperationCatalog.Check(facts,OrderOperation.RecordWithdrawalFromOtherChannel, request.OrderItemId, request.Quantity);
         if (VerdictObstacle(verdict) is { } closed)
         {
             // K-604: a physical item not handed to the carrier is the "müşteriyle anlaşıldı" cancellation's - the form says so.
@@ -262,7 +262,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
         }
 
         // 03 1.6.1.5: only the removal that sends money to the card asks the confirmation; the transfer line has none (07 UC-138).
-        bool isCard = facts!.PaymentMethod == PaymentMethod.Card;
+        bool isCard = facts!.PaymentMethod == PaymentMethod.Card; // non-null: LockAsync returns the facts when it refuses nothing
         if (isCard && !request.Confirmed)
         {
             return new PanelItemStepResult(TransitionRefusal.ConfirmationRequired);

@@ -49,7 +49,9 @@ public sealed class OperationHandlerMarkTests
         Assert.Contains(Handlers(typeof(LateDeliveryTerminationPageModel)), m => m.GetCustomAttribute<GatedOperationAttribute>() is not null);
         Assert.Equal(
             [
+                nameof(OrderDetailModel.OnPostCancelOrderByCompanyAsync),
                 nameof(OrderDetailModel.OnPostCloseDeliveryFailedAsync),
+                nameof(OrderDetailModel.OnPostCloseNotReturnedAsync),
                 nameof(OrderDetailModel.OnPostCompleteServiceItemAsync),
                 nameof(OrderDetailModel.OnPostCorrectAddressAsync),
                 nameof(OrderDetailModel.OnPostCorrectArrivalDateAsync),
@@ -66,10 +68,18 @@ public sealed class OperationHandlerMarkTests
                 nameof(OrderDetailModel.OnPostMarkShippedAsync),
                 nameof(OrderDetailModel.OnPostProcessAmountBasedRefundAsync),
                 nameof(OrderDetailModel.OnPostProcessRefundAsync),
+                nameof(OrderDetailModel.OnPostReceiveReturnAsync),
+                nameof(OrderDetailModel.OnPostRecordLateDeliveryTerminationAsync),
+                nameof(OrderDetailModel.OnPostRecordWithdrawalAsync),
+                nameof(OrderDetailModel.OnPostRejectReturnAsync),
+                nameof(OrderDetailModel.OnPostRemoveOrderItemAsync),
+                nameof(OrderDetailModel.OnPostReopenDefectClaimAsync),
                 nameof(OrderDetailModel.OnPostRequestRefundIbanAsync),
                 nameof(OrderDetailModel.OnPostResendAllNotificationsAsync),
                 nameof(OrderDetailModel.OnPostResendNotificationAsync),
                 nameof(OrderDetailModel.OnPostResetDownloadCountAsync),
+                nameof(OrderDetailModel.OnPostResolveDefectClaimAsync),
+                nameof(OrderDetailModel.OnPostRestockReturnAsync),
                 nameof(OrderDetailModel.OnPostRetryCardRefundAsync),
                 nameof(OrderDetailModel.OnPostSaveInternalNoteAsync),
                 nameof(OrderDetailModel.OnPostSwitchRefundToBankTransferAsync),

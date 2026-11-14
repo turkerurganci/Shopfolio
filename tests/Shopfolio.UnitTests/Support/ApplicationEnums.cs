@@ -77,6 +77,8 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.Ordering.Contracts.UnopenedPaymentCancellation",
         // T529: why a refund step of E-37 was refused (the named 422 reasons of UC-131, UC-133, UC-134) - a result code, never a column.
         "Shopfolio.Modules.Ordering.Contracts.PanelRefundObstacle",
+        // T528: why an item step of E-37 was refused (the named 422 reasons of UC-129, UC-130, UC-138, UC-140, UC-142) - a result code, never a column.
+        "Shopfolio.Modules.Ordering.Contracts.PanelItemObstacle",
         // T534: the corporate content panel's seven types (the address segment's closed list, mirroring ContentRecordKind), the gate fields by name, the direction of a move and the result codes of the form's save,
         // the status move, the deletion and the manual order - read shapes and result codes, never a column.
         "Shopfolio.Modules.CorporateContent.Contracts.PanelContentType",

@@ -1,6 +1,6 @@
 # T529 — Sipariş ayrıntısı: geri ödeme işlemleri (E-37)
 
-**Faz:** F5 | **Durum:** ⏳ Düzeltme 1 yapıldı — doğrulama tur 2 bekliyor | **Tarih:** 2026-11-14
+**Faz:** F5 | **Durum:** ⏳ Düzeltme 2 yapıldı — doğrulama bekliyor | **Tarih:** 2026-11-14
 
 ---
 
@@ -11,25 +11,25 @@
 - **Payment:** `StartFirmRefundAsync` (havale: `SentAt`; kart: geri ödeme + `CardRefund` işi aynı işlemde), `MarkCardRefundFailedByAdminAsync`, `ListPanelRefundsAsync`.
 - **AfterSales:** `ListOwedRefundRecordsAsync` (panel ana sayfa sayacıyla tek kural `OwedWithoutRefundAsync`), `ListOpenNotReturnedClosuresAsync` (UC-133 kapanış seçimi).
 - **UC-133 kapanış alanı (bu tur):** `ProcessAmountBasedRefundInput.NotReturnedClosureId` 07 girdi tablosuyla birebir eklendi; form, siparişin açık "mal dönmedi" kapanışlarını seçtirir; seçilen kapanış seçilen kalemin açık kapanışı değilse 422 `InvalidListValue`; seçilmezse kalemin son açık kapanışı bağlanır.
-- **Testler:** `OrderDetailPageTests.Refunds.cs` (16 test yöntemi, düzeltme 1 sonrası), Unit `NotReturnedDeductionTests`, `OperationHandlerMarkTests` listesi.
+- **Testler:** `OrderDetailPageTests.Refunds.cs` (19 test yöntemi, düzeltme 2 sonrası), Unit `NotReturnedDeductionTests`, `OperationHandlerMarkTests` listesi.
 
 ## Etkilenen Modüller / Dosyalar
 
 - `src/Shopfolio.Web/Pages/Panel/` — `OrderDetail.Refunds.cs`, `_OrderDetailRefunds.cshtml`, `_OrderRefundLine.cshtml` (düzeltme 1), `OrderDetail.cshtml`, `OrderDetail.cshtml.cs`
-- `src/Shopfolio.Web/Modules/Ordering/` — `PanelRefundSteps.cs`, `FirmRefundAmounts.cs`, `OrderTransitions.FirmRefunds.cs`, `OrderTransitions.RefundLine.cs`, `Contracts/IPanelRefundSteps.cs`, `Contracts/PanelRefundObstacle.cs`, `Contracts/IOrderTransitions*.cs`, `OrderingModule.cs`
+- `src/Shopfolio.Web/Modules/Ordering/` — `PanelRefundSteps.cs`, `FirmRefundAmounts.cs`, `OrderTransitions.FirmRefunds.cs`, `OrderTransitions.RefundLine.cs` (düzeltme 2, D-1563), `OrderOperationCatalog.cs` (düzeltme 2, D-1563), `Contracts/IPanelRefundSteps.cs`, `Contracts/PanelRefundObstacle.cs`, `Contracts/IOrderTransitions*.cs`, `OrderingModule.cs`
 - `src/Shopfolio.Web/Modules/Payment/` — `PaymentModule.FirmRefunds.cs`, `Contracts/FirmRefunds.cs`, `Contracts/IPaymentModule.cs`
-- `src/Shopfolio.Web/Modules/AfterSales/` — `AfterSalesModule.RefundLine.cs` (düzeltme 1, `ReportTransferFailedAsync`), `AfterSalesModule.PendingWork.cs`, `AfterSalesModule.NotReturnedClosures.cs`, `Contracts/OwedRefundRecords.cs`, `Contracts/OpenNotReturnedClosure.cs`, `Contracts/IAfterSalesModule.cs`
+- `src/Shopfolio.Web/Modules/AfterSales/` — `AfterSalesModule.RefundLine.cs` (düzeltme 1, `ReportTransferFailedAsync`; düzeltme 2, `ListRefundIbanFieldsAsync`), `Contracts/RefundLine.cs` (düzeltme 2), `AfterSalesModule.PendingWork.cs`, `AfterSalesModule.NotReturnedClosures.cs`, `Contracts/OwedRefundRecords.cs`, `Contracts/OpenNotReturnedClosure.cs`, `Contracts/IAfterSalesModule.cs`
 
 ## Kabul Kriterleri Kontrolü
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | `ProcessRefund` doğuran kaydın anahtarı; onaysız 200 tutar + IBAN, onaylı 303; yabancı 404 | ✓ | `ProcessRefund_OnTheTransfer_RepeatsTheAmountAndTheIban_ThenSendsIt_MovesTheAxis_AndDeletesTheIban_KK1_KK2` |
+| 1 | `ProcessRefund` doğuran kaydın anahtarı; onaysız 200 tutar + IBAN, onaylı 303; yabancı 404 | ✓ | kayıt bağı: `ProcessRefund_OnTheTransfer_RepeatsTheAmountAndTheIban_ThenSendsIt_MovesTheAxis_AndDeletesTheIban_KK1_KK2`; ayıp çözümü bağı: `..._D878`; kalemsiz doğmuş geri ödeme (düzeltme 2, bulgu 1–2): `PaymentRecordId` bağı `ProcessRefund_OnTheLatePaymentsRefundTurnedToTheTransfer_ByThePaymentRecord_RepeatsItsOwnIbanNotTheItems_ThenSendsIt_KK1_KK4`, `RefundId` bağı `ProcessRefund_OnAnItemlessAmountBasedRefundTurnedToTheTransfer_ByTheRefundId_RepeatsItsOwnIban_ThenSendsIt_KK1` |
 | 2 | Havalede işlemle gönderim, IBAN son geri ödemeyle silinir; IBAN yoksa 422 | ✓ | aynı test + `ProcessRefund_OnTheTransferWithoutAnIban_Is422RefundIbanMissing_..._KK2` |
 | 3 | Kart: sağlayıcı çağrılmaz; satır, iş, iz, sürüm tek işlemde | ✓ | `ProcessRefund_OnTheCard_WritesTheRefundItsJobTheAuditRowAndTheVersion_..._KK3` |
-| 4 | İkinci gönderim ve açık pencerede IBAN düzeltmesi 409, güncel hâl | ✓ | `ProcessRefund_SentTwice_IsTheVersionsConflict_AndAnIbanCorrectedMeanwhile_Is409WithTheCurrentIban_KK4` |
+| 4 | İkinci gönderim ve açık pencerede IBAN düzeltmesi 409, güncel hâl | ✓ | `ProcessRefund_SentTwice_IsTheVersionsConflict_AndAnIbanCorrectedMeanwhile_Is409WithTheCurrentIban_KK4`; karşılaştırılan `ShownIban` iki IBAN'lı siparişte geri ödemenin kendi IBAN'ı (düzeltme 2: `..._ByThePaymentRecord_..._KK1_KK4`) |
 | 5 | Tutar bazlı geri ödeme açık kapanışa bağlanır; sonraki teslim almalardan sırayla, tükenene kadar düşülür | ✓ | `ProcessAmountBasedRefund_IsBoundToTheChosenOpenClosure_AForeignOneIs422_AndTheLaterReceiptsRefundBearsTheBoundAmount_KK5`; `NotReturnedDeductionTests` (sıra, tükenme, kenarlar) |
-| 6 | `MarkBankTransferRefundFailed` IBAN siler, alanı açar, "IBAN bekleniyor"; işlenmişte 422 | ✓ | kayıt geri ödemesi: `MarkBankTransferRefundFailed_DeletesTheIban_OpensTheField_AndOnAProcessedRefundIs422_KK6`; dosyadaki IBAN'a ödenen ayıp çözümü geri ödemesi (düzeltme 1, D-912): `MarkBankTransferRefundFailed_OnADefectRemedysRefundPaidToTheIbanOnFile_OnTheItemsRow_DeletesThatIban_AndOpensTheField_KK6_D912` (ekran düğmeyi çizer → POST 303, IBAN silindi, `TransferFailed` isteği, "IBAN bekleniyor") |
+| 6 | `MarkBankTransferRefundFailed` IBAN siler, alanı açar, "IBAN bekleniyor"; işlenmişte 422 | ✓ | kayıt geri ödemesi: `MarkBankTransferRefundFailed_DeletesTheIban_OpensTheField_AndOnAProcessedRefundIs422_KK6`; dosyadaki IBAN'a ödenen ayıp çözümü geri ödemesi (düzeltme 1, D-912): `MarkBankTransferRefundFailed_OnADefectRemedysRefundPaidToTheIbanOnFile_OnTheItemsRow_DeletesThatIban_AndOpensTheField_KK6_D912` (ekran düğmeyi çizer → POST 303, IBAN silindi, `TransferFailed` isteği, "IBAN bekleniyor"); iki IBAN'lı kart siparişinde havaleye dönmüş geç ödeme geri ödemesi (düzeltme 2, bulgu 2, D-1563): `MarkBankTransferRefundFailed_OnTheLatePaymentsRefundTurnedToTheTransfer_OnACardOrder_DeletesItsOwnIban_AndOpensTheItemlessRequest_KK6_D1563` (satır B'yi gösterir, POST B'yi siler, A kalır; kalemsiz `TransferFailed` isteği; satır "IBAN bekleniyor", ikinci POST 422; kart siparişinin doğmamış kaydında 422) |
 | 7 | `ProcessAmountBasedRefund` boş/sıfır/aşan tutar ve IBAN'sız havale 422; kapalı kalem kapalı | ✓ | `ProcessAmountBasedRefund_AnEmptyZeroOrExceedingAmount_Is422_AndWritesNothing_KK7` (5 durum: boş, 0, 50,01, abc, 10,505 — üç ondalık düzeltme 1'de 500 → 422 `InvalidAmount`), `..._OnTheTransferWithoutAnIban_Is422_..._AndTheClosedItemStaysClosed_KK7`, `ProcessAmountBasedRefund_FormIsDrawnOnlyWhileProcessRefundIsOpen_AndAnItemNotOfTheOrderIs422WithTheItemListsMessage` |
 | 8 | `RequestRefundIban` sebebi sunucu yazar; kalemsiz ya da havale dışı 422 | ✓ | `RequestRefundIban_WritesTheServersReasonAndB14_AndWithoutAnItemOrOnTheCardIs422_KK8` |
 | 9 | `RetryCardRefund` onayla yeni istek; sonuç beklenirken / IBAN varken 422; ters ibraz uyarısı | ✓ | `RetryCardRefund_AsksTheConfirmation_TheChargebackWarningStaysOnTheLineOnly_ThenQueuesANewRequest_AndWhileTheResultIsAwaitedIs422_KK9` (düzeltme 1: U4 200 yanıtında bir kez, satırda; pencerede yok — `12 §12.13` K-1514 (3)) |
@@ -39,13 +39,14 @@
 
 | Madde | Sonuç | Kanıt (dosya, test adı) |
 |---|---|---|
-| Kriter 1–10, KK1–KK10 | ✓ | yukarıdaki tablo — düzeltme 1'de main birleşik dalda (T531 #572 dahil) bütün maddeler yeniden denetlendi, ilgili sınıflar yeşil |
-| KK1 "yedi bağdan biri" | ✓ | `ProcessRefundInput` yedi kayıt anahtarı + `RefundId` (`SelectedKey()`; ⚠ 3 → D-1552 `07` boşluğu); 404 yabancı anahtar |
+| Kriter 1–10, KK1–KK10 | ✓ | yukarıdaki tablo — düzeltme 2'de birleşik dalda (main `866dc688`) bütün maddeler yeniden denetlendi; değişen yollar KK1, KK4, KK6 (aşağıda bağ başına ayrı test), öteki maddelerin kodu değişmedi, testleri birleşik ağaçta yeşil |
+| KK1 "yedi bağdan biri" (düzeltme 2, bulgu 1) | ✓ | `ProcessRefundInput` yedi kayıt anahtarı + `RefundId` (`SelectedKey()`; ⚠ 3 → D-1552 `07` boşluğu); 404 yabancı anahtar. Bağ başına kanıt: `CancellationId` `..._KK1_KK2`; `DefectClaimId` `..._D878`; `PaymentRecordId` (kalemsiz doğmuş, havaleye dönmüş geç ödeme) `..._ByThePaymentRecord_..._KK1_KK4` — onaysız 200 tutar 20 + IBAN B, onaylı 303, gönderildi; `RefundId` (kalemsiz tutar bazlı) `..._ByTheRefundId_..._KK1` — 200 + 303. Kalemsiz yolda öğe kimliği doğmuş geri ödemenin kendisinden (`born is not null ? born.OrderItemId : owed!.OrderItemId`), artık 500 yok |
+| KK1/KK6 IBAN tek kural (düzeltme 2, bulgu 2) | ✓ | `ListRefundIbanFieldsAsync` dosyadaki IBAN alanına onu getiren isteğin `RefundId`'sini yazar; `Lines.IbanOf` sırası: geri ödemenin kendi isteğinin IBAN'ı → kalemin (kayıtları ve kalemin istekleri; başka geri ödemenin kendi IBAN'ı değil) → dosyadaki ilk IBAN (`PendingTransferPayeesAsync` ile aynı sıra); kendi isteği açık geri ödeme IBAN bekler (`VAL-A912`). Satır, pencere (`ShownIban`), "işle" ve "gerçekleşmedi" aynı `IbanOf`'u okur; "gerçekleşmedi" POST'u satırın IBAN'ı yoksa 422. İki IBAN'lı testler: satır B (kalem satırı A), pencere B, işlemden sonra B silinir A kalır; "gerçekleşmedi" B'yi siler |
 | KK2 havale hattı; IBAN yok | ✓ | KK1_KK2 + `..._OnTheTransferWithoutAnIban_Is422RefundIbanMissing_..._KK2` |
 | KK3 kart hattı sırası | ✓ | `..._OnTheCard_..._KK3` (iş 1, `SentAt` boş, sürüm 2, iz 1) |
-| KK4 "iki 409 sebebi" | ✓ | sürüm çakışması ve `RefundIbanChanged` (`ShownIban` gizli alanı) |
+| KK4 "iki 409 sebebi" | ✓ | sürüm çakışması ve `RefundIbanChanged` (`ShownIban` gizli alanı; çakışmada karşılaştırılan güncel IBAN satırın `IbanOf`'u — düzeltme 2'de iki IBAN'lı siparişte geri ödemenin kendi IBAN'ı, `..._KK1_KK4`) |
 | KK5 bağ; sıra ve tükenme | ✓ | `..._KK5` + `NotReturnedDeductionTests` |
-| KK6 IBAN silinir; işlenmişte 422 (düzeltme 1, bulgu 1) | ✓ | ekran ve POST aynı kural: kayıt/istek IBAN'ı, yoksa dosyadaki ilk IBAN (D-907; `AfterSalesModule.ReportTransferFailedAsync`, ekran `PanelRefundSteps.Lines.IbanOf` 3. basamağı ile aynı sıra `CreatedAt, Id`); düğme çizilmezse (IBAN yok) POST `null` → 422. Testler `..._KK6`, `..._KK6_D912` |
+| KK6 IBAN silinir; işlenmişte 422 (düzeltme 1 bulgu 1; düzeltme 2 bulgu 2, D-1563) | ✓ | ekran ve POST aynı kural: geri ödemenin kendi isteğinin IBAN'ı, kalemin, yoksa dosyadaki ilk IBAN (D-907; `AfterSalesModule.ReportTransferFailedAsync` kalemsizde geri ödemenin istekleri, kalemde kalemin kayıt/istekleri, yoksa dosyadaki ilk; ekran `Lines.IbanOf`); satırın IBAN'ı yoksa düğme yok, POST 422 (`PanelRefundSteps` artık aynı `IbanOf`'u sorar). Kart siparişinde yol doğmuş geri ödemenin kendi yolu (havaleye dönmüş), doğmamış kayıtta siparişin yolu → 422. Testler `..._KK6`, `..._KK6_D912`, `..._KK6_D1563` |
 | KK7 "dört 422 sebebi" + iki ondalık (düzeltme 1, bulgu 3) | ✓ | boş, sıfır, aşan, okunamaz ve üç ondalık (theory) + IBAN'sız havale; `FieldRuleAttribute.HasAtMostDecimals(amount, AmountDecimals)` → 422 `InvalidAmount` |
 | KK8 sebep sunucuda | ✓ | `..._KK8` (`Input.Reason=CardRefundFailed` gönderilse de `AdminRequest`) |
 | KK9 iki ret, uyarı (düzeltme 1, bulgu 2) | ✓ | `RetryConfirm` `Warning` taşımaz; U4 yalnız satırda (`_OrderRefundLine.cshtml`); test pencerede yok, sayfada tek |
@@ -67,13 +68,17 @@
 | Döngüde sorgu (`09 §20` m.4) | ✓ (⚠ 5) | owed tutarlar sipariş başına kayıt sayısı kadar okunur (bir siparişte birkaç kayıt) |
 | Enum kilitleri | ✓ | `PanelRefundObstacle` kendi dosyasında, `ApplicationEnums.NotStored`'da (düzeltme 1: `ItemNotOfOrder` eklendi, saklanmaz) |
 | Giriş modeli adları (`07 §5.3.1`) | ✓ | `ProcessRefundInput`, `ProcessAmountBasedRefundInput`, `RequestRefundIbanInput`, `RetryCardRefundInput` (UC-135–137 ortak) |
-| Devredilen backlog kalemleri | ✓ | D-657 ✅, D-660 ✅, D-874 ✅ (`..._D874`), D-878 havale payı ✅ (`ProcessRefund_OnADefectRemedysBornTransferRefund_SendsIt_AndMovesTheAxis_D878`), D-898 ✅, D-1084 ✅; D-906 T529 payı kapandı (UC-133 tavanı), kalem tavanı payı → F5 gate; D-912 ✅ (düzeltme 1; `..._KK6_D912`); D-1382 → F5 gate; D-981 T529 payı yazıldı (`VAL-C090`/`C091` tam geri ödeme sınaması F5 kapısında) |
+| Devredilen backlog kalemleri | ✓ | D-657 ✅, D-660 ✅, D-874 ✅ (`..._D874`), D-878 havale payı ✅ (`ProcessRefund_OnADefectRemedysBornTransferRefund_SendsIt_AndMovesTheAxis_D878`), D-898 ✅, D-1084 ✅; D-906 T529 payı kapandı (UC-133 tavanı), kalem tavanı payı → F5 gate; D-912 ✅ (düzeltme 1; `..._KK6_D912`); D-1382 → F5 gate; D-981 T529 payı yazıldı (`VAL-C090`/`C091` tam geri ödeme sınaması F5 kapısında); D-1563 ✅ (düzeltme 2; `..._KK6_D1563`) |
 | `09 §25` / güvenlik | ✓ | panel oturumu ve sürüm; yabancı anahtar 404; IBAN iz satırına yazılmaz (KK1 testi); sebep sunucuda (K-1201); sayfa tutar hesaplamaz; yeni bağımlılık yok |
 
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
+| Build (düzeltme 2, birleşik ağaç) | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı, 0 hata |
+| Unit (düzeltme 2) | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | TAM 7661/7661 |
+| Biçim (düzeltme 2) | ✓ | `dotnet format Shopfolio.slnx --no-restore --verify-no-changes --include <origin/main'e göre değişen 27 .cs dosyası>` | çıkış 0 |
+| Integration (düzeltme 2) | ✓ (ilgili sınıflar) | tek çağrı `--filter-class` `OrderDetailPageTests`, `RefundAmountTests`, `PaymentTransitionsTests`, `StatusCorrectionTests`, `CardRefundJobTests`, `PanelHomeTests`, `CustomerOperationsTests`, `OrderOperationScreenTests`, `OrderPageTests` (son kod) + ayrı çağrı `ReturnRejectionAndIbanRequestTablesTests`, `ItemRecordsTests`, `OrderCorrectionTests`, `OrderOperationScreenTests`, `OrderPageTests`; Postgres 18 `shopfolio-t529-fix2-pg`, `127.0.0.1:57411`, `track_commit_timestamp=on` | 255/255 + 190/190. **TAM: CI** |
 | Build (düzeltme 1, birleşik ağaç) | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı, 0 hata |
 | Unit (düzeltme 1) | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | TAM 7639/7639 |
 | Integration (düzeltme 1) | ✓ (ilgili sınıflar) | tek çağrı, `--filter-class` `OrderDetailPageTests` (T531'in `Upkeep` testleri aynı sınıfta), `StatusCorrectionTests`, `CardRefundJobTests`, `PanelHomeTests`; Postgres 18 `shopfolio-t529-fix1-pg`, `127.0.0.1:57529`, `track_commit_timestamp=on` | 137/137. **TAM: CI** |
@@ -114,7 +119,7 @@
 4. UC-133 tavanı = ödenen − (gönderilmiş + başlatılmış) − doğmamış borçlu kayıt tutarları (D-906 payı).
 5. Owed satırların tutarı kayıt başına `FirmRefundAmounts.OfAsync` ile okunur; bir siparişteki kayıt sayısı küçüktür, toplu okuma F5 kapısındaki performans denetimine bırakıldı.
 6. ~~Geri ödeme satırları ayrı "Geri ödemeler" bölümünde~~ — düzeltme 1 (K3): kalemin satırı kalem satırında (`04` 9.9.6 (4), 9.9.21), kalemsiz satır bölümde.
-7. IBAN önceliği: geri ödemenin → kalemin → siparişin dosyadaki IBAN'ı.
+7. IBAN önceliği: geri ödemenin → kalemin → siparişin dosyadaki IBAN'ı (düzeltme 2: 1. basamak artık çalışır — alan `RefundId` taşır; kendi isteği açık geri ödeme IBAN bekler).
 8. İz adları: ProcessRefund/AmountBased → `RefundManually`, UC-132 → `ReportRefundTransferNotCompleted`, UC-134 → `OpenRefundIbanRequest`, UC-135 → `RetryCardRefund`, UC-136 → `RefundByBankTransfer`, UC-137 → `MarkCardRefundNotCompleted`.
 9. `RefundIbanChanged` 409: onay penceresi `ShownIban` gizli alanını taşır; sürüm çakışmasında güncel IBAN farklıysa bu kod ve metin.
 10. KK5 testi iş çalıştırıcısız açılır: kart işinin arka planda sonuçlanması sürümü testin adımları arasında artırıyordu.
@@ -161,3 +166,13 @@
 - **Testler:** build `-warnaserror` 0 uyarı; `dotnet format --include` dalın 25 .cs dosyası çıkış 0; Unit 7661/7661; betik 4 dosya; Integration `OrderDetailPageTests`, `PanelHomeTests`, `RefundAmountTests`, `ItemRecordsTests`, `PaymentTransitionsTests`, `StatusCorrectionTests` 254/254 + `BranchFlowTests`, `CustomerOperationsTests`, `OrderCorrectionTests`, `OrderListPageTests`, `OrderDisposalTests`, `DeliveryPeriodTests`, `AutomaticMomentsTests`, `SalesSummaryTests` 151/151. **TAM: CI**.
 - **CI:** `43585484901` (head `9c0826e6`) bütün işler yeşil; PR `MERGEABLE`.
 - **`12`:** `VAL-A230`, `VAL-B147` → PASS; öteki yedi satır PASS kalır. Bulgular satır dışı (KK1, `04` 9.9.21).
+
+## Düzeltme 2 (2026-11-14)
+
+- **Birleştirme:** `git merge origin/main` gerekmedi — main `866dc688` dalda; çakışma yok.
+- **Bulgu 1 (KK1, KRİTİK):** `PanelRefundSteps.ProcessRefundAsync` öğe kimliğini doğmuş geri ödemeden alır (`born is not null ? born.OrderItemId : owed!.OrderItemId`); kalemsiz doğmuş havale geri ödemesi (`PaymentRecordId` ve `RefundId` bağları) onaysız 200 (tutar + IBAN), onaylı 303. İz satırı aynı öğe kimliğini yazar (kalemsizde `ItemId` yok).
+- **Bulgu 2 (KK1, KK6, D-907, ORTA):** `AfterSalesModule.ListRefundIbanFieldsAsync` dosyadaki IBAN alanına onu getiren karşılanmış isteğin `RefundId`'sini yazar (beşinci sabit okuma); `Lines.IbanOf`: kendi isteğinin IBAN'ı → kalemin (başka geri ödemenin kendi IBAN'ı hariç) → dosyadaki ilk. Satır, pencere, `ShownIban` (KK4), "işle" ve "gerçekleşmedi" aynı evden okur. `PanelOrderReader.IbanOf`'un 1. basamağı da artık eşleşir (bekleyen geri ödeme özeti aynı IBAN'ı anar).
+- **K1 → D-1563 ✅:** katalog `ReportTransferRefundFailed` `Open(HasRefundIban)` (`03` 1.11.33 siparişin yolunu sormaz); `OrderTransitions.ReportTransferFailedAsync` kart siparişinde adı geçen geri ödemenin ya da kalemin havale yolunda bekleyen geri ödemesi olmasını ister; `PanelRefundSteps.MarkBankTransferRefundFailedAsync` yolu doğmuş geri ödemeden, doğmamışta siparişten alır ve satırın IBAN'ı yoksa 422 (ekranla aynı karar). `VAL-A912` akışı testle sınandı (satır `12`'de doğrulayıcının).
+- **Yeni testler (`OrderDetailPageTests.Refunds.cs`):** `ProcessRefund_OnTheLatePaymentsRefundTurnedToTheTransfer_ByThePaymentRecord_RepeatsItsOwnIbanNotTheItems_ThenSendsIt_KK1_KK4`, `ProcessRefund_OnAnItemlessAmountBasedRefundTurnedToTheTransfer_ByTheRefundId_RepeatsItsOwnIban_ThenSendsIt_KK1`, `MarkBankTransferRefundFailed_OnTheLatePaymentsRefundTurnedToTheTransfer_OnACardOrder_DeletesItsOwnIban_AndOpensTheItemlessRequest_KK6_D1563`; düzenek `SeedTurnedRefundsAsync` (kart siparişi; kalemin havaleye dönmüş ayıp çözümü geri ödemesi IBAN A, önce; kalemsiz geri ödeme IBAN B, sonra).
+- **Öz denetim notu:** tur 2'de KK1 ve KK6 kanıtsızdı; bu kez her bağ (kayıt, ayıp çözümü, `PaymentRecordId`, `RefundId`) ve her IBAN durağı (satır, pencere, işle, gerçekleşmedi) ayrı testle kanıtlandı. Sık FAIL listesi (kalemsiz yolda null varsayımı, ekran/POST ayrışması, backlog kalemi) tarandı.
+- **⚠ (düzeltme 2):** (a) Kendi isteği açık geri ödeme (havale gerçekleşmedi sonrası) dosyadaki başka IBAN'a düşmez, "IBAN bekleniyor" der (`VAL-A912`); IBAN'ın ömrü (`PendingTransferPayeesAsync`) böyle bir geri ödemede dosyadaki IBAN'ları kullanımda sayar — silmeyi geciktirir, ödeme yerini değiştirmez. (b) Kaydın kendi IBAN'ı ile geri ödemenin kendi isteğinin IBAN'ı aynı geri ödemede birlikte doğmaz (kendi istek yalnız kartta gerçekleşmeyen ve geç ödeme geri ödemelerinde; kart siparişinin kaydı IBAN taşımaz) — `IbanOf` kendi isteği önce sorar. (c) Testler `TAM: CI`.

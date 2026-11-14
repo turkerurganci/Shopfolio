@@ -77,7 +77,9 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
         }
 
         PaymentMethod way = born?.Way ?? Way(order);
-        string? iban = way == PaymentMethod.BankTransfer ? lines.IbanOf(born?.RefundId, born?.OrderItemId ?? owed!.OrderItemId) : null; // non-null: one of the two was found above
+        // A born refund may have no item (the late payment's, an amount based one; 04 9.9.21): its own item, never the owed record's, then its own IBAN.
+        Guid? itemId = born is not null ? born.OrderItemId : owed!.OrderItemId; // non-null: without a born refund the owed record was found above
+        string? iban = way == PaymentMethod.BankTransfer ? lines.IbanOf(born?.RefundId, itemId) : null;
 
         // The system's own card refund and a refund that was sent are not the firm's step (02 7.2.8); the transfer line without an IBAN asks for one first (K-686).
         if (born is not null && (born.IsSent || born.Way == PaymentMethod.Card))
@@ -128,7 +130,7 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
             refundId = started.RefundId;
         }
 
-        await WriteAsync(AuditOperation.RefundManually, order.Id, RefundValues(refundId, born?.OrderItemId ?? owed?.OrderItemId, amount), ct);
+        await WriteAsync(AuditOperation.RefundManually, order.Id, RefundValues(refundId, itemId, amount), ct);
         return PanelRefundStepResult.Done;
     }
 
@@ -149,14 +151,21 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
             return new PanelRefundStepResult(TransitionRefusal.OrderNotFound);
         }
 
-        // A processed transfer's return is outside the product (03 8.3.3.8): the step is open only before the refund was sent.
-        if ((born is not null && (born.IsSent || born.Way != PaymentMethod.BankTransfer))
+        // A processed transfer's return is outside the product (03 8.3.3.8): the step is open only before the refund was sent, and only on the transfer - the born
+        // refund's own way (a card refund turned to the transfer on a card order; D-1563), else the order's.
+        if ((born is not null && born.IsSent) || (born?.Way ?? Way(order)) != PaymentMethod.BankTransfer
             || !OrderOperationCatalog.Check(facts, OrderOperation.ReportTransferRefundFailed, null, null).IsAllowed)
         {
             return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet);
         }
 
+        // The line draws the step only with the IBAN the refund goes to: without one there is no transfer to fail (09 8.3 item 5).
         Guid? itemId = born?.OrderItemId ?? owed?.OrderItemId;
+        if (lines.IbanOf(born?.RefundId, itemId) is null)
+        {
+            return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet);
+        }
+
         OrderTransitionResult result = await _transitions.ReportTransferFailedAsync(
             new ReportTransferFailedRequest(order.Id, itemId, itemId is null ? born?.RefundId : null, request.Admin, request.ExpectedVersion), ct);
         if (result.Refusal is { } refusal)
@@ -529,10 +538,16 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
         public PanelRefundFacts? BornOf(Guid key) =>
             Refunds.Where(r => !r.IsVoided && (r.RefundId == key || r.IsCausedBy(key))).OrderBy(r => r.IsSent).FirstOrDefault();
 
-        /// <summary>The IBAN a transfer refund goes to (04 9.9.6; OB-14): the refund's own, else its item's, else the order's on file.</summary>
+        /// <summary>
+        /// The IBAN a transfer refund goes to (04 9.9.6; OB-14; 02 7.4.5, the IBAN's life's order: PendingTransferPayeesAsync): the one its own request brought, else
+        /// its item's - its records' and the item's requests', not another refund's own -, else the order's on file. A refund whose own request is open waits for its
+        /// IBAN (VAL-A912; K-1131 (2)): none. The line, the window and the steps read it here.
+        /// </summary>
         public string? IbanOf(Guid? refundId, Guid? itemId) =>
-            Fields.FirstOrDefault(f => f.Iban is not null && refundId is not null && f.RefundId == refundId)?.Iban
-            ?? Fields.FirstOrDefault(f => f.Iban is not null && itemId is not null && f.OrderItemId == itemId)?.Iban
+            refundId is not null && Fields.Any(f => f.RequestId is not null && f.RefundId == refundId)
+                ? null
+                : Fields.FirstOrDefault(f => f.Iban is not null && refundId is not null && f.RefundId == refundId)?.Iban
+            ?? Fields.FirstOrDefault(f => f.Iban is not null && itemId is not null && f.OrderItemId == itemId && (f.RefundId is null || f.RefundId == refundId))?.Iban
             ?? Fields.FirstOrDefault(f => f.Iban is not null)?.Iban;
     }
 }

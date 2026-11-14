@@ -87,7 +87,8 @@ internal static class OrderOperationCatalog
         Firm(OrderOperation.CloseAsNotReturned, OperationScope.Item, i => Units(i.Item?.Period.NotReturnedClosableUnits ?? 0)),
         Firm(OrderOperation.ProcessRefund, OperationScope.Order, i => Open(IsRefundProcessable(i.Order))),
         Firm(OrderOperation.RetryOrRedirectCardRefund, OperationScope.Order, i => Open(IsCardRefundStepOpen(i.Order, CardRefundOperationStep.RetryOrRedirect) || IsCardRefundStepOpen(i.Order, CardRefundOperationStep.MarkNotRealized))),
-        Firm(OrderOperation.ReportTransferRefundFailed, OperationScope.Order, i => Open(i.Order.PaymentMethod == PaymentMethod.BankTransfer && i.Order.HasRefundIban)),
+        // 03 1.11.33 asks for a transfer refund with its IBAN, not a transfer order: on a card order the IBAN on file is a card refund's turned to the transfer (D-1563).
+        Firm(OrderOperation.ReportTransferRefundFailed, OperationScope.Order, i => Open(i.Order.HasRefundIban)),
         Firm(OrderOperation.RecordWithdrawalFromOtherChannel, OperationScope.Item, RecordWithdrawal),
         Firm(OrderOperation.CorrectGuestEmail, OperationScope.Order, i => Open(i.Order.IsGuestOrder && !i.Order.PersonalDataDisposed)),
         Firm(OrderOperation.ResendEmail, OperationScope.Order, i => Open(i.Order.EmailNotDelivered)),

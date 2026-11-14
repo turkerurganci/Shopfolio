@@ -29,6 +29,8 @@ public sealed partial class OrderDetailPageTests
 {
     private const string ValidRefundIban = "TR330006100519786457841326";
 
+    private const string OtherRefundIban = "TR320010009999901234567890";
+
     // ---- KK1, KK2: the key, the confirmation, the transfer sent with the step, the IBAN gone; 404 ----
 
     [Fact]
@@ -530,7 +532,163 @@ public sealed partial class OrderDetailPageTests
         Assert.Contains(OrderDetailModel.LateRefundSuccessWarning, warned, StringComparison.Ordinal);
     }
 
+    // ---- Düzeltme 2: the itemless born transfer refund (04 9.9.21) and its own IBAN (02 7.4.5; D-907) - the line, the window and the steps name the same IBAN ----
+
+    [Fact]
+    public async Task ProcessRefund_OnTheLatePaymentsRefundTurnedToTheTransfer_ByThePaymentRecord_RepeatsItsOwnIbanNotTheItems_ThenSendsIt_KK1_KK4()
+    {
+        (string key, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
+        TurnedRefunds seeded = await SeedTurnedRefundsAsync(adminId, latePayment: true);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (_, string screen) = await GetAsync(client, Path(seeded.Order), key);
+        (HttpStatusCode ask, string window) = await PostAsync(client, Path(seeded.Order, "ProcessRefund"), [("Input.PaymentRecordId", seeded.ItemlessKey.ToString("D")), ("Input.Version", "1")], key);
+        (HttpStatusCode done, string? location) = await PostForLocationAsync(
+            client, Path(seeded.Order, "ProcessRefund"), [("Input.PaymentRecordId", seeded.ItemlessKey.ToString("D")), ("Input.Version", "1"), ("Input.Confirmed", "true"), ("Input.ShownIban", OtherRefundIban)], key);
+
+        // The line: the refund's own IBAN (B), not the first on the order's file (the item's A); the item's line keeps its own.
+        Assert.Equal(DisplayFormat.Iban(OtherRefundIban), LineIbanOf(screen, seeded.ItemlessKey));
+        Assert.Equal(DisplayFormat.Iban(ValidRefundIban), LineIbanOf(screen, seeded.ItemKey));
+        Assert.Contains($"name=\"Input.PaymentRecordId\" value=\"{seeded.ItemlessKey:D}\"", screen, StringComparison.Ordinal);
+
+        // The window (KK1): the amount and the same IBAN; the IBAN the conflict compares (KK4) is that one too.
+        Assert.Equal(HttpStatusCode.OK, ask);
+        Assert.Contains(DisplayFormat.Amount(20m) + " tutarındaki", window, StringComparison.Ordinal);
+        Assert.Contains($"name=\"Input.ShownIban\" value=\"{OtherRefundIban}\"", window, StringComparison.Ordinal);
+        Assert.DoesNotContain($"name=\"Input.ShownIban\" value=\"{ValidRefundIban}\"", window, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.SeeOther, done);
+        Assert.Equal(Path(seeded.Order), location);
+
+        // Sent with the step; the IBAN's life then deletes B and keeps the item's pending A (02 7.4.5).
+        await using AppDbContext db = NewContext();
+        Assert.NotNull((await db.Refunds.AsNoTracking().SingleAsync(r => r.Id == seeded.ItemlessRefundId, Ct)).SentAt);
+        Assert.Null((await db.Refunds.AsNoTracking().SingleAsync(r => r.Id == seeded.ItemRefundId, Ct)).SentAt);
+        Assert.Equal(ValidRefundIban, Assert.Single(await db.RefundIbans.AsNoTracking().Where(i => i.OrderId == seeded.Order.OrderId).Select(i => i.Iban).ToListAsync(Ct)));
+        Assert.Equal(1, await db.DispatchRecords.CountAsync(d => d.OrderId == seeded.Order.OrderId && d.DispatchType == DispatchType.B8, Ct));
+        Assert.Equal(1, await db.AuditLogs.CountAsync(a => a.TargetRecordId == seeded.Order.OrderId && a.Operation == nameof(AuditOperation.RefundManually), Ct));
+    }
+
+    [Fact]
+    public async Task ProcessRefund_OnAnItemlessAmountBasedRefundTurnedToTheTransfer_ByTheRefundId_RepeatsItsOwnIban_ThenSendsIt_KK1()
+    {
+        (string key, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
+        TurnedRefunds seeded = await SeedTurnedRefundsAsync(adminId, latePayment: false);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (_, string screen) = await GetAsync(client, Path(seeded.Order), key);
+        (HttpStatusCode ask, string window) = await PostAsync(client, Path(seeded.Order, "ProcessRefund"), [("Input.RefundId", seeded.ItemlessKey.ToString("D")), ("Input.Version", "1")], key);
+        (HttpStatusCode done, _) = await PostForLocationAsync(
+            client, Path(seeded.Order, "ProcessRefund"), [("Input.RefundId", seeded.ItemlessKey.ToString("D")), ("Input.Version", "1"), ("Input.Confirmed", "true"), ("Input.ShownIban", OtherRefundIban)], key);
+
+        Assert.Equal(seeded.ItemlessRefundId, seeded.ItemlessKey);
+        Assert.Equal(DisplayFormat.Iban(OtherRefundIban), LineIbanOf(screen, seeded.ItemlessKey));
+        Assert.Equal(HttpStatusCode.OK, ask);
+        Assert.Contains(DisplayFormat.Amount(20m) + " tutarındaki", window, StringComparison.Ordinal);
+        Assert.Contains($"name=\"Input.ShownIban\" value=\"{OtherRefundIban}\"", window, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.SeeOther, done);
+        await using AppDbContext db = NewContext();
+        Assert.NotNull((await db.Refunds.AsNoTracking().SingleAsync(r => r.Id == seeded.ItemlessRefundId, Ct)).SentAt);
+        Assert.Equal(PaymentStatus.PartiallyRefunded, (await db.Orders.AsNoTracking().SingleAsync(o => o.Id == seeded.Order.OrderId, Ct)).PaymentStatus);
+    }
+
+    [Fact]
+    public async Task MarkBankTransferRefundFailed_OnTheLatePaymentsRefundTurnedToTheTransfer_OnACardOrder_DeletesItsOwnIban_AndOpensTheItemlessRequest_KK6_D1563()
+    {
+        (string key, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
+        TurnedRefunds seeded = await SeedTurnedRefundsAsync(adminId, latePayment: true, withCancellation: true);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (_, string screen) = await GetAsync(client, Path(seeded.Order), key);
+
+        // The card order's owed record has no transfer to fail: the step is closed on it, whatever IBAN is on file (the screen draws nothing there either).
+        (HttpStatusCode owed, _) = await PostAsync(
+            client, Path(seeded.Order, "MarkBankTransferRefundFailed"), [("Input.CancellationId", seeded.Order.CauseId.ToString("D")), ("Input.Version", "1")], key);
+        (HttpStatusCode reported, _) = await PostForLocationAsync(
+            client, Path(seeded.Order, "MarkBankTransferRefundFailed"), [("Input.PaymentRecordId", seeded.ItemlessKey.ToString("D")), ("Input.Version", "1")], key);
+        (_, string after) = await GetAsync(client, Path(seeded.Order), key);
+        (HttpStatusCode again, _) = await PostAsync(
+            client, Path(seeded.Order, "MarkBankTransferRefundFailed"), [("Input.PaymentRecordId", seeded.ItemlessKey.ToString("D")), ("Input.Version", "2")], key);
+
+        int line = screen.IndexOf($"id=\"geri-odeme-{seeded.ItemlessKey:D}\"", StringComparison.Ordinal);
+        int next = screen.IndexOf("id=\"geri-odeme-", line + 1, StringComparison.Ordinal);
+        Assert.Contains("handler=MarkBankTransferRefundFailed", screen[line..(next > line ? next : screen.Length)], StringComparison.Ordinal);
+        Assert.Equal(DisplayFormat.Iban(OtherRefundIban), LineIbanOf(screen, seeded.ItemlessKey));
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, owed);
+        Assert.Equal(HttpStatusCode.SeeOther, reported);
+
+        // VAL-A912 (K-1131 (2)): the line's own IBAN (B) goes and the line waits for the new one - not the item's A, which stays on its own line; with no IBAN the step
+        // is closed on the screen and in the POST alike. The new request is itemless, TransferFailed, on the same refund.
+        int waiting = after.IndexOf($"id=\"geri-odeme-{seeded.ItemlessKey:D}\"", StringComparison.Ordinal);
+        int beyond = after.IndexOf("id=\"geri-odeme-", waiting + 1, StringComparison.Ordinal);
+        string awaited = after[waiting..(beyond > waiting ? beyond : after.Length)];
+        Assert.Null(LineIbanOf(after, seeded.ItemlessKey));
+        Assert.Contains(OrderDetailModel.IbanAwaitedText, awaited, StringComparison.Ordinal);
+        Assert.DoesNotContain("handler=MarkBankTransferRefundFailed", awaited, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, again);
+        Assert.Equal(DisplayFormat.Iban(ValidRefundIban), LineIbanOf(after, seeded.ItemKey));
+        await using AppDbContext db = NewContext();
+        Assert.Equal(ValidRefundIban, Assert.Single(await db.RefundIbans.AsNoTracking().Where(i => i.OrderId == seeded.Order.OrderId).Select(i => i.Iban).ToListAsync(Ct)));
+        RefundIbanRequest request = await db.RefundIbanRequests.AsNoTracking().SingleAsync(r => r.RefundId == seeded.ItemlessRefundId && r.FulfilledAt == null && r.ClosedAt == null, Ct);
+        Assert.Equal((RefundIbanRequestReason.TransferFailed, (Guid?)null), (request.Reason, request.OrderItemId));
+        Assert.Null((await db.Refunds.AsNoTracking().SingleAsync(r => r.Id == seeded.ItemlessRefundId, Ct)).SentAt);
+        Assert.Equal(1, await db.DispatchRecords.CountAsync(d => d.OrderId == seeded.Order.OrderId && d.DispatchType == DispatchType.B14, Ct));
+        Assert.Equal(1, await db.AuditLogs.CountAsync(a => a.TargetRecordId == seeded.Order.OrderId && a.Operation == nameof(AuditOperation.ReportRefundTransferNotCompleted), Ct));
+    }
+
     // ---- Seeding ----
+
+    /// <summary>
+    /// A paid card order whose two refunds the customer's IBANs turned to the transfer (02 7.2.8, 7.4.5): the defect remedy's on the item - IBAN A, entered first, on the item's request - and an
+    /// itemless one - the late payment's (K-1075, K-1211) or an amount based one -, IBAN B on its own request. The keys are the lines' (07 UC-131).
+    /// </summary>
+    private async Task<TurnedRefunds> SeedTurnedRefundsAsync(Guid adminId, bool latePayment, bool withCancellation = false)
+    {
+        Seeded seeded = await SeedPaidAsync(PaymentMethod.Card, withIban: false, withCancellation: withCancellation);
+        (DefectClaim claim, Refund remedy) = await SeedDefectRemedyRefundAsync(seeded);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        PaymentRecord payment = PaymentRecord.ForCardPayment(seeded.OrderId, "late-" + Guid.NewGuid().ToString("N"), null, now);
+        Refund itemless = latePayment
+            ? Refund.ForLatePayment(seeded.OrderId, payment.Id, 20m, now)
+            : Refund.ByAdmin(seeded.OrderId, RefundType.AmountBased, PaymentMethod.Card, 20m, adminId, "Yönetici", now);
+        itemless.PaymentMethod = PaymentMethod.BankTransfer;
+        RefundIban first = RefundIban.Create(seeded.OrderId, ValidRefundIban, now.AddMinutes(-2));
+        RefundIban second = RefundIban.Create(seeded.OrderId, OtherRefundIban, now.AddMinutes(-1));
+        RefundIbanRequest onItem = RefundIbanRequest.ForItem(seeded.ItemId, RefundIbanRequestReason.CardRefundFailed, remedy.Id, adminId, "Yönetici", now.AddMinutes(-3));
+        onItem.FulfilledAt = now.AddMinutes(-2);
+        onItem.RefundIbanId = first.Id;
+        RefundIbanRequest onRefund = RefundIbanRequest.ForRefund(itemless.Id, RefundIbanRequestReason.CardRefundFailed, adminId, "Yönetici", now.AddMinutes(-3));
+        onRefund.FulfilledAt = now.AddMinutes(-1);
+        onRefund.RefundIbanId = second.Id;
+        await using AppDbContext db = NewContext();
+        if (latePayment)
+        {
+            db.PaymentRecords.Add(payment);
+        }
+
+        db.Refunds.Add(itemless);
+        db.RefundIbans.AddRange(first, second);
+        db.RefundIbanRequests.AddRange(onItem, onRefund);
+        await db.SaveChangesAsync(Ct);
+        return new TurnedRefunds(seeded, claim.Id, remedy.Id, latePayment ? payment.Id : itemless.Id, itemless.Id);
+    }
+
+    // The IBAN a refund line shows (_OrderRefundLine: "· IBAN TR.." on its first row), or null when the line shows none.
+    private static string? LineIbanOf(string html, Guid key)
+    {
+        int line = html.IndexOf($"id=\"geri-odeme-{key:D}\"", StringComparison.Ordinal);
+        if (line < 0)
+        {
+            return null;
+        }
+
+        int next = html.IndexOf("id=\"geri-odeme-", line + 1, StringComparison.Ordinal);
+        int limit = Math.Min(next > line ? next : html.Length, line + 800);
+        int iban = html.IndexOf("IBAN TR", line, limit - line, StringComparison.Ordinal);
+        return iban < 0 ? null : html[(iban + "IBAN ".Length)..html.IndexOf('<', iban)].Trim();
+    }
 
     /// <summary>A paid order (Preparing) of one physical item of two units at 50 TL, with - unless told otherwise - a buyer's cancellation of one unit (or a withdrawal) whose refund is owed.</summary>
     private async Task<Seeded> SeedPaidAsync(PaymentMethod method, bool withIban, bool withdrawal = false, bool withCancellation = true)
@@ -629,4 +787,6 @@ public sealed partial class OrderDetailPageTests
         new ShopfolioWebApplicationFactory(_database.Dsn, withJobRunner: withJobRunner).WithWebHostBuilder(b => b.ConfigureServices(s => s.AddRazorPages().AddApplicationPart(typeof(Pages.PanelOrdersModel).Assembly)));
 
     private sealed record Seeded(Guid OrderId, Guid ItemId, Guid CauseId);
+
+    private sealed record TurnedRefunds(Seeded Order, Guid ItemKey, Guid ItemRefundId, Guid ItemlessKey, Guid ItemlessRefundId);
 }

@@ -141,7 +141,9 @@ internal sealed partial class OrderTransitions
         }
 
         // The item (or the refund, read tracked) is loaded under the lock: the request opened on it is a record whose root the version guard must tell (D-95; 09 10.2 item 3).
-        if (order.PaymentMethod != PaymentMethod.BankTransfer
+        // On a card order only a refund turned to the transfer has a transfer to fail: the named refund or the item's pending one on that way (D-1563).
+        if ((order.PaymentMethod != PaymentMethod.BankTransfer
+                && !(await _payment.FindPendingTransferRefundsAsync(order.Id, ct)).Any(r => r.RefundId == request.RefundId || (request.OrderItemId is not null && r.OrderItemId == request.OrderItemId)))
             || (request.OrderItemId is { } itemId && await _db.OrderItems.SingleOrDefaultAsync(i => i.Id == itemId && i.OrderId == order.Id, ct) is null)
             || (request.RefundId is { } refundId && await _payment.ReadRefundLineAsync(order.Id, refundId, ct) is null))
         {

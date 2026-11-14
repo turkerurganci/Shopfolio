@@ -458,6 +458,7 @@ public sealed partial class OrderDetailModel : PageModel
         BackPath = ListReturn.Target(HttpContext.Request.Query[ReturnPath.ParameterName], PanelFramePaths.Orders);
         PrimaryStep = PrimaryOf(operations);
         await LoadRefundLinesAsync(id, ct);
+        await LoadCorrectionsAsync(id, ct);
         return true;
     }
 

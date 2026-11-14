@@ -1,0 +1,12 @@
+@page "/panel/kurumsal-icerik/{tip}/yeni"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Panel
+@model ContentFormModel
+@*
+    E-41, the new record's empty form (T534; 04 9.13.7; 07 UC-96): the same model and body as the record's own address. No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = Model.Title;
+}
+<partial name="_ContentFormBody" model="Model" />

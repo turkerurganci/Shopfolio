@@ -1,3 +1,5 @@
+using Shopfolio.Modules.Catalog.Contracts;
+
 namespace Shopfolio.Modules.CorporateContent.Contracts;
 
 /// <summary>
@@ -64,6 +66,36 @@ public interface ICorporateContentModule
     /// or the product's default - with the black or white text the system chose for it, and the footer signature switch. Never stored; a plain read.
     /// </summary>
     Task<BrandIdentity> GetBrandIdentityAsync(CancellationToken ct);
+
+    /// <summary>The panel's corporate content list (T534; 07 UC-96; 04 9.13.3): the seven groups with every record in the firm's manual order, never paged (K-843). A plain read.</summary>
+    Task<PanelContentList> GetPanelContentListAsync(CancellationToken ct);
+
+    /// <summary>
+    /// A record's form for the panel (T534; 07 UC-96): with <paramref name="id"/> null the empty form of a new record, else the stored record with its gallery, linked products, gate state and page address;
+    /// null when the record is not there or is another type's. A plain read.
+    /// </summary>
+    Task<PanelContentForm?> GetPanelContentFormAsync(PanelContentType type, Guid? id, CancellationToken ct);
+
+    /// <summary>The key of the one Hakkımızda or announcement record, null when there is none or the type has no single record (T534; 07 UC-96 303). A plain read.</summary>
+    Task<Guid?> FindSinglePanelContentAsync(PanelContentType type, CancellationToken ct);
+
+    /// <summary>
+    /// The save of the whole content form (T534; 07 UC-158), in the caller's open transaction, which the method joins and never opens: the record, its gallery or branch image and its linked products.
+    /// Refusals are values and write nothing the runner keeps. A product linked to the record is share-locked until the transaction ends, so its deletion cannot slip in between (D-720).
+    /// </summary>
+    Task<PanelContentSaveResult> SavePanelContentAsync(PanelContentSaveCommand command, CancellationToken ct);
+
+    /// <summary>
+    /// Moves a record to <paramref name="target"/> (T534; 07 UC-159), in the caller's open transaction: draft or published, absolute - a record already there is not written -, with the gate checked on the way
+    /// to published, the trail row written and the version raised. It carries no version: the record's current one is read in the same transaction (K-1193 (1)).
+    /// </summary>
+    Task<PanelContentChangeResult> ChangePanelContentStatusAsync(PanelContentType type, Guid id, PublishStatus target, CancellationToken ct);
+
+    /// <summary>The permanent deletion of a record (T534; 07 UC-160), in the caller's open transaction: Hakkımızda is refused; the deletion is tracked and the transaction's owner saves it (D-673).</summary>
+    Task<PanelContentDeleteResult> DeletePanelContentAsync(PanelContentType type, Guid id, CancellationToken ct);
+
+    /// <summary>One place up or down in the manual order (T534; 07 UC-161), in the caller's open transaction: written only while both records still carry the shown orders; nothing is written otherwise.</summary>
+    Task<PanelContentReorderResult> ReorderPanelContentAsync(PanelContentType type, Guid id, PanelContentMove move, int shownOrder, int shownNeighbourOrder, CancellationToken ct);
 
     /// <summary>
     /// The social media links the storefront frame shows (T537; 02 3.27.12; 06 4.55): the platforms that have a link, in the order of the closed list (06 5.3.11), at most one each. A

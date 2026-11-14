@@ -165,6 +165,7 @@ public sealed partial class IrreversibleConfirmationTests
             methods,
             m => m.Name.StartsWith("Correct", StringComparison.Ordinal)
                 && m.DeclaringType != typeof(IOrderCorrections)
+                && m.DeclaringType != typeof(IPanelOrderCorrections) // T530: the panel's facade forwards each correction to IOrderCorrections or to the transition unit's one method
                 && !(m.DeclaringType == typeof(Shopfolio.Modules.AfterSales.Contracts.IAfterSalesModule) && m.Name == nameof(Shopfolio.Modules.AfterSales.Contracts.IAfterSalesModule.CorrectArrivalDateAsync)));
         Assert.Equal((typeof(IOrderTransitions), nameof(IOrderTransitions.CorrectTransitionAsync)), (correction.DeclaringType, correction.Name));
         Assert.DoesNotContain(methods, m => m.Name.Contains("Withdrawal", StringComparison.Ordinal) && m.Name.Contains("Correct", StringComparison.Ordinal));

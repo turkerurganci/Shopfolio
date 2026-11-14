@@ -37,8 +37,8 @@ public static class ProductCards
     }
 
     /// <summary>
-    /// The card of one list item: one card for the product, however many variants it has (04 2.11). The price is the lowest of the published variants (the reader's <c>LowestPrice</c> is the list price, without the discount); while a discount runs the main price is the discounted price (<c>DiscountLine.DiscountedPrice</c>) and the card declares the list price struck through as the reference
-    /// beside the reference price and writes the range's dates (04 2.11.2).
+    /// The card of one list item: one card for the product, however many variants it has (04 2.11). The price is the lowest of the published variants (the reader's <c>LowestPrice</c> is the list price, without the discount); while a discount runs the main price is the discounted price (<c>DiscountLine.DiscountedPrice</c>) and the card declares the list price struck through as the reference price (<c>DiscountLine.ReferencePrice</c>)
+    /// and writes the range's dates (04 2.11.2).
     /// </summary>
     public static ProductCard Of(ProductListItem item, CardImage? image)
     {

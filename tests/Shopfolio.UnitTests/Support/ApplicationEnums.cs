@@ -27,6 +27,8 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.CorporateContent.Contracts.ContentListKind",
         "Shopfolio.Modules.CorporateContent.Contracts.ContentPageKind",
         "Shopfolio.Modules.Ordering.Contracts.CorrectionObstacle",
+        // T530: why a correction's value was refused - the screen's result code, never a column.
+        "Shopfolio.Modules.Ordering.Contracts.CorrectionValueProblem",
         "Shopfolio.Modules.Catalog.Contracts.ProductPageKind",
         // T323: the identity of an operation of 03 1.11 - the request names it and the decision table answers; the document's table is its definition, no column holds it.
         "Shopfolio.Modules.Ordering.Contracts.OrderOperation",
@@ -75,6 +77,15 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.Ordering.Contracts.UnopenedPaymentCancellation",
         // T529: why a refund step of E-37 was refused (the named 422 reasons of UC-131, UC-133, UC-134) - a result code, never a column.
         "Shopfolio.Modules.Ordering.Contracts.PanelRefundObstacle",
+        // T534: the corporate content panel's seven types (the address segment's closed list, mirroring ContentRecordKind), the gate fields by name, the direction of a move and the result codes of the form's save,
+        // the status move, the deletion and the manual order - read shapes and result codes, never a column.
+        "Shopfolio.Modules.CorporateContent.Contracts.PanelContentType",
+        "Shopfolio.Modules.CorporateContent.Contracts.PanelContentField",
+        "Shopfolio.Modules.CorporateContent.Contracts.PanelContentMove",
+        "Shopfolio.Modules.CorporateContent.Contracts.PanelContentSaveOutcome",
+        "Shopfolio.Modules.CorporateContent.Contracts.PanelContentChangeOutcome",
+        "Shopfolio.Modules.CorporateContent.Contracts.PanelContentDeleteOutcome",
+        "Shopfolio.Modules.CorporateContent.Contracts.PanelContentReorderOutcome",
     };
 
     /// <summary>All enums of the application assembly, by simple name; a name used twice is a failure of the naming rule (09 5.1).</summary>

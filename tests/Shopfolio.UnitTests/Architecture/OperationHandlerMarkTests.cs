@@ -51,6 +51,12 @@ public sealed class OperationHandlerMarkTests
             [
                 nameof(OrderDetailModel.OnPostCloseDeliveryFailedAsync),
                 nameof(OrderDetailModel.OnPostCompleteServiceItemAsync),
+                nameof(OrderDetailModel.OnPostCorrectAddressAsync),
+                nameof(OrderDetailModel.OnPostCorrectArrivalDateAsync),
+                nameof(OrderDetailModel.OnPostCorrectCarrierAsync),
+                nameof(OrderDetailModel.OnPostCorrectDeliveryDateAsync),
+                nameof(OrderDetailModel.OnPostCorrectOrderEmailAsync),
+                nameof(OrderDetailModel.OnPostCorrectTransitionAsync),
                 nameof(OrderDetailModel.OnPostMarkBankTransferRefundFailedAsync),
                 nameof(OrderDetailModel.OnPostMarkCardRefundFailedAsync),
                 nameof(OrderDetailModel.OnPostMarkDeliveredAsync),

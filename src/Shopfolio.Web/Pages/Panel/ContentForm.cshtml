@@ -1,0 +1,12 @@
+@page "/panel/kurumsal-icerik/{tip}/{id:guid}"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Panel
+@model ContentFormModel
+@*
+    E-41, the existing record's form (T534; 04 9.13; 07 UC-96): the body is shared with the new record's address. No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = Model.Title;
+}
+<partial name="_ContentFormBody" model="Model" />

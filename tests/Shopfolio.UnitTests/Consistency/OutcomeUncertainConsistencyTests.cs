@@ -20,7 +20,7 @@ public sealed partial class OutcomeUncertainConsistencyTests
     private static readonly string[] NotMarkedYet =
     [
         "UC-39", "UC-40", "UC-41", "UC-43", "UC-53", "UC-186", "UC-187",
-        "UC-160", "UC-165", "UC-177",
+        "UC-165", "UC-177",
     ];
 
     [Fact]

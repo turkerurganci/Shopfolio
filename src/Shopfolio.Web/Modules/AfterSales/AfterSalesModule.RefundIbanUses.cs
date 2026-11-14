@@ -27,6 +27,23 @@ internal sealed partial class AfterSalesModule
             .ToListAsync(ct);
         Guid[] requestItems = [.. requests.Where(r => r.RefundId == null).Select(r => r.OrderItemId).OfType<Guid>().Distinct()];
 
+        // The IBAN standing in each such item's field, as PayeeBook's item step pays the item's refunds (02 7.4.5): none while the item's open request waits for a
+        // new one - read tracked, so a request the caller closed in this transaction (a correction, 06 4.22) is closed -, else the latest entered on file among
+        // its requests, in the file's order. Any other request IBAN of the item holds the item's records no longer.
+        await _db.RefundIbanRequests
+            .Where(r => r.RefundId == null && r.FulfilledAt == null && r.ClosedAt == null && r.OrderItemId != null && requestItems.Contains(r.OrderItemId.Value))
+            .LoadAsync(ct);
+        HashSet<Guid> waitingItems = [.. _db.RefundIbanRequests.Local
+            .Where(r => r.RefundId is null && r.FulfilledAt is null && r.ClosedAt is null && r.OrderItemId is { } item && requestItems.Contains(item))
+            .Select(r => r.OrderItemId!.Value)]; // non-null: the Where above keeps only item requests
+        Dictionary<Guid, Guid?> itemsIban = (await _db.RefundIbanRequests
+                .Where(r => r.RefundId == null && r.OrderItemId != null && requestItems.Contains(r.OrderItemId.Value))
+                .Join(_db.RefundIbans, r => r.RefundIbanId, i => (Guid?)i.Id, (r, i) => new { r.OrderItemId, IbanId = i.Id, i.CreatedAt })
+                .OrderBy(x => x.CreatedAt).ThenBy(x => x.IbanId)
+                .ToListAsync(ct))
+            .GroupBy(x => x.OrderItemId!.Value) // non-null: the Where above keeps only item requests
+            .ToDictionary(g => g.Key, g => waitingItems.Contains(g.Key) ? null : (Guid?)g.Last().IbanId);
+
         // A cancellation undone by the correction of the firm's wrong cancellation needs no refund any more (06 4.22; K-1056, K-1131).
         Guid[] linkedItems = [.. await _db.Cancellations.Where(c => c.RefundIbanId != null && ibanIds.Contains(c.RefundIbanId.Value)).Select(c => c.OrderItemId).Distinct().ToListAsync(ct)];
         List<RecordUse> cancellations = [.. (await StandingCancellationsAsync([.. linkedItems.Union(requestItems)], ct))
@@ -51,7 +68,7 @@ internal sealed partial class AfterSalesModule
         IReadOnlyList<RefundOfRecord> refunds = await _payment.FindRefundsOfRecordsAsync(asked, ct);
         Dictionary<Guid, int> closed = await ClosedWithdrawalUnitsAsync(withdrawalIds, ct);
         IReadOnlyList<PendingPayee> pending = await PendingTransferPayeesAsync(orderId, ct);
-        return new RefundIbanUses(cancellations, terminations, removals, withdrawals, receipts, requests, refunds, closed, pending);
+        return new RefundIbanUses(cancellations, terminations, removals, withdrawals, receipts, requests, itemsIban, refunds, closed, pending);
     }
 
     /// <summary>
@@ -119,6 +136,7 @@ internal sealed partial class AfterSalesModule
         List<WithdrawalUse> withdrawals,
         List<ReceiptUse> receipts,
         List<RequestUse> requests,
+        Dictionary<Guid, Guid?> itemsIban,
         IReadOnlyList<RefundOfRecord> refunds,
         Dictionary<Guid, int> closedWithdrawalUnits,
         IReadOnlyList<PendingPayee> pending)
@@ -134,7 +152,8 @@ internal sealed partial class AfterSalesModule
         /// <item>a withdrawal linked to it with units neither paid back by a settled refund nor closed by a rejection or a "goods did not come back" closure -
         /// the receipt-by-receipt refunds of a later receipt (02 7.1.7);</item>
         /// <item>a request fulfilled with it: on a refund (the transfer path of a failed card refund, the late payment), until that refund settles; on an item,
-        /// while the item has a record without an IBAN of its own whose refund is not settled, or until an item refund settles after the IBAN came.</item>
+        /// while it stands in the item's field (no open request on the item, the latest entered of its requests) and the item has a record without an IBAN of
+        /// its own whose refund is not settled, or until an item refund settles after the IBAN came.</item>
         /// </list>
         /// </summary>
         public bool IsInUse(Guid ibanId)
@@ -163,7 +182,7 @@ internal sealed partial class AfterSalesModule
                     continue;
                 }
 
-                if (request.OrderItemId is not { } itemId)
+                if (request.OrderItemId is not { } itemId || IsSupersededOnItem(itemId, ibanId))
                 {
                     continue;
                 }
@@ -206,7 +225,7 @@ internal sealed partial class AfterSalesModule
                 {
                     subjects.Add(refundId);
                 }
-                else if (request.OrderItemId is { } itemId)
+                else if (request.OrderItemId is { } itemId && !IsSupersededOnItem(itemId, ibanId))
                 {
                     subjects.AddRange(UnlinkedRecordsOf(itemId).Select(u => u.Id));
                     subjects.AddRange(withdrawals.Where(w => w.RefundIbanId is null && w.OrderItemId == itemId).SelectMany(w => WithdrawalSubjects(w, awaitingGoods)));
@@ -219,6 +238,12 @@ internal sealed partial class AfterSalesModule
 
         private IEnumerable<Guid> WithdrawalSubjects(WithdrawalUse withdrawal, IReadOnlySet<Guid> awaitingGoods) =>
             awaitingGoods.Contains(withdrawal.Id) ? receipts.Where(r => r.WithdrawalId == withdrawal.Id).Select(r => r.Id) : [withdrawal.Id];
+
+        /// <summary>
+        /// Whether the IBAN no longer stands in the item's field (02 7.4.5; PayeeBook's item step): the item waits for a new IBAN on its open request, or a later
+        /// entered one stands there. Its request then keeps it for none of the item's records.
+        /// </summary>
+        private bool IsSupersededOnItem(Guid itemId, Guid ibanId) => itemsIban.TryGetValue(itemId, out Guid? standing) && standing != ibanId;
 
         /// <summary>The item's records that carry no IBAN of their own: an item request's IBAN pays them.</summary>
         private IEnumerable<RecordUse> UnlinkedRecordsOf(Guid itemId) =>

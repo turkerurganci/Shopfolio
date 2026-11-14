@@ -80,11 +80,12 @@ internal sealed partial class AfterSalesModule
         /// brought -; else the item's requests (those naming no refund) - one open waits ("havale gerçekleşmedi" on the item: the item is back to "IBAN
         /// bekleniyor"), else the IBAN one of them brought, else the IBAN of one of the item's records -; else the first IBAN on the order's file that is not another refund's own (one
         /// its own request brought: the late payment's, a failed card refund's transfer path). A waiting refund is no IBAN's payee. Several candidates of a step:
-        /// the first on file (ListRefundIbanFieldsAsync's order).
+        /// the latest entered on file (02 7.4.5: "alanda duran IBAN" - an item's earlier request IBAN gives way to the one the field asked again for after a later
+        /// firm cancellation, removal or "havale gerçekleşmedi" (K-690); the IBAN's life lets the earlier one go, as it does while the item waits: RefundIbanUses.IsInUse).
         /// </summary>
         private Guid? Decide(RefundPayeeSubject subject)
         {
-            if (subject.RecordId is { } recordId && FirstOnFile(records.Where(r => r.Id == recordId).Select(r => (Guid?)r.RefundIbanId)) is { } recordIban)
+            if (subject.RecordId is { } recordId && NewestOnFile(records.Where(r => r.Id == recordId).Select(r => (Guid?)r.RefundIbanId)) is { } recordIban)
             {
                 return recordIban;
             }
@@ -97,7 +98,7 @@ internal sealed partial class AfterSalesModule
                     return null;
                 }
 
-                if (FirstOnFile(own.Select(r => r.RefundIbanId)) is { } ownIban)
+                if (NewestOnFile(own.Select(r => r.RefundIbanId)) is { } ownIban)
                 {
                     return ownIban;
                 }
@@ -113,12 +114,12 @@ internal sealed partial class AfterSalesModule
 
                 // The IBAN the customer entered on the item's request comes before the item's records' (02 7.4.5: the IBAN asked again after "havale
                 // gerçekleşmedi" is the one paid to), the same order the waiting above follows.
-                if (FirstOnFile(item.Select(r => r.RefundIbanId)) is { } requestIban)
+                if (NewestOnFile(item.Select(r => r.RefundIbanId)) is { } requestIban)
                 {
                     return requestIban;
                 }
 
-                if (FirstOnFile(records.Where(r => r.OrderItemId == itemId).Select(r => (Guid?)r.RefundIbanId)) is { } recordsIban)
+                if (NewestOnFile(records.Where(r => r.OrderItemId == itemId).Select(r => (Guid?)r.RefundIbanId)) is { } recordsIban)
                 {
                     return recordsIban;
                 }
@@ -127,10 +128,11 @@ internal sealed partial class AfterSalesModule
             return file.FirstOrDefault(f => !requests.Any(r => r.RefundIbanId == f.Id && r.RefundId is { } owner && owner != subject.RefundId))?.Id;
         }
 
-        private Guid? FirstOnFile(IEnumerable<Guid?> ibanIds)
+        /// <summary>The latest entered of the candidates still on the order's file (its order: entry, then id) - the one standing in the field (02 7.4.5).</summary>
+        private Guid? NewestOnFile(IEnumerable<Guid?> ibanIds)
         {
             HashSet<Guid> ids = [.. ibanIds.OfType<Guid>()];
-            return file.FirstOrDefault(f => ids.Contains(f.Id))?.Id;
+            return file.LastOrDefault(f => ids.Contains(f.Id))?.Id;
         }
     }
 }

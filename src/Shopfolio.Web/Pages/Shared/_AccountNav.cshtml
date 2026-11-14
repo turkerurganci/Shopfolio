@@ -1,0 +1,33 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@model string
+@*
+    The inner navigation of the account screens (T517; 04 5.25 "Bilgi hiyerarşisi"; K-768): Hesabım, Adres defteri, Siparişlerim. The model is the address of the screen it stands on, whose link is the current one.
+    Wide class: a vertical list at the left; narrow class: horizontal tabs at the head (04 5.25.18) - the style sheet decides, the markup is one list.
+*@
+@{
+    (string Text, string Path)[] items =
+    [
+        (AccountTexts.NavAccount, FramePaths.Account),
+        (AccountTexts.NavAddresses, FramePaths.AccountAddresses),
+        (AccountTexts.NavOrders, FramePaths.AccountOrders),
+    ];
+}
+<nav class="account-nav" aria-label="@AccountTexts.NavLabel" id="account-nav">
+    <ul class="account-nav__list">
+        @foreach ((string text, string path) in items)
+        {
+            <li class="account-nav__item">
+                @if (string.Equals(path, Model, StringComparison.Ordinal))
+                {
+                    <a class="account-nav__link account-nav__link--current" href="@path" aria-current="page">@text</a>
+                }
+                else
+                {
+                    <a class="account-nav__link" href="@path">@text</a>
+                }
+            </li>
+        }
+    </ul>
+</nav>

@@ -241,6 +241,22 @@ internal sealed class PaymentModule : IPaymentModule
             .ToListAsync(ct);
     }
 
+    public async Task<IReadOnlyList<PendingRefund>> ListPendingRefundsAsync(Guid orderId, CancellationToken ct)
+    {
+        List<Refund> pending = await _db.Refunds.AsNoTracking()
+            .Where(r => r.OrderId == orderId && r.SentAt == null && r.VoidedAt == null)
+            .OrderBy(r => r.CreatedAt).ThenBy(r => r.Id)
+            .ToListAsync(ct);
+        return [.. pending.Select(r => new PendingRefund(r.Id, r.OrderItemId, r.Quantity, r.Amount, r.PaymentMethod, r.CreatedAt, HasRefundPeriodOf(r)))];
+    }
+
+    // The refunds the refund period (Z-16, Z-17) counts for: a cancellation's, a removal's, a late delivery termination's and a withdrawal's (02 4.2; 03 8.3.3.2). A defect claim's, an amount
+    // based one and a late payment's have no period counter (04 9.3.6; K-716). One text: the query's filter and the in-memory test of the order's page.
+    private static readonly System.Linq.Expressions.Expression<Func<Refund, bool>> HasRefundPeriod =
+        r => r.CancellationId != null || r.ItemRemovalId != null || r.LateDeliveryTerminationId != null || r.WithdrawalId != null || r.ReturnId != null;
+
+    private static readonly Func<Refund, bool> HasRefundPeriodOf = HasRefundPeriod.Compile();
+
     public async Task<RefundMarks> ReadRefundMarksAsync(Guid orderId, CancellationToken ct)
     {
         await _db.Refunds.Where(r => r.OrderId == orderId).LoadAsync(ct);
@@ -258,8 +274,69 @@ internal sealed class PaymentModule : IPaymentModule
             .OfType<RefundRecord>()
             .Select(r => r.State)];
 
-        return new RefundMarks(latest.Contains(RefundRecordState.Failed), latest.Contains(RefundRecordState.OutcomePending));
+        return MarksOf(latest);
     }
+
+    public async Task<IReadOnlyList<PendingRefundStart>> ListPendingRefundStartsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderIds);
+        Guid[] ids = [.. orderIds.Distinct()];
+        if (ids.Length == 0)
+        {
+            return [];
+        }
+
+        return await _db.Refunds.AsNoTracking()
+            .Where(r => ids.Contains(r.OrderId) && r.SentAt == null && r.VoidedAt == null)
+            .Where(HasRefundPeriod)
+            .Select(r => new PendingRefundStart(r.OrderId, r.CreatedAt))
+            .ToListAsync(ct);
+    }
+
+    public async Task<IReadOnlyDictionary<Guid, RefundMarks>> ReadRefundMarksOfOrdersAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderIds);
+        Guid[] ids = [.. orderIds.Distinct()];
+        if (ids.Length == 0)
+        {
+            return new Dictionary<Guid, RefundMarks>();
+        }
+
+        // The same open card refunds as ReadRefundMarksAsync (06 4.34; K-675, K-1015 (5); D-322), read from the saved rows.
+        var open = await _db.Refunds.AsNoTracking()
+            .Where(r => ids.Contains(r.OrderId) && r.SentAt == null && r.VoidedAt == null && r.PaymentMethod == PaymentMethod.Card)
+            .Select(r => new { r.Id, r.OrderId })
+            .ToListAsync(ct);
+        Guid[] openIds = [.. open.Select(r => r.Id)];
+        if (openIds.Length == 0)
+        {
+            return new Dictionary<Guid, RefundMarks>();
+        }
+
+        var records = await _db.RefundRecords.AsNoTracking()
+            .Where(r => openIds.Contains(r.RefundId))
+            .Select(r => new { r.Id, r.RefundId, r.CreatedAt, r.State })
+            .ToListAsync(ct);
+        Dictionary<Guid, RefundRecordState> latestOf = records
+            .GroupBy(r => r.RefundId)
+            .ToDictionary(g => g.Key, g => g.OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id).First().State);
+
+        Dictionary<Guid, RefundMarks> marks = [];
+        foreach (IGrouping<Guid, Guid> order in open.GroupBy(r => r.OrderId, r => r.Id))
+        {
+            RefundMarks of = MarksOf([.. order.Where(latestOf.ContainsKey).Select(id => latestOf[id])]);
+            if (of.IsNotRealized || of.IsOutcomePending)
+            {
+                marks[order.Key] = of;
+            }
+        }
+
+        return marks;
+    }
+
+    // The two marks from the latest record state of each open card refund: a failure is "gerçekleşmedi", an outcome still awaited is "sonucu bekleniyor".
+    private static RefundMarks MarksOf(IReadOnlyCollection<RefundRecordState> latest) =>
+        new(latest.Contains(RefundRecordState.Failed), latest.Contains(RefundRecordState.OutcomePending));
 
     public async Task<IReadOnlyList<PaymentSource>> FindPaymentSourcesAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct)
     {
@@ -429,6 +506,18 @@ internal sealed class PaymentModule : IPaymentModule
         }
 
         return found;
+    }
+
+    public async Task<IReadOnlySet<Guid>> FindOrdersOfRefundsAsync(IReadOnlyCollection<Guid> refundIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(refundIds);
+        if (refundIds.Count == 0)
+        {
+            return new HashSet<Guid>();
+        }
+
+        Guid[] ids = [.. refundIds.Distinct()];
+        return (await _db.Refunds.AsNoTracking().Where(r => ids.Contains(r.Id)).Select(r => r.OrderId).Distinct().ToListAsync(ct)).ToHashSet();
     }
 
     public async Task<IReadOnlyList<OpenRefundWork>> ListOpenRefundWorkAsync(CancellationToken ct)

@@ -4,14 +4,15 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Pages.Orders;
+using Shopfolio.Pages.Panel;
 
 namespace Shopfolio.UnitTests.Architecture;
 
 /// <summary>
-/// Every POST handler of the customer's order pages is an operation of 03 1.11 and carries <c>[GatedOperation]</c> (09 8.3; D-153, T512): the source scan
+/// Every POST handler of the customer's order pages and of the panel's order page (E-37) is an operation of 03 1.11 and carries <c>[GatedOperation]</c> (09 8.3; D-153, T512, T527): the source scan
 /// only checks that a marked handler reaches the gate, so an unmarked operation POST would slip past it. The rule runs over the page models of the order
 /// pages by reflection; a POST that is not an operation is named one by one with its reason, never by a pattern, and a named exemption that no longer
-/// exists is a finding too. A deliberate sample shows the rule going red (09 19.2 item 3).
+/// exists is a finding too. A deliberate sample shows the rule going red (09 19.2 item 3), the panel page's own sample among them.
 /// </summary>
 public sealed class OperationHandlerMarkTests
 {
@@ -23,6 +24,9 @@ public sealed class OperationHandlerMarkTests
         $"{nameof(ConfirmationPageModel)}.{nameof(ConfirmationPageModel.OnPostStartPaymentAsync)}",
     ];
 
+    // The panel's order page: its six line steps are 03 1.11.15-1.11.19 and 1.11.40 (07 UC-123...UC-128). Every POST of the page is an operation (07 9.9: the page's ends are UC-123...UC-154).
+    private static readonly Type[] _panelOrderPages = [typeof(OrderDetailModel)];
+
     [Fact]
     public void EveryPostHandlerOfTheOrderPages_CarriesTheGatedOperationMark()
     {
@@ -33,10 +37,34 @@ public sealed class OperationHandlerMarkTests
     }
 
     [Fact]
+    public void EveryPostHandlerOfThePanelOrderPage_CarriesTheGatedOperationMark()
+    {
+        Assert.Empty(Unmarked(_panelOrderPages, []));
+    }
+
+    [Fact]
     public void TheOrderPages_HaveOperationHandlers_SoTheRuleIsNotVacuous()
     {
         Assert.Contains(Handlers(typeof(CancellationPageModel)), m => m.GetCustomAttribute<GatedOperationAttribute>() is not null);
         Assert.Contains(Handlers(typeof(LateDeliveryTerminationPageModel)), m => m.GetCustomAttribute<GatedOperationAttribute>() is not null);
+        Assert.Equal(
+            [
+                nameof(OrderDetailModel.OnPostCloseDeliveryFailedAsync),
+                nameof(OrderDetailModel.OnPostMarkDeliveredAsync),
+                nameof(OrderDetailModel.OnPostMarkDeliveryFailedAsync),
+                nameof(OrderDetailModel.OnPostMarkPaidAsync),
+                nameof(OrderDetailModel.OnPostMarkReshippedAsync),
+                nameof(OrderDetailModel.OnPostMarkShippedAsync),
+            ],
+            Handlers(typeof(OrderDetailModel)).Select(m => m.Name).Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void AnUnmarkedStepOfAPanelOrderPage_IsAFinding_AndItsMarkedStepIsNot()
+    {
+        IReadOnlyList<string> findings = Unmarked([typeof(PanelSamplePage)], []);
+
+        Assert.Equal([$"{nameof(PanelSamplePage)}.{nameof(PanelSamplePage.OnPostMarkShippedAsync)}"], findings);
     }
 
     [Fact]
@@ -87,5 +115,16 @@ public sealed class OperationHandlerMarkTests
     {
         [GatedOperation]
         public void OnPostCancel() => _ = HttpContext;
+    }
+
+    // The T527 round 1 finding as a sample: a panel order page whose shipment step went through a plain transaction, unmarked, beside a marked step.
+    private sealed class PanelSamplePage : PageModel
+    {
+        [GatedOperation]
+        public void OnPostMarkPaidAsync() => _ = HttpContext;
+
+        public void OnPostMarkShippedAsync() => _ = HttpContext;
+
+        public void OnGet() => _ = HttpContext;
     }
 }

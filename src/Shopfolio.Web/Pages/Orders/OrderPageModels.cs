@@ -74,36 +74,13 @@ public abstract class OrderPageModel : PageModel
     public IReadOnlyList<ItemRecordEntry> RecordsOf(OrderPageItem item)
     {
         ArgumentNullException.ThrowIfNull(item);
-        bool showsUnits = item.Quantity > 1;
-        List<ItemRecordEntry> entries =
-        [
-            .. _records.Where(r => r.OrderItemId == item.OrderItemId).Select(r => new ItemRecordEntry(
-                NameOf(r.Kind),
-                showsUnits ? r.Quantity : null,
-                r.At,
-                r.ReturnAddress is { } address ? OrderScreenTexts.RecordReturnAddress(address.RecipientName, address.AddressLine, address.District, AfterSalesScreenModel.ProvinceNameOf(_provinces, address.ProvinceId)) : null,
-                r.ClaimStatus is { } status ? StatusBadges.For(status) : null)),
-        ];
-        if (item.DeliveryMarkedAt is { } marked)
-        {
-            entries.Add(new ItemRecordEntry(ItemRecordName.DeliveryMark, null, marked));
-        }
-
-        return entries;
+        return ItemRecordLabels.EntriesOf(
+            _records,
+            item.OrderItemId,
+            item.Quantity,
+            item.DeliveryMarkedAt,
+            address => OrderScreenTexts.RecordReturnAddress(address.RecipientName, address.AddressLine, address.District, AfterSalesScreenModel.ProvinceNameOf(_provinces, address.ProvinceId)));
     }
-
-    private static ItemRecordName NameOf(ItemRecordFactKind kind) => kind switch
-    {
-        ItemRecordFactKind.Cancellation => ItemRecordName.Cancellation,
-        ItemRecordFactKind.ItemRemoval => ItemRecordName.ItemRemoval,
-        ItemRecordFactKind.LateDeliveryTermination => ItemRecordName.LateDeliveryTermination,
-        ItemRecordFactKind.Withdrawal => ItemRecordName.Withdrawal,
-        ItemRecordFactKind.ReturnReceipt => ItemRecordName.ReturnReceipt,
-        ItemRecordFactKind.ReturnRejection => ItemRecordName.ReturnRejection,
-        ItemRecordFactKind.NotReturnedClosure => ItemRecordName.NotReturnedClosure,
-        ItemRecordFactKind.DefectClaim => ItemRecordName.DefectClaim,
-        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Not a record of the item's row."),
-    };
 
     /// <summary>The address the page was opened from - the member's root or the access-key root, as written (the key is case sensitive; 07 2.1.7): the forms and the screens hang under it.</summary>
     public string RootPath => Request.Path.Value ?? string.Empty;

@@ -117,8 +117,11 @@ public sealed record ClosingRecordMoment(Guid RecordId, Guid OrderItemId, bool I
 /// </summary>
 public sealed record ArrivalRecordDate(Guid RecordId, Guid OrderItemId, DateOnly ArrivalDate);
 
-/// <summary>A withdrawal declaration's day on one of the given items (02 7.4.1; K-608): the corrected delivery date that falls on it asks the panel which came first.</summary>
-public sealed record WithdrawalDeclarationDay(Guid WithdrawalId, Guid OrderItemId, DateOnly DeclarationDate);
+/// <summary>
+/// A withdrawal declaration's day on one of the given items (02 7.4.1; K-608) and the moment it was made: a delivery date - the mark's (T527) or the corrected one - that falls on it asks the panel which
+/// came first, and the panel shows the moment beside the question (04 9.9.17).
+/// </summary>
+public sealed record WithdrawalDeclarationDay(Guid WithdrawalId, Guid OrderItemId, DateOnly DeclarationDate, DateTimeOffset DeclaredAt);
 
 /// <summary>An order item, its own quantity and the moment its open quantity is asked at (T383; 02 10.6.3: the end of the order's shipping promise).</summary>
 public sealed record ItemQuantityAt(Guid OrderItemId, int Quantity, DateTimeOffset At);
@@ -168,6 +171,20 @@ public sealed record ItemReturnAddress(string RecipientName, Guid ProvinceId, st
 
 /// <summary>An item's defect claim as it stands (06 4.30): its id, status, defective units, the return address it copied and the customer's first description (04 5.19.4).</summary>
 public sealed record DefectClaimInfo(Guid Id, Guid OrderItemId, DefectClaimStatus Status, int Quantity, DateTimeOffset CreatedAt, ItemReturnAddress? ReturnAddress, string Description);
+
+/// <summary>
+/// A defect claim on the panel's order screen (04 9.9.7): its defective units, the customer's description, the opening moment, the latest reopening (null when never reopened), the
+/// status and the return address it copied (a digital item's claim has none; K-793).
+/// </summary>
+public sealed record OrderDefectClaim(
+    Guid Id,
+    Guid OrderItemId,
+    DefectClaimStatus Status,
+    int Quantity,
+    string Description,
+    DateTimeOffset OpenedAt,
+    DateTimeOffset? ReopenedAt,
+    ItemReturnAddress? ReturnAddress);
 
 /// <summary>
 /// The outcome of an AfterSales writer: a refusal, or the written record's id (and the claim as it now stands, on a claim's write). <paramref name="ReturnAddress"/> is the

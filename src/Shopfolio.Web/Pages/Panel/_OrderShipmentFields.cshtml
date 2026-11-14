@@ -1,0 +1,17 @@
+@using Shopfolio.Modules.Ordering.Contracts
+@using Shopfolio.Pages.Panel
+@model OrderDetailModel
+@* The carrier fields of the shipment and the re-sending (T527; 04 9.9.16; 07 UC-124, UC-125): a listed company or "Diğer" with its name, and the tracking number - or the own-vehicle declaration. *@
+<label for="ship-carrier">Kargo şirketi</label>
+<select id="ship-carrier" name="Input.Carrier">
+    <option value="">Diğer</option>
+    @foreach (CarrierEntry carrier in Model.Carriers)
+    {
+        <option value="@carrier.Code" selected="@(carrier.Code == Model.Ship.Carrier)">@carrier.Name</option>
+    }
+</select>
+<label for="ship-other-carrier">Listede yoksa şirketin adı</label>
+<input id="ship-other-carrier" name="Input.OtherCarrierName" maxlength="@ShipmentLimits.OtherCarrierNameMaxLength" value="@Model.Ship.OtherCarrierName" />
+<label for="ship-tracking">Takip numarası</label>
+<input id="ship-tracking" name="Input.TrackingNumber" maxlength="@ShipmentLimits.TrackingNumberMaxLength" value="@Model.Ship.TrackingNumber" />
+<label><input type="checkbox" name="Input.IsOwnVehicleDelivery" value="true" checked="@Model.Ship.IsOwnVehicleDelivery" /> Kendi aracımızla teslim</label>

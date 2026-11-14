@@ -25,10 +25,21 @@ internal sealed class PendingWorkReader
 
     public async Task<PendingOrderCounts> CountAsync(CancellationToken ct)
     {
-        int approval = await _db.Orders.AsNoTracking().Where(PaymentWindowRules.Awaiting(PaymentMethod.BankTransfer)).CountAsync(ct);
-        int failed = await _db.Orders.AsNoTracking().CountAsync(o => o.OrderStatus == OrderStatus.DeliveryFailed, ct);
+        int approval = await OrdersOf(PendingOrderKind.TransferPaymentApproval).CountAsync(ct);
+        int failed = await OrdersOf(PendingOrderKind.DeliveryFailed).CountAsync(ct);
         return new PendingOrderCounts(approval, failed);
     }
+
+    /// <summary>The ids of one of the two sets the counts are made of (T527): the panel's order list filters by the same rule the counter counts with.</summary>
+    public async Task<IReadOnlyList<Guid>> ListOrderIdsAsync(PendingOrderKind kind, CancellationToken ct) =>
+        await OrdersOf(kind).OrderBy(o => o.Id).Select(o => o.Id).ToListAsync(ct);
+
+    private IQueryable<Order> OrdersOf(PendingOrderKind kind) => kind switch
+    {
+        PendingOrderKind.TransferPaymentApproval => _db.Orders.AsNoTracking().Where(PaymentWindowRules.Awaiting(PaymentMethod.BankTransfer)),
+        PendingOrderKind.DeliveryFailed => _db.Orders.AsNoTracking().Where(o => o.OrderStatus == OrderStatus.DeliveryFailed),
+        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Not a pending order set."),
+    };
 
     public async Task<IReadOnlyList<PendingWorkItem>> ListItemsAsync(PendingWorkSet workSet, Guid? afterOrderId, int maxOrders, CancellationToken ct)
     {

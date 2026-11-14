@@ -49,7 +49,15 @@ internal static class PanelHomeRules
     {
         ArgumentNullException.ThrowIfNull(items);
         ArgumentNullException.ThrowIfNull(closedQuantities);
-        return items.Where(i => i.Quantity - closedQuantities.GetValueOrDefault(i.OrderItemId) > 0).Select(i => i.OrderId).Distinct().Count();
+        return OrdersWithOpenItems(items, closedQuantities).Count();
+    }
+
+    /// <summary>The orders of <see cref="CountOrdersWithOpenItems"/>: the same rule, as a set (the order list's filter, T527).</summary>
+    public static IEnumerable<Guid> OrdersWithOpenItems(IEnumerable<PendingWorkItem> items, IReadOnlyDictionary<Guid, int> closedQuantities)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+        ArgumentNullException.ThrowIfNull(closedQuantities);
+        return items.Where(i => OpenQuantity(i, closedQuantities) > 0).Select(i => i.OrderId).Distinct();
     }
 
     /// <summary>The open quantity of one item (the ordered quantity minus the closed one).</summary>

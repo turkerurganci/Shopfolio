@@ -83,6 +83,12 @@ public interface IAfterSalesModule
     Task<DefectClaimInfo?> FindDefectClaimAsync(Guid orderItemId, CancellationToken ct);
 
     /// <summary>
+    /// The defect claims of the given items as the panel's order screen shows them (T527; 04 9.9.7; K-751, K-764): the description, the opening and the latest reopening moment, the
+    /// status and the return address the claim copied; oldest first. One query for the whole order. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<OrderDefectClaim>> ListDefectClaimsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
     /// The item record writers (03 1.7.1, 1.7.4, 1.9.1; T320). Each adds its own row in the caller's context - two declarations are two rows, two partial
     /// arrivals two receipts (K-790, K-794) - after the unit rule (at least one, at most the quantity open to the operation; a larger value is refused). They join the
     /// caller's transaction and require the order's row lock in it (05 7.3.2): the caller is the transition unit, which checks the order's own conditions, raises the
@@ -273,6 +279,12 @@ public interface IAfterSalesModule
     /// <summary>The refund period of a cancellation and of a late delivery termination in calendar days (T512; 02 4.2 Z-17; 02 7.2.3): the period rule's own value.</summary>
     int RefundPeriodDays { get; }
 
+    /// <summary>
+    /// The last day of the refund period (Z-16, Z-17) of a refund that started at <paramref name="startedAt"/> (T527; 04 9.9.6, 2.6.3; K-491): the period rule's own day, which the panel
+    /// places against its instant. The period runs from the refund's start - the record's moment for a cancellation, removal or termination, the goods' receipt for a withdrawal after delivery.
+    /// </summary>
+    DateOnly RefundLastDay(DateTimeOffset startedAt);
+
     /// <summary>True when an IBAN request on the refund was fulfilled: the customer chose the transfer path, so the card refund is not retried (02 7.2.8; K-569).</summary>
     Task<bool> IsRefundIbanEnteredForRefundAsync(Guid refundId, CancellationToken ct);
 
@@ -371,6 +383,12 @@ public interface IAfterSalesModule
     /// notice's item record opened when the file had no IBAN). Such a refund is the customer's to move, not the firm's; the rule is here alone. A plain read.
     /// </summary>
     Task<IReadOnlySet<Guid>> FindRefundsAwaitingIbanAsync(IReadOnlyCollection<RefundOfItem> refunds, CancellationToken ct);
+
+    /// <summary>
+    /// What the open IBAN requests stand on (T527; 06 4.29; 04 2.5.3.4): the "IBAN bekleniyor" mark is an open request - neither fulfilled nor closed - on an item, or on the refund of a late payment
+    /// (K-1075). The items and the refunds, each once; the caller maps them to their orders. A plain read.
+    /// </summary>
+    Task<OpenIbanRequestSubjects> ListOpenIbanRequestSubjectsAsync(CancellationToken ct);
 
     /// <summary>
     /// The open IBAN requests - neither fulfilled nor closed - as the panel home's "Müşteriden beklenenler" list reads them (T521; 02 10.6.1; 04 2.6.2; K-716): the item or the refund the request is on

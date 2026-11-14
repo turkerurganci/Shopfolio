@@ -10,19 +10,17 @@ namespace Shopfolio.Modules.Administration;
 
 /// <summary>
 /// The panel home (02 10.6.1, 10.8.2; 11 T382; KP-50, KP-65): the Administration module owns it (05 3.3.9) and reads the records only through the modules' surfaces. It has no table, no
-/// database context and no request: the six counters, the two warnings and the setup checklist are computed again at every call and nothing is stored (K-405, K-467). The item sets grow with
-/// the shop, so they are read a page of orders at a time (09 20 item 2).
+/// database context and no request: the six counters, the two warnings and the setup checklist are computed again at every call and nothing is stored (K-405, K-467). The order sets
+/// of the counters are <see cref="PendingWorkOrders"/>' - the order list's pending work filter reads the same sets (T527).
 /// </summary>
 internal sealed class PanelHomeService : IPanelHome
 {
-    private const int OrdersPerPage = 200;
-
     private readonly IOrderingModule _ordering;
     private readonly IAfterSalesModule _afterSales;
-    private readonly IPaymentModule _payment;
     private readonly ICorporateContentModule _content;
     private readonly IPanelWarnings _warnings;
     private readonly ISettingsModule _settings;
+    private readonly PendingWorkOrders _work;
 
     public PanelHomeService(
         IOrderingModule ordering,
@@ -30,7 +28,8 @@ internal sealed class PanelHomeService : IPanelHome
         IPaymentModule payment,
         ICorporateContentModule content,
         IPanelWarnings warnings,
-        ISettingsModule settings)
+        ISettingsModule settings,
+        INotificationsModule notifications)
     {
         ArgumentNullException.ThrowIfNull(ordering);
         ArgumentNullException.ThrowIfNull(afterSales);
@@ -38,32 +37,30 @@ internal sealed class PanelHomeService : IPanelHome
         ArgumentNullException.ThrowIfNull(content);
         ArgumentNullException.ThrowIfNull(warnings);
         ArgumentNullException.ThrowIfNull(settings);
+        ArgumentNullException.ThrowIfNull(notifications);
         _ordering = ordering;
         _afterSales = afterSales;
-        _payment = payment;
         _content = content;
         _warnings = warnings;
         _settings = settings;
+        _work = new PendingWorkOrders(ordering, afterSales, payment, notifications);
     }
 
     public async Task<PanelHome> GetAsync(CancellationToken ct)
     {
         PendingOrderCounts orderCounts = await _ordering.CountPendingOrdersAsync(ct);
-
-        // Kargoya verilecek: the Teslim edilemedi orders, unconditionally (K-590), and the Hazırlanıyor orders with a physical item that still has an open quantity - an item whose
-        // every unit was cancelled, removed, terminated or withdrawn is closed and its order is not counted (02 10.6.1).
-        int preparing = await CountOrdersWithOpenItemsAsync(PendingWorkSet.PreparingPhysical, ct);
-        int shipped = await CountOrdersWithOpenItemsAsync(PendingWorkSet.ShippedPhysical, ct);
-        int services = await CountOrdersWithOpenItemsAsync(PendingWorkSet.ServiceUnmarked, ct);
+        int toShip = (await _work.OrdersOfAsync(PanelOrderWork.AwaitingShipment, ct)).Count;
+        int shipped = (await _work.OrdersOfAsync(PanelOrderWork.AwaitingDeliveryMark, ct)).Count;
+        int services = (await _work.OrdersOfAsync(PanelOrderWork.AwaitingServiceCompletion, ct)).Count;
 
         int contactRequests = await _content.CountOpenContactRequestsAsync(ct);
         int defectClaims = await _afterSales.CountOpenDefectClaimsAsync(ct);
-        int refundAndReturn = await CountRefundAndReturnOrdersAsync(ct);
+        int refundAndReturn = (await _work.OrdersOfAsync(PanelOrderWork.AwaitingReturnOrRefund, ct)).Count;
 
         IReadOnlyDictionary<PanelCounterKind, int> counts = new Dictionary<PanelCounterKind, int>
         {
             [PanelCounterKind.PaymentApproval] = orderCounts.PaymentApproval,
-            [PanelCounterKind.ToShip] = orderCounts.DeliveryFailed + preparing,
+            [PanelCounterKind.ToShip] = toShip,
             [PanelCounterKind.DeliveryMarkPending] = shipped,
             [PanelCounterKind.ServicePending] = services,
             [PanelCounterKind.OpenRequest] = contactRequests + defectClaims,
@@ -79,47 +76,5 @@ internal sealed class PanelHomeService : IPanelHome
             warnings.ChannelWarningOpen,
             warnings.FirmNoticesWarningOpen,
             PanelHomeRules.SetupChecklist(gate.UnmetConditions, gate.MissingIdentityFields));
-    }
-
-    private async Task<int> CountOrdersWithOpenItemsAsync(PendingWorkSet workSet, CancellationToken ct)
-    {
-        int total = 0;
-        Guid? after = null;
-        while (true)
-        {
-            IReadOnlyList<PendingWorkItem> page = await _ordering.ListPendingWorkItemsAsync(workSet, after, OrdersPerPage, ct);
-            if (page.Count == 0)
-            {
-                return total;
-            }
-
-            IReadOnlyDictionary<Guid, int> closed = await _afterSales.ClosedQuantitiesAsync([.. page.Select(i => i.OrderItemId)], ct);
-            total += PanelHomeRules.CountOrdersWithOpenItems(page, closed);
-            after = page[^1].OrderId;
-        }
-    }
-
-    // The union of the three order sets (an order with two kinds of work counts once): the returned goods the firm awaits, the open refunds (a card refund that failed or awaits its result, a
-    // transfer refund born and not yet sent), and the refunds the firm has yet to process (the transfer line, and the card line on a withdrawal). A customer-owed "IBAN bekleniyor" item or
-    // refund is in none of them (02 10.6.1; K-525, K-621).
-    private async Task<int> CountRefundAndReturnOrdersAsync(CancellationToken ct)
-    {
-        HashSet<Guid> orders = [.. await _afterSales.ListOrdersAwaitingReturnGoodsAsync(ct)];
-        IReadOnlyList<OpenRefundWork> openRefunds = await _payment.ListOpenRefundWorkAsync(ct);
-        IReadOnlySet<Guid> awaitingIban = await _afterSales.FindRefundsAwaitingIbanAsync([.. openRefunds.Select(r => new RefundOfItem(r.RefundId, r.OrderItemId))], ct);
-        orders.UnionWith(openRefunds.Where(r => !awaitingIban.Contains(r.RefundId)).Select(r => r.OrderId));
-
-        Guid? after = null;
-        while (true)
-        {
-            RefundProcessingPage page = await _afterSales.ListOrdersAwaitingRefundProcessingAsync(after, OrdersPerPage, ct);
-            orders.UnionWith(page.OrderIds);
-            if (page.LastId is not { } last)
-            {
-                return orders.Count;
-            }
-
-            after = last;
-        }
     }
 }

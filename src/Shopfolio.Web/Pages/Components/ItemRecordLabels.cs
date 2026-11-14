@@ -49,4 +49,48 @@ public static class ItemRecordLabels
         ItemRecordName.DeliveryMark => "Teslim işareti",
         _ => throw new ArgumentOutOfRangeException(nameof(name), name, "Not an item record."),
     };
+
+    /// <summary>The name of a record the after-sales module reads for the item's row (T527: the one mapping the customer's page and the panel's page share).</summary>
+    public static ItemRecordName NameOf(Modules.AfterSales.Contracts.ItemRecordFactKind kind) => kind switch
+    {
+        Modules.AfterSales.Contracts.ItemRecordFactKind.Cancellation => ItemRecordName.Cancellation,
+        Modules.AfterSales.Contracts.ItemRecordFactKind.ItemRemoval => ItemRecordName.ItemRemoval,
+        Modules.AfterSales.Contracts.ItemRecordFactKind.LateDeliveryTermination => ItemRecordName.LateDeliveryTermination,
+        Modules.AfterSales.Contracts.ItemRecordFactKind.Withdrawal => ItemRecordName.Withdrawal,
+        Modules.AfterSales.Contracts.ItemRecordFactKind.ReturnReceipt => ItemRecordName.ReturnReceipt,
+        Modules.AfterSales.Contracts.ItemRecordFactKind.ReturnRejection => ItemRecordName.ReturnRejection,
+        Modules.AfterSales.Contracts.ItemRecordFactKind.NotReturnedClosure => ItemRecordName.NotReturnedClosure,
+        Modules.AfterSales.Contracts.ItemRecordFactKind.DefectClaim => ItemRecordName.DefectClaim,
+        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Not a record of the item's row."),
+    };
+
+    /// <summary>
+    /// The item's row entries: the after-sales records of the item, then its delivery mark (04 2.5.2); the units show only on an item of more than one unit. When
+    /// <paramref name="returnAddressText"/> is given (the customer's page, 04 5.16.5; T513) a withdrawal's return address is written with it and a defect claim carries its claim's badge.
+    /// </summary>
+    public static IReadOnlyList<ItemRecordEntry> EntriesOf(
+        IEnumerable<Modules.AfterSales.Contracts.ItemRecordFact> records,
+        Guid orderItemId,
+        int quantity,
+        DateTimeOffset? deliveryMarkedAt,
+        Func<Modules.AfterSales.Contracts.ItemReturnAddress, string>? returnAddressText = null)
+    {
+        ArgumentNullException.ThrowIfNull(records);
+        bool showsUnits = quantity > 1;
+        List<ItemRecordEntry> entries =
+        [
+            .. records.Where(r => r.OrderItemId == orderItemId).Select(r => new ItemRecordEntry(
+                NameOf(r.Kind),
+                showsUnits ? r.Quantity : null,
+                r.At,
+                returnAddressText is not null && r.ReturnAddress is { } address ? returnAddressText(address) : null,
+                returnAddressText is not null && r.ClaimStatus is { } status ? StatusBadges.For(status) : null)),
+        ];
+        if (deliveryMarkedAt is { } marked)
+        {
+            entries.Add(new ItemRecordEntry(ItemRecordName.DeliveryMark, null, marked));
+        }
+
+        return entries;
+    }
 }

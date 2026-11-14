@@ -71,10 +71,22 @@ public interface INotificationsModule
     Task<IReadOnlyList<UndeliveredNotice>> FindUndeliveredNoticesAsync(Guid orderId, CancellationToken ct);
 
     /// <summary>
+    /// The order's customer notices, oldest first (T527; 04 9.9.12; K-804): every dispatch row bound to the order - a firm notice or an account e-mail has no order link and is never among
+    /// them. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<OrderNoticeLine>> ListOrderNoticesAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
     /// One page of the orders that carry the mark, by order id after <paramref name="afterOrderId"/> (null starts at the first): the filtered list the home page's "işaretli siparişler" row leads
     /// to (T385; 02 10.6.1; K-761). An empty page is the end. A plain read.
     /// </summary>
     Task<IReadOnlyList<Guid>> FindMarkedOrderIdsAsync(Guid? afterOrderId, int maxOrders, CancellationToken ct);
+
+    /// <summary>
+    /// The orders among <paramref name="orderIds"/> that carry the "e-posta ulaşmadı" mark (T527; 04 9.8.5): the same rule as the order's own mark, for a page of the panel's order list in one query.
+    /// A plain read.
+    /// </summary>
+    Task<IReadOnlySet<Guid>> FindMarkedOrdersAmongAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct);
 
     /// <summary>
     /// Sends a marked customer notice again (T385; 02 9.1.6): writes a new "queued" row into the notice's group, which the ordinary queue sends, and the trail row of the re-sending, in the caller's open

@@ -13,7 +13,7 @@ namespace Shopfolio.UnitTests.Architecture;
 /// (<c>ChangeDefectClaimStatusAsync</c>) outside the transition unit's item record file and the AfterSales surface that declares and implements it - the
 /// claim's status is changed only from the transition unit (09 9.1 item 4), through the module that owns the claim (09 6 item 2);</item>
 /// <item>a property named like a status field with a setter that is not <c>private</c> (<c>set</c>, <c>init</c>, <c>internal set</c>, <c>protected set</c>,
-/// <c>private protected set</c>), or a field of that name that is not private;</item>
+/// <c>private protected set</c>), or a field of that name that is not private; a query model's repeated text filter of that name (<c>string[]</c>) holds no status and is left out;</item>
 /// <item>a bulk update that names a status field: the argument text of <c>ExecuteUpdate</c>, the property argument of <c>SetProperty</c>, the argument
 /// text of the raw SQL calls (<c>ExecuteSql*</c>, <c>FromSql*</c>, <c>SqlQuery*</c>) naming <c>order_status</c>, <c>payment_status</c>, <c>defect_claim_status</c>
 /// or the property names, and an <c>UPDATE ... SET</c> text of those columns anywhere (a statement held in a variable is no way around it); the
@@ -251,8 +251,9 @@ internal static partial class TransitionUnitSourceScan
     [GeneratedRegex(@"\bChangeDefectClaimStatusAsync\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex DefectClaimChangeMention();
 
-    // A property named like a status field, with an accessor `set`/`init` whose modifiers are not exactly `private`.
-    [GeneratedRegex(@"\b(?:OrderStatus|PaymentStatus|DefectClaimStatus)\s*\{[^{}]*?(?<!\bprivate\s)\b(?:set|init)\b\s*(?:;|\{|=>)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    // A property named like a status field, with an accessor `set`/`init` whose modifiers are not exactly `private`. A query model's repeated text filter
+    // (`string[]`; 07 2.6.4, 5.3.2 `orderStatus`, `paymentStatus`) holds no status and is no finding: only the array of texts is left out, every other type of that name is still read.
+    [GeneratedRegex(@"(?<!\bstring\[\]\??\s+)\b(?:OrderStatus|PaymentStatus|DefectClaimStatus)\s*\{[^{}]*?(?<!\bprivate\s)\b(?:set|init)\b\s*(?:;|\{|=>)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex OpenStatusSetter();
 
     // `private protected set` is open to a derived class: the lookbehind above reads `protected ` before `set`, not `private `, so it is a finding too.

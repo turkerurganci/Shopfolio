@@ -82,6 +82,63 @@ internal sealed class OrderPeriods
     }
 
     /// <summary>
+    /// The firm's running delivery periods of many orders at once (T527; 04 9.8.5, 9.8.7): Z-10 of each preparing order with a physical item whose payment is approved, and Z-39 of each
+    /// service item that waits to be completed - the same conditions as <see cref="ShippingStandingAsync"/> and <see cref="FulfilmentStandingAsync"/>, read in four queries whatever the
+    /// number of orders (09 20 item 4). The last day is given; the caller places it against its own instant.
+    /// </summary>
+    public async Task<IReadOnlyList<OrderRunningPeriod>> RunningPeriodsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderIds);
+        if (orderIds.Count == 0)
+        {
+            return [];
+        }
+
+        Guid[] ids = [.. orderIds.Distinct()];
+        var orders = await _db.Orders.AsNoTracking()
+            .Where(o => ids.Contains(o.Id))
+            .Select(o => new { o.Id, o.OrderStatus, o.ShippingPeriod })
+            .ToListAsync(ct);
+        Dictionary<Guid, DateTimeOffset> approvals = (await PaymentApprovals(_db)
+            .Where(t => ids.Contains(t.OrderId))
+            .GroupBy(t => t.OrderId)
+            .Select(g => new { OrderId = g.Key, At = g.Max(t => t.CreatedAt) })
+            .ToListAsync(ct)).ToDictionary(a => a.OrderId, a => a.At);
+        var items = await _db.OrderItems.AsNoTracking()
+            .Where(i => ids.Contains(i.OrderId) && (i.ProductType == ProductType.Physical || (i.ProductType == ProductType.Service && i.DeliveryMarkedAt == null)))
+            .Select(i => new { i.Id, i.OrderId, i.ProductType, i.Quantity, i.FulfilmentPeriod })
+            .ToListAsync(ct);
+        Guid[] services = [.. items.Where(i => i.ProductType == ProductType.Service).Select(i => i.Id)];
+        IReadOnlyDictionary<Guid, int> closed = services.Length == 0 ? new Dictionary<Guid, int>() : await _afterSales.ClosedQuantitiesAsync(services, ct);
+
+        List<OrderRunningPeriod> periods = [];
+        foreach (var order in orders)
+        {
+            if (!approvals.TryGetValue(order.Id, out DateTimeOffset approvedAt))
+            {
+                continue;
+            }
+
+            if (order.OrderStatus == OrderStatus.Preparing && order.ShippingPeriod is { } businessDays
+                && items.Any(i => i.OrderId == order.Id && i.ProductType == ProductType.Physical))
+            {
+                periods.Add(new OrderRunningPeriod(order.Id, CountedPeriod.ShippingPeriod, DeliveryPeriodRules.ShippingLastDay(approvedAt, businessDays, BusinessCalendar.Product)));
+            }
+
+            foreach (var item in items.Where(i => i.OrderId == order.Id && i.ProductType == ProductType.Service))
+            {
+                if (item.FulfilmentPeriod is { } days && item.Quantity - closed.GetValueOrDefault(item.Id) > 0)
+                {
+                    DateOnly lastDay = PeriodCounting.LastDay(CountedPeriod.ServiceFulfilmentPeriod, TurkeyTime.DateOf(approvedAt), days, BusinessCalendar.Product);
+                    periods.Add(new OrderRunningPeriod(order.Id, CountedPeriod.ServiceFulfilmentPeriod, lastDay));
+                }
+            }
+        }
+
+        return periods;
+    }
+
+    /// <summary>
     /// Z-39 - where a service item's fulfilment period stands at <paramref name="now"/> while it waits to be completed (03 4.1.13): null for another type,
     /// a completed item (the "tamamlandı" mark), an item closed by its records, or an order whose payment is not approved.
     /// </summary>

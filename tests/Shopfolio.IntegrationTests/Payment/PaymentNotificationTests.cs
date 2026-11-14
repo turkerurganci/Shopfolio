@@ -278,22 +278,26 @@ public sealed partial class PaymentNotificationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task UnrecognizedOutcomeOrUnreadableBody_IsRecordedMarkedUnrecognized_AndReceived_KK5()
+    public async Task UnrecognizedOutcomeEventTypeOrUnreadableBody_IsRecordedMarkedUnrecognized_AndReceived_KK5()
     {
         Order order = await SeedOrderAsync(OrderStatus.Placed, PaymentStatus.Pending);
         _gateway.EnqueueVerification(
             new NotificationVerification.SignatureValid(Notice(order, "pending")),
-            new NotificationVerification.SignatureValid(Notice(order, FakePaymentGateway.SucceededOutcome, total: null)));
+            new NotificationVerification.SignatureValid(Notice(order, FakePaymentGateway.SucceededOutcome, total: null)),
+            new NotificationVerification.SignatureValid(Notice(order, FakePaymentGateway.SucceededOutcome) with { EventType = "chargeback" })); // VAL-E049
 
         using HttpResponseMessage unknown = await PostAsync();
         using HttpResponseMessage unreadable = await PostAsync();
+        using HttpResponseMessage unknownEvent = await PostAsync();
 
-        Assert.Equal((HttpStatusCode.OK, HttpStatusCode.OK), (unknown.StatusCode, unreadable.StatusCode));
+        Assert.Equal((HttpStatusCode.OK, HttpStatusCode.OK, HttpStatusCode.OK), (unknown.StatusCode, unreadable.StatusCode, unknownEvent.StatusCode));
+        Assert.Equal("OK", await unknownEvent.Content.ReadAsStringAsync(Ct));
         await using AppDbContext reader = NewContext();
         List<InboundNotificationRecord> records = await reader.InboundNotificationRecords.OrderBy(n => n.Outcome).ToListAsync(Ct);
-        Assert.Equal(2, records.Count);
+        Assert.Equal(3, records.Count);
+        Assert.Single(records, r => r.EventType == "chargeback");
         Assert.All(records, r => Assert.Equal((UnprocessedNotificationReason?)UnprocessedNotificationReason.UnrecognizedNotification, r.UnprocessedReason));
-        Assert.Null(records.Single(r => r.Outcome == FakePaymentGateway.SucceededOutcome).Amount);
+        Assert.Null(records.Single(r => r.Outcome == FakePaymentGateway.SucceededOutcome && r.EventType == FakePaymentGateway.PaymentEventType).Amount);
         Assert.Equal(0L, await CountAsync("jobs"));
         await AssertOrderAsync(order.Id, OrderStatus.Placed, PaymentStatus.Pending, 1);
     }
@@ -313,6 +317,10 @@ public sealed partial class PaymentNotificationTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         Assert.Empty(await response.Content.ReadAsByteArrayAsync(Ct));
         Assert.Equal((0L, 0L), (await CountAsync("inbound_notification_records"), await CountAsync("jobs")));
+
+        // VAL-E050: the error is the application log's line, and the order stays Pending for the payment period's final query (PaymentWindowTests).
+        Assert.Contains(_logs.Lines, line => line.Contains(LogEvents.UnexpectedError, StringComparison.Ordinal));
+        await AssertOrderAsync(order.Id, OrderStatus.Placed, PaymentStatus.Pending, 1);
     }
 
     // ---- KK8: the body ceiling and no forgery check ----

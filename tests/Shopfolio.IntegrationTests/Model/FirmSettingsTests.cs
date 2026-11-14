@@ -62,6 +62,14 @@ public sealed class FirmSettingsTests : IAsyncLifetime
         await using AppDbContext context = NewContext();
         context.Admins.Add(_admin);
         await context.SaveChangesAsync(Ct);
+
+        // The two generated texts are published as the application's start leaves them (GeneratedLegalTextsStartup): a text's first version is the template's first use, a system event
+        // with no trail row (02 3.33.3, 10.3.3), so a save that feeds the texts is a setting change only once they exist - not left to the order the tests of this class run in.
+        await RunAsync(async m =>
+        {
+            await m.SynchronizeGeneratedLegalTextsAsync(Ct);
+            return true;
+        });
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -87,6 +95,9 @@ public sealed class FirmSettingsTests : IAsyncLifetime
         Assert.Equal(
             [new AuditValueChange("ShippingFee", "0.00", "49.90"), new AuditValueChange("FreeShippingThreshold", null, "500.00")],
             row.Details.Changes);
+
+        // The fee feeds the two texts: each gets a version and its trail row (D-681, D-220).
+        Assert.Equal(2, await ReadTextVersionTrailCountAsync());
     }
 
     [Fact]
@@ -456,10 +467,17 @@ public sealed class FirmSettingsTests : IAsyncLifetime
 
     // ---- Helpers ----
 
+    /// <summary>The settings rows of the trail; a save that feeds the two texts also writes their version rows (D-220; T536), read by <see cref="ReadTextVersionTrailCountAsync"/>.</summary>
     private async Task<List<AuditLog>> ReadTrailAsync()
     {
         await using AppDbContext context = NewContext();
-        return await context.AuditLogs.AsNoTracking().OrderBy(l => l.CreatedAt).ThenBy(l => l.Id).ToListAsync(Ct);
+        return await context.AuditLogs.AsNoTracking().Where(l => l.AuditArea == AuditArea.Settings).OrderBy(l => l.CreatedAt).ThenBy(l => l.Id).ToListAsync(Ct);
+    }
+
+    private async Task<int> ReadTextVersionTrailCountAsync()
+    {
+        await using AppDbContext context = NewContext();
+        return await context.AuditLogs.AsNoTracking().CountAsync(l => l.AuditArea == AuditArea.LegalTextVersion, Ct);
     }
 
     private ServiceProvider BuildProvider(Admin? admin)

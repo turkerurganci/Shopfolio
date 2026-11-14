@@ -338,6 +338,26 @@ public sealed class CartPageTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task TheQuantityForm_WorksWithoutScript_ItsOwnButtonSendsIt_AndTheScriptIsThePagesOwnModule_T539_KK1_KK2_KK4()
+    {
+        (string customerKey, Guid customerId) = await TestSessions.CustomerAsync(_database.Dsn);
+        Variant variant = await SeedVariantAsync(price: 130m);
+        Guid cartId = await SeedCartAsync(customerId, null, (variant, 1, 100m));
+        Guid itemId = await ItemIdAsync(cartId, variant.Id);
+
+        await using WebApplicationFactory<Program> factory = Open(salesOpen: true);
+        string html = (await GetAsync(factory, Customer(customerKey))).Html;
+
+        // Without the script the quantity form's own button sends UC-20 (the script only sends the same form with that button when the number changes); the form is a one-time form.
+        string line = LineOf(html, itemId);
+        Assert.Contains("name=\"Quantity\"", line, StringComparison.Ordinal);
+        Assert.Contains("handler=UpdateCartItem", line, StringComparison.Ordinal);
+        Assert.Contains("data-js=\"submit-once\"", line, StringComparison.Ordinal);
+        Assert.Contains("<button type=\"submit\"", line, StringComparison.Ordinal);
+        Assert.Contains("js/pages/storefront/cart", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task ADigitalLine_HasNoQuantityField_AndAQuantityOtherThanOneIsRefused_T508_KK7()
     {
         (string customerKey, Guid customerId) = await TestSessions.CustomerAsync(_database.Dsn);

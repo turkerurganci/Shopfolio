@@ -1,5 +1,6 @@
 @page "/panel/urunler/yeni"
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Pages.Frame
 @using Shopfolio.Pages.Panel
 @model ProductFormModel
 @*
@@ -10,3 +11,8 @@
     ViewData["Title"] = Model.Title;
 }
 <partial name="_ProductFormBody" model="Model" />
+
+@section Scripts {
+    @* This page shares the body (_ProductFormBody) with the existing product's form, so it loads the same row-adding module (09 16.1 item 2). *@
+    <script type="module" src="@ViewContext.HttpContext.StaticAsset("js/pages/panel/product-form.js")"></script>
+}

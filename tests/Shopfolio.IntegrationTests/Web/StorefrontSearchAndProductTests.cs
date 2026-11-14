@@ -524,9 +524,13 @@ public sealed partial class StorefrontSearchAndProductTests : IAsyncLifetime
         Assert.Contains("option.disabled = !(value === places[dimension] || (candidate !== undefined && !soldOut))", script, StringComparison.Ordinal);
         Assert.Contains("(Tükendi)", script, StringComparison.Ordinal);
         Assert.Contains("show(variant);", script, StringComparison.Ordinal);
-        // KK9: the add-to-cart button is locked after the first send (the listener stops a send while it is locked).
+        // KK9: the add-to-cart form is locked after the first send (the listener stops a send while it is locked). T539 KK4 (09 16.2 item 3): the state is aria-busy on the form, the button is not
+        // disabled, and the form is made ready again when the page returns from the back/forward cache.
         Assert.Contains("cartForm.addEventListener(\"submit\"", script, StringComparison.Ordinal);
-        Assert.Contains("button.disabled = true;", script, StringComparison.Ordinal);
+        Assert.Contains("cartForm.setAttribute(\"aria-busy\", \"true\");", script, StringComparison.Ordinal);
+        Assert.Contains("cartForm.removeAttribute(\"aria-busy\");", script, StringComparison.Ordinal);
+        Assert.Contains("event.persisted", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("button.disabled = true;", script, StringComparison.Ordinal);
         Assert.Contains("event.preventDefault();", script, StringComparison.Ordinal);
     }
 

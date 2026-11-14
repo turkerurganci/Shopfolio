@@ -34,8 +34,6 @@
 @{
     SaveProductInput entries = Model.Form;
     string uploadAction = Model.FormPath + "?handler=UploadImage";
-    string Decimal(decimal? value) => value is { } d ? Shopfolio.Infrastructure.RequestFormat.FormatDecimal(d) : string.Empty;
-    string Whole(int? value) => value?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty;
 }
 <form method="post" asp-antiforgery="true" action="@(Model.FormPath)?handler=SaveProduct" upload-form="ProductGallery" class="product-form__entries" id="product-save">
     @if (entries.Version is { } version)
@@ -71,7 +69,7 @@
             <partial name="_Message" model="refusal" />
         }
     </fieldset>
-    <fieldset class="product-form__options" id="product-options">
+    <fieldset class="product-form__options" id="product-options" data-max="@Shopfolio.Infrastructure.ProductConstants.OptionDimensionMax">
         <legend>Seçenekler</legend>
         @{
             int optionSlots = Math.Min(entries.Options.Count + 1, Shopfolio.Infrastructure.ProductConstants.OptionDimensionMax);
@@ -80,7 +78,7 @@
         {
             SaveProductOptionRow? option = o < entries.Options.Count ? entries.Options[o] : null;
             string ok = o.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            <div class="product-form__option">
+            <div class="product-form__option" data-js="row">
                 @if (option?.OptionId is { } optionId)
                 {
                     <input type="hidden" name="Input.Options[@ok].OptionId" value="@optionId.ToString("D")" />
@@ -90,19 +88,50 @@
                 @{
                     int valueCount = option?.Values.Count ?? 0;
                 }
-                @for (int v = 0; v <= valueCount; v++)
-                {
-                    SaveProductOptionValueRow? value = v < valueCount ? option?.Values[v] : null;
-                    string vk = v.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                    if (value?.OptionValueId is { } valueId)
+                <div class="product-form__values" id="product-option-@ok-values">
+                    @for (int v = 0; v <= valueCount; v++)
                     {
-                        <input type="hidden" name="Input.Options[@ok].Values[@vk].OptionValueId" value="@valueId.ToString("D")" />
+                        SaveProductOptionValueRow? value = v < valueCount ? option?.Values[v] : null;
+                        string vk = v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        <div class="product-form__value" data-js="row">
+                            @if (value?.OptionValueId is { } valueId)
+                            {
+                                <input type="hidden" name="Input.Options[@ok].Values[@vk].OptionValueId" value="@valueId.ToString("D")" />
+                            }
+                            <label for="product-option-@ok-value-@vk">@(value is null ? "Yeni değer" : "Değer")</label>
+                            <input type="text" id="product-option-@ok-value-@vk" name="Input.Options[@ok].Values[@vk].Value" value="@value?.Value" />
+                        </div>
                     }
-                    <label for="product-option-@ok-value-@vk">@(value is null ? "Yeni değer" : "Değer")</label>
-                    <input type="text" id="product-option-@ok-value-@vk" name="Input.Options[@ok].Values[@vk].Value" value="@value?.Value" />
-                }
+                </div>
+                <button type="button" class="button button--secondary" hidden data-js="row-add" data-template="product-option-@ok-value-template" data-list="product-option-@ok-values">Değer ekle</button>
             </div>
         }
+        @* 09 16.2 item 4: every dimension that can exist has a value template of its own, the option's number fixed in it and the value's number the placeholder (a dimension the script adds finds its own here). *@
+        @for (int t = 0; t < Shopfolio.Infrastructure.ProductConstants.OptionDimensionMax; t++)
+        {
+            string tk = t.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            <template id="product-option-@tk-value-template" data-js="row-template">
+                <div class="product-form__value" data-js="row">
+                    <label for="product-option-@tk-value-@ProductVariantEntryView.IndexPlaceholder">Yeni değer</label>
+                    <input type="text" id="product-option-@tk-value-@ProductVariantEntryView.IndexPlaceholder" name="Input.Options[@tk].Values[@ProductVariantEntryView.IndexPlaceholder].Value" value="" />
+                </div>
+            </template>
+        }
+        @* The new dimension's row carries its own "Değer ekle", pointing at the value template and the list of its number (the placeholder the script writes). *@
+        <template id="product-option-template" data-js="row-template">
+            <div class="product-form__option" data-js="row">
+                <label for="product-option-@ProductVariantEntryView.IndexPlaceholder-name">Seçenek adı</label>
+                <input type="text" id="product-option-@ProductVariantEntryView.IndexPlaceholder-name" name="Input.Options[@ProductVariantEntryView.IndexPlaceholder].Name" value="" />
+                <div class="product-form__values" id="product-option-@ProductVariantEntryView.IndexPlaceholder-values">
+                    <div class="product-form__value" data-js="row">
+                        <label for="product-option-@ProductVariantEntryView.IndexPlaceholder-value-0">Yeni değer</label>
+                        <input type="text" id="product-option-@ProductVariantEntryView.IndexPlaceholder-value-0" name="Input.Options[@ProductVariantEntryView.IndexPlaceholder].Values[0].Value" value="" />
+                    </div>
+                </div>
+                <button type="button" class="button button--secondary" hidden data-js="row-add" data-template="product-option-@ProductVariantEntryView.IndexPlaceholder-value-template" data-list="product-option-@ProductVariantEntryView.IndexPlaceholder-values">Değer ekle</button>
+            </div>
+        </template>
+        <button type="button" class="button button--secondary" hidden data-js="row-add" data-template="product-option-template" data-list="product-options" data-max="@Shopfolio.Infrastructure.ProductConstants.OptionDimensionMax">Seçenek ekle</button>
         @foreach (MessageView refusal in Model.RefusalsOf("Input.Options", "product-options"))
         {
             <partial name="_Message" model="refusal" />
@@ -133,7 +162,7 @@
         <input upload-file="ProductGallery" id="product-image-file" name="@ProductFormModel.ImageFileName" />
         <button type="submit" class="button button--secondary" formaction="@uploadAction" name="Input.ImageTarget" value="@ProductFormModel.GalleryTarget">Galeriye yükle</button>
     </fieldset>
-    <fieldset class="product-form__variant-entries">
+    <fieldset class="product-form__variant-entries" id="product-variants">
         <legend>Varyant bilgileri</legend>
         @{
             // An existing product's form has one blank row for a new variant (K-1189 (2)); left blank, it is not read.
@@ -144,85 +173,13 @@
         {
             bool isNew = i >= entries.Variants.Count;
             SaveProductVariantRow row = isNew ? new SaveProductVariantRow() : entries.Variants[i];
-            string target = $"Variants[{i}].ImageId";
-            <div class="product-form__variant-entry" id="@ProductFormModel.UploadFieldId(target)">
-                @if (isNew)
-                {
-                    <p class="product-form__new-variant">Yeni varyant</p>
-                }
-                @if (row.VariantId is { } variantId)
-                {
-                    <input type="hidden" name="Input.Variants[@i].VariantId" value="@variantId.ToString("D")" />
-                }
-                @for (int o = 0; o < 2; o++)
-                {
-                    IReadOnlyList<FieldOption> choices = Model.OptionValueChoices(o);
-                    Guid? current = o == 0 ? row.FirstOptionValueId : row.SecondOptionValueId;
-                    string field = o == 0 ? "FirstOptionValueId" : "SecondOptionValueId";
-                    if (choices.Count > 0)
-                    {
-                        <label for="product-variant-@i-option-@o">@entries.Options[o].Name</label>
-                        <select id="product-variant-@i-option-@o" name="Input.Variants[@i].@field">
-                            <option value="" selected="@(current is null)">Seçiniz</option>
-                            @foreach (FieldOption choice in choices)
-                            {
-                                <option value="@choice.Value" selected="@(current?.ToString("D") == choice.Value)">@choice.Text</option>
-                            }
-                        </select>
-                    }
-                    else if (current is { } carried)
-                    {
-                        <input type="hidden" name="Input.Variants[@i].@field" value="@carried.ToString("D")" />
-                    }
-                }
-                <label for="product-variant-@i-sku">Stok kodu</label>
-                <input type="text" id="product-variant-@i-sku" name="Input.Variants[@i].SKU" value="@row.SKU" />
-                <label for="product-variant-@i-price">Fiyat (TL)</label>
-                <input type="text" inputmode="decimal" id="product-variant-@i-price" name="Input.Variants[@i].Price" value="@Decimal(row.Price)" />
-                @if (!digital)
-                {
-                    <label for="product-variant-@i-stock">@(entries.ProductType == ProductType.Service ? "Kontenjan" : "Stok")</label>
-                    <input type="text" inputmode="numeric" id="product-variant-@i-stock" name="Input.Variants[@i].StockQuantity" value="@Whole(row.StockQuantity)" />
-                }
-                @if (!isNew)
-                {
-                    <input type="hidden" name="Input.Variants[@i].OriginalStockQuantity" value="@row.OriginalStockQuantity" />
-                }
-                @if (entries.MeasurementUnit is { } unit)
-                {
-                    <label for="product-variant-@i-net">Net miktar (@ProductFormModel.UnitName(unit))</label>
-                    <input type="text" inputmode="decimal" id="product-variant-@i-net" name="Input.Variants[@i].NetQuantity" value="@Decimal(row.NetQuantity)" />
-                }
-                @foreach (MessageView refusal in Model.RefusalsOf($"Input.Variants[{i}].", $"product-variant-{i}-sku"))
-                {
-                    <partial name="_Message" model="refusal" />
-                }
-                @if (row.ImageId is { } imageId)
-                {
-                    <input type="hidden" name="Input.Variants[@i].ImageId" value="@imageId.ToString("D")" />
-                }
-                @if (digital)
-                {
-                    string fileField = $"Input.Variants[{i}].DigitalFileId";
-                    <input type="hidden" id="product-variant-@i-file" name="@fileField" value="@(row.DigitalFileId?.ToString("D"))" />
-                    <label for="product-variant-@i-file-upload">Varyantın dosyası</label>
-                    <span class="product-form__file-state">@(row.DigitalFileId is null ? "Dosya yok" : "Dosya ekli")</span>
-                    <input upload-file="DigitalFile" id="product-variant-@i-file-upload" data-js="@ProductFormModel.DigitalFileUploadHook" data-target-field="@fileField" />
-                }
-                else if (row.DigitalFileId is { } variantFile)
-                {
-                    <input type="hidden" name="Input.Variants[@i].DigitalFileId" value="@variantFile.ToString("D")" />
-                }
-                @if (Model.UploadRefusal is not null && Model.UploadRefusalTarget == target)
-                {
-                    <partial name="_Message" model="Model.UploadRefusal" />
-                }
-                @if (!isNew)
-                {
-                    <button type="submit" class="button button--secondary" formaction="@uploadAction" name="Input.ImageTarget" value="@target">Varyant görseli yükle</button>
-                }
-            </div>
+            <partial name="_ProductVariantEntry" model="new ProductVariantEntryView(Model, row, i.ToString(System.Globalization.CultureInfo.InvariantCulture), isNew, false, uploadAction)" />
         }
+        @* 09 16.2 item 4: the script adds a row from this template - the same markup as a row of the page, the row's number written as the placeholder; inert without the script. *@
+        <template id="product-variant-template" data-js="row-template">
+            <partial name="_ProductVariantEntry" model="new ProductVariantEntryView(Model, new SaveProductVariantRow(), ProductVariantEntryView.IndexPlaceholder, true, true, uploadAction)" />
+        </template>
+        <button type="button" class="button button--secondary" hidden data-js="row-add" data-template="product-variant-template" data-list="product-variants">Varyant ekle</button>
     </fieldset>
     @if (digital || entries.DigitalFileId is not null)
     {

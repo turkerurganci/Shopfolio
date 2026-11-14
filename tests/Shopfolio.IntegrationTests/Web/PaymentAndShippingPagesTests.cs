@@ -511,6 +511,10 @@ public sealed partial class PaymentAndShippingPagesTests : IAsyncLifetime
         Assert.DoesNotContain("Tümünü seç", page, StringComparison.Ordinal);
         Assert.DoesNotContain("Seçimi kaldır", page, StringComparison.Ordinal);
 
+        // T539, D-1443: the two buttons belong to the script - it puts them above the boxes it finds by this hook; the markup carries the boxes, the hook and the page's own module, never the buttons.
+        Assert.Contains("data-js=\"province-boxes\"", page, StringComparison.Ordinal);
+        Assert.Contains("js/pages/panel/shipping-and-defaults", page, StringComparison.Ordinal);
+
         using HttpResponseMessage offList = await client.PostAsync(ShippingPath + "?handler=SaveDeliveryProvinces", Form(("Input.ProvinceIds", _ankara.ToString()), ("Input.ProvinceIds", Guid.NewGuid().ToString()), ("Input.DeliveryProvincesVersion", "1")), Ct);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, offList.StatusCode);
         Assert.Equal(2L, await ScalarAsync<long>("SELECT count(*) FROM company_delivery_provinces"));

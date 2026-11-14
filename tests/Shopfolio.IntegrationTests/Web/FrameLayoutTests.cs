@@ -406,4 +406,30 @@ public sealed partial class StorefrontFrameTests
             Assert.DoesNotContain(absent, html, StringComparison.Ordinal);
         }
     }
+
+    [Fact]
+    public async Task TheSite_IsOneResponsiveSite_WithNoManifestNoServiceWorkerAndNoOfflineShell_T539_KK10()
+    {
+        // 10 KD-22; 02 3.34.1: no mobile application and no PWA - no installable-app notice, no offline shell; the storefront and the panel are one responsive site (K-390).
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = factory.CreateClient();
+
+        (HttpStatusCode status, string storefront, _) = await GetHtmlAsync(client, "/sss/cerceve-ornegi");
+        string panel = (await GetHtmlAsync(client, "/panel/davet/abc")).Html;
+
+        Assert.Equal(HttpStatusCode.OK, status);
+        foreach (string html in new[] { storefront, panel })
+        {
+            Assert.DoesNotContain("rel=\"manifest\"", html, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("serviceWorker", html, StringComparison.Ordinal);
+            Assert.DoesNotContain("apple-mobile-web-app", html, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("name=\"viewport\"", html, StringComparison.Ordinal);
+        }
+
+        foreach (string path in new[] { "/manifest.webmanifest", "/manifest.json", "/site.webmanifest", "/sw.js", "/service-worker.js", "/offline.html", "/offline" })
+        {
+            HttpStatusCode answer = (await GetHtmlAsync(client, path)).Status;
+            Assert.True(answer is HttpStatusCode.NotFound, $"{path} answered {(int)answer}; the site has no installable-app files.");
+        }
+    }
 }

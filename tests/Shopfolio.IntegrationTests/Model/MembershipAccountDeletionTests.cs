@@ -39,13 +39,21 @@ public sealed partial class MembershipTests
         return admin.Id;
     }
 
+    /// <summary>The e-mail change as the account screen asks for it (T517; D-429): a session of the account, the permission's single-use value, then the request that takes the value.</summary>
+    private async Task<EmailChangeRequestResult> RequestEmailChangeAsync(Guid id, string newEmail)
+    {
+        SessionOpening session = await InTransactionAsync(s => s.GetRequiredService<ISessionService>().SignInAsync(id, true, null, Ct));
+        string? value = await InTransactionAsync(s => s.GetRequiredService<ISessionService>().GrantReauthenticationAsync(id, session.SessionId, ReauthenticationOperation.EmailChange, Ct));
+        return await RunAsync(m => m.RequestEmailChangeAsync(id, session.SessionId, newEmail, value, Ip, Ct));
+    }
+
     private async Task<(Guid Id, SessionOpening Session)> SeedMemberWithEverythingAsync(string email)
     {
         Guid id = await SeedCustomerAsync(email, verified: true);
         SessionOpening session = await InTransactionAsync(s => s.GetRequiredService<ISessionService>().SignInAsync(id, true, null, Ct));
         await SaveAsync(c => c.AddressBooks.Add(AddressBook.Create(id, "Ev", "Ali Veli", _provinceId, "Çankaya", "Atatürk Bulvarı 1", "5321234567", Start)));
         await SaveAsync(c => c.Carts.Add(Cart.ForCustomer(id, Start)));
-        await RunAsync(m => m.RequestEmailChangeAsync(id, "yeni-" + email, Ip, Ct));
+        await RequestEmailChangeAsync(id, "yeni-" + email);
         return (id, session);
     }
 
@@ -85,8 +93,8 @@ public sealed partial class MembershipTests
         await using AppDbContext db = NewContext();
         Dictionary<DisposalRecordType, int?> records = await db.DisposalRecords.AsNoTracking().ToDictionaryAsync(r => r.DisposalRecordType, r => r.Count, Ct);
         Assert.Equal(1, records[DisposalRecordType.Customer]);
-        Assert.Equal(1, records[DisposalRecordType.Session]);
-        Assert.Equal(1, records[DisposalRecordType.RecognizedBrowserMark]);
+        Assert.Equal(2, records[DisposalRecordType.Session]); // the account's own session and the one the e-mail change request of the seed opened (T517)
+        Assert.Equal(2, records[DisposalRecordType.RecognizedBrowserMark]); // each sign-in of the seed leaves a mark
         Assert.Equal(1, records[DisposalRecordType.Cart]);
         Assert.Equal(1, records[DisposalRecordType.PendingEmailChange]);
         Assert.True(records[DisposalRecordType.LinkRecord] >= 1);

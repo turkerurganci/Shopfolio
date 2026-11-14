@@ -24,7 +24,7 @@ public sealed class OperationHandlerMarkTests
         $"{nameof(ConfirmationPageModel)}.{nameof(ConfirmationPageModel.OnPostStartPaymentAsync)}",
     ];
 
-    // The panel's order page: its six line steps are 03 1.11.15-1.11.19 and 1.11.40 (07 UC-123...UC-128). Every POST of the page is an operation (07 9.9: the page's ends are UC-123...UC-154).
+    // The panel's order page: its six line steps are 03 1.11.15-1.11.19 and 1.11.40 (07 UC-123...UC-128), T531's five handlers 1.11.20, 1.11.27, 1.11.36 and 1.11.38 (UC-139, UC-143, UC-152...UC-154). Every POST of the page is an operation (07 9.9: the page's ends are UC-123...UC-154).
     private static readonly Type[] _panelOrderPages = [typeof(OrderDetailModel)];
 
     [Fact]
@@ -50,11 +50,16 @@ public sealed class OperationHandlerMarkTests
         Assert.Equal(
             [
                 nameof(OrderDetailModel.OnPostCloseDeliveryFailedAsync),
+                nameof(OrderDetailModel.OnPostCompleteServiceItemAsync),
                 nameof(OrderDetailModel.OnPostMarkDeliveredAsync),
                 nameof(OrderDetailModel.OnPostMarkDeliveryFailedAsync),
                 nameof(OrderDetailModel.OnPostMarkPaidAsync),
                 nameof(OrderDetailModel.OnPostMarkReshippedAsync),
                 nameof(OrderDetailModel.OnPostMarkShippedAsync),
+                nameof(OrderDetailModel.OnPostResendAllNotificationsAsync),
+                nameof(OrderDetailModel.OnPostResendNotificationAsync),
+                nameof(OrderDetailModel.OnPostResetDownloadCountAsync),
+                nameof(OrderDetailModel.OnPostSaveInternalNoteAsync),
             ],
             Handlers(typeof(OrderDetailModel)).Select(m => m.Name).Order(StringComparer.Ordinal));
     }

@@ -23,7 +23,11 @@
                     @if (row.CanResend)
                     {
                         <form method="post" action="@(Model.PagePath)?handler=@Model.ResendHandler" asp-antiforgery="true" data-js="resend-once">
-                            <input type="hidden" name="key" value="@row.Key">
+                            <input type="hidden" name="Input.DispatchRecordId" value="@row.Key">
+                            @if (Model.Version is int rowVersion)
+                            {
+                                @Shopfolio.Infrastructure.Forms.VersionFields.Version(rowVersion, "Input")
+                            }
                             <button type="submit" class="button button--secondary" data-sending-label="@UndeliveredEmailList.ResendingLabel">@UndeliveredEmailList.ResendLabel</button>
                         </form>
                     }
@@ -33,6 +37,10 @@
         @if (Model.ShowsResendAll)
         {
             <form method="post" action="@(Model.PagePath)?handler=@Model.ResendAllHandler" asp-antiforgery="true" data-js="resend-once">
+                @if (Model.Version is int allVersion)
+                {
+                    @Shopfolio.Infrastructure.Forms.VersionFields.Version(allVersion, "Input")
+                }
                 <button type="submit" class="button button--secondary" data-sending-label="@UndeliveredEmailList.ResendingLabel">@UndeliveredEmailList.ResendAllLabel</button>
             </form>
         }

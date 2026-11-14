@@ -50,7 +50,7 @@ public sealed partial class OrderDetailPageTests
         Assert.Contains($"name=\"Input.CancellationId\" value=\"{seeded.CauseId:D}\"", html, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.OK, ask);
         Assert.Contains("data-js=\"confirm-window\"", window, StringComparison.Ordinal);
-        Assert.Contains("50,00", window, StringComparison.Ordinal);
+        Assert.Contains(DisplayFormat.Amount(50m) + " tutarındaki", window, StringComparison.Ordinal);
         Assert.Contains("TR33 0006 1005 1978 6457 8413 26", window, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.NotFound, foreign);
         Assert.Equal(HttpStatusCode.SeeOther, done);

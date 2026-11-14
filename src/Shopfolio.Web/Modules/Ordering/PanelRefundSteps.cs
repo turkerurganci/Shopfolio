@@ -242,7 +242,8 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
             return refused;
         }
 
-        if (!await _db.OrderItems.AsNoTracking().AnyAsync(i => i.Id == request.Key && i.OrderId == order!.Id, ct)) // non-null: GateAsync returns the order
+        // Tracked, under the order lock: the version guard tells the new request's order from its item (D-95; 09 10.2 item 3).
+        if (await _db.OrderItems.SingleOrDefaultAsync(i => i.Id == request.Key && i.OrderId == order!.Id, ct) is null) // non-null: GateAsync returns the order
         {
             return new PanelRefundStepResult(TransitionRefusal.InvalidInput) { Obstacle = PanelRefundObstacle.ItemNotSelected };
         }

@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Membership.Contracts;
@@ -50,6 +52,10 @@ public sealed partial class MembershipTests
         Assert.False(again.IsReverted);
         Assert.Equal(VerificationLinkStatus.Used, again.Status);
         Assert.Equal("ali@example.com", await ScalarAsync<string>("SELECT email FROM customers WHERE id = '" + id + "'"));
+
+        // The used link no longer holds the earlier address (06 4.42; VAL-A809): emptied in the transaction that used it; the row stays with its use time.
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM link_records WHERE link_type = 'EmailChangeRevert' AND previous_email IS NOT NULL"));
+        Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM link_records WHERE link_type = 'EmailChangeRevert' AND used_at IS NOT NULL"));
         Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM customers WHERE id = '" + id + "' AND password_hash IS NOT NULL"));
         Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM link_records WHERE link_type IN ('NewEmailVerification', 'GoogleLinkConfirmation') AND used_at IS NULL AND superseded_at IS NULL"));
         Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM link_records WHERE link_type = 'PasswordReset' AND used_at IS NULL AND superseded_at IS NULL"));
@@ -81,6 +87,49 @@ public sealed partial class MembershipTests
         Assert.True(result.AddressTaken);
         Assert.Equal("yeni@example.com", await ScalarAsync<string>("SELECT email FROM customers WHERE id = '" + id + "'"));
         Assert.Equal(VerificationLinkStatus.Valid, (await ReadAsync(m => m.ReadEmailRestoreLinkAsync(key, Ct))).Status);
+        Assert.Equal("ali@example.com", await ScalarAsync<string>("SELECT previous_email FROM link_records WHERE link_type = 'EmailChangeRevert'"));
+    }
+
+    [Fact]
+    public async Task Revert_WhenTheLinkIsSpentWhileTheCallWaitsForTheAccountsRowLock_FindsItUsed_AndWritesNothing_T519_KK8()
+    {
+        (Guid id, string key) = await ChangedAccountAsync();
+        await using AppDbContext rival = NewContext();
+        await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await rival.Database.BeginTransactionAsync(Ct);
+        await rival.Database.ExecuteSqlAsync($"SELECT id FROM customers WHERE id = {id} FOR UPDATE", Ct);
+
+        // The call reads the link valid, then waits on the account's row; the rival uses the link meanwhile (the same conditional update the call would make) and commits.
+        Task<EmailRevertResult> running = Task.Run(() => RunAsync(m => m.RestorePreviousEmailAsync(key, Ct)), Ct);
+        await Task.Delay(TimeSpan.FromSeconds(2), Ct);
+        Assert.False(running.IsCompleted, "The call must wait for the account's row lock.");
+        await rival.Database.ExecuteSqlRawAsync("UPDATE link_records SET used_at = now(), previous_email = NULL WHERE link_type = 'EmailChangeRevert'", Ct);
+        await transaction.CommitAsync(Ct);
+        EmailRevertResult result = await running;
+
+        Assert.False(result.IsReverted);
+        Assert.False(result.AddressTaken);
+        Assert.Equal(VerificationLinkStatus.Used, result.Status);
+        Assert.Equal("yeni@example.com", await ScalarAsync<string>("SELECT email FROM customers WHERE id = '" + id + "'"));
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM dispatch_records WHERE dispatch_type = 'PasswordResetLink'"));
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM link_records WHERE link_type = 'PasswordReset'"));
+    }
+
+    [Fact]
+    public async Task Revert_OnALinkPastItsLifetime_IsExpired_AndWritesNothing_T519_VALC029()
+    {
+        (Guid id, string key) = await ChangedAccountAsync();
+        _time.Advance(TimeSpan.FromDays(ProductConstants.EmailChangeRevertLinkDays) + TimeSpan.FromSeconds(1));
+
+        EmailRevertResult result = await RunAsync(m => m.RestorePreviousEmailAsync(key, Ct));
+
+        Assert.False(result.IsReverted);
+        Assert.Equal(VerificationLinkStatus.Expired, result.Status);
+        Assert.Equal("yeni@example.com", await ScalarAsync<string>("SELECT email FROM customers WHERE id = '" + id + "'"));
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM link_records WHERE link_type = 'EmailChangeRevert' AND used_at IS NOT NULL"));
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM dispatch_records WHERE dispatch_type = 'PasswordResetLink'"));
+
+        // The earlier address stays until the nightly cleanup empties it (06 4.42; K-1065): a refused use does not.
+        Assert.Equal("ali@example.com", await ScalarAsync<string>("SELECT previous_email FROM link_records WHERE link_type = 'EmailChangeRevert'"));
     }
 
     // ---- D-578: the bulk update's provider exception is the same refusal as the tracked save's ----

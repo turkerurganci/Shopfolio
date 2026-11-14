@@ -322,14 +322,20 @@ internal sealed class EmailChanges
         RequireTransaction("The revert is written only inside a transaction (09 6 item 3).");
 
         LinkReading reading = await _links.ReadAsync(key, ct);
-        if (reading.Record is not { LinkType: LinkType.EmailChangeRevert, CustomerId: Guid customerId, PreviousEmail: { } previousEmail } record || reading.State is not { } state)
+        if (reading.Record is not { LinkType: LinkType.EmailChangeRevert, CustomerId: Guid customerId } record || reading.State is not { } state)
         {
             return EmailRevertResult.LinkInvalid(VerificationLinkStatus.Missing);
         }
 
+        // A used link no longer holds the earlier address (06 4.42): the state is told before the address is needed.
         if (state != LinkState.Valid)
         {
             return EmailRevertResult.LinkInvalid(MembershipModule.StatusOf(state));
+        }
+
+        if (record.PreviousEmail is not { } previousEmail)
+        {
+            return EmailRevertResult.LinkInvalid(VerificationLinkStatus.Missing);
         }
 
         // The account's row first, then the link (05 6.1.2): a sign-in or a reset that holds the row makes the revert wait.

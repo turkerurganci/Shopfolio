@@ -1,6 +1,6 @@
 # T519 — E-posta değişikliğini geri alma ve müşteri çıkışı (E-28)
 
-**Faz:** F5 | **Durum:** ✗ FAIL (doğrulama tur 1) | **Tarih:** 2026-11-14
+**Faz:** F5 | **Durum:** ✗ FAIL (doğrulama tur 1); düzeltme 1 yapıldı, doğrulama bekliyor | **Tarih:** 2026-11-14
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -28,11 +28,11 @@
 | 1 | Geçerli bağlantıda geri alma adımı; açılış geri almaz | ✓ | `EmailRevertPageTests.OpeningAValidLink_ShowsTheStepAndTheOneButton_AndWritesNothing_T519_KK1` |
 | 2 | Kullanılmış bağlantı kodla sonuçlar, kodsuz geçersiz; dolmuş/tanınmayan geçersiz | ✓ | `TheInvalidStates_AreToldWithoutAButton_...KK2`, `EmailRevertLandingsTests` |
 | 3 | Başka tür / yönetici bağlantısı tanınmaz, tüketilmez | ✓ | `ALinkOfAnotherTypeOrAnAdministrator_IsNotRecognized_AndIsNotConsumed_KK3` |
-| 4 | Bağlantıyı tüketir, eski adrese döner, 303 → `/geri-al/{key}` + sonuç kodu | ✓ | `TheButton_GoesBackToTheEarlierAddress_...KK4_KK5` |
+| 4 | Bağlantıyı tüketir, eski adrese döner, 303 → `/geri-al/{key}` + sonuç kodu; eski adres aynı işlemde boşalır (`06 §4.42`) | ✓ | `TheButton_GoesBackToTheEarlierAddress_...KK4_KK5` (`PreviousEmail` null), `Revert_GoesBackToTheEarlierAddress_...KK4_KK5` (modül), `TheRevertButton_ReturnsTheAddress_...T521_KK9` (yönetici) |
 | 5 | Oturumlar, işaretler, Google bağı, şifre, sıfırlama bağlantısı | ✓ | aynı test + `TheButton_ForAnAccountWithoutAPassword_...`, `Revert_GoesBackToTheEarlierAddress_...` |
 | 6 | Bekleyen kayıt silinir + imha kaydı; siparişler hesapta kalır | ✓ | `TheButton_DeletesTheUnverifiedPendingRegistration_...KK6`; sipariş: KK4 testi |
 | 7 | Eski adres başka doğrulanmış hesabın: 422, hiçbir şey yazılmaz, tüketim geri döner | ✓ | `TheButton_WhenTheEarlierAddressBecameAnotherVerifiedAccounts_Answers422_...KK7`, `Revert_WhenAnotherAccountTakes...Race` |
-| 8 | Yarışta 200 + o anki hâl; tekrar gönderim aynı | ✓ | `ASecondPost_FindsTheLinkUsed_Answers200_...KK8` |
+| 8 | Yarışta 200 + o anki hâl; tekrar gönderim aynı | ✓ | `ASecondPost_FindsTheLinkUsed_Answers200_...KK8`, `TwoPostsAtOnce_OneReverts303_...KK8_Race`, `Revert_WhenTheLinkIsSpentWhileTheCallWaitsForTheAccountsRowLock_...KK8` (kilit beklerken tüketilmiş bağlantı) |
 | 9 | `SignOut` oturum + çerez siler; sepet hesapta kalır | ✓ | `CustomerSignOutPageTests.TheSignOut_DeletesTheSessionRowAndTheCookie_...KK9` |
 | 10 | `ReturnUrl` yerel ve oturum istemeyen sayfaysa oraya, değilse ana sayfaya 303 | ✓ | `TheAnswer_IsThePageThatNeedsNoSession_OrTheHomePage_KK10` (12 örnek) |
 
@@ -43,11 +43,14 @@
 | KK1 açılış yazmaz; adım görünür | ✓ | KK1 testi: iki açılış sonrası e-posta, bağlantı, oturum, dispatch değişmez |
 | KK2 üç hâl | ✓ | `EmailRevertLandings.Of`; 4 durum + kod yalnız kullanılmış bağlantıda sayılır (Unit + Web) |
 | KK3 yabancı tür tüketilmez | ✓ | reset, yeni adres, yönetici revert bağlantısı GET ve POST; `used_at` hâlâ boş |
-| KK4 eski adres döner, tek tüketim | ✓ | `ASecondPost...` ve `MembershipTests` ikinci çağrı `Used` |
+| KK4 eski adres döner, tek tüketim, `PreviousEmail` boşalır | ✓ | `ASecondPost...` ve `MembershipTests` ikinci çağrı `Used`; düzeltme 1: `LinkRecords.TryConsumeAsync` aynı güncellemede `PreviousEmail = null`; üç testte (Web, modül, yönetici) boş; reddedilen kullanımda (422, ömrü dolmuş) dolu kalır |
 | KK5 oturumlar, işaretler, Google, şifre, e-posta | ✓ | KK4/KK5 testi: oturum 0, işaret 0, `GoogleLinkedAt` null, `PasswordHash` null, tek yeni sıfırlama bağlantısı; şifresiz hesapta dispatch yok |
 | KK6 bekleyen kayıt, imha kaydı | ✓ | KK6 testi: kayıt silindi, `DisposalRecord` PendingRegistration sayı 1 |
 | KK7 çakışmada hiçbir şey yazılmaz | ✓ | 422 testi (oturum, Google, şifre, bağlantı, dispatch, imha kaydı aynı) + gerçek unique-index yarışı |
-| KK8 yarışta 200; ikinci gönderim | ✓ | KK8 testi, satır sayıları değişmez |
+| KK8 yarışta 200; ikinci gönderim | ✓ | KK8 testi, satır sayıları değişmez; düzeltme 1: yarış kolu doğrudan (eşzamanlı iki POST; modülde hesap kilidini beklerken tüketilen bağlantı) |
+| VAL-C029 ömrü dolmuş bağlantıya POST | ✓ | düzeltme 1: Web `TheButton_OnALinkPastItsLifetime_...VALC029` (200 geçersiz, satır sayısı değişmez) + modül `Revert_OnALinkPastItsLifetime_IsExpired_...` |
+| VAL-A809 `PreviousEmail` tüketimle boşalır | ✓ | düzeltme 1: bkz. KK4 satırı; yönetici yolu aynı `TryConsumeAsync`'ten geçtiği için birlikte düzeldi (ayrı yol yok, backlog gerekmedi) |
+| `09 §8.1` m.4 / `07` UC-76 sonucu belirsiz işaret | ✓ | düzeltme 1: `EmailRevertModel.OnPostRevertPendingEmailChangeAsync` `[OutcomeUncertain("UC-76")]`; `OutcomeUncertainConsistencyTests.NotMarkedYet`'ten UC-76 çıktı; hedef sayfanın kendi adresi (varsayılan) |
 | KK9 oturum silinir, sepet durur | ✓ | sign-out testi: sepet satırı, işaret, öteki oturum kalır; çerez silinir; oturumsuz/tekrar aynı 303, yazmaz |
 | KK10 üç dönüş yeri | ✓ | Theory: oturum istemeyen sayfa, `/hesap` altı + `/siparis/{no}` + `/panel` → `/`, yabancı değerler → `/` |
 | `09 §25` güvenlik taraması | ✓ | Unit TAM 7270 yeşil (JobSourceScan geniş catch, IrreversibleConfirmation "Revert" adı, LinkKeySourceScan yakaladı ve düzeltildi); Consistency 295 yeşil |
@@ -153,5 +156,14 @@ Başlangıç kapıları: working tree temiz; `core.hooksPath` = `scripts/git-hoo
 |---|---|---|---|
 | 1 | Paylı `12` satırlarının `Durum` hücreleri | D-1495 | Payın kanıtı bu raporda; hücreyi doğrulama işler |
 | 2 | Ekranın 320 genişlik / klavye gözlemi | D-1496 | Tarayıcı gözlemi E2E katmanında (T601) |
+| 3 | UC-76 422/200 redleri `RejectionLog`'a yazılmıyor | D-1508 | F5 kapısında D-1317 ile (doğrulama K1) |
+
+## Düzeltme 1 (2026-11-14, doğrulama tur 1 FAIL sonrası)
+
+- **B1 (VAL-A809):** `LinkRecords.TryConsumeAsync` tüketimle aynı güncellemede `PreviousEmail`'i boşaltır (`06 §4.42`). Müşteri ve yönetici geri almasının ikisi de bu tek tüketim yolundan geçtiği için birlikte düzeldi; ayrı yol yok, backlog gerekmedi. `RestorePreviousEmailAsync` (iki yan) kullanılmış bağlantıyı önce durumuyla yanıtlar (eski adres artık yok), adresi yalnız geçerli durumda okur.
+- **B2 (UC-76, D-137):** geri alma işleyicisi `[OutcomeUncertain("UC-76")]` taşır; `NotMarkedYet` listesinden UC-76 çıktı. D-137'ye T519 payı: UC-76 işaretlendi, kalan UC-39, UC-40, UC-41, UC-43, UC-53, UC-186, UC-187, UC-160, UC-165, UC-177 (`DEFERRED_BACKLOG.d/T519.md`).
+- **K2 (D-1509):** KK8 yarış kolu (modülde hesap kilidini beklerken tüketilen bağlantı; Web'de eşzamanlı iki POST: biri 303, öteki 200) ve VAL-C029 (ömrü dolmuş bağlantıya POST) doğrudan sınandı; D-1509 kapandı. K1 (D-1508) F5 kapısında kalır.
+- **Yeni testler:** `EmailRevertPageTests.TwoPostsAtOnce_OneReverts303_TheOtherFindsTheLinkUsed200_AndTheRevertIsWrittenOnce_T519_KK8_Race`, `EmailRevertPageTests.TheButton_OnALinkPastItsLifetime_Answers200Invalid_AndLeavesTheAccountOnTheNewAddress_T519_VALC029`, `MembershipTests.Revert_WhenTheLinkIsSpentWhileTheCallWaitsForTheAccountsRowLock_FindsItUsed_AndWritesNothing_T519_KK8`, `MembershipTests.Revert_OnALinkPastItsLifetime_IsExpired_AndWritesNothing_T519_VALC029`; var olan KK4, KK7 ve yönetici (T521 KK9, KK10) testlerine `PreviousEmail` iddiaları eklendi.
+- **Sınama (main `8a51cdcc` ile birleşik ağaç):** build `-warnaserror` 0 uyarı; format 3 proje temiz; Unit TAM 7575 / 0; Integration yalnız ilgili sınıflar (`EmailRevertPageTests`, `MembershipTests` 154 / 0; `PanelHomeAndVerificationPagesTests`, `DisposalTests`, `RevertLinkDigestRewriteTests`, `CustomerSignOutPageTests` 102 / 0); TAM: CI.
 
 Not: süre bütçesi (45 dk) 2 dakika aşıldı; iş tamamlandı, bölünme yok.

@@ -179,6 +179,9 @@ public sealed class EmailRevertPageTests : IAsyncLifetime
         Assert.Null(account.PasswordHash);
         Assert.NotNull(account.EmailVerifiedAt);
         Assert.NotNull(await db.LinkRecords.Where(l => l.Id == seeded.LinkId).Select(l => l.UsedAt).SingleAsync(Ct));
+
+        // The used link no longer holds the earlier address: it is emptied in the transaction that uses the link (06 4.42; VAL-A809).
+        Assert.Null(await db.LinkRecords.Where(l => l.Id == seeded.LinkId).Select(l => l.PreviousEmail).SingleAsync(Ct));
         Assert.Equal(0, await db.Sessions.CountAsync(s => s.CustomerId == seeded.CustomerId, Ct));
         Assert.Equal(0, await db.RecognizedBrowserMarks.CountAsync(m => m.CustomerId == seeded.CustomerId && m.ExpiresAt > DateTimeOffset.UtcNow, Ct));
         Assert.Equal(seeded.CustomerId, await db.Orders.Where(o => o.Id == orderId).Select(o => o.CustomerId).SingleAsync(Ct));
@@ -263,6 +266,7 @@ public sealed class EmailRevertPageTests : IAsyncLifetime
         Assert.NotNull(account.GoogleLinkedAt);
         Assert.NotNull(account.PasswordHash);
         Assert.Null(await db.LinkRecords.Where(l => l.Id == seeded.LinkId).Select(l => l.UsedAt).SingleAsync(Ct));
+        Assert.Equal(Earlier, await db.LinkRecords.Where(l => l.Id == seeded.LinkId).Select(l => l.PreviousEmail).SingleAsync(Ct));
         Assert.Equal(1, await db.Sessions.CountAsync(s => s.CustomerId == seeded.CustomerId, Ct));
         Assert.Equal(0, await db.DispatchRecords.CountAsync(Ct));
         Assert.Equal(0, await db.DisposalRecords.CountAsync(Ct));
@@ -285,6 +289,58 @@ public sealed class EmailRevertPageTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.OK, second.StatusCode);
         Assert.Contains(EmailRevertLandings.UsedEarlier, await BodyOf(second), StringComparison.Ordinal);
         Assert.Equal(afterFirst, await RowCountsAsync());
+    }
+
+    [Fact]
+    public async Task TwoPostsAtOnce_OneReverts303_TheOtherFindsTheLinkUsed200_AndTheRevertIsWrittenOnce_T519_KK8_Race()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient first = ForgeryTokenHandler.CreateClient(factory);
+        using HttpClient second = ForgeryTokenHandler.CreateClient(factory);
+        Seeded seeded = await SeedAsync(factory);
+
+        Task<HttpResponseMessage> one = PostAsync(first, Path(seeded.Key), "RevertPendingEmailChange", null);
+        Task<HttpResponseMessage> two = PostAsync(second, Path(seeded.Key), "RevertPendingEmailChange", null);
+        await Task.WhenAll(one, two);
+        using HttpResponseMessage oneAnswer = await one;
+        using HttpResponseMessage twoAnswer = await two;
+
+        HttpResponseMessage[] answers = [oneAnswer, twoAnswer];
+        Assert.Equal([HttpStatusCode.OK, HttpStatusCode.SeeOther], answers.Select(a => a.StatusCode).Order());
+        HttpResponseMessage spent = Assert.Single(answers, a => a.StatusCode == HttpStatusCode.OK);
+        Assert.Contains(EmailRevertLandings.UsedEarlier, await BodyOf(spent), StringComparison.Ordinal);
+        await using AppDbContext db = NewContext();
+        Assert.Equal(Earlier, await db.Customers.Where(c => c.Id == seeded.CustomerId).Select(c => c.Email).SingleAsync(Ct));
+        Assert.Equal(1, await db.DispatchRecords.CountAsync(d => d.DispatchType == DispatchType.PasswordResetLink, Ct));
+        Assert.Equal(1, await db.LinkRecords.CountAsync(l => l.LinkType == LinkType.PasswordReset && l.UsedAt == null, Ct));
+    }
+
+    // ---- VAL-C029: a link past its lifetime - the POST changes nothing ----
+
+    [Fact]
+    public async Task TheButton_OnALinkPastItsLifetime_Answers200Invalid_AndLeavesTheAccountOnTheNewAddress_T519_VALC029()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        Seeded seeded = await SeedAsync(factory, google: true, linkEnds: DateTimeOffset.UtcNow.AddHours(-1));
+        SessionOpening mine = await SignInAsync(factory, seeded.CustomerId);
+        long before = await RowCountsAsync();
+
+        using HttpResponseMessage post = await PostAsync(client, Path(seeded.Key), "RevertPendingEmailChange", $"{CookieNames.Session}={mine.SessionKey}");
+
+        Assert.Equal(HttpStatusCode.OK, post.StatusCode);
+        string body = await BodyOf(post);
+        Assert.Contains(EmailRevertLandings.Invalid, body, StringComparison.Ordinal);
+        Assert.DoesNotContain("button--primary", body, StringComparison.Ordinal);
+        Assert.DoesNotContain(SetCookies(post), c => c.StartsWith(CookieNames.Session + "=", StringComparison.Ordinal));
+        Assert.Equal(before, await RowCountsAsync());
+        await using AppDbContext db = NewContext();
+        Customer account = await db.Customers.AsNoTracking().SingleAsync(c => c.Id == seeded.CustomerId, Ct);
+        Assert.Equal(Current, account.Email);
+        Assert.NotNull(account.GoogleLinkedAt);
+        Assert.NotNull(account.PasswordHash);
+        Assert.Null(await db.LinkRecords.Where(l => l.Id == seeded.LinkId).Select(l => l.UsedAt).SingleAsync(Ct));
+        Assert.Equal(1, await db.Sessions.CountAsync(s => s.CustomerId == seeded.CustomerId, Ct));
     }
 
     // ---- helpers ----

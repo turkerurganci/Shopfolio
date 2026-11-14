@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Security;
@@ -18,7 +19,7 @@ namespace Shopfolio.Pages.Storefront;
 /// (<see cref="IMembershipModule.ReadEmailRestoreLinkAsync"/>), so opening the link reverts nothing (K-904, K-839); the button's POST consumes the link with one conditional update, answers 303 to the
 /// same address with the result code and ends the account's sessions - the browser's own cookie goes only when it is that account's. The earlier address having become another verified account's answers
 /// 422 and the consumption rolls back (K-1210); a link spent in between answers 200 with the state it is in now. A key of another type, an administrator's link and an unknown key are the one invalid
-/// state and nothing is consumed. The address holds a key, so no referrer is sent and the response is not stored (09 15.1 item 4).
+/// state and nothing is consumed. An error nobody expected anywhere in the POST answers 303 to this same address, which tells the state the link is in now (UC-76 is marked; 07 6.4.2; D-137). The address holds a key, so no referrer is sent and the response is not stored (09 15.1 item 4).
 /// </summary>
 [KeyedLinkPage]
 [NoStore]
@@ -49,6 +50,7 @@ internal sealed class EmailRevertModel : PageModel
         return Page();
     }
 
+    [OutcomeUncertain("UC-76")]
     public async Task<IActionResult> OnPostRevertPendingEmailChangeAsync(string key, CancellationToken ct)
     {
         // Read before the revert ends the sessions: whose session the browser holds, if any.

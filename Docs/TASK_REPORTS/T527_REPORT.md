@@ -1,6 +1,6 @@
 # T527 — Sipariş listesi, sipariş ayrıntısı ve durum geçişleri (E-36, E-37)
 
-**Faz:** F5 | **Durum:** ⏳ Doğrulama bekliyor | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 5 ✓ PASS) | **Tarih:** 2026-11-12
 
 ---
 
@@ -119,6 +119,13 @@
 | Düzeltme gerekli mi | Evet — **B1 (kriter 3 / KK3; `04` 9.9.5 "açık olmayan işlem gösterilmez", "fiziksel kalemlerin hepsi … kapanmışsa sipariş düzeyinde zorunlu adım kalmamıştır ve yol teslim edilemedi işareti ile siparişi kapatmadır"; `03 §1.4.3`, `02 §5.8`):** Kargoya verildi'de fiziksel kalemlerin hepsi caymayla ya da fesihle kapanınca ekran "Sipariş işlemleri"nde `mark-delivered-operation-form`'u ("Teslim edildi olarak işaretle") çizer, ama geçiş birimi (`OrderTransitions.MarkDeliveredAsync`) açık fiziksel kalem yoksa S6'yı reddeder (`marked.Count > 0`) — form her gönderimde 422 "Bu işlem siparişin şu anki hâlinde açık değil" verir. Doğrulayıcının geçici sınaması (silindi): Hazırlanıyor tek fiziksel kalem → `MarkShipped` 303 → kalem cayma beyanıyla kapalı → GET formu çiziyor → POST `MarkDelivered` 422, `NotOpenText`, sipariş Kargoya verildi. Katalog satırı (`OrderOperationCatalog`, `MarkDelivered` yalnız `Shipped`) ile yazıcı ayrışık; düzeltme testi (`..._KeepsTheDeliveryMarkAmongTheOrdersOperations_KK3`) ölü formun varlığını iddia ediyor. Önerilen: `MarkDelivered` katalog satırı `ShipOrder`/`ResendOrder` gibi `HasOpenPhysicalItem` ister (GET ve POST tek kural), "Sipariş işlemleri"ndeki teslim formu kalkar, test formun yokluğunu ve POST'un 422'sini sınar. Not: tur 3 raporunun "teslim işareti işlemler arasında kalır" önerisi bu yazıcı kuralını hesaba katmamıştı |
 | Bloke-etmeyen not (tur 4) | 0 |
 | Yapım raporu karşılaştırması (tur 4) | 1 uyuşmazlık: kriter 3 ✓ denmiş; düzeltme 2'nin "teslim işareti Sipariş işlemleri'nde ikincil" çözümü yalnız çizimi sınıyor, gönderimin sonucunu sınamıyor (B1). Öz denetim tablosu kriter ve KK başına kanıtlı; birleştirme (main `3fe7d829`) notu doğrulayıcının incelemesiyle aynı |
+
+| Doğrulama durumu (tur 5) | ✓ PASS (2026-11-14; TAM yeniden doğrulama, eskalasyon sonrası; dal ucu `b031628f` = origin/main `8a51cdcc` birleşik, main ilerlemedi) — build `-warnaserror` 0 uyarı, format ×3 temiz, Unit 7579/7579, betik 4/4, Integration parçalı 142/142 + 318/318 (`shopfolio-t527-val-pg`, `track_commit_timestamp=on`; TAM: CI), dal CI run 43562282856 (`b031628f`) Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E, CI Gate: pass; `--locked-mode` çıkış 0. Kriter 1–10 ve KK1–KK10 karşılandı |
+| Tur 4 bulgusunun kapanışı (tur 5) | **B1 ✓:** `OrderOperationCatalog`'un `MarkDelivered` satırı `ShipOrder`/`ResendOrder` gibi `HasOpenPhysicalItem` ister; GET'in açık işlemleri, birincil düğme ve POST'un kapısı (`PanelOrderSteps.GateAsync` → `OrderOperationCatalog.Check`) tek kural, yazıcının (`OrderTransitions.MarkDeliveredAsync`, `marked.Count > 0`) koşuluyla aynı. Ölü form ve `OffersDeliveryMarkAsOperation` kalktı; `OrderOperationsView` ve `OrderPageLinksTests.cs` main ile aynı. Kanıt: `TheScreen_OnAShippedOrderWhosePhysicalItemsAllClosed_OffersNoDeliveryMark_OnlyTheDeliveryFailure_AndADirectPostIs422_KK3` (formsuz ekran; doğrudan POST 422 `NotOpenText`, sipariş Kargoya verildi, iz satırı yok) ve Unit `MarkDelivered_OnAShippedOrder_NeedsAnOpenPhysicalItem_AsTheWriterDoes`. D-1504 gerekçesi geçerli: `02 §5.8` (işaret açık fiziksel kaleme), `03 §1.4.3` (Kargoya verildi'de son kalem başka olayla kapanmışsa yol S7 + S9 kapanışı), `04` 6.3.9.5 birincil sütunu ve `12` `VAL-C086` aynı kuralı söyler; `03 §1.11.17` aralık metni hizalanacak (sahip). Bekleyen iş "teslim işareti bekleyen" kümesi de açık fiziksel kalem sayar (`PendingWorkOrders` → `ShippedPhysical` + açık adet) — kuralla tutarlı |
+| `12` satırları (tur 5) | Değişmedi: PASS `VAL-A207`, A208, C039, C040, C041, C042, C043, C044, C046, C047; BEKLEMEDE `VAL-C045` (UC-129, T528), `VAL-C048` (UC-139, T531). `12_matris_denetle.py --kapsam 1-77` hata 0 |
+| Bulgu sayısı (tur 5) | 0 |
+| Bloke-etmeyen not (tur 5) | 0 |
+| Yapım raporu karşılaştırması (tur 5) | Tam uyumlu: kriter 3 ✓ ve öz denetimin "Teslim işareti tek kural (düzeltme 3)" satırı doğrulayıcının kanıtlarıyla aynı; ⚠ D-1504 doğrulayıcının değerlendirmesiyle aynı |
 
 ## Known Limitations / Follow-up
 

@@ -301,6 +301,36 @@ public sealed partial class OrderDetailPageTests
     }
 
     [Fact]
+    public async Task SwitchRefundToBankTransfer_PutsTheOrderUnderTheIbanPendingMark_AndTheMarkGoesWhenTheRequestIsFulfilled_D874()
+    {
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        (Seeded failed, Guid failedRefund) = await SeedCardRefundAsync(RefundRecordState.Failed);
+        await using WebApplicationFactory<Program> factory = Open(withJobRunner: false);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string number;
+        await using (AppDbContext db = NewContext())
+        {
+            number = (await db.Orders.AsNoTracking().SingleAsync(o => o.Id == failed.OrderId, Ct)).OrderNumber;
+        }
+
+        string marked = $"{OrdersPath}?search={Uri.EscapeDataString(number)}&pendingWork={nameof(PanelOrderWork.IbanPendingMark)}";
+        (_, string before) = await GetAsync(client, marked, key);
+        (HttpStatusCode done, _) = await PostForLocationAsync(client, Path(failed, "SwitchRefundToBankTransfer"), [("Input.RefundId", failedRefund.ToString("D")), ("Input.Version", "1")], key);
+        (_, string pending) = await GetAsync(client, marked, key);
+
+        // The customer's IBAN fulfils the refund's request (the request stays, its fulfilment closes the mark; K-1075, K-675).
+        await ExecuteAsync($"UPDATE refund_iban_requests SET fulfilled_at = now() WHERE refund_id = '{failedRefund}'");
+        (_, string fulfilled) = await GetAsync(client, marked, key);
+
+        Assert.Equal(HttpStatusCode.SeeOther, done);
+        // The row links the order by its key; the search box repeats the number, so the key is what tells the row is listed.
+        string row = failed.OrderId.ToString("D");
+        Assert.DoesNotContain(row, before, StringComparison.Ordinal);
+        Assert.Contains(row, pending, StringComparison.Ordinal);
+        Assert.DoesNotContain(row, fulfilled, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task MarkCardRefundFailed_TurnsTheAwaitedRequestFailed_SendsNoNotice_AndWhenNothingIsAwaitedIs422_AndALateSuccessShowsTheWarning_KK10()
     {
         (string key, _) = await TestSessions.AdminAsync(_database.Dsn);

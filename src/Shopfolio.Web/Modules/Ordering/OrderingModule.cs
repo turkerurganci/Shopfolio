@@ -500,6 +500,7 @@ internal static class OrderingModuleRegistration
         // The panel's order screens' reads that need the item records' rule (T527; 04 9.8, 9.9): a surface apart from IOrderingModule, which the AfterSales module depends on.
         services.AddScoped<IPanelOrderReader, PanelOrderReader>();
         services.AddScoped<IPanelOrderSteps, PanelOrderSteps>();
+        services.AddScoped<IPanelOrderCorrections, PanelOrderCorrections>();
         return services;
     }
 }

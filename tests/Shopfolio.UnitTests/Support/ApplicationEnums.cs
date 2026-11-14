@@ -27,6 +27,8 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.CorporateContent.Contracts.ContentListKind",
         "Shopfolio.Modules.CorporateContent.Contracts.ContentPageKind",
         "Shopfolio.Modules.Ordering.Contracts.CorrectionObstacle",
+        // T530: why a correction's value was refused - the screen's result code, never a column.
+        "Shopfolio.Modules.Ordering.Contracts.CorrectionValueProblem",
         "Shopfolio.Modules.Catalog.Contracts.ProductPageKind",
         // T323: the identity of an operation of 03 1.11 - the request names it and the decision table answers; the document's table is its definition, no column holds it.
         "Shopfolio.Modules.Ordering.Contracts.OrderOperation",

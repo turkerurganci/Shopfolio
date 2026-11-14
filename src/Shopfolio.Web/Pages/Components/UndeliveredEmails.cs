@@ -10,9 +10,10 @@ public sealed record UndeliveredEmailRow(string Key, string NoticeName, DateTime
 /// The "e-posta ulaşmadı" block of an order's page (04 2.5.3.1, 2.5.4): the undelivered e-mails one by one with "Yeniden gönder" on the resendable ones, and "Hepsini yeniden gönder" when more
 /// than one can be resent. A sending that succeeded is gone from <paramref name="Rows"/> at the next drawing; the last row gone means no block at all. When the sending failed again the row stays and
 /// <paramref name="ResendFailed"/> says so in place. The resending is a job in the queue (05 4.4.3, 5.1.4): the answer to the request does not carry its result, the next drawing does.
-/// The posts go to <paramref name="PagePath"/> with the named handlers <paramref name="ResendHandler"/> (field <c>key</c>) and <paramref name="ResendAllHandler"/>.
+/// The posts go to <paramref name="PagePath"/> with the named handlers <paramref name="ResendHandler"/> (field <c>Input.DispatchRecordId</c>) and <paramref name="ResendAllHandler"/>; on an order
+/// each carries the order's <paramref name="Version"/> as the screen showed it (07 UC-153, UC-154; K-1188 (2)).
 /// </summary>
-public sealed record UndeliveredEmailList(string PagePath, string ResendHandler, string ResendAllHandler, IReadOnlyList<UndeliveredEmailRow> Rows, bool ResendFailed)
+public sealed record UndeliveredEmailList(string PagePath, string ResendHandler, string ResendAllHandler, IReadOnlyList<UndeliveredEmailRow> Rows, bool ResendFailed, int? Version = null)
 {
     /// <summary>The text of the lasting message when a resending failed again (04 2.5.4).</summary>
     public const string ResendFailedMessage = "E-posta yeniden gönderilemedi; satır listede kaldı. Biraz sonra yeniden deneyin.";

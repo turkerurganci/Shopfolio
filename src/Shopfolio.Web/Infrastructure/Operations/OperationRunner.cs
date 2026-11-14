@@ -47,4 +47,14 @@ internal sealed class OperationRunner
         ArgumentNullException.ThrowIfNull(operation);
         return await _transactions.RunAsync(token => operation(token), ct);
     }
+
+    /// <summary>
+    /// As <see cref="RunAsync(Func{CancellationToken, Task{GatedOperationResult}}, CancellationToken)"/>, run once more as a whole when it fails on one of <paramref name="retryOnUniqueIndexes"/> (09 10.2):
+    /// the internal note's two first writes at once meet on its unique index, and the second run answers the later one with the conflict (09 10.9 item 3; T531).
+    /// </summary>
+    public async Task<GatedOperationResult> RunAsync(Func<CancellationToken, Task<GatedOperationResult>> operation, IReadOnlyCollection<string> retryOnUniqueIndexes, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(operation);
+        return await _transactions.RunAsync(token => operation(token), retryOnUniqueIndexes, ct);
+    }
 }

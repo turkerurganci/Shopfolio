@@ -125,7 +125,7 @@ Testler: **C** = `CheckoutPageTests` (Integration, `Web/CheckoutPageTests.Confir
 - **Branch:** `task/T510-siparis-teyit-donus`
 - **PR:** #569
 - **CI:** yapım işçisi beklemez; yönetici izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** main `ce300c0e`: CI 43557742023 success, Publish 43557742117 success
 
 ## Dış Varsayımlar
 

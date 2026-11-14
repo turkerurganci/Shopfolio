@@ -1,0 +1,36 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Modules.Ordering.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model (OrderDetailModel Page, OrderPageItem Item)
+@*
+    The item's own operations of T531 on its row (04 9.9.6, 9.9.26, 9.9.29): the service item's "Tamamlandı olarak işaretle" while the decision says it is open - the payment approved, the item
+    unmarked with an open quantity (K-536, K-792) - and the digital item's download right renewal (K-683). Neither asks for a confirmation and neither has a quantity. A refusal's message stands here,
+    in the operation's place (04 9.9.41). An operation that is not open has no button at all.
+*@
+@{
+    OrderDetailModel page = Model.Page;
+    OrderPageItem item = Model.Item;
+    string itemKey = item.OrderItemId.ToString("D");
+}
+@if (page.RefusedItemId == item.OrderItemId && page.RefusalText is { } refusal)
+{
+    <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, refusal, "order-item-message-" + itemKey)' />
+}
+@if (page.Operations.IsOpen(OrderOperation.MarkServiceCompleted, item.OrderItemId))
+{
+    <form method="post" action="@(page.PagePath)?handler=CompleteServiceItem" asp-antiforgery="true" class="form" data-js="submit-once" id="complete-service-@itemKey">
+        @VersionFields.Version(page.Operations.Version, "Input")
+        <input type="hidden" name="Input.OrderItemId" value="@itemKey" />
+        <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.CompleteServiceLabel)">@OrderDetailModel.CompleteServiceLabel</button>
+    </form>
+}
+@if (page.Operations.IsOpen(OrderOperation.RenewDownloadAllowance, item.OrderItemId))
+{
+    <form method="post" action="@(page.PagePath)?handler=ResetDownloadCount" asp-antiforgery="true" class="form" data-js="submit-once" id="reset-download-@itemKey">
+        @VersionFields.Version(page.Operations.Version, "Input")
+        <input type="hidden" name="Input.OrderItemId" value="@itemKey" />
+        <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.ResetDownloadLabel)">@OrderDetailModel.ResetDownloadLabel</button>
+    </form>
+}

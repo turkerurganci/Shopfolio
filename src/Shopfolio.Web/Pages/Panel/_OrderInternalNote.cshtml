@@ -1,0 +1,37 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model OrderDetailModel
+@*
+    The internal note (T531; 04 9.9.11, 9.9.32; 07 UC-152): one free text field with its Original twin - the text the form showed, the save's condition (K-1051); no version and no confirmation.
+    A note saved against a changed note shows the order notice and the current note (409); a disposed order's field is closed and shows no note (K-1095).
+*@
+@if (Model.CanWriteNote)
+{
+    @if (Model.IsNoteConflict)
+    {
+        @ConflictControls.OrderNotice(ConflictControls.OrderMessage)
+    }
+    @if (Model.IsNoteRefused && Model.RefusalText is { } refusal)
+    {
+        <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, refusal, "order-note-message")' />
+    }
+    @if (Model.Facts.InternalNote is { } note)
+    {
+        <p class="order-detail__note-author">@note.AdminName</p>
+    }
+    <form method="post" action="@(Model.PagePath)?handler=SaveInternalNote" asp-antiforgery="true" class="form" data-js="submit-once" id="internal-note-form">
+        <input type="hidden" name="Input.OriginalText" value="@Model.ShownNoteText" />
+        <label for="internal-note-text">@OrderDetailModel.NoteFieldLabel</label>
+        <textarea id="internal-note-text" name="Input.Text" class="order-detail__note" rows="4">@Model.ShownNoteText</textarea>
+        <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.SaveNoteLabel)">@OrderDetailModel.SaveNoteLabel</button>
+    </form>
+}
+else
+{
+    @if (Model.IsNoteRefused && Model.RefusalText is { } closed)
+    {
+        <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, closed, "order-note-message")' />
+    }
+}

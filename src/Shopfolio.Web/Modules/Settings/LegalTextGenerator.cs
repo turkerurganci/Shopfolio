@@ -37,7 +37,14 @@ internal sealed class LegalTextGenerator
     }
 
     /// <summary>Writes the new version of each generated text whose text or template changed; returns the versions written, none when nothing changed.</summary>
-    public async Task<IReadOnlyList<GeneratedVersion>> RegenerateAsync(CancellationToken ct)
+    public Task<IReadOnlyList<GeneratedVersion>> RegenerateAsync(CancellationToken ct) => RegenerateAsync(feedingSettingChanged: false, ct);
+
+    /// <summary>
+    /// As <see cref="RegenerateAsync(CancellationToken)"/>, and when <paramref name="feedingSettingChanged"/> is true a version is written even though the text is the same (T536; 02 3.33.3;
+    /// 03 8.7.2.3; 04 9.18.9): the shipping fee, the firm default of the shipping period and the delivery provinces feed the two texts through the order's tokens and a general sentence, so the
+    /// text of the version does not change with them - the version still rises when such a value really changed (D-681, D-493). A save that changed no feeding value passes false.
+    /// </summary>
+    public async Task<IReadOnlyList<GeneratedVersion>> RegenerateAsync(bool feedingSettingChanged, CancellationToken ct)
     {
         await _writer.LockAsync(ct);
         IReadOnlyDictionary<string, string?> values = await ReadCompanyValuesAsync(ct);
@@ -52,7 +59,7 @@ internal sealed class LegalTextGenerator
                 .OrderByDescending(l => l.VersionNumber)
                 .Select(l => new { l.VersionNumber, l.Text, l.TemplateVersion })
                 .FirstOrDefaultAsync(ct);
-            if (last is not null && last.Text == text && last.TemplateVersion == template.Version)
+            if (last is not null && last.Text == text && last.TemplateVersion == template.Version && !feedingSettingChanged)
             {
                 continue;
             }

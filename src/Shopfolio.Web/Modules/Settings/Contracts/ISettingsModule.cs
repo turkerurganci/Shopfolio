@@ -41,6 +41,12 @@ public interface ISettingsModule
     /// </summary>
     Task<SettingsSaveResult> SaveReturnAddressAsync(ReturnAddressInput input, int formVersion, CancellationToken ct);
 
+    /// <summary>
+    /// The return address form's field checks without a write (07 2.2.4; UC-172): the same rule <see cref="SaveReturnAddressAsync"/> runs, against the section as it is now. The form runs it before
+    /// it asks a change's confirmation, so an invalid change's first send is refused by field; the confirmed save checks again under the row lock.
+    /// </summary>
+    Task<IReadOnlyList<FieldRejection>> CheckReturnAddressAsync(ReturnAddressInput input, CancellationToken ct);
+
     /// <summary>The shipping fee section (02 11.1 P-1, P-3, P-4): the fee, the two optional amounts and the section's version.</summary>
     Task<ShippingFeeSection> GetShippingFeeAsync(CancellationToken ct);
 

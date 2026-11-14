@@ -21,6 +21,28 @@ internal sealed partial class AfterSalesModule
 
     public async Task<IReadOnlyList<Guid>> ListOrdersAwaitingReturnGoodsAsync(CancellationToken ct)
     {
+        IReadOnlyList<RefundWorkItemFacts> items = await ItemsAwaitingReturnGoodsAsync(ct);
+        return [.. items.Select(f => f.OrderId).Distinct()];
+    }
+
+    public async Task<int> CountItemsAwaitingReturnGoodsAsync(CancellationToken ct)
+    {
+        // The counter's set is wider than the mark: it also holds a withdrawal declared before the delivery (or on its day, the firm not yet asked) and a late delivery termination,
+        // whose goods come back without the item ever carrying "iade malı bekleniyor" (03 1.7.3.5). The mark's own rule narrows it, a page of items at a time (09 20 item 2).
+        IReadOnlyList<RefundWorkItemFacts> items = await ItemsAwaitingReturnGoodsAsync(ct);
+        int marked = 0;
+        foreach (RefundWorkItemFacts[] page in items.Chunk(AwaitedPageSize))
+        {
+            IReadOnlyDictionary<Guid, ItemMarks> marks = await ItemMarksAsync([.. page.Select(f => new ItemDelivery(f.OrderItemId, f.ProductType, f.DeliveryDate))], ct);
+            marked += marks.Values.Count(m => m.AwaitingReturnGoods);
+        }
+
+        return marked;
+    }
+
+    // The items whose returned goods are awaited: the one reading behind the panel home's counter and the return address confirmation (T382, T536); the confirmation keeps the marked ones.
+    private async Task<IReadOnlyList<RefundWorkItemFacts>> ItemsAwaitingReturnGoodsAsync(CancellationToken ct)
+    {
         // The units a withdrawal or a termination still awaits, counted by the database: declared minus received, rejected and closed as "mal dönmedi" (a closure that was
         // reopened is not closed). A closed or rejected unit is no longer awaited (02 10.4.9, 7.4.9; criterion 5); a reopened one is awaited again.
         // Both sets are walked one page of records at a time by id (09 20 item 2): no read takes the growing set whole.
@@ -43,7 +65,7 @@ internal sealed partial class AfterSalesModule
             .ToListAsync(ct);
 
         // Only a shipped physical item has goods that can come back; a service item or an order never shipped awaits nothing.
-        HashSet<Guid> orders = [];
+        Dictionary<Guid, RefundWorkItemFacts> items = [];
         foreach (Func<Guid?, Guid, Task<List<AwaitedRecord>>> source in new[] { withdrawals, terminations })
         {
             Guid? after = null;
@@ -57,12 +79,16 @@ internal sealed partial class AfterSalesModule
                 }
 
                 IReadOnlyList<RefundWorkItemFacts> facts = await _ordering.FindRefundWorkItemFactsAsync([.. page.Select(r => r.OrderItemId).Distinct()], ct);
-                orders.UnionWith(facts.Where(f => f.ProductType == ProductType.Physical && f.IsShipped).Select(f => f.OrderId));
+                foreach (RefundWorkItemFacts fact in facts.Where(f => f.ProductType == ProductType.Physical && f.IsShipped))
+                {
+                    items.TryAdd(fact.OrderItemId, fact);
+                }
+
                 after = page[^1].Id;
             }
         }
 
-        return [.. orders];
+        return [.. items.Values];
     }
 
     private sealed record AwaitedRecord(Guid Id, Guid OrderItemId);

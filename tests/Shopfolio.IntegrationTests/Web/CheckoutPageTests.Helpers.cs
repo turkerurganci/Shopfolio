@@ -35,7 +35,7 @@ public sealed partial class CheckoutPageTests
     /// <summary>The client address of the test requests (a test server's connection has none; behind the proxy every request has one, 09 15.1 item 8).</summary>
     private static readonly IPAddress ClientIp = IPAddress.Parse("203.0.113.9");
 
-    private WebApplicationFactory<Program> Open(bool salesOpen, bool confirmationFails = false, bool hasAddress = true, bool cardOpen = false) =>
+    private WebApplicationFactory<Program> Open(bool salesOpen, bool confirmationFails = false, bool hasAddress = true, bool cardOpen = false, Action<IServiceCollection>? extra = null) =>
         new ShopfolioWebApplicationFactory(_database.Dsn).WithWebHostBuilder(b => b.ConfigureServices(s =>
         {
             if (cardOpen)
@@ -65,6 +65,11 @@ public sealed partial class CheckoutPageTests
             {
                 s.RemoveAll<ICheckout>();
                 s.AddScoped<ICheckout>(sp => new FailingConfirmation(ActivatorUtilities.CreateInstance<Checkout>(sp)));
+            }
+
+            if (extra is not null)
+            {
+                extra(s);
             }
         }));
 

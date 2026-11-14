@@ -52,7 +52,8 @@ internal sealed class DeliveryProvinces
         return new DeliveryArea([.. all.Where(p => selected.Contains(p.Id))], [.. all.Where(p => !selected.Contains(p.Id))]);
     }
 
-    public async Task<SettingsSaveResult> SaveAsync(IReadOnlyCollection<Guid> provinceIds, int formVersion, CancellationToken ct)
+    /// <summary>The save of the section; the outcome says whether the selection really changed - the selection feeds the generated texts (02 3.24.3, 3.33.3; 07 UC-169).</summary>
+    public async Task<SectionSaveOutcome> SaveAsync(IReadOnlyCollection<Guid> provinceIds, int formVersion, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(provinceIds);
         await _writer.LockAsync(ct);
@@ -62,19 +63,19 @@ internal sealed class DeliveryProvinces
         HashSet<Guid> wanted = [.. provinceIds];
         if (wanted.Any(id => !listed.Contains(id)))
         {
-            return SettingsSaveResult.Refused([new FieldRejection(nameof(CompanyDeliveryProvince.ProvinceId), FieldCodes.InvalidProvince)]);
+            return new SectionSaveOutcome(SettingsSaveResult.Refused([new FieldRejection(nameof(CompanyDeliveryProvince.ProvinceId), FieldCodes.InvalidProvince)]), false);
         }
 
         HashSet<Guid> stored = await SelectedIdsAsync(ct);
         int currentVersion = await _db.CompanySettings.AsNoTracking().Select(s => s.DeliveryProvincesVersion).SingleAsync(ct);
         if (stored.SetEquals(wanted))
         {
-            return currentVersion == formVersion ? SettingsSaveResult.Saved : SettingsSaveResult.VersionConflict;
+            return new SectionSaveOutcome(currentVersion == formVersion ? SettingsSaveResult.Saved : SettingsSaveResult.VersionConflict, false);
         }
 
         if (!await _writer.WriteDeliveryProvincesVersionAsync(formVersion, ct))
         {
-            return SettingsSaveResult.VersionConflict;
+            return new SectionSaveOutcome(SettingsSaveResult.VersionConflict, false);
         }
 
         // The rows leave and enter as tracked changes the transaction's owner saves (09 6 item 3): the settings row's bulk write is the writer's alone (09 10.3 item 4).
@@ -93,7 +94,7 @@ internal sealed class DeliveryProvinces
         Guid rowId = await _db.CompanySettings.AsNoTracking().Select(s => s.Id).SingleAsync(ct);
         AuditValueChange change = new(SelectionField, Codes(all, stored), Codes(all, wanted));
         await _trail.WriteAsync(new AuditEntry(AuditOperation.UpdateSettings, nameof(CompanySettings), rowId, new AuditDetails(DisplayName, [change])), ct);
-        return SettingsSaveResult.Saved;
+        return new SectionSaveOutcome(SettingsSaveResult.Saved, true);
     }
 
     private async Task<HashSet<Guid>> SelectedIdsAsync(CancellationToken ct)

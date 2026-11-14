@@ -37,6 +37,7 @@ using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
+using Shopfolio.Pages.Orders;
 using Shopfolio.UnitTests.Fakes;
 
 namespace Shopfolio.IntegrationTests.Ordering;
@@ -190,7 +191,26 @@ public sealed class MainFlowTests : IAsyncLifetime
             ("Masa Lambası", "Beyaz", ProductType.Physical, Quantity, UnitPrice, (Guid?)_variantId),
             (item.ProductName, item.FirstOptionValue, item.ProductType, item.Quantity, item.UnitPrice, item.VariantId));
 
-        // ---- Step 6 (03 2.10.1.6): the fake provider's success notification is recorded at the endpoint and processed in the job: Ö1 + S1, B-4 ----
+        // ---- Step 6 (03 2.10.1.6): the payment page starts the card payment (07 UC-29; D-840) - one token request outside any transaction, the provider's frame comes back
+        // and the order does not move; then the fake provider's success notification is recorded at the endpoint and processed in the job: Ö1 + S1, B-4 ----
+        ConfirmationScreenFacts facts = (await RunAsync(sp => sp.GetRequiredService<IOrderConfirmationScreen>().ReadAsync(orderId, Ct)))!; // non-null: the order was just placed
+        Assert.True(facts.IsAwaitingPayment);
+        PaymentStartAnswer started;
+        await using (AsyncServiceScope scope = _app!.Services.CreateAsyncScope())
+        {
+            started = await scope.ServiceProvider.GetRequiredService<IPaymentStart>().StartAsync(
+                ConfirmationPageModel.OrderOf(facts, "203.0.113.5", facts.OrderAccessKey!), Ct); // non-null: a placed order carries its access key
+        }
+
+        Assert.Equal(
+            (PaymentStartDecision.OpenPaymentForm, (Uri?)((PaymentStartResult.Started)_gateway.DefaultStart).FrameAddress),
+            (started.Decision, started.FrameAddress));
+        FakeCall startCall = Assert.Single(_gateway.Calls, c => c.Job == nameof(IPaymentGateway.StartAsync));
+        Assert.Equal((placed.OrderNumber, expectedTotal), (((PaymentStartRequest)startCall.Argument).OrderNumber, ((PaymentStartRequest)startCall.Argument).Total));
+        await AssertAxesAsync(orderId, OrderStatus.Placed, PaymentStatus.Pending, version: 1);
+        Assert.Equal(0, await CountAsync($"transition_records WHERE order_id = '{orderId}'"));
+        Assert.Equal(0, await CountAsync($"payment_records WHERE order_id = '{orderId}'"));
+
         _clock.Advance(TimeSpan.FromMinutes(3));
         _gateway.EnqueueVerification(new NotificationVerification.SignatureValid(new PaymentNotice(
             ProviderTransactionId, placed.OrderNumber, FakePaymentGateway.PaymentEventType, FakePaymentGateway.SucceededOutcome, expectedTotal, expectedTotal, true, true, false)));

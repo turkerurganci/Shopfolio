@@ -332,6 +332,9 @@ internal sealed class OrderingModule : IOrderingModule
     public Task<int> CountCardOrdersAwaitingPaymentAsync(CancellationToken ct)
         => _db.Orders.AsNoTracking().CountAsync(PaymentWindowRules.Awaiting(PaymentMethod.Card), ct);
 
+    public Task<int> CountBankTransferOrdersAwaitingPaymentAsync(CancellationToken ct)
+        => _db.Orders.AsNoTracking().CountAsync(PaymentWindowRules.Awaiting(PaymentMethod.BankTransfer), ct);
+
     public async Task<IReadOnlyList<PaidCardItem>> ListPaidCardItemsAsync(Guid? afterOrderId, int maxOrders, CancellationToken ct)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(maxOrders, 1);
@@ -474,6 +477,7 @@ internal static class OrderingModuleRegistration
         // The confirmation (T348; 02 3.17): the one operation that makes an order, in the caller's transaction.
         services.AddScoped<OrderConfirmation>();
         services.AddScoped<ICheckout, Checkout>();
+        services.AddScoped<IOrderConfirmationScreen, OrderConfirmationScreens>(); // the confirmation screen (T510; 07 UC-28, UC-29)
         services.AddDueRecordSource<TransferPaymentExpiry>();
         services.AddDueRecordSource<TransferPaymentReminder>();
         services.AddDueRecordSource<CardPaymentExpiry>();

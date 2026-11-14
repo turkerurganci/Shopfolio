@@ -265,8 +265,8 @@
 | T506 | Sık sorulan sorular ve iletişim sayfası ve formu (E-09, E-10) | ✓ | ✓ PASS (tur 2) | `fd92dbcd` | #551 |
 | T507 | Yasal metin sayfaları ve panelde yönetimi (E-11, E-47) | ✓ | ✓ PASS (tur 1) | `7eadf545` | #547 |
 | T508 | Sepet (E-12) | ✓ | ✓ PASS (tur 1) | `6a8e61a0` | #544 |
-| T509 | Ödeme adımı (E-13) | ✓ | ✓ PASS (tur 4) | `10f11d13` | #559 |
-| T510 | Sipariş teyit ve bekleme ekranı, ödeme sağlayıcısına geçiş ve dönüş (E-14) | ⬚ | — | — | — |
+| T509 | Ödeme adımı (E-13) | ✓ | ✓ PASS (tur 4) | `edf4eb2a` | #559 |
+| T510 | Sipariş teyit ve bekleme ekranı, ödeme sağlayıcısına geçiş ve dönüş (E-14) | ✓ | ✓ PASS (tur 1) | `dee5e68a` | #569 |
 | T511 | Sipariş takibi girişi, sipariş sayfası ve indirme bağlantısı (E-15, E-16) | ✓ | ✓ PASS (tur 1) | `20c8bbcc` | #545 |
 | T512 | İptal ve gecikme feshi ekranı, geri ödeme IBAN girişi (E-17, E-16 IBAN formu) | ✓ | ✓ PASS (tur 2) | `f76de0e3` | #553 |
 | T513 | Cayma beyanı ve ayıp talebi ekranları (E-18, E-19) | ✓ | ✓ PASS (tur 2) | — | #558 |
@@ -292,7 +292,7 @@
 | T533 | Üye kaydı görünümü (E-40) | ✓ | ✓ PASS (tur 1) | `d1a1729a` | #556 |
 | T534 | Kurumsal içerik ve marka yönetimi (E-41, E-43) | ⬚ | — | — | — |
 | T535 | Ana sayfa ve menü, firma kimliği ve satış (E-42, E-44) | ✓ | ✓ PASS (tur 2) | `5e42c12b` | #555 |
-| T536 | Ödeme yöntemleri, kargo, süreler ve varsayılanlar (E-45, E-46) | ⬚ | — | — | — |
+| T536 | Ödeme yöntemleri, kargo, süreler ve varsayılanlar (E-45, E-46) | ✓ | ✓ PASS (tur 2) | `c39d6399` | #568 |
 | T537 | Vitrin çerçevesinin modeli: marka, menü, duyuru şeridi, hesap alanı, sepet sayısı | ✓ | ✓ PASS (tur 1) | `b69ac697` | #532 |
 | T538 | Uç ve model eşitlik denetimleri: uç envanteri, form girdi ve sorgu modelleri, makine ucu gövdeleri | ⬚ | — | — | — |
 | T539 | Betiksiz yol: JavaScript kapalıyken temel akışlar ve betikli iyileştirme | ⬚ | — | — | — |

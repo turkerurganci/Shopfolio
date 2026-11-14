@@ -1,0 +1,9 @@
+@page "/siparis/{orderNumber:regex(^[0-9][0-9][0-9][0-9]-[A-Za-z0-9]+\z)}/teyit"
+@model Shopfolio.Pages.Orders.MemberConfirmationModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = Model.ShowsPaymentPage ? "Ödeme" : "Sipariş alındı";
+}
+@* UC-28, UC-29 under the member's root (07 4.14); the screen itself is the shared E-14 view. *@
+<partial name="_ConfirmationScreen" model="Model" />

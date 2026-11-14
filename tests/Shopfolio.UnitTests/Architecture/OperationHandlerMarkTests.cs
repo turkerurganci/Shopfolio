@@ -15,8 +15,13 @@ namespace Shopfolio.UnitTests.Architecture;
 /// </summary>
 public sealed class OperationHandlerMarkTests
 {
-    // The order lookup finds an order by its number and e-mail address; it applies no operation of 03 1.11 (07 UC-32).
-    private static readonly string[] _notOperations = [$"{nameof(TrackingModel)}.{nameof(TrackingModel.OnPostFindOrderAsync)}"];
+    // The order lookup finds an order by its number and e-mail address; it applies no operation of 03 1.11 (07 UC-32). The payment page (07 UC-29; T510) starts the confirmed
+    // order's payment: it is the ordering flow's step, not an operation of 03 1.11, and an order that no longer awaits its payment is the screen's 303 (K-1209 (1)).
+    private static readonly string[] _notOperations =
+    [
+        $"{nameof(TrackingModel)}.{nameof(TrackingModel.OnPostFindOrderAsync)}",
+        $"{nameof(ConfirmationPageModel)}.{nameof(ConfirmationPageModel.OnPostStartPaymentAsync)}",
+    ];
 
     [Fact]
     public void EveryPostHandlerOfTheOrderPages_CarriesTheGatedOperationMark()

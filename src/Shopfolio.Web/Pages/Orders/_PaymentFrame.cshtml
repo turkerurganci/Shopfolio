@@ -1,0 +1,12 @@
+@using Shopfolio.Pages.Orders
+@model ConfirmationPageModel
+@*
+    The payment page (07 UC-29; 04 5.14.6; 08 2.1.4): the provider's hosted form in a frame. The address is the one this response asked for - never stored, a new one at every
+    opening. The only page that holds a frame (ThirdPartyContentScan.PaymentFramePages); its address is the page's checked property (under the provider's form root, 05 6.5.4).
+    No sandbox (it would stop the hand-over to the top window, 08 2.1.4 item 3) and no resizer script: the frame's height is the product's rule (K-1558) and its content scrolls.
+*@
+<section class="payment-page" aria-labelledby="payment-page-title">
+    <h2 id="payment-page-title">Ödeme</h2>
+    <p>@ConfirmationPageModel.PaymentPageText</p>
+    <iframe class="payment-page__frame" src="@Model.PaymentFrameAddress" title="@ConfirmationPageModel.PaymentFrameTitle"></iframe>
+</section>

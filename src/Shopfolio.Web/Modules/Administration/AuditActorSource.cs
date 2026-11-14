@@ -1,5 +1,3 @@
-using System.Security.Claims;
-
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 
@@ -43,8 +41,8 @@ internal sealed class RequestAuditActorSource : IAuditActorSource
         }
 
         AuthenticateResult result = await context.AuthenticateAsync(SessionSchemes.AdminScheme);
-        string? key = result.Succeeded ? result.Principal?.FindFirstValue(ClaimTypes.NameIdentifier) : null;
-        if (!Guid.TryParseExact(key, "D", out Guid adminId))
+        // The account key is read the one way the sessions write it (09 24 item 4; D-176).
+        if ((result.Succeeded ? result.Principal?.AccountId() : null) is not { } adminId)
         {
             return null;
         }

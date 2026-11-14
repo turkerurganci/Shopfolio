@@ -253,12 +253,12 @@ public sealed class SessionAccessTests
         using HttpClient client = ClientOf(factory);
 
         using HttpResponseMessage panel = await PostAsync(client, "/panel/siparisler?handler=Save");
-        using HttpResponseMessage account = await PostAsync(client, "/hesap/adresler?handler=Save&page=2");
+        using HttpResponseMessage account = await PostAsync(client, "/hesap/ornek?handler=Save&page=2");
 
         Assert.Equal(HttpStatusCode.SeeOther, panel.StatusCode);
         Assert.Equal($"/panel/giris?returnUrl={Escaped("/panel/siparisler")}&{NoticeParameter.ParameterName}={NoticeCode.SessionExpired}", panel.Headers.Location?.OriginalString);
         Assert.Equal(HttpStatusCode.SeeOther, account.StatusCode);
-        Assert.Equal($"/giris?returnUrl={Escaped("/hesap/adresler?page=2")}&{NoticeParameter.ParameterName}={NoticeCode.SessionExpired}", account.Headers.Location?.OriginalString);
+        Assert.Equal($"/giris?returnUrl={Escaped("/hesap/ornek?page=2")}&{NoticeParameter.ParameterName}={NoticeCode.SessionExpired}", account.Headers.Location?.OriginalString);
         Assert.Empty(log.Snapshot());
     }
 
@@ -274,11 +274,11 @@ public sealed class SessionAccessTests
             await db.Sessions.Where(s => s.CustomerId == customerId).ExecuteDeleteAsync(Ct);
         }
 
-        using HttpResponseMessage ended = await PostAsync(client, "/hesap/adresler?handler=Save", CustomerCookie(customerKey));
+        using HttpResponseMessage ended = await PostAsync(client, "/hesap/ornek?handler=Save", CustomerCookie(customerKey));
         using HttpResponseMessage get = await GetAsync(client, "/hesap/adresler", CustomerCookie(customerKey));
         using HttpResponseMessage signOut = await PostAsync(client, "/panel/cikis?handler=SignOut");
 
-        Assert.Equal($"/giris?returnUrl={Escaped("/hesap/adresler")}&{NoticeParameter.ParameterName}={NoticeCode.SessionExpired}", ended.Headers.Location?.OriginalString);
+        Assert.Equal($"/giris?returnUrl={Escaped("/hesap/ornek")}&{NoticeParameter.ParameterName}={NoticeCode.SessionExpired}", ended.Headers.Location?.OriginalString);
         Assert.Equal(HttpStatusCode.Found, get.StatusCode);
         Assert.Equal($"/giris?returnUrl={Escaped("/hesap/adresler")}", get.Headers.Location?.OriginalString);
         Assert.DoesNotContain(NoticeParameter.ParameterName, signOut.Headers.Location?.OriginalString, StringComparison.Ordinal);
@@ -296,7 +296,7 @@ public sealed class SessionAccessTests
             await db.Sessions.Where(s => s.CustomerId == customerId).ExecuteDeleteAsync(Ct);
         }
 
-        using HttpResponseMessage response = await PostAsync(client, "/hesap/adresler?handler=Save", CustomerCookie(customerKey));
+        using HttpResponseMessage response = await PostAsync(client, "/hesap/ornek?handler=Save", CustomerCookie(customerKey));
 
         Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
         Assert.StartsWith("/giris?returnUrl=", response.Headers.Location?.OriginalString, StringComparison.Ordinal);
@@ -310,10 +310,10 @@ public sealed class SessionAccessTests
         await using WebApplicationFactory<Program> factory = Open(out AccessWriteLog log);
         using HttpClient client = ClientOf(factory);
 
-        using HttpResponseMessage response = await PostAsync(client, "/hesap/adresler?handler=Save", CustomerCookie(customerKey));
+        using HttpResponseMessage response = await PostAsync(client, "/hesap/ornek?handler=Save", CustomerCookie(customerKey));
 
         Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
-        Assert.Equal(["account-addresses"], log.Snapshot());
+        Assert.Equal(["account-sample"], log.Snapshot());
     }
 
     [Fact]
@@ -510,7 +510,7 @@ public sealed class SessionAccessTests
         string admin = AdminCookie(adminKey);
 
         using HttpResponseMessage account = await GetAsync(client, "/hesap", admin);
-        using HttpResponseMessage accountPost = await PostAsync(client, "/hesap/adresler?handler=Save", admin);
+        using HttpResponseMessage accountPost = await PostAsync(client, "/hesap/ornek?handler=Save", admin);
         using HttpResponseMessage order = await GetAsync(client, $"/siparis/{number}", admin);
         using HttpResponseMessage strip = await GetAsync(client, "/sss/ornek-serit/yonetici-seridi", admin);
         using HttpResponseMessage both = await GetAsync(client, "/sss/ornek-serit/yonetici-seridi", $"{admin}; {CustomerCookie(customerKey)}");

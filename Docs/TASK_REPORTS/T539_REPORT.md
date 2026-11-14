@@ -84,8 +84,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T539-betiksiz-yol`
-- **Commit:** bkz. PR
-- **PR:** #NN
+- **Commit:** dal `task/T539-betiksiz-yol` (PR #576 geçmişi)
+- **PR:** #576
 - **CI:** yardımcı yürütür
 - **Post-merge run'lar:** *(validator doldurur)*
 

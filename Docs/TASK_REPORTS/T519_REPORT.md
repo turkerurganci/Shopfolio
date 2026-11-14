@@ -1,6 +1,6 @@
 # T519 — E-posta değişikliğini geri alma ve müşteri çıkışı (E-28)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-14
+**Faz:** F5 | **Durum:** ✗ FAIL (doğrulama tur 1) | **Tarih:** 2026-11-14
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -72,7 +72,49 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | — (doğrulama chat'i doldurur) |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-14) |
+| Bulgu sayısı | 2 (B1 S1 KRİTİK, B2 S1 ORTA) + 2 K-notu (D-1508, D-1509) |
+| Düzeltme gerekli mi | Evet — B1 ve B2 bu dalda düzeltilir; D-1509 aynı turda |
+| Ana dal CI (son 3) | 43557742117, 43557742023, 43552777848 — success |
+| Dal CI | run 43560620905 (head `4eb77fce`) — Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate success |
+| Yerel sınama (main `8a51cdcc` ile birleşik ağaç) | build `-warnaserror` 0 uyarı; format 3 proje temiz; Unit TAM (Consistency + Architecture dahil) 7575/0; betik testleri 4/4; Integration ilgili sınıflar (`EmailRevertPageTests`, `CustomerSignOutPageTests`, `MembershipTests`, `SecurityHeadersTests`, `SessionAccessTests`, `AccountProfilePageTests`) 229/0; TAM: CI |
+
+### Kabul kriterleri (doğrulayıcı)
+
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | `EmailRevertModel.OnGetAsync` yalnız `ReadEmailRestoreLinkAsync` çağırır; KK1 testi iki açılış sonrası e-posta, `UsedAt`, oturum, dispatch değişmez |
+| 2 | ✓ | `EmailRevertLandings.Of` + KK2 testleri (Unit + Web): dolmuş, yenilenmiş, tanınmayan geçersiz; kod yalnız kullanılmış bağlantıda sonuç |
+| 3 | ✓ | `ReadRestoreLinkAsync`/`RestorePreviousEmailAsync` `EmailChangeRevert` + `CustomerId` dolu kaydı tanır; KK3 testi sıfırlama, yeni adres ve yönetici bağlantısında GET/POST 200 geçersiz, `UsedAt` boş |
+| 4 | ~ | Tüketim, eski adres, 303 + `notice` sınandı; ama tüketim `PreviousEmail`'i boşaltmıyor (`06 §4.42`; `07` UC-76 → B1) |
+| 5 | ✓ | `EndAllAsync(null)`, `InvalidateMarksAsync`, `GoogleLinkedAt` null, `InvalidatePasswordAsync` + `PasswordResetLink` eski adrese; şifresiz hesapta gönderim yok (KK4/KK5 testleri) |
+| 6 | ✓ | Doğrulanmamış kayıt `ExecuteDeleteAsync` + `DisposalRecord.Counted(PendingRegistration)`; sipariş hesapta kalır (KK6, KK4 testleri) |
+| 7 | ✓ | Ön denetim tüketimden önce `Taken`; yarışta unique ihlali iki şekilde yakalanır, `IsRejected` → işlem geri alınır; 422 testi + `RaceAsync` testi |
+| 8 | ✓ | `state != Valid` ve `TryConsumeAsync` false dalları 200 + o anki hâl; ikinci gönderim satır sayısını değiştirmez (yarış kolu dolaylı — D-1509) |
+| 9 | ✓ | `SignOutModel`: `EndAsync(sessionId)` + çerez silme; sepet, işaret, öteki oturum kalır (KK9 testleri); oturumsuz istek `[SignOutPage]` meydan okumasıyla aynı 303 |
+| 10 | ✓ | `ReturnPath.AfterSignOut` (`Resolve` → `IsLocalPath`); 12 örnekli Theory: oturumsuz sayfa, `/hesap`·`/siparis/{no}`·`/panel` → `/`, `//`, `/\`, mutlak adres → `/` |
+
+### Bulgular
+
+| # | Madde | Severity | Sınıf | Beklenen ↔ gerçekleşen | Karar | Dosya |
+|---|---|---|---|---|---|---|
+| B1 | VAL-A809 (KK4) | KRİTİK | S1 | `06 §4.42`: geri alma bağlantısı kullanılınca `PreviousEmail` aynı işlemde boşaltılır ↔ `RestorePreviousEmailAsync` ve `TryConsumeAsync` yalnız `UsedAt` yazar; eski adres bağlantı kaydında P-47 dolana kadar kalır. Backlog'da kabul edilmiş risk kaydı yok | bu dalda düzeltilir (tüketimle aynı işlemde boşaltma + test) | `src/Shopfolio.Web/Modules/Membership/EmailChanges.cs` |
+| B2 | `07` UC-76 · §6.4.2 · `09 §8.1` m.4 | ORTA | S1 | Sonucu belirsiz geri alma 303 → aynı adres; işleyici `[OutcomeUncertain("UC-76")]` taşır ve UC-76 `NotMarkedYet`'ten silinir (D-137: "işaretli işleyiciyi yazan her task") ↔ işaret yok, liste değişmedi | bu dalda düzeltilir | `src/Shopfolio.Web/Pages/Storefront/EmailRevert.cshtml.cs` · `tests/Shopfolio.UnitTests/Consistency/OutcomeUncertainConsistencyTests.cs` |
+
+### K-notları
+
+| # | Not | Karar |
+|---|---|---|
+| K1 | UC-76 422/200 redleri `RejectionLog`'a yazılmıyor (D-1317 kalıbı) | D-1508 → F5 kapısı |
+| K2 | KK8 yarış kolu ve VAL-C029 POST yolu dolaylı sınanıyor | D-1509 → T519 düzeltme 1 |
+
+### `12` satırları
+
+VAL-C028 → PASS; VAL-A809 → FAIL; VAL-C029, VAL-C116, VAL-A565, VAL-A608, VAL-A675, VAL-A922, VAL-A981, VAL-B079 → BEKLEMEDE (paylı ya da kanıt eksik; D-1495, D-1496, D-1509); VAL-A991 PASS (değişmedi).
+
+### Yapım raporu karşılaştırması
+
+İki uyuşmazlık: öz denetim KK4'ü ✓ sayar, `PreviousEmail` boşaltmasını (`06 §4.42`, VAL-A809) anmaz; `09 §25`/`09 §8` satırı UC-76'nın sonucu belirsiz işaretini (D-137) anmaz. ⚠ kararlar (D-554'te geri almanın bütün sıfırlama bağlantılarını kapatması, `LinkKeySourceScan`'e yalnız `EmailChanges.RestorePreviousEmailAsync` + sarmalayıcının eklenmesi, `KeyedLinkSample`'ın kaldırılması) uygun bulundu: istisna yalnız adı geçen yöntemde, çağrı `OnPost` kuralına bağlı; örnek sayfa gerçek sayfayla aynı rotayı tutuyordu ve `SecurityHeadersTests` aynı iddiaları gerçek sayfada sınıyor.
 
 ## Altyapı Değişiklikleri
 

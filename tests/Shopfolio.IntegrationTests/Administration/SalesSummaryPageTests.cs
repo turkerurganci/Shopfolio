@@ -40,6 +40,10 @@ public sealed partial class SalesSummaryTests
 
         Assert.Equal(HttpStatusCode.OK, status);
         Assert.Contains("<option value=\"Last30Days\" selected", html, StringComparison.Ordinal);
+
+        // T539 KK3: the period choice is a GET form with its own "Göster" button (07 8.2.2); the script only sends the same form with that button when the choice changes.
+        Assert.Contains("method=\"get\" action=\"" + SummaryPath + "\" class=\"form summary-period\" data-js=\"submit-on-change\"", html, StringComparison.Ordinal);
+        Assert.Contains("<button type=\"submit\" class=\"button button--secondary\">Göster</button>", html, StringComparison.Ordinal);
         Assert.Contains(DisplayFormat.DateRange(Today.AddDays(-29), Today), html, StringComparison.Ordinal);
         (string Period, DateOnly Start, DateOnly End)[] periods =
         [

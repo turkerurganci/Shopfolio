@@ -162,7 +162,7 @@
         <input upload-file="ProductGallery" id="product-image-file" name="@ProductFormModel.ImageFileName" />
         <button type="submit" class="button button--secondary" formaction="@uploadAction" name="Input.ImageTarget" value="@ProductFormModel.GalleryTarget">Galeriye yükle</button>
     </fieldset>
-    <fieldset class="product-form__variant-entries" id="product-variants">
+    <fieldset class="product-form__variant-entries" id="product-variant-entries">
         <legend>Varyant bilgileri</legend>
         @{
             // An existing product's form has one blank row for a new variant (K-1189 (2)); left blank, it is not read.
@@ -179,7 +179,7 @@
         <template id="product-variant-template" data-js="row-template">
             <partial name="_ProductVariantEntry" model="new ProductVariantEntryView(Model, new SaveProductVariantRow(), ProductVariantEntryView.IndexPlaceholder, true, true, uploadAction)" />
         </template>
-        <button type="button" class="button button--secondary" hidden data-js="row-add" data-template="product-variant-template" data-list="product-variants">Varyant ekle</button>
+        <button type="button" class="button button--secondary" hidden data-js="row-add" data-template="product-variant-template" data-list="product-variant-entries">Varyant ekle</button>
     </fieldset>
     @if (digital || entries.DigitalFileId is not null)
     {

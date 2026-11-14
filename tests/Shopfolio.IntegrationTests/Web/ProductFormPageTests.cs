@@ -601,6 +601,10 @@ public sealed class ProductFormPageTests : IAsyncLifetime
         Assert.Contains(ProductFormModel.FileUpdateText, html, StringComparison.Ordinal);
 
         // T548: the script writes the file's name and size into the state line of each file field (a hook, not the style class).
+        // D-1567: the variant table keeps the identifier "product-variants"; the entries fieldset (the script's list) has its own, so no identifier stands twice.
+        Assert.Equal(2, html.Split("id=\"product-variants\"", StringSplitOptions.None).Length);
+        Assert.Contains("id=\"product-variant-entries\"", html, StringComparison.Ordinal);
+        Assert.Contains("data-list=\"product-variant-entries\"", html, StringComparison.Ordinal);
         Assert.Contains("<p class=\"product-form__file-state\" data-js=\"file-state\">", html, StringComparison.Ordinal);
         Assert.Contains("<span class=\"product-form__file-state\" data-js=\"file-state\">", html, StringComparison.Ordinal);
     }

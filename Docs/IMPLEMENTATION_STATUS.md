@@ -304,7 +304,7 @@
 | T545 | Liste ve tablo, ürün kartı (OB-20, OB-11) | ✓ | ✓ PASS (tur 2) | `f40f3a9d` | #538 |
 | T546 | Gezinme ve geçiş eşitlik denetimleri: iskeletler, geçişler, dışarıdan girişler, dönüşler | ⬚ | — | — | — |
 | T547 | Durum × rol matrisi ve form envanteri eşitlik denetimleri | ⬚ | — | — | — |
-| T548 | Parçalı yükleme betiği: başlatma–parça–durum akışı, 409/404/400/413 yanıtları, ağ hatasında üç kez sürdürme | ⬚ | — | — | — |
+| T548 | Parçalı yükleme betiği: başlatma–parça–durum akışı, 409/404/400/413 yanıtları, ağ hatasında üç kez sürdürme | ⏳ | — | `65d9c542` | — |
 | T549 | Vitrin: arşivlenmiş ürün sayfası (E-05) | ✓ | ✓ PASS (tur 1) | `7973b482` | #550 |
 | T550 | F4 kapanış düzeltmeleri: null-forgiving temizliği ve sır bekçisi önek soyma | ✓ | ✓ PASS (tur 1) | `bf77ceaf` | #533 |
 

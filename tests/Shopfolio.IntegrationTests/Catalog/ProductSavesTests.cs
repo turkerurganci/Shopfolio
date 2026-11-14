@@ -206,6 +206,7 @@ public sealed class ProductSavesTests : IAsyncLifetime
             FulfilmentPeriod = FirmSettingFences.BoundsOf("P-44").Lower - 1,
         });
 
+        Assert.True(result.IsRejected);
         AssertField(result, nameof(ProductSaveCommand.MaxQuantityPerOrder), ErrorCode.ValueOutOfBounds);
         AssertField(result, nameof(ProductSaveCommand.FulfilmentPeriod), ErrorCode.ValueOutOfBounds);
     }
@@ -221,6 +222,7 @@ public sealed class ProductSavesTests : IAsyncLifetime
             Variants = [Row(sku: "KUPA-S") with { StockQuantity = 1 }],
         });
 
+        Assert.True(result.IsRejected);
         AssertField(result, nameof(ProductSaveCommand.ShippingPeriod), ErrorCode.ValueOutOfBounds);
     }
 

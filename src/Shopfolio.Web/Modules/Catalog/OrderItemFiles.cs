@@ -67,7 +67,7 @@ internal static class OrderItemFiles
     }
 
     /// <summary>The current file of a product's plane and of each variant's own plane.</summary>
-    public sealed record FilePlanes(IReadOnlyList<Guid> Variants, Guid? ProductFile, IReadOnlyDictionary<Guid, Guid> VariantFiles)
+    internal sealed record FilePlanes(IReadOnlyList<Guid> Variants, Guid? ProductFile, IReadOnlyDictionary<Guid, Guid> VariantFiles)
     {
         public Guid? CurrentOf(Guid variantId) => VariantFiles.TryGetValue(variantId, out Guid file) ? file : ProductFile;
 

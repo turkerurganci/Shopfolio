@@ -281,7 +281,7 @@
 | T522 | Yönetici hesapları ve işlem izi (E-49, E-52) | ✓ | ✓ PASS (tur 1) | `794aed66` | #557 |
 | T523 | Yöneticinin kendi hesabı (E-50) | ✓ | ✓ PASS (tur 2) | `71a256a8` | #561 |
 | T524 | Satış özeti ve dışa aktarma (E-51, E-53) | ✓ | ✓ PASS (tur 1) | `c5add538` | #562 |
-| T525 | Ürün listesi ve ürün formu, görsel yükleme (E-32, E-33) | ✗ | ✗ FAIL (tur 1); düzeltme 1 doğrulama bekliyor | — | #570 |
+| T525 | Ürün listesi ve ürün formu, görsel yükleme (E-32, E-33) | ✓ | ✓ PASS (tur 2) | `6b4f246c` | #570 |
 | T526 | Kategori ağacı ve kuponlar (E-34, E-35) | ✓ | ✓ PASS (tur 1) | `901e0cdc` | #563 |
 | T527 | Sipariş listesi, sipariş ayrıntısı ve durum geçişleri (E-36, E-37) | ✓ | ✓ PASS (tur 5) | `b031628f` | #565 |
 | T528 | Sipariş ayrıntısı: firma iptali, bildirim kaydı, kalem çıkarma, iade malı ve ayıp talebi (E-37) | ⬚ | — | — | — |

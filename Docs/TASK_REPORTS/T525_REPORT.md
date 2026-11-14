@@ -154,6 +154,32 @@ Dal `origin/main` (8a51cdcc) ile güncel; birleştirme gerekmedi.
 
 ## Doğrulama
 
+**Tur 2 — 2026-11-14 — ✓ PASS** (head `6b4f246c`; TAM yeniden doğrulama. Kayıttan önce `origin/main` `d847e947` (T527) birleştirildi: çakışmasız; birleşik ağaçta build `-warnaserror` 0/0, Unit 7621/7621, Integration ProductSaves, ProductFormPage, ProductListPage, ProductTransitions, ProductPublishGate, OrderConfirmation 171/171)
+
+| Alan | Değer |
+|---|---|
+| Durum | ✓ PASS — 0 bulgu, 0 K-notu; düzeltme gerekmez |
+| Başlangıç kapıları | Working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks`; main son 3 run `success` (43560690928, 43560690926, 43557742117) |
+| Yerel sınama | Build `-warnaserror` 0/0; `dotnet format` üç proje temiz; Unit 7609/7609; betik testleri 4/4; Integration hedefli 17 sınıf 413/413 (ProductSaves, ProductFormPage, ProductListPage, ProductTransitions, ProductPublishGate, DigitalDelivery, ProductGallery, DiscountAndReference, PriceAndVat, PageAddress, StockAndCapacity, Concurrency, AuditTrail, ContentRelations, CategoryTreeAndLists, ConfirmationStep 385/385; OrderConfirmation 28/28) — TAM: CI |
+| PR CI (#570, run 43565244691, head `6b4f246c`) | ✓ bütün işler yeşil (Lint, Build, Unit, 4. Integration 13m4s, Contract, Migration, Paketleme, E2E) → CI Gate pass |
+
+**Tur 1 bulgularının kapanışı**
+
+| # | Kanıt | Sonuç |
+|---|---|---|
+| B1 | `ProductFormPageTests.Open()` `FileStoreDirectories`'i testin geçici dizinine ezer, `DisposeAsync` siler; PR CI'ının Integration işi yeşil (üç `UploadImage_…_KK10` dahil); yerel koşudan sonra `C:\var\lib\shopfolio\images`'a yeni dosya düşmedi, `%TEMP%\shopfolio-t525-*` kalmadı | kapandı |
+| B2 | `ProductLocks` `FOR NO KEY UPDATE`; `TheFormsSave_AndAnOrderConfirmationOnTheSameVariant_BothComplete_WithoutADeadlock_KK4` yeşil. Ters sınama: kip geçici olarak düz `FOR UPDATE`'e çevrilince aynı test `40P01: deadlock detected` ile kırmızı, geri alınınca yeşil (test hatayı yakalıyor). `ConcurrencySourceScan` `ProductLocks.cs`'te düz biçimi bulgu sayar. K-1615 (2) yerinde güncellendi: K-1615 main'de yok (yalnız bu dalda), numara tekil (main son K-1614); karar aynı PR'da doğup değiştiği için yeni numara gerekmez | kapandı |
+| K1 | `ProductSaves.SaveAsync` bağ yazımının reddini `Categories` alanında 422 döner (`InvalidListValue`; ana kategori kuralı `FieldRequired`); `ACategoryDeletedAfterTheCheck_…_KK5` iki sayımı ve sıfır ürünü iddia eder | kapandı |
+| K2 | `ICatalogModule.ChangeVariantPriceAsync`'in `src`'de çağıranı yok (yalnız tanım ve birim testindeki saplama); `VariantPrices.ChangeAsync`'i yalnız `ProductSaves` çağırır. Form fiyattan sonra var olan indirimi `Discounts.SaveAsync` ile yeniden kaydeder, referans denetimi koşar (`04` 7.2.4.18 alan kuralıyla da uyumlu); `…_D488` yeşil. D-488 ✅ | kapandı |
+
+**Kabul kriterleri (doğrulayıcı kanıtı):** KK1 ✓ (`ProductListPageTests` `_KK1` testleri: arama, süzgeç, fiyat aralığı, sayfa sınırı, komut sayısı) · KK2 ✓ (`ProductFormPageTests` `_KK2` testleri; U7 hatırlatması yeni ve var olan formda) · KK3 ✓ (Taslak doğum, tek işlem, açıklama süzgeci) · KK4 ✓ (koşullu stok, fiyat geçmişi, P-6/P-9/P-44 izi, sipariş onayıyla eşanlı kayıt) · KK5 ✓ (her ret sebebi modülde ve sayfada ayrı `_KK5` testinde; `_D246`, `_D488`, `_D496`) · KK6 ✓ (404 → 422 → 409 → ayrılmış 422) · KK7 ✓ · KK8 ✓ · KK9 ✓ · KK10 ✓ (yedi `UploadImage_…_KK10`; dört ret: tür, galeri sınırı, dolu alan, 413; P-23 ve çözülemeyen görsel modülde — `ImageFilesTests`, `ImageProcessorTests`). `09 §25` ✓ (kilit tek yerde ve `LockSequence`'te; sayfalı liste sınırı; döngüde sorgu yok). Güvenlik temiz (yönetici politikası, antiforgery, yabancı anahtar 404, görsel türü içerikten, gövde tavanı; düzeltme güvenlik yüzeyini değiştirmiyor; yeni bağımlılık yok).
+
+**`12` satırları:** PASS — A165, A166, A167, A168, A170, A171, A172, A173, A174, A175, A176, A179, A180, A190, A192, A193, A202, A465, A466, A723. BEKLEMEDE kalır (beklenen sonucun vitrin, sepet, sipariş ekranı ya da tarayıcı payı bu doğrulamada kanıtlanmadı): A163, A164, A169, C037, C038, A183 (vitrinde görünme/listelenme), A177, A178 (önizleme bandı), D025 (sipariş sayfası), A186–A189 (ürün sayfasında görsel ve alternatif metin), A191, A194, A195 (vitrin/sepet etkisi, T337 hesabı), A199, A200 (parçalı yükleme T548, D-1399), A201, A203–A206 (sipariş ve vitrin ekranları), B157, B158 (`[tarayıcı]`). `12_matris_denetle.py --kapsam 1-77` Hata: 0.
+
+**Backlog:** hedefi T525 olan kalemler yeniden geçildi: 19 kapalı (D-488 düzeltme 1'le eklendi), D-283 F5 kapısına ileri; D-1396…D-1400 parça dosyasında, kanıtları kodla eşleşiyor. Yeni kalem açılmadı (D-1516–1517 kullanılmadı).
+
+**Yapım raporu karşılaştırması:** uyumlu; öz denetim tablosu var, maddeler kanıtlı. Tek fark `12` satırlarında: öz denetim A163, A164, A169, A183, A186–A189, A191, A199, A200'ü "✓ (panel payı)" sayıyor; doğrulayıcı panel payını kabul eder ama beklenen sonucun vitrin payı kanıtlanmadığı için `Durum`'u `BEKLEMEDE` bırakır (T526 emsali).
+
 **Tur 1 — 2026-11-14 — ✗ FAIL** (head `e85731b0` + `origin/main` `8a51cdcc` birleştirmesi; yalnız `DEFERRED_BACKLOG.md` kayıt çakışması: D-256 main, D-279 dal hâli)
 
 | Alan | Değer |

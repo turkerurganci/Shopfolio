@@ -166,8 +166,9 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
             return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet);
         }
 
+        // The line's own subject: only the IBAN this refund is paid to goes (the one rule; the line read it above).
         OrderTransitionResult result = await _transitions.ReportTransferFailedAsync(
-            new ReportTransferFailedRequest(order.Id, itemId, itemId is null ? born?.RefundId : null, request.Admin, request.ExpectedVersion), ct);
+            new ReportTransferFailedRequest(order.Id, itemId, itemId is null ? born?.RefundId : null, request.Admin, request.ExpectedVersion, born is not null ? Lines.SubjectOf(born) : Lines.SubjectOf(owed!)), ct); // non-null: a born refund or an owed record was found above
         if (result.Refusal is { } refusal)
         {
             return new PanelRefundStepResult(refusal);

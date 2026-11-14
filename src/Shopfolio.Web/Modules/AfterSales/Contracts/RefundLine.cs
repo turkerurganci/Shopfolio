@@ -56,5 +56,8 @@ public sealed record RefundPayeeSubject(Guid? RefundId, Guid? RecordId, Guid? Or
 /// <summary>The IBAN the subject's refund is paid to, or none (<see cref="RefundIbanId"/> null): the refund waits for its IBAN and is no IBAN's payee.</summary>
 public sealed record RefundPayee(RefundPayeeSubject Subject, Guid? RefundIbanId, string? Iban);
 
-/// <summary>The firm's "havale gerçekleşmedi" on an item, or on the itemless refund of a late payment (02 7.4.5; K-575, K-1131).</summary>
-public sealed record TransferFailure(Guid OrderId, Guid? OrderItemId, Guid? RefundId, Guid AdminId, string AdminName, DateTimeOffset At);
+/// <summary>
+/// The firm's "havale gerçekleşmedi" on an item, or on the itemless refund of a late payment (02 7.4.5; K-575, K-1131). <paramref name="Payee"/> is the refund line whose
+/// transfer failed; without it the item's, or the itemless refund's, own subject.
+/// </summary>
+public sealed record TransferFailure(Guid OrderId, Guid? OrderItemId, Guid? RefundId, Guid AdminId, string AdminName, DateTimeOffset At, RefundPayeeSubject? Payee = null);

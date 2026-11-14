@@ -37,8 +37,12 @@ internal sealed partial class AfterSalesModule
         Guid[] refundIds = [.. subjects.Select(s => s.RefundId).OfType<Guid>().Distinct()];
         Guid[] itemIds = [.. subjects.Select(s => s.OrderItemId).OfType<Guid>().Distinct()];
         Guid[] recordIds = [.. subjects.Select(s => s.RecordId).OfType<Guid>().Distinct()];
+        Guid[] fileIds = [.. file.Select(f => f.Id)];
+
+        // The subjects' refunds' and items' requests, and every request on a refund that brought an IBAN on the file: that IBAN is its refund's own (the file step leaves it).
         List<PayeeRequest> requests = await _db.RefundIbanRequests.AsNoTracking()
-            .Where(r => (r.RefundId != null && refundIds.Contains(r.RefundId.Value)) || (r.OrderItemId != null && itemIds.Contains(r.OrderItemId.Value)))
+            .Where(r => (r.RefundId != null && refundIds.Contains(r.RefundId.Value)) || (r.OrderItemId != null && itemIds.Contains(r.OrderItemId.Value))
+                || (r.RefundId != null && r.RefundIbanId != null && fileIds.Contains(r.RefundIbanId.Value)))
             .Select(r => new PayeeRequest(r.OrderItemId, r.RefundId, r.RefundIbanId, r.FulfilledAt == null && r.ClosedAt == null))
             .ToListAsync(ct);
         List<PayeeRecord> records =
@@ -74,8 +78,9 @@ internal sealed partial class AfterSalesModule
         /// <summary>
         /// The one rule, in its order (02 7.4.5; D-907): the record's own IBAN; else the refund's own requests - one open waits (VAL-A912), else the IBAN one
         /// brought -; else the item's requests (those naming no refund) - one open waits ("havale gerçekleşmedi" on the item: the item is back to "IBAN
-        /// bekleniyor"), else the IBAN of one of them or of the item's records -; else the first IBAN on the order's file. A waiting refund is no IBAN's payee.
-        /// Several candidates of a step: the first on file (ListRefundIbanFieldsAsync's order).
+        /// bekleniyor"), else the IBAN of one of them or of the item's records -; else the first IBAN on the order's file that is not another refund's own (one
+        /// its own request brought: the late payment's, a failed card refund's transfer path). A waiting refund is no IBAN's payee. Several candidates of a step:
+        /// the first on file (ListRefundIbanFieldsAsync's order).
         /// </summary>
         private Guid? Decide(RefundPayeeSubject subject)
         {
@@ -113,7 +118,7 @@ internal sealed partial class AfterSalesModule
                 }
             }
 
-            return file.Count > 0 ? file[0].Id : null;
+            return file.FirstOrDefault(f => !requests.Any(r => r.RefundIbanId == f.Id && r.RefundId is { } owner && owner != subject.RefundId))?.Id;
         }
 
         private Guid? FirstOnFile(IEnumerable<Guid?> ibanIds)

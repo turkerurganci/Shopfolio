@@ -209,35 +209,18 @@ internal sealed partial class AfterSalesModule
             throw new ArgumentException("The failed transfer names the item, or the itemless refund of a late payment (K-1131).", nameof(failure));
         }
 
-        // The IBAN the refund would use: the item's records' and the requests fulfilled on the item - or, itemless, on the refund.
-        List<Guid?> candidates = failure.OrderItemId is { } itemId
-            ? [
-                .. await _db.Cancellations.Where(c => c.OrderItemId == itemId).Select(c => c.RefundIbanId).ToListAsync(ct),
-                .. await _db.LateDeliveryTerminations.Where(t => t.OrderItemId == itemId).Select(t => t.RefundIbanId).ToListAsync(ct),
-                .. await _db.Withdrawals.Where(w => w.OrderItemId == itemId).Select(w => w.RefundIbanId).ToListAsync(ct),
-                .. await _db.RefundIbanRequests.Where(r => r.OrderItemId == itemId).Select(r => r.RefundIbanId).ToListAsync(ct),
-            ]
-            : [.. await _db.RefundIbanRequests.Where(r => r.RefundId == failure.RefundId).Select(r => r.RefundIbanId).ToListAsync(ct)];
-        Guid[] ids = [.. candidates.OfType<Guid>().Distinct()];
-        List<RefundIban> ibans = await _db.RefundIbans.Where(i => ids.Contains(i.Id) && i.OrderId == failure.OrderId).ToListAsync(ct);
-        if (ibans.Count == 0)
+        // The IBAN the refund was paid to, by the one rule the panel's line and the IBAN's life read (PayeeBook; 02 7.4.5; D-907): only that IBAN goes - never
+        // another refund's own IBAN on the file. A refund waiting for its IBAN has none: there is no transfer to fail.
+        RefundPayeeSubject subject = failure.Payee ?? new RefundPayeeSubject(failure.RefundId, null, failure.OrderItemId);
+        PayeeBook book = await LoadPayeeBookAsync(failure.OrderId, [subject], ct);
+        if (book.PayeeOf(subject).RefundIbanId is not { } ibanId
+            || await _db.RefundIbans.SingleOrDefaultAsync(i => i.Id == ibanId && i.OrderId == failure.OrderId, ct) is not { } iban)
         {
-            // Without a record's or request's IBAN the refund was paid to the IBAN on the order's file (D-907, D-912; the IBAN's life counts it the same way:
-            // PendingTransferPayeesAsync) - the first on file, as the panel's refund line shows it (ListRefundIbanFieldsAsync's order).
-            RefundIban? onFile = await _db.RefundIbans.Where(i => i.OrderId == failure.OrderId).OrderBy(i => i.CreatedAt).ThenBy(i => i.Id).FirstOrDefaultAsync(ct);
-            if (onFile is null)
-            {
-                return null;
-            }
-
-            ibans = [onFile];
+            return null;
         }
 
-        // The bank refused the IBAN: it goes for the item, with its disposal record (Z-44); the field opens again with B-14 and the period runs on (02 7.4.5).
-        foreach (RefundIban iban in ibans)
-        {
-            DeleteIban(iban);
-        }
+        // The bank refused the IBAN: it goes, with its disposal record (Z-44); the field opens again with B-14 and the period runs on (02 7.4.5).
+        DeleteIban(iban);
 
         return await OpenRefundIbanRequestAsync(
             new RefundIbanRequestEntry(failure.OrderItemId, failure.RefundId, RefundIbanRequestReason.TransferFailed, failure.AdminId, failure.AdminName, failure.At),

@@ -150,9 +150,11 @@ internal sealed partial class OrderTransitions
             return Refused(TransitionRefusal.ConditionNotMet);
         }
 
-        // The IBAN is deleted with its disposal record and the field opens again; the period does not stop (02 7.4.5; K-575, K-1131).
+        // The IBAN is deleted with its disposal record and the field opens again; the period does not stop (02 7.4.5; K-575, K-1131). The order's items are tracked
+        // first: a record whose IBAN link the deletion empties tells its order from its item (D-95).
+        await _db.OrderItems.Where(i => i.OrderId == order.Id).LoadAsync(ct);
         RefundIbanRequestOpened? opened = await _afterSales.ReportTransferFailedAsync(
-            new TransferFailure(order.Id, request.OrderItemId, request.RefundId, request.Admin.AdminId, request.Admin.AdminName, _time.GetUtcNow()), ct);
+            new TransferFailure(order.Id, request.OrderItemId, request.RefundId, request.Admin.AdminId, request.Admin.AdminName, _time.GetUtcNow(), request.Payee), ct);
         if (opened is null)
         {
             return Refused(TransitionRefusal.ConditionNotMet);
@@ -203,8 +205,16 @@ internal sealed partial class OrderTransitions
     private Task<bool> IsShippingFeeIncludedAsync(Order order, RefundSubject subject, CancellationToken ct) =>
         FirmRefundAmounts.IsShippingFeeIncludedAsync(_db, _afterSales, order.Id, subject, ct);
 
-    /// <summary>After a refund settled or a record was undone: the order's IBANs no pending refund uses any more go, each with its disposal record (02 7.4.5; Z-44).</summary>
-    private async Task DeleteUnusedIbansAsync(Guid orderId, CancellationToken ct) => await _afterSales.DeleteUnusedRefundIbansAsync(orderId, ct);
+    /// <summary>
+    /// After a refund settled or a record was undone: the order's IBANs no pending refund uses any more go, each with its disposal record (02 7.4.5; Z-44). The order's
+    /// items are loaded tracked under the lock first: a record the step's amount read loaded tracked (a cancellation) has its IBAN link emptied with the IBAN, and the
+    /// version guard tells that record's order from its item (D-95; 09 10.2 item 3).
+    /// </summary>
+    private async Task DeleteUnusedIbansAsync(Guid orderId, CancellationToken ct)
+    {
+        await _db.OrderItems.Where(i => i.OrderId == orderId).LoadAsync(ct);
+        await _afterSales.DeleteUnusedRefundIbansAsync(orderId, ct);
+    }
 
     private async Task<bool> IsOrdersAsync(Guid orderId, OpenRefundIbanRequest open, CancellationToken ct)
     {

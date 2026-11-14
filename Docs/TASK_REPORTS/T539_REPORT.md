@@ -69,10 +69,14 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | — |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-14) |
+| Bulgu sayısı | 1 (B1: S1, DÜŞÜK) |
+| Düzeltme gerekli mi | Evet — B1 |
+| Bloke-etmeyen not (K) sayısı | 3 (K1–K3) |
+
+**Tur 1 bulgusu.** B1 (S1, DÜŞÜK; KK6, `09 §16.2` madde 4, `07 §8.2.2` betikli yol): betikle eklenen seçenek boyutunun kendi değer şablonu ve "Değer ekle" düğmesi yok; şablon (`product-option-template`) tek boş değer taşır. `09 §16.2` madde 4 "her boyutun kendi şablonu vardır ve üst dizin şablonda sabittir" der, `07 §8.2.2` betikli yolda değerin yerinde eklenmesini ister. Seçeneksiz yeni üründe ikinci boyutun ikinci değeri kayıttan önce eklenemez. D-1554 bunu "iyileştirme" diye erteledi; kayıt kabul edilmiş risk değildir ve öz denetim KK6'yı ✓ saymıştır (uyuşmazlık). Öneri: boyut sayısı sabit (`OptionDimensionMax` = 2) — sunucu her olası boyut dizini için dizini sabit bir değer şablonu (`product-option-<n>-value-template`) yazar, betikle eklenen boyut satırı kendi dizininin şablonuna bağlı "Değer ekle" düğmesini taşır; KK6 testine yeni boyutun değer şablonu iddiası eklenir; D-1554 kapanır.
+
+**K-notları.** K1: `NewProduct.cshtml` modülü `pages/panel/product-form.js`'yi yükler — iki sayfa aynı bölümü (`_ProductFormBody`) paylaşır, tarama sayfa yolunu izleyen modülü kabul ediyor; davranış doğru, not. K2: ödeme adımında kupon alanı `change` (odak kaybı) ile "Uygula"yı gönderir; kupon yazılıp doğrudan sipariş düğmesine basılırsa iki gönderim yarışır — sonuç sunucunun özet parmak izi denetimiyle korunur (`02 §5.3.3`), tarayıcı davranışı D-1555'in (T601) kapsamında. K3: betikle eklenen dijital varyant satırının dosya girdisi parçalı yükleme betiğine sonradan bağlanmalıdır — betik henüz yok (T548, D-1399); T548'in bağlamasının `row-add` ile eklenen satırları da kapsaması gerekir → `DEFERRED_BACKLOG.d/T539.md` D-1559.
 
 ## Altyapı Değişiklikleri
 

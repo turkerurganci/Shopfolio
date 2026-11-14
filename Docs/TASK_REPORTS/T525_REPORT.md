@@ -136,7 +136,36 @@
 
 ## Doğrulama
 
-*(validator doldurur)*
+**Tur 1 — 2026-11-14 — ✗ FAIL** (head `e85731b0` + `origin/main` `8a51cdcc` birleştirmesi; yalnız `DEFERRED_BACKLOG.md` kayıt çakışması: D-256 main, D-279 dal hâli)
+
+| Alan | Değer |
+|---|---|
+| Durum | ✗ FAIL — 2 bulgu (ORTA ×2), 2 K-notu; düzeltme gerekli |
+| Başlangıç kapıları | Working tree temiz; `core.hooksPath` = `scripts/git-hooks`; main son 3 run `success` (43557742117, 43557742023, 43552777848) |
+| Yerel sınama | Build `-warnaserror` 0/0; Unit 7609/7609; `dotnet format` üç proje temiz; betik testleri 4/4; Integration hedefli 16 sınıf 382/382 (ProductSaves, ProductFormPage, ProductListPage, ProductTransitions, ProductPublishGate, DigitalDelivery, ProductGallery, DiscountAndReference, PriceAndVat, PageAddress, StockAndCapacity, Concurrency, AuditTrail, ContentRelations, CategoryTreeAndLists, ConfirmationStep) — TAM: CI; `12_matris_denetle.py --kapsam 1-77` hata 0 |
+| PR CI (#570, run 43558444807) | ✗ **4. Integration test kırmızı** (3 test) → CI Gate kırmızı; öteki işler yeşil |
+
+**Bulgular**
+
+| # | Madde | Severity | Sınıf | Beklenen ↔ gerçekleşen | Karar | Dosya |
+|---|---|---|---|---|---|---|
+| B1 | KK10 (`VAL-A186`) · CI | ORTA | S1 | Görsel yükleme testleri her ortamda 200 vermeli ↔ CI'da (Linux) `UploadImage_ToTheGallery_…_KK10`, `UploadImage_ToAVariantRow_…_KK10`, `UploadImage_OnTheNewForm_…_KK10` 500 alıyor. Sebep: `ProductFormPageTests.Open()` dosya deposunun dizinini ezmiyor, görsel `FileStoreDirectories.Default` (`/var/lib/shopfolio/images`) altına yazılmaya çalışılıyor; Linux çalıştırıcısında yazma izni yok (Windows'ta `C:\var\lib\shopfolio\images` açılıp geçiyor — yerelde yeşil, makineyi de kirletiyor). | Düzeltme turu: `Open()` `FileStoreDirectories`'i geçici dizine çevirsin (`AccountAndStatusCommandTests`'in kalıbı); CI yeşil | `tests/Shopfolio.IntegrationTests/Web/ProductFormPageTests.cs` |
+| B2 | KK3/KK4 · D-401, D-362, D-381 · `05 §7.3.5`, `09 §10.2` m.5 | ORTA | S2 | Kilit sırası bütün işlemlerde aynı, ölü kilit yok ↔ `ProductLocks` düz `FOR UPDATE` alıyor; sipariş onayı önce varyantı ayırır (`StockCounters` `ExecuteUpdate`), sonra işlem sonunda `order_items` ekler — `fk_order_items_products_product_id` ürün satırına `FOR KEY SHARE` ister ve düz `FOR UPDATE` bunu bekletir. Ürün formu kaydı (ürün kilidi → stok koşullu yazımı), varyant yayın geçişi ve varyant silme aynı varyantta onayla çakışınca döngü kurulur. Postgres 18'de aynı sıra ile yeniden üretildi: `ERROR: deadlock detected … while updating tuple in relation "variants"`; `FOR NO KEY UPDATE` ile iki işlem de kesinleşti. Sonuç: müşterinin sipariş onayı ya da panel kaydı beklenmedik hatayla düşer (veri bozulmaz). T525 öncesi ürün satırında `FOR UPDATE` yoktu (regresyon, T348 onay yolu). | Düzeltme turu: kilit `FOR NO KEY UPDATE` (ya da eşdeğer çözüm) + `09 §10.2` m.5–m.6 ve madde 6 tarama metni + K-1615 (2) güncellemesi (karar satırı) + onay ile form kaydının eşanlı testi | `src/Shopfolio.Web/Modules/Catalog/ProductLocks.cs`, `Docs/09_CODING_GUIDELINES.md` |
+
+**K-notları**
+
+| # | Not | Karar |
+|---|---|---|
+| K1 | `ProductSaves.SaveAsync` `_links.ApplyAsync` sonucunu atıyor (`(ProductCategoriesResult _, bool _)`); `CheckCategoriesAsync` ile uygulama arasında (aynı işlem, READ COMMITTED) seçilen boş kategori silinirse bağ yazılmaz ama kayıt başarılı döner — `07` UC-114 bunu kategori alanında 422 ister. | Bu PR'da kapatılır (düzeltme turu: ret sonucu `Categories` alan hatası) |
+| K2 | D-488'in ileri kaydı "T525 yeni ürün kuralı yazmaz" diyor; oysa form her kayıtta indirimi `Discounts.SaveAsync` ile yeniden kaydettiği için `02 §3.9.5` referans denetimi fiyat artışında da koşuyor (indirim varken indirimli fiyatı referansa ya da üstüne çıkaran fiyat reddedilir). Davranış belgeye uygun; kayıt ve test eksik. | Bu PR'da kapatılır (düzeltme turu: D-488 metni gerçek davranışla güncellenir, form testi eklenir) |
+
+**Kabul kriterleri (doğrulayıcı kanıtı):** KK1 ✓ (`ProductListPageTests` 10 test; `PanelProductListReader` fiyat aralığı ve stok hâli sunucuda) · KK2 ✓ (`TheNewForm_…_KK2`, `TheExistingForm_…_KK2`, `TheReservedUnits_…_KK2`) · KK3 ✓ (`ANewProduct_…_KK3`, `TheDescription_…_KK3`, `SaveProduct_Saved_…_KK3`) · KK4 ✓ işlevsel, ~ eşanlılık (B2) · KK5 ✓ (`ProductSavesTests` `_KK5` on bir test, `SaveProduct_TheModulesRefusals_…_KK5`) · KK6 ✓ (`SaveProduct_OnAGoneRecord_…`, `…AFieldsRefusal_ComesBeforeAChangedVersion…`, `…AtAChangedVersion_Is409…`, `…AChangedShownStock_Is409BeforeTheReservedQuantitys422…`) · KK7 ✓ (`APublishMove_IsAbsolute_…_KK7`; `ProductTransitionsTests`) · KK8 ✓ (`APublishMoveRefusedByTheGate_…_KK8`, `TheLastPublishedVariant_…_KK8_KK9`, `PublishGateTests …_KK8`) · KK9 ✓ (`TheDeletionWithoutTheMark_…_KK9`) · KK10 ✗ CI (B1).
+
+**`12` satırları:** FAIL turunda `Durum` hücreleri değişmedi (KP-39, 40, 42–45 satırları `BEKLEMEDE`; A196–A198 T526'dan `PASS`). Sonraki turda yapım raporundaki ek satırlar (A183, A465, A466, A723, B157, B158) de eşlenir.
+
+**Backlog:** hedefi T525 olan 20 kalemden 18'i kapatılmış (kanıtlar test adlarıyla eşleşiyor; D-401/D-362/D-381'in kapanışı B2 düzeltmesiyle birlikte geçerli), D-283 ve D-488 F5 kapısına ileri (K-1615 ile çelişki yok; D-488 için K2). Yeni kalem açılmadı.
+
+**Yapım raporu karşılaştırması:** 2 uyuşmazlık — öz denetim KK10'u "yedi test ✓" sayıyor ama PR CI'ında üçü kırmızı (B1); `09 §25` "kilit sırası ✓" satırı sipariş onayının yabancı anahtar kilidini hesaba katmıyor (B2).
 
 ## Altyapı Değişiklikleri
 

@@ -1,0 +1,197 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Modules.Ordering.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model OrderDetailModel
+@*
+    E-37's "Düzeltmeler" (T530; 04 9.9.31; 07 UC-146...UC-151): the address, the carrier, the delivery date, a return's arrival date, a status transition and a guest order's e-mail - each only while its
+    operation is open (03 1.11.23-1.11.26, 1.11.35). None asks a confirmation; the address and the e-mail forms open with K-798's reminder. Every form carries the order's version. A refusal's message is
+    drawn in the form it was sent from, beside its button, and the form keeps the sent values (04 2.3.3, 2.7.3.1, 9.9.41); when that form is no longer open the message heads the section. A refused
+    address marks its fields with their own messages under the summary at the form's head (04 2.3.1.1, 2.3.2).
+*@
+@{
+    bool address = Model.IsOpen(OrderOperation.CorrectAddress) && (Model.ShippingAddressForm is not null || Model.BillingAddressForm is not null);
+    bool carrier = Model.IsOpen(OrderOperation.CorrectCarrier);
+    bool dates = Model.IsOpen(OrderOperation.CorrectDeliveryOrArrivalDate);
+    bool delivery = dates && Model.Detail.Items.Any(i => i.DeliveryDate is not null);
+    bool arrivals = dates && Model.Corrections.ArrivalRecords.Count > 0;
+    bool transition = Model.IsOpen(OrderOperation.CorrectTransition) && Model.Corrections.Transitions.Count > 0;
+    bool email = Model.IsOpen(OrderOperation.CorrectGuestEmail);
+    List<string> drawn = [];
+    if (address && Model.ShippingAddressForm is not null) { drawn.Add(OrderDetailModel.ShippingAddressFormId); }
+    if (address && Model.BillingAddressForm is not null) { drawn.Add(OrderDetailModel.BillingAddressFormId); }
+    if (carrier) { drawn.Add(OrderDetailModel.CarrierFormId); }
+    if (delivery) { drawn.Add(OrderDetailModel.DeliveryDateFormId); }
+    if (arrivals) { drawn.AddRange(Model.Corrections.ArrivalRecords.Select(r => OrderDetailModel.ArrivalDateFormId(r.RecordId))); }
+    if (transition) { drawn.Add(OrderDetailModel.TransitionFormId); }
+    if (email) { drawn.Add(OrderDetailModel.OrderEmailFormId); }
+    MessageView? orphan = Model.CorrectionRefusalText is { } orphanText && !drawn.Contains(Model.RefusedCorrection ?? string.Empty)
+        ? Messages.InPlace(MessageMeaning.Error, orphanText, OrderDetailModel.CorrectionMessageId)
+        : null;
+}
+@if (drawn.Count > 0 || orphan is not null)
+{
+    <section class="order-detail__section" id="duzeltmeler" aria-labelledby="corrections-heading">
+        <h2 id="corrections-heading">@OrderDetailModel.CorrectionsHeading</h2>
+        @if (orphan is not null)
+        {
+            <partial name="_Message" model="orphan" />
+        }
+        @if (address)
+        {
+            <p class="order-detail__reminder" id="address-correction-reminder">@OrderDetailModel.AddressReminderText</p>
+            @if (Model.ShippingAddressForm is not null)
+            {
+                <form method="post" action="@(Model.PagePath)?handler=CorrectAddress" asp-antiforgery="true" class="form" data-js="submit-once" id="@OrderDetailModel.ShippingAddressFormId">
+                    @if (Model.RefusedCorrection == OrderDetailModel.ShippingAddressFormId && Model.AddressErrors is { } shippingErrors)
+                    {
+                        <partial name="_FormErrorSummary" model="shippingErrors" />
+                    }
+                    @VersionFields.Version(Model.Operations.Version, "Input")
+                    <input type="hidden" name="Input.AddressType" value="@AddressType.ShippingAddress" />
+                    <partial name="_AddressForm" model="Model.ShippingAddressForm" />
+                    @if (Model.CorrectionMessageFor(OrderDetailModel.ShippingAddressFormId) is { } shippingMessage)
+                    {
+                        <partial name="_Message" model="shippingMessage" />
+                    }
+                    <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.CorrectShippingAddressLabel)">@OrderDetailModel.CorrectShippingAddressLabel</button>
+                </form>
+            }
+            @if (Model.BillingAddressForm is not null)
+            {
+                <form method="post" action="@(Model.PagePath)?handler=CorrectAddress" asp-antiforgery="true" class="form" data-js="submit-once" id="@OrderDetailModel.BillingAddressFormId">
+                    @if (Model.RefusedCorrection == OrderDetailModel.BillingAddressFormId && Model.AddressErrors is { } billingErrors)
+                    {
+                        <partial name="_FormErrorSummary" model="billingErrors" />
+                    }
+                    @VersionFields.Version(Model.Operations.Version, "Input")
+                    <input type="hidden" name="Input.AddressType" value="@AddressType.BillingAddress" />
+                    <partial name="_AddressForm" model="Model.BillingAddressForm" />
+                    @if (Model.CorrectionMessageFor(OrderDetailModel.BillingAddressFormId) is { } billingMessage)
+                    {
+                        <partial name="_Message" model="billingMessage" />
+                    }
+                    <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.CorrectBillingAddressLabel)">@OrderDetailModel.CorrectBillingAddressLabel</button>
+                </form>
+            }
+        }
+        @if (carrier)
+        {
+            <form method="post" action="@(Model.PagePath)?handler=CorrectCarrier" asp-antiforgery="true" class="form" data-js="submit-once" id="@OrderDetailModel.CarrierFormId">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <label for="correct-carrier">Kargo şirketi</label>
+                <select id="correct-carrier" name="Input.Carrier">
+                    <option value="">Diğer</option>
+                    @foreach (CarrierEntry entry in Model.Carriers)
+                    {
+                        <option value="@entry.Code" selected="@(entry.Code == Model.Ship.Carrier)">@entry.Name</option>
+                    }
+                </select>
+                <label for="correct-other-carrier">Listede yoksa şirketin adı</label>
+                <input id="correct-other-carrier" name="Input.OtherCarrierName" maxlength="@ShipmentLimits.OtherCarrierNameMaxLength" value="@Model.Ship.OtherCarrierName" />
+                <label for="correct-tracking">Takip numarası</label>
+                <input id="correct-tracking" name="Input.TrackingNumber" maxlength="@ShipmentLimits.TrackingNumberMaxLength" value="@Model.Ship.TrackingNumber" />
+                <label><input type="checkbox" name="Input.IsOwnVehicleDelivery" value="true" checked="@Model.Ship.IsOwnVehicleDelivery" /> Kendi aracımızla teslim</label>
+                @if (Model.CorrectionMessageFor(OrderDetailModel.CarrierFormId) is { } carrierMessage)
+                {
+                    <partial name="_Message" model="carrierMessage" />
+                }
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.CorrectCarrierLabel)">@OrderDetailModel.CorrectCarrierLabel</button>
+            </form>
+        }
+        @if (delivery)
+        {
+            <form method="post" action="@(Model.PagePath)?handler=CorrectDeliveryDate" asp-antiforgery="true" class="form" data-js="submit-once" id="@OrderDetailModel.DeliveryDateFormId">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <label for="correct-delivery-date">Teslim tarihi</label>
+                <input id="correct-delivery-date" type="date" name="Input.DeliveryDate" value="@Model.SentDeliveryDate" required />
+                @if (Model.AsksCorrectionDeliveryOrder)
+                {
+                    <fieldset class="order-detail__question" id="correction-delivery-order-question">
+                        <legend>@OrderDetailModel.DeliveryOrderQuestionText</legend>
+                        @foreach (string moment in Model.DeclarationMomentTexts)
+                        {
+                            <p class="order-detail__declaration">Beyanın anı: @moment</p>
+                        }
+                        <label><input type="radio" name="Input.IsDeliveredBeforeDeclaration" value="true" required /> Teslim beyandan önce</label>
+                        <label><input type="radio" name="Input.IsDeliveredBeforeDeclaration" value="false" /> Teslim beyandan sonra</label>
+                    </fieldset>
+                }
+                @if (Model.CorrectionMessageFor(OrderDetailModel.DeliveryDateFormId) is { } deliveryMessage)
+                {
+                    <partial name="_Message" model="deliveryMessage" />
+                }
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.CorrectDeliveryDateLabel)">@OrderDetailModel.CorrectDeliveryDateLabel</button>
+            </form>
+        }
+        @if (arrivals)
+        {
+            @foreach (PanelArrivalRecord record in Model.Corrections.ArrivalRecords)
+            {
+                string recordKey = record.RecordId.ToString("D");
+                string arrivalForm = OrderDetailModel.ArrivalDateFormId(record.RecordId);
+                <form method="post" action="@(Model.PagePath)?handler=CorrectArrivalDate" asp-antiforgery="true" class="form" data-js="submit-once" id="@arrivalForm">
+                    @VersionFields.Version(Model.Operations.Version, "Input")
+                    <input type="hidden" name="Input.ArrivalRecordId" value="@recordKey" />
+                    <p>@Model.ItemNameOf(record.OrderItemId) · Ulaşma tarihi: @DisplayFormat.Date(record.ArrivalDate)</p>
+                    <label for="correct-arrival-date-@recordKey">Yeni ulaşma tarihi</label>
+                    <input id="correct-arrival-date-@recordKey" type="date" name="Input.ArrivalDate" value="@(Model.SentArrivalRecordId == record.RecordId ? Model.SentArrivalDate : null)" required />
+                    @if (Model.CorrectionMessageFor(arrivalForm) is { } arrivalMessage)
+                    {
+                        <partial name="_Message" model="arrivalMessage" />
+                    }
+                    <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.CorrectArrivalDateLabel)">@OrderDetailModel.CorrectArrivalDateLabel</button>
+                </form>
+            }
+        }
+        @if (transition)
+        {
+            @* One form, one reason field: with two correctable transitions (the shipment axis's and the transfer's "paid" mark) the form asks which one (04 9.9.31). *@
+            <form method="post" action="@(Model.PagePath)?handler=CorrectTransition" asp-antiforgery="true" class="form" data-js="submit-once" id="@OrderDetailModel.TransitionFormId">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                @if (Model.Corrections.Transitions.Count == 1)
+                {
+                    PanelCorrectableTransition corrected = Model.Corrections.Transitions[0];
+                    <input type="hidden" name="Input.TransitionRecordId" value="@corrected.RecordId.ToString("D")" />
+                    <p>Düzeltilecek geçiş: @OrderDetailModel.TransitionNameOf(corrected.Code) · @DisplayFormat.DateAndTime(corrected.At)</p>
+                    <p>Dönülecek durum: @OrderDetailModel.BackStateOf(corrected)</p>
+                }
+                else
+                {
+                    <fieldset class="order-detail__question" id="correct-transition-choice">
+                        <legend>Düzeltilecek geçiş</legend>
+                        @foreach (PanelCorrectableTransition corrected in Model.Corrections.Transitions)
+                        {
+                            <label>
+                                <input type="radio" name="Input.TransitionRecordId" value="@corrected.RecordId.ToString("D")" checked="@(Model.SentTransitionRecordId == corrected.RecordId)" required />
+                                @OrderDetailModel.TransitionNameOf(corrected.Code) · @DisplayFormat.DateAndTime(corrected.At) · Dönülecek durum: @OrderDetailModel.BackStateOf(corrected)
+                            </label>
+                        }
+                    </fieldset>
+                }
+                <partial name="_ReasonSelect" model="Model.TransitionReason" />
+                @if (Model.CorrectionMessageFor(OrderDetailModel.TransitionFormId) is { } transitionMessage)
+                {
+                    <partial name="_Message" model="transitionMessage" />
+                }
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.CorrectTransitionLabel)">@OrderDetailModel.CorrectTransitionLabel</button>
+            </form>
+        }
+        @if (email)
+        {
+            <p class="order-detail__reminder" id="email-correction-reminder">@OrderDetailModel.EmailReminderText</p>
+            <form method="post" action="@(Model.PagePath)?handler=CorrectOrderEmail" asp-antiforgery="true" class="form" data-js="submit-once" id="@OrderDetailModel.OrderEmailFormId">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <label for="correct-order-email">Yeni e-posta adresi</label>
+                <input id="correct-order-email" type="email" name="Input.ContactEmail" value="@Model.SentEmail" autocomplete="off" required />
+                @if (Model.CorrectionMessageFor(OrderDetailModel.OrderEmailFormId) is { } emailMessage)
+                {
+                    <partial name="_Message" model="emailMessage" />
+                }
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.CorrectOrderEmailLabel)">@OrderDetailModel.CorrectOrderEmailLabel</button>
+            </form>
+        }
+    </section>
+}

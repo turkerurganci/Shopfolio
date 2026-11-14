@@ -288,11 +288,14 @@ public sealed partial class OrderCorrectionTests : IAsyncLifetime
             .Select(m => $"{m.DeclaringType!.Name}.{m.Name}")];
         Assert.Empty(reaching);
         string[] changing = [.. ContractMethods()
-            .Where(m => m.DeclaringType != typeof(IOrderCorrections) && m.DeclaringType != typeof(IMembershipModule))
+            // T530: the panel's facade (IPanelOrderCorrections) forwards to IOrderCorrections; its requests carry a non-null TransitionAdmin, so the customer has no way in either.
+            .Where(m => m.DeclaringType != typeof(IOrderCorrections) && m.DeclaringType != typeof(IMembershipModule) && m.DeclaringType != typeof(IPanelOrderCorrections))
             .Where(m => m.Name.Contains("Order", StringComparison.Ordinal) && (m.Name.Contains("Email", StringComparison.Ordinal) || m.Name.Contains("Address", StringComparison.Ordinal))
                 && (m.Name.StartsWith("Change", StringComparison.Ordinal) || m.Name.StartsWith("Update", StringComparison.Ordinal) || m.Name.StartsWith("Correct", StringComparison.Ordinal) || m.Name.StartsWith("Set", StringComparison.Ordinal)))
             .Select(m => $"{m.DeclaringType!.Name}.{m.Name}")];
         Assert.Empty(changing);
+        Assert.Equal(typeof(TransitionAdmin), typeof(PanelAddressCorrection).GetProperty(nameof(PanelAddressCorrection.Admin))!.PropertyType);
+        Assert.Equal(typeof(TransitionAdmin), typeof(PanelEmailCorrection).GetProperty(nameof(PanelEmailCorrection.Admin))!.PropertyType);
     }
 
     [Fact]

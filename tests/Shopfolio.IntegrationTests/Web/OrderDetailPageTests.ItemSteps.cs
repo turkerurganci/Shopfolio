@@ -11,6 +11,7 @@ using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Pages.Panel;
+using Shopfolio.UnitTests.Support;
 
 namespace Shopfolio.IntegrationTests.Web;
 
@@ -195,6 +196,112 @@ public sealed partial class OrderDetailPageTests
         Assert.Contains(OrderDetailModel.AbsoluteExemptionWarningText, kept, StringComparison.Ordinal);
         await using AppDbContext reader = NewContext();
         Assert.Equal(0, await reader.Withdrawals.CountAsync(w => w.OrderItemId == items[0], Ct));
+    }
+
+    [Fact]
+    public async Task FirmCancellation_TheReasonsWarning_StandsInTheFormBeforeAndWithTheWindow_U1ForOutOfStock_U6aForAgreed_AndTheWindowRepeatsNone_T528_KK1()
+    {
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        (Guid orderId, Guid[] items) = await StepOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid, (ProductType.Physical, false));
+        await ApprovedAsync(orderId, DateTimeOffset.UtcNow.AddDays(-30)); // Z-10 ran out: U2 stands beside U1 (12 VAL-B133)
+        string path = $"{OrdersPath}/{orderId:D}?handler=CancelOrderByCompany";
+        (string Name, string Value)[] Fields(CancellationReason reason) =>
+            [("Input.Items[0].OrderItemId", items[0].ToString("D")), ("Input.Items[0].Quantity", "1"), ("Input.CancellationReason", reason.ToString()), ("Input.Version", "1")];
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (HttpStatusCode status, string html) = await GetAsync(client, $"{OrdersPath}/{orderId:D}", key);
+        (HttpStatusCode stockAsk, string stockHtml) = await PostAsync(client, path, Fields(CancellationReason.OutOfStock), key);
+        (HttpStatusCode agreedAsk, string agreedHtml) = await PostAsync(client, path, Fields(CancellationReason.AgreedWithBuyer), key);
+        (HttpStatusCode otherAsk, string otherHtml) = await PostAsync(client, path, Fields(CancellationReason.DamagedOrUnsellable), key);
+
+        // Before a reason is chosen both stand hidden in the form (admin.css opens the chosen reason's one); U2 already shows.
+        Assert.Equal(HttpStatusCode.OK, status);
+        string form = FormOf(html, "cancel-order-by-company-form");
+        Assert.Contains($"id=\"cancel-out-of-stock-warning\" hidden=\"hidden\">{OrderDetailModel.OutOfStockLegalNoticeText}</p>", form, StringComparison.Ordinal);
+        Assert.Contains($"id=\"cancel-owner-check-reminder\" hidden=\"hidden\">{OrderDetailModel.OwnerCheckReminderText}</p>", form, StringComparison.Ordinal);
+        Assert.Contains(OrderDetailModel.LegalInterestWarningText, form, StringComparison.Ordinal);
+
+        // "Stokta bulunamadı": the window is open; U1 and U2 stand in the form, the reason kept; the window says the scope, the line and the result, none of U1, U2, U6a.
+        Assert.Equal(HttpStatusCode.OK, stockAsk);
+        string stockForm = FormOf(stockHtml, "cancel-order-by-company-form");
+        Assert.Contains($"id=\"cancel-out-of-stock-warning\">{OrderDetailModel.OutOfStockLegalNoticeText}</p>", stockForm, StringComparison.Ordinal);
+        Assert.Contains("id=\"cancel-owner-check-reminder\" hidden=\"hidden\">", stockForm, StringComparison.Ordinal);
+        Assert.Contains(OrderDetailModel.LegalInterestWarningText, stockForm, StringComparison.Ordinal);
+        Assert.Contains($"<option value=\"{nameof(CancellationReason.OutOfStock)}\" selected=\"selected\">", stockForm, StringComparison.Ordinal);
+        string stockWindow = WindowOf(stockHtml);
+        Assert.Contains("1 ürün iptal edilecek", stockWindow, StringComparison.Ordinal);
+        AssertRepeatsNoWarning(stockWindow);
+
+        // "Müşteriyle anlaşıldı (müşteri talebi)": U6a stands in the form, U1 does not (12 VAL-B154); the window does not repeat it.
+        Assert.Equal(HttpStatusCode.OK, agreedAsk);
+        string agreedForm = FormOf(agreedHtml, "cancel-order-by-company-form");
+        Assert.Contains($"id=\"cancel-owner-check-reminder\">{OrderDetailModel.OwnerCheckReminderText}</p>", agreedForm, StringComparison.Ordinal);
+        Assert.Contains("id=\"cancel-out-of-stock-warning\" hidden=\"hidden\">", agreedForm, StringComparison.Ordinal);
+        AssertRepeatsNoWarning(WindowOf(agreedHtml));
+
+        // Another reason: neither (12 VAL-B132).
+        Assert.Equal(HttpStatusCode.OK, otherAsk);
+        string otherForm = FormOf(otherHtml, "cancel-order-by-company-form");
+        Assert.Contains("id=\"cancel-out-of-stock-warning\" hidden=\"hidden\">", otherForm, StringComparison.Ordinal);
+        Assert.Contains("id=\"cancel-owner-check-reminder\" hidden=\"hidden\">", otherForm, StringComparison.Ordinal);
+
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(0, await reader.Cancellations.CountAsync(c => c.OrderItemId == items[0], Ct));
+        Assert.Equal("Stok yokluğu, siparişi yerine getirmenin yasal olarak imkânsızlaşması sayılmaz; bu iptalin sonucu firmadadır.", OrderDetailModel.OutOfStockLegalNoticeText);
+
+        static void AssertRepeatsNoWarning(string window)
+        {
+            Assert.DoesNotContain(OrderDetailModel.OutOfStockLegalNoticeText, window, StringComparison.Ordinal);
+            Assert.DoesNotContain(OrderDetailModel.OwnerCheckReminderText, window, StringComparison.Ordinal);
+            Assert.DoesNotContain(OrderDetailModel.LegalInterestWarningText, window, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public async Task NoticeRecords_OpenTheIbanFieldWithTheContactEmailOption_InOneMarkup_AndCarryTheOwnerCheckAtTheirHead_T528_KK5()
+    {
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        (Guid orderId, _) = await StepOrderAsync(OrderStatus.Shipped, PaymentStatus.Paid, (ProductType.Physical, false));
+        await using (AppDbContext db = NewContext())
+        {
+            await db.Orders.Where(o => o.Id == orderId).ExecuteUpdateAsync(s => s.SetProperty(o => o.CreatedAt, DateTimeOffset.UtcNow.AddDays(-40)), Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (HttpStatusCode status, string html) = await GetAsync(client, $"{OrdersPath}/{orderId:D}", key);
+
+        // A shipped, undelivered item after Z-11: both records are open (12 VAL-B137, VAL-B153, VAL-B156).
+        Assert.Equal(HttpStatusCode.OK, status);
+        foreach (string prefix in new[] { "withdrawal", "termination" })
+        {
+            string form = FormOf(html, prefix == "withdrawal" ? "record-withdrawal-form" : "record-late-termination-form");
+            int reminder = form.IndexOf($"id=\"{prefix}-owner-check-reminder\">{OrderDetailModel.OwnerCheckReminderText}</p>", StringComparison.Ordinal);
+            Assert.True(reminder >= 0 && reminder < form.IndexOf("<label", StringComparison.Ordinal), $"U6a heads the {prefix} form (K-798 (6)).");
+            // 04 7.2.10.4: the option, then the IBAN field in the block admin.css closes while the option is not ticked.
+            int block = form.IndexOf("<div class=\"order-detail__contact-iban\">", StringComparison.Ordinal);
+            int option = form.IndexOf("name=\"Input.IsFromContactEmail\" value=\"true\" /> Bildirim siparişin iletişim e-postasından geldi</label>", StringComparison.Ordinal);
+            int field = form.IndexOf($"<div class=\"order-detail__notice-iban\" id=\"{prefix}-iban-field\">", StringComparison.Ordinal);
+            int iban = form.IndexOf($"id=\"{prefix}-iban\" name=\"Input.Iban\"", StringComparison.Ordinal);
+            Assert.True(block >= 0 && option > block && field > option && iban > field, $"The {prefix} form opens the IBAN field with the option.");
+        }
+
+        Assert.DoesNotContain("<p class=\"order-detail__reminder\">", html, StringComparison.Ordinal);
+        string css = File.ReadAllText(System.IO.Path.Combine(RepositoryRoot.Find(), "src", "Shopfolio.Web", "wwwroot", "css", "admin.css"));
+        Assert.Contains(
+            ".order-detail__contact-iban:has(input[type=\"checkbox\"]:not(:checked)) > .order-detail__notice-iban {\n    display: none;",
+            css.ReplaceLineEndings("\n"),
+            StringComparison.Ordinal);
+    }
+
+    // The confirmation window of the page's 200 (_Confirm: the administrator's dialog).
+    private static string WindowOf(string html)
+    {
+        int start = html.IndexOf("<dialog", StringComparison.Ordinal);
+        Assert.True(start >= 0, "The screen has no confirmation window.");
+        return html[start..html.IndexOf("</dialog>", start, StringComparison.Ordinal)];
     }
 
     // The payment's approval (the Ö1 record) at the given moment, and the order's frozen shipping promise in business days (03 4.1.10).

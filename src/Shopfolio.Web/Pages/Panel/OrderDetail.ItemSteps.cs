@@ -49,6 +49,9 @@ public sealed partial class OrderDetailModel
     /// <summary>K-798 (6), K-607: the reminder at the head of the record of a notice from another channel and in the "müşteriyle anlaşıldı" cancellation - the address correction's text (U6a).</summary>
     public const string OwnerCheckReminderText = AddressReminderText;
 
+    /// <summary>K-798 (1) (U1): the "stokta bulunamadı" reason's warning in the firm cancellation's form.</summary>
+    public const string OutOfStockLegalNoticeText = IrreversibleConfirmations.OutOfStockLegalNotice;
+
     /// <summary>K-798 (2) (U2; 10 2 KP-47): the legal interest warning - on the firm's cancellation after Z-10 or Z-39 ran out and on every late delivery termination's record.</summary>
     public const string LegalInterestWarningText = "gecikme feshi — kanuni faiz yükümlülüğü";
 
@@ -97,6 +100,9 @@ public sealed partial class OrderDetailModel
     /// <summary>True when the notice record asks the order of the delivery and the declaration (K-608).</summary>
     public bool AsksNoticeDeliveryOrder { get; private set; }
 
+    /// <summary>The firm cancellation as sent, kept on a refusal and with the window (04 9.9.41; K-744): its reason draws the reason's warning (K-798 (1), (6)).</summary>
+    public CancelOrderByCompanyInput Cancel { get; private set; } = new();
+
     /// <summary>The withdrawal record as sent, kept on a refusal (04 9.9.41).</summary>
     public RecordWithdrawalInput Notice { get; private set; } = new();
 
@@ -143,6 +149,7 @@ public sealed partial class OrderDetailModel
     public async Task<IActionResult> OnPostCancelOrderByCompanyAsync(Guid id, CancelOrderByCompanyInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
+        Cancel = input;
         if (!Enum.TryParse(input.CancellationReason, false, out CancellationReason reason) || !Enum.IsDefined(reason) || int.TryParse(input.CancellationReason, out _))
         {
             return await RefuseAsync(id, ReasonIncompleteText, string.IsNullOrWhiteSpace(input.CancellationReason) ? ErrorCode.FieldRequired : ErrorCode.InvalidListValue, ct);
@@ -426,13 +433,9 @@ public sealed partial class OrderDetailModel
             fields.Add(Field($"Input.Items[{i}].Quantity", units[i].Quantity));
         }
 
+        // K-1547 (3): U1, U2 and U6a stand in the form (the sent reason draws them, _OrderDetailItemSteps); the window says the scope, the line and the reason's result only.
         IrreversibleConfirmation texts = IrreversibleConfirmations.FirmCancellation(
-            units.Count > 0, Math.Max(1, units.Sum(u => u.Quantity)), !isTransferLine, reason == CancellationReason.UndeliveredBuyerCaused, reason == CancellationReason.OutOfStock);
-        if (reason == CancellationReason.AgreedWithBuyer)
-        {
-            texts = texts with { Warning = texts.Warning is null ? OwnerCheckReminderText : texts.Warning + " " + OwnerCheckReminderText };
-        }
-
+            units.Count > 0, Math.Max(1, units.Sum(u => u.Quantity)), !isTransferLine, reason == CancellationReason.UndeliveredBuyerCaused);
         return Confirmations.ForIrreversible(texts, CancelByCompanyLabel, CancelByCompanyLabel, PathOf(id), "CancelOrderByCompany", PathOf(id), fields);
     }
 

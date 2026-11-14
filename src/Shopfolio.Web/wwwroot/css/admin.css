@@ -1038,3 +1038,20 @@ form[data-js="download-once"][aria-busy="true"] button[type="submit"] {
 .content-form__delete {
     margin-top: var(--space-4);
 }
+
+/* E-37's firm cancellation (T528; 04 9.9.19, 2.4.3; K-798 (1), (6), K-1547 (3)): the reason's warning shows in the form as its reason is chosen, before the window, and goes with another
+   reason. The server draws it for a sent reason; without :has() it comes with the window. */
+.form:has(option[value="OutOfStock"]:checked) .order-detail__reason-warning--out-of-stock,
+.form:has(option[value="AgreedWithBuyer"]:checked) .order-detail__reason-warning--agreed {
+    display: block;
+}
+
+.form:has(option[value="OutOfStock"]:not(:checked)) .order-detail__reason-warning--out-of-stock,
+.form:has(option[value="AgreedWithBuyer"]:not(:checked)) .order-detail__reason-warning--agreed {
+    display: none;
+}
+
+/* E-37's records from another channel (T528; 04 7.2.10.4): the notice's IBAN field opens once "iletişim e-postasından geldi" is ticked; without :has() the field stays open (T539). */
+.order-detail__contact-iban:has(input[type="checkbox"]:not(:checked)) > .order-detail__notice-iban {
+    display: none;
+}

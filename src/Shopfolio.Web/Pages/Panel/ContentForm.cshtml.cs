@@ -254,7 +254,7 @@ internal sealed class ContentFormModel : PageModel, IOutcomeTarget
 
     public string TypeName => ContentRoutes.GroupNameOf(Type);
 
-    public string ListPath => PanelFramePaths.CorporateContent;
+    public static string ListPath => PanelFramePaths.CorporateContent;
 
     /// <summary>The place a result that is uncertain returns to: the list shows what happened (07 UC-160; 09 8.1 item 4).</summary>
     public string OutcomeScreen() => _outcomeScreen;
@@ -590,7 +590,7 @@ internal sealed class ContentFormModel : PageModel, IOutcomeTarget
     {
         FormErrorSummary summary = FormErrorSummary.From(ModelState);
         SaveContentInput f = Form;
-        string? Day(DateOnly? value) => value?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        static string? Day(DateOnly? value) => value?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         List<FieldView> fields = [];
         switch (Type)
         {

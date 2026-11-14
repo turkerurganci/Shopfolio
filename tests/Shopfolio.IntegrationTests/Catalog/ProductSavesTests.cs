@@ -1,13 +1,22 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
 
 using Npgsql;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Infrastructure.Files;
+using Shopfolio.Infrastructure.Imaging;
+using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.Modules.Administration;
+using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Ordering;
+using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Settings;
 
 namespace Shopfolio.IntegrationTests.Catalog;
@@ -37,6 +46,10 @@ public sealed class ProductSavesTests : IAsyncLifetime
 
     private Guid _countryId;
 
+    private Admin _admin = null!;
+
+    private ServiceProvider _provider = null!;
+
     public ProductSavesTests(CollectionDatabaseFixture collection)
     {
         _collection = collection;
@@ -47,13 +60,19 @@ public sealed class ProductSavesTests : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         await ExecuteAsync(
-            "TRUNCATE price_histories, discounts, product_images, product_categories, categories, digital_files, images, variants, option_values, options, products, countries CASCADE");
+            "TRUNCATE audit_logs, admins, price_histories, discounts, product_images, product_categories, categories, digital_files, images, variants, option_values, options, products, countries CASCADE");
         Country country = Country.Create("TR", "Türkiye", Now);
-        await SaveAsync(c => c.Countries.Add(country));
+        _admin = Admin.Create("Firma Yöneticisi", "yonetici@example.com", "digest-placeholder", Now);
+        await SaveAsync(c =>
+        {
+            c.Countries.Add(country);
+            c.Admins.Add(_admin);
+        });
         _countryId = country.Id;
+        _provider = BuildProvider();
     }
 
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    public async ValueTask DisposeAsync() => await _provider.DisposeAsync();
 
     // ---- KK3: one transaction; the Draft birth; the closed format set ----
 
@@ -106,6 +125,135 @@ public sealed class ProductSavesTests : IAsyncLifetime
         Assert.Equal((8, 150m), (saved.StockQuantity, saved.Price));
         Assert.Equal(product.Version + 1, await db.Products.Where(p => p.Id == product.Id).Select(p => p.Version).SingleAsync(Ct));
         Assert.Contains(150m, await db.PriceHistories.Where(h => h.VariantId == variant.Id).Select(h => h.Price).ToListAsync(Ct));
+
+        // Neither the stock nor the price enters the trail (criterion 4).
+        Assert.Equal(0, await db.AuditLogs.CountAsync(Ct));
+    }
+
+    [Fact]
+    public async Task AnExistingProductsShippingPeriod_EntersTheTrailWithItsOldAndNewValue_AndAnUnchangedSettingDoesNot_KK4()
+    {
+        (Product product, Variant variant) = await SeedAsync(ProductType.Physical, stock: 5);
+        await ExecuteAsync($"UPDATE products SET shipping_period = 2, max_quantity_per_order = 5 WHERE id = '{product.Id}'");
+
+        ProductSaveResult result = await RunAsync(Existing(product, variant, price: 100m, stock: 5, shown: 5) with { ShippingPeriod = 4, MaxQuantityPerOrder = 5 });
+
+        Assert.False(result.IsRejected);
+        await using AppDbContext db = NewContext();
+        AuditLog row = Assert.Single(await db.AuditLogs.AsNoTracking().ToListAsync(Ct));
+        Assert.Equal((nameof(AuditOperation.UpdateSettings), nameof(Product), (Guid?)product.Id), (row.Operation, row.TargetRecordType, row.TargetRecordId));
+        Assert.Equal(new AuditValueChange(nameof(Product.ShippingPeriod), "2", "4"), Assert.Single(row.Details!.Changes));
+    }
+
+    [Fact]
+    public async Task AServicesFulfilmentPeriodAndMostPerOrder_EnterTheTrailFromEmptyToTheirValue_KK4()
+    {
+        (Product product, Variant variant) = await SeedAsync(ProductType.Service, stock: null);
+
+        ProductSaveResult result = await RunAsync(Existing(product, variant, price: 100m, stock: null, shown: null) with { FulfilmentPeriod = 3, MaxQuantityPerOrder = 2 });
+
+        Assert.False(result.IsRejected);
+        await using AppDbContext db = NewContext();
+        AuditLog row = Assert.Single(await db.AuditLogs.AsNoTracking().ToListAsync(Ct));
+        Assert.Equal(
+            [new AuditValueChange(nameof(Product.MaxQuantityPerOrder), null, "2"), new AuditValueChange(nameof(Product.FulfilmentPeriod), null, "3")],
+            row.Details!.Changes);
+    }
+
+    [Fact]
+    public async Task ANewProductsBirth_WithItsSettingsGiven_WritesNoTrailRow_KK4()
+    {
+        ProductSaveResult result = await RunAsync(Command(variants: [Row(sku: "KUPA-T")]) with { MaxQuantityPerOrder = 2 });
+
+        Assert.False(result.IsRejected);
+        await using AppDbContext db = NewContext();
+        Assert.Equal(0, await db.AuditLogs.CountAsync(Ct));
+    }
+
+    [Fact]
+    public async Task AMainImageMovedByTheGallerysBulkMark_RaisesTheVersion_AndASecondSaveOfTheOldVersionIsTheConflict_D361()
+    {
+        (Product product, Variant variant) = await SeedAsync(ProductType.Physical, stock: 5);
+        Image first = Image.Create("gorsel-ana-1", ImageFormat.Jpeg, 800, 600, LongAgo);
+        Image second = Image.Create("gorsel-ana-2", ImageFormat.Jpeg, 800, 600, LongAgo);
+        await SaveAsync(c =>
+        {
+            c.Images.AddRange(first, second);
+            c.ProductImages.Add(ProductImage.Create(product.Id, first.Id, 1, true, LongAgo));
+            c.ProductImages.Add(ProductImage.Create(product.Id, second.Id, 2, false, LongAgo));
+        });
+        IReadOnlyList<GalleryEntry> mainMoved = [new GalleryEntry(first.Id, null, false), new GalleryEntry(second.Id, null, true)];
+
+        ProductSaveResult moved = await RunAsync(Existing(product, variant, price: 100m, stock: 5, shown: 5) with { Gallery = mainMoved });
+        ProductSaveResult stale = await RunAsync(Existing(product, variant, price: 100m, stock: 5, shown: 5) with { Gallery = [new GalleryEntry(first.Id, null, true), new GalleryEntry(second.Id, null, false)] });
+
+        Assert.False(moved.IsRejected);
+        Assert.Equal(ErrorCode.RecordVersionConflict, stale.Code);
+        await using AppDbContext db = NewContext();
+        Assert.Equal(product.Version + 1, await db.Products.Where(p => p.Id == product.Id).Select(p => p.Version).SingleAsync(Ct));
+        Assert.Equal(second.Id, await db.ProductImages.Where(i => i.ProductId == product.Id && i.IsMain).Select(i => i.ImageId).SingleAsync(Ct));
+    }
+
+    // ---- D-279: the fences of P-6, P-9, P-44 are the firm settings' one home ----
+
+    [Fact]
+    public async Task TheMostPerOrderAndTheFulfilmentPeriod_BelowTheirFences_AreValueOutOfBounds_D279()
+    {
+        ProductSaveResult result = await RunAsync(Command(variants: [Row(sku: "KUPA-F")]) with
+        {
+            ProductType = ProductType.Service,
+            MaxQuantityPerOrder = FirmSettingFences.BoundsOf("P-9").Lower - 1,
+            FulfilmentPeriod = FirmSettingFences.BoundsOf("P-44").Lower - 1,
+        });
+
+        AssertField(result, nameof(ProductSaveCommand.MaxQuantityPerOrder), ErrorCode.ValueOutOfBounds);
+        AssertField(result, nameof(ProductSaveCommand.FulfilmentPeriod), ErrorCode.ValueOutOfBounds);
+    }
+
+    [Fact]
+    public async Task AShippingPeriodAboveItsFence_IsValueOutOfBounds_D279_D496()
+    {
+        ProductSaveResult result = await RunAsync(Command(variants: [Row(sku: "KUPA-S")]) with
+        {
+            ProductType = ProductType.Physical,
+            OriginCountryId = _countryId,
+            ShippingPeriod = FirmSettingFences.BoundsOf("P-6").Upper + 1,
+            Variants = [Row(sku: "KUPA-S") with { StockQuantity = 1 }],
+        });
+
+        AssertField(result, nameof(ProductSaveCommand.ShippingPeriod), ErrorCode.ValueOutOfBounds);
+    }
+
+    // ---- D-362, D-381, D-401: the product's row lock orders the product's writes ----
+
+    [Fact]
+    public async Task TheFormsSave_AndAStockWriteOfTheSameProduct_TakeTheProductsRowInTurn_D362()
+    {
+        (Product product, Variant variant) = await SeedAsync(ProductType.Physical, stock: 5);
+        await using AsyncServiceScope first = _provider.CreateAsyncScope();
+        AppDbContext firstDb = first.ServiceProvider.GetRequiredService<AppDbContext>();
+        await using IDbContextTransaction firstTransaction = await firstDb.Database.BeginTransactionAsync(Ct);
+        ProductSaveResult saved = await first.ServiceProvider.GetRequiredService<ProductSaves>().SaveAsync(Existing(product, variant, price: 100m, stock: 5, shown: 5), Ct);
+        Assert.False(saved.IsRejected);
+
+        Task<StockQuantityWriteResult> stock = Task.Run(
+            async () =>
+            {
+                await using AsyncServiceScope second = _provider.CreateAsyncScope();
+                ICatalogModule catalog = second.ServiceProvider.GetRequiredService<ICatalogModule>();
+                return await second.ServiceProvider.GetRequiredService<ITransactionRunner>().RunAsync(cancel => catalog.SaveStockQuantityAsync(variant.Id, 5, 9, cancel), Ct);
+            },
+            Ct);
+        await WaitUntilATransactionWaitsOnALockAsync();
+        Assert.False(stock.IsCompleted);
+
+        await firstDb.SaveChangesAsync(Ct);
+        await firstTransaction.CommitAsync(Ct);
+        StockQuantityWriteResult written = await stock;
+
+        Assert.False(written.IsShownValueChanged);
+        await using AppDbContext db = NewContext();
+        Assert.Equal(9, await db.Variants.Where(v => v.Id == variant.Id).Select(v => v.StockQuantity).SingleAsync(Ct));
     }
 
     // ---- KK5: the 422 reasons, each in its own test ----
@@ -323,20 +471,10 @@ public sealed class ProductSavesTests : IAsyncLifetime
 
     private async Task<ProductSaveResult> RunAsync(ProductSaveCommand command)
     {
-        await using AppDbContext db = NewContext();
+        await using AsyncServiceScope scope = _provider.CreateAsyncScope();
+        AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await using IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(Ct);
-        PriceHistoryRecorder recorder = new(db, _time);
-        ProductSaves saves = new(
-            db,
-            _time,
-            new ProductCategoryLinks(db, _time, new CacheInvalidations(db)),
-            new ProductGallery(db, _time),
-            new VariantPrices(db, _time, recorder),
-            recorder,
-            new Discounts(db, _time, recorder),
-            new StockCounters(db),
-            new StockCodes(db));
-        ProductSaveResult result = await saves.SaveAsync(command, Ct);
+        ProductSaveResult result = await scope.ServiceProvider.GetRequiredService<ProductSaves>().SaveAsync(command, Ct);
         if (result.IsRejected)
         {
             await transaction.RollbackAsync(Ct);
@@ -346,6 +484,32 @@ public sealed class ProductSavesTests : IAsyncLifetime
         await db.SaveChangesAsync(Ct);
         await transaction.CommitAsync(Ct);
         return result;
+    }
+
+    /// <summary>The module's services as the application registers them (the save's lock, the items' file links and the trail are its dependencies), over the collection's database.</summary>
+    private ServiceProvider BuildProvider()
+    {
+        ServiceCollection services = new();
+        services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, _collection.Dsn));
+        services.AddScoped<JobEnqueueTracker>();
+        services.AddSingleton<IJobSignal, JobSignal>();
+        services.AddScoped<ITransactionRunner, TransactionRunner>();
+        services.AddAppCache();
+        services.AddScoped<AdvisoryLocks>();
+        services.AddSingleton<TimeProvider>(_time);
+        services.AddScoped<IJobQueue, JobQueue>();
+        services.AddFileStore();
+        services.AddOptions<Shopfolio.Infrastructure.InstallationSettings.StatusThresholdOptions>();
+        services.AddSingleton<Shopfolio.Infrastructure.Status.IDiskUsageReader, Shopfolio.Infrastructure.Status.DriveDiskUsageReader>();
+        services.AddSingleton<Shopfolio.Infrastructure.Status.DiskUsageGuard>();
+        services.AddSingleton<ImageProcessor>();
+        services.AddCatalogModule();
+        services.AddAfterSalesModule();
+        services.AddPaymentModule();
+        services.AddOrderingModule();
+        services.AddScoped<IAuditActorSource>(_ => new FixedActor(_admin));
+        services.AddScoped<IAuditTrail, AuditTrail>();
+        return services.BuildServiceProvider();
     }
 
     private AppDbContext NewContext()
@@ -370,6 +534,26 @@ public sealed class ProductSavesTests : IAsyncLifetime
         await command.ExecuteNonQueryAsync(Ct);
     }
 
+    /// <summary>Waits until a transaction of this collection's database waits on a row lock (the second writer behind the product's row lock).</summary>
+    private async Task WaitUntilATransactionWaitsOnALockAsync()
+    {
+        for (int attempt = 0; attempt < 400; attempt++)
+        {
+            await using NpgsqlConnection connection = new(_collection.Dsn);
+            await connection.OpenAsync(Ct);
+            await using NpgsqlCommand command = new(
+                "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock' AND query ILIKE '%FOR UPDATE%'", connection);
+            if ((long)(await command.ExecuteScalarAsync(Ct))! > 0)
+            {
+                return;
+            }
+
+            await Task.Delay(25, Ct);
+        }
+
+        Assert.Fail("No transaction waited on the product's row lock.");
+    }
+
     private async Task<long> CountAsync(string table)
     {
         await using NpgsqlConnection connection = new(_collection.Dsn);
@@ -381,5 +565,10 @@ public sealed class ProductSavesTests : IAsyncLifetime
     private sealed class FixedTime(DateTimeOffset now) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => now;
+    }
+
+    private sealed class FixedActor(Admin admin) : IAuditActorSource
+    {
+        public Task<AuditActor?> CurrentAsync(CancellationToken ct) => Task.FromResult<AuditActor?>(new AuditActor(admin.Id, admin.Name, admin.Email));
     }
 }

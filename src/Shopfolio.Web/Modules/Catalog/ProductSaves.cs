@@ -1,6 +1,7 @@
 using System.Globalization;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Errors;
@@ -38,7 +39,7 @@ internal sealed class ProductSaves
     private readonly StockCounters _counters;
     private readonly StockCodes _stockCodes;
     private readonly ProductLocks _locks;
-    private readonly IOrderingModule _ordering;
+    private readonly IServiceProvider _services;
     private readonly IAuditTrail _trail;
 
     public ProductSaves(
@@ -52,11 +53,11 @@ internal sealed class ProductSaves
         StockCounters counters,
         StockCodes stockCodes,
         ProductLocks locks,
-        IOrderingModule ordering,
+        IServiceProvider services,
         IAuditTrail trail)
     {
         _locks = locks;
-        _ordering = ordering;
+        _services = services;
         _trail = trail;
         _db = db;
         _time = time;
@@ -259,9 +260,13 @@ internal sealed class ProductSaves
         Dictionary<Guid, Guid> changes = OrderItemFiles.Changes(before.Variants, before, after);
         if (changes.Count > 0)
         {
-            await _ordering.AdvanceItemFilesAsync(changes, ct);
+            await Ordering.AdvanceItemFilesAsync(changes, ct);
         }
     }
+
+    // The ordering module takes the catalog module in its constructor and the catalog module holds this class, so it is resolved when the items' file links are written, not when this
+    // class is built (the pattern of OrderExport's after-sales module).
+    private IOrderingModule Ordering => _services.GetRequiredService<IOrderingModule>();
 
     private sealed record SettingsBefore(int? ShippingPeriod, int? MaxQuantityPerOrder, int? FulfilmentPeriod);
 

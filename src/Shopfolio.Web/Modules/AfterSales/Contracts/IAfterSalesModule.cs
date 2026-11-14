@@ -19,6 +19,12 @@ public interface IAfterSalesModule
     Task ErasePersonalDataAsync(OrderPersonalDataScope scope, CancellationToken ct);
 
     /// <summary>
+    /// The panel's return steps' facts of the items (T528; 07 UC-140...UC-142): the withdrawals with goods on the way back or closed as not come back, and the receipts with their
+    /// stock state. A plain read by the writers' one formula; the caller holds the order's lock on the POST.
+    /// </summary>
+    Task<ReturnStepFacts> ReturnStepFactsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
     /// The quantity each order item has closed by its item records (02 5.8; 06 2.7.2; K-790): the sum of the quantities of its cancellation,
     /// removal, late delivery termination and withdrawal records, saved or added in the caller's context and not saved yet. A cancellation whose closing
     /// transition (S3, S4, S9) was corrected is undone and does not count (06 4.22; 02 10.4.6). An item with no such record is not in the result. The order module takes the item's open quantity as its own quantity minus this (03 1.4.3: the closure rule). A plain read;

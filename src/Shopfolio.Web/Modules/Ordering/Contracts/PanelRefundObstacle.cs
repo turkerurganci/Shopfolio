@@ -14,4 +14,7 @@ public enum PanelRefundObstacle
 
     /// <summary>The amount based refund names a closure that is not an open "mal dönmedi" closure of the chosen item (07 UC-133; 04 7.2.13.2; K-1105; <c>InvalidListValue</c>).</summary>
     ClosureNotOpen,
+
+    /// <summary>The amount based refund names an item that is not one of the order's (07 UC-133; 04 7.2.13.2 "siparişin kalemlerinden biri"; <c>InvalidListValue</c>).</summary>
+    ItemNotOfOrder,
 }

@@ -218,7 +218,15 @@ internal sealed partial class AfterSalesModule
         List<RefundIban> ibans = await _db.RefundIbans.Where(i => ids.Contains(i.Id) && i.OrderId == failure.OrderId).ToListAsync(ct);
         if (ibans.Count == 0)
         {
-            return null;
+            // Without a record's or request's IBAN the refund was paid to the IBAN on the order's file (D-907, D-912; the IBAN's life counts it the same way:
+            // PendingTransferPayeesAsync) - the first on file, as the panel's refund line shows it (ListRefundIbanFieldsAsync's order).
+            RefundIban? onFile = await _db.RefundIbans.Where(i => i.OrderId == failure.OrderId).OrderBy(i => i.CreatedAt).ThenBy(i => i.Id).FirstOrDefaultAsync(ct);
+            if (onFile is null)
+            {
+                return null;
+            }
+
+            ibans = [onFile];
         }
 
         // The bank refused the IBAN: it goes for the item, with its disposal record (Z-44); the field opens again with B-14 and the period runs on (02 7.4.5).

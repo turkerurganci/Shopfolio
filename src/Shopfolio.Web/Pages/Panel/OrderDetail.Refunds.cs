@@ -6,6 +6,7 @@ using Shopfolio.Infrastructure.Binding;
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Operations;
+using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
@@ -21,6 +22,9 @@ namespace Shopfolio.Pages.Panel;
 public sealed partial class OrderDetailModel
 {
     public const string RefundSectionTitle = "Geri ödemeler";
+
+    /// <summary>04 7.3.2.8: an amount has at most two decimals (kuruş); more is the field's <c>InvalidAmount</c> (07 2.9.4).</summary>
+    private const int AmountDecimals = 2;
 
     public const string ProcessRefundLabel = "Geri ödemeyi işle";
 
@@ -52,6 +56,9 @@ public sealed partial class OrderDetailModel
     /// <summary>07 UC-134 (04 7.2.13.3): the IBAN request names an item.</summary>
     public const string ItemNotSelectedText = "IBAN istenecek kalemi seçin.";
 
+    /// <summary>07 UC-133 (04 7.2.13.2): the bound item, when chosen, is one of the order's items.</summary>
+    public const string ItemNotOfOrderText = "Siparişin kalemlerinden birini seçin ya da kalemi boş bırakın.";
+
     /// <summary>07 UC-133 (04 7.2.13.2; K-1105): the chosen closure is not an open "mal dönmedi" closure of the chosen item.</summary>
     public const string ClosureNotOpenText = "Seçtiğiniz kalemin açık \"mal dönmedi\" kapanışlarından birini seçin.";
 
@@ -70,6 +77,16 @@ public sealed partial class OrderDetailModel
 
     /// <summary>The order's refund lines (04 9.9.6, 9.9.21-9.9.24), with the steps open now - the module's one decision.</summary>
     public IReadOnlyList<PanelRefundLine> RefundLines { get; private set; } = [];
+
+    /// <summary>The refund lines without an item, which stand on the order (04 9.9.21: the late payment's refund; K-1075).</summary>
+    public IReadOnlyList<PanelRefundLine> OrderRefundLines => [.. RefundLines.Where(l => l.OrderItemId is null)];
+
+    /// <summary>The item's refund lines, which stand on its row next to its pending refund (04 9.9.6 (4), 9.9.21).</summary>
+    public IReadOnlyList<PanelRefundLine> RefundLinesOf(OrderPageItem item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        return [.. RefundLines.Where(l => l.OrderItemId == item.OrderItemId)];
+    }
 
     /// <summary>The order's open "mal dönmedi" closures the amount based refund can be bound to (04 7.2.13.2; 07 UC-133 <c>NotReturnedClosureId</c>; K-1105).</summary>
     public IReadOnlyList<OpenNotReturnedClosure> OpenClosures { get; private set; } = [];
@@ -152,7 +169,8 @@ public sealed partial class OrderDetailModel
             return await RefuseAsync(id, AmountMissingText, ErrorCode.FieldRequired, ct);
         }
 
-        if (!RequestFormat.TryParseDecimal(input.Amount.Trim(), out decimal amount))
+        // 07 2.9.4, 04 7.3.2.8: an amount outside the money's precision (more than two decimals) is the field's refusal, as an unreadable one.
+        if (!RequestFormat.TryParseDecimal(input.Amount.Trim(), out decimal amount) || !FieldRuleAttribute.HasAtMostDecimals(amount, AmountDecimals))
         {
             return await RefuseAsync(id, AmountInvalidText, ErrorCode.InvalidAmount, ct);
         }
@@ -178,7 +196,7 @@ public sealed partial class OrderDetailModel
         return await AnswerRefundAsync(id, result, ct);
     }
 
-    /// <summary>UC-135: a new card refund request; confirmed (03 1.6.1.4) with K-798's warning; unconfirmed 200, confirmed 303.</summary>
+    /// <summary>UC-135: a new card refund request; confirmed (03 1.6.1.4), K-798's warning on the line; unconfirmed 200, confirmed 303.</summary>
     [GatedOperation]
     public async Task<IActionResult> OnPostRetryCardRefundAsync(Guid id, RetryCardRefundInput input, CancellationToken ct)
     {
@@ -229,6 +247,7 @@ public sealed partial class OrderDetailModel
         PanelRefundObstacle.AmountExceeded => await RefuseAsync(id, AmountExceededText, ErrorCode.AmountBasedRefundExceeded, ct),
         PanelRefundObstacle.ItemNotSelected => await RefuseAsync(id, ItemNotSelectedText, ErrorCode.FieldRequired, ct),
         PanelRefundObstacle.ClosureNotOpen => await RefuseAsync(id, ClosureNotOpenText, ErrorCode.InvalidListValue, ct),
+        PanelRefundObstacle.ItemNotOfOrder => await RefuseAsync(id, ItemNotOfOrderText, ErrorCode.InvalidListValue, ct),
         _ => await AnswerAsync(id, new PanelStepResult(result.Refusal), ct),
     };
 
@@ -284,7 +303,8 @@ public sealed partial class OrderDetailModel
             Field("Input.Version", input.Version),
             new("Input.Confirmed", "true"),
         ];
-        IrreversibleConfirmation texts = IrreversibleConfirmations.RefundProcessing(result.Amount ?? 0m, null) with { Warning = CardRefundNotRealizedWarning };
+        // 12 12.13 K-1514 (3): K-798's warning (U4) stays on the line before and under the window; the window does not repeat it.
+        IrreversibleConfirmation texts = IrreversibleConfirmations.RefundProcessing(result.Amount ?? 0m, null);
         return Confirmations.ForIrreversible(texts, RetryCardRefundLabel, RetryCardRefundLabel, PathOf(id), "RetryCardRefund", PathOf(id), fields);
     }
 }

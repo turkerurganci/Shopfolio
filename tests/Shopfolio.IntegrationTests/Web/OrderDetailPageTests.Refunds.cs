@@ -175,6 +175,7 @@ public sealed partial class OrderDetailPageTests
     [InlineData("0", "Exceeded")]
     [InlineData("50,01", "Exceeded")]
     [InlineData("abc", "Invalid")]
+    [InlineData("10,505", "Invalid")]
     public async Task ProcessAmountBasedRefund_AnEmptyZeroOrExceedingAmount_Is422_AndWritesNothing_KK7(string amount, string reason)
     {
         (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
@@ -221,6 +222,32 @@ public sealed partial class OrderDetailPageTests
         Assert.Equal(PaymentStatus.PartiallyRefunded, (await db.Orders.AsNoTracking().SingleAsync(o => o.Id == seeded.OrderId, Ct)).PaymentStatus);
     }
 
+    // ---- UC-133: the form only while the processing step is open; an item that is not the order's is the item list's refusal ----
+
+    [Fact]
+    public async Task ProcessAmountBasedRefund_FormIsDrawnOnlyWhileProcessRefundIsOpen_AndAnItemNotOfTheOrderIs422WithTheItemListsMessage()
+    {
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        Seeded noIban = await SeedPaidAsync(PaymentMethod.BankTransfer, withIban: false);
+        Seeded seeded = await SeedPaidAsync(PaymentMethod.BankTransfer, withIban: true);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (_, string awaiting) = await GetAsync(client, Path(noIban), key);
+        (_, string open) = await GetAsync(client, Path(seeded), key);
+        (HttpStatusCode foreign, string foreignHtml) = await PostAsync(
+            client, Path(seeded, "ProcessAmountBasedRefund"), [("Input.Amount", "10"), ("Input.OrderItemId", noIban.ItemId.ToString("D")), ("Input.Version", "1"), ("Input.Confirmed", "true")], key);
+
+        // Without an IBAN only the IBAN request is open (1.11.39 before 1.11.31): its form is drawn, the amount based refund's is not.
+        Assert.Contains("id=\"request-refund-iban-form\"", awaiting, StringComparison.Ordinal);
+        Assert.DoesNotContain("id=\"amount-based-refund-form\"", awaiting, StringComparison.Ordinal);
+        Assert.Contains("id=\"amount-based-refund-form\"", open, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, foreign);
+        Assert.Contains(OrderDetailModel.ItemNotOfOrderText, foreignHtml, StringComparison.Ordinal);
+        Assert.DoesNotContain(OrderDetailModel.ItemNotSelectedText, foreignHtml, StringComparison.Ordinal);
+        await AssertNothingWrittenAsync(seeded.OrderId, 1);
+    }
+
     // ---- D-878: the defect remedy's born transfer refund is sent from the page by the axis's one path ----
 
     [Fact]
@@ -228,21 +255,7 @@ public sealed partial class OrderDetailPageTests
     {
         (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
         Seeded seeded = await SeedPaidAsync(PaymentMethod.BankTransfer, withIban: true, withCancellation: false);
-        DateTimeOffset now = DateTimeOffset.UtcNow;
-        DefectClaim claim = DefectClaim.Create(seeded.ItemId, 1, "Kusurlu", null, now);
-        Refund remedy = Refund.BySystem(seeded.OrderId, RefundType.DefectClaimRescission, PaymentMethod.BankTransfer, 50m, now);
-        remedy.DefectClaimId = claim.Id;
-        remedy.OrderItemId = seeded.ItemId;
-        remedy.Quantity = 1;
-        remedy.CouponShare = 0m;
-        remedy.VatAmount = 8.33m;
-        await using (AppDbContext db = NewContext())
-        {
-            db.DefectClaims.Add(claim);
-            db.Refunds.Add(remedy);
-            await db.SaveChangesAsync(Ct);
-        }
-
+        (DefectClaim claim, Refund remedy) = await SeedDefectRemedyRefundAsync(seeded);
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
 
@@ -257,6 +270,39 @@ public sealed partial class OrderDetailPageTests
         Assert.NotNull(sent.SentAt);
         Assert.Equal(PaymentStatus.PartiallyRefunded, (await after.Orders.AsNoTracking().SingleAsync(o => o.Id == seeded.OrderId, Ct)).PaymentStatus);
         Assert.Equal(1, await after.DispatchRecords.CountAsync(d => d.OrderId == seeded.OrderId && d.DispatchType == DispatchType.B8, Ct));
+    }
+
+    // ---- KK6, D-912: the defect remedy's refund paid to the IBAN on the order's file - the screen and the step decide the same (D-907; 09 8.3 item 5) ----
+
+    [Fact]
+    public async Task MarkBankTransferRefundFailed_OnADefectRemedysRefundPaidToTheIbanOnFile_OnTheItemsRow_DeletesThatIban_AndOpensTheField_KK6_D912()
+    {
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        Seeded seeded = await SeedPaidAsync(PaymentMethod.BankTransfer, withIban: true, withCancellation: false);
+        (DefectClaim claim, Refund remedy) = await SeedDefectRemedyRefundAsync(seeded);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (_, string screen) = await GetAsync(client, Path(seeded), key);
+        (HttpStatusCode reported, _) = await PostForLocationAsync(
+            client, Path(seeded, "MarkBankTransferRefundFailed"), [("Input.DefectClaimId", claim.Id.ToString("D")), ("Input.Version", "1")], key);
+        (_, string after) = await GetAsync(client, Path(seeded), key);
+
+        Assert.Contains("handler=MarkBankTransferRefundFailed", screen, StringComparison.Ordinal);
+
+        // 04 9.9.6 (4), 9.9.21: the item's refund line and its steps stand on the item's row, next to its pending refund - not in the order's section.
+        int row = screen.IndexOf($"id=\"kalem-{seeded.ItemId:D}\"", StringComparison.Ordinal);
+        int line = screen.IndexOf($"id=\"geri-odeme-{claim.Id:D}\"", StringComparison.Ordinal);
+        Assert.True(row >= 0 && line > row && line < screen.IndexOf("id=\"tutar\"", StringComparison.Ordinal));
+        Assert.Equal(HttpStatusCode.SeeOther, reported);
+        Assert.Contains(OrderDetailModel.IbanAwaitedText, after, StringComparison.Ordinal);
+        Assert.DoesNotContain("handler=MarkBankTransferRefundFailed", after, StringComparison.Ordinal);
+        await using AppDbContext db = NewContext();
+        Assert.False(await db.RefundIbans.AnyAsync(i => i.OrderId == seeded.OrderId, Ct));
+        RefundIbanRequest request = await db.RefundIbanRequests.AsNoTracking().SingleAsync(r => r.OrderItemId == seeded.ItemId, Ct);
+        Assert.Equal((RefundIbanRequestReason.TransferFailed, (DateTimeOffset?)null), (request.Reason, request.FulfilledAt));
+        Assert.Null((await db.Refunds.AsNoTracking().SingleAsync(r => r.Id == remedy.Id, Ct)).SentAt);
+        Assert.Equal(1, await db.AuditLogs.CountAsync(a => a.TargetRecordId == seeded.OrderId && a.Operation == nameof(AuditOperation.ReportRefundTransferNotCompleted), Ct));
     }
 
     // ---- KK5: the binding to the item's open "mal dönmedi" closure; the later receipt bears it ----
@@ -369,7 +415,7 @@ public sealed partial class OrderDetailPageTests
     // ---- KK9, KK10: the card refund's two steps ----
 
     [Fact]
-    public async Task RetryCardRefund_AsksTheConfirmationWithTheChargebackWarning_ThenQueuesANewRequest_AndWhileTheResultIsAwaitedIs422_KK9()
+    public async Task RetryCardRefund_AsksTheConfirmation_TheChargebackWarningStaysOnTheLineOnly_ThenQueuesANewRequest_AndWhileTheResultIsAwaitedIs422_KK9()
     {
         (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
         (Seeded failed, Guid failedRefund) = await SeedCardRefundAsync(RefundRecordState.Failed);
@@ -385,8 +431,13 @@ public sealed partial class OrderDetailPageTests
         Assert.Contains(OrderDetailModel.CardRefundNotRealizedWarning, screen, StringComparison.Ordinal);
         Assert.Contains($">{OrderDetailModel.RetryCardRefundLabel}</button>", screen, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.OK, ask);
-        Assert.Contains(OrderDetailModel.CardRefundNotRealizedWarning, window, StringComparison.Ordinal);
         Assert.Contains("data-js=\"confirm-window\"", window, StringComparison.Ordinal);
+
+        // 12 12.13 K-1514 (3): U4 stays on the line under the window, and the window does not repeat it.
+        int dialog = window.IndexOf("data-js=\"confirm-window\"", StringComparison.Ordinal);
+        string dialogHtml = window[dialog..window.IndexOf("</dialog>", dialog, StringComparison.Ordinal)];
+        Assert.DoesNotContain(OrderDetailModel.CardRefundNotRealizedWarning, dialogHtml, StringComparison.Ordinal);
+        Assert.Equal(2, window.Split(OrderDetailModel.CardRefundNotRealizedWarning, StringSplitOptions.None).Length);
         Assert.Equal(HttpStatusCode.SeeOther, done);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, closed);
         await using AppDbContext db = NewContext();
@@ -535,6 +586,24 @@ public sealed partial class OrderDetailPageTests
         db.RefundRecords.Add(record);
         await db.SaveChangesAsync(Ct);
         return (seeded, refund.Id);
+    }
+
+    /// <summary>A defect claim's rescission refund born on the transfer line, with no record or request IBAN: it is paid to the IBAN on the order's file (D-878, D-907).</summary>
+    private async Task<(DefectClaim Claim, Refund Remedy)> SeedDefectRemedyRefundAsync(Seeded seeded)
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DefectClaim claim = DefectClaim.Create(seeded.ItemId, 1, "Kusurlu", null, now);
+        Refund remedy = Refund.BySystem(seeded.OrderId, RefundType.DefectClaimRescission, PaymentMethod.BankTransfer, 50m, now);
+        remedy.DefectClaimId = claim.Id;
+        remedy.OrderItemId = seeded.ItemId;
+        remedy.Quantity = 1;
+        remedy.CouponShare = 0m;
+        remedy.VatAmount = 8.33m;
+        await using AppDbContext db = NewContext();
+        db.DefectClaims.Add(claim);
+        db.Refunds.Add(remedy);
+        await db.SaveChangesAsync(Ct);
+        return (claim, remedy);
     }
 
     private async Task AssertNothingWrittenAsync(Guid orderId, int version)

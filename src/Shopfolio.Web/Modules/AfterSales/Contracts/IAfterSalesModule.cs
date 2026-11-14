@@ -316,8 +316,9 @@ public interface IAfterSalesModule
 
     /// <summary>
     /// The firm's "havale gerçekleşmedi" (02 7.4.5; K-575, K-1131): the IBAN the item's refund - or the itemless late payment refund - would use is deleted with
-    /// its disposal record, and a "transfer failed" request opens the IBAN field again; the period does not stop. Returns the request, or null when there is no
-    /// IBAN to report. The caller sends B-14. Under the order's row lock in the caller's transaction; saves nothing.
+    /// its disposal record, and a "transfer failed" request opens the IBAN field again; the period does not stop. The IBAN is the record's or the request's, else
+    /// the one on the order's file (D-907) - the one the panel's refund line shows. Returns the request, or null when there is no IBAN to report. The caller sends
+    /// B-14. Under the order's row lock in the caller's transaction; saves nothing.
     /// </summary>
     Task<RefundIbanRequestOpened?> ReportTransferFailedAsync(TransferFailure failure, CancellationToken ct);
 

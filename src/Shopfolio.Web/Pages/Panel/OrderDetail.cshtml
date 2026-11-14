@@ -158,6 +158,10 @@
                         }
                     </div>
                 }
+                @foreach (PanelRefundLine refundLine in Model.RefundLinesOf(item))
+                {
+                    <partial name="_OrderRefundLine" model="(Model, refundLine)" />
+                }
             </li>
         }
     </ul>

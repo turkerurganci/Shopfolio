@@ -179,7 +179,7 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
 
         if (request.OrderItemId is { } item && !await _db.OrderItems.AsNoTracking().AnyAsync(i => i.Id == item && i.OrderId == order.Id, ct))
         {
-            return new PanelRefundStepResult(TransitionRefusal.InvalidInput) { Obstacle = PanelRefundObstacle.ItemNotSelected };
+            return new PanelRefundStepResult(TransitionRefusal.InvalidInput) { Obstacle = PanelRefundObstacle.ItemNotOfOrder };
         }
 
         // 04 7.2.13.2 (K-1105): on an item with an open "mal dönmedi" closure the closure is chosen too and the refund is bound to it - the chosen one must be the item's own open closure; with none

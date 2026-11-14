@@ -39,6 +39,7 @@ public sealed class SaveContentProductRow
 
     public int SortOrder { get; set; }
 
+    [SpecAssignedName]
     public bool Remove { get; set; }
 }
 
@@ -115,7 +116,7 @@ public sealed class SaveContentInput : IFormInput
     public IList<SaveContentImageRow> Images { get; set; } = [];
 
     [SpecAssignedName]
-    public IList<SaveContentProductRow> RelatedProducts { get; set; } = [];
+    public IList<SaveContentProductRow> LinkedProducts { get; set; } = [];
 
     [SpecAssignedName]
     public IList<Guid> AddProducts { get; set; } = [];
@@ -342,7 +343,7 @@ internal sealed class ContentFormModel : PageModel, IOutcomeTarget
             return NotFound();
         }
 
-        Form = InputOf(Record!);
+        Form = InputOf(Record!);  // non-null: the handler returned early when the record was not found
         await LoadLinkedAsync(ct);
         return Page();
     }
@@ -434,7 +435,7 @@ internal sealed class ContentFormModel : PageModel, IOutcomeTarget
         if (word is not null)
         {
             PanelProductPage page = await _products.ListAsync(word, null, 1, ListCatalog_PageSize, ct);
-            HashSet<Guid> linked = [.. input.RelatedProducts.Select(r => r.ProductId)];
+            HashSet<Guid> linked = [.. input.LinkedProducts.Select(r => r.ProductId)];
             SearchHits = [.. page.Rows.Select(row => new ProductSearchHit(row.Id, row.Name, row.PublishStatus, linked.Contains(row.Id)))];
         }
 
@@ -524,7 +525,7 @@ internal sealed class ContentFormModel : PageModel, IOutcomeTarget
         }
 
         _rejections.Rejected(ErrorCode.PublishGateIncomplete);
-        Form = InputOf(Record!);
+        Form = InputOf(Record!);  // non-null: the handler returned early when the record was not found
         await LoadLinkedAsync(ct);
         Refusal = Messages.InPlace(MessageMeaning.Error, GateRefusal(result.Missing), "content-publish-refused");
         return FormResults.Redisplay(this);
@@ -545,7 +546,7 @@ internal sealed class ContentFormModel : PageModel, IOutcomeTarget
             return NotFound();
         }
 
-        Form = InputOf(Record!);
+        Form = InputOf(Record!);  // non-null: the handler returned early when the record was not found
         await LoadLinkedAsync(ct);
         if (type == PanelContentType.AboutPage)
         {
@@ -556,7 +557,7 @@ internal sealed class ContentFormModel : PageModel, IOutcomeTarget
 
         if (!input.Confirmed)
         {
-            string name = Record!.Values.Name ?? Record.Values.Title ?? Record.Values.Question ?? Record.Values.Text ?? TypeName;
+            string name = Record!.Values.Name ?? Record.Values.Title ?? Record.Values.Question ?? Record.Values.Text ?? TypeName;  // non-null: the handler returned early when the record was not found
             Confirmation = Confirmations.ForPermanentDeletion(DeletionSentence(name), DeleteLabel, FormPath, "DeleteContent", FormPath, [new("Input.Confirmed", "true")]);
             return Page();
         }
@@ -674,7 +675,7 @@ internal sealed class ContentFormModel : PageModel, IOutcomeTarget
             StartDate = v.StartDate,
             EndDate = v.EndDate,
             Images = [.. record.Images.Select((image, i) => new SaveContentImageRow { ImageId = image.ImageId, SortOrder = i + 1, IsMain = image.IsMain, AltText = image.AltText })],
-            RelatedProducts = [.. record.ProductIds.Select((productId, i) => new SaveContentProductRow { ProductId = productId, SortOrder = i + 1 })],
+            LinkedProducts = [.. record.ProductIds.Select((productId, i) => new SaveContentProductRow { ProductId = productId, SortOrder = i + 1 })],
             Version = record.Id is null ? null : record.Version,
         };
     }
@@ -718,26 +719,26 @@ internal sealed class ContentFormModel : PageModel, IOutcomeTarget
             EndDate = input.EndDate,
         };
         IReadOnlyList<GalleryEntry> images = [.. input.Images.OrderBy(i => i.SortOrder).Select(i => new GalleryEntry(i.ImageId, i.AltText, i.IsMain))];
-        IReadOnlyList<Guid> products = [.. input.RelatedProducts.Where(r => !r.Remove).OrderBy(r => r.SortOrder).Select(r => r.ProductId)];
+        IReadOnlyList<Guid> products = [.. input.LinkedProducts.Where(r => !r.Remove).OrderBy(r => r.SortOrder).Select(r => r.ProductId)];
         return new PanelContentSaveCommand(type, id, id is null ? null : input.Version ?? 0, values, images, products);
     }
 
     // The ticked results of the last search join the end of the linked products (K-1193 (3)); a product already linked is not added twice.
     private static void AppendChosen(SaveContentInput input)
     {
-        int next = input.RelatedProducts.Count == 0 ? 1 : input.RelatedProducts.Max(r => r.SortOrder) + 1;
+        int next = input.LinkedProducts.Count == 0 ? 1 : input.LinkedProducts.Max(r => r.SortOrder) + 1;
         foreach (Guid productId in input.AddProducts.Distinct())
         {
-            if (input.RelatedProducts.All(r => r.ProductId != productId))
+            if (input.LinkedProducts.All(r => r.ProductId != productId))
             {
-                input.RelatedProducts.Add(new SaveContentProductRow { ProductId = productId, SortOrder = next++ });
+                input.LinkedProducts.Add(new SaveContentProductRow { ProductId = productId, SortOrder = next++ });
             }
         }
 
         input.AddProducts = [];
     }
 
-    private static void OmitRemoved(SaveContentInput input) => input.RelatedProducts = [.. input.RelatedProducts.Where(r => !r.Remove)];
+    private static void OmitRemoved(SaveContentInput input) => input.LinkedProducts = [.. input.LinkedProducts.Where(r => !r.Remove)];
 
     private void AddRejections(IReadOnlyList<PanelContentRejection> rejections)
     {
@@ -809,11 +810,11 @@ internal sealed class ContentFormModel : PageModel, IOutcomeTarget
             return;
         }
 
-        IReadOnlyList<PanelProductName> names = await _products.NamesOfAsync([.. Form.RelatedProducts.Select(r => r.ProductId)], ct);
+        IReadOnlyList<PanelProductName> names = await _products.NamesOfAsync([.. Form.LinkedProducts.Select(r => r.ProductId)], ct);
         Dictionary<Guid, PanelProductName> byId = names.ToDictionary(n => n.Id);
         LinkedProducts =
         [
-            .. Form.RelatedProducts
+            .. Form.LinkedProducts
                 .OrderBy(r => r.SortOrder)
                 .Where(r => byId.ContainsKey(r.ProductId))
                 .Select(r => new LinkedProductView(r.ProductId, byId[r.ProductId].Name, byId[r.ProductId].PublishStatus, r.SortOrder, r.Remove)),

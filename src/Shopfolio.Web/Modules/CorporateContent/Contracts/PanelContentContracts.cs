@@ -3,39 +3,6 @@ using Shopfolio.Modules.Catalog.Contracts;
 
 namespace Shopfolio.Modules.CorporateContent.Contracts;
 
-/// <summary>The seven corporate content types of the panel's list and form (T534; 07 3.1.1 <c>{tip}</c>; 04 9.13.3): the five ready-made types, the general page and the announcement.</summary>
-public enum PanelContentType
-{
-    AboutPage,
-    Offering,
-    PortfolioItem,
-    FaqItem,
-    Branch,
-    CustomPage,
-    Announcement,
-}
-
-/// <summary>The fields of the publish gate by name (T534; 02 3.27.13; 04 9.5 side column): what a record lacks to be published, as the panel names it.</summary>
-public enum PanelContentField
-{
-    Name,
-    Title,
-    Question,
-    Answer,
-    Province,
-    District,
-    AddressLine,
-    ShortIntroduction,
-    Text,
-}
-
-/// <summary>The direction of a move in the manual order (T534; 07 UC-161 <c>Direction</c>): one place up or down.</summary>
-public enum PanelContentMove
-{
-    Up,
-    Down,
-}
-
 /// <summary>
 /// One row of the panel's content list (T534; 07 UC-96; 04 9.13.3): the record's name, title or question - the announcement's text; the about page has none - its publish status, the marks, the
 /// place in the manual order and the orders of the two neighbours the "yukarı" and "aşağı" forms carry (<see langword="null"/> at the edge of the group; K-1193 (4)). An announcement also tells its dates and
@@ -139,27 +106,6 @@ public sealed record PanelContentSaveCommand(
 /// <summary>One refused field of the content form: the member of the form (<c>Name</c>, <c>Images</c>, ...) and the field code (07 6.2).</summary>
 public sealed record PanelContentRejection(string Field, string Code);
 
-/// <summary>What became of the content form's save (T534; 07 UC-158).</summary>
-public enum PanelContentSaveOutcome
-{
-    Saved,
-
-    /// <summary>The record is not there (or is another type's): 404.</summary>
-    NotFound,
-
-    /// <summary>The record changed since the form was opened: 409 (K-800).</summary>
-    VersionConflict,
-
-    /// <summary>A second about page or announcement: 409; the form binds to <see cref="PanelContentSaveResult.ExistingId"/> (K-1193 (2)).</summary>
-    AlreadyExists,
-
-    /// <summary>A value is wrong: 422, the fields are <see cref="PanelContentSaveResult.Rejections"/>.</summary>
-    Rejected,
-
-    /// <summary>The edit of a published record would empty a gate field: 422, <see cref="PanelContentSaveResult.Missing"/> names them (K-812).</summary>
-    PublishedGateBroken,
-}
-
 /// <summary>The result of the content form's save; a refusal is a value and writes nothing - the transaction runner rolls back (09 8.1 item 1).</summary>
 public sealed class PanelContentSaveResult : IOperationResult
 {
@@ -206,21 +152,6 @@ public sealed class PanelContentSaveResult : IOperationResult
     public static PanelContentSaveResult GateBroken(Guid id, IReadOnlyList<PanelContentField> missing) => new(PanelContentSaveOutcome.PublishedGateBroken, id, [], missing);
 }
 
-/// <summary>What became of a publish status move (T534; 07 UC-159).</summary>
-public enum PanelContentChangeOutcome
-{
-    /// <summary>The status was written, the trail row was written and the version rose.</summary>
-    Changed,
-
-    /// <summary>The record was already in the asked status: nothing was written (07 2.5.1).</summary>
-    Unchanged,
-
-    /// <summary>The gate is not met: 422, the fields are <see cref="PanelContentChangeResult.Missing"/> (K-584).</summary>
-    GateIncomplete,
-
-    NotFound,
-}
-
 /// <summary>The result of a publish status move.</summary>
 public sealed class PanelContentChangeResult : IOperationResult
 {
@@ -241,17 +172,6 @@ public sealed class PanelContentChangeResult : IOperationResult
     public static PanelContentChangeResult Incomplete(IReadOnlyList<PanelContentField> missing) => new(PanelContentChangeOutcome.GateIncomplete, missing);
 }
 
-/// <summary>What became of a deletion (T534; 07 UC-160).</summary>
-public enum PanelContentDeleteOutcome
-{
-    Deleted,
-
-    NotFound,
-
-    /// <summary>Hakkımızda is never deleted (02 3.27.3): 422.</summary>
-    Forbidden,
-}
-
 /// <summary>The result of a deletion.</summary>
 public sealed class PanelContentDeleteResult : IOperationResult
 {
@@ -265,23 +185,6 @@ public sealed class PanelContentDeleteResult : IOperationResult
     public bool IsRejected => Outcome != PanelContentDeleteOutcome.Deleted;
 
     public static PanelContentDeleteResult Of(PanelContentDeleteOutcome outcome) => new(outcome);
-}
-
-/// <summary>What became of a move in the manual order (T534; 07 UC-161).</summary>
-public enum PanelContentReorderOutcome
-{
-    Moved,
-
-    /// <summary>The two records' orders are no longer the shown ones: 409, nothing is written (K-1063).</summary>
-    OrderChanged,
-
-    /// <summary>Hakkımızda and the announcement have no manual order: 422.</summary>
-    NotOrderable,
-
-    /// <summary>The record is first and moves up, or last and moves down: 422.</summary>
-    AtEdge,
-
-    NotFound,
 }
 
 /// <summary>The result of a move in the manual order.</summary>

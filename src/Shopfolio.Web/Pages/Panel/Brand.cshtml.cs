@@ -308,7 +308,7 @@ internal sealed class BrandModel : PageModel
         BrandIdentity identity = Identity;
         string? typed = Form.BrandColor?.Trim();
         bool isColor = typed is { Length: 7 } && typed[0] == '#' && typed[1..].All(char.IsAsciiHexDigit);
-        string color = isColor ? typed!.ToUpperInvariant() : identity.Color;
+        string color = typed is not null && isColor ? typed.ToUpperInvariant() : identity.Color;
         (string background, string text) = isColor ? EmailColors.Button(color) : (identity.Color, identity.TextColor);
         string name = string.IsNullOrWhiteSpace(Form.BrandName) ? identity.DisplayName : Form.BrandName.Trim();
         SampleBrand = new FrameBrand(name, Form.LogoId, Form.FaviconId, BrandingInitial(name), background, text);

@@ -18,10 +18,13 @@ namespace Shopfolio.Pages.Panel;
 /// </summary>
 public sealed class ReorderContentInput : IFormInput
 {
+    [SpecAssignedName]
     public string? ContentKind { get; set; }
 
+    [SpecAssignedName]
     public Guid ContentId { get; set; }
 
+    [SpecAssignedName]
     public PanelContentMove? Direction { get; set; }
 
     [SpecAssignedName]

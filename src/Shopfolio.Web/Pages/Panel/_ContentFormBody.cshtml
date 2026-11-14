@@ -179,7 +179,7 @@
                 {
                     LinkedProductView linked = Model.LinkedProducts[p];
                     <li class="content-form__linked-item">
-                        <input type="hidden" name="Input.RelatedProducts[@p].ProductId" value="@linked.ProductId.ToString("D")" />
+                        <input type="hidden" name="Input.LinkedProducts[@p].ProductId" value="@linked.ProductId.ToString("D")" />
                         <span class="content-form__linked-name">@linked.Name</span>
                         <partial name="_Badge" model="StatusBadges.For(linked.PublishStatus)" />
                         @if (linked.PublishStatus != PublishStatus.Published)
@@ -187,8 +187,8 @@
                             <span class="content-form__linked-note">@ContentFormModel.UnpublishedProductText</span>
                         }
                         <label for="content-product-@p-order">Sıra</label>
-                        <input type="number" id="content-product-@p-order" name="Input.RelatedProducts[@p].SortOrder" value="@Whole(linked.SortOrder)" min="1" />
-                        <input type="checkbox" id="content-product-@p-remove" name="Input.RelatedProducts[@p].Remove" value="true" />
+                        <input type="number" id="content-product-@p-order" name="Input.LinkedProducts[@p].SortOrder" value="@Whole(linked.SortOrder)" min="1" />
+                        <input type="checkbox" id="content-product-@p-remove" name="Input.LinkedProducts[@p].Remove" value="true" />
                         <label for="content-product-@p-remove">Çıkar</label>
                     </li>
                 }

@@ -11,4 +11,7 @@ public enum PanelRefundObstacle
 
     /// <summary>The IBAN request names no item of the order (07 UC-134; <c>FieldRequired</c>).</summary>
     ItemNotSelected,
+
+    /// <summary>The amount based refund names a closure that is not an open "mal dönmedi" closure of the chosen item (07 UC-133; 04 7.2.13.2; K-1105; <c>InvalidListValue</c>).</summary>
+    ClosureNotOpen,
 }

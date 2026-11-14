@@ -1,6 +1,7 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @using Shopfolio.Infrastructure
 @using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Modules.AfterSales.Contracts
 @using Shopfolio.Modules.Ordering.Contracts
 @using Shopfolio.Modules.Payment.Contracts
 @using Shopfolio.Pages.Components
@@ -90,6 +91,19 @@
                         <option value="@item.OrderItemId.ToString("D")" selected="@(Model.AmountBased.OrderItemId == item.OrderItemId)">@item.Name</option>
                     }
                 </select>
+                @if (Model.OpenClosures.Count > 0)
+                {
+                    @* 04 7.2.13.2 (K-1105): on an item with an open "mal dönmedi" closure the closure is chosen too; the refund is bound to it. *@
+                    <label for="amount-based-refund-closure">"Mal dönmedi" kapanışı</label>
+                    <select id="amount-based-refund-closure" name="Input.NotReturnedClosureId">
+                        <option value="">Kapanış seçilmedi</option>
+                        @foreach (OpenNotReturnedClosure closure in Model.OpenClosures)
+                        {
+                            string itemName = Model.Detail.Items.FirstOrDefault(i => i.OrderItemId == closure.OrderItemId)?.Name ?? string.Empty;
+                            <option value="@closure.ClosureId.ToString("D")" selected="@(Model.AmountBased.NotReturnedClosureId == closure.ClosureId)">@itemName — @closure.Quantity adet, @DisplayFormat.Date(closure.ClosedAt)</option>
+                        }
+                    </select>
+                }
                 <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.AmountBasedRefundLabel)">@OrderDetailModel.AmountBasedRefundLabel</button>
             </form>
         }

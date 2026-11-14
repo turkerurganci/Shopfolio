@@ -6,6 +6,7 @@ using Shopfolio.Infrastructure.Binding;
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Operations;
+using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Pages.Components;
@@ -51,6 +52,9 @@ public sealed partial class OrderDetailModel
     /// <summary>07 UC-134 (04 7.2.13.3): the IBAN request names an item.</summary>
     public const string ItemNotSelectedText = "IBAN istenecek kalemi seçin.";
 
+    /// <summary>07 UC-133 (04 7.2.13.2; K-1105): the chosen closure is not an open "mal dönmedi" closure of the chosen item.</summary>
+    public const string ClosureNotOpenText = "Seçtiğiniz kalemin açık \"mal dönmedi\" kapanışlarından birini seçin.";
+
     /// <summary>07 UC-131 (<c>RefundIbanChanged</c>; 03 3.5.2.15): the customer corrected the IBAN while the window was open.</summary>
     public const string RefundIbanChangedText = "Müşteri IBAN'ını düzeltti; geri ödeme işlenmedi. Güncel IBAN aşağıda.";
 
@@ -66,6 +70,9 @@ public sealed partial class OrderDetailModel
 
     /// <summary>The order's refund lines (04 9.9.6, 9.9.21-9.9.24), with the steps open now - the module's one decision.</summary>
     public IReadOnlyList<PanelRefundLine> RefundLines { get; private set; } = [];
+
+    /// <summary>The order's open "mal dönmedi" closures the amount based refund can be bound to (04 7.2.13.2; 07 UC-133 <c>NotReturnedClosureId</c>; K-1105).</summary>
+    public IReadOnlyList<OpenNotReturnedClosure> OpenClosures { get; private set; } = [];
 
     /// <summary>The amount based refund form as sent, kept on a refusal (04 9.9.41).</summary>
     public ProcessAmountBasedRefundInput AmountBased { get; private set; } = new();
@@ -152,7 +159,7 @@ public sealed partial class OrderDetailModel
 
         TransitionAdmin admin = await AdminAsync(ct);
         PanelRefundStepResult result = await RunRefundStepAsync(
-            (steps, token) => steps.ProcessAmountBasedRefundAsync(new AmountBasedRefundRequest(id, amount, input.OrderItemId, admin, input.Version, input.Confirmed), token),
+            (steps, token) => steps.ProcessAmountBasedRefundAsync(new AmountBasedRefundRequest(id, amount, input.OrderItemId, input.NotReturnedClosureId, admin, input.Version, input.Confirmed), token),
             ct);
         return result.Refusal == TransitionRefusal.ConfirmationRequired
             ? await AskAsync(id, () => AmountBasedConfirm(id, input, result), ct)
@@ -209,8 +216,11 @@ public sealed partial class OrderDetailModel
         return await AnswerRefundAsync(id, result, ct);
     }
 
-    private async Task LoadRefundLinesAsync(Guid id, CancellationToken ct) =>
+    private async Task LoadRefundLinesAsync(Guid id, CancellationToken ct)
+    {
         RefundLines = await HttpContext.RequestServices.GetRequiredService<IPanelRefundSteps>().ReadLinesAsync(id, ct);
+        OpenClosures = await _afterSales.ListOpenNotReturnedClosuresAsync([.. Detail.Items.Select(i => i.OrderItemId)], ct);
+    }
 
     // The named refusals carry their own code and message (07 6.2.7); the rest is the line steps' one answer (409, 404, 422 "açık değil").
     private async Task<IActionResult> AnswerRefundAsync(Guid id, PanelRefundStepResult result, CancellationToken ct) => result.Obstacle switch
@@ -218,6 +228,7 @@ public sealed partial class OrderDetailModel
         PanelRefundObstacle.IbanMissing => await RefuseAsync(id, RefundIbanMissingText, ErrorCode.RefundIbanMissing, ct),
         PanelRefundObstacle.AmountExceeded => await RefuseAsync(id, AmountExceededText, ErrorCode.AmountBasedRefundExceeded, ct),
         PanelRefundObstacle.ItemNotSelected => await RefuseAsync(id, ItemNotSelectedText, ErrorCode.FieldRequired, ct),
+        PanelRefundObstacle.ClosureNotOpen => await RefuseAsync(id, ClosureNotOpenText, ErrorCode.InvalidListValue, ct),
         _ => await AnswerAsync(id, new PanelStepResult(result.Refusal), ct),
     };
 
@@ -257,6 +268,7 @@ public sealed partial class OrderDetailModel
         [
             new("Input.Amount", input.Amount ?? string.Empty),
             new("Input.OrderItemId", input.OrderItemId?.ToString("D") ?? string.Empty),
+            new("Input.NotReturnedClosureId", input.NotReturnedClosureId?.ToString("D") ?? string.Empty),
             Field("Input.Version", input.Version),
             new("Input.Confirmed", "true"),
         ];
@@ -335,12 +347,17 @@ public sealed class ProcessRefundInput : IFormInput
     ];
 }
 
-/// <summary>UC-133 <c>ProcessAmountBasedRefundInput</c>: the amount (text, so a wrong value is a refusal and not a binding error; 07 2.9.4), the optional item, the version and the confirmation.</summary>
+/// <summary>
+/// UC-133 <c>ProcessAmountBasedRefundInput</c>: the amount (text, so a wrong value is a refusal and not a binding error; 07 2.9.4), the optional item, the item's open "mal dönmedi" closure (04 7.2.13.2;
+/// K-1105), the version and the confirmation.
+/// </summary>
 public sealed class ProcessAmountBasedRefundInput : IFormInput
 {
     public string? Amount { get; set; }
 
     public Guid? OrderItemId { get; set; }
+
+    public Guid? NotReturnedClosureId { get; set; }
 
     public int Version { get; set; }
 

@@ -221,6 +221,85 @@ public sealed partial class OrderDetailPageTests
         Assert.Equal(PaymentStatus.PartiallyRefunded, (await db.Orders.AsNoTracking().SingleAsync(o => o.Id == seeded.OrderId, Ct)).PaymentStatus);
     }
 
+    // ---- KK5: the binding to the item's open "mal dönmedi" closure; the later receipt bears it ----
+
+    [Fact]
+    public async Task ProcessAmountBasedRefund_IsBoundToTheChosenOpenClosure_AForeignOneIs422_AndTheLaterReceiptsRefundBearsTheBoundAmount_KK5()
+    {
+        (string key, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
+        Seeded seeded = await SeedPaidAsync(PaymentMethod.Card, withIban: false, withdrawal: true);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateOnly today = DateOnly.FromDateTime(now.UtcDateTime);
+        await ExecuteAsync($"UPDATE order_items SET delivery_marked_at = now(), delivery_date = '{today.AddDays(-1):yyyy-MM-dd}' WHERE id = '{seeded.ItemId}'");
+        NotReturnedClosure closure = NotReturnedClosure.Create(seeded.ItemId, seeded.CauseId, 1, adminId, "Yönetici", now);
+        await using (AppDbContext db = NewContext())
+        {
+            db.NotReturnedClosures.Add(closure);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        // No job runner: the card refunds' jobs stay queued, so the order's version is the steps' alone.
+        await using WebApplicationFactory<Program> factory = Open(withJobRunner: false);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        const decimal Bound = 30m;
+
+        (_, string screen) = await GetAsync(client, Path(seeded), key);
+        (HttpStatusCode foreign, string foreignHtml) = await PostAsync(
+            client,
+            Path(seeded, "ProcessAmountBasedRefund"),
+            [("Input.Amount", "30"), ("Input.OrderItemId", seeded.ItemId.ToString("D")), ("Input.NotReturnedClosureId", Guid.NewGuid().ToString("D")), ("Input.Version", "1"), ("Input.Confirmed", "true")],
+            key);
+        (HttpStatusCode noItem, _) = await PostAsync(
+            client, Path(seeded, "ProcessAmountBasedRefund"), [("Input.Amount", "30"), ("Input.NotReturnedClosureId", closure.Id.ToString("D")), ("Input.Version", "1"), ("Input.Confirmed", "true")], key);
+
+        Assert.Contains($"name=\"Input.NotReturnedClosureId\"", screen, StringComparison.Ordinal);
+        Assert.Contains($"value=\"{closure.Id:D}\"", screen, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, foreign);
+        Assert.Contains(OrderDetailModel.ClosureNotOpenText, foreignHtml, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, noItem);
+        await AssertNothingWrittenAsync(seeded.OrderId, 1);
+
+        (HttpStatusCode done, _) = await PostForLocationAsync(
+            client,
+            Path(seeded, "ProcessAmountBasedRefund"),
+            [("Input.Amount", "30"), ("Input.OrderItemId", seeded.ItemId.ToString("D")), ("Input.NotReturnedClosureId", closure.Id.ToString("D")), ("Input.Version", "1"), ("Input.Confirmed", "true")],
+            key);
+        Assert.Equal(HttpStatusCode.SeeOther, done);
+        Guid boundRefund;
+        await using (AppDbContext db = NewContext())
+        {
+            Refund refund = await db.Refunds.AsNoTracking().SingleAsync(r => r.OrderId == seeded.OrderId, Ct);
+            Assert.Equal((RefundType.AmountBased, Bound, (Guid?)closure.Id), (refund.RefundType, refund.Amount, refund.NotReturnedClosureId));
+            boundRefund = refund.Id;
+
+            // The goods come after all: the receipt reopens the closure (K-1024 (6)) and its refund is owed.
+            NotReturnedClosure reopened = await db.NotReturnedClosures.SingleAsync(n => n.Id == closure.Id, Ct);
+            reopened.ReopenedAt = now.AddMinutes(1);
+            db.Returns.Add(Return.ForWithdrawal(seeded.ItemId, seeded.CauseId, 1, today, adminId, "Yönetici", now.AddMinutes(1)));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        Guid receiptId;
+        int version;
+        await using (AppDbContext db = NewContext())
+        {
+            receiptId = (await db.Returns.AsNoTracking().SingleAsync(r => r.OrderItemId == seeded.ItemId, Ct)).Id;
+            version = (await db.Orders.AsNoTracking().SingleAsync(o => o.Id == seeded.OrderId, Ct)).Version;
+        }
+
+        (HttpStatusCode received, _) = await PostForLocationAsync(
+            client, Path(seeded, "ProcessRefund"), [("Input.ReturnId", receiptId.ToString("D")), ("Input.Version", version.ToString(System.Globalization.CultureInfo.InvariantCulture)), ("Input.Confirmed", "true")], key);
+
+        Assert.Equal(HttpStatusCode.SeeOther, received);
+        await using AppDbContext after = NewContext();
+        Refund receiptRefund = await after.Refunds.AsNoTracking().SingleAsync(r => r.OrderId == seeded.OrderId && r.Id != boundRefund, Ct);
+        Order order = await after.Orders.AsNoTracking().SingleAsync(o => o.Id == seeded.OrderId, Ct);
+
+        // K-1105: the receipt's 50 bears the bound 30 - the server deducts it; the fee, when the rule includes it, rides aside.
+        Assert.Equal(50m - Bound + (receiptRefund.IsShippingFeeIncluded ? order.ShippingFee : 0m), receiptRefund.Amount);
+        Assert.Equal(receiptId, receiptRefund.ReturnId);
+    }
+
     // ---- KK8: the IBAN request's reason is the server's; no item or not the transfer line is 422 ----
 
     [Fact]

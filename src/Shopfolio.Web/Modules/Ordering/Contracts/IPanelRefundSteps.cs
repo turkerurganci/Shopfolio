@@ -85,8 +85,8 @@ public static class PanelRefundKeys
 /// <summary>A refund step on one line (T529; 07 UC-131, UC-132, UC-135...UC-137): the order, the line's key, the administrator, the version the screen showed and the confirmation mark.</summary>
 public sealed record PanelRefundRequest(Guid OrderId, Guid Key, TransitionAdmin Admin, int ExpectedVersion, bool Confirmed = false);
 
-/// <summary>UC-133: the amount based partial refund - the amount, the optional item, the administrator, the version and the confirmation mark.</summary>
-public sealed record AmountBasedRefundRequest(Guid OrderId, decimal Amount, Guid? OrderItemId, TransitionAdmin Admin, int ExpectedVersion, bool Confirmed);
+/// <summary>UC-133: the amount based partial refund - the amount, the optional item, the item's chosen open "mal dönmedi" closure (06 4.33 <c>NotReturnedClosureId</c>; K-1105), the administrator, the version and the confirmation mark.</summary>
+public sealed record AmountBasedRefundRequest(Guid OrderId, decimal Amount, Guid? OrderItemId, Guid? NotReturnedClosureId, TransitionAdmin Admin, int ExpectedVersion, bool Confirmed);
 
 /// <summary>
 /// The panel's refund steps on one order (T529; 07 UC-131...UC-137; 04 9.9.21-9.9.24), the write half of operations 03 1.11.31-1.11.33 and 1.11.39 (09 8.3 items 1-3; D-153). Each method joins the

@@ -182,6 +182,15 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
             return new PanelRefundStepResult(TransitionRefusal.InvalidInput) { Obstacle = PanelRefundObstacle.ItemNotSelected };
         }
 
+        // 04 7.2.13.2 (K-1105): on an item with an open "mal dönmedi" closure the closure is chosen too and the refund is bound to it - the chosen one must be the item's own open closure; with none
+        // chosen the item's latest open closure binds it, so no refund on such an item stays unbound.
+        IReadOnlyList<OpenNotReturnedClosure> open = request.OrderItemId is { } closed ? await _afterSales.ListOpenNotReturnedClosuresAsync([closed], ct) : [];
+        if (request.NotReturnedClosureId is { } chosen && !open.Any(c => c.ClosureId == chosen))
+        {
+            return new PanelRefundStepResult(TransitionRefusal.InvalidInput) { Obstacle = PanelRefundObstacle.ClosureNotOpen };
+        }
+
+        Guid? closure = request.NotReturnedClosureId ?? (open.Count > 0 ? open[0].ClosureId : null);
         Lines lines = await ReadAsync(order, ct);
         PaymentMethod way = Way(order);
         string? iban = way == PaymentMethod.BankTransfer ? lines.IbanOf(null, request.OrderItemId) : null;
@@ -213,8 +222,7 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
             return new PanelRefundStepResult(TransitionRefusal.ConfirmationRequired) { Amount = request.Amount, Iban = iban };
         }
 
-        // The item's open "mal dönmedi" closure binds the refund (K-1105); the closed item stays closed (K-596) - the refund writes no item record.
-        Guid? closure = request.OrderItemId is { } bound ? await _afterSales.FindOpenNotReturnedClosureAsync(bound, ct) : null;
+        // The closure chosen above binds the refund (K-1105); the closed item stays closed (K-596) - the refund writes no item record.
         RefundFacts started = await _payment.StartFirmRefundAsync(
             new FirmRefundStart(
                 order.Id, order.PaymentMethod, RefundType.AmountBased, request.Amount, false, request.OrderItemId, null, null, null, closure, request.Admin.AdminId, request.Admin.AdminName),

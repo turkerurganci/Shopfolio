@@ -78,7 +78,7 @@
 
 - **Branch:** `task/T529-geri-odeme-islemleri`
 - **Commit:** "T529: Sipariş ayrıntısı: geri ödeme işlemleri (E-37)" (dalın son commit'i; öncekiler WIP)
-- **PR:** *(açılınca)*
+- **PR:** #575
 - **CI:** yönetici izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

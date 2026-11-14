@@ -1,4 +1,6 @@
+using System.ComponentModel.DataAnnotations;
 using System.Net;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 using Microsoft.AspNetCore.Http;
@@ -14,6 +16,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Validation;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
 using Shopfolio.IntegrationTests.Pages;
@@ -25,6 +28,7 @@ using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
+using Shopfolio.Modules.Settings.Contracts.Gates;
 using Shopfolio.Pages.Panel;
 
 namespace Shopfolio.IntegrationTests.Web;
@@ -268,6 +272,40 @@ public sealed partial class PaymentAndShippingPagesTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.SeeOther, confirmed.StatusCode);
         Assert.False(await ScalarAsync<bool>("SELECT is_bank_transfer_enabled FROM company_settings"));
+    }
+
+    // ---- VAL-A752 (D-1480): the IBAN's change and the transfer's closing together carry both sentences, each with the waiting order; the confirmed send closes the sale ----
+
+    [Fact]
+    public async Task ChangingTheIbanAndClosingTheTransferTogether_AsksBothSentencesWithTheWaitingOrder_AndTheConfirmedSendClosesTheSale_A752()
+    {
+        await ExecuteAsync($"UPDATE company_settings SET is_bank_transfer_enabled = true, bank_transfer_iban = '{Iban}'");
+        await using WebApplicationFactory<Program> factory = Open().WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddScoped<ICardPaymentCondition>(_ => new FixedCardCondition(false))));
+        await SeedAwaitingTransferOrderAsync(factory);
+        using HttpClient client = ClientOf(factory);
+        Assert.DoesNotContain(SalesGateCondition.PaymentMethod, (await SalesGateOfAsync(factory)).UnmetConditions);
+
+        using HttpResponseMessage first = await client.PostAsync(PaymentPath + "?handler=SavePaymentMethods", PaymentForm(false, OtherIban, 1), Ct);
+        string html = WebUtility.HtmlDecode(await first.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+        Assert.Contains(PaymentMethodsModel.IbanChangeSentence(1), html, StringComparison.Ordinal);
+        Assert.Contains(PaymentMethodsModel.CloseSentence(1, otherMethodOpen: false), html, StringComparison.Ordinal);
+        Assert.Contains("ödemesi beklenen 1 havale siparişi eski IBAN'ı göstermeye devam edecek", html, StringComparison.Ordinal);
+        Assert.Contains("Ödemesi beklenen 1 havale siparişi etkilenmez; donmuş IBAN'larıyla sürer.", html, StringComparison.Ordinal);
+        Assert.Contains("Açık başka ödeme yöntemi olmadığı için satış da kapanacak.", html, StringComparison.Ordinal);
+        Assert.Contains(PaymentMethodsModel.CloseTransferLabel, html, StringComparison.Ordinal);
+        Assert.True(await ScalarAsync<bool>("SELECT is_bank_transfer_enabled FROM company_settings"));
+        Assert.Equal(Iban, await ScalarAsync<string>("SELECT bank_transfer_iban FROM company_settings"));
+        Assert.Equal(1, await ScalarAsync<int>("SELECT payment_methods_version FROM company_settings"));
+
+        using HttpResponseMessage confirmed = await client.PostAsync(PaymentPath + "?handler=SavePaymentMethods", PaymentForm(false, OtherIban, 1, confirmed: true), Ct);
+
+        Assert.Equal(HttpStatusCode.SeeOther, confirmed.StatusCode);
+        Assert.False(await ScalarAsync<bool>("SELECT is_bank_transfer_enabled FROM company_settings"));
+        Assert.Equal(OtherIban, await ScalarAsync<string>("SELECT bank_transfer_iban FROM company_settings"));
+        Assert.Equal(Iban, await ScalarAsync<string>("SELECT bank_transfer_iban FROM orders"));
+        Assert.Contains(SalesGateCondition.PaymentMethod, (await SalesGateOfAsync(factory)).UnmetConditions);
     }
 
     [Fact]
@@ -629,6 +667,40 @@ public sealed partial class PaymentAndShippingPagesTests : IAsyncLifetime
         Assert.Equal(1, await ScalarAsync<int>("SELECT return_address_version FROM company_settings"));
     }
 
+    // ---- KK10 (düzeltme 2; 07 2.2.4, VAL-A597): an invalid change of the entered address is refused by field on its first send, before any confirmation; a valid one is asked ----
+
+    [Theory]
+    [InlineData("", "province", "", nameof(SaveReturnAddressInput.ReturnRecipientName), FieldCodes.FilledFieldCleared)]
+    [InlineData("Depo Sorumlusu", "off-list", "", nameof(SaveReturnAddressInput.ReturnProvinceId), FieldCodes.InvalidProvince)]
+    [InlineData("Depo Sorumlusu", "province", "12", nameof(SaveReturnAddressInput.ReturnPhone), FieldCodes.InvalidPhone)]
+    public async Task AnInvalidChangeOfTheEnteredReturnAddress_Is422WithTheFieldMessageOnItsFirstSend_NotTheConfirmation_AndAValidChangeIsAsked_KK10(
+        string recipient, string province, string phone, string field, string code)
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        using HttpResponseMessage entered = await client.PostAsync(ShippingPath + "?handler=SaveReturnAddress", ReturnForm("Depo Sorumlusu", _ankara.ToString(), "Çankaya", 1), Ct);
+        Assert.Equal(HttpStatusCode.SeeOther, entered.StatusCode);
+        string provinceValue = province == "province" ? _izmir.ToString() : Guid.NewGuid().ToString();
+        string label = typeof(SaveReturnAddressInput).GetProperty(field)!.GetCustomAttribute<DisplayAttribute>()!.Name!;
+
+        using HttpResponseMessage refused = await client.PostAsync(ShippingPath + "?handler=SaveReturnAddress", ReturnForm(recipient, provinceValue, "Bornova", 2, phone: phone), Ct);
+        string html = WebUtility.HtmlDecode(await refused.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, refused.StatusCode);
+        Assert.Contains(FieldMessageCatalog.Build(code, label, null), html, StringComparison.Ordinal);
+        Assert.DoesNotContain(ShippingAndDefaultsModel.ReturnAddressChangeSentence(0), html, StringComparison.Ordinal);
+        Assert.Equal(2, await ScalarAsync<int>("SELECT return_address_version FROM company_settings"));
+        Assert.Equal("Çankaya", await ScalarAsync<string>("SELECT return_district FROM company_settings"));
+
+        // The reverse: the same change with valid fields is asked to be confirmed (200, nothing written).
+        using HttpResponseMessage valid = await client.PostAsync(ShippingPath + "?handler=SaveReturnAddress", ReturnForm("Depo Sorumlusu", _izmir.ToString(), "Bornova", 2), Ct);
+        string validHtml = WebUtility.HtmlDecode(await valid.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.OK, valid.StatusCode);
+        Assert.Contains(ShippingAndDefaultsModel.ReturnAddressChangeSentence(0), validHtml, StringComparison.Ordinal);
+        Assert.Equal(2, await ScalarAsync<int>("SELECT return_address_version FROM company_settings"));
+    }
+
     // ---- helpers ----
 
     private static FormUrlEncodedContent PaymentForm(bool enabled, string iban, int version, bool confirmed = false)
@@ -694,6 +766,12 @@ public sealed partial class PaymentAndShippingPagesTests : IAsyncLifetime
     {
         using IServiceScope scope = factory.Services.CreateScope();
         return await scope.ServiceProvider.GetRequiredService<ICardPaymentCondition>().IsOpenAsync(Ct);
+    }
+
+    private static async Task<SalesGate> SalesGateOfAsync(WebApplicationFactory<Program> factory)
+    {
+        using IServiceScope scope = factory.Services.CreateScope();
+        return await scope.ServiceProvider.GetRequiredService<ISettingsModule>().GetSalesGateAsync(Ct);
     }
 
     private sealed class FixedCardCondition(bool open) : ICardPaymentCondition

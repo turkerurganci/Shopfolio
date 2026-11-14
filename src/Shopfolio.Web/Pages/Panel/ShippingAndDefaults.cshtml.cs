@@ -283,7 +283,7 @@ public sealed class ShippingAndDefaultsModel : PageModel
     }
 
     /// <summary>
-    /// UC-172: the first entry is saved without a confirmation; a change of the entered address answers its first send with the confirmation that says how many items' returned goods are awaited
+    /// UC-172: the first entry is saved without a confirmation; a valid change of the entered address (its fields checked first: an invalid one is 422) answers its first send with the confirmation that says how many items' returned goods are awaited
     /// (200, nothing written; K-665, K-814); the confirmed send saves. 422 by field, 409 on the section's version.
     /// </summary>
     [OutcomeUncertain("UC-172")]
@@ -291,8 +291,21 @@ public sealed class ShippingAndDefaultsModel : PageModel
     {
         ArgumentNullException.ThrowIfNull(input);
         ReturnAddressSection current = Data.ReturnAddress;
+        ReturnAddressInput values = new(
+            input.ReturnRecipientName,
+            Guid.TryParse(input.ReturnProvinceId, out Guid province) ? province : (string.IsNullOrWhiteSpace(input.ReturnProvinceId) ? null : Guid.Empty),
+            input.ReturnDistrict,
+            input.ReturnAddressLine,
+            input.ReturnPhone);
         if (!input.Confirmed && current.Address is { } stored && input.ReturnAddressVersion == current.Version && Differs(input, stored))
         {
+            // 07 2.2.4: the form's first send checks the fields; the confirmation is asked only of a valid change (the writer's rule, its one home).
+            IReadOnlyList<FieldRejection> rejections = await _settings.CheckReturnAddressAsync(values, ct);
+            if (rejections.Count > 0)
+            {
+                return await AnswerAsync(input, ReturnAddressSection, SettingsSaveResult.Refused(rejections), ct);
+            }
+
             int awaiting = await _afterSales.CountItemsAwaitingReturnGoodsAsync(ct);
             Confirm = Confirmations.ForSettingChange(
                 ChangeReturnAddressLabel,
@@ -314,12 +327,6 @@ public sealed class ShippingAndDefaultsModel : PageModel
             return Page();
         }
 
-        ReturnAddressInput values = new(
-            input.ReturnRecipientName,
-            Guid.TryParse(input.ReturnProvinceId, out Guid province) ? province : (string.IsNullOrWhiteSpace(input.ReturnProvinceId) ? null : Guid.Empty),
-            input.ReturnDistrict,
-            input.ReturnAddressLine,
-            input.ReturnPhone);
         return await AnswerAsync(input, ReturnAddressSection, await Runner.RunAsync(token => _settings.SaveReturnAddressAsync(values, input.ReturnAddressVersion, token), ct), ct);
     }
 

@@ -775,6 +775,8 @@ public sealed partial class MembershipTests : IAsyncLifetime
 
         public Task<SettingsSaveResult> SaveReturnAddressAsync(ReturnAddressInput input, int formVersion, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<IReadOnlyList<Shopfolio.Modules.Settings.Contracts.FieldRejection>> CheckReturnAddressAsync(ReturnAddressInput input, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<ShippingFeeSection> GetShippingFeeAsync(CancellationToken ct) => throw new NotSupportedException();
 
         public Task<SettingsSaveResult> SaveShippingFeeAsync(ShippingFeeInput input, int formVersion, CancellationToken ct) => throw new NotSupportedException();

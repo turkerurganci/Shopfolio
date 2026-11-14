@@ -188,15 +188,47 @@ internal sealed class CompanySettingsWriter
         ArgumentNullException.ThrowIfNull(input);
         await LockAsync(ct);
 
-        string? recipient = CompanyIdentityRules.Text(input.RecipientName);
-        Guid? province = input.ProvinceId == Guid.Empty ? null : input.ProvinceId;
-        string? district = CompanyIdentityRules.Text(input.District);
-        string? addressLine = CompanyIdentityRules.Text(input.AddressLine);
-        string? phone = CompanyIdentityRules.Phone(input.Phone);
-        bool[] filled = [recipient is not null, province is not null, district is not null, addressLine is not null];
-
         ReturnAddressSection current = await ReadReturnAddressAsync(ct);
         readUnderLock?.Invoke(current);
+        IReadOnlyList<FieldRejection> rejections = await CheckReturnAddressAsync(input, current, ct);
+        if (rejections.Count > 0)
+        {
+            return SettingsSaveResult.Refused(rejections);
+        }
+
+        (string? recipient, Guid? province, string? district, string? addressLine, string? phone) = Normalized(input);
+        int written = await _db.CompanySettings
+            .Where(s => s.ReturnAddressVersion == formVersion)
+            .ExecuteUpdateAsync(
+                set => set
+                    .SetProperty(s => s.ReturnRecipientName, recipient)
+                    .SetProperty(s => s.ReturnProvinceId, province)
+                    .SetProperty(s => s.ReturnDistrict, district)
+                    .SetProperty(s => s.ReturnAddressLine, addressLine)
+                    .SetProperty(s => s.ReturnPhone, phone)
+                    .SetProperty(s => s.ReturnAddressVersion, s => s.ReturnAddressVersion + 1),
+                ct);
+        if (written == 0)
+        {
+            return SettingsSaveResult.VersionConflict;
+        }
+
+        _invalidations.Add(CacheArea.Settings);
+        return SettingsSaveResult.Saved;
+    }
+
+    /// <summary>
+    /// The return address section's field checks (02 3.1.7; 04 7.2.21.6, 7.2.21.7; 07 2.2.4): the one rule of <see cref="SaveReturnAddressAsync"/>, which it runs under the row lock, and which the form
+    /// runs before it asks the change's confirmation, so that the first send of an invalid change is 422, not the confirmation (T536 düzeltme 2; VAL-A597). The four required parts come together;
+    /// once the address is complete none can be emptied; a filled telephone must be a number; a province must be on the list.
+    /// </summary>
+    public async Task<IReadOnlyList<FieldRejection>> CheckReturnAddressAsync(ReturnAddressInput input, ReturnAddressSection current, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        ArgumentNullException.ThrowIfNull(current);
+        (string? recipient, Guid? province, string? district, string? addressLine, string? phone) = Normalized(input);
+        bool[] filled = [recipient is not null, province is not null, district is not null, addressLine is not null];
+
         List<FieldRejection> rejections = [];
         if (phone is not null && new InvalidPhoneAttribute().GetValidationResult(phone, new System.ComponentModel.DataAnnotations.ValidationContext(phone)) is not null)
         {
@@ -225,28 +257,10 @@ internal sealed class CompanySettingsWriter
             }
         }
 
-        if (rejections.Count > 0)
-        {
-            return SettingsSaveResult.Refused(rejections);
-        }
-
-        int written = await _db.CompanySettings
-            .Where(s => s.ReturnAddressVersion == formVersion)
-            .ExecuteUpdateAsync(
-                set => set
-                    .SetProperty(s => s.ReturnRecipientName, recipient)
-                    .SetProperty(s => s.ReturnProvinceId, province)
-                    .SetProperty(s => s.ReturnDistrict, district)
-                    .SetProperty(s => s.ReturnAddressLine, addressLine)
-                    .SetProperty(s => s.ReturnPhone, phone)
-                    .SetProperty(s => s.ReturnAddressVersion, s => s.ReturnAddressVersion + 1),
-                ct);
-        if (written == 0)
-        {
-            return SettingsSaveResult.VersionConflict;
-        }
-
-        _invalidations.Add(CacheArea.Settings);
-        return SettingsSaveResult.Saved;
+        return rejections;
     }
+
+    private static (string? Recipient, Guid? Province, string? District, string? AddressLine, string? Phone) Normalized(ReturnAddressInput input) =>
+        (CompanyIdentityRules.Text(input.RecipientName), input.ProvinceId == Guid.Empty ? null : input.ProvinceId, CompanyIdentityRules.Text(input.District),
+            CompanyIdentityRules.Text(input.AddressLine), CompanyIdentityRules.Phone(input.Phone));
 }

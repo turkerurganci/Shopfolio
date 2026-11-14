@@ -70,6 +70,9 @@ internal sealed class SettingsModule : ISettingsModule
 
     public Task<ReturnAddressSection> GetReturnAddressAsync(CancellationToken ct) => _writer.ReadReturnAddressAsync(ct);
 
+    public async Task<IReadOnlyList<FieldRejection>> CheckReturnAddressAsync(ReturnAddressInput input, CancellationToken ct) =>
+        await _writer.CheckReturnAddressAsync(input, await _writer.ReadReturnAddressAsync(ct), ct);
+
     public Task<ShippingFeeSection> GetShippingFeeAsync(CancellationToken ct) => _firm.ReadShippingFeeAsync(ct);
 
     public Task<HomepageSection> GetHomepageAsync(CancellationToken ct) => _firm.ReadHomepageAsync(ct);

@@ -38,10 +38,16 @@ function bindAdd(button) {
 
         const copy = template.content.cloneNode(true);
         replaceIn(copy, String(rows()));
+        const nested = Array.from(copy.querySelectorAll('[data-js="row-add"]'));
         if (list.contains(button)) {
             button.before(copy);
         } else {
             list.append(copy);
+        }
+
+        // A row the script adds may carry its own add button (a new dimension's "Değer ekle"); it is bound once the row is in the page.
+        for (const added of nested) {
+            bindAdd(added);
         }
 
         if (Number.isInteger(max) && rows() >= max) {

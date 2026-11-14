@@ -980,6 +980,71 @@ public sealed class ProductFormPageTests : IAsyncLifetime
         Assert.Contains("js/pages/panel/product-form", html, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task TheNewForm_HasAValueTemplateForEveryPossibleDimension_AndTheNewDimensionsRowCarriesItsOwnAddButton_KK6_D1554()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        (_, string html) = await GetAsync(client, ProductFormModel.NewPath);
+
+        // A product with no option yet: the script's second dimension (number 1) finds its value template in the markup, the option's number fixed in it.
+        for (int n = 0; n < Shopfolio.Infrastructure.ProductConstants.OptionDimensionMax; n++)
+        {
+            string template = TemplateOf(html, $"product-option-{n}-value-template");
+            Assert.Contains($"name=\"Input.Options[{n}].Values[__index__].Value\"", template, StringComparison.Ordinal);
+        }
+
+        Assert.DoesNotContain($"product-option-{Shopfolio.Infrastructure.ProductConstants.OptionDimensionMax}-value-template", html, StringComparison.Ordinal);
+        string optionTemplate = TemplateOf(html, "product-option-template");
+        Assert.Contains("id=\"product-option-__index__-values\"", optionTemplate, StringComparison.Ordinal);
+        System.Text.RegularExpressions.Match add = System.Text.RegularExpressions.Regex.Match(optionTemplate, "<button[^>]*data-js=\"row-add\"[^>]*>", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5));
+        Assert.True(add.Success, "The new dimension's row carries its own add button.");
+        Assert.Contains("data-template=\"product-option-__index__-value-template\"", add.Value, StringComparison.Ordinal);
+        Assert.Contains("data-list=\"product-option-__index__-values\"", add.Value, StringComparison.Ordinal);
+        Assert.Contains(" hidden", add.Value, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task SaveProduct_ASecondValueUnderTheSecondDimension_AsTheScriptNumbersIt_IsSaved_KK6_D1554()
+    {
+        Product product = Product.Create("Bardak", $"p-{Guid.NewGuid():N}", ProductType.Physical, 20m, Base).WithSeededOrigin();
+        Option option = Option.Create(product.Id, "Renk", 1, Base);
+        OptionValue red = OptionValue.Create(option.Id, "Kırmızı", 1, Base);
+        Option size = Option.Create(product.Id, "Beden", 2, Base);
+        OptionValue small = OptionValue.Create(size.Id, "S", 1, Base);
+        Variant variant = Variant.Create(product.Id, $"S-{Guid.NewGuid():N}"[..20], 100m, Base, null);
+        variant.FirstOptionValueId = red.Id;
+        variant.SecondOptionValueId = small.Id;
+        variant.StockQuantity = 3;
+        await using (AppDbContext db = ListSeed.Open(_database.Dsn))
+        {
+            db.Products.Add(product);
+            db.Options.AddRange(option, size);
+            db.OptionValues.AddRange(red, small);
+            db.Variants.Add(variant);
+            db.PriceHistories.Add(PriceHistory.Create(variant.Id, 100m, Base, Base));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        (_, string html) = await GetAsync(client, ProductFormModel.PathOf(product.Id));
+
+        // What the script posts after its "Değer ekle" under the second dimension (number 1): the new value is number 1, numbered after the one the dimension has.
+        Dictionary<string, string> added = new(StringComparer.Ordinal)
+        {
+            ["Input.Options[1].Values[1].Value"] = "M",
+        };
+        List<(string Name, string Value)> fields = [.. SaveFormFieldsOf(html).Where(f => !added.ContainsKey(f.Name)), .. added.Select(c => (c.Key, c.Value))];
+
+        using HttpResponseMessage response = await PostAsync(client, product.Id, "SaveProduct", [.. fields]);
+
+        Assert.True(response.StatusCode == HttpStatusCode.SeeOther, WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct)));
+        await using AppDbContext check = ListSeed.Open(_database.Dsn);
+        Assert.Equal(["M", "S"], await check.OptionValues.AsNoTracking().Where(v => v.OptionId == size.Id).Select(v => v.Value).Order().ToListAsync(Ct));
+    }
+
     private static string RowOf(string html, Guid variantId)
     {
         int at = html.IndexOf($"data-variant=\"{variantId:D}\"", StringComparison.Ordinal);

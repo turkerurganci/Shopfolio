@@ -103,26 +103,32 @@
                         </div>
                     }
                 </div>
-                @* 09 16.2 item 4: a dimension of its own has a template of its own, the option's number fixed in it and the value's number the placeholder. *@
-                <template id="product-option-@ok-value-template" data-js="row-template">
-                    <div class="product-form__value" data-js="row">
-                        <label for="product-option-@ok-value-@ProductVariantEntryView.IndexPlaceholder">Yeni değer</label>
-                        <input type="text" id="product-option-@ok-value-@ProductVariantEntryView.IndexPlaceholder" name="Input.Options[@ok].Values[@ProductVariantEntryView.IndexPlaceholder].Value" value="" />
-                    </div>
-                </template>
                 <button type="button" class="button button--secondary" hidden data-js="row-add" data-template="product-option-@ok-value-template" data-list="product-option-@ok-values">Değer ekle</button>
             </div>
         }
+        @* 09 16.2 item 4: every dimension that can exist has a value template of its own, the option's number fixed in it and the value's number the placeholder (a dimension the script adds finds its own here). *@
+        @for (int t = 0; t < Shopfolio.Infrastructure.ProductConstants.OptionDimensionMax; t++)
+        {
+            string tk = t.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            <template id="product-option-@tk-value-template" data-js="row-template">
+                <div class="product-form__value" data-js="row">
+                    <label for="product-option-@tk-value-@ProductVariantEntryView.IndexPlaceholder">Yeni değer</label>
+                    <input type="text" id="product-option-@tk-value-@ProductVariantEntryView.IndexPlaceholder" name="Input.Options[@tk].Values[@ProductVariantEntryView.IndexPlaceholder].Value" value="" />
+                </div>
+            </template>
+        }
+        @* The new dimension's row carries its own "Değer ekle", pointing at the value template and the list of its number (the placeholder the script writes). *@
         <template id="product-option-template" data-js="row-template">
             <div class="product-form__option" data-js="row">
                 <label for="product-option-@ProductVariantEntryView.IndexPlaceholder-name">Seçenek adı</label>
                 <input type="text" id="product-option-@ProductVariantEntryView.IndexPlaceholder-name" name="Input.Options[@ProductVariantEntryView.IndexPlaceholder].Name" value="" />
-                <div class="product-form__values">
+                <div class="product-form__values" id="product-option-@ProductVariantEntryView.IndexPlaceholder-values">
                     <div class="product-form__value" data-js="row">
                         <label for="product-option-@ProductVariantEntryView.IndexPlaceholder-value-0">Yeni değer</label>
                         <input type="text" id="product-option-@ProductVariantEntryView.IndexPlaceholder-value-0" name="Input.Options[@ProductVariantEntryView.IndexPlaceholder].Values[0].Value" value="" />
                     </div>
                 </div>
+                <button type="button" class="button button--secondary" hidden data-js="row-add" data-template="product-option-@ProductVariantEntryView.IndexPlaceholder-value-template" data-list="product-option-@ProductVariantEntryView.IndexPlaceholder-values">Değer ekle</button>
             </div>
         </template>
         <button type="button" class="button button--secondary" hidden data-js="row-add" data-template="product-option-template" data-list="product-options" data-max="@Shopfolio.Infrastructure.ProductConstants.OptionDimensionMax">Seçenek ekle</button>

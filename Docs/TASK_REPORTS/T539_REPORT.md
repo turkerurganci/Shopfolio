@@ -31,7 +31,7 @@
 | 3 | Varyant seçimi, satış özeti dönemi, adres defteri ekleme/düzenleme GET | ✓ | `StorefrontSearchAndProductTests…T503_KK4`; `SalesSummaryPageTests…KK1` (yeni `method="get"` iddiası); `AccountAddressAndOrderHistoryPageTests` (`?create=true`) |
 | 4 | `aria-busy`, ikinci `submit` durur, `disabled` yok, önbellek dönüşünde kaldırılır | ✓ | `MessageSourceScanTests.TheSubmitOnceScript_…KK7`; `StorefrontSearchAndProductTests…T503_KK5` (ürün sayfası); `CheckoutPageTests` (sipariş düğmesi `submit-once`); tarama `disabled`'ı yasaklar |
 | 5 | Betik yalnız sunucunun `data-` değerlerini toplar, kural yazmaz | ✓ | Yeni betikler kural/oran içermez; durum adı ve tarih aritmetiği taraması T217 `OperationSourceScan` (c) betikleri de kapsar; tutar toplayan betik yok (müşteri kalem işlemlerinin son adımı sunucu cümlesidir) |
-| 6 | GET boş boyut/değer/varyant satırı; boş okunmaz; `row-template` + `__index__` boşluksuz | ✓ | `ProductFormPageTests.TheRowTemplates_…KK6` (şablon alan adları sayfanın boş satırıyla aynı, yer tutucu şablon dışında yok, düğmeler `hidden`, kayıt formu şablondan alan göndermez); mevcut `…BlankNewEntriesAreNotRead_KK3` |
+| 6 | GET boş boyut/değer/varyant satırı; boş okunmaz; `row-template` + `__index__` boşluksuz | ✓ | `ProductFormPageTests.TheRowTemplates_…KK6`, `TheNewForm_HasAValueTemplateForEveryPossibleDimension_…_D1554` (her olası boyut için değer şablonu; yeni boyut satırı kendi "Değer ekle" düğmesini taşır), `SaveProduct_ASecondValueUnderTheSecondDimension_…_D1554`; mevcut `…BlankNewEntriesAreNotRead_KK3` |
 | 7 | "Tümünü seç" betiksiz yok; kopyalama/paylaşım düğmesi `hidden`, değer seçilebilir metin | ✓ | `PaymentAndShippingPagesTests…KK7` (metin yok, kanca ve modül var); mevcut T363/T512 düğmeleri `hidden` + `common.js` |
 | 8 | "Teslimat adresimle aynı" fatura formuyla birlikte gider | ✓ | `CheckoutPageTests` (`name="IsBillingSameAsShipping"` fatura formunda; yeni iddia) + `CheckoutPageTests.Helpers` işaretli gönderim |
 | 9 | Parçalı yükleme tek istisna, betiksiz yolu yok | ✓ | `ProductFormPageTests.ADigitalProductsForm_CarriesTheFileFields_HookedForTheChunkedUpload_KK2` (kanca; betik T548'dir, D-1399) |
@@ -46,7 +46,7 @@
 | KK3 üç GET | ✓ | Varyant `T503_KK4`, dönem `SalesSummaryPageTests…KK1`, adres `?create=true`/`?addressBookId` |
 | KK4 ikinci gönderim durur; önbellek dönüşü | ✓ | `common.js bindSubmitOnce` (`pageshow`, `event.persisted`), `product.js` (aynı kalıp), `MessageSourceScanTests…KK7`; tarama `disabled` kırmızı |
 | KK5 betikte kural yok | ✓ | Yeni betikler yalnız DOM işi; `NoScriptPathSourceScanTests` + `OperationSourceScan` (c) |
-| KK6 iki yolda satır ekleme | ✓ | `ProductFormPageTests.TheRowTemplates_…KK6`, `…BlankNewEntriesAreNotRead_KK3` |
+| KK6 iki yolda satır ekleme | ✓ | `ProductFormPageTests.TheRowTemplates_…KK6`, `TheNewForm_HasAValueTemplateForEveryPossibleDimension_…_D1554`, `SaveProduct_ASecondValueUnderTheSecondDimension_…_D1554`, `…BlankNewEntriesAreNotRead_KK3` |
 | KK7 düğmeler betiksiz yok | ✓ | `PaymentAndShippingPagesTests…KK7` |
 | KK8 fatura kutusu | ✓ | `CheckoutPageTests` yeni iddia |
 | KK9 istisna | ✓ | `ProductFormPageTests…KK2` (kanca), D-1399 |
@@ -104,7 +104,7 @@
 
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
-| 1 | Betikle eklenen yeni seçenek satırı tek boş değer taşır | D-1554 | iç içe yer tutucu çakışması; betiksiz yolla aynı davranış |
+| 1 | ~~Betikle eklenen yeni seçenek satırı tek boş değer taşır~~ | D-1554 ✅ | Düzeltme 1'de kapandı (her boyutun kendi değer şablonu) |
 | 2 | Tarayıcı davranışı (odak, önbellek dönüşü) sınanmadı | D-1555 | `12` tarayıcı senaryosu, T601 |
 
 ## Notlar
@@ -113,4 +113,4 @@
 - **Ana dal CI startup (Adım 0):** 43581890422, 43581890558, 43575320382 — hepsi success.
 - **Repo memory (bitiş kapısı 9):** dokunulmadı.
 - ⚠ Karar (kolay): ödeme adımında yalnız kapalı listeler, radyo düğmeleri ve kupon kodu değişince ara gönderim yapılır; adres metin alanları yazarken gönderim yapmaz (odak kaybı, `09 §16.2` madde 1 notu).
-- ⚠ Karar (kolay): ürün formunda yeni seçenek şablonu tek değer girdisi taşır (D-1554).
+- **Düzeltme 1 (2026-11-14, B1):** `_ProductFormBody.cshtml` her olası boyut dizini (`OptionDimensionMax` = 2) için ayrı `product-option-<n>-value-template` yazar; `product-option-template` satırı kendi değer listesini (`product-option-__index__-values`) ve kendi "Değer ekle" düğmesini taşır, düğmenin `data-template`/`data-list` değerlerindeki yer tutucuyu betik yeni satıra yazarken değiştirir (üst dizin her şablonda sabit, iç içe çakışma yok); `product-form.js` eklenen satırdaki düğmeyi bağlar. D-1554 kapandı. K1: `NewProduct.cshtml` modül yüklemesine açıklama yorumu. Öz denetim: T539 kabul kriterlerinin ve KK1–KK10'un bütünü yeniden denetlendi; KK6 artık tam. Yeni testler: `TheNewForm_HasAValueTemplateForEveryPossibleDimension_AndTheNewDimensionsRowCarriesItsOwnAddButton_KK6_D1554`, `SaveProduct_ASecondValueUnderTheSecondDimension_AsTheScriptNumbersIt_IsSaved_KK6_D1554`. Sınama: build `-warnaserror` 0/0, `dotnet format` (dalın .cs dosyaları) temiz, Unit TAM 7680/7680, Integration ProductFormPageTests + StorefrontSearchAndProductTests + ProductSavesTests 95/95 — TAM: CI.

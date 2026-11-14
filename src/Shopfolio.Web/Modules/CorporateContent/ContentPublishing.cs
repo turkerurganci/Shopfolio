@@ -141,8 +141,8 @@ internal sealed class ContentPublishing
             return ContentResult.Of(ContentOutcome.ConfirmationRequired);
         }
 
+        // The deletion is tracked, not saved: the transaction's owner saves it with its commit (09 9.1 item 3; D-673).
         _db.Remove(record);
-        await _db.SaveChangesAsync(ct);
         DropStaleAreas();
         return ContentResult.Of(ContentOutcome.Deleted);
     }

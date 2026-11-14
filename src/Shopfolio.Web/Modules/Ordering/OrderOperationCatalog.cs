@@ -70,7 +70,8 @@ internal static class OrderOperationCatalog
         // ---- Administrator - the panel (03 1.11.15-1.11.41) ----
         Firm(OrderOperation.MarkTransferPaid, OperationScope.Order, i => Open(i.Order.PaymentMethod == PaymentMethod.BankTransfer && i.Order.OrderStatus == OrderStatus.Placed && i.Order.PaymentStatus == PaymentStatus.Pending)),
         Firm(OrderOperation.ShipOrder, OperationScope.Order, i => Open(i.Order.OrderStatus == OrderStatus.Preparing && i.Order.HasOpenPhysicalItem)),
-        Firm(OrderOperation.MarkDelivered, OperationScope.Order, i => Open(i.Order.OrderStatus == OrderStatus.Shipped)),
+        // The delivery mark goes only on open physical items (02 5.8; 03 1.4.3): with none left the writer refuses S6, so the row asks what the writer asks (one rule for the screen and the POST).
+        Firm(OrderOperation.MarkDelivered, OperationScope.Order, i => Open(i.Order.OrderStatus == OrderStatus.Shipped && i.Order.HasOpenPhysicalItem)),
         Firm(OrderOperation.MarkDeliveryFailed, OperationScope.Order, i => Open(i.Order.OrderStatus == OrderStatus.Shipped)),
         Firm(OrderOperation.ResendOrder, OperationScope.Order, i => Open(i.Order.OrderStatus == OrderStatus.DeliveryFailed && i.Order.HasOpenPhysicalItem)),
         Firm(OrderOperation.MarkServiceCompleted, OperationScope.Item, i => Open(i.Item is { ProductType: ProductType.Service, IsDeliveryMarked: false, OpenQuantity: > 0 } && i.Order.PaymentApproved)),

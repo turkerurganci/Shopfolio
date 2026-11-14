@@ -6,7 +6,7 @@ namespace Shopfolio.UnitTests.Architecture;
 
 /// <summary>
 /// The internal note never reaches the customer (T386 KK10; 02 10.4.7): the note's entity, set and table are named only by its entity file, the context, the writer
-/// (<c>OrderCorrections.Interventions.cs</c>) and its two conditional statements (<c>SaveInternalNote.cs</c>, 09 10.9), the disposal part that deletes it, the rollback audit's table list and the migrations - no page, e-mail template, contract
+/// (<c>OrderCorrections.Interventions.cs</c>) and its two conditional statements (<c>SaveInternalNote.cs</c>, 09 10.9), the disposal part that deletes it, the rollback audit's table list, the migrations and the panel's order screen (its reader, contract and page; T527) - no customer page, e-mail template, contract
 /// text or reader of the order page can read it. The operation names that contain the word (<c>SaveInternalNote</c>, <c>WriteInternalNote</c>) are not the note.
 /// The rule goes red on a deliberate violation sample in every form the scan claims to see and stays quiet on the allowed near-miss.
 /// </summary>
@@ -22,6 +22,12 @@ public sealed partial class InternalNoteSourceScanTests
         "src/Shopfolio.Web/Modules/Ordering/SaveInternalNote.cs",
         "src/Shopfolio.Web/Modules/Ordering/OrderDisposalPart.cs",
         "src/Shopfolio.Web/Infrastructure/Backup/RollbackAudit.cs",
+
+        // The panel's order screen shows the note to the firm only (E-37; 04 9.9; T527 KK4): its reader, the panel contract that carries it and the panel page.
+        // The customer's order page, e-mails and contract texts stay out.
+        "src/Shopfolio.Web/Modules/Ordering/PanelOrderReader.cs",
+        "src/Shopfolio.Web/Modules/Ordering/Contracts/PanelOrderContracts.cs",
+        "src/Shopfolio.Web/Pages/Panel/OrderDetail.cshtml",
     };
 
     [GeneratedRegex(@"\bInternalNotes?\b|\binternal_notes?\b|\bInternalNoteId\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

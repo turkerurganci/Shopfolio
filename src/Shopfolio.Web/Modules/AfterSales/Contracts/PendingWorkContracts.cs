@@ -5,3 +5,6 @@ namespace Shopfolio.Modules.AfterSales.Contracts;
 /// The page is read from the item records - the subject ids are the cursor - so a page can hold no order and still not be the end.
 /// </summary>
 public sealed record RefundProcessingPage(Guid? LastId, IReadOnlyList<Guid> OrderIds);
+
+/// <summary>What the open IBAN requests stand on (T527; 06 4.29): the items of the item requests and the refunds of the itemless ones (K-1075), each once.</summary>
+public sealed record OpenIbanRequestSubjects(IReadOnlyList<Guid> OrderItemIds, IReadOnlyList<Guid> RefundIds);

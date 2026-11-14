@@ -22,6 +22,30 @@ internal sealed partial class AfterSalesModule
         return claim is null ? null : Info(claim);
     }
 
+    public async Task<IReadOnlyList<OrderDefectClaim>> ListDefectClaimsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderItemIds);
+        Guid[] ids = [.. orderItemIds.Distinct()];
+        if (ids.Length == 0)
+        {
+            return [];
+        }
+
+        List<DefectClaim> claims = await _db.DefectClaims.AsNoTracking()
+            .Where(c => ids.Contains(c.OrderItemId))
+            .OrderBy(c => c.CreatedAt).ThenBy(c => c.Id)
+            .ToListAsync(ct);
+        return [.. claims.Select(c => new OrderDefectClaim(
+            c.Id,
+            c.OrderItemId,
+            c.DefectClaimStatus,
+            c.Quantity,
+            c.Description,
+            c.CreatedAt,
+            c.StatusHistory.Where(h => h.Status == DefectClaimStatus.Open).Select(h => (DateTimeOffset?)h.At).Max(),
+            Info(c).ReturnAddress))];
+    }
+
     public async Task<ItemRecordWriteResult> OpenDefectClaimAsync(DefectClaimOpening opening, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(opening);

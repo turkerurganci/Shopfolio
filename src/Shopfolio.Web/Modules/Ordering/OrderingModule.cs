@@ -341,6 +341,9 @@ internal sealed class OrderingModule : IOrderingModule
     public Task<int> CountCardOrdersAwaitingPaymentAsync(CancellationToken ct)
         => _db.Orders.AsNoTracking().CountAsync(PaymentWindowRules.Awaiting(PaymentMethod.Card), ct);
 
+    public Task<int> CountBankTransferOrdersAwaitingPaymentAsync(CancellationToken ct)
+        => _db.Orders.AsNoTracking().CountAsync(PaymentWindowRules.Awaiting(PaymentMethod.BankTransfer), ct);
+
     public async Task<IReadOnlyList<PaidCardItem>> ListPaidCardItemsAsync(Guid? afterOrderId, int maxOrders, CancellationToken ct)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(maxOrders, 1);

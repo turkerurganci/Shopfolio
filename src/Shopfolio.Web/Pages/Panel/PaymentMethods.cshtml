@@ -1,0 +1,48 @@
+@page "/panel/odeme-yontemleri"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model PaymentMethodsModel
+@*
+    E-45, the payment methods screen (T536; 04 9.17; 07 UC-100): one form - the card's read-only line, the bank transfer switch and its IBAN, the notes and the save. The confirmation window is the
+    server's answer to the first send of a change that asks for one (07 2.2.4). No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Ödeme yöntemleri";
+}
+<h1>Ödeme yöntemleri</h1>
+@if (Model.Notice is not null)
+{
+    <partial name="_Message" model="Model.Notice" />
+}
+@if (Model.Confirm is not null)
+{
+    <partial name="_Confirm" model="Model.Confirm" />
+}
+<partial name="_FormErrorSummary" model="Model.Summary" />
+<form method="post" asp-antiforgery="true" asp-page-handler="SavePaymentMethods" class="form" data-js="submit-once">
+    @VersionFields.SectionVersion("PaymentMethodsVersion", Model.FormVersion, "Input")
+    <section class="form-section" id="kart" aria-labelledby="card-heading">
+        <h2 id="card-heading">Kart</h2>
+        <p class="payment-methods__card" id="card-line">@(Model.IsCardOpen ? PaymentMethodsModel.CardOpenText : PaymentMethodsModel.CardUndefinedText)</p>
+    </section>
+    <section class="form-section" id="havale" aria-labelledby="transfer-heading">
+        <h2 id="transfer-heading">Havale/EFT</h2>
+        <div class="field field--checkbox">
+            <input type="checkbox" id="transfer-switch" name="Input.IsBankTransferEnabled" value="true" @(Model.IsBankTransferEnabledShown ? "checked" : null)>
+            <label for="transfer-switch">Havale/EFT açık</label>
+        </div>
+        <partial name="_Field" model="Model.IbanField" />
+        <p class="field__hint" id="iban-note">@PaymentMethodsModel.IbanNote</p>
+        <p class="field__hint" id="payment-window-note"><a href="@Shopfolio.Pages.Frame.PanelFramePaths.ShippingAndDefaults">@PaymentMethodsModel.PaymentWindowNote</a></p>
+        <p class="field__hint" id="free-text-reminder">@PaymentMethodsModel.FreeTextReminder</p>
+    </section>
+    @if (Model.StateLine is not null)
+    {
+        <p class="payment-methods__state" id="payment-state">@Model.StateLine</p>
+    }
+    <input type="hidden" name="Input.IsBankTransferEnabled" value="false">
+    @ConflictControls.RecordSaveControl(Model.IsConflicted, Shopfolio.Pages.Frame.PanelFramePaths.PaymentMethods)
+</form>

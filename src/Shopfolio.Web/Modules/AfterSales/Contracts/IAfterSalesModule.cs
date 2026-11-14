@@ -364,6 +364,12 @@ public interface IAfterSalesModule
     Task<IReadOnlyList<Guid>> ListOrdersAwaitingReturnGoodsAsync(CancellationToken ct);
 
     /// <summary>
+    /// The number of items marked "iade malı bekleniyor" (T536; 03 1.7.3.5, 8.7.4.5; K-665, K-814): the items of <see cref="ListOrdersAwaitingReturnGoodsAsync"/> whose <see cref="ItemMarksAsync"/> mark
+    /// is set, counted one by one - a withdrawal before the delivery and a late delivery termination await goods but carry no mark. The return address screen's confirmation says this number. A plain read.
+    /// </summary>
+    Task<int> CountItemsAwaitingReturnGoodsAsync(CancellationToken ct);
+
+    /// <summary>
     /// One page of the orders that owe the firm a refund step (T382; 02 10.6.1; K-621): the refund of a paid order's item record - a cancellation that was not undone, a removal, a late
     /// delivery termination, a withdrawal owed at its declaration, a withdrawal's goods receipt - that has no refund row yet, on the bank transfer line and, for the withdrawal, on the
     /// card line; the system's own card refunds always have their row. An item that waits for the customer's IBAN is not counted. The page reads the next <paramref name="maxSubjects"/>

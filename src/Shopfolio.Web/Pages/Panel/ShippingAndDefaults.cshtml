@@ -1,0 +1,112 @@
+@page "/panel/kargo-sureler-ve-varsayilanlar"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
+@using Shopfolio.Pages.Panel
+@model ShippingAndDefaultsModel
+@*
+    E-46, the shipping, periods and defaults screen (T536; 04 9.18; 07 UC-101): five sections in the order of K-752, each its own form with its own version and its own "Kaydet"; there is no primary
+    button. The delivery provinces are ticked one by one - "Tümünü seç" and "Seçimi kaldır" exist only on the scripted path (07 8.2.2). No inline style, no inline script.
+*@
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Kargo, süreler ve varsayılanlar";
+    string path = PanelFramePaths.ShippingAndDefaults;
+}
+<h1>Kargo, süreler ve varsayılanlar</h1>
+@if (Model.Notice is not null)
+{
+    <partial name="_Message" model="Model.Notice" />
+}
+@if (Model.Confirm is not null)
+{
+    <partial name="_Confirm" model="Model.Confirm" />
+}
+<partial name="_FormErrorSummary" model="Model.Summary" />
+<section class="form-section" id="@ShippingAndDefaultsModel.ShippingFeeSection" aria-labelledby="fee-heading">
+    <h2 id="fee-heading">Kargo ücreti ve eşikler</h2>
+    <p class="field__hint">@ShippingAndDefaultsModel.FrozenNote</p>
+    <form method="post" asp-antiforgery="true" asp-page-handler="SaveShippingFee" class="form" data-js="submit-once">
+        @VersionFields.SectionVersion("ShippingFeeVersion", Model.ShippingFeeVersion, "Input")
+        @foreach (FieldView field in Model.ShippingFeeFields)
+        {
+            <partial name="_Field" model="field" />
+        }
+        <p class="field__hint" id="fee-vat-note">@ShippingAndDefaultsModel.FeeVatNote</p>
+        <p class="field__hint">@ShippingAndDefaultsModel.FreeTextReminder</p>
+        @ConflictControls.SectionSaveControl(ShippingAndDefaultsModel.ShippingFeeSection, Model.ConflictedSection, path)
+    </form>
+</section>
+<section class="form-section" id="@ShippingAndDefaultsModel.ProvincesSection" aria-labelledby="provinces-heading">
+    <h2 id="provinces-heading">Teslimat illeri</h2>
+    <p class="field__hint">@ShippingAndDefaultsModel.FrozenNote</p>
+    @if (Model.ShowsNoProvince)
+    {
+        MessageView none = Messages.InPlace(MessageMeaning.Warning, ShippingAndDefaultsModel.NoProvinceText, "no-province");
+        <partial name="_Message" model="none" />
+    }
+    <form method="post" asp-antiforgery="true" asp-page-handler="SaveDeliveryProvinces" class="form" data-js="submit-once">
+        @VersionFields.SectionVersion("DeliveryProvincesVersion", Model.DeliveryProvincesVersion, "Input")
+        <details class="province-list" open>
+            <summary id="province-count">Seçili il: @Model.SelectedProvinceCount</summary>
+            <fieldset id="Input_ProvinceIds" class="province-list__boxes" data-js="province-boxes">
+                <legend>Teslimat yapılan iller</legend>
+                @if (Model.ProvincesError is not null)
+                {
+                    <p class="field__error">@Model.ProvincesError</p>
+                }
+                @foreach (ProvinceChoiceView province in Model.ProvinceChoices)
+                {
+                    <label class="province-list__box">
+                        <input type="checkbox" name="Input.ProvinceIds" value="@province.Id" @(province.IsSelected ? "checked" : null)>
+                        @province.Name
+                    </label>
+                }
+            </fieldset>
+        </details>
+        <p class="field__hint">@ShippingAndDefaultsModel.ProvinceRestrictionNote</p>
+        @ConflictControls.SectionSaveControl(ShippingAndDefaultsModel.ProvincesSection, Model.ConflictedSection, path)
+    </form>
+</section>
+<section class="form-section" id="@ShippingAndDefaultsModel.PeriodsSection" aria-labelledby="periods-heading">
+    <h2 id="periods-heading">Süreler</h2>
+    <p class="field__hint">@ShippingAndDefaultsModel.FrozenNote</p>
+    <form method="post" asp-antiforgery="true" asp-page-handler="SavePeriods" class="form" data-js="submit-once">
+        @VersionFields.SectionVersion("PeriodsVersion", Model.PeriodsVersion, "Input")
+        @foreach (FieldView field in Model.PeriodFields)
+        {
+            <partial name="_Field" model="field" />
+        }
+        <p class="field__hint">@ShippingAndDefaultsModel.ProductPeriodNote</p>
+        <p class="field__hint">@ShippingAndDefaultsModel.FreeTextReminder</p>
+        @ConflictControls.SectionSaveControl(ShippingAndDefaultsModel.PeriodsSection, Model.ConflictedSection, path)
+    </form>
+</section>
+<section class="form-section" id="@ShippingAndDefaultsModel.DefaultsSection" aria-labelledby="defaults-heading">
+    <h2 id="defaults-heading">Ürün varsayılanları</h2>
+    <p class="field__hint">@ShippingAndDefaultsModel.FrozenNote</p>
+    <form method="post" asp-antiforgery="true" asp-page-handler="SaveProductDefaults" class="form" data-js="submit-once">
+        @VersionFields.SectionVersion("ProductDefaultsVersion", Model.ProductDefaultsVersion, "Input")
+        @foreach (FieldView field in Model.DefaultsFields)
+        {
+            <partial name="_Field" model="field" />
+        }
+        <p class="field__hint">@ShippingAndDefaultsModel.DefaultsNote</p>
+        @ConflictControls.SectionSaveControl(ShippingAndDefaultsModel.DefaultsSection, Model.ConflictedSection, path)
+    </form>
+</section>
+<section class="form-section" id="@ShippingAndDefaultsModel.ReturnAddressSection" aria-labelledby="return-heading">
+    <h2 id="return-heading">İade adresi</h2>
+    <p class="field__hint">@ShippingAndDefaultsModel.FrozenNote</p>
+    <p class="field__hint">@ShippingAndDefaultsModel.ReturnAddressNote</p>
+    <form method="post" asp-antiforgery="true" asp-page-handler="SaveReturnAddress" class="form" data-js="submit-once">
+        @VersionFields.SectionVersion("ReturnAddressVersion", Model.ReturnAddressVersion, "Input")
+        @foreach (FieldView field in Model.ReturnAddressFields)
+        {
+            <partial name="_Field" model="field" />
+        }
+        <p class="field__hint">@ShippingAndDefaultsModel.FreeTextReminder</p>
+        @ConflictControls.SectionSaveControl(ShippingAndDefaultsModel.ReturnAddressSection, Model.ConflictedSection, path)
+    </form>
+</section>

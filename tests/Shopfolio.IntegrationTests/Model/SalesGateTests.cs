@@ -474,7 +474,7 @@ public sealed class SalesGateTests : IAsyncLifetime
 
         if (broken != SalesGateCondition.ReturnAddress)
         {
-            await RunAsync(m => m.SaveReturnAddressAsync(Address(), 1, Ct));
+            await RunAsync(m => m.SaveReturnAddressAsync(Address(), 1, Ct), admin: _admin);
         }
 
         if (broken != SalesGateCondition.CookiePolicy)
@@ -552,11 +552,14 @@ public sealed class SalesGateTests : IAsyncLifetime
             "SELECT coalesce(string_agg(to_jsonb(l)::text, '|' ORDER BY l.legal_text_type, l.version_number), '') FROM legal_text_versions l "
             + (onlyIds is null ? string.Empty : $"WHERE l.id = ANY(string_to_array('{onlyIds}', ',')::uuid[])"));
 
-    /// <summary>The switch rows only: the identity saves that set a test up write their own UpdateCompany rows.</summary>
+    /// <summary>
+    /// The switch rows only: the identity saves that set a test up write their own UpdateCompany rows, and the return address save its own UpdateSettings row (T536; D-165 (a)).
+    /// </summary>
     private async Task<List<AuditLog>> ReadTrailAsync()
     {
         await using AppDbContext context = NewContext();
-        return await context.AuditLogs.AsNoTracking().Where(l => l.Operation == "UpdateSettings").OrderBy(l => l.CreatedAt).ThenBy(l => l.Id).ToListAsync(Ct);
+        List<AuditLog> rows = await context.AuditLogs.AsNoTracking().Where(l => l.Operation == "UpdateSettings").OrderBy(l => l.CreatedAt).ThenBy(l => l.Id).ToListAsync(Ct);
+        return rows.Where(l => l.Details?.Changes.Any(c => c.Field == nameof(CompanySettings.IsSalesTemporarilyClosed)) == true).ToList();
     }
 
     private async Task PublishPrivacyNoticeAsync(DateTimeOffset at)

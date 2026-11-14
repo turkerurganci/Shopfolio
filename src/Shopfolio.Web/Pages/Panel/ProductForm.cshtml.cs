@@ -237,6 +237,9 @@ internal sealed class ProductFormModel : PageModel
     /// <summary>The sentence of the delivery and withdrawal section (04 9.5.7; 02 3.23.1; 03 8.1.4).</summary>
     public const string NewOrdersOnlyText = "Bu alanlardaki değişiklik yalnız yeni siparişlere işler.";
 
+    /// <summary>U7, the reminder beside the measurement unit field on every product form (04 9.5.6; K-798 (7), K-573; 12 12.13).</summary>
+    public const string MeasurementUnitReminderText = "Ürünü kilo, litre ya da metre gibi bir ölçüyle satıyorsanız bu alanı doldurmanız yasal yükümlülüktür; alan boşsa birim fiyat gösterilmez.";
+
     // The page's lists for a shown form: read once the handler chose to show the page.
     private async Task LoadChoicesAsync(CancellationToken ct)
     {
@@ -681,7 +684,7 @@ internal sealed class ProductFormModel : PageModel
 
         fields.AddRange(
         [
-            Fields.ClosedList("Input.MeasurementUnit", "Ölçü birimi", FieldRequirement.Optional, units, Form.MeasurementUnit?.ToString()),
+            Fields.ClosedList("Input.MeasurementUnit", "Ölçü birimi", FieldRequirement.Optional, units, Form.MeasurementUnit?.ToString(), MeasurementUnitReminderText),
             Fields.Number("Input.ShippingPeriod", "Kargoya verme süresi (gün)", FieldRequirement.Optional, Whole(Form.ShippingPeriod)),
             Fields.Number("Input.FulfilmentPeriod", "İfa süresi (gün)", FieldRequirement.Optional, Whole(Form.FulfilmentPeriod)),
             Fields.Number("Input.MaxQuantityPerOrder", "Siparişte en çok adet", FieldRequirement.Optional, Whole(Form.MaxQuantityPerOrder)),

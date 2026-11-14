@@ -63,6 +63,7 @@ public sealed class ProductFormPageTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.OK, created);
         Assert.Contains($"<h1>{ProductFormModel.NewTitle}</h1>", html, StringComparison.Ordinal);
+        Assert.Contains(ProductFormModel.MeasurementUnitReminderText, html, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.NotFound, missing);
     }
 
@@ -469,6 +470,7 @@ public sealed class ProductFormPageTests : IAsyncLifetime
         Assert.Contains($"Net miktar ({ProductFormModel.UnitName(MeasurementUnit.Gram)})", html, StringComparison.Ordinal);
         Assert.Contains(Shopfolio.Modules.AfterSales.Contracts.WithdrawalExemptionReasonNames.Of(Shopfolio.Modules.AfterSales.Contracts.WithdrawalExemptionReason.Perishable), html, StringComparison.Ordinal);
         Assert.Contains(ProductFormModel.NewOrdersOnlyText, html, StringComparison.Ordinal);
+        Assert.Contains(ProductFormModel.MeasurementUnitReminderText, html, StringComparison.Ordinal);
         string prices = html[html.IndexOf("id=\"product-discount-prices\"", StringComparison.Ordinal)..];
         prices = prices[..prices.IndexOf("</table>", StringComparison.Ordinal)];
         Assert.Contains(DisplayFormat.Amount(DiscountRules.DiscountedPrice(100m, 10m)), prices, StringComparison.Ordinal);

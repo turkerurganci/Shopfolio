@@ -1,13 +1,17 @@
+using System.Globalization;
+
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Validation;
+using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Categories;
 using Shopfolio.Modules.Catalog.Contracts.Pricing;
 using Shopfolio.Modules.Catalog.Contracts.Variants;
+using Shopfolio.Modules.Ordering.Contracts;
 
 namespace Shopfolio.Modules.Catalog;
 
@@ -33,6 +37,9 @@ internal sealed class ProductSaves
     private readonly Discounts _discounts;
     private readonly StockCounters _counters;
     private readonly StockCodes _stockCodes;
+    private readonly ProductLocks _locks;
+    private readonly IOrderingModule _ordering;
+    private readonly IAuditTrail _trail;
 
     public ProductSaves(
         AppDbContext db,
@@ -43,8 +50,14 @@ internal sealed class ProductSaves
         PriceHistoryRecorder recorder,
         Discounts discounts,
         StockCounters counters,
-        StockCodes stockCodes)
+        StockCodes stockCodes,
+        ProductLocks locks,
+        IOrderingModule ordering,
+        IAuditTrail trail)
     {
+        _locks = locks;
+        _ordering = ordering;
+        _trail = trail;
         _db = db;
         _time = time;
         _links = links;
@@ -73,7 +86,9 @@ internal sealed class ProductSaves
         List<OptionValue> values = [];
         if (command.ProductId is Guid productId)
         {
-            product = await _db.Products.SingleOrDefaultAsync(p => p.Id == productId, ct);
+            // The product's row lock heads the save (D-401, D-362, D-381; 09 10.2 item 5): a publish change, a file removal, a deletion or a stock write of the same product waits,
+            // so the type, the unit, the variants and the files this save checks are the ones it writes over.
+            product = await _locks.LockAsync(productId, ct) ? await _db.Products.SingleOrDefaultAsync(p => p.Id == productId, ct) : null;
             if (product is null)
             {
                 return ProductSaveResult.NotFound;
@@ -99,7 +114,10 @@ internal sealed class ProductSaves
             return ProductSaveResult.Refused(errors);
         }
 
-        // The product's own fields.
+        // The product's own fields. An existing product's three firm-like settings (P-6, P-9, P-44) are kept as they were for the trail (K-980; D-164; K-1615), and its planes' files
+        // as the database holds them for the items' file links (D-527).
+        SettingsBefore? settingsBefore = product is null ? null : new SettingsBefore(product.ShippingPeriod, product.MaxQuantityPerOrder, product.FulfilmentPeriod);
+        OrderItemFiles.FilePlanes? filesBefore = product is null ? null : await OrderItemFiles.ReadAsync(_db, product.Id, ct);
         string name = command.Name?.Trim() ?? string.Empty;
         if (product is null)
         {
@@ -137,6 +155,8 @@ internal sealed class ProductSaves
             return ProductSaveResult.Refused(errors);
         }
 
+        await AdvanceItemFilesAsync(product, command, rows, filesBefore, ct);
+
         (ProductCategoriesResult _, bool _) = await _links.ApplyAsync(product.Id, command.CategoryIds, command.PrimaryCategoryId, ct);
         await _gallery.ApplyLinksAsync(product.Id, command.Gallery, ct);
 
@@ -173,8 +193,77 @@ internal sealed class ProductSaves
             }
         }
 
-        return await WriteStockAsync(product.Id, rows, ct);
+        ProductSaveResult result = await WriteStockAsync(product.Id, rows, ct);
+        if (!result.IsRejected && settingsBefore is not null)
+        {
+            await WriteSettingsTrailAsync(product, settingsBefore, ct);
+        }
+
+        return result;
     }
+
+    /// <summary>
+    /// The trail row of the product form's firm-like settings (02 10.3.1 (6); 11 T525 criterion 4; K-980; D-164; K-1615): P-6 (shipping period), P-9 (most per order) and P-44 (fulfilment
+    /// period), each one only when it changed, with its old and new value, as <c>UpdateSettings</c> on the product. A new product's birth writes none: no setting was changed; it was given.
+    /// </summary>
+    private async Task WriteSettingsTrailAsync(Product product, SettingsBefore before, CancellationToken ct)
+    {
+        List<AuditValueChange> changes = [];
+        AddChange(changes, nameof(Product.ShippingPeriod), before.ShippingPeriod, product.ShippingPeriod);
+        AddChange(changes, nameof(Product.MaxQuantityPerOrder), before.MaxQuantityPerOrder, product.MaxQuantityPerOrder);
+        AddChange(changes, nameof(Product.FulfilmentPeriod), before.FulfilmentPeriod, product.FulfilmentPeriod);
+        if (changes.Count > 0)
+        {
+            await _trail.WriteAsync(new AuditEntry(AuditOperation.UpdateSettings, nameof(Product), product.Id, new AuditDetails(product.Name, changes)), ct);
+        }
+    }
+
+    private static void AddChange(List<AuditValueChange> changes, string field, int? before, int? after)
+    {
+        if (before != after)
+        {
+            changes.Add(new AuditValueChange(field, before?.ToString(CultureInfo.InvariantCulture), after?.ToString(CultureInfo.InvariantCulture)));
+        }
+    }
+
+    /// <summary>
+    /// The items' last known file (D-527; 06 4.70 "Uygulamada"): the planes after this save are the form's files - the product's plane and each existing variant's own plane hold what the
+    /// form sent - and each existing variant whose current file moved gets its items written to the file they download now, or keep the last one when none is left.
+    /// </summary>
+    private async Task AdvanceItemFilesAsync(
+        Product product,
+        ProductSaveCommand command,
+        List<(int Row, Variant Variant, ProductSaveVariant Input)> rows,
+        OrderItemFiles.FilePlanes? before,
+        CancellationToken ct)
+    {
+        if (before is null || product.ProductType != ProductType.Digital)
+        {
+            return;
+        }
+
+        Dictionary<Guid, Guid> variantFiles = new(before.VariantFiles);
+        foreach ((int _, Variant variant, ProductSaveVariant input) in rows)
+        {
+            if (input.DigitalFileId is Guid file)
+            {
+                variantFiles[variant.Id] = file;
+            }
+            else
+            {
+                variantFiles.Remove(variant.Id);
+            }
+        }
+
+        OrderItemFiles.FilePlanes after = new(before.Variants, command.DigitalFileId, variantFiles);
+        Dictionary<Guid, Guid> changes = OrderItemFiles.Changes(before.Variants, before, after);
+        if (changes.Count > 0)
+        {
+            await _ordering.AdvanceItemFilesAsync(changes, ct);
+        }
+    }
+
+    private sealed record SettingsBefore(int? ShippingPeriod, int? MaxQuantityPerOrder, int? FulfilmentPeriod);
 
     /// <summary>The fields of the product itself (04 7.2.4; 06 4.5): the type, the VAT rate, the definition's rules and the parameters' fences (P-6, P-9, P-44).</summary>
     private static void CheckProductFields(ProductSaveCommand command, List<ProductSaveFieldError> errors)
@@ -199,12 +288,13 @@ internal sealed class ProductSaves
             errors.Add(new ProductSaveFieldError(nameof(ProductSaveCommand.VatRate), ErrorCode.InvalidPercentage));
         }
 
-        if (command.FulfilmentPeriod is not null && !ProductDefinitionRules.IsFulfilmentPeriodEntered(command.FulfilmentPeriod))
+        // The fences are the firm settings' one home (T381 criterion 6; D-279): P-6 inside ProductDefinitionRules below, P-9 and P-44 here - the numbers are not written again.
+        if (command.FulfilmentPeriod is int fulfilmentPeriod && !FirmSettingFences.Check("P-44", fulfilmentPeriod).IsWithin)
         {
             errors.Add(new ProductSaveFieldError(nameof(ProductSaveCommand.FulfilmentPeriod), ErrorCode.ValueOutOfBounds));
         }
 
-        if (command.MaxQuantityPerOrder < ParameterFences.MaxQuantityPerOrderLower)
+        if (command.MaxQuantityPerOrder is int maxQuantity && !FirmSettingFences.Check("P-9", maxQuantity).IsWithin)
         {
             errors.Add(new ProductSaveFieldError(nameof(ProductSaveCommand.MaxQuantityPerOrder), ErrorCode.ValueOutOfBounds));
         }

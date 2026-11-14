@@ -140,6 +140,14 @@ public interface IOrderingModule
     Task<int> RemoveFromCartsAsync(IReadOnlyCollection<Guid> variantIds, string productName, CancellationToken ct);
 
     /// <summary>
+    /// Writes the last known file of the digital items of the given variants (06 4.70 "Uygulamada", 4.18; K-1029 (4), K-1119; T525, D-527): each item whose variant's file the caller's
+    /// write changed - a file bound to or removed from a plane, a product or a variant deleted - gets the file it downloads after that write, in the caller's operation and before a
+    /// deletion empties its variant link. An item already pointing to it is left as it is. The write raises no order's version (06 2.6.4). Returns the number of items written. Joins the
+    /// caller's transaction (09 9.1 item 3).
+    /// </summary>
+    Task<int> AdvanceItemFilesAsync(IReadOnlyDictionary<Guid, Guid> fileByVariant, CancellationToken ct);
+
+    /// <summary>
     /// The once-told message of the items taken off a cart (02 3.16.7; 06 4.16; K-1044 (3)): the product names of the marked items, which are deleted in the same call - the
     /// request that shows them is the request that removes them. Empty when the cart has none. Joins the caller's transaction and takes the cart's advisory lock first (09 10.2 item 5): a request that arrived together with this one waits, then finds none and tells nothing.
     /// </summary>

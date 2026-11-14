@@ -383,6 +383,12 @@ public sealed class AuditEntryRulesTests
         AuditEntryRules.Validate(new AuditEntry(AuditOperation.UpdateSettings, "Branding", Target, signature));
         AuditEntryRules.Validate(new AuditEntry(AuditOperation.UpdateBranding, "Branding", Target, brand));
         Assert.Throws<ArgumentException>(() => AuditEntryRules.Validate(new AuditEntry(AuditOperation.UpdateBranding, "Order", Target, brand)));
+
+        // T525 (D-164; K-1615): the product form's P-6, P-9 and P-44 are a settings change on the product row, with the old and the new value; no other kind of the catalog joins.
+        AuditDetails period = new("Seramik Kupa", [new AuditValueChange("ShippingPeriod", "2", "4")]);
+        AuditEntryRules.Validate(new AuditEntry(AuditOperation.UpdateSettings, "Product", Target, period));
+        Assert.Throws<ArgumentException>(() => AuditEntryRules.Validate(new AuditEntry(AuditOperation.UpdateSettings, "Variant", Target, period)));
+        Assert.Throws<ArgumentException>(() => AuditEntryRules.Validate(new AuditEntry(AuditOperation.UpdateSettings, "Product", Target, new AuditDetails("Seramik Kupa"))));
     }
 
     [Fact]

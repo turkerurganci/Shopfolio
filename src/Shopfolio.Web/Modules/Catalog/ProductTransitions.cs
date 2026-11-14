@@ -27,9 +27,11 @@ internal sealed class ProductTransitions : IProductTransitions
     private readonly IAuditTrail _trail;
     private readonly TimeProvider _time;
     private readonly CacheInvalidations _invalidations;
+    private readonly ProductLocks _locks;
 
-    public ProductTransitions(AppDbContext db, IPublishGate gate, IOrderingModule ordering, IAuditTrail trail, TimeProvider time, CacheInvalidations invalidations)
+    public ProductTransitions(AppDbContext db, IPublishGate gate, IOrderingModule ordering, IAuditTrail trail, TimeProvider time, CacheInvalidations invalidations, ProductLocks locks)
     {
+        _locks = locks;
         _db = db;
         _gate = gate;
         _ordering = ordering;
@@ -43,7 +45,8 @@ internal sealed class ProductTransitions : IProductTransitions
         RequireTransaction();
         RequireDefined(target);
 
-        Product? product = await _db.Products.SingleOrDefaultAsync(p => p.Id == productId, ct);
+        // The product's row lock first (D-401; 09 10.2 item 5): a file removal or a form save of the same product waits, so the gate asked below is the one the move writes over.
+        Product? product = await _locks.LockAsync(productId, ct) ? await _db.Products.SingleOrDefaultAsync(p => p.Id == productId, ct) : null;
         if (product is null)
         {
             return PublishChangeResult.NotFound;
@@ -104,7 +107,11 @@ internal sealed class ProductTransitions : IProductTransitions
         RequireTransaction();
         RequireDefined(target);
 
-        Variant? variant = await _db.Variants.SingleOrDefaultAsync(v => v.Id == variantId, ct);
+        // The product's row lock first (D-401; 09 10.2 item 5); a variant never moves to another product, so its product is read before the lock and the variant after it.
+        Guid? owner = await _db.Variants.AsNoTracking().Where(v => v.Id == variantId).Select(v => (Guid?)v.ProductId).SingleOrDefaultAsync(ct);
+        Variant? variant = owner is Guid productId && await _locks.LockAsync(productId, ct)
+            ? await _db.Variants.SingleOrDefaultAsync(v => v.Id == variantId, ct)
+            : null;
         if (variant is null)
         {
             return PublishChangeResult.NotFound;

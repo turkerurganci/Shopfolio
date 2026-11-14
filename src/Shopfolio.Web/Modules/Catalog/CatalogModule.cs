@@ -304,6 +304,7 @@ internal static class CatalogModuleRegistration
         services.AddScoped<VariantPrices>();
 
         // The product form's save (T525; UC-114): the one writer of the whole form, over the part writers above.
+        services.AddScoped<ProductLocks>();
         services.AddScoped<ProductSaves>();
         services.AddDueRecordSource<DiscountBoundarySource>();
 

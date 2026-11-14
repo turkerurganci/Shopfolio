@@ -1,0 +1,74 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Modules.AfterSales.Contracts
+@using Shopfolio.Modules.Ordering.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model OrderDetailModel
+@*
+    E-37's order-level refund steps (T529; 04 9.9.21-9.9.24; 07 UC-131...UC-137): the refund lines without an item - the late payment's refund stands on the order (K-1075) -, the amount based
+    refund's form and the IBAN request's form. An item's refund line stands on the item's row, next to its pending refund (04 9.9.6 (4), 9.9.21; _OrderRefundLine). Only the steps the module's
+    decision opened are drawn (09 8.3 item 5). No inline style, no inline script.
+*@
+@{
+    // 07 UC-133: the amount based refund is the processing step's (1.11.31) - its form only while ProcessRefund is open; the IBAN request has its own form.
+    bool amountFormOpen = Model.IsOpen(OrderOperation.ProcessRefund);
+    bool ibanRequestOpen = Model.IsOpen(OrderOperation.RequestRefundIban);
+    IReadOnlyList<PanelRefundLine> orderLines = Model.OrderRefundLines;
+}
+@if (orderLines.Count > 0 || amountFormOpen || ibanRequestOpen)
+{
+    <section class="order-detail__section" id="geri-odemeler" aria-labelledby="order-refunds-heading">
+        <h2 id="order-refunds-heading">@OrderDetailModel.RefundSectionTitle</h2>
+        @foreach (PanelRefundLine line in orderLines)
+        {
+            <partial name="_OrderRefundLine" model="(Model, line)" />
+        }
+        @if (amountFormOpen)
+        {
+            <form method="post" action="@(Model.PagePath)?handler=ProcessAmountBasedRefund" asp-antiforgery="true" class="form" data-js="submit-once" id="amount-based-refund-form">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <label for="amount-based-refund-amount">Tutar</label>
+                <input type="text" inputmode="decimal" id="amount-based-refund-amount" name="Input.Amount" value="@Model.AmountBased.Amount" />
+                <label for="amount-based-refund-item">Kalem (isteğe bağlı)</label>
+                <select id="amount-based-refund-item" name="Input.OrderItemId">
+                    <option value="">Kalem seçilmedi</option>
+                    @foreach (OrderPageItem item in Model.Detail.Items)
+                    {
+                        <option value="@item.OrderItemId.ToString("D")" selected="@(Model.AmountBased.OrderItemId == item.OrderItemId)">@item.Name</option>
+                    }
+                </select>
+                @if (Model.OpenClosures.Count > 0)
+                {
+                    @* 04 7.2.13.2 (K-1105): on an item with an open "mal dönmedi" closure the closure is chosen too; the refund is bound to it. *@
+                    <label for="amount-based-refund-closure">"Mal dönmedi" kapanışı</label>
+                    <select id="amount-based-refund-closure" name="Input.NotReturnedClosureId">
+                        <option value="">Kapanış seçilmedi</option>
+                        @foreach (OpenNotReturnedClosure closure in Model.OpenClosures)
+                        {
+                            string itemName = Model.Detail.Items.FirstOrDefault(i => i.OrderItemId == closure.OrderItemId)?.Name ?? string.Empty;
+                            <option value="@closure.ClosureId.ToString("D")" selected="@(Model.AmountBased.NotReturnedClosureId == closure.ClosureId)">@itemName — @closure.Quantity adet, @DisplayFormat.Date(closure.ClosedAt)</option>
+                        }
+                    </select>
+                }
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.AmountBasedRefundLabel)">@OrderDetailModel.AmountBasedRefundLabel</button>
+            </form>
+        }
+        @if (ibanRequestOpen)
+        {
+            <form method="post" action="@(Model.PagePath)?handler=RequestRefundIban" asp-antiforgery="true" class="form" data-js="submit-once" id="request-refund-iban-form">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <label for="request-refund-iban-item">Kalem</label>
+                <select id="request-refund-iban-item" name="Input.OrderItemId" required>
+                    <option value="">Kalem seçin</option>
+                    @foreach (OrderPageItem item in Model.Detail.Items)
+                    {
+                        <option value="@item.OrderItemId.ToString("D")">@item.Name</option>
+                    }
+                </select>
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.RequestRefundIbanLabel)">@OrderDetailModel.RequestRefundIbanLabel</button>
+            </form>
+        }
+    </section>
+}

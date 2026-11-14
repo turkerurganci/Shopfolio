@@ -21,7 +21,7 @@ namespace Shopfolio.Modules.Ordering.Contracts;
 /// an unpaid order's cancellation writes it with S3 in <see cref="CancelOrderAsync"/>.
 /// The correction (T319): <see cref="CorrectTransitionAsync"/>, the one way back; no method undoes a transition and a withdrawal is never corrected (03 1.6.2).
 /// </summary>
-public interface IOrderTransitions
+public partial interface IOrderTransitions
 {
     /// <summary>
     /// Applies the provider's successful card payment (05 4.5.3: the one path of the notification and the final query). On a pending order: Ö1 by the

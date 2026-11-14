@@ -141,16 +141,20 @@ internal sealed partial class OrderTransitions
         }
 
         // The item (or the refund, read tracked) is loaded under the lock: the request opened on it is a record whose root the version guard must tell (D-95; 09 10.2 item 3).
-        if (order.PaymentMethod != PaymentMethod.BankTransfer
+        // On a card order only a refund turned to the transfer has a transfer to fail: the named refund or the item's pending one on that way (D-1563).
+        if ((order.PaymentMethod != PaymentMethod.BankTransfer
+                && !(await _payment.FindPendingTransferRefundsAsync(order.Id, ct)).Any(r => r.RefundId == request.RefundId || (request.OrderItemId is not null && r.OrderItemId == request.OrderItemId)))
             || (request.OrderItemId is { } itemId && await _db.OrderItems.SingleOrDefaultAsync(i => i.Id == itemId && i.OrderId == order.Id, ct) is null)
             || (request.RefundId is { } refundId && await _payment.ReadRefundLineAsync(order.Id, refundId, ct) is null))
         {
             return Refused(TransitionRefusal.ConditionNotMet);
         }
 
-        // The IBAN is deleted with its disposal record and the field opens again; the period does not stop (02 7.4.5; K-575, K-1131).
+        // The IBAN is deleted with its disposal record and the field opens again; the period does not stop (02 7.4.5; K-575, K-1131). The order's items are tracked
+        // first: a record whose IBAN link the deletion empties tells its order from its item (D-95).
+        await _db.OrderItems.Where(i => i.OrderId == order.Id).LoadAsync(ct);
         RefundIbanRequestOpened? opened = await _afterSales.ReportTransferFailedAsync(
-            new TransferFailure(order.Id, request.OrderItemId, request.RefundId, request.Admin.AdminId, request.Admin.AdminName, _time.GetUtcNow()), ct);
+            new TransferFailure(order.Id, request.OrderItemId, request.RefundId, request.Admin.AdminId, request.Admin.AdminName, _time.GetUtcNow(), request.Payee), ct);
         if (opened is null)
         {
             return Refused(TransitionRefusal.ConditionNotMet);
@@ -198,20 +202,19 @@ internal sealed partial class OrderTransitions
     }
 
     /// <summary>The shipping fee rule's question for the record (02 7.2.9, 7.4.6): the order's physical items and the moment the carrier first took the order.</summary>
-    private async Task<bool> IsShippingFeeIncludedAsync(Order order, RefundSubject subject, CancellationToken ct)
+    private Task<bool> IsShippingFeeIncludedAsync(Order order, RefundSubject subject, CancellationToken ct) =>
+        FirmRefundAmounts.IsShippingFeeIncludedAsync(_db, _afterSales, order.Id, subject, ct);
+
+    /// <summary>
+    /// After a refund settled or a record was undone: the order's IBANs no pending refund uses any more go, each with its disposal record (02 7.4.5; Z-44). The order's
+    /// items are loaded tracked under the lock first: a record the step's amount read loaded tracked (a cancellation) has its IBAN link emptied with the IBAN, and the
+    /// version guard tells that record's order from its item (D-95; 09 10.2 item 3).
+    /// </summary>
+    private async Task DeleteUnusedIbansAsync(Guid orderId, CancellationToken ct)
     {
-        List<ShippedItem> physical = await OrderPeriods.ShippedItemsAsync(_db, order.Id, ct);
-        if (physical.Count == 0)
-        {
-            return false;
-        }
-
-        DateTimeOffset? handed = await OrderPeriods.HandedToCarrierAtAsync(_db, order.Id, ct);
-        return await _afterSales.IsShippingFeeIncludedAsync(new ShippingFeeQuery(physical, handed, subject), ct);
+        await _db.OrderItems.Where(i => i.OrderId == orderId).LoadAsync(ct);
+        await _afterSales.DeleteUnusedRefundIbansAsync(orderId, ct);
     }
-
-    /// <summary>After a refund settled or a record was undone: the order's IBANs no pending refund uses any more go, each with its disposal record (02 7.4.5; Z-44).</summary>
-    private async Task DeleteUnusedIbansAsync(Guid orderId, CancellationToken ct) => await _afterSales.DeleteUnusedRefundIbansAsync(orderId, ct);
 
     private async Task<bool> IsOrdersAsync(Guid orderId, OpenRefundIbanRequest open, CancellationToken ct)
     {

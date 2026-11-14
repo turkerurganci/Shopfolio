@@ -112,6 +112,7 @@
         }
     </section>
 }
+<partial name="_OrderDetailRefunds" model="Model" />
 <partial name="_OrderDetailCorrections" model="Model" />
 <section class="order-detail__section" id="kalemler" aria-labelledby="order-items-heading">
     <h2 id="order-items-heading">Kalemler</h2>
@@ -157,6 +158,10 @@
                             <partial name="_PeriodIndicator" model="Model.PeriodOf(OrderDetailModel.RefundPeriodLabel, CountedPeriod.RefundPeriod, refundLastDay)" />
                         }
                     </div>
+                }
+                @foreach (PanelRefundLine refundLine in Model.RefundLinesOf(item))
+                {
+                    <partial name="_OrderRefundLine" model="(Model, refundLine)" />
                 }
             </li>
         }

@@ -121,23 +121,56 @@ internal sealed partial class AfterSalesModule
         HashSet<Guid> awaitingIban = [.. await _db.RefundIbanRequests.AsNoTracking()
             .Where(r => r.OrderItemId != null && itemIds.Contains(r.OrderItemId.Value) && r.FulfilledAt == null && r.ClosedAt == null)
             .Select(r => r.OrderItemId!.Value).Distinct().ToListAsync(ct)]; // non-null: the Where above keeps only requests with an item
-        Dictionary<Guid, RefundWorkItemFacts> facts = (await _ordering.FindRefundWorkItemFactsAsync(itemIds, ct)).ToDictionary(f => f.OrderItemId);
+        (List<Subject> owed, Dictionary<Guid, RefundWorkItemFacts> facts) = await OwedWithoutRefundAsync(subjects, itemIds, ct);
+        Guid[] orders = [.. owed.Where(s => !awaitingIban.Contains(s.OrderItemId)).Select(s => facts[s.OrderItemId].OrderId).Distinct()];
+        return new RefundProcessingPage(last, orders);
+    }
 
-        // A cancellation whose closing transition was corrected is undone: nothing is owed for it (06 4.22; 02 10.4.6).
+    public async Task<IReadOnlyList<OwedRefundRecord>> ListOwedRefundRecordsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderItemIds);
+        Guid[] ids = [.. orderItemIds.Distinct()];
+        if (ids.Length == 0)
+        {
+            return [];
+        }
+
+        (List<Subject> owed, _) = await OwedWithoutRefundAsync(await SubjectsOfItemsAsync(ids, ct), ids, ct);
+        return
+        [
+            .. owed.Select(s => s.Kind switch
+            {
+                OwedKind.Cancellation => new OwedRefundRecord(RefundType.Cancellation, s.Id, s.OrderItemId, s.Quantity, s.CreatedAt),
+                OwedKind.ItemRemoval => new OwedRefundRecord(RefundType.ItemRemoval, s.Id, s.OrderItemId, s.Quantity, s.CreatedAt),
+                OwedKind.LateDeliveryTermination => new OwedRefundRecord(RefundType.LateDeliveryTermination, s.Id, s.OrderItemId, s.Quantity, s.CreatedAt),
+                OwedKind.Withdrawal => new OwedRefundRecord(RefundType.Withdrawal, s.Id, s.OrderItemId, s.Quantity, s.CreatedAt),
+                _ => new OwedRefundRecord(RefundType.Withdrawal, s.WithdrawalId ?? throw new InvalidOperationException("A receipt subject is read with its withdrawal."), s.OrderItemId, s.Quantity, s.CreatedAt)
+                {
+                    ReturnId = s.Id,
+                },
+            }),
+        ];
+    }
+
+    /// <summary>
+    /// The one rule of a record that owes the firm a refund step (T382; T529; 06 4.33; 02 10.6.1): the order's payment was approved, a cancellation's closing transition was not corrected (06 4.22;
+    /// 02 10.4.6), a withdrawal is owed at its declaration only before the delivery - after it the receipt owes -, and the refund row is not born yet: the row is born with the firm's step, and a record
+    /// with a row - sent, voided or open - is the payment module's. The panel home's counter and the order screen's refund lines read this one rule.
+    /// </summary>
+    private async Task<(List<Subject> Owed, Dictionary<Guid, RefundWorkItemFacts> Facts)> OwedWithoutRefundAsync(List<Subject> subjects, Guid[] itemIds, CancellationToken ct)
+    {
+        Dictionary<Guid, RefundWorkItemFacts> facts = (await _ordering.FindRefundWorkItemFactsAsync(itemIds, ct)).ToDictionary(f => f.OrderItemId);
         Guid[] closing = [.. subjects.Select(s => s.TransitionRecordId).OfType<Guid>().Distinct()];
         IReadOnlySet<Guid> corrected = closing.Length == 0 ? new HashSet<Guid>() : await _ordering.FindCorrectedTransitionRecordsAsync(closing, ct);
 
         List<Subject> owed = [.. subjects.Where(s =>
-            !awaitingIban.Contains(s.OrderItemId)
-            && facts.TryGetValue(s.OrderItemId, out RefundWorkItemFacts? f)
+            facts.TryGetValue(s.OrderItemId, out RefundWorkItemFacts? f)
             && PaymentApproval.IsApproved(f.PaymentStatus)
             && (s.TransitionRecordId is not { } closedBy || !corrected.Contains(closedBy))
             && (s.Kind != OwedKind.Withdrawal || !AfterSalesPeriodRules.IsAfterDelivery(f.ProductType, f.DeliveryDate, s.DeclarationDate, s.IsDeliveredBeforeDeclaration)))];
 
-        // The refund row is born with the firm's step (06 4.33): a record with no refund row is a step still to take; one with a row - sent, voided or open - is the payment module's (below).
         IReadOnlySet<Guid> handled = await _payment.FindSubjectsWithRefundAsync([.. owed.Select(s => s.Id)], ct);
-        Guid[] orders = [.. owed.Where(s => !handled.Contains(s.Id)).Select(s => facts[s.OrderItemId].OrderId).Distinct()];
-        return new RefundProcessingPage(last, orders);
+        return ([.. owed.Where(s => !handled.Contains(s.Id))], facts);
     }
 
     public async Task<IReadOnlySet<Guid>> FindRefundsAwaitingIbanAsync(IReadOnlyCollection<RefundOfItem> refunds, CancellationToken ct)
@@ -200,6 +233,25 @@ internal sealed partial class AfterSalesModule
         return [.. all.OrderBy(s => s.Id, Comparer<Guid>.Create(CompareAsDatabase)).Take(max)];
     }
 
+    /// <summary>The records of the given items that may owe a refund step, with what the order screen shows of them (T529): the same five kinds as <see cref="NextSubjectsAsync"/>.</summary>
+    private async Task<List<Subject>> SubjectsOfItemsAsync(Guid[] ids, CancellationToken ct)
+    {
+        List<Subject> all = [];
+        all.AddRange(await _db.Cancellations.AsNoTracking().Where(c => ids.Contains(c.OrderItemId))
+            .Select(c => new Subject(c.Id, OwedKind.Cancellation, c.OrderItemId, c.TransitionRecordId, default, null) { Quantity = c.Quantity, CreatedAt = c.CreatedAt }).ToListAsync(ct));
+        all.AddRange(await _db.ItemRemovals.AsNoTracking().Where(r => ids.Contains(r.OrderItemId))
+            .Select(r => new Subject(r.Id, OwedKind.ItemRemoval, r.OrderItemId, null, default, null) { Quantity = r.Quantity, CreatedAt = r.CreatedAt }).ToListAsync(ct));
+        all.AddRange(await _db.LateDeliveryTerminations.AsNoTracking().Where(t => ids.Contains(t.OrderItemId))
+            .Select(t => new Subject(t.Id, OwedKind.LateDeliveryTermination, t.OrderItemId, null, default, null) { Quantity = t.Quantity, CreatedAt = t.CreatedAt }).ToListAsync(ct));
+        all.AddRange(await _db.Withdrawals.AsNoTracking().Where(w => ids.Contains(w.OrderItemId))
+            .Select(w => new Subject(w.Id, OwedKind.Withdrawal, w.OrderItemId, null, w.DeclarationDate, w.IsDeliveredBeforeDeclaration) { Quantity = w.Quantity, CreatedAt = w.CreatedAt })
+            .ToListAsync(ct));
+        all.AddRange(await _db.Returns.AsNoTracking().Where(r => r.WithdrawalId != null && ids.Contains(r.OrderItemId))
+            .Select(r => new Subject(r.Id, OwedKind.Receipt, r.OrderItemId, null, default, null) { Quantity = r.Quantity, CreatedAt = r.CreatedAt, WithdrawalId = r.WithdrawalId })
+            .ToListAsync(ct));
+        return [.. all.OrderBy(s => s.CreatedAt).ThenBy(s => s.Id)];
+    }
+
     /// <summary>The order of two ids as PostgreSQL's <c>uuid</c> type makes it (the cursor is compared by the database): the bytes, big-endian.</summary>
     private static int CompareAsDatabase(Guid left, Guid right)
     {
@@ -219,5 +271,13 @@ internal sealed partial class AfterSalesModule
         Receipt,
     }
 
-    private sealed record Subject(Guid Id, OwedKind Kind, Guid OrderItemId, Guid? TransitionRecordId, DateOnly DeclarationDate, bool? IsDeliveredBeforeDeclaration);
+    private sealed record Subject(Guid Id, OwedKind Kind, Guid OrderItemId, Guid? TransitionRecordId, DateOnly DeclarationDate, bool? IsDeliveredBeforeDeclaration)
+    {
+        public int Quantity { get; init; }
+
+        public DateTimeOffset CreatedAt { get; init; }
+
+        /// <summary>The receipt's withdrawal (06 4.27); null on the other kinds.</summary>
+        public Guid? WithdrawalId { get; init; }
+    }
 }

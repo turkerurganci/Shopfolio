@@ -1,0 +1,72 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Modules.Ordering.Contracts
+@using Shopfolio.Modules.Payment.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model (OrderDetailModel Page, PanelRefundLine Line)
+@*
+    One refund line of E-37 (T529; 04 9.9.21-9.9.24; 07 UC-131...UC-137): the amount, the way and the IBAN the server worked out, and only the steps the module's decision opened - a closed step's
+    button is not in the answer (09 8.3 item 5). It stands next to the item's pending refund on the item's row (04 9.9.6 (4), 9.9.21), or on the order for a refund without an item (the late
+    payment's; K-1075). The forms carry the line's key, the order's version and nothing derived. No inline style, no inline script.
+*@
+@{
+    OrderDetailModel screen = Model.Page;
+    PanelRefundLine line = Model.Line;
+    string key = line.Key.ToString("D");
+}
+<div class="order-detail__refund" id="geri-odeme-@key">
+    <p>
+        @screen.RefundLineNameOf(line) ·
+        @(line.Quantity is { } units ? $"{units} adet · " : string.Empty)@DisplayFormat.Amount(line.Amount) ·
+        @OrderDetailModel.WayTextOf(line)@(line.Iban is { } iban ? " · IBAN " + DisplayFormat.Iban(iban) : string.Empty)
+    </p>
+    @if (line.HasLateSuccess)
+    {
+        <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, OrderDetailModel.LateRefundSuccessWarning)" />
+    }
+    @if (line.CanProcess)
+    {
+        <form method="post" action="@(screen.PagePath)?handler=ProcessRefund" asp-antiforgery="true" class="form" data-js="submit-once">
+            @VersionFields.Version(screen.Operations.Version, "Input")
+            <input type="hidden" name="Input.@line.KeyName" value="@key" />
+            <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.ProcessRefundLabel)">@OrderDetailModel.ProcessRefundLabel</button>
+        </form>
+    }
+    else if (!line.IsSent && line.Way == PaymentMethod.BankTransfer && line.Iban is null)
+    {
+        <p class="order-detail__iban-awaited">@OrderDetailModel.IbanAwaitedText</p>
+    }
+    @if (line.CanReportTransferFailed)
+    {
+        <form method="post" action="@(screen.PagePath)?handler=MarkBankTransferRefundFailed" asp-antiforgery="true" class="form" data-js="submit-once">
+            @VersionFields.Version(screen.Operations.Version, "Input")
+            <input type="hidden" name="Input.@line.KeyName" value="@key" />
+            <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.ReportTransferFailedLabel)">@OrderDetailModel.ReportTransferFailedLabel</button>
+        </form>
+    }
+    @if (line.CanRetryOrSwitch && line.RefundId is { } failed)
+    {
+        <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, OrderDetailModel.CardRefundNotRealizedWarning)" />
+        <form method="post" action="@(screen.PagePath)?handler=RetryCardRefund" asp-antiforgery="true" class="form" data-js="submit-once">
+            @VersionFields.Version(screen.Operations.Version, "Input")
+            <input type="hidden" name="Input.RefundId" value="@failed.ToString("D")" />
+            <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.RetryCardRefundLabel)">@OrderDetailModel.RetryCardRefundLabel</button>
+        </form>
+        <form method="post" action="@(screen.PagePath)?handler=SwitchRefundToBankTransfer" asp-antiforgery="true" class="form" data-js="submit-once">
+            @VersionFields.Version(screen.Operations.Version, "Input")
+            <input type="hidden" name="Input.RefundId" value="@failed.ToString("D")" />
+            <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.SwitchRefundToTransferLabel)">@OrderDetailModel.SwitchRefundToTransferLabel</button>
+        </form>
+    }
+    @if (line.CanMarkFailed && line.RefundId is { } pending)
+    {
+        <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, OrderDetailModel.CardRefundPendingWarning)" />
+        <form method="post" action="@(screen.PagePath)?handler=MarkCardRefundFailed" asp-antiforgery="true" class="form" data-js="submit-once">
+            @VersionFields.Version(screen.Operations.Version, "Input")
+            <input type="hidden" name="Input.RefundId" value="@pending.ToString("D")" />
+            <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.MarkCardRefundFailedLabel)">@OrderDetailModel.MarkCardRefundFailedLabel</button>
+        </form>
+    }
+</div>

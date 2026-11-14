@@ -79,8 +79,9 @@ internal sealed partial class AfterSalesModule
         ];
 
         // An IBAN on file names its items through the records that use it: the fulfilled request, the cancellation, the termination, the withdrawal (06 4.22, 4.24,
-        // 4.25, 4.29). One without an item (the late payment's refund) is the itemless field. The links of all the order's IBANs are read at once, four reads whatever
-        // the number of IBANs, and matched in memory (09 20 item 4; D-903).
+        // 4.25, 4.29). One without an item (the late payment's refund) is the itemless field. The links of all the order's IBANs are read at once, five reads whatever
+        // the number of IBANs, and matched in memory (09 20 item 4; D-903). The field names the refund its fulfilled request was opened on (a failed card refund's
+        // transfer path, the late payment's refund): that refund is paid to it before its item's and the file's IBANs (02 7.4.5; PendingTransferPayeesAsync's order).
         List<RefundIban> ibans = await _db.RefundIbans.AsNoTracking().Where(i => i.OrderId == orderId).OrderBy(i => i.CreatedAt).ThenBy(i => i.Id).ToListAsync(ct);
         if (ibans.Count == 0)
         {
@@ -99,16 +100,19 @@ internal sealed partial class AfterSalesModule
             .. await _db.Withdrawals.AsNoTracking().Where(w => w.RefundIbanId != null && ibanIds.Contains(w.RefundIbanId.Value))
                 .Select(w => new IbanLink(w.RefundIbanId!.Value, w.OrderItemId)).ToListAsync(ct), // non-null: the Where keeps only withdrawals with an IBAN
         ];
+        List<IbanRefund> refunds = await _db.RefundIbanRequests.AsNoTracking().Where(r => r.RefundIbanId != null && ibanIds.Contains(r.RefundIbanId.Value) && r.RefundId != null)
+            .Select(r => new IbanRefund(r.RefundIbanId!.Value, r.RefundId!.Value)).ToListAsync(ct); // non-null: the Where keeps only requests with an IBAN, on a refund
 
         foreach (RefundIban iban in ibans)
         {
             Guid[] items = [.. links.Where(l => l.RefundIbanId == iban.Id).Select(l => l.OrderItemId).Where(itemIds.Contains).Distinct()];
+            Guid? refundId = refunds.FirstOrDefault(r => r.RefundIbanId == iban.Id)?.RefundId;
             if (items.Length == 0)
             {
-                fields.Add(new RefundIbanField(null, null, null, null, iban.Id, iban.Iban));
+                fields.Add(new RefundIbanField(null, null, refundId, null, iban.Id, iban.Iban));
             }
 
-            fields.AddRange(items.Select(itemId => new RefundIbanField(itemId, null, null, null, iban.Id, iban.Iban)));
+            fields.AddRange(items.Select(itemId => new RefundIbanField(itemId, null, refundId, null, iban.Id, iban.Iban)));
         }
 
         return fields;
@@ -205,27 +209,18 @@ internal sealed partial class AfterSalesModule
             throw new ArgumentException("The failed transfer names the item, or the itemless refund of a late payment (K-1131).", nameof(failure));
         }
 
-        // The IBAN the refund would use: the item's records' and the requests fulfilled on the item - or, itemless, on the refund.
-        List<Guid?> candidates = failure.OrderItemId is { } itemId
-            ? [
-                .. await _db.Cancellations.Where(c => c.OrderItemId == itemId).Select(c => c.RefundIbanId).ToListAsync(ct),
-                .. await _db.LateDeliveryTerminations.Where(t => t.OrderItemId == itemId).Select(t => t.RefundIbanId).ToListAsync(ct),
-                .. await _db.Withdrawals.Where(w => w.OrderItemId == itemId).Select(w => w.RefundIbanId).ToListAsync(ct),
-                .. await _db.RefundIbanRequests.Where(r => r.OrderItemId == itemId).Select(r => r.RefundIbanId).ToListAsync(ct),
-            ]
-            : [.. await _db.RefundIbanRequests.Where(r => r.RefundId == failure.RefundId).Select(r => r.RefundIbanId).ToListAsync(ct)];
-        Guid[] ids = [.. candidates.OfType<Guid>().Distinct()];
-        List<RefundIban> ibans = await _db.RefundIbans.Where(i => ids.Contains(i.Id) && i.OrderId == failure.OrderId).ToListAsync(ct);
-        if (ibans.Count == 0)
+        // The IBAN the refund was paid to, by the one rule the panel's line and the IBAN's life read (PayeeBook; 02 7.4.5; D-907): only that IBAN goes - never
+        // another refund's own IBAN on the file. A refund waiting for its IBAN has none: there is no transfer to fail.
+        RefundPayeeSubject subject = failure.Payee ?? new RefundPayeeSubject(failure.RefundId, null, failure.OrderItemId);
+        PayeeBook book = await LoadPayeeBookAsync(failure.OrderId, [subject], ct);
+        if (book.PayeeOf(subject).RefundIbanId is not { } ibanId
+            || await _db.RefundIbans.SingleOrDefaultAsync(i => i.Id == ibanId && i.OrderId == failure.OrderId, ct) is not { } iban)
         {
             return null;
         }
 
-        // The bank refused the IBAN: it goes for the item, with its disposal record (Z-44); the field opens again with B-14 and the period runs on (02 7.4.5).
-        foreach (RefundIban iban in ibans)
-        {
-            DeleteIban(iban);
-        }
+        // The bank refused the IBAN: it goes, with its disposal record (Z-44); the field opens again with B-14 and the period runs on (02 7.4.5).
+        DeleteIban(iban);
 
         return await OpenRefundIbanRequestAsync(
             new RefundIbanRequestEntry(failure.OrderItemId, failure.RefundId, RefundIbanRequestReason.TransferFailed, failure.AdminId, failure.AdminName, failure.At),
@@ -234,6 +229,9 @@ internal sealed partial class AfterSalesModule
 
     /// <summary>An IBAN on file and an item a record or a fulfilled request links it to.</summary>
     private sealed record IbanLink(Guid RefundIbanId, Guid OrderItemId);
+
+    /// <summary>An IBAN on file and the refund whose fulfilled request brought it.</summary>
+    private sealed record IbanRefund(Guid RefundIbanId, Guid RefundId);
 
     /// <summary>Units of a withdrawal closed without a refund.</summary>
     private sealed record ClosedPart(Guid WithdrawalId, int Quantity);

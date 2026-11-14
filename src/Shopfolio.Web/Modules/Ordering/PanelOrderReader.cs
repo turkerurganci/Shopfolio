@@ -124,6 +124,11 @@ internal sealed class PanelOrderReader : IPanelOrderReader
         ];
 
         IReadOnlyList<PendingRefund> pending = await _payment.ListPendingRefundsAsync(orderId, ct);
+        // The IBAN a pending transfer refund goes to is the refund line's one rule (02 7.4.5; D-907): the same answer as the refund line on the same page.
+        IReadOnlyList<RefundPayee> payees = await _afterSales.ResolveRefundPayeesAsync(
+            orderId,
+            [.. (await _payment.FindPendingTransferRefundsAsync(orderId, ct)).Select(r => RefundPayeeSubject.Of(r.RefundId, r.CancellationId, r.LateDeliveryTerminationId, r.WithdrawalId, r.OrderItemId))],
+            ct);
         List<PanelPendingRefund> pendingRefunds =
         [
             .. pending.Select(r => new PanelPendingRefund(
@@ -132,7 +137,7 @@ internal sealed class PanelOrderReader : IPanelOrderReader
                 r.Quantity,
                 r.Amount,
                 r.Way,
-                r.Way == PaymentMethod.BankTransfer ? IbanOf(ibanFields, r) : null,
+                r.Way == PaymentMethod.BankTransfer ? payees.FirstOrDefault(p => p.Subject.RefundId == r.RefundId)?.Iban : null,
                 r.HasPeriod ? _afterSales.RefundLastDay(r.StartedAt) : null)),
         ];
 
@@ -178,11 +183,6 @@ internal sealed class PanelOrderReader : IPanelOrderReader
             facts.PersonalDataDisposed,
             order.PaymentMethod == PaymentMethod.BankTransfer ? PaymentWindowRules.LastPaymentDay(order.PaymentWindowEndsAt) : null);
     }
-
-    // The IBAN a transfer refund goes to: the one on file for the refund itself, else the one on file for its item (04 9.9.6; OB-14, read only in the panel).
-    private static string? IbanOf(IReadOnlyList<RefundIbanField> fields, PendingRefund refund) =>
-        fields.FirstOrDefault(f => f.Iban is not null && f.RefundId == refund.RefundId)?.Iban
-        ?? fields.FirstOrDefault(f => f.Iban is not null && refund.OrderItemId is not null && f.OrderItemId == refund.OrderItemId)?.Iban;
 
     private static string ProvinceName(IReadOnlyDictionary<Guid, string> provinces, Guid provinceId) =>
         provinces.TryGetValue(provinceId, out string? name) ? name : string.Empty;

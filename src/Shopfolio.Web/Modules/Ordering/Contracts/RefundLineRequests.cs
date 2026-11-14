@@ -1,3 +1,5 @@
+using Shopfolio.Modules.AfterSales.Contracts;
+
 namespace Shopfolio.Modules.Ordering.Contracts;
 
 /// <summary>
@@ -17,6 +19,7 @@ public sealed record EnterRefundIbanRequest(Guid OrderId, Guid RequestId, string
 public sealed record ChangeRefundIbanRequest(Guid OrderId, Guid RefundIbanId, string Iban);
 
 /// <summary>
-/// The firm's "havale gerçekleşmedi" (T370; 02 7.4.5; K-575, K-1131): on an item, or on the itemless refund of a late payment; the screen's version.
+/// The firm's "havale gerçekleşmedi" (T370; 02 7.4.5; K-575, K-1131): on an item, or on the itemless refund of a late payment; the screen's version. The panel names
+/// the refund line's own subject (<paramref name="Payee"/>): only the IBAN that refund is paid to goes (the one rule, <see cref="IAfterSalesModule.ResolveRefundPayeesAsync"/>).
 /// </summary>
-public sealed record ReportTransferFailedRequest(Guid OrderId, Guid? OrderItemId, Guid? RefundId, TransitionAdmin Admin, int ExpectedVersion);
+public sealed record ReportTransferFailedRequest(Guid OrderId, Guid? OrderItemId, Guid? RefundId, TransitionAdmin Admin, int ExpectedVersion, RefundPayeeSubject? Payee = null);

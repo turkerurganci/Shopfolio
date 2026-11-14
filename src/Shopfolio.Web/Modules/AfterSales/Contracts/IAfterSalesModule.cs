@@ -257,6 +257,13 @@ public interface IAfterSalesModule
     Task<IReadOnlyList<RefundIbanField>> ListRefundIbanFieldsAsync(Guid orderId, IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
 
     /// <summary>
+    /// The IBAN each subject's transfer refund is paid to, or none while it waits for one (02 7.4.5; D-907; 09 25 one function): the one rule the panel's refund
+    /// line, its confirmation window, the firm's "işle" and "havale gerçekleşmedi" steps and the IBAN's life (<see cref="DeleteUnusedRefundIbansAsync"/>) read.
+    /// One result per subject, in order. A plain read, a fixed number of queries.
+    /// </summary>
+    Task<IReadOnlyList<RefundPayee>> ResolveRefundPayeesAsync(Guid orderId, IReadOnlyCollection<RefundPayeeSubject> subjects, CancellationToken ct);
+
+    /// <summary>
     /// Whether a cancellation of <paramref name="selectedUnits"/> before the carrier took the order pays the shipping fee back (T512; 02 7.2.9; 04 5.17.5; K-789): the
     /// shipping fee rule's trigger (1) over the order's physical items' open units, read for the screen before the last step so the page works it out not itself (09 3.4
     /// item 1). A pure answer; reads and writes nothing.
@@ -315,9 +322,10 @@ public interface IAfterSalesModule
     Task<IReadOnlyList<Guid>> DeleteUnusedRefundIbansAsync(Guid orderId, CancellationToken ct);
 
     /// <summary>
-    /// The firm's "havale gerçekleşmedi" (02 7.4.5; K-575, K-1131): the IBAN the item's refund - or the itemless late payment refund - would use is deleted with
-    /// its disposal record, and a "transfer failed" request opens the IBAN field again; the period does not stop. Returns the request, or null when there is no
-    /// IBAN to report. The caller sends B-14. Under the order's row lock in the caller's transaction; saves nothing.
+    /// The firm's "havale gerçekleşmedi" (02 7.4.5; K-575, K-1131): the IBAN the failed refund was paid to is deleted with its disposal record, and a "transfer
+    /// failed" request opens the IBAN field again on the item - or on the itemless refund; the period does not stop. The IBAN is the one rule's
+    /// (<see cref="ResolveRefundPayeesAsync"/>) - the one the panel's refund line shows; no other IBAN goes. Returns the request, or null when there is no IBAN to report. The caller sends
+    /// B-14. Under the order's row lock in the caller's transaction; saves nothing.
     /// </summary>
     Task<RefundIbanRequestOpened?> ReportTransferFailedAsync(TransferFailure failure, CancellationToken ct);
 
@@ -376,6 +384,18 @@ public interface IAfterSalesModule
     /// record ids after <paramref name="afterId"/> (null starts from the first); an empty page is the end. A plain read.
     /// </summary>
     Task<RefundProcessingPage> ListOrdersAwaitingRefundProcessingAsync(Guid? afterId, int maxSubjects, CancellationToken ct);
+
+    /// <summary>
+    /// The item records of <paramref name="orderItemIds"/> that owe the firm a refund step and have no refund row yet (T529; 07 UC-131), by the panel home's one rule - an item that waits for the
+    /// customer's IBAN included, the screen shows it with its mark. Oldest first. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<OwedRefundRecord>> ListOwedRefundRecordsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
+    /// The "mal dönmedi" closures of <paramref name="orderItemIds"/> that were not reopened (T529; 07 UC-133 <c>NotReturnedClosureId</c>; 06 4.28; 04 7.2.13.2; K-1105), latest first: the amount based
+    /// refund on an item is bound to one of its own. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<OpenNotReturnedClosure>> ListOpenNotReturnedClosuresAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
 
     /// <summary>
     /// The refunds among <paramref name="refunds"/> that wait for the customer's IBAN (T382; 02 10.6.1; K-525, K-686): an open IBAN request - neither fulfilled nor closed - is linked to the

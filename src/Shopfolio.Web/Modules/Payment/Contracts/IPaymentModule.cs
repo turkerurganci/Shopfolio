@@ -231,6 +231,22 @@ public interface IPaymentModule
     /// and - apart - those whose latest request awaits its result. An order counts once in each. A plain read by the database.
     /// </summary>
     Task<CardRefundProblems> CountCardRefundProblemsAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The firm's refund step (T529; 07 UC-131, UC-133; 05 4.6.1; 06 4.33): the refund row is born with the administrator, the type's links and the amount the caller worked out. On the transfer the
+    /// refund is sent with the step (<c>SentAt</c>); on the card its job row goes in the same transaction and the provider's result moves it (K-970). Writes through the caller's change tracker
+    /// under the order's row lock and saves nothing; the facts of the new row are returned for the payment axis.
+    /// </summary>
+    Task<RefundFacts> StartFirmRefundAsync(FirmRefundStart start, CancellationToken ct);
+
+    /// <summary>
+    /// The administrator's "gerçekleşmedi" mark on a card refund whose result is awaited (T529; 07 UC-137; 06 4.34; K-940, K-978): the latest request turns failed with the mark, so the outcome
+    /// query stops and the retry and the transfer path open; no notice goes. Only on the order's open card refund whose latest request is "sonucu bekleniyor"; otherwise false and nothing is written.
+    /// </summary>
+    Task<bool> MarkCardRefundFailedByAdminAsync(Guid orderId, Guid refundId, CancellationToken ct);
+
+    /// <summary>The order's refunds as the panel's refund lines read them (T529; 04 9.9.6, 9.9.8), oldest first, the open transaction's changes included. A plain read.</summary>
+    Task<IReadOnlyList<PanelRefundFacts>> ListPanelRefundsAsync(Guid orderId, CancellationToken ct);
 }
 
 /// <summary>The count of orders with a failed card refund and of orders with a card refund whose result is awaited (T521).</summary>

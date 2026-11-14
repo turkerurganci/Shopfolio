@@ -75,29 +75,24 @@
         case OrderPrimaryStep.MarkDelivered:
             <form method="post" action="@(Model.PagePath)?handler=MarkDelivered" asp-antiforgery="true" class="form" data-js="submit-once" id="mark-delivered-form">
                 @VersionFields.Version(Model.Operations.Version, "Input")
-                <label for="delivery-date">Teslim tarihi</label>
-                <input id="delivery-date" type="date" name="Input.DeliveryDate" value="@Model.Delivery.DeliveryDate" required />
-                @if (Model.AsksDeliveryOrder)
-                {
-                    <fieldset class="order-detail__question" id="delivery-order-question">
-                        <legend>@OrderDetailModel.DeliveryOrderQuestionText</legend>
-                        @foreach (string moment in Model.DeclarationMomentTexts)
-                        {
-                            <p class="order-detail__declaration">Beyanın anı: @moment</p>
-                        }
-                        <label><input type="radio" name="Input.IsDeliveredBeforeDeclaration" value="true" required /> Teslim beyandan önce</label>
-                        <label><input type="radio" name="Input.IsDeliveredBeforeDeclaration" value="false" /> Teslim beyandan sonra</label>
-                    </fieldset>
-                }
+                <partial name="_OrderDeliveryFields" model="Model" />
                 <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.MarkDeliveredLabel)">@OrderDetailModel.MarkDeliveredLabel</button>
             </form>
             break;
     }
 </section>
-@if (Model.IsOpen(OrderOperation.MarkDeliveryFailed) || Model.IsOpen(OrderOperation.ResendOrder) || Model.IsOpen(OrderOperation.CloseOrder))
+@if (Model.OffersDeliveryMarkAsOperation || Model.IsOpen(OrderOperation.MarkDeliveryFailed) || Model.IsOpen(OrderOperation.ResendOrder) || Model.IsOpen(OrderOperation.CloseOrder))
 {
     <section class="order-detail__section" id="siparis-islemleri" aria-labelledby="order-operations-heading">
         <h2 id="order-operations-heading">Sipariş işlemleri</h2>
+        @if (Model.OffersDeliveryMarkAsOperation)
+        {
+            <form method="post" action="@(Model.PagePath)?handler=MarkDelivered" asp-antiforgery="true" class="form" data-js="submit-once" id="mark-delivered-operation-form">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <partial name="_OrderDeliveryFields" model="Model" />
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.MarkDeliveredLabel)">@OrderDetailModel.MarkDeliveredLabel</button>
+            </form>
+        }
         @if (Model.IsOpen(OrderOperation.MarkDeliveryFailed))
         {
             <form method="post" action="@(Model.PagePath)?handler=MarkDeliveryFailed" asp-antiforgery="true" class="form" data-js="submit-once" id="mark-delivery-failed-form">

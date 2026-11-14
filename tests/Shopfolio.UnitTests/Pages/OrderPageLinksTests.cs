@@ -10,7 +10,7 @@ public sealed class OrderPageLinksTests
 {
     private const string MemberRootPath = "/siparis/2026-7K4M9P";
 
-    private static OrderOperationsView ViewWith(params OrderOperationEntry[] open) => new(Guid.NewGuid(), ActorKind.Buyer, 1, open);
+    private static OrderOperationsView ViewWith(params OrderOperationEntry[] open) => new(Guid.NewGuid(), ActorKind.Buyer, 1, open, false);
 
     private static OrderOperationEntry OnOrder(OrderOperation operation) => new(operation, null, OperationAvailability.Open());
 

@@ -1,0 +1,17 @@
+@using Shopfolio.Pages.Panel
+@model OrderDetailModel
+@* The delivery mark's fields (T527; 04 9.9.17; 07 UC-126): the delivery date and, on a declaration's day, the order question. The same form is the primary button or one of the order's operations (04 9.9.5, 6.3.9.5). *@
+<label for="delivery-date">Teslim tarihi</label>
+<input id="delivery-date" type="date" name="Input.DeliveryDate" value="@Model.Delivery.DeliveryDate" required />
+@if (Model.AsksDeliveryOrder)
+{
+    <fieldset class="order-detail__question" id="delivery-order-question">
+        <legend>@OrderDetailModel.DeliveryOrderQuestionText</legend>
+        @foreach (string moment in Model.DeclarationMomentTexts)
+        {
+            <p class="order-detail__declaration">Beyanın anı: @moment</p>
+        }
+        <label><input type="radio" name="Input.IsDeliveredBeforeDeclaration" value="true" required /> Teslim beyandan önce</label>
+        <label><input type="radio" name="Input.IsDeliveredBeforeDeclaration" value="false" /> Teslim beyandan sonra</label>
+    </fieldset>
+}

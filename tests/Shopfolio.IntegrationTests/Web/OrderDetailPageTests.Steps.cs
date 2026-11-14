@@ -266,6 +266,77 @@ public sealed partial class OrderDetailPageTests
         Assert.Equal(2, await reader.AuditLogs.CountAsync(a => a.TargetRecordId == orderId && a.Operation == nameof(AuditOperation.MarkDeliveryFailed), Ct));
     }
 
+    [Fact]
+    public async Task TheScreen_OnAShippedOrderWhosePhysicalItemsAllClosed_HasNoPrimaryButton_AndKeepsTheDeliveryMarkAmongTheOrdersOperations_KK3()
+    {
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        (Guid withdrawnId, Guid[] withdrawnItems) = await StepOrderAsync(OrderStatus.Shipped, PaymentStatus.Paid, (ProductType.Physical, false));
+        (Guid terminatedId, Guid[] terminatedItems) = await StepOrderAsync(OrderStatus.Shipped, PaymentStatus.Paid, (ProductType.Physical, false), (ProductType.Digital, true));
+        await using (AppDbContext db = NewContext())
+        {
+            DateOnly today = TurkeyTime.DateOf(DateTimeOffset.UtcNow);
+            db.Withdrawals.Add(Withdrawal.ByBuyer(withdrawnItems[0], 1, today, null, StepAmounts, null, DateTimeOffset.UtcNow));
+            db.LateDeliveryTerminations.Add(LateDeliveryTermination.ByBuyer(terminatedItems[0], 1, today, StepAmounts, null, DateTimeOffset.UtcNow));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        foreach (Guid orderId in new[] { withdrawnId, terminatedId })
+        {
+            (HttpStatusCode status, string html) = await GetAsync(client, $"{OrdersPath}/{orderId:D}", key);
+
+            Assert.Equal(HttpStatusCode.OK, status);
+            string next = SectionOf(html, "siradaki-adim");
+            Assert.DoesNotContain("<form", next, StringComparison.Ordinal);
+            Assert.DoesNotContain("button--primary", next, StringComparison.Ordinal);
+            Assert.DoesNotContain("id=\"mark-delivered-form\"", html, StringComparison.Ordinal);
+            string operations = SectionOf(html, "siparis-islemleri");
+            Assert.Contains("id=\"mark-delivery-failed-form\"", operations, StringComparison.Ordinal);
+            Assert.Contains("id=\"mark-delivered-operation-form\"", operations, StringComparison.Ordinal);
+            Assert.Contains($"class=\"button button--secondary\" data-busy-label=\"{LoadingViews.BusyLabelOf(OrderDetailModel.MarkDeliveredLabel)}\">{OrderDetailModel.MarkDeliveredLabel}</button>", operations, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public async Task TheScreen_WithAnOpenPhysicalItem_KeepsTheLinesStepAsThePrimaryButton_OnAPreparingAndOnAShippedOrder_KK3()
+    {
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        (Guid preparingId, _) = await StepOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid, (ProductType.Physical, false));
+        (Guid shippedId, Guid[] items) = await StepOrderAsync(OrderStatus.Shipped, PaymentStatus.Paid, (ProductType.Physical, false), (ProductType.Physical, false));
+        await using (AppDbContext db = NewContext())
+        {
+            db.Withdrawals.Add(Withdrawal.ByBuyer(items[0], 1, TurkeyTime.DateOf(DateTimeOffset.UtcNow), null, StepAmounts, null, DateTimeOffset.UtcNow));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (HttpStatusCode preparingStatus, string preparingHtml) = await GetAsync(client, $"{OrdersPath}/{preparingId:D}", key);
+        (HttpStatusCode status, string html) = await GetAsync(client, $"{OrdersPath}/{shippedId:D}", key);
+
+        Assert.Equal(HttpStatusCode.OK, preparingStatus);
+        string preparingNext = SectionOf(preparingHtml, "siradaki-adim");
+        Assert.Contains("id=\"mark-shipped-form\"", preparingNext, StringComparison.Ordinal);
+        Assert.Contains($"class=\"button button--primary\" data-busy-label=\"{LoadingViews.BusyLabelOf(OrderDetailModel.ShipLabel)}\">{OrderDetailModel.ShipLabel}</button>", preparingNext, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.OK, status);
+        string next = SectionOf(html, "siradaki-adim");
+        Assert.Contains("id=\"mark-delivered-form\"", next, StringComparison.Ordinal);
+        Assert.Contains($"class=\"button button--primary\" data-busy-label=\"{LoadingViews.BusyLabelOf(OrderDetailModel.MarkDeliveredLabel)}\">{OrderDetailModel.MarkDeliveredLabel}</button>", next, StringComparison.Ordinal);
+        Assert.DoesNotContain("id=\"mark-delivered-operation-form\"", html, StringComparison.Ordinal);
+        Assert.Contains("id=\"mark-delivery-failed-form\"", SectionOf(html, "siparis-islemleri"), StringComparison.Ordinal);
+    }
+
+    // The section of the screen with the id, up to its closing tag (the screen's sections do not nest).
+    private static string SectionOf(string html, string id)
+    {
+        int start = html.IndexOf($"id=\"{id}\"", StringComparison.Ordinal);
+        Assert.True(start >= 0, $"The screen has no section {id}.");
+        return html[start..html.IndexOf("</section>", start, StringComparison.Ordinal)];
+    }
+
     private static string DateText(DateOnly date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
     /// <summary>A transfer order of the collection with the given items, moved to the given states around the entity (the pair rule of the database still applies).</summary>

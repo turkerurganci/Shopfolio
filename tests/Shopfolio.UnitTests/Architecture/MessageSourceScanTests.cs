@@ -145,11 +145,14 @@ public sealed class MessageSourceScanTests
         string script = StripComments(ReadWeb("wwwroot/js/common.js"));
         int start = script.IndexOf("function bindSubmitOnce", StringComparison.Ordinal);
         Assert.True(start >= 0);
-        string body = script[start..script.IndexOf("for (const form of document.querySelectorAll('[data-js=\"submit-once\"]'", start, StringComparison.Ordinal)];
+        string body = script[start..script.IndexOf("for (const element of document.querySelectorAll('[data-js=\"submit-once\"]'", start, StringComparison.Ordinal)];
 
         Assert.Contains("aria-busy", body, StringComparison.Ordinal);
         Assert.Contains("preventDefault", body, StringComparison.Ordinal);
         Assert.DoesNotMatch(new Regex(@"\.disabled\s*=|setAttribute\(\s*[""']disabled", RegexOptions.CultureInvariant, PatternTimeout), body);
+
+        // T539 KK4: the mark may sit on one button of a form that has several (the payment step's order button): only that button's send locks the form, a second send of any button is stopped.
+        Assert.Contains("only !== null && event.submitter !== only", body, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -207,11 +207,16 @@ for (const summary of document.querySelectorAll('[data-js="error-summary"]')) {
 
 // A form that carries submit-once can not be sent twice and says that the operation continues (04 2.4.6, 2.7.2; 09 16.2 item 3). The button is not disabled: a disabled button would drop the handler
 // value from the form. State lives in aria-busy; a page that comes back from the back/forward cache is made ready again.
-function bindSubmitOnce(form) {
+function bindSubmitOnce(form, only = null) {
     const labelOf = (button) => button.dataset.originalLabel ?? button.textContent;
     form.addEventListener("submit", (event) => {
         if (form.getAttribute("aria-busy") === "true") {
             event.preventDefault();
+            return;
+        }
+
+        // The mark may sit on one button of a form that has several (the payment step: only the order's own button locks, the recalculation and the coupon do not).
+        if (only !== null && event.submitter !== only) {
             return;
         }
 
@@ -271,12 +276,12 @@ function bindDownloadOnce(form) {
 }
 
 // A reading form whose choice applies at once (the sales summary's period, 04 9.22.8): a change of the closed list sends the form, unless the choice is the custom range, whose two dates are sent by
-// the form's button. Without a script the button sends the form.
+// the form's button. Without a script the button sends the form. The send is the form's own button's send (09 16.2 item 1): requestSubmit with the submitter, so the same handler answers.
 for (const form of document.querySelectorAll('[data-js="submit-on-change"]')) {
     const choice = form.querySelector("select");
     choice?.addEventListener("change", () => {
         if (choice.value !== "Custom") {
-            form.submit();
+            form.requestSubmit(form.querySelector('button[type="submit"]'));
         }
     });
 }
@@ -285,8 +290,12 @@ for (const form of document.querySelectorAll('[data-js="download-once"]')) {
     bindDownloadOnce(form);
 }
 
-for (const form of document.querySelectorAll('[data-js="submit-once"]')) {
-    bindSubmitOnce(form);
+for (const element of document.querySelectorAll('[data-js="submit-once"]')) {
+    if (element instanceof HTMLFormElement) {
+        bindSubmitOnce(element);
+    } else if (element.form) {
+        bindSubmitOnce(element.form, element);
+    }
 }
 
 // The administrator's confirmation window (04 2.4.4, T541): drawn open by the server, it is opened as a modal window here; the focus is on "Vazgeç"; Escape and a click outside the window are "Vazgeç".

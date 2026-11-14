@@ -95,26 +95,25 @@ if (selectionForm && variants.length > 0) {
         if (variant && variant.purchasable) {
             show(variant);
         } else {
-            selectionForm.requestSubmit();
+            selectionForm.requestSubmit(apply ?? undefined);
         }
     });
 }
 
 if (cartForm) {
+    // Locked after the first send (09 16.2 item 3): the form carries aria-busy and a second submit is stopped; the button is not disabled, so its own value still enters the form. A page that comes back
+    // from the back/forward cache is made ready again; the redirect after the add draws the page with a fresh form.
     cartForm.addEventListener("submit", (event) => {
-        const button = cartForm.querySelector("[data-js='add-button']");
-        if (!button) {
-            return;
-        }
-
-        if (button.disabled) {
+        if (cartForm.getAttribute("aria-busy") === "true") {
             event.preventDefault();
             return;
         }
 
-        // Locked after the first send; the redirect after the add draws the page again with a fresh button.
-        window.setTimeout(() => {
-            button.disabled = true;
-        }, 0);
+        cartForm.setAttribute("aria-busy", "true");
+    });
+    window.addEventListener("pageshow", (event) => {
+        if (event.persisted) {
+            cartForm.removeAttribute("aria-busy");
+        }
     });
 }

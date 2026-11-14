@@ -168,12 +168,12 @@
                     {
                         <partial name="_Field" model="Fields.Bind(codeField, errors)" />
                     }
-                    <button type="submit" class="button button--secondary" formaction="@(action)ApplyCoupon" formnovalidate>@CouponFields.ApplyLabel</button>
+                    <button type="submit" class="button button--secondary" formaction="@(action)ApplyCoupon" formnovalidate data-js="apply-coupon">@CouponFields.ApplyLabel</button>
                 }
             }
         </div>
         <p class="checkout__total">Ödenecek toplam: <strong>@DisplayFormat.Amount(summary.Total)</strong></p>
-        <button type="submit" class="button button--secondary" formaction="@(action)Recalculate" formnovalidate>@CheckoutTexts.RecalculateLabel</button>
+        <button type="submit" class="button button--secondary" formaction="@(action)Recalculate" formnovalidate data-js="recalculate">@CheckoutTexts.RecalculateLabel</button>
     </aside>
 
     <section class="checkout__section checkout__confirm" aria-labelledby="checkout-confirm">
@@ -223,3 +223,6 @@
     </section>
     <p><button type="submit" class="link-button" formaction="@(action)Leave" formnovalidate name="@nameof(PlaceOrderInput.LeaveTarget)" value="@CheckoutModel.CartTarget">@CheckoutTexts.BackToCart</button></p>
 </form>
+@section Scripts {
+    <script type="module" src="@ViewContext.HttpContext.StaticAsset("js/pages/storefront/checkout.js")"></script>
+}

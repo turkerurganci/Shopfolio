@@ -78,7 +78,7 @@ internal sealed partial class AfterSalesModule
         /// <summary>
         /// The one rule, in its order (02 7.4.5; D-907): the record's own IBAN; else the refund's own requests - one open waits (VAL-A912), else the IBAN one
         /// brought -; else the item's requests (those naming no refund) - one open waits ("havale gerçekleşmedi" on the item: the item is back to "IBAN
-        /// bekleniyor"), else the IBAN of one of them or of the item's records -; else the first IBAN on the order's file that is not another refund's own (one
+        /// bekleniyor"), else the IBAN one of them brought, else the IBAN of one of the item's records -; else the first IBAN on the order's file that is not another refund's own (one
         /// its own request brought: the late payment's, a failed card refund's transfer path). A waiting refund is no IBAN's payee. Several candidates of a step:
         /// the first on file (ListRefundIbanFieldsAsync's order).
         /// </summary>
@@ -111,10 +111,16 @@ internal sealed partial class AfterSalesModule
                     return null;
                 }
 
-                IEnumerable<Guid?> linked = item.Select(r => r.RefundIbanId).Concat(records.Where(r => r.OrderItemId == itemId).Select(r => (Guid?)r.RefundIbanId));
-                if (FirstOnFile(linked) is { } itemIban)
+                // The IBAN the customer entered on the item's request comes before the item's records' (02 7.4.5: the IBAN asked again after "havale
+                // gerçekleşmedi" is the one paid to), the same order the waiting above follows.
+                if (FirstOnFile(item.Select(r => r.RefundIbanId)) is { } requestIban)
                 {
-                    return itemIban;
+                    return requestIban;
+                }
+
+                if (FirstOnFile(records.Where(r => r.OrderItemId == itemId).Select(r => (Guid?)r.RefundIbanId)) is { } recordsIban)
+                {
+                    return recordsIban;
                 }
             }
 

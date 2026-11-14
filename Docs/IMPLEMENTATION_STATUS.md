@@ -266,7 +266,7 @@
 | T507 | Yasal metin sayfaları ve panelde yönetimi (E-11, E-47) | ✓ | ✓ PASS (tur 1) | `7eadf545` | #547 |
 | T508 | Sepet (E-12) | ✓ | ✓ PASS (tur 1) | `6a8e61a0` | #544 |
 | T509 | Ödeme adımı (E-13) | ✓ | ✓ PASS (tur 4) | `edf4eb2a` | #559 |
-| T510 | Sipariş teyit ve bekleme ekranı, ödeme sağlayıcısına geçiş ve dönüş (E-14) | ✓ | — | — | — |
+| T510 | Sipariş teyit ve bekleme ekranı, ödeme sağlayıcısına geçiş ve dönüş (E-14) | ✓ | ✓ PASS (tur 1) | `dee5e68a` | #569 |
 | T511 | Sipariş takibi girişi, sipariş sayfası ve indirme bağlantısı (E-15, E-16) | ✓ | ✓ PASS (tur 1) | `20c8bbcc` | #545 |
 | T512 | İptal ve gecikme feshi ekranı, geri ödeme IBAN girişi (E-17, E-16 IBAN formu) | ✓ | ✓ PASS (tur 2) | `f76de0e3` | #553 |
 | T513 | Cayma beyanı ve ayıp talebi ekranları (E-18, E-19) | ✓ | ✓ PASS (tur 2) | — | #558 |

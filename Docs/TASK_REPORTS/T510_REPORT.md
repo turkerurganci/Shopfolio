@@ -1,6 +1,6 @@
 # T510 — Sipariş teyit ve bekleme ekranı, ödeme sağlayıcısına geçiş ve dönüş (E-14)
 
-**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama bekliyor) | **Tarih:** 2026-11-14
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS; kriter 10'un DV-5 gözlem payı OWNER_INPUT — D-1466) | **Tarih:** 2026-11-14
 
 ---
 
@@ -98,7 +98,20 @@ Testler: **C** = `CheckoutPageTests` (Integration, `Web/CheckoutPageTests.Confir
 
 ## Doğrulama
 
-*(validator doldurur)*
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-14), head `dee5e68a`; main `3fe7d829` (T517) çakışmasız birleştirildi, birleşik ağaçta doğrulandı |
+| Başlangıç kapıları | Working tree temiz; `core.hooksPath` = `scripts/git-hooks` (ana çalışma alanı); main son 3 tamamlanmış run `success` (43517041992, 43517041955, 43502869408) |
+| CI (#569) | 1–8 yeşil (run 43551463860; Integration 12m16s pass) |
+| Yerel sınama | `dotnet build -warnaserror` 0 uyarı; `dotnet format --verify-no-changes` üç projede temiz; Unit 7567/7567 (birleşik ağaç; dal ucunda Architecture 1757 + öteki 5515 + Consistency 295); betik testleri 4/4; Integration sınıf bazlı: `CheckoutPageTests`, `SecurityHeadersTests`, `MainFlowTests`, `PaymentNotificationTests` 78/78, `PaymentStartTests`, `CartTests`, `CartPageTests`, `ConcurrencyTests` 83/83, `StatusEndpointTests`, `PaymentWindowTests` 74/74, birleşik ağaçta `CheckoutPageTests` + `SecurityHeadersTests` + `AccountProfilePageTests` 64/64 (Postgres 18, `track_commit_timestamp=on`); **TAM: CI** |
+| Kriter 1–9 | ✓ — kod okundu (`ConfirmationScreenModels.cs`, `OrderConfirmationScreens.cs`, `ContentSecurityPolicy.cs`, `SecurityHeadersMiddleware.cs`, `PaymentFrameSource.cs`, `Return.cshtml(.cs)`, `return.js`, görünümler) ve testler kendi koşumumda geçti; metinler `04` 3.5.8 ve 5.14.3–5.14.4 ile birebir |
+| Kriter 10 | ✓ kayıt payı (`08 §4.1` DV-5 Durum hücresi tarihli, ihlal kaydı "yok — gözlem yapılmadı"; `PAYTR.md` §6.1 satırı; D-1466); gözlem payı OWNER_INPUT — T401 kriter 9 emsali; `VAL-E005` BEKLEMEDE |
+| Doğrulayıcı sondası (silindi) | Üye kart siparişinde erişilemeyen sağlayıcı: 303 `/sepet`, İptal + Başarısız, hesabın sepetinde işaret, `dispatch_records` B7; sepeti olmayan misafir tarayıcı: iptal, hiçbir sepet işaretlenmez; oturum çerezli dönüş çerezsizle aynı gövde, sipariş satırları değişmez |
+| Güvenlik | Sır yok; `frame-src 'self' https://www.paytr.com` yalnız `[AllowPaymentFrame]` + yanıt işareti + 200'de (teyit GET'i, hata yanıtları `'none'`); `frame-ancestors 'self'` yalnız dönüşün 200'ünde; `form-action` ve `script-src` genişlemez; çerçeve adresi `PaymentFrameSource.Holds` ile sağlayıcının form köküne bağlı (değilse istisna, çerçeve çizilmez); dönüş ve teyit GET'i yan etkisiz; anahtarlı sayfalar `no-referrer` + `no-store`; dönüş yolu ters vekil ve uygulama kaydında maskeli (`PathMasker`, Caddyfile); iptalde kilit sırası sepet → sipariş (`09` kilit sırası kuralı — "sepet kilidi sipariş tarafının en başındadır"; `05 §7.3.5`; `LockSequence`); POST sahtecilik korumalı; yeni bağımlılık yok |
+| Bulgu sayısı | 0 |
+| Bloke-etmeyen not (K) | K1 → D-1493 (`VAL-A585` beklenen sonucu UC-29'un "her açılış yeni jeton" kararıyla ayrışıyor; DV-11'e bağlı); K2 → D-1494 (T510'a bağlı BEKLEMEDE kalan sandbox ve tarayıcı satırları) |
+| `12` | PASS: `VAL-A583`, `A666`, `A667`, `A683`, `A684`, `A685`, `A970`, `E048`, `E049`, `E050`, `E070`, `E071`, `E089`, `E094`; BEKLEMEDE: `E005`, `E006`, `E067`, `E068`, `E069` (sandbox/gerçek), `B009`, `B010`, `B011` (tarayıcı gözlemi), `A585` (D-1493); `12_matris_denetle.py --kapsam 1-77` hata 0 |
+| Yapım raporu karşılaştırması | Kriter ve KK sonuçları uyumlu. Uyuşmazlık 1: raporun "`12` satır eşlemesi" yalnız `E089`, `E094`, `A970`, `E048`–`E050`'yi sayıyor; UC-28…UC-30'a bağlı `A583`, `A666`, `A667`, `A683`–`A685`, `E067`, `E070`, `E071` eşlenmemişti — doğrulama eşledi ve yazdı |
 
 ## Altyapı Değişiklikleri
 

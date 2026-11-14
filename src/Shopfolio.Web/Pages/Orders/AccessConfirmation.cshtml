@@ -1,0 +1,9 @@
+@page "/siparis/erisim/{accessKey:regex(^[A-Za-z0-9_-]+\z)}/teyit"
+@model Shopfolio.Pages.Orders.AccessConfirmationModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "_StorefrontLayout";
+    ViewData["Title"] = Model.ShowsPaymentPage ? "Ödeme" : "Sipariş alındı";
+}
+@* UC-28, UC-29 under the access-key root (07 4.14); the screen itself is the shared E-14 view. *@
+<partial name="_ConfirmationScreen" model="Model" />

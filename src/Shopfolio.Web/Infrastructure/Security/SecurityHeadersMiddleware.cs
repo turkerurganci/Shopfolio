@@ -30,7 +30,7 @@ internal sealed class SecurityHeadersMiddleware
     private static Task Write(HttpContext context, string nonce)
     {
         IHeaderDictionary headers = context.Response.Headers;
-        headers[ContentSecurityPolicy.HeaderName] = ContentSecurityPolicy.Build(nonce);
+        headers[ContentSecurityPolicy.HeaderName] = ContentSecurityPolicy.Build(nonce, PolicyOptionsOf(context));
         headers.XContentTypeOptions = SecurityHeaders.NoSniff;
         headers["Referrer-Policy"] = context.GetEndpoint()?.Metadata.GetMetadata<KeyedLinkPageAttribute>() is null
             ? SecurityHeaders.ReferrerPolicyDefault
@@ -45,6 +45,20 @@ internal sealed class SecurityHeadersMiddleware
         }
 
         return Task.CompletedTask;
+    }
+
+    // The two responses that change the policy (09 15.2 item 4): the payment page's answer that draws the provider's frame - its page carries the mark and the answer marked
+    // itself - and the hand-over page. Anything else, the error answers of those pages included, keeps the default.
+    private static ContentSecurityPolicyOptions PolicyOptionsOf(HttpContext context)
+    {
+        EndpointMetadataCollection? metadata = context.GetEndpoint()?.Metadata;
+        string? frameOrigin = metadata?.GetMetadata<AllowPaymentFrameAttribute>() is not null
+            && PaymentFrameResponse.IsMarked(context)
+            && context.Response.StatusCode == StatusCodes.Status200OK
+            ? context.RequestServices.GetService<Integrations.PaymentFrameSource>()?.Origin
+            : null;
+        bool selfFraming = metadata?.GetMetadata<AllowFramingAttribute>() is not null && context.Response.StatusCode == StatusCodes.Status200OK;
+        return frameOrigin is null && !selfFraming ? ContentSecurityPolicyOptions.Default : new ContentSecurityPolicyOptions(frameOrigin, selfFraming);
     }
 }
 

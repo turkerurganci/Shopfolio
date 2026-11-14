@@ -473,13 +473,31 @@ internal sealed class Carts
     /// </summary>
     public async Task MarkPaymentUnavailableAsync(CartOwner owner, CancellationToken ct)
     {
+        if (await LockCartAsync(owner, ct) is Guid cartId)
+        {
+            await MarkPaymentUnavailableLockedAsync(cartId, ct);
+        }
+    }
+
+    /// <summary>
+    /// Takes the owner's cart lock and gives the cart's id, or null when the owner has no cart (nothing is locked). The cart's lock is the head of the lock order (05 7.3.5): a flow that
+    /// marks the cart after it locked orders or variants takes this first and marks with <see cref="MarkPaymentUnavailableLockedAsync"/>. Joins the caller's transaction.
+    /// </summary>
+    public async Task<Guid?> LockCartAsync(CartOwner owner, CancellationToken ct)
+    {
         ArgumentNullException.ThrowIfNull(owner);
         if (await FindCartIdAsync(owner, ct) is not Guid cartId)
         {
-            return;
+            return null;
         }
 
         await _locks.LockAsync(AdvisoryLockScope.Cart, cartId, ct);
+        return cartId;
+    }
+
+    /// <summary>The mark of <see cref="MarkPaymentUnavailableAsync"/> for a cart whose lock the transaction already holds (<see cref="LockCartAsync"/>).</summary>
+    public async Task MarkPaymentUnavailableLockedAsync(Guid cartId, CancellationToken ct)
+    {
         Cart? cart = await _db.Carts.SingleOrDefaultAsync(c => c.Id == cartId, ct);
         if (cart is not null)
         {

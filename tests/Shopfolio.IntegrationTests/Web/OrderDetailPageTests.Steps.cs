@@ -267,7 +267,7 @@ public sealed partial class OrderDetailPageTests
     }
 
     [Fact]
-    public async Task TheScreen_OnAShippedOrderWhosePhysicalItemsAllClosed_HasNoPrimaryButton_AndKeepsTheDeliveryMarkAmongTheOrdersOperations_KK3()
+    public async Task TheScreen_OnAShippedOrderWhosePhysicalItemsAllClosed_OffersNoDeliveryMark_OnlyTheDeliveryFailure_AndADirectPostIs422_KK3()
     {
         (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
         (Guid withdrawnId, Guid[] withdrawnItems) = await StepOrderAsync(OrderStatus.Shipped, PaymentStatus.Paid, (ProductType.Physical, false));
@@ -291,11 +291,29 @@ public sealed partial class OrderDetailPageTests
             string next = SectionOf(html, "siradaki-adim");
             Assert.DoesNotContain("<form", next, StringComparison.Ordinal);
             Assert.DoesNotContain("button--primary", next, StringComparison.Ordinal);
-            Assert.DoesNotContain("id=\"mark-delivered-form\"", html, StringComparison.Ordinal);
-            string operations = SectionOf(html, "siparis-islemleri");
-            Assert.Contains("id=\"mark-delivery-failed-form\"", operations, StringComparison.Ordinal);
-            Assert.Contains("id=\"mark-delivered-operation-form\"", operations, StringComparison.Ordinal);
-            Assert.Contains($"class=\"button button--secondary\" data-busy-label=\"{LoadingViews.BusyLabelOf(OrderDetailModel.MarkDeliveredLabel)}\">{OrderDetailModel.MarkDeliveredLabel}</button>", operations, StringComparison.Ordinal);
+            // The delivery mark is not open with no open physical item (the writer refuses S6): no form posts it anywhere on the screen.
+            Assert.DoesNotContain("handler=MarkDelivered\"", html, StringComparison.Ordinal);
+            Assert.DoesNotContain($">{OrderDetailModel.MarkDeliveredLabel}</button>", html, StringComparison.Ordinal);
+            Assert.Contains("id=\"mark-delivery-failed-form\"", SectionOf(html, "siparis-islemleri"), StringComparison.Ordinal);
+
+            // The POST asks the same rule as the screen: a direct one is refused before the writer and changes nothing.
+            int version;
+            await using (AppDbContext db = NewContext())
+            {
+                version = await db.Orders.Where(o => o.Id == orderId).Select(o => o.Version).SingleAsync(Ct);
+            }
+
+            (HttpStatusCode posted, string postedHtml) = await PostAsync(
+                client,
+                $"{OrdersPath}/{orderId:D}?handler=MarkDelivered",
+                [("Input.Version", version.ToString(CultureInfo.InvariantCulture)), ("Input.DeliveryDate", DateText(TurkeyTime.DateOf(DateTimeOffset.UtcNow))), ("Input.IsDeliveredBeforeDeclaration", "true")],
+                key);
+
+            Assert.Equal(HttpStatusCode.UnprocessableEntity, posted);
+            Assert.Contains(OrderDetailModel.NotOpenText, postedHtml, StringComparison.Ordinal);
+            await using AppDbContext reader = NewContext();
+            Assert.Equal(OrderStatus.Shipped, await reader.Orders.Where(o => o.Id == orderId).Select(o => o.OrderStatus).SingleAsync(Ct));
+            Assert.Equal(0, await reader.AuditLogs.CountAsync(a => a.TargetRecordId == orderId && a.Operation == nameof(AuditOperation.MarkDelivered), Ct));
         }
     }
 
@@ -325,7 +343,7 @@ public sealed partial class OrderDetailPageTests
         string next = SectionOf(html, "siradaki-adim");
         Assert.Contains("id=\"mark-delivered-form\"", next, StringComparison.Ordinal);
         Assert.Contains($"class=\"button button--primary\" data-busy-label=\"{LoadingViews.BusyLabelOf(OrderDetailModel.MarkDeliveredLabel)}\">{OrderDetailModel.MarkDeliveredLabel}</button>", next, StringComparison.Ordinal);
-        Assert.DoesNotContain("id=\"mark-delivered-operation-form\"", html, StringComparison.Ordinal);
+        Assert.Equal(2, html.Split("handler=MarkDelivered\"", StringSplitOptions.None).Length); // the primary form only: no second delivery mark among the operations
         Assert.Contains("id=\"mark-delivery-failed-form\"", SectionOf(html, "siparis-islemleri"), StringComparison.Ordinal);
     }
 

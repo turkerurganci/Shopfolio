@@ -163,9 +163,6 @@ public sealed class OrderDetailModel : PageModel
 
     public bool IsOpen(OrderOperation operation) => Operations.IsOpen(operation);
 
-    /// <summary>The delivery mark is open but not the primary button (04 6.3.9.5: the physical items all closed): it stays among "Sipariş işlemleri".</summary>
-    public bool OffersDeliveryMarkAsOperation => PrimaryStep != OrderPrimaryStep.MarkDelivered && IsOpen(OrderOperation.MarkDelivered);
-
     /// <summary>The panel-only facts (04 9.9.4, 9.9.6, 9.9.10-9.9.12): the marks, the items' facts, the pending refunds, the running periods and the three histories.</summary>
     public PanelOrderDetailFacts Facts { get; private set; } = null!; // non-null: LoadAsync sets it before any handler returns Page()
 
@@ -487,7 +484,8 @@ public sealed class OrderDetailModel : PageModel
     }
 
     // 04 9.9.5 (K-803): the line's next required step. The delivery failure, the re-sending and the closing are in "Sipariş işlemleri", never primary. On a shipped order whose physical
-    // items all closed by a withdrawal or a late delivery termination no order-level step is required (04 6.3.9.5; 03 1.4.3): the delivery mark stays among the order's operations.
+    // items all closed by a withdrawal or a late delivery termination no order-level step is required (04 6.3.9.5; 03 1.4.3): the delivery mark is not open then (the catalog's row asks an
+    // open physical item, as the writer does), and the way on is "Teslim edilemedi" and the closing.
     private static OrderPrimaryStep PrimaryOf(OrderOperationsView operations)
     {
         if (operations.IsOpen(OrderOperation.MarkTransferPaid))
@@ -500,7 +498,7 @@ public sealed class OrderDetailModel : PageModel
             return OrderPrimaryStep.MarkShipped;
         }
 
-        return operations.IsOpen(OrderOperation.MarkDelivered) && operations.HasOpenPhysicalItem ? OrderPrimaryStep.MarkDelivered : OrderPrimaryStep.None;
+        return operations.IsOpen(OrderOperation.MarkDelivered) ? OrderPrimaryStep.MarkDelivered : OrderPrimaryStep.None;
     }
 
     private static KeyValuePair<string, string> Field(string name, int value) => new(name, value.ToString(CultureInfo.InvariantCulture));

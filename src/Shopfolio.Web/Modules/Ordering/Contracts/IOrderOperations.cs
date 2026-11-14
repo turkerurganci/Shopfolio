@@ -5,12 +5,8 @@ namespace Shopfolio.Modules.Ordering.Contracts;
 /// <summary>One open operation of an order as the server decided it: the operation, the item it is open for (null for an operation on the order), and its values (open quantity, upper limit, last day).</summary>
 public sealed record OrderOperationEntry(OrderOperation Operation, Guid? OrderItemId, OperationAvailability Availability);
 
-/// <summary>
-/// The operations open to one side of an order at one moment (03 1.11): only the open ones are in the list - an operation outside its interval is not offered at all (03 1.11; T323 criterion 3).
-/// <paramref name="HasOpenPhysicalItem"/> is the decision's own fact (a physical item has open units: the shipment line is still open, 03 1.4.3), the one the shipping rows read; the panel's
-/// screen asks it for its primary button (04 9.9.5; K-803).
-/// </summary>
-public sealed record OrderOperationsView(Guid OrderId, ActorKind Actor, int Version, IReadOnlyList<OrderOperationEntry> Open, bool HasOpenPhysicalItem)
+/// <summary>The operations open to one side of an order at one moment (03 1.11): only the open ones are in the list - an operation outside its interval is not offered at all (03 1.11; T323 criterion 3).</summary>
+public sealed record OrderOperationsView(Guid OrderId, ActorKind Actor, int Version, IReadOnlyList<OrderOperationEntry> Open)
 {
     /// <summary>True when the operation is open for the item (or for the order when <paramref name="orderItemId"/> is null).</summary>
     public bool IsOpen(OrderOperation operation, Guid? orderItemId = null) => Open.Any(e => e.Operation == operation && e.OrderItemId == orderItemId);

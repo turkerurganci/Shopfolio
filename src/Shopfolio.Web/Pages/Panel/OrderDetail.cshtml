@@ -81,18 +81,10 @@
             break;
     }
 </section>
-@if (Model.OffersDeliveryMarkAsOperation || Model.IsOpen(OrderOperation.MarkDeliveryFailed) || Model.IsOpen(OrderOperation.ResendOrder) || Model.IsOpen(OrderOperation.CloseOrder))
+@if (Model.IsOpen(OrderOperation.MarkDeliveryFailed) || Model.IsOpen(OrderOperation.ResendOrder) || Model.IsOpen(OrderOperation.CloseOrder))
 {
     <section class="order-detail__section" id="siparis-islemleri" aria-labelledby="order-operations-heading">
         <h2 id="order-operations-heading">Sipariş işlemleri</h2>
-        @if (Model.OffersDeliveryMarkAsOperation)
-        {
-            <form method="post" action="@(Model.PagePath)?handler=MarkDelivered" asp-antiforgery="true" class="form" data-js="submit-once" id="mark-delivered-operation-form">
-                @VersionFields.Version(Model.Operations.Version, "Input")
-                <partial name="_OrderDeliveryFields" model="Model" />
-                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.MarkDeliveredLabel)">@OrderDetailModel.MarkDeliveredLabel</button>
-            </form>
-        }
         @if (Model.IsOpen(OrderOperation.MarkDeliveryFailed))
         {
             <form method="post" action="@(Model.PagePath)?handler=MarkDeliveryFailed" asp-antiforgery="true" class="form" data-js="submit-once" id="mark-delivery-failed-form">

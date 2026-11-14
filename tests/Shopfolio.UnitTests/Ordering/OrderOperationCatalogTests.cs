@@ -226,6 +226,18 @@ public sealed class OrderOperationCatalogTests
     }
 
     [Fact]
+    public void MarkDelivered_OnAShippedOrder_NeedsAnOpenPhysicalItem_AsTheWriterDoes()
+    {
+        // 02 5.8; 03 1.4.3: the physical items all closed (withdrawal, late delivery termination) leave no item to mark; the delivery failure stays the way on.
+        OperationItemFacts closed = Item(ProductType.Physical, open: 0);
+        OrderOperationFacts facts = Order(OrderStatus.Shipped, PaymentStatus.Paid, PaymentMethod.Card, closed, Item(ProductType.Digital, marked: true));
+
+        Assert.False(IsOpen(facts, OrderOperation.MarkDelivered));
+        Assert.True(IsOpen(facts, OrderOperation.MarkDeliveryFailed));
+        Assert.True(IsOpen(Order(OrderStatus.Shipped, PaymentStatus.Paid, PaymentMethod.Card, Item(ProductType.Physical, open: 1), closed), OrderOperation.MarkDelivered));
+    }
+
+    [Fact]
     public void MarkTransferPaid_OnlyOnAPlacedPendingTransferOrder()
     {
         OperationItemFacts item = Item(ProductType.Physical);

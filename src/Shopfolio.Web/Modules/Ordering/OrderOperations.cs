@@ -41,7 +41,7 @@ internal sealed class OrderOperations : IOrderOperations
         }
 
         OrderOperationFacts? facts = await LoadAsync(orderId, ct);
-        return facts is null ? null : new OrderOperationsView(orderId, actor, facts.Version, OrderOperationCatalog.Decide(facts, actor), facts.HasOpenPhysicalItem);
+        return facts is null ? null : new OrderOperationsView(orderId, actor, facts.Version, OrderOperationCatalog.Decide(facts, actor));
     }
 
     public async Task<OperationVerdict> CheckAsync(Guid orderId, OrderOperation operation, Guid? orderItemId, int? quantity, CancellationToken ct)

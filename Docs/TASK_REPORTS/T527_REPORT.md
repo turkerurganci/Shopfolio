@@ -79,7 +79,7 @@
 - **Commit:** "T527: Sipariş listesi, sipariş ayrıntısı ve durum geçişleri (E-36, E-37)" (dalın son commit'i; öncekiler WIP)
 - **PR:** #565
 - **CI:** yönetici izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** main `d847e947`: CI 43566446578 success, Publish 43566446647 success
 
 ## Dış Varsayımlar
 

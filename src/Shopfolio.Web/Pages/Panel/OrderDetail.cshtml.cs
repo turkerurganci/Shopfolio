@@ -28,15 +28,16 @@ public enum OrderPrimaryStep
     MarkPaid,
     MarkShipped,
     MarkDelivered,
+    CompleteService,
 }
 
 /// <summary>
 /// E-37, the order's screen in the panel (T527; 04 9.9; 07 UC-92, UC-123...UC-128): the sections of 04 9.9.3-9.9.13 as the server worked them out, the primary button - the line's next required step -, the
-/// order's other open steps, and the six line steps' handlers. The open operations are the decision's (<see cref="IOrderOperations"/>, the administrator's side); the screen derives no state of its own
+/// order's other open steps, and the six line steps' handlers (T531's service mark, download renewal, note and re-sendings: OrderDetail.Upkeep.cs). The open operations are the decision's (<see cref="IOrderOperations"/>, the administrator's side); the screen derives no state of its own
 /// (04 9.9.37). Every step carries the order's version: a stale version is 409 with the order as it is now and no way to overwrite (04 9.9.34); a step that is not open, or a refused value, is 422. A key
 /// that is not an order's is 404 (K-803). The GET writes nothing.
 /// </summary>
-public sealed class OrderDetailModel : PageModel
+public sealed partial class OrderDetailModel : PageModel
 {
     public const string BackLabel = "Listeye dön";
 
@@ -204,8 +205,8 @@ public sealed class OrderDetailModel : PageModel
     public IReadOnlySet<Guid> MarkedClaimIds { get; private set; } = new HashSet<Guid>();
 
     /// <summary>
-    /// The undelivered e-mails under the order's "e-posta ulaşmadı" mark (04 9.9.4, 2.5.3.1): the notice's name, the first sending's date and the address. The re-sending (UC-153) is T531's, so no
-    /// row offers its button yet.
+    /// The undelivered e-mails under the order's "e-posta ulaşmadı" mark (04 9.9.4, 2.5.3.1): the notice's name, the first sending's date and the address, each with "Yeniden gönder"
+    /// and, for more than one, "Hepsini yeniden gönder" (T531; UC-153, UC-154).
     /// </summary>
     public UndeliveredEmailList UndeliveredEmails { get; private set; } = new(string.Empty, string.Empty, string.Empty, [], false);
 
@@ -477,10 +478,11 @@ public sealed class OrderDetailModel : PageModel
         IReadOnlyList<Shopfolio.Modules.Notifications.Contracts.UndeliveredNotice> undelivered = Facts.Marks.EmailNotDelivered ? await notifications.FindUndeliveredNoticesAsync(id, ct) : [];
         UndeliveredEmails = new UndeliveredEmailList(
             PathOf(id),
-            string.Empty,
-            string.Empty,
-            [.. undelivered.Select(n => new UndeliveredEmailRow(n.LatestDispatchId.ToString("D"), NoticeNameOf(n.Type), n.FirstAt, n.RecipientEmail ?? string.Empty, false))],
-            false);
+            "ResendNotification",
+            "ResendAllNotifications",
+            [.. undelivered.Select(n => new UndeliveredEmailRow(n.LatestDispatchId.ToString("D"), NoticeNameOf(n.Type), n.FirstAt, n.RecipientEmail ?? string.Empty, true))],
+            ResendFailedAgain(undelivered),
+            Operations.Version);
     }
 
     // 04 9.9.5 (K-803): the line's next required step. The delivery failure, the re-sending and the closing are in "Sipariş işlemleri", never primary. On a shipped order whose physical
@@ -498,7 +500,13 @@ public sealed class OrderDetailModel : PageModel
             return OrderPrimaryStep.MarkShipped;
         }
 
-        return operations.IsOpen(OrderOperation.MarkDelivered) ? OrderPrimaryStep.MarkDelivered : OrderPrimaryStep.None;
+        if (operations.IsOpen(OrderOperation.MarkDelivered))
+        {
+            return OrderPrimaryStep.MarkDelivered;
+        }
+
+        // The fourth arm (04 9.9.5; D-1491): no order-level step left and an open service item - the first one's "Tamamlandı olarak işaretle" (PrimaryServiceItem).
+        return operations.Open.Any(e => e.Operation == OrderOperation.MarkServiceCompleted) ? OrderPrimaryStep.CompleteService : OrderPrimaryStep.None;
     }
 
     private static KeyValuePair<string, string> Field(string name, int value) => new(name, value.ToString(CultureInfo.InvariantCulture));

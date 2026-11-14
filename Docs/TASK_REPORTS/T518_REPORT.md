@@ -84,7 +84,7 @@ Test sınıfı `AccountAddressAndOrderHistoryPageTests` (kısaltma: S).
 - **Branch:** `task/T518-adres-siparis-gecmisi`
 - **PR:** #566
 - **CI:** yapım işçisi beklemez; yönetici izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** main `49ba60f0`: CI 43517041955 success, Publish 43517041992 success
 
 ## Dış Varsayımlar
 

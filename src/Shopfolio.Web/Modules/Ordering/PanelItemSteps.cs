@@ -66,7 +66,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
         if (facts.PaymentStatus == PaymentStatus.Pending)
         {
             // Before the payment the whole order (S3 + Ö2): the request carries no item (07 UC-129).
-            if (request.Items.Count > 0 || !OrderOperationCatalog.Check(facts,OrderOperation.CancelByFirm, null, null).IsAllowed)
+            if (request.Items.Count > 0 || !OrderOperationCatalog.Check(facts, OrderOperation.CancelByFirm, null, null).IsAllowed)
             {
                 return PanelItemStepResult.NotOpen;
             }
@@ -168,7 +168,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
         }
 
         OperationItemFacts? item = facts!.Items.FirstOrDefault(i => i.ItemId == request.OrderItemId); // non-null: LockAsync returns the facts when it refuses nothing
-        OperationVerdict verdict = OrderOperationCatalog.Check(facts,OrderOperation.RecordWithdrawalFromOtherChannel, request.OrderItemId, request.Quantity);
+        OperationVerdict verdict = OrderOperationCatalog.Check(facts, OrderOperation.RecordWithdrawalFromOtherChannel, request.OrderItemId, request.Quantity);
         if (VerdictObstacle(verdict) is { } closed)
         {
             // K-604: a physical item not handed to the carrier is the "müşteriyle anlaşıldı" cancellation's - the form says so.

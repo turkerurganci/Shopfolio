@@ -159,6 +159,85 @@ public sealed class AccountProfilePageTests : IAsyncLifetime
         Assert.True(new PasswordService().Verify((await db.Customers.AsNoTracking().SingleAsync(Ct)).PasswordHash!, Entered).Matched);
     }
 
+    // The value is read before any refusal (T517 correction 1; 02 3.13.11; K-786): without it, every refusable form is the 303 to the re-authentication, so no refusal can tell a session
+    // that holds no permission whether an address is held, and nothing is written. The converse - the same form with the value held - keeps its 422 and 200 (KK6, KK8, KK10 tests).
+    [Theory]
+    [InlineData("ChangeEmail", "Input.NewEmail", "tutulu@example.com", "EmailChange")]
+    [InlineData("ChangeEmail", "Input.NewEmail", "not-an-address", "EmailChange")]
+    [InlineData("ChangeEmail", "Input.NewEmail", "", "EmailChange")]
+    [InlineData("ChangePassword", "Input.NewPassword", "short", "PasswordChange")]
+    [InlineData("ChangePassword", "Input.NewPassword", "1234567890", "PasswordChange")]
+    public async Task ARefusableFormWithoutTheValue_IsThe303ToTheReauthentication_NotTheRefusal_T517_KK2_Correction1(string handler, string field, string sent, string operation)
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        await SeedAsync("ali@example.com", hasPassword: true, googleLinked: false);
+        await SeedAsync("tutulu@example.com", hasPassword: true, googleLinked: false);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string session = await SignInAsync(client, "ali@example.com");
+
+        using HttpResponseMessage none = await PostAsync(client, FramePaths.Account, handler, [(field, sent)], session);
+        using HttpResponseMessage wrong = await PostAsync(client, FramePaths.Account, handler, [(field, sent), ("Input.ReauthenticationToken", "not-the-value")], session);
+
+        string screen = $"{FramePaths.Reauthentication}?reauthenticatedOperation={operation}";
+        Assert.Equal(HttpStatusCode.SeeOther, none.StatusCode);
+        Assert.Equal(screen, none.Headers.Location!.OriginalString);
+        Assert.Equal(HttpStatusCode.SeeOther, wrong.StatusCode);
+        Assert.Equal(screen, wrong.Headers.Location!.OriginalString);
+        await using AppDbContext db = NewContext();
+        Assert.Equal(0, await db.PendingEmailChanges.CountAsync(Ct));
+    }
+
+    [Fact]
+    public async Task TheUnconfirmedDeletionWithoutTheValue_IsThe303ToTheReauthentication_NotTheLastStep_T517_KK2_Correction1()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        await SeedAsync("ali@example.com", hasPassword: true, googleLinked: false);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string session = await SignInAsync(client, "ali@example.com");
+
+        using HttpResponseMessage none = await PostAsync(client, FramePaths.Account, "DeleteAccount", [], session);
+        using HttpResponseMessage wrong = await PostAsync(client, FramePaths.Account, "DeleteAccount", [("Input.ReauthenticationToken", "not-the-value")], session);
+
+        string screen = ReauthenticationAddresses.Screen(ReauthenticationOperation.AccountDeletion);
+        Assert.Equal(HttpStatusCode.SeeOther, none.StatusCode);
+        Assert.Equal(screen, none.Headers.Location!.OriginalString);
+        Assert.Equal(HttpStatusCode.SeeOther, wrong.StatusCode);
+        Assert.Equal(screen, wrong.Headers.Location!.OriginalString);
+        await using AppDbContext db = NewContext();
+        Assert.Equal(1, await db.Customers.CountAsync(Ct));
+    }
+
+    [Fact]
+    public async Task AnEmailChangeThatReplacesAPendingOneWithoutTheValue_WritesNoL9Line_T517_KK2_Correction1()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        await SeedAsync("ali@example.com", hasPassword: true, googleLinked: false);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string session = await SignInAsync(client, "ali@example.com");
+        using (HttpResponseMessage first = await ChangeEmailAsync(client, session, "bir@example.com"))
+        {
+            Assert.Equal(HttpStatusCode.SeeOther, first.StatusCode);
+        }
+
+        using HttpResponseMessage valueless = await PostAsync(client, FramePaths.Account, "ChangeEmail", [("Input.NewEmail", "iki@example.com")], session);
+        await using (AppDbContext db = NewContext())
+        {
+            Assert.Equal(0, await db.AttemptRecords.CountAsync(a => a.AttemptLimit == AttemptLimit.L9, Ct));
+        }
+
+        // The control: the same replacing request with the value is counted.
+        using (HttpResponseMessage replacing = await ChangeEmailAsync(client, session, "iki@example.com"))
+        {
+            Assert.Equal(HttpStatusCode.SeeOther, replacing.StatusCode);
+        }
+
+        Assert.Equal(HttpStatusCode.SeeOther, valueless.StatusCode);
+        Assert.Equal(ReauthenticationAddresses.Screen(ReauthenticationOperation.EmailChange), valueless.Headers.Location!.OriginalString);
+        await using AppDbContext after = NewContext();
+        Assert.True(await after.AttemptRecords.CountAsync(a => a.AttemptLimit == AttemptLimit.L9, Ct) > 0);
+        Assert.Equal("iki@example.com", (await after.PendingEmailChanges.AsNoTracking().SingleAsync(Ct)).NewEmail);
+    }
+
     // ---- KK3: the revert link closes the e-mail change and the deletion; the account without a password is shown the password-setting ----
 
     [Fact]
@@ -218,8 +297,12 @@ public sealed class AccountProfilePageTests : IAsyncLifetime
         Assert.Contains($"id=\"account-password-set\" class=\"button button--secondary\" href=\"{FramePaths.PasswordReset}\"", html, StringComparison.Ordinal);
         Assert.DoesNotContain("id=\"account-password-change\"", html, StringComparison.Ordinal);
         Assert.Contains(AccountTexts.PasswordMethod(false), html, StringComparison.Ordinal);
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, post.StatusCode);
-        Assert.Contains(AccountTexts.NoPassword, await BodyOf(post), StringComparison.Ordinal);
+
+        // The value is read first (T517 correction 1): a session that holds none is sent to the re-authentication whatever the account holds, and nothing is written.
+        Assert.Equal(HttpStatusCode.SeeOther, post.StatusCode);
+        Assert.Equal(ReauthenticationAddresses.Screen(ReauthenticationOperation.PasswordChange), post.Headers.Location!.OriginalString);
+        await using AppDbContext db = NewContext();
+        Assert.Null((await db.Customers.AsNoTracking().SingleAsync(Ct)).PasswordHash);
     }
 
     // ---- KK4: the name ----
@@ -295,7 +378,7 @@ public sealed class AccountProfilePageTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, refused.StatusCode);
         Assert.Contains($"name=\"Input.ReauthenticationToken\" type=\"hidden\" value=\"{permit}\"", body, StringComparison.Ordinal);
-        Assert.DoesNotContain(weak, body.Replace("1234567890", string.Empty, StringComparison.Ordinal).Replace("short", string.Empty, StringComparison.Ordinal), StringComparison.Ordinal);
+        Assert.DoesNotContain($"value=\"{weak}\"", body, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.SeeOther, accepted.StatusCode);
         Assert.Equal($"{FramePaths.Account}?notice={NoticeCode.PasswordChanged}", accepted.Headers.Location!.OriginalString);
     }
@@ -488,7 +571,7 @@ public sealed class AccountProfilePageTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task TheConfirmedDeletion_DeletesInOneTransaction_MarksTheOrder_Writes303_AndTheResultStateShowsOnce_T517_KK10()
+    public async Task TheConfirmedDeletion_DeletesInOneTransaction_Writes303_AndTheResultStateShowsOnce_T517_KK10()
     {
         List<AuditLine> lines = [];
         await using WebApplicationFactory<Program> factory = Open(lines);

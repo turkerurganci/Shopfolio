@@ -70,6 +70,13 @@ internal sealed class EmailChanges
             return EmailChangeRequestResult.Refused(ErrorCode.NotFound);
         }
 
+        // The value of the re-authentication is read first (a plain read; it is taken last, below), so no refusal that follows - the address's format, an address another account holds, the limit - is shown to a
+        // session that does not hold the permission, and L-9 counts no line for it (02 3.13.11; K-786; VAL-A504).
+        if (!await _sessions.HoldsReauthenticationAsync(customerId, sessionId, ReauthenticationOperation.EmailChange, reauthenticationValue, ct))
+        {
+            return EmailChangeRequestResult.Refused(ErrorCode.ReauthenticationRequired);
+        }
+
         var account = await _db.Customers.AsNoTracking()
             .Where(c => c.Id == customerId)
             .Select(c => new { c.NormalizedEmail, c.EmailVerifiedAt })

@@ -164,6 +164,17 @@ internal sealed class ProfileModel : PageModel, IOutcomeTarget
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(next);
+
+        // This filter runs before the validation filter: the value of the re-authentication is read first, so a missing or spent value is the 303 to the re-authentication screen whatever else is wrong with the form
+        // (a malformed address, a weak password, an unconfirmed deletion, an address already held); no refusal that follows can tell an account's existence to a session that does not hold the permission (02 3.13.11; K-786).
+        if (SessionOf() is { } heldBy && ReauthenticatedOperationOf(context.HandlerArguments) is (var operation, var presentedValue)
+            && !await _sessions.HoldsReauthenticationAsync(heldBy.CustomerId, heldBy.SessionId, operation, presentedValue, HttpContext.RequestAborted))
+        {
+            HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.ReauthenticationRequired);
+            context.Result = FormResults.SeeOther(ReauthenticationAddresses.Screen(operation));
+            return;
+        }
+
         PageHandlerExecutedContext executed = await next();
         if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
         {
@@ -186,6 +197,25 @@ internal sealed class ProfileModel : PageModel, IOutcomeTarget
                 }
             }
         }
+    }
+
+    // The operation a handler's form asks the re-authentication for, with the value the form carries; null for a handler that asks for none (the name, the link's renewal, the read).
+    private static (ReauthenticationOperation Operation, string? Value)? ReauthenticatedOperationOf(IDictionary<string, object?> arguments)
+    {
+        foreach (object? argument in arguments.Values)
+        {
+            switch (argument)
+            {
+                case ChangePasswordInput password:
+                    return (ReauthenticationOperation.PasswordChange, password.ReauthenticationToken);
+                case ChangeEmailInput email:
+                    return (ReauthenticationOperation.EmailChange, email.ReauthenticationToken);
+                case DeleteAccountInput deletion:
+                    return (ReauthenticationOperation.AccountDeletion, deletion.ReauthenticationToken);
+            }
+        }
+
+        return null;
     }
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)

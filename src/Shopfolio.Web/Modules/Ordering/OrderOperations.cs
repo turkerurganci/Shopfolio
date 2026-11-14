@@ -253,25 +253,6 @@ internal sealed class OrderOperations : IOrderOperations
     private async Task<bool> HasCorrectableTransitionAsync(Order order, List<OrderItem> items, CancellationToken ct)
     {
         List<TransitionRecord> records = await _db.TransitionRecords.AsNoTracking().Where(t => t.OrderId == order.Id).ToListAsync(ct);
-        HashSet<Guid> corrected = [.. records.Where(r => r.CorrectedTransitionRecordId is not null).Select(r => r.CorrectedTransitionRecordId!.Value)]; // non-null: the Where before it keeps only records that correct another
-        TransitionCode[] shipmentCorrectable = [TransitionCode.S3, TransitionCode.S4, TransitionCode.S5, TransitionCode.S6, TransitionCode.S7, TransitionCode.S8, TransitionCode.S9];
-
-        TransitionRecord? latest = records
-            .Where(r => r.TransitionCode != TransitionCode.Correction && TransitionTable.FindShipment(r.TransitionCode) is not null && !corrected.Contains(r.Id))
-            .OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id)
-            .FirstOrDefault();
-        if (latest is not null
-            && shipmentCorrectable.Contains(latest.TransitionCode)
-            && TransitionTable.FindShipment(latest.TransitionCode)!.To == order.OrderStatus // non-null: the Where above keeps only records whose code is a shipment transition
-            && (latest.TransitionCode is not (TransitionCode.S3 or TransitionCode.S4 or TransitionCode.S9) || latest.ActorKind == ActorKind.Admin))
-        {
-            return true;
-        }
-
-        // 1.6.2.4: the transfer's mark goes back only on the transfer line and on an order with no digital item (the download opened).
-        return order.PaymentMethod == PaymentMethod.BankTransfer
-            && order.PaymentStatus == PaymentStatus.Paid
-            && !items.Any(i => i.ProductType == ProductType.Digital)
-            && records.Any(r => r.TransitionCode == TransitionCode.O1 && r.ActorKind == ActorKind.Admin && !corrected.Contains(r.Id));
+        return CorrectableTransitions.Find(order, records, items.Any(i => i.ProductType == ProductType.Digital)).Count > 0;
     }
 }

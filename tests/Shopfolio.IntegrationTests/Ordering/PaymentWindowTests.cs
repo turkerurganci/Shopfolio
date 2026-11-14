@@ -162,6 +162,7 @@ public sealed partial class PaymentWindowTests : IAsyncLifetime
             Ct);
 
         Assert.True(correction.IsRejected);
+        Assert.Equal((TransitionRefusal.CorrectionNotPossible, CorrectionObstacle.NotCorrectable), (correction.Refusal, correction.Obstacle)); // D-852: refused for the reason, not for the version, the actor or the input
         Assert.True(mark.IsRejected);
         await using AppDbContext reader = NewContext();
         Order after = await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct);

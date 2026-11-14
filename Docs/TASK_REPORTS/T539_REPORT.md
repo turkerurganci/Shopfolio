@@ -1,6 +1,6 @@
 # T539 — Betiksiz yol: JavaScript kapalıyken temel akışlar ve betikli iyileştirme
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-14
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-14
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -69,10 +69,14 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-14) |
-| Bulgu sayısı | 1 (B1: S1, DÜŞÜK) |
-| Düzeltme gerekli mi | Evet — B1 |
-| Bloke-etmeyen not (K) sayısı | 3 (K1–K3) |
+| Doğrulama durumu | ✓ PASS (tur 2, 2026-11-14); tur 1 ✗ FAIL |
+| Bulgu sayısı | 0 (tur 2); tur 1'in B1'i kapandı |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | tur 2: 2 (K4, K5 → D-1567, D-1568); tur 1: 3 (K1–K3) |
+
+**Tur 2 (2026-11-14, tam yeniden doğrulama, uç `7fa109f9`; `origin/main` `866dc688` ile güncel).** Bütün kabul kriterleri, KK1–KK10, `09 §25` ön yüz satırı ve güvenlik taraması yeniden geçildi; hepsi ✓. B1 kapandı: `_ProductFormBody.cshtml` `OptionDimensionMax` kadar `product-option-<n>-value-template` yazar (üst dizin sabit, değer dizini `__index__`), `product-option-template` satırı kendi `product-option-__index__-values` listesini ve kendi gizli "Değer ekle" düğmesini taşır; `product-form.js` eklenen satırdaki düğmeyi satır sayfaya girdikten sonra bağlar, yeni dizin listedeki satır sayısıdır (boşluksuz). Testler `…TheNewForm_HasAValueTemplateForEveryPossibleDimension_…_D1554`, `…SaveProduct_ASecondValueUnderTheSecondDimension_…_D1554` geçti. Ortak betik değişiklikleri var olan ekranları bozmuyor: `submit-once` işareti kodda yalnız formlarda ve ödeme adımının sipariş düğmesinde (grep); form düzeyi davranış aynı; `requestSubmit(submitter)` yalnız satış özeti, sepet, ödeme adımı ve ürün sayfasında. Değiştirilen testler gevşetme değil (`09 §16.2` madde 3'e göre `disabled` iddiası `aria-busy` + `pageshow` iddiasıyla değişti, `DoesNotContain` eklendi; `FrameSourceScanTests` kapsamı genişledi). D-1555 (T601) ve D-1559 (T548) ertelemeleri uygun: tarayıcı davranışı `12`'nin `[tarayıcı]` satırlarıdır, yükleme betiği T548'indir. Sınama: build `-warnaserror` 0/0, `dotnet format` (11 `.cs`) temiz, Unit 7680/7680, betik testleri 4/4, Integration ilgili 10 sınıf 251/251 — TAM: CI; dal CI (run 43587370232) bütün işler yeşil.
+
+**Tur 2 K-notları.** K4: var olan ürünün formunda `id="product-variants"` iki öğede (yeni `fieldset` ve yan sütundaki tablo) — HTML kimliği tekil olmalı; betik `getElementById` ile ilkini (fieldset) bulduğu için davranış doğru → D-1567 (T548). K5: T548 kabul kriteri 1 ve `09 §16.2` madde 6 yükleme modülünü `pages/panel/products/edit.js` diye adlandırır, ama sayfa `Pages/Panel/ProductForm.cshtml`'dir ve `NoScriptPathSourceScanTests` modül yolunu sayfa yoluna bağlar (`pages/panel/product-form.js`); ayrıca `FrameSourceScanTests` ağ yasağı artık `pages/` altını da tarar, yükleme betiğinin `fetch`'i (`09 §16.2` madde 6) dar ve gerekçeli bir istisna ister → D-1568 (T548).
 
 **Tur 1 bulgusu.** B1 (S1, DÜŞÜK; KK6, `09 §16.2` madde 4, `07 §8.2.2` betikli yol): betikle eklenen seçenek boyutunun kendi değer şablonu ve "Değer ekle" düğmesi yok; şablon (`product-option-template`) tek boş değer taşır. `09 §16.2` madde 4 "her boyutun kendi şablonu vardır ve üst dizin şablonda sabittir" der, `07 §8.2.2` betikli yolda değerin yerinde eklenmesini ister. Seçeneksiz yeni üründe ikinci boyutun ikinci değeri kayıttan önce eklenemez. D-1554 bunu "iyileştirme" diye erteledi; kayıt kabul edilmiş risk değildir ve öz denetim KK6'yı ✓ saymıştır (uyuşmazlık). Öneri: boyut sayısı sabit (`OptionDimensionMax` = 2) — sunucu her olası boyut dizini için dizini sabit bir değer şablonu (`product-option-<n>-value-template`) yazar, betikle eklenen boyut satırı kendi dizininin şablonuna bağlı "Değer ekle" düğmesini taşır; KK6 testine yeni boyutun değer şablonu iddiası eklenir; D-1554 kapanır.
 

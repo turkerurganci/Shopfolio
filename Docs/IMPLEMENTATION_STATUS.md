@@ -286,7 +286,7 @@
 | T527 | Sipariş listesi, sipariş ayrıntısı ve durum geçişleri (E-36, E-37) | ✓ | ✓ PASS (tur 5) | `d847e947` | #565 |
 | T528 | Sipariş ayrıntısı: firma iptali, bildirim kaydı, kalem çıkarma, iade malı ve ayıp talebi (E-37) | ⬚ | — | — | — |
 | T529 | Sipariş ayrıntısı: geri ödeme işlemleri (E-37) | ⬚ | — | — | — |
-| T530 | Sipariş ayrıntısı: adres, kargo, teslim tarihi, durum geçişi ve e-posta düzeltmeleri (E-37) | ⏳ | ✗ FAIL (tur 1); reddedilen adres düzeltmesinde alan mesajı çizilmiyor ("işaretli alanlar" metni işaretsiz formla), düzeltmelerin ret ve engel mesajı "Düzeltmeler" bölümünde değil sayfanın üstünde, teslimat ve fatura formları aynı alan kimliklerini taşıyor (`04` 7.2.14.1, 2.3.1.1, 2.3.2, 2.3.3, 2.7.3.1) — düzeltme bekliyor | `e947183b` | #573 |
+| T530 | Sipariş ayrıntısı: adres, kargo, teslim tarihi, durum geçişi ve e-posta düzeltmeleri (E-37) | ⏳ | ✗ FAIL (tur 1); reddedilen adres düzeltmesinde alan mesajı çizilmiyor ("işaretli alanlar" metni işaretsiz formla), düzeltmelerin ret ve engel mesajı "Düzeltmeler" bölümünde değil sayfanın üstünde, teslimat ve fatura formları aynı alan kimliklerini taşıyor (`04` 7.2.14.1, 2.3.1.1, 2.3.2, 2.3.3, 2.7.3.1) → düzeltme 1 (alan işareti ve özet, mesaj formun yerinde ve değer korunur, ayrı form kimlikleri; K2–K4) — doğrulama tur 2 bekliyor | `92f5219f` | #573 |
 | T531 | Sipariş ayrıntısı: hizmet kalemi, indirme hakkı, iç not ve e-posta yeniden gönderim (E-37) | ✓ | ✓ PASS (tur 1) | `00bef140` | #572 |
 | T532 | Talepler ve iletişim talebi ayrıntısı (E-38, E-39) | ✓ | ✓ PASS (tur 1) | `d202a668` | #552 |
 | T533 | Üye kaydı görünümü (E-40) | ✓ | ✓ PASS (tur 1) | `d1a1729a` | #556 |

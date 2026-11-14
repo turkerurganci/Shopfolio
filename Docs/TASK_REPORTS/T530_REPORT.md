@@ -26,15 +26,15 @@
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | `CorrectAddress` teslimat/fatura adresi ve telefon; eski-yeni geçmişte, adres ize girmez | ✓ | `OrderDetailPageTests.CorrectAddress_TheShippingAddressWithItsPhoneAndTheBillingAddress_Are303_WriteTheHistory_AndTheTrailHasNoAddress_KK1` |
-| 2 | UC-146 422: alan kuralı; Kargoya verildi'den (fiziksel kalemsizde Teslim edildi'den) sonra kapalı | ✓ | `…CorrectAddress_AFieldItRefuses_Is422WithTheFieldsMessage_AndItIsClosedFromShipped_OrWithNoPhysicalItemFromDelivered_KK2` |
-| 3 | `CorrectCarrier`; boş bilgi ya da kargoya verilmemiş sipariş 422 | ✓ | `…CorrectCarrier_OnAShippedOrder_Is303_SendsB12_AndWritesTheTrail_TheEmptyInfoAndAnOrderNotShipped_Are422_KK3` |
-| 4 | `CorrectDeliveryDate` pencere ve ayıp süresi yeni tarihten; 422 tarih hâlleri, işaretsiz teslim | ✓ | `…CorrectDeliveryDate_RunsTheWithdrawalWindowAndTheDefectPeriodFromTheNewDate_AndWritesTheTrail_KK4`, `…_AFutureDate_ADateBeforeTheShipment_ADateAfterAReturnsArrival_AndAnUnmarkedOrder_Are422_KK4` |
-| 5 | `CorrectArrivalDate` Z-16 yeni tarihten; sınır dışı tarih 422 | ✓ | `…CorrectArrivalDate_RunsTheRefundPeriodFromTheNewDate_AndAFutureDateOrOneBeforeTheDelivery_Is422_KK5` |
+| 1 | `CorrectAddress` teslimat/fatura adresi ve telefon; eski-yeni geçmişte, adres ize girmez | ✓ | `OrderDetailPageTests.CorrectAddress_TheShippingAddressWithItsPhoneAndTheBillingAddress_Are303_WriteTheHistory_AndTheTrailHasNoAddress_KK1` (düzeltme 1: sayfadaki adres geçmişi, VAL-D026) |
+| 2 | UC-146 422: alan kuralı; Kargoya verildi'den (fiziksel kalemsizde Teslim edildi'den) sonra kapalı | ✓ | `…CorrectAddress_AFieldItRefuses_Is422WithTheFieldsMessage_AndItIsClosedFromShipped_OrWithNoPhysicalItemFromDelivered_KK2` (düzeltme 1: reddedilen alan `aria-invalid` + kendi mesajı, formun başında özet, gönderilen değer korunur); `…TheCorrections_RepeatNoElementId_AndEachAddressFormsLabelsAreItsOwnFields_B3`; `…CorrectAddress_ThatNamesNoAddress_Is422WithItsOwnMessage_AndOneWithoutTheVersion_Is409_K4` |
+| 3 | `CorrectCarrier`; boş bilgi ya da kargoya verilmemiş sipariş 422 | ✓ | `…CorrectCarrier_OnAShippedOrder_Is303_SendsB12_AndWritesTheTrail_TheEmptyInfoAndAnOrderNotShipped_Are422_KK3` (düzeltme 1: mesaj kargo formunda; düzeltilmiş takip no sayfada, VAL-A240) |
+| 4 | `CorrectDeliveryDate` pencere ve ayıp süresi yeni tarihten; 422 tarih hâlleri, işaretsiz teslim | ✓ | `…CorrectDeliveryDate_RunsTheWithdrawalWindowAndTheDefectPeriodFromTheNewDate_AndWritesTheTrail_KK4`, `…_AFutureDate_ADateBeforeTheShipment_ADateAfterAReturnsArrival_AndAnUnmarkedOrder_Are422_KK4`; sıra (K-608): `…CorrectDeliveryDate_OnAWithdrawalDeclarationsDay_AsksWhichCameFirstInItsForm_ThenTheAnswerWritesTheDate_ShownOnThePage_K608` |
+| 5 | `CorrectArrivalDate` Z-16 yeni tarihten; sınır dışı tarih 422 | ✓ | `…CorrectArrivalDate_RunsTheRefundPeriodFromTheNewDate_AndAFutureDateOrOneBeforeTheDelivery_Is422_KK5` (düzeltme 1: mesaj kaydın formunda, gönderilen tarih korunur; yeni tarih sayfada) |
 | 6 | `CorrectTransition` yeni geçiş, dönülecek durum kayıttan, sebep ve "diğer"de açıklama | ✓ | `…CorrectTransition_AsksAReason_AndTheNoteOfOther_ThenWritesTheCorrectionOnTheCorrectedRecord_AndTheTrail_KK6`; `PanelCorrectionTextsTests.TheBackState_*_KK6` |
-| 7 | UC-150 422: dört engel, engel mesajıyla | ✓ | `…_RefundPending_KK7`, `…_StockShort_KK7`, `…_ItemRecordExists_KK7`, `…_CardPayment_KK7`; `PanelCorrectionTextsTests.EveryObstacle_HasItsOwnMessage_KK7` |
+| 7 | UC-150 422: dört engel, engel mesajıyla | ✓ | `…_RefundPending_KK7` (havale, gönderilmiş), `…_WhileTheCardRefundsOutcomeIsAwaited_Is422_RefundPending_KK7` (kart `OutcomePending`), `…_StockShort_KK7`, `…_ItemRecordExists_KK7`, `…_CardPayment_KK7`; `PanelCorrectionTextsTests.EveryObstacle_HasItsOwnMessage_KK7`; mesaj durum düzeltmesi formunda (düzeltme 1) |
 | 8 | Yanlış iptal düzeltmesi yeniden ayırır; geri ödeme, IBAN isteği, IBAN kapanır | ✓ | `…CorrectTransition_OfAWrongCancellation_TakesTheUnitsAgain_VoidsTheRefund_ClosesTheIbanRequest_AndDeletesTheIban_KK8` |
-| 9 | `CorrectOrderEmail` anahtar, eski bağlantı, hesap bağı, gönderilmemiş bildirimler | ✓ | `…CorrectOrderEmail_RenewsTheKey_ReroutesTheUnsentNotices_SendsB1ToTheNewAndB15ToTheOld_AndKeepsTheHistory_KK9_KK10`, `…_AVerifiedAccountOfTheNewAddress_TakesTheOrder_KK9` |
+| 9 | `CorrectOrderEmail` anahtar, eski bağlantı, hesap bağı, gönderilmemiş bildirimler | ✓ | `…CorrectOrderEmail_RenewsTheKey_ReroutesTheUnsentNotices_SendsB1ToTheNewAndB15ToTheOld_AndKeepsTheHistory_KK9_KK10`, `…_AVerifiedAccountOfTheNewAddress_TakesTheOrder_KK9`; e-posta geçmişi sayfada (VAL-D027) |
 | 10 | B-1 yeni, B-15 eski adrese; adresler geçmişte, izde yok; üyeli/imha/geçersiz 422 | ✓ | `…_KK9_KK10` (yukarıda), `…CorrectOrderEmail_AnInvalidAddress_AnAccountsOrder_AndADisposedOrder_Are422_KK10` |
 
 ### Öz denetim (bitiş kapısı 2)
@@ -42,12 +42,12 @@
 | Madde (kabul kriteri / KK) | Sonuç | Kanıt (dosya:satır, test adı) |
 |---|---|---|
 | KK1: geçmiş satırı; izde adres yok | ✓ | `_KK1` testi: iki `OrderAddressHistory` satırı (eski/yeni hat ve telefon); dört serileştirilmiş iz satırında adres ve telefon parçası yok |
-| KK2: alan 422; iki sınır | ✓ | `_KK2`: boş açık adres 422 + `AddressFieldsText`; fiziksel Shipped 422; fiziksel kalemsiz Preparing 303, Delivered 422 |
+| KK2: alan 422; iki sınır | ✓ | `_KK2`: boş açık adres 422, `Input_ShippingAddressLine` `aria-invalid="true"` + `Input_ShippingAddressLine-message`, özet bağlantısı `#Input_ShippingAddressLine` teslimat formunun başında, fatura formu işaretsiz; fiziksel Shipped 422 (mesaj "Düzeltmeler" bölümünde); fiziksel kalemsiz Preparing 303, Delivered 422 |
 | KK3: iki 422 sebebi | ✓ | `_KK3`: boş bilgi `ShipmentMissingText`, Preparing `NotOpenText`; 303'te B-12 ve `CorrectShippingInfo` (takip no izde yok) |
 | KK4: pencere, süre yeni tarihten; tarih reddi | ✓ | `_KK4` iki test: `PanelItemFacts.WithdrawalLastDay`/`DefectLastDay` geriye kayar; ileri, kargodan önce, ulaşmadan sonra ve işaretsiz sipariş 422 |
 | KK5: Z-16; iki tarih reddi | ✓ | `_KK5`: ileri ve teslimden önceki tarih 422 (`ArrivalDateInvalidText`, K-554 tek metin); `WithdrawalRefundStartDay` yeni tarih |
 | KK6: sebep zorunlu; geçiş kaydı | ✓ | `_KK6`: sebepsiz ve "diğer"de notsuz 422; `CorrectedTransitionRecordId` + not kayıtta; iz `CorrectTransition` (S5, not yok); B-13 |
-| KK7: dört engel ayrı testte | ✓ | dört `_KK7` testi, her biri engelin kendi mesajı + 422 + yazım yok |
+| KK7: dört engel ayrı testte | ✓ | dört `_KK7` testi + kart `OutcomePending` sayfa testi; her biri engelin kendi mesajı durum düzeltmesi formunda (`correction-message`), seçilen sebep korunur, 422, yazım yok |
 | KK8: ayırma; geri ödeme, IBAN isteği ve IBAN kapanır | ✓ | `_KK8`: stok 5→3, `Refund.VoidedAt`, `RefundIbanRequest.ClosedAt`, `RefundIban` silindi |
 | KK9: anahtar, hesap bağı, alıcı | ✓ | `_KK9_KK10`: `OrderAccessKey` değişti, kuyruktaki B-4 yeni adrese; `_KK9`: doğrulanmış hesap siparişi alır |
 | KK10: iki e-posta; izde adres yok; üç 422 | ✓ | B-1 yeni, B-15 eski adrese; `OrderEmailHistory`; iz satırında iki adres yok; geçersiz, üyeli, imha 422 |
@@ -61,14 +61,20 @@
 | Backlog D-981 (T530 payı: "uç yanıtı" VAL satırları) | ↷ doğrulamaya / F5 | uçlar artık var; `Durum` hücrelerini doğrulama yazar |
 | Backlog D-1464 | ↷ faz kapısı | ekran T527'nin iki ayrık teslim tarihi metnini kullanır; karar faz kapısında |
 | Sık FAIL (4): aynı sayıyı anan yerler | ✓ | `OperationHandlerMarkTests` işleyici listesi, `ApplicationEnums` güncel |
+| Düzeltme 1 — `04` 2.3.1.1, 2.3.2 (B1) | ✓ | `KeepAddress` hataları `FormErrorSummary.From(ModelState, FieldOrder)` ile formun kendi görünümüne `Bind` eder; özet yalnız reddedilen adres formunun başında (`_KK2`) |
+| Düzeltme 1 — `04` 2.3.3, 2.7.3.1, 9.9.41 (B2) | ✓ | `CorrectionRefusalText` + `RefusedCorrection` (form kimliği) `_OrderDetailCorrections.cshtml`'de okunur; mesaj gönderilen formun içinde düğmenin yanında, form çizilmiyorsa "Düzeltmeler"in başında; `RefusalText`/`order-step-message` düzeltmelerde kullanılmaz; ulaşma tarihi, geçiş seçimi, sebep, teslim tarihi, e-posta korunur (`_KK2`, `_KK3`, `_KK5`, `_KK6`, `_RefundPending_KK7`, `_K608`, `_KK10`) |
+| Düzeltme 1 — `04` 2.3.1.1 kimlikler (B3) | ✓ | adres formları `Input.Shipping…`/`Input.Billing…` (07 UC-146 adları); iki geçiş tek formda seçimle, tek sebep alanı; `_B3` testi iki sayfada (iki geçişli kargolanmış, iki adres formlu hazırlanan) yinelenen kimlik yok |
+| Düzeltme 1 — K2, K3, K4 | ✓ | kart `OutcomePending` sayfa testi; K-608 kalıcı testi; VAL-A240/D026/D027 sayfa gözlemi `_KK1`, `_KK3`, `_KK5`, `_K608`, `_KK9_KK10`; tanımsız adres türü 422 kendi metniyle, sürümsüz istek 409 (`_K4`) |
+| Sık FAIL dosyası (T530 r1 üç satırı dahil) | ✓ | alan bağlama, mesaj yeri + korunan değer, yinelenen kimlik bu düzeltmede kapandı; öteki satırlar bu diff'e uymaz |
 
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ TAM | `dotnet test --project tests/Shopfolio.UnitTests/...` | 7590/7590 |
-| Integration | ✓ sınıflar — TAM: CI | `--filter-class` | `Web.OrderDetailPageTests` 38/38; `Ordering.OrderCorrectionTests` + `Ordering.OrderOperationsTests` 68/68; `Ordering.PaymentWindowTests` + `Ordering.StatusCorrectionTests` 78/78 |
-| Format | ✓ | `dotnet format <proje> --verify-no-changes` | Web, UnitTests, IntegrationTests temiz |
+| Build | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı, 0 hata (main `6e6d4a41` birleşik) |
+| Unit | ✓ TAM | `dotnet test --project tests/Shopfolio.UnitTests/...` | 7643/7643 (düzeltme 1, main birleşik) |
+| Integration | ✓ sınıflar — TAM: CI | `--filter-class` `*.OrderDetailPageTests`, `*.OrderCorrectionTests`, `*.StatusCorrectionTests` (tek çağrı) | 154/154 (düzeltme 1, main birleşik; konteyner `shopfolio-t530-fix1-pg`, `track_commit_timestamp=on`) |
+| Format | ✓ | `dotnet format Shopfolio.slnx --no-restore --verify-no-changes --include <dalın .cs dosyaları>` | çıkış 0 |
 
 ## Doğrulama
 
@@ -91,7 +97,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T530-siparis-duzeltmeleri`
-- **Commit:** `e947183b` — kod ve testler
+- **Commit:** `e947183b` — kod ve testler; düzeltme 1 `92f5219f` + main birleştirmesi `1ce5cf11`
 - **PR:** #573
 - **CI:** — (yardımcı izler)
 - **Post-merge run'lar:** *(validator doldurur)*
@@ -107,6 +113,7 @@ Dış varsayım: yok (plan tier, kota, dış servis, paket sürümü tetikleyici
 | 1 | ⚠ Adres/e-posta teyidi istekte yok; panel formu teyidi beyan sayar (`FromOrderEmail`, kimlik dört alan) | D-1525 | `07`/`04` alan koymuyor, T375 yazıcısı istiyor — belge kararı |
 | 2 | ⚠ Kayıtlı değerle aynı düzeltme 422 + `ValueOutOfBounds`; `07`'de bu hâl yok | D-1526 | `07` 422 listesi kararı |
 | 3 | ⚠ Adres düzeltmesi iki ayrı formla (`AddressType`), tek istekte tek adres | D-1527 | T375 sözleşmesi tek adres tipi |
+| 4 | ⚠ Bağlanamayan değer (ör. `Version=abc`, sayı olmayan enum) sipariş ayrıntısında `ValidationPageFilter`'ın sayfayı yüklemeden `Redisplay`'i ile 500 | D-1544 | ortak sayfanın (T527) yükleme düzeni; T530 kendi girişini metin aldı |
 
 ## Notlar
 
@@ -114,4 +121,13 @@ Dış varsayım: yok (plan tier, kota, dış servis, paket sürümü tetikleyici
 - **Ana dal CI startup (Adım 0):** 43566446647 success, 43566446578 success, 43560690928 success.
 - **Repo memory (bitiş kapısı 9):** dokunulmadı.
 - **Ortak sayfa:** T529/T531 ile paylaşılan dosyalarda yalnız kısa ekleme: `OrderDetailModel` `partial` oldu, `LoadAsync`'e `await LoadCorrectionsAsync(id, ct);`, `OrderDetail.cshtml`'e tek `<partial>` satırı; işleyiciler ve formlar ayrı parça dosyalarında.
-- **⚠ kararları (kurala en uygun seçenek):** D-1525…D-1527; ayrıca ret mesajı T527 düzenindeki gibi sayfanın ortak mesaj yerinde (`RefusalText`) çizilir.
+- **⚠ kararları (kurala en uygun seçenek):** D-1525…D-1527, D-1544. (Yapımdaki "ret mesajı ortak yerde" kararı düzeltme 1'de kaldırıldı — B2.)
+
+## Düzeltme 1 (2026-11-14; doğrulama tur 1 FAIL → B1–B3, K2–K4)
+
+- **Alan bağlama (B1):** reddedilen adres alanı `aria-invalid="true"` ve altında kendi mesajıyla çizilir; formun başında hata sayısını söyleyen özet, bağlantısı alanın kimliğine (`#Input_ShippingAddressLine`) gider, odak ilk hatalı alana (`autofocus`). Ayrı "Adresin işaretli alanlarını düzeltin." metni kaldırıldı (özet söyler).
+- **Mesaj yeri ve korunan değer (B2):** düzeltmelerin ret ve engel mesajı (`CorrectionRefusalText`) gönderilen formun içinde, düğmenin yanında (`correction-message`); form artık çizilmiyorsa (işlem kapandı) "Düzeltmeler" bölümünün başında. Ortak `RefusalText` (Sıradaki adım) düzeltmelerde kullanılmaz. Ulaşma tarihi formu gönderilen tarihi, durum düzeltmesi seçilen geçişi ve sebebi korur.
+- **Form kimlikleri (B3):** adres formları `07 UC-146` adlarıyla (`Input.Shipping…`, `Input.Billing…`) ayrı kimlik üretir; etiketler kendi alanına, özet doğru forma. Durum düzeltmesi iki geçişte tek form + seçim (tek sebep alanı) — aynı sayfada iki `Input_CorrectionReason` olmasın.
+- **K2:** kart iadesinin sonucu beklenirken (`OutcomePending`) yanlış iptal düzeltmesi sayfa testi. **K3:** K-608 sıra sorusunun panel yolu kalıcı testli; düzeltilen takip no, teslim tarihi, ulaşma tarihi, adres ve e-posta geçmişi sayfada sınanır (VAL-A240, D026, D027). **K4:** `AddressType` metin alınır; tanımsız değer 422 + `AddressTypeMissingText` ("kayıtlı değerle aynı" değil), sürümsüz istek 409 (sürüm 0 eşleşmez) — ikisi de yazım yapmaz. K1 değişmedi.
+- **Yeni testler:** `TheCorrections_RepeatNoElementId_AndEachAddressFormsLabelsAreItsOwnFields_B3`, `CorrectAddress_ThatNamesNoAddress_Is422WithItsOwnMessage_AndOneWithoutTheVersion_Is409_K4`, `CorrectDeliveryDate_OnAWithdrawalDeclarationsDay_AsksWhichCameFirstInItsForm_ThenTheAnswerWritesTheDate_ShownOnThePage_K608`, `CorrectTransition_OfAWrongCancellation_WhileTheCardRefundsOutcomeIsAwaited_Is422_RefundPending_KK7`; `_KK1`, `_KK2`, `_KK3`, `_KK5`, `_KK6`, `_RefundPending_KK7`, `_KK9_KK10`, `_KK10` güçlendirildi.
+- **Main birleştirmesi:** `6e6d4a41` (T531) — `12` (C059 bizim, A241 main), `DEFERRED_BACKLOG` (D-883 bizim, D-884'e iki notu birlikte, hedef T528), `IMPLEMENTATION_STATUS` (T530 bizim, T531 main), `OrderingModule` ve `OperationHandlerMarkTests` iki taraf.

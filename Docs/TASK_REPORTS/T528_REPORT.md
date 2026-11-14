@@ -81,7 +81,7 @@ Yok.
 
 ## Commit & PR
 
-Dal `task/T528-firma-iptali-iade-mali`; PR base `main`.
+Dal `task/T528-firma-iptali-iade-mali`; PR #578 (base `main`).
 
 ## Notlar — ⚠ kararlar
 

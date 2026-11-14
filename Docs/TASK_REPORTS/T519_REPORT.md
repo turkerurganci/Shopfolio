@@ -84,7 +84,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T519-eposta-geri-alma-cikis`
-- **PR:** #NN (açıldığında işlenir)
+- **PR:** #571
+- **Commit:** `6334354a` — T519: E-posta değişikliğini geri alma ve müşteri çıkışı (E-28)
 - **CI:** yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

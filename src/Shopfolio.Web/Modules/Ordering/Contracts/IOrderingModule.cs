@@ -279,6 +279,13 @@ public interface IOrderingModule
     /// </summary>
     Task<CustomerOrderPage> ListCustomerOrdersAsync(Guid customerId, int page, CancellationToken ct);
 
+    /// <summary>
+    /// The member's own order history (T518; 07 UC-74; 04 5.27; 02 3.17.8): the orders bound to the account that the customer's list shows - a never-paid order the system cancelled by itself is
+    /// not among them (<c>OrderVisibility</c>) -, newest first, one page of <c>PageSizes.OrderHistory</c>; each row carries the first item's name and the count of the others. A page past the last
+    /// shows the last. A plain read; it writes nothing. The panel's member record reads <see cref="ListCustomerOrdersAsync"/>, which shows every order.
+    /// </summary>
+    Task<MemberOrderPage> ListMemberOrdersAsync(Guid customerId, int page, CancellationToken ct);
+
     /// <summary>The ids of the orders of one of the two sets <see cref="CountPendingOrdersAsync"/> counts (T527; 04 9.8.4): the list's filter and the home's counter share the rule. A plain read.</summary>
     Task<IReadOnlyList<Guid>> ListPendingOrderIdsAsync(PendingOrderKind kind, CancellationToken ct);
 

@@ -62,6 +62,9 @@ internal sealed class OrderingModule : IOrderingModule
     public Task<CustomerOrderPage> ListCustomerOrdersAsync(Guid customerId, int page, CancellationToken ct) =>
         new CustomerOrderReader(_db).ListAsync(customerId, page, ct);
 
+    public Task<MemberOrderPage> ListMemberOrdersAsync(Guid customerId, int page, CancellationToken ct) =>
+        new CustomerOrderReader(_db).ListShownAsync(customerId, page, ct);
+
     public Task<IReadOnlyList<Guid>> ListPendingOrderIdsAsync(PendingOrderKind kind, CancellationToken ct) => new PendingWorkReader(_db).ListOrderIdsAsync(kind, ct);
 
     public Task<PanelOrderPage> ListPanelOrdersAsync(PanelOrderFilter filter, int page, int pageSize, CancellationToken ct) =>

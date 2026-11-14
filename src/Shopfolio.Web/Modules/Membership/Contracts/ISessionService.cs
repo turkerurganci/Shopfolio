@@ -29,6 +29,9 @@ public interface ISessionService
     /// <summary>Drops the permission the session holds, if any (T516; 07 UC-60: opening the re-authentication screen drops the earlier permission, 05 6.1.5); nothing happens when the session is not the customer's.</summary>
     Task DropReauthenticationAsync(Guid customerId, Guid sessionId, CancellationToken ct);
 
+    /// <summary>Whether the customer's own session holds the permission for the operation under this value (T517; 07 UC-63): a plain read that spends nothing and drops nothing.</summary>
+    Task<bool> HoldsReauthenticationAsync(Guid customerId, Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct);
+
     /// <summary>Takes the permission with one conditional update; false means the operation must not run.</summary>
     Task<bool> TryRedeemReauthenticationAsync(Guid customerId, Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct);
 

@@ -213,7 +213,14 @@ public sealed class SessionAccessTests
             Assert.Equal($"/giris?returnUrl={Escaped(closed)}", response.Headers.Location?.OriginalString);
         }
 
-        foreach (string open in new[] { "/hesap/silindi", "/sss/urun-ornegi/ahsap-masa", "/sss/ornek-serit/hakkinda", "/sistem/canlilik", $"/siparis/erisim/{accessKey}" })
+        // The deleted-account state shows only to the request that follows the deletion; without it the page goes to the home page (07 UC-69), and it is not the sign-in page.
+        using (HttpResponseMessage deleted = await GetAsync(client, "/hesap/silindi"))
+        {
+            Assert.Equal(HttpStatusCode.SeeOther, deleted.StatusCode);
+            Assert.Equal("/", deleted.Headers.Location?.OriginalString);
+        }
+
+        foreach (string open in new[] { "/sss/urun-ornegi/ahsap-masa", "/sss/ornek-serit/hakkinda", "/sistem/canlilik", $"/siparis/erisim/{accessKey}" })
         {
             using HttpResponseMessage response = await GetAsync(client, open);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

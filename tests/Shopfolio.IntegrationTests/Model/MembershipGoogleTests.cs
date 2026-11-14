@@ -300,7 +300,7 @@ public sealed partial class MembershipTests
         OpenGoogle();
         Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
         string key = await ConfirmationKeyAsync("ali@example.com");
-        EmailChangeRequestResult requested = await RunAsync(m => m.RequestEmailChangeAsync(id, "yeni@example.com", Ip, Ct));
+        EmailChangeRequestResult requested = await RequestEmailChangeAsync(id, "yeni@example.com");
         Assert.True((await RunAsync(m => m.VerifyNewEmailAsync(_keys.Derive(requested.LinkId!.Value), Ct))).IsVerified);
 
         GoogleLinkConfirmationResult result = await RunAsync(m => m.ConfirmGoogleLinkAsync(key, Ct));
@@ -350,7 +350,7 @@ public sealed partial class MembershipTests
     {
         Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
 
-        EmailChangeRequestResult requested = await RunAsync(m => m.RequestEmailChangeAsync(id, " Yeni@Example.com ", Ip, Ct));
+        EmailChangeRequestResult requested = await RequestEmailChangeAsync(id, " Yeni@Example.com ");
 
         Assert.True(requested.IsRequested);
         Assert.False(requested.Replaced);
@@ -374,7 +374,7 @@ public sealed partial class MembershipTests
         Guid id = await SeedCustomerAsync("ali@gmail.com", verified: true);
         await RunAsync(m => m.SignInWithGoogleAsync(AliAtGmail, Ip, Ct));
         Assert.NotNull(await ScalarAsync<DateTimeOffset?>("SELECT google_linked_at FROM customers"));
-        EmailChangeRequestResult requested = await RunAsync(m => m.RequestEmailChangeAsync(id, "yeni@example.com", Ip, Ct));
+        EmailChangeRequestResult requested = await RequestEmailChangeAsync(id, "yeni@example.com");
 
         NewEmailVerificationResult verified = await RunAsync(m => m.VerifyNewEmailAsync(_keys.Derive(requested.LinkId!.Value), Ct));
 
@@ -399,7 +399,7 @@ public sealed partial class MembershipTests
         Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
         Guid owned = await SeedGuestOrderAsync("ali@example.com", id);
         Guid guestNew = await SeedGuestOrderAsync("yeni@example.com");
-        EmailChangeRequestResult requested = await RunAsync(m => m.RequestEmailChangeAsync(id, "yeni@example.com", Ip, Ct));
+        EmailChangeRequestResult requested = await RequestEmailChangeAsync(id, "yeni@example.com");
 
         NewEmailVerificationResult verified = await RunAsync(m => m.VerifyNewEmailAsync(_keys.Derive(requested.LinkId!.Value), Ct));
 
@@ -413,7 +413,7 @@ public sealed partial class MembershipTests
     public async Task EmailChange_NewAddressLink_IsSingleUse_AndEndsWithThePendingChangesLife_KK6()
     {
         Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
-        EmailChangeRequestResult used = await RunAsync(m => m.RequestEmailChangeAsync(id, "yeni@example.com", Ip, Ct));
+        EmailChangeRequestResult used = await RequestEmailChangeAsync(id, "yeni@example.com");
         string usedKey = _keys.Derive(used.LinkId!.Value);
         Assert.True((await RunAsync(m => m.VerifyNewEmailAsync(usedKey, Ct))).IsVerified);
 
@@ -427,7 +427,7 @@ public sealed partial class MembershipTests
     public async Task EmailChange_AfterTheLife_LeavesTheAddressAsItWas_KK6()
     {
         Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
-        EmailChangeRequestResult requested = await RunAsync(m => m.RequestEmailChangeAsync(id, "yeni@example.com", Ip, Ct));
+        EmailChangeRequestResult requested = await RequestEmailChangeAsync(id, "yeni@example.com");
         _time.Advance(TimeSpan.FromHours(ProductConstants.EmailVerificationLinkHours));
 
         NewEmailVerificationResult late = await RunAsync(m => m.VerifyNewEmailAsync(_keys.Derive(requested.LinkId!.Value), Ct));
@@ -445,8 +445,8 @@ public sealed partial class MembershipTests
         await SeedCustomerAsync("yeni@example.com", verified: false);
         await SeedCustomerAsync("tutulu@example.com", verified: true);
 
-        EmailChangeRequestResult taken = await RunAsync(m => m.RequestEmailChangeAsync(id, "Tutulu@Example.com", Ip, Ct));
-        EmailChangeRequestResult requested = await RunAsync(m => m.RequestEmailChangeAsync(id, "yeni@example.com", Ip, Ct));
+        EmailChangeRequestResult taken = await RequestEmailChangeAsync(id, "Tutulu@Example.com");
+        EmailChangeRequestResult requested = await RequestEmailChangeAsync(id, "yeni@example.com");
         NewEmailVerificationResult verified = await RunAsync(m => m.VerifyNewEmailAsync(_keys.Derive(requested.LinkId!.Value), Ct));
 
         Assert.Equal(ErrorCode.EmailTakenByOtherAccount, taken.Code);
@@ -461,7 +461,7 @@ public sealed partial class MembershipTests
     public async Task EmailChange_Verify_IsRefusedAndRolledBack_WhenTheAddressBecameAVerifiedAccountsMeanwhile()
     {
         Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
-        EmailChangeRequestResult requested = await RunAsync(m => m.RequestEmailChangeAsync(id, "yeni@example.com", Ip, Ct));
+        EmailChangeRequestResult requested = await RequestEmailChangeAsync(id, "yeni@example.com");
         await SeedCustomerAsync("yeni@example.com", verified: true);
 
         NewEmailVerificationResult result = await RunAsync(m => m.VerifyNewEmailAsync(_keys.Derive(requested.LinkId!.Value), Ct));
@@ -481,7 +481,7 @@ public sealed partial class MembershipTests
     {
         Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
 
-        EmailChangeRequestResult result = await RunAsync(m => m.RequestEmailChangeAsync(id, entered, Ip, Ct));
+        EmailChangeRequestResult result = await RequestEmailChangeAsync(id, entered);
 
         Assert.True(result.IsRejected);
         Assert.Equal(expected, result.Code);
@@ -493,12 +493,12 @@ public sealed partial class MembershipTests
     public async Task EmailChange_Request_IsClosedWhileTheRevertLinkIsOpen_AndOpensAgainWhenItEnds_Z45()
     {
         Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
-        EmailChangeRequestResult first = await RunAsync(m => m.RequestEmailChangeAsync(id, "yeni@example.com", Ip, Ct));
+        EmailChangeRequestResult first = await RequestEmailChangeAsync(id, "yeni@example.com");
         await RunAsync(m => m.VerifyNewEmailAsync(_keys.Derive(first.LinkId!.Value), Ct));
 
-        EmailChangeRequestResult blocked = await RunAsync(m => m.RequestEmailChangeAsync(id, "baska@example.com", Ip, Ct));
+        EmailChangeRequestResult blocked = await RequestEmailChangeAsync(id, "baska@example.com");
         _time.Advance(TimeSpan.FromDays(ProductConstants.EmailChangeRevertLinkDays));
-        EmailChangeRequestResult open = await RunAsync(m => m.RequestEmailChangeAsync(id, "baska@example.com", Ip, Ct));
+        EmailChangeRequestResult open = await RequestEmailChangeAsync(id, "baska@example.com");
 
         Assert.Equal(ErrorCode.EmailChangeRevertPending, blocked.Code);
         Assert.Equal(Start.AddDays(ProductConstants.EmailChangeRevertLinkDays), blocked.RevertLinkEndsAt);
@@ -509,7 +509,7 @@ public sealed partial class MembershipTests
     public async Task TheRevertLinksOldAddress_IsEmptiedWhenItsLifeEnds_AndTheRowStays_KK8()
     {
         Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
-        EmailChangeRequestResult requested = await RunAsync(m => m.RequestEmailChangeAsync(id, "yeni@example.com", Ip, Ct));
+        EmailChangeRequestResult requested = await RequestEmailChangeAsync(id, "yeni@example.com");
         NewEmailVerificationResult verified = await RunAsync(m => m.VerifyNewEmailAsync(_keys.Derive(requested.LinkId!.Value), Ct));
         string sql = "SELECT previous_email FROM link_records WHERE id = '" + verified.RevertLinkId + "'";
         Assert.Equal("ali@example.com", await ScalarAsync<string>(sql));
@@ -529,7 +529,7 @@ public sealed partial class MembershipTests
     public async Task EmailChange_Resend_SupersedesTheEarlierLink_KeepsTheEnd_AndIsCountedToL9_KK9()
     {
         Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
-        EmailChangeRequestResult requested = await RunAsync(m => m.RequestEmailChangeAsync(id, "yeni@example.com", Ip, Ct));
+        EmailChangeRequestResult requested = await RequestEmailChangeAsync(id, "yeni@example.com");
         _time.Advance(TimeSpan.FromHours(1));
 
         EmailChangeResendResult resent = await RunAsync(m => m.ResendEmailChangeLinkAsync(id, Ip, Ct));
@@ -545,7 +545,7 @@ public sealed partial class MembershipTests
     public async Task EmailChange_Resend_OverTheLimit_IsRefused_AndTheEarlierLinkStaysValid_KK9()
     {
         Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
-        EmailChangeRequestResult requested = await RunAsync(m => m.RequestEmailChangeAsync(id, "yeni@example.com", Ip, Ct));
+        EmailChangeRequestResult requested = await RequestEmailChangeAsync(id, "yeni@example.com");
         EmailChangeResendResult last = await RunAsync(m => m.ResendEmailChangeLinkAsync(id, Ip, Ct));
         for (int i = 0; i < 20 && last.IsIssued; i++)
         {
@@ -562,9 +562,9 @@ public sealed partial class MembershipTests
     {
         Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
 
-        EmailChangeRequestResult first = await RunAsync(m => m.RequestEmailChangeAsync(id, "yeni@example.com", Ip, Ct));
+        EmailChangeRequestResult first = await RequestEmailChangeAsync(id, "yeni@example.com");
         long afterFirst = await ScalarAsync<long>("SELECT count(*) FROM attempt_records WHERE attempt_limit = 'L9'");
-        EmailChangeRequestResult replacing = await RunAsync(m => m.RequestEmailChangeAsync(id, "baska@example.com", Ip, Ct));
+        EmailChangeRequestResult replacing = await RequestEmailChangeAsync(id, "baska@example.com");
         long afterSecond = await ScalarAsync<long>("SELECT count(*) FROM attempt_records WHERE attempt_limit = 'L9'");
 
         Assert.False(first.Replaced);

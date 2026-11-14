@@ -220,6 +220,7 @@ public sealed class LinkKeySourceScanTests
     [Theory]
     [InlineData("src/Shopfolio.Web/Modules/Membership/GoogleSignIns.cs", "ConfirmGoogleLinkAsync")]
     [InlineData("src/Shopfolio.Web/Modules/Membership/EmailChanges.cs", "VerifyNewEmailAsync")]
+    [InlineData("src/Shopfolio.Web/Modules/Membership/EmailChanges.cs", "RestorePreviousEmailAsync")]
     public void Scan_OnTheGoogleAndEmailChangeCommands_AllowsTheConsumeInTheOneNamedMethodAndHoldsCallersToOnPost_T343(string file, string method)
     {
         string own = $"public async Task<R> {method}(string key, CancellationToken ct) {{ return await _links.TryConsumeAsync(id, ct); }}";

@@ -33,6 +33,9 @@ internal static class FramePaths
     /// <summary>UC-52: the base of the verification link landing page (E-21); the link key follows it.</summary>
     public const string Verification = "/dogrulama";
 
+    /// <summary>UC-75: the base of the revert link's landing page (E-28); the link key follows it.</summary>
+    public const string EmailRevert = "/geri-al";
+
     /// <summary>UC-77: the sign-out page; the form adds the handler.</summary>
     public const string SignOut = "/cikis";
 

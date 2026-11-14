@@ -461,6 +461,9 @@ public sealed class PanelHomeAndVerificationPagesTests : IAsyncLifetime
         Assert.Equal(previous, reset.RecipientEmail);
         Assert.Equal(1, await db.LinkRecords.CountAsync(l => l.AdminId == adminId && l.LinkType == LinkType.PasswordReset && l.UsedAt == null, Ct));
         Assert.Equal(1, await db.AuditLogs.CountAsync(a => a.Operation == "ChangeAdminEmail" && a.AdminId == adminId, Ct));
+
+        // The used link no longer holds the earlier address (06 4.42; VAL-A809): the one consumption path empties the administrator's link too.
+        Assert.Null(await db.LinkRecords.Where(l => l.AdminId == adminId && l.LinkType == LinkType.EmailChangeRevert).Select(l => l.PreviousEmail).SingleAsync(Ct));
     }
 
     [Fact]
@@ -480,6 +483,7 @@ public sealed class PanelHomeAndVerificationPagesTests : IAsyncLifetime
         await using AppDbContext db = NewContext();
         Assert.Equal(currentEmail, await db.Admins.Where(a => a.Id == adminId).Select(a => a.NormalizedEmail).SingleAsync(Ct));
         Assert.Null(await db.LinkRecords.Where(l => l.AdminId == adminId && l.LinkType == LinkType.EmailChangeRevert).Select(l => l.UsedAt).SingleAsync(Ct));
+        Assert.Equal(otherEmail, await db.LinkRecords.Where(l => l.AdminId == adminId && l.LinkType == LinkType.EmailChangeRevert).Select(l => l.PreviousEmail).SingleAsync(Ct));
         Assert.True(await db.Sessions.AnyAsync(s => s.AdminId == adminId, Ct));
         Assert.Equal(0, await db.DispatchRecords.CountAsync(Ct));
     }

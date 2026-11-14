@@ -1,6 +1,6 @@
 # T548 — Parçalı yükleme betiği: başlatma–parça–durum akışı, 409/404/400/413 yanıtları, ağ hatasında üç kez sürdürme
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor (PR açıldı, doğrulama bekliyor) | **Tarih:** 2026-11-14
+**Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1: ✓ PASS) | **Tarih:** 2026-11-14
 
 ---
 
@@ -69,10 +69,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-14; bağımsız doğrulayıcı: KK1–KK10 ✓, yedi değişinim denemesinin yedisi de Node testince yakalandı) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 — K1: durum isteğinin 500ü yeniden denenir, temizlenen seçimde eski ilerleme metni kalır → D-1578 |
 
 ## Altyapı Değişiklikleri
 
@@ -86,7 +86,7 @@
 - **Branch:** `task/T548-parcali-yukleme-betigi`
 - **Commit:** `65d9c542` — yapım
 - **PR:** #577
-- **CI:** yapım işçisi izlemez
+- **CI:** run 43597048307 (uç `233a5813`) — Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate ✓
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

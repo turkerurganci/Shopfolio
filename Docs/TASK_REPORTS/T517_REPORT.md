@@ -102,7 +102,7 @@ Backlog (hedefi T517): kapandı D-428, D-429, D-555; payı kapandı D-254, D-606
 - **Commit:** PR'ın head'i
 - **PR:** açıldığında yönetici yardımcıya bildirilir
 - **CI:** yönetici yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** main `3fe7d829`: CI 43552777845 success, Publish 43552777848 success
 
 ## Dış Varsayımlar
 

@@ -529,6 +529,7 @@ internal static class OrderingModuleRegistration
         services.AddScoped<IPanelOrderReader, PanelOrderReader>();
         services.AddScoped<IPanelOrderSteps, PanelOrderSteps>();
         services.AddScoped<IPanelOrderCorrections, PanelOrderCorrections>();
+        services.AddScoped<IPanelOrderUpkeep, PanelOrderUpkeep>(); // T531: the service mark, the download renewal, the note and the re-sendings (07 UC-139, UC-143, UC-152...UC-154)
         return services;
     }
 }

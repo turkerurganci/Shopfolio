@@ -65,12 +65,12 @@ public sealed partial class OrderDetailPageTests
         Assert.Contains($"İade adresi: İade Deposu · Depo Sokak 3 · Yenimahalle / {provinceName}", claimRow, StringComparison.Ordinal);
         Assert.Contains(PanelMarks.TextOf(PanelMark.EmailNotDelivered), claimRow, StringComparison.Ordinal);
         Assert.DoesNotContain("Yeniden açılış", claimRow, StringComparison.Ordinal);
-        // The order's mark carries the undelivered e-mails one by one: the notice's name, the first sending and the address (04 9.9.4, 2.5.3.1); no re-send button before UC-153 (T531).
+        // The order's mark carries the undelivered e-mails one by one: the notice's name, the first sending and the address (04 9.9.4, 2.5.3.1), each with its re-send button (UC-153; T531).
         string marks = html[html.IndexOf("id=\"isaretler\"", StringComparison.Ordinal)..html.IndexOf("id=\"siradaki-adim\"", StringComparison.Ordinal)];
         Assert.Contains("B-9", marks, StringComparison.Ordinal);
         Assert.Contains("Gittiği adres: ulasmayan@example.com", marks, StringComparison.Ordinal);
         Assert.Contains(UndeliveredEmailList.WrongAddressReminder, marks, StringComparison.Ordinal);
-        Assert.DoesNotContain(UndeliveredEmailList.ResendLabel, marks, StringComparison.Ordinal);
+        Assert.Contains($">{UndeliveredEmailList.ResendLabel}</button>", marks, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -366,6 +366,11 @@ public sealed partial class OrderDetailPageTests
         foreach ((ProductType type, bool delivered) in specs)
         {
             OrderItem item = OrderItem.Create(orderId, null, null, type, "Ürün", 1, 100m, 20m, 16.67m, now);
+            if (type == ProductType.Service)
+            {
+                item.FulfilmentPeriod = 5; // a service item carries its fulfilment period (T531)
+            }
+
             if (type == ProductType.Digital)
             {
                 item.DownloadAllowance = 5;

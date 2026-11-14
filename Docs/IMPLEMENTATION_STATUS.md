@@ -266,15 +266,15 @@
 | T507 | Yasal metin sayfaları ve panelde yönetimi (E-11, E-47) | ✓ | ✓ PASS (tur 1) | `7eadf545` | #547 |
 | T508 | Sepet (E-12) | ✓ | ✓ PASS (tur 1) | `6a8e61a0` | #544 |
 | T509 | Ödeme adımı (E-13) | ✓ | ✓ PASS (tur 4) | `edf4eb2a` | #559 |
-| T510 | Sipariş teyit ve bekleme ekranı, ödeme sağlayıcısına geçiş ve dönüş (E-14) | ✓ | ✓ PASS (tur 1) | `dee5e68a` | #569 |
+| T510 | Sipariş teyit ve bekleme ekranı, ödeme sağlayıcısına geçiş ve dönüş (E-14) | ✓ | ✓ PASS (tur 1) | `ce300c0e` | #569 |
 | T511 | Sipariş takibi girişi, sipariş sayfası ve indirme bağlantısı (E-15, E-16) | ✓ | ✓ PASS (tur 1) | `20c8bbcc` | #545 |
 | T512 | İptal ve gecikme feshi ekranı, geri ödeme IBAN girişi (E-17, E-16 IBAN formu) | ✓ | ✓ PASS (tur 2) | `f76de0e3` | #553 |
 | T513 | Cayma beyanı ve ayıp talebi ekranları (E-18, E-19) | ✓ | ✓ PASS (tur 2) | — | #558 |
 | T514 | Kayıt ve doğrulama bağlantısının inişi (E-20, E-21) | ✓ | ✓ PASS (tur 3) | `34a477dc` | #548 |
 | T515 | Müşteri girişi ve Google ile giriş (E-22) | ✓ | ✓ PASS (tur 1) | `0cc6a93a` | #560 |
 | T516 | Şifre sıfırlama ve yeniden doğrulama (E-23, E-24) | ✓ | ✓ PASS (tur 1) | `29a613e0` | #564 |
-| T517 | Hesap — profil ve güvenlik (E-25) | ✓ | ✓ PASS (tur 2) | `d682fc7a` | #567 |
-| T518 | Adres defteri ve sipariş geçmişi (E-26, E-27) | ✓ | ✓ PASS (tur 1) | `00854fd6` | #566 |
+| T517 | Hesap — profil ve güvenlik (E-25) | ✓ | ✓ PASS (tur 2) | `3fe7d829` | #567 |
+| T518 | Adres defteri ve sipariş geçmişi (E-26, E-27) | ✓ | ✓ PASS (tur 1) | `49ba60f0` | #566 |
 | T519 | E-posta değişikliğini geri alma ve müşteri çıkışı (E-28) | ✓ | ✓ PASS (tur 2) | `07338c0f` | #571 |
 | T520 | Panel girişi, şifre sıfırlama, davet kabulü ve yönetici çıkışı (E-29, E-30) | ✓ | ✓ PASS (tur 1) | `fd6c275e` | #549 |
 | T521 | Panel ana sayfası ve yönetici hesabının doğrulama ekranları (E-31, E-54) | ✓ | ✓ PASS (tur 3) | `3cec5c9c` | #554 |
@@ -283,16 +283,16 @@
 | T524 | Satış özeti ve dışa aktarma (E-51, E-53) | ✓ | ✓ PASS (tur 1) | `c5add538` | #562 |
 | T525 | Ürün listesi ve ürün formu, görsel yükleme (E-32, E-33) | ✓ | ✓ PASS (tur 2) | `6b4f246c` | #570 |
 | T526 | Kategori ağacı ve kuponlar (E-34, E-35) | ✓ | ✓ PASS (tur 1) | `901e0cdc` | #563 |
-| T527 | Sipariş listesi, sipariş ayrıntısı ve durum geçişleri (E-36, E-37) | ✓ | ✓ PASS (tur 5) | `b031628f` | #565 |
+| T527 | Sipariş listesi, sipariş ayrıntısı ve durum geçişleri (E-36, E-37) | ✓ | ✓ PASS (tur 5) | `d847e947` | #565 |
 | T528 | Sipariş ayrıntısı: firma iptali, bildirim kaydı, kalem çıkarma, iade malı ve ayıp talebi (E-37) | ⬚ | — | — | — |
 | T529 | Sipariş ayrıntısı: geri ödeme işlemleri (E-37) | ⬚ | — | — | — |
 | T530 | Sipariş ayrıntısı: adres, kargo, teslim tarihi, durum geçişi ve e-posta düzeltmeleri (E-37) | ⏳ | ✗ FAIL (tur 1); reddedilen adres düzeltmesinde alan mesajı çizilmiyor ("işaretli alanlar" metni işaretsiz formla), düzeltmelerin ret ve engel mesajı "Düzeltmeler" bölümünde değil sayfanın üstünde, teslimat ve fatura formları aynı alan kimliklerini taşıyor (`04` 7.2.14.1, 2.3.1.1, 2.3.2, 2.3.3, 2.7.3.1) — düzeltme bekliyor | `e947183b` | #573 |
-| T531 | Sipariş ayrıntısı: hizmet kalemi, indirme hakkı, iç not ve e-posta yeniden gönderim (E-37) | ⬚ | — | — | — |
+| T531 | Sipariş ayrıntısı: hizmet kalemi, indirme hakkı, iç not ve e-posta yeniden gönderim (E-37) | ✓ | ✓ PASS (tur 1) | `00bef140` | #572 |
 | T532 | Talepler ve iletişim talebi ayrıntısı (E-38, E-39) | ✓ | ✓ PASS (tur 1) | `d202a668` | #552 |
 | T533 | Üye kaydı görünümü (E-40) | ✓ | ✓ PASS (tur 1) | `d1a1729a` | #556 |
 | T534 | Kurumsal içerik ve marka yönetimi (E-41, E-43) | ⬚ | — | — | — |
 | T535 | Ana sayfa ve menü, firma kimliği ve satış (E-42, E-44) | ✓ | ✓ PASS (tur 2) | `5e42c12b` | #555 |
-| T536 | Ödeme yöntemleri, kargo, süreler ve varsayılanlar (E-45, E-46) | ✓ | ✓ PASS (tur 2) | `c39d6399` | #568 |
+| T536 | Ödeme yöntemleri, kargo, süreler ve varsayılanlar (E-45, E-46) | ✓ | ✓ PASS (tur 2) | `8a51cdcc` | #568 |
 | T537 | Vitrin çerçevesinin modeli: marka, menü, duyuru şeridi, hesap alanı, sepet sayısı | ✓ | ✓ PASS (tur 1) | `b69ac697` | #532 |
 | T538 | Uç ve model eşitlik denetimleri: uç envanteri, form girdi ve sorgu modelleri, makine ucu gövdeleri | ⬚ | — | — | — |
 | T539 | Betiksiz yol: JavaScript kapalıyken temel akışlar ve betikli iyileştirme | ⬚ | — | — | — |

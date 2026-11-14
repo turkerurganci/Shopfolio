@@ -115,7 +115,7 @@
 - **Branch:** `task/T536-odeme-kargo-varsayilan`
 - **PR:** PR açıklamasında
 - **CI:** *(PR'da)*
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** main `8a51cdcc`: CI 43560690926 success, Publish 43560690928 success
 
 ## ⚠ Maddeler
 

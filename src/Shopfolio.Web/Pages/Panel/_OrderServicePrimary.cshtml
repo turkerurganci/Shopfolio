@@ -1,0 +1,23 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Modules.Ordering.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model OrderDetailModel
+@*
+    The fourth arm of the primary button (T531; 04 9.9.5; D-1491): no order-level step is left and a service item is open - the first open service item's "Tamamlandı olarak işaretle" with the
+    fulfilment period's remainder (Z-39); an overrun shows in the indicator with the legal interest warning (2.6.3). No confirmation (04 9.9.26). The item comes from the server's decision.
+*@
+@if (Model.PrimaryServiceItem is { } service)
+{
+    <p class="order-detail__item-name">@service.Name</p>
+    @foreach (PeriodIndicator period in Model.ServicePeriods)
+    {
+        <partial name="_PeriodIndicator" model="period" />
+    }
+    <form method="post" action="@(Model.PagePath)?handler=CompleteServiceItem" asp-antiforgery="true" class="form" data-js="submit-once" id="complete-service-primary-form">
+        @VersionFields.Version(Model.Operations.Version, "Input")
+        <input type="hidden" name="Input.OrderItemId" value="@service.OrderItemId.ToString("D")" />
+        <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.CompleteServiceLabel)">@OrderDetailModel.CompleteServiceLabel</button>
+    </form>
+}

@@ -44,7 +44,7 @@
         <partial name="_PeriodIndicator" model="period" />
     }
 </section>
-@if (Model.RefusalText is not null)
+@if (Model.RefusalText is not null && Model.ShowsRefusalAtStep)
 {
     <partial name="_Message" model="Model.RefusalMessage" />
 }
@@ -78,6 +78,9 @@
                 <partial name="_OrderDeliveryFields" model="Model" />
                 <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.MarkDeliveredLabel)">@OrderDetailModel.MarkDeliveredLabel</button>
             </form>
+            break;
+        case OrderPrimaryStep.CompleteService:
+            <partial name="_OrderServicePrimary" model="Model" />
             break;
     }
 </section>
@@ -128,6 +131,7 @@
                     <p>Teslim tarihi: @DisplayFormat.Date(delivered)</p>
                 }
                 <partial name="_ItemRecords" model="Model.RecordsOf(item)" />
+                <partial name="_OrderItemUpkeep" model="(Model, item)" />
                 @if (Model.ItemFactsOf(item) is { } facts)
                 {
                     <partial name="_PanelMarks" model="Model.ItemMarksOf(facts)" />
@@ -271,11 +275,7 @@
 <section class="order-detail__section" id="ic-not" aria-labelledby="order-note-heading">
     <h2 id="order-note-heading">İç not</h2>
     <p class="order-detail__note-hint">@OrderDetailModel.InternalNoteHiddenText</p>
-    @if (!Model.Facts.PersonalDataDisposed && Model.Facts.InternalNote is { } note)
-    {
-        <p class="order-detail__note">@note.Text</p>
-        <p class="order-detail__note-author">@note.AdminName</p>
-    }
+    <partial name="_OrderInternalNote" model="Model" />
 </section>
 <section class="order-detail__section" id="e-posta-gecmisi" aria-labelledby="order-email-heading">
     <h2 id="order-email-heading">E-posta geçmişi</h2>

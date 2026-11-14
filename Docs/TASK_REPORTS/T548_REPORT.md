@@ -85,7 +85,7 @@
 
 - **Branch:** `task/T548-parcali-yukleme-betigi`
 - **Commit:** `65d9c542` — yapım
-- **PR:** bu raporun PR'ı
+- **PR:** #577
 - **CI:** yapım işçisi izlemez
 - **Post-merge run'lar:** *(validator doldurur)*
 

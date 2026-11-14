@@ -36,7 +36,7 @@ public enum OrderPrimaryStep
 /// (04 9.9.37). Every step carries the order's version: a stale version is 409 with the order as it is now and no way to overwrite (04 9.9.34); a step that is not open, or a refused value, is 422. A key
 /// that is not an order's is 404 (K-803). The GET writes nothing.
 /// </summary>
-public sealed class OrderDetailModel : PageModel
+public sealed partial class OrderDetailModel : PageModel
 {
     public const string BackLabel = "Listeye dön";
 
@@ -456,6 +456,7 @@ public sealed class OrderDetailModel : PageModel
         PagePath = PathOf(id);
         BackPath = ListReturn.Target(HttpContext.Request.Query[ReturnPath.ParameterName], PanelFramePaths.Orders);
         PrimaryStep = PrimaryOf(operations);
+        await LoadRefundLinesAsync(id, ct);
         return true;
     }
 

@@ -378,6 +378,17 @@ public interface IAfterSalesModule
     Task<RefundProcessingPage> ListOrdersAwaitingRefundProcessingAsync(Guid? afterId, int maxSubjects, CancellationToken ct);
 
     /// <summary>
+    /// The item records of <paramref name="orderItemIds"/> that owe the firm a refund step and have no refund row yet (T529; 07 UC-131), by the panel home's one rule - an item that waits for the
+    /// customer's IBAN included, the screen shows it with its mark. Oldest first. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<OwedRefundRecord>> ListOwedRefundRecordsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
+    /// The item's latest "mal dönmedi" closure that was not reopened (T529; 07 UC-133; 06 4.28; K-1105): the amount based refund on the item is bound to it. Null when the item has none. A plain read.
+    /// </summary>
+    Task<Guid?> FindOpenNotReturnedClosureAsync(Guid orderItemId, CancellationToken ct);
+
+    /// <summary>
     /// The refunds among <paramref name="refunds"/> that wait for the customer's IBAN (T382; 02 10.6.1; K-525, K-686): an open IBAN request - neither fulfilled nor closed - is linked to the
     /// refund itself (the transfer path opened after a failed card refund, or an itemless request) or to the refund's item with no refund yet (the request the defect remedy's or the
     /// notice's item record opened when the file had no IBAN). Such a refund is the customer's to move, not the firm's; the rule is here alone. A plain read.

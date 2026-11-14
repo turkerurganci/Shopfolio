@@ -18,7 +18,7 @@ namespace Shopfolio.Modules.Payment;
 /// The Payment module's implementation of its open surface; internal, reached only through <see cref="IPaymentModule"/>. The payment axis's members
 /// (T317) write into the caller's open transaction under the order's row lock the caller holds, and save nothing.
 /// </summary>
-internal sealed class PaymentModule : IPaymentModule
+internal sealed partial class PaymentModule : IPaymentModule
 {
     private readonly AppDbContext _db;
     private readonly IJobQueue _jobs;

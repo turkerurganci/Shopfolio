@@ -198,17 +198,8 @@ internal sealed partial class OrderTransitions
     }
 
     /// <summary>The shipping fee rule's question for the record (02 7.2.9, 7.4.6): the order's physical items and the moment the carrier first took the order.</summary>
-    private async Task<bool> IsShippingFeeIncludedAsync(Order order, RefundSubject subject, CancellationToken ct)
-    {
-        List<ShippedItem> physical = await OrderPeriods.ShippedItemsAsync(_db, order.Id, ct);
-        if (physical.Count == 0)
-        {
-            return false;
-        }
-
-        DateTimeOffset? handed = await OrderPeriods.HandedToCarrierAtAsync(_db, order.Id, ct);
-        return await _afterSales.IsShippingFeeIncludedAsync(new ShippingFeeQuery(physical, handed, subject), ct);
-    }
+    private Task<bool> IsShippingFeeIncludedAsync(Order order, RefundSubject subject, CancellationToken ct) =>
+        FirmRefundAmounts.IsShippingFeeIncludedAsync(_db, _afterSales, order.Id, subject, ct);
 
     /// <summary>After a refund settled or a record was undone: the order's IBANs no pending refund uses any more go, each with its disposal record (02 7.4.5; Z-44).</summary>
     private async Task DeleteUnusedIbansAsync(Guid orderId, CancellationToken ct) => await _afterSales.DeleteUnusedRefundIbansAsync(orderId, ct);

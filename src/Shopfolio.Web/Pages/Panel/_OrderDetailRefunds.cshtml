@@ -1,0 +1,112 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Modules.Ordering.Contracts
+@using Shopfolio.Modules.Payment.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model OrderDetailModel
+@*
+    E-37's refund steps (T529; 04 9.9.21-9.9.24; 07 UC-131...UC-137): each refund line with the amount, the way and the IBAN the server worked out, and only the steps the module's decision opened -
+    a closed step's button is not in the answer (09 8.3 item 5). The forms carry the line's key, the order's version and nothing derived. No inline style, no inline script.
+*@
+@{
+    bool amountFormOpen = Model.IsOpen(OrderOperation.ProcessRefund) || Model.IsOpen(OrderOperation.RequestRefundIban);
+    bool ibanRequestOpen = Model.IsOpen(OrderOperation.RequestRefundIban);
+}
+@if (Model.RefundLines.Count > 0 || amountFormOpen || ibanRequestOpen)
+{
+    <section class="order-detail__section" id="geri-odemeler" aria-labelledby="order-refunds-heading">
+        <h2 id="order-refunds-heading">@OrderDetailModel.RefundSectionTitle</h2>
+        @foreach (PanelRefundLine line in Model.RefundLines)
+        {
+            string key = line.Key.ToString("D");
+            <div class="order-detail__refund" id="geri-odeme-@key">
+                <p>
+                    @Model.RefundLineNameOf(line) ·
+                    @(line.Quantity is { } units ? $"{units} adet · " : string.Empty)@DisplayFormat.Amount(line.Amount) ·
+                    @OrderDetailModel.WayTextOf(line)@(line.Iban is { } iban ? " · IBAN " + DisplayFormat.Iban(iban) : string.Empty)
+                </p>
+                @if (line.HasLateSuccess)
+                {
+                    <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, OrderDetailModel.LateRefundSuccessWarning)" />
+                }
+                @if (line.CanProcess)
+                {
+                    <form method="post" action="@(Model.PagePath)?handler=ProcessRefund" asp-antiforgery="true" class="form" data-js="submit-once">
+                        @VersionFields.Version(Model.Operations.Version, "Input")
+                        <input type="hidden" name="Input.@line.KeyName" value="@key" />
+                        <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.ProcessRefundLabel)">@OrderDetailModel.ProcessRefundLabel</button>
+                    </form>
+                }
+                else if (!line.IsSent && line.Way == PaymentMethod.BankTransfer && line.Iban is null)
+                {
+                    <p class="order-detail__iban-awaited">@OrderDetailModel.IbanAwaitedText</p>
+                }
+                @if (line.CanReportTransferFailed)
+                {
+                    <form method="post" action="@(Model.PagePath)?handler=MarkBankTransferRefundFailed" asp-antiforgery="true" class="form" data-js="submit-once">
+                        @VersionFields.Version(Model.Operations.Version, "Input")
+                        <input type="hidden" name="Input.@line.KeyName" value="@key" />
+                        <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.ReportTransferFailedLabel)">@OrderDetailModel.ReportTransferFailedLabel</button>
+                    </form>
+                }
+                @if (line.CanRetryOrSwitch && line.RefundId is { } failed)
+                {
+                    <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, OrderDetailModel.CardRefundNotRealizedWarning)" />
+                    <form method="post" action="@(Model.PagePath)?handler=RetryCardRefund" asp-antiforgery="true" class="form" data-js="submit-once">
+                        @VersionFields.Version(Model.Operations.Version, "Input")
+                        <input type="hidden" name="Input.RefundId" value="@failed.ToString("D")" />
+                        <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.RetryCardRefundLabel)">@OrderDetailModel.RetryCardRefundLabel</button>
+                    </form>
+                    <form method="post" action="@(Model.PagePath)?handler=SwitchRefundToBankTransfer" asp-antiforgery="true" class="form" data-js="submit-once">
+                        @VersionFields.Version(Model.Operations.Version, "Input")
+                        <input type="hidden" name="Input.RefundId" value="@failed.ToString("D")" />
+                        <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.SwitchRefundToTransferLabel)">@OrderDetailModel.SwitchRefundToTransferLabel</button>
+                    </form>
+                }
+                @if (line.CanMarkFailed && line.RefundId is { } pending)
+                {
+                    <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, OrderDetailModel.CardRefundPendingWarning)" />
+                    <form method="post" action="@(Model.PagePath)?handler=MarkCardRefundFailed" asp-antiforgery="true" class="form" data-js="submit-once">
+                        @VersionFields.Version(Model.Operations.Version, "Input")
+                        <input type="hidden" name="Input.RefundId" value="@pending.ToString("D")" />
+                        <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.MarkCardRefundFailedLabel)">@OrderDetailModel.MarkCardRefundFailedLabel</button>
+                    </form>
+                }
+            </div>
+        }
+        @if (amountFormOpen)
+        {
+            <form method="post" action="@(Model.PagePath)?handler=ProcessAmountBasedRefund" asp-antiforgery="true" class="form" data-js="submit-once" id="amount-based-refund-form">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <label for="amount-based-refund-amount">Tutar</label>
+                <input type="text" inputmode="decimal" id="amount-based-refund-amount" name="Input.Amount" value="@Model.AmountBased.Amount" />
+                <label for="amount-based-refund-item">Kalem (isteğe bağlı)</label>
+                <select id="amount-based-refund-item" name="Input.OrderItemId">
+                    <option value="">Kalem seçilmedi</option>
+                    @foreach (OrderPageItem item in Model.Detail.Items)
+                    {
+                        <option value="@item.OrderItemId.ToString("D")" selected="@(Model.AmountBased.OrderItemId == item.OrderItemId)">@item.Name</option>
+                    }
+                </select>
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.AmountBasedRefundLabel)">@OrderDetailModel.AmountBasedRefundLabel</button>
+            </form>
+        }
+        @if (ibanRequestOpen)
+        {
+            <form method="post" action="@(Model.PagePath)?handler=RequestRefundIban" asp-antiforgery="true" class="form" data-js="submit-once" id="request-refund-iban-form">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <label for="request-refund-iban-item">Kalem</label>
+                <select id="request-refund-iban-item" name="Input.OrderItemId" required>
+                    <option value="">Kalem seçin</option>
+                    @foreach (OrderPageItem item in Model.Detail.Items)
+                    {
+                        <option value="@item.OrderItemId.ToString("D")">@item.Name</option>
+                    }
+                </select>
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.RequestRefundIbanLabel)">@OrderDetailModel.RequestRefundIbanLabel</button>
+            </form>
+        }
+    </section>
+}

@@ -9,7 +9,8 @@ namespace Shopfolio.Infrastructure;
 /// the Catalog counters' conditional updates - reports it here first, and a lock asked out of order is refused with an exception before any
 /// SQL is sent. The order is: the cart's advisory lock first and alone at the head, then the order rows by id, then the variant rows by id, the
 /// coupon last. The account's row lock (09 15.1 item 3) is a head of its own: the sign-in and the password flows take it alone, the account's
-/// deletion takes it first and then its orders by id (05 6.1.2; T345), never after another lock and never together with the cart's. The category tree's and the administrator set's advisory locks do not join the order: the transaction that takes one takes no
+/// deletion takes it first and then its orders by id (05 6.1.2; T345), never after another lock and never together with the cart's. The product's row (T525; 09 10.2
+/// item 5) heads the panel's product writes the same way: one product, then the variant rows by id or one digital file row - never after another lock. The category tree's and the administrator set's advisory locks do not join the order: the transaction that takes one takes no
 /// other lock. A reversed request is a programming error (it could wait on the reverse of another transaction); the tests that run the code
 /// catch it (T228 criterion 7). The state hangs on the context and is reset when the context's transaction changes.
 /// </summary>
@@ -47,6 +48,35 @@ internal static class LockSequence
     public static void Check(IReadOnlyList<(LockKind Kind, Guid? Key)> taken, LockKind kind, Guid? key)
     {
         ArgumentNullException.ThrowIfNull(taken);
+        if (kind == LockKind.Product)
+        {
+            if (!taken.All(t => t.Kind == LockKind.Product && t.Key == key))
+            {
+                throw new InvalidOperationException(
+                    $"The product lock {key} is asked after the {taken[^1].Kind} lock: the product's row heads its transaction, one product per transaction (09 10.2 item 5; T525).");
+            }
+
+            return;
+        }
+
+        // The product's row heads the panel's product writes (T525): only the variant rows and one digital file row follow it, and they follow it as if they opened the transaction.
+        int head = 0;
+        while (head < taken.Count && taken[head].Kind == LockKind.Product)
+        {
+            head++;
+        }
+
+        if (head > 0)
+        {
+            if (kind is not (LockKind.Variant or LockKind.DigitalFile))
+            {
+                throw new InvalidOperationException(
+                    $"The {kind} lock is asked after the product lock: only the variant rows and one digital file row follow the product's row (09 10.2 item 5; T525).");
+            }
+
+            taken = [.. taken.Skip(head)];
+        }
+
         if (taken.Count == 0)
         {
             return;

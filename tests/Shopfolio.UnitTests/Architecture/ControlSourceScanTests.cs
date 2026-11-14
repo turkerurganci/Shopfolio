@@ -80,6 +80,71 @@ public sealed class ControlSourceScanTests
         Assert.Empty(offenders);
     }
 
+    /// <summary>The component's marks a page puts on its form and its file input (<c>upload-form</c>, <c>upload-file</c>): the component draws the encoding and the input type from them.</summary>
+    private static List<string> UploadMarkHits(string source) =>
+        [.. Regex.Matches(source, @"\bupload-(form|file)\b", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, PatternTimeout).Select(m => m.Value)];
+
+    [Fact]
+    public void NoPageOutsideThePanel_MarksAnUploadFormOrAFileInput_KK10()
+    {
+        string pages = Path.Combine(WebRoot(), "Pages");
+        string panel = Path.GetFullPath(Path.Combine(pages, "Panel")) + Path.DirectorySeparatorChar;
+        List<string> offenders = [];
+        foreach (string file in Directory.EnumerateFiles(pages, "*.cshtml", SearchOption.AllDirectories))
+        {
+            if (!Path.GetFullPath(file).StartsWith(panel, StringComparison.Ordinal) && UploadMarkHits(Code(File.ReadAllText(file))).Count > 0)
+            {
+                offenders.Add(Path.GetRelativePath(pages, file));
+            }
+        }
+
+        Assert.Empty(offenders);
+    }
+
+    [Fact]
+    public void TheMarks_AreTheComponentsOwn_AndAPanelPageUsesThem_SoTheScanIsNotBlind_KK10()
+    {
+        string component = CodeOf("Pages/Components/UploadComponentModels.cs");
+        Assert.Contains("\"upload-form\"", component, StringComparison.Ordinal);
+        Assert.Contains("\"upload-file\"", component, StringComparison.Ordinal);
+        Assert.Contains("RequirePanelPage", component, StringComparison.Ordinal);
+        Assert.NotEmpty(UploadMarkHits(CodeOf("Pages/Panel/_ProductFormBody.cshtml")));
+    }
+
+    [Theory]
+    [InlineData("<form method=\"post\" upload-form=\"ProductGallery\">")]
+    [InlineData("<input upload-file=\"ProductGallery\" name=\"Input.ImageFile\" />")]
+    [InlineData("<INPUT UPLOAD-FILE=\"Logo\">")]
+    public void AnUploadMark_IsFound_KK10(string source)
+    {
+        Assert.NotEmpty(UploadMarkHits(source));
+    }
+
+    [Theory]
+    [InlineData("<form method=\"post\" class=\"upload-formatting\">")]
+    [InlineData("<p>@* upload-form *@</p>")]
+    public void ANearMissOfTheMark_IsQuiet_KK10(string source)
+    {
+        Assert.Empty(UploadMarkHits(Code(source)));
+    }
+
+    [Theory]
+    [InlineData("/Pages/Panel/_ProductFormBody.cshtml")]
+    public void APanelPage_MayDrawTheMarks_KK10(string path)
+    {
+        Assert.Null(Record.Exception(() => Shopfolio.Pages.Components.UploadRequests.RequirePanelPage(path)));
+    }
+
+    [Theory]
+    [InlineData("/Pages/Contact.cshtml")]
+    [InlineData("/Pages/Account/DefectRequest.cshtml")]
+    [InlineData("/Pages/PanelX/Form.cshtml")]
+    [InlineData(null)]
+    public void ACustomerPage_DrawingTheMarks_Throws_KK10(string? path)
+    {
+        Assert.Throws<InvalidOperationException>(() => Shopfolio.Pages.Components.UploadRequests.RequirePanelPage(path));
+    }
+
     [Fact]
     public void TheUploadComponent_StillDrawsTheFileInput_SoTheScanIsNotBlind_KK10()
     {

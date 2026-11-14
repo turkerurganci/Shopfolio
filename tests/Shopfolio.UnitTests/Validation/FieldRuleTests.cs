@@ -184,6 +184,24 @@ public sealed class FieldRuleTests
         Assert.Null(MessageOf(new InvalidPercentageAttribute(), Money.MaxPercentage));
     }
 
+    [Theory]
+    [InlineData("1.25", true)]
+    [InlineData("0.001", true)]
+    [InlineData("1.250", true)]
+    [InlineData("1.2505", false)]
+    [InlineData("0", false)]
+    [InlineData("-1", false)]
+    [InlineData("1000000000", false)]
+    public void InvalidNetQuantity_IsAboveZero_WithThreeDecimals_FromThePriceLabelsRule_AndWithinTheColumn(string text, bool valid)
+    {
+        InvalidNetQuantityAttribute rule = new();
+        decimal quantity = decimal.Parse(text, System.Globalization.CultureInfo.InvariantCulture);
+
+        Assert.True(rule.OwnsConversionFailure);
+        Assert.Equal(valid, MessageOf(rule, quantity) is null);
+        Assert.Equal(999_999_999.999m, Money.MaxNetQuantity);
+    }
+
     [Fact]
     public void InvalidDate_PassesADayAndAnEmptyValue_AndOwnsTheConversionFailure()
     {

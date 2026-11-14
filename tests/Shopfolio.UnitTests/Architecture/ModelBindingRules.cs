@@ -235,7 +235,8 @@ internal static class ModelBindingRules
     /// and a decimal number are <see cref="decimal"/> (09 7.2 item 3), a floating point type would be read by the framework with the thread's culture;
     /// <c>DecimalWithoutRule</c> - a decimal carries the rule that owns its conversion failure and its precision and limit (<see cref="InvalidAmountAttribute"/>,
     /// <see cref="InvalidPercentageAttribute"/>; 09 7.2 item 3), so that no value is cut to the column's scale or overflows it silently. Only these two
-    /// count: another rule that owns a conversion failure (a quantity, a date) checks no precision.
+    /// count, and the net quantity's rule (<see cref="InvalidNetQuantityAttribute"/>; T525 ⚠, three decimals - 04 7.2.4.13 - from the price label's rule; the 09 text is a backlog
+    /// item): another rule that owns a conversion failure (a quantity, a date) checks no precision.
     /// </summary>
     private static string? ValueFormatViolation(Type leaf, ICustomAttributeProvider declared)
     {
@@ -258,7 +259,7 @@ internal static class ModelBindingRules
         }
 
         if (leaf == typeof(decimal)
-            && !declared.GetCustomAttributes(typeof(FieldRuleAttribute), inherit: true).Any(rule => rule is InvalidAmountAttribute or InvalidPercentageAttribute))
+            && !declared.GetCustomAttributes(typeof(FieldRuleAttribute), inherit: true).Any(rule => rule is InvalidAmountAttribute or InvalidPercentageAttribute or InvalidNetQuantityAttribute))
         {
             return "DecimalWithoutRule";
         }

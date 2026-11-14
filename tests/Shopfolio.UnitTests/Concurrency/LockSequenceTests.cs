@@ -23,6 +23,8 @@ public sealed class LockSequenceTests
         { "Account", "Order" },
         { "Account", "Variant" },
         { "Account", "Coupon" },
+        { "Product", "Variant" },
+        { "Product", "DigitalFile" },
     };
 
     public static TheoryData<string, string> RefusedPairs => new()
@@ -58,6 +60,17 @@ public sealed class LockSequenceTests
         { "AdminSet", "Account" },
         { "AdminSet", "CompanySettings" },
         { "CategoryTree", "CompanySettings" },
+        { "Product", "Order" },
+        { "Product", "Coupon" },
+        { "Product", "Cart" },
+        { "Product", "CategoryTree" },
+        { "Product", "CompanySettings" },
+        { "Product", "Account" },
+        { "Variant", "Product" },
+        { "Order", "Product" },
+        { "Cart", "Product" },
+        { "Account", "Product" },
+        { "DigitalFile", "Product" },
     };
 
     [Theory]
@@ -123,12 +136,22 @@ public sealed class LockSequenceTests
     [InlineData("CompanySettings")]
     [InlineData("Cart")]
     [InlineData("Account")]
+    [InlineData("Product")]
     public void Check_SameAdvisoryLockAgainRightAfterItself_IsAllowed(string kindName)
     {
         LockKind kind = Enum.Parse<LockKind>(kindName);
         Guid? key = KeyOf(kind, Low);
 
         Assert.Null(Record.Exception(() => LockSequence.Check([(kind, key)], kind, key)));
+    }
+
+    [Fact]
+    public void Check_TheProductsRow_HeadsItsTransaction_ThenVariantsByIdOrOneFile_T525()
+    {
+        Assert.Null(Record.Exception(() => LockSequence.Check([(LockKind.Product, Low), (LockKind.Variant, Low)], LockKind.Variant, High)));
+        Assert.Throws<InvalidOperationException>(() => LockSequence.Check([(LockKind.Product, Low), (LockKind.Variant, High)], LockKind.Variant, Low));
+        Assert.Throws<InvalidOperationException>(() => LockSequence.Check([(LockKind.Product, Low), (LockKind.DigitalFile, Low)], LockKind.Variant, High));
+        Assert.Throws<InvalidOperationException>(() => LockSequence.Check([(LockKind.Product, Low)], LockKind.Product, High));
     }
 
     [Fact]

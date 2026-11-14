@@ -125,11 +125,3 @@ public sealed class ReauthenticationInput
 
     public string ReauthenticationToken { get; set; } = string.Empty;
 }
-
-/// <summary>The sample account link page (09 15.1 item 4): the address holds a key, so no referrer is sent and the response is not stored.</summary>
-[KeyedLinkPage]
-[NoStore]
-public sealed class KeyedLinkSampleModel : PageModel
-{
-    public IActionResult OnGet(string key) => Content($"link:{key}");
-}

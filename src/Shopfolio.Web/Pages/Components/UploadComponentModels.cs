@@ -396,3 +396,96 @@ public static class SingleUploads
         return error is null ? view : view with { Error = error, Autofocus = string.Equals(summary?.FirstFieldId, view.Id, StringComparison.OrdinalIgnoreCase) };
     }
 }
+
+/// <summary>
+/// The upload's request side (04 2.12.8; 07 5.2.3): the encoding a form with a file input is sent in, the panel-only rule of a page that draws one and the reading of the sent file. A page names no file type
+/// and no encoding of its own - it marks the form and the input, and this component draws them (04 2.12.8.6).
+/// </summary>
+public static class UploadRequests
+{
+    /// <summary>The encoding of a form that carries a file.</summary>
+    public const string FormEncoding = "multipart/form-data";
+
+    /// <summary>The folder of the panel's pages: the only pages that upload (04 2.12.8.6).</summary>
+    public const string PanelPagesFolder = "/Pages/Panel/";
+
+    /// <summary>The check every marked form and input takes when it is drawn: the page is a panel page (04 2.12.8.6; the customer's side uploads nothing).</summary>
+    public static void RequirePanelPage(string? executingFilePath)
+    {
+        if (executingFilePath is null || !executingFilePath.StartsWith(PanelPagesFolder, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("Only a panel page draws a file upload.");
+        }
+    }
+
+    /// <summary>The content of the sent file of the member <paramref name="name"/>; null when the request carries no such file or the file is empty.</summary>
+    public static async Task<byte[]?> ReadFileAsync(Microsoft.AspNetCore.Http.HttpRequest request, string name, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        if (!request.HasFormContentType)
+        {
+            return null;
+        }
+
+        Microsoft.AspNetCore.Http.IFormCollection form = await request.ReadFormAsync(ct);
+        Microsoft.AspNetCore.Http.IFormFile? file = form.Files.GetFile(name);
+        if (file is not { Length: > 0 })
+        {
+            return null;
+        }
+
+        await using Stream stream = file.OpenReadStream();
+        using MemoryStream buffer = new();
+        await stream.CopyToAsync(buffer, ct);
+        return buffer.ToArray();
+    }
+}
+
+/// <summary>A form marked <c>upload-form</c> is sent with a file (04 2.12.8): the component writes the encoding; only a panel page may carry the mark (04 2.12.8.6).</summary>
+[Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElement("form", Attributes = MarkName)]
+public sealed class UploadFormTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+{
+    public const string MarkName = "upload-form";
+
+    /// <summary>The surface the form uploads to.</summary>
+    [Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeName(MarkName)]
+    public UploadSurface Surface { get; set; }
+
+    [Microsoft.AspNetCore.Mvc.ViewFeatures.ViewContext]
+    [Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeNotBound]
+    public Microsoft.AspNetCore.Mvc.Rendering.ViewContext? ViewContext { get; set; }
+
+    public override void Process(Microsoft.AspNetCore.Razor.TagHelpers.TagHelperContext context, Microsoft.AspNetCore.Razor.TagHelpers.TagHelperOutput output)
+    {
+        ArgumentNullException.ThrowIfNull(output);
+        UploadRequests.RequirePanelPage(ViewContext?.ExecutingFilePath);
+        output.Attributes.SetAttribute("enctype", UploadRequests.FormEncoding);
+    }
+}
+
+/// <summary>An input marked <c>upload-file</c> is the file input of its surface (04 2.12.8.3): the component writes the type and the accepted media types; only a panel page may carry the mark (04 2.12.8.6).</summary>
+[Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElement("input", Attributes = MarkName)]
+public sealed class UploadFileTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+{
+    public const string MarkName = "upload-file";
+
+    /// <summary>The surface the file goes to; its media types are the input's <c>accept</c>.</summary>
+    [Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeName(MarkName)]
+    public UploadSurface Surface { get; set; }
+
+    [Microsoft.AspNetCore.Mvc.ViewFeatures.ViewContext]
+    [Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeNotBound]
+    public Microsoft.AspNetCore.Mvc.Rendering.ViewContext? ViewContext { get; set; }
+
+    public override void Process(Microsoft.AspNetCore.Razor.TagHelpers.TagHelperContext context, Microsoft.AspNetCore.Razor.TagHelpers.TagHelperOutput output)
+    {
+        ArgumentNullException.ThrowIfNull(output);
+        UploadRequests.RequirePanelPage(ViewContext?.ExecutingFilePath);
+        output.Attributes.SetAttribute("type", "file");
+        if (UploadLimits.Accept(Surface) is { } accept)
+        {
+            output.Attributes.SetAttribute("accept", accept);
+        }
+    }
+}

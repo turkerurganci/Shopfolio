@@ -146,15 +146,7 @@ internal static class ConfirmationSummaryText
     }
 
     /// <summary>The reason's name in the words of the Regulation's article 15 (02 7.3.4).</summary>
-    public static string ReasonName(WithdrawalExemptionReason reason) => reason switch
-    {
-        WithdrawalExemptionReason.MadeToOrder => "tüketicinin istekleri veya kişisel ihtiyaçları doğrultusunda hazırlanan mal",
-        WithdrawalExemptionReason.Perishable => "çabuk bozulabilen mal",
-        WithdrawalExemptionReason.ExpiryDated => "son kullanma tarihi geçebilecek mal",
-        WithdrawalExemptionReason.HygieneSensitive => "teslimden sonra koruyucu unsurları açılmış, iadesi sağlık ve hijyen açısından uygun olmayan mal",
-        WithdrawalExemptionReason.SealedMedia => "teslimden sonra koruyucu unsurları açılmış kitap, dijital içerik ve bilgisayar sarf malzemesi",
-        _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "Unknown withdrawal exemption reason."),
-    };
+    public static string ReasonName(WithdrawalExemptionReason reason) => WithdrawalExemptionReasonNames.Of(reason);
 
     /// <summary>
     /// The exemption of a line as the summary and the withdrawal summary say it (02 3.24.3; K-206, K-509): an absolute reason says the right does not exist and why; a conditional one

@@ -108,6 +108,18 @@ public sealed class PublishGateTests
         Assert.Empty(PublishGateRules.UnmetOfVariant(ProductType.Service, false));
     }
 
+    // T525 criterion 8 (07 UC-115; 02 3.7.3): under a published product a variant whose price is zero does not go Published. The database's check keeps a zero price out of the table,
+    // so the rule is pinned here, on its pure form.
+    [Theory]
+    [InlineData("0", false)]
+    [InlineData("-0.01", false)]
+    [InlineData("0.01", true)]
+    [InlineData("100", true)]
+    public void AVariantGoesPublished_UnderAPublishedProduct_OnlyWithAPriceAboveZero_T525_KK8(string price, bool expected)
+    {
+        Assert.Equal(expected, PublishGateRules.HasSalePrice(decimal.Parse(price, System.Globalization.CultureInfo.InvariantCulture)));
+    }
+
     // ---- KK10: the gate does not look at what the product is ----
 
     [Fact]

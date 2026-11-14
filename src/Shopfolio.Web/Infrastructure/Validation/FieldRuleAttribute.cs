@@ -19,6 +19,12 @@ public abstract class FieldRuleAttribute : ValidationAttribute
     public virtual string? ParameterText => null;
 
     /// <summary>
+    /// The rule's own pattern of its code's message, when the code's catalog text does not fit the rule (a rule that shares a code of 07 6.2.2 with another limit); the catalog keeps the
+    /// pattern (<see cref="FieldMessageCatalog"/>). <see langword="null"/>: the code's pattern.
+    /// </summary>
+    public virtual string? MessagePattern => null;
+
+    /// <summary>
     /// <see langword="true"/> when a posted text that cannot be converted to the property's type (letters in a quantity) is this rule's failure: the
     /// filter reports the rule's code for it instead of the framework's text.
     /// </summary>

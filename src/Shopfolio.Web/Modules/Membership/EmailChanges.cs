@@ -21,7 +21,7 @@ namespace Shopfolio.Modules.Membership;
 /// <summary>
 /// The customer's change of the account's e-mail address (02 3.13.14, 3.13.17; 07 UC-66, UC-67, UC-53; T343): the request writes a pending change and sends a link to the NEW address; the
 /// account keeps working with the old address until the button of that link is pressed. Verifying changes the address, drops the Google link, sends the old address a notice with the
-/// revert link (Z-45; its outcome is T519's) and lets the new address's guest orders fall to the account. Everything joins the caller's transaction and never saves; the account's row
+/// revert link (Z-45; its button is <see cref="RestorePreviousEmailAsync"/>) and lets the new address's guest orders fall to the account. Everything joins the caller's transaction and never saves; the account's row
 /// is locked first, then the pending and link rows (05 6.1.2). The request takes the reauthentication's single-use value last (T517; D-429); the administrator's change is the panel's task.
 /// </summary>
 internal sealed class EmailChanges
@@ -39,11 +39,14 @@ internal sealed class EmailChanges
     private readonly IOrderingModule _ordering;
     private readonly TimeProvider _time;
     private readonly ISessionService _sessions;
+    private readonly CustomerPasswords _passwords;
 
-    public EmailChanges(AppDbContext db, LinkRecords links, LinkKeys keys, AttemptCounter attempts, INotificationsModule notifications, IOrderingModule ordering, TimeProvider time, ISessionService sessions)
+    public EmailChanges(AppDbContext db, LinkRecords links, LinkKeys keys, AttemptCounter attempts, INotificationsModule notifications, IOrderingModule ordering, TimeProvider time, ISessionService sessions, CustomerPasswords passwords)
     {
         ArgumentNullException.ThrowIfNull(sessions);
+        ArgumentNullException.ThrowIfNull(passwords);
         _sessions = sessions;
+        _passwords = passwords;
         ArgumentNullException.ThrowIfNull(db);
         ArgumentNullException.ThrowIfNull(links);
         ArgumentNullException.ThrowIfNull(keys);
@@ -261,9 +264,14 @@ internal sealed class EmailChanges
                 return NewEmailVerificationResult.LinkInvalid(VerificationLinkStatus.Superseded);
             }
         }
-        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        catch (PostgresException ex) when (IsUniqueViolation(ex))
         {
-            // Another verified account took the address between the check and the write; the unique index stopped it and the caller's rollback takes everything back.
+            return NewEmailVerificationResult.Taken();
+        }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex.InnerException))
+        {
+            // Another verified account took the address between the check and the write; the unique index stopped it and the caller's rollback takes everything back. A bulk update
+            // (ExecuteUpdateAsync) surfaces the provider's own exception where a tracked save wraps it in a DbUpdateException, so both shapes are the same refusal (D-578).
             return NewEmailVerificationResult.Taken();
         }
 
@@ -279,7 +287,7 @@ internal sealed class EmailChanges
         // A Google confirmation link was asked for the old address: the account's address changed, so it is no longer valid (02 3.13.7).
         await _links.SupersedeEarlierAsync(LinkType.GoogleLinkConfirmation, customerId, null, Guid.Empty, ct);
 
-        // The old address gets the notice and the revert link (Z-45); the link holds the old address as entered (06 4.42). Its outcome is T519's.
+        // The old address gets the notice and the revert link (Z-45); the link holds the old address as entered (06 4.42). Its button is RestorePreviousEmailAsync (T519).
         DateTimeOffset revertEnds = now.AddDays(ProductConstants.EmailChangeRevertLinkDays);
         LinkRecord revert = LinkRecord.ForCustomer(_keys, LinkType.EmailChangeRevert, customerId, revertEnds, now);
         revert.PreviousEmail = account.Email;
@@ -290,6 +298,119 @@ internal sealed class EmailChanges
         int linked = await _ordering.LinkGuestOrdersAsync(customerId, pending.NewEmail, ct);
         return NewEmailVerificationResult.Verified(customerId, linked, revert.Id, revertEnds);
     }
+
+    /// <summary>What the revert link's landing page shows (T519; 07 UC-75): reads only. A key of another type, an administrator's link and an unknown key are missing.</summary>
+    public async Task<EmailRevertLinkReading> ReadRestoreLinkAsync(string key, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+        LinkReading reading = await _links.ReadAsync(key, ct);
+        return reading.Record is not { LinkType: LinkType.EmailChangeRevert, CustomerId: not null } || reading.State is not { } state
+            ? new EmailRevertLinkReading(VerificationLinkStatus.Missing)
+            : new EmailRevertLinkReading(MembershipModule.StatusOf(state));
+    }
+
+    /// <summary>
+    /// The revert link's button (02 3.13.14; 03 9.3.6; 07 UC-76; K-599, K-1080, K-1117, K-1210): under the account's row lock the earlier address must not be another verified account's (422,
+    /// nothing is written); an unverified pending registration of it is deleted and counted; the link is consumed with one conditional update; the address goes back, the Google link goes, every session
+    /// of the account ends - the open one too -, the recognized-browser marks end and the password becomes unusable. Every earlier reset, confirmation and new-address link ends (a reset link asked
+    /// for during the change would otherwise let the one who made it set a password); only an account that had a password gets a new reset link at the earlier address (02 3.13.14). The guest orders
+    /// the change bound to the account stay on it. The link opens no session.
+    /// </summary>
+    public async Task<EmailRevertResult> RestorePreviousEmailAsync(string key, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+        RequireTransaction("The revert is written only inside a transaction (09 6 item 3).");
+
+        LinkReading reading = await _links.ReadAsync(key, ct);
+        if (reading.Record is not { LinkType: LinkType.EmailChangeRevert, CustomerId: Guid customerId } record || reading.State is not { } state)
+        {
+            return EmailRevertResult.LinkInvalid(VerificationLinkStatus.Missing);
+        }
+
+        // A used link no longer holds the earlier address (06 4.42): the state is told before the address is needed.
+        if (state != LinkState.Valid)
+        {
+            return EmailRevertResult.LinkInvalid(MembershipModule.StatusOf(state));
+        }
+
+        if (record.PreviousEmail is not { } previousEmail)
+        {
+            return EmailRevertResult.LinkInvalid(VerificationLinkStatus.Missing);
+        }
+
+        // The account's row first, then the link (05 6.1.2): a sign-in or a reset that holds the row makes the revert wait.
+        if (!await AccountLocks.LockAsync(_db, AccountType.Customer, customerId, ct))
+        {
+            return EmailRevertResult.LinkInvalid(VerificationLinkStatus.Missing);
+        }
+
+        var account = await _db.Customers.AsNoTracking().Where(c => c.Id == customerId).Select(c => new { c.NormalizedEmail, HasPassword = c.PasswordHash != null && c.PasswordHash != string.Empty }).SingleAsync(ct);
+        string normalizedPrevious = TextNormalizer.NormalizeIdentity(previousEmail);
+
+        // The earlier address became another verified account's meanwhile: the revert is not applied and nothing is written (02 3.13.14; K-1210).
+        if (await _db.Customers.AsNoTracking().AnyAsync(c => c.NormalizedEmail == normalizedPrevious && c.Id != customerId && c.EmailVerifiedAt != null, ct))
+        {
+            return EmailRevertResult.Taken();
+        }
+
+        // One conditional update: of two requests at once exactly one takes the link (07 2.5.3); a refusal below rolls the consumption back with the caller's transaction.
+        if (!await _links.TryConsumeAsync(record.Id, ct))
+        {
+            LinkReading again = await _links.ReadAsync(key, ct);
+            return EmailRevertResult.LinkInvalid(again.State is { } current ? MembershipModule.StatusOf(current) : VerificationLinkStatus.Missing);
+        }
+
+        // An unverified pending registration does not hold the address: it goes in this transaction, counted in the disposal record (02 3.13.14; K-1080).
+        DateTimeOffset now = _time.GetUtcNow();
+        int removed = await _db.Customers.Where(c => c.NormalizedEmail == normalizedPrevious && c.Id != customerId && c.EmailVerifiedAt == null).ExecuteDeleteAsync(ct);
+        if (removed > 0)
+        {
+            _db.DisposalRecords.Add(DisposalRecord.Counted(DisposalRecordType.PendingRegistration, removed, now));
+        }
+
+        try
+        {
+            string currentNormalized = account.NormalizedEmail;
+            int changed = await _db.Customers
+                .Where(c => c.Id == customerId && c.NormalizedEmail == currentNormalized)
+                .ExecuteUpdateAsync(
+                    set => set.SetProperty(c => c.Email, previousEmail).SetProperty(c => c.NormalizedEmail, normalizedPrevious).SetProperty(c => c.GoogleLinkedAt, (DateTimeOffset?)null),
+                    ct);
+            if (changed != 1)
+            {
+                return EmailRevertResult.LinkInvalid(VerificationLinkStatus.Superseded);
+            }
+        }
+        catch (PostgresException ex) when (IsUniqueViolation(ex))
+        {
+            return EmailRevertResult.Taken();
+        }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex.InnerException))
+        {
+            // Another verified account took the address between the check and the write; the unique index stopped it and the caller's rollback takes everything back.
+            return EmailRevertResult.Taken();
+        }
+
+        await _db.PendingEmailChanges.Where(p => p.CustomerId == customerId).ExecuteDeleteAsync(ct);
+        await _links.SupersedeEarlierAsync(LinkType.NewEmailVerification, customerId, null, Guid.Empty, ct);
+        await _links.SupersedeEarlierAsync(LinkType.GoogleLinkConfirmation, customerId, null, Guid.Empty, ct);
+        await _links.SupersedeEarlierAsync(LinkType.PasswordReset, customerId, null, Guid.Empty, ct);
+        await _sessions.EndAllAsync(customerId, null, ct);
+        await _sessions.InvalidateMarksAsync(customerId, ct);
+
+        bool hadPassword = account.HasPassword;
+        if (hadPassword)
+        {
+            await _passwords.InvalidatePasswordAsync(customerId, ct);
+            LinkRecord reset = LinkRecord.ForCustomer(_keys, LinkType.PasswordReset, customerId, now.AddMinutes(ProductConstants.PasswordResetLinkMinutes), now);
+            _links.Add(reset);
+            await _notifications.QueueAccountEmailAsync(new PasswordResetLinkEmail(DispatchRelatedRecordType.Customer, customerId, reset.Id, previousEmail, true), ct);
+        }
+
+        return EmailRevertResult.Reverted(customerId, hadPassword);
+    }
+
+    private static bool IsUniqueViolation(Exception? ex) => ex is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
 
     private void RequireTransaction(string message)
     {

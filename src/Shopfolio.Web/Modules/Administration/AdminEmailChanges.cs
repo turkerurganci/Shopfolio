@@ -327,14 +327,20 @@ internal sealed class AdminEmailChanges
         RequireTransaction("The revert is written only inside a transaction (09 6 item 3).");
 
         LinkReading reading = await _links.ReadAsync(key, ct);
-        if (reading.Record is not { LinkType: LinkType.EmailChangeRevert, AdminId: Guid adminId, PreviousEmail: { } previousEmail } record || reading.State is not { } state)
+        if (reading.Record is not { LinkType: LinkType.EmailChangeRevert, AdminId: Guid adminId } record || reading.State is not { } state)
         {
             return AdminEmailRevertResult.LinkInvalid(AccountLinkStatus.Missing);
         }
 
+        // A used link no longer holds the earlier address (06 4.42): the state is told before the address is needed.
         if (state != LinkState.Valid)
         {
             return AdminEmailRevertResult.LinkInvalid(StatusOf(state));
+        }
+
+        if (record.PreviousEmail is not { } previousEmail)
+        {
+            return AdminEmailRevertResult.LinkInvalid(AccountLinkStatus.Missing);
         }
 
         if (!await AccountLocks.LockAsync(_db, AccountType.Admin, adminId, ct))

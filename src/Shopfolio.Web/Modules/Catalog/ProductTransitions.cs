@@ -27,9 +27,11 @@ internal sealed class ProductTransitions : IProductTransitions
     private readonly IAuditTrail _trail;
     private readonly TimeProvider _time;
     private readonly CacheInvalidations _invalidations;
+    private readonly ProductLocks _locks;
 
-    public ProductTransitions(AppDbContext db, IPublishGate gate, IOrderingModule ordering, IAuditTrail trail, TimeProvider time, CacheInvalidations invalidations)
+    public ProductTransitions(AppDbContext db, IPublishGate gate, IOrderingModule ordering, IAuditTrail trail, TimeProvider time, CacheInvalidations invalidations, ProductLocks locks)
     {
+        _locks = locks;
         _db = db;
         _gate = gate;
         _ordering = ordering;
@@ -43,7 +45,8 @@ internal sealed class ProductTransitions : IProductTransitions
         RequireTransaction();
         RequireDefined(target);
 
-        Product? product = await _db.Products.SingleOrDefaultAsync(p => p.Id == productId, ct);
+        // The product's row lock first (D-401; 09 10.2 item 5): a file removal or a form save of the same product waits, so the gate asked below is the one the move writes over.
+        Product? product = await _locks.LockAsync(productId, ct) ? await _db.Products.SingleOrDefaultAsync(p => p.Id == productId, ct) : null;
         if (product is null)
         {
             return PublishChangeResult.NotFound;
@@ -104,7 +107,11 @@ internal sealed class ProductTransitions : IProductTransitions
         RequireTransaction();
         RequireDefined(target);
 
-        Variant? variant = await _db.Variants.SingleOrDefaultAsync(v => v.Id == variantId, ct);
+        // The product's row lock first (D-401; 09 10.2 item 5); a variant never moves to another product, so its product is read before the lock and the variant after it.
+        Guid? owner = await _db.Variants.AsNoTracking().Where(v => v.Id == variantId).Select(v => (Guid?)v.ProductId).SingleOrDefaultAsync(ct);
+        Variant? variant = owner is Guid productId && await _locks.LockAsync(productId, ct)
+            ? await _db.Variants.SingleOrDefaultAsync(v => v.Id == variantId, ct)
+            : null;
         if (variant is null)
         {
             return PublishChangeResult.NotFound;
@@ -122,9 +129,19 @@ internal sealed class ProductTransitions : IProductTransitions
             return PublishChangeResult.Unchanged;
         }
 
-        if (target == PublishStatus.Published && await AskGateAsync(_gate.CheckVariantAsync(variantId, ct)) is { } refusal)
+        // The variant's publish keeps the gate only under a published product (07 UC-115; 02 3.7.5): under a draft or archived product the move is free and the product's own move asks
+        // every Published variant's file later. Under a published product a fileless digital variant and a variant whose price is zero are refused (11 T525 criterion 8; 02 3.7.3, 3.7.4).
+        if (target == PublishStatus.Published && product.PublishStatus == PublishStatus.Published)
         {
-            return refusal;
+            if (await AskGateAsync(_gate.CheckVariantAsync(variantId, ct)) is { } refusal)
+            {
+                return refusal;
+            }
+
+            if (!PublishGateRules.HasSalePrice(variant.Price))
+            {
+                return PublishChangeResult.ZeroPriceVariant;
+            }
         }
 
         // The gate of a published product is kept while it is published too (03 1.8.2): its last Published variant stays.

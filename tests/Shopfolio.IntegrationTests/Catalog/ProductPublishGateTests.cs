@@ -197,19 +197,23 @@ public sealed class ProductPublishGateTests : IAsyncLifetime
             (await TransitionAsync((unit, token) => unit.ChangeProductStatusAsync(withOneOwnFile.Product.Id, PublishStatus.Published, withOneOwnFile.Product.Version, token))).UnmetConditions);
     }
 
+    // 07 UC-115 (9.5.3): the variant's publish is refused only under a published product - "ürün Taslak ya da Arşiv iken varyantın yayına alınması serbesttir (kapı yalnız ürün
+    // yayındayken aranır; 02 3.7.5)". T335 had locked the refusal under a draft product too; T525 follows the document (the product's own move still asks every variant's file).
     [Fact]
-    public async Task ADigitalVariantWithoutAFile_CannotGoPublished_EvenUnderADraftProduct_KK4()
+    public async Task ADigitalVariantWithoutAFile_CannotGoPublished_UnderAPublishedProduct_ButIsFreeUnderADraftOne_KK4()
     {
-        Seeded seeded = await SeedAsync(ProductType.Digital, PublishStatus.Draft, [PublishStatus.Draft, PublishStatus.Draft]);
-        await SeedFileAsync(variantId: seeded.Variants[1].Id);
+        Seeded published = await SeedAsync(ProductType.Digital, PublishStatus.Published, [PublishStatus.Published, PublishStatus.Draft]);
+        await SeedFileAsync(variantId: published.Variants[0].Id);
+        Seeded draft = await SeedAsync(ProductType.Digital, PublishStatus.Draft, [PublishStatus.Draft, PublishStatus.Draft]);
 
-        PublishChangeResult refused = await TransitionAsync((unit, token) => unit.ChangeVariantStatusAsync(seeded.Variants[0].Id, PublishStatus.Published, seeded.Product.Version, token));
-        PublishChangeResult opened = await TransitionAsync((unit, token) => unit.ChangeVariantStatusAsync(seeded.Variants[1].Id, PublishStatus.Published, seeded.Product.Version, token));
+        PublishChangeResult refused = await TransitionAsync((unit, token) => unit.ChangeVariantStatusAsync(published.Variants[1].Id, PublishStatus.Published, published.Product.Version, token));
+        PublishChangeResult free = await TransitionAsync((unit, token) => unit.ChangeVariantStatusAsync(draft.Variants[0].Id, PublishStatus.Published, draft.Product.Version, token));
 
         Assert.Equal(ErrorCode.PublishGateIncomplete, refused.Code);
         Assert.Equal([PublishCondition.DigitalFile], refused.UnmetConditions);
-        Assert.True(opened.IsChanged);
-        Assert.Equal([PublishStatus.Draft, PublishStatus.Published], await VariantStatusesAsync(seeded));
+        Assert.Equal([PublishStatus.Published, PublishStatus.Draft], await VariantStatusesAsync(published));
+        Assert.True(free.IsChanged);
+        Assert.Equal([PublishStatus.Published, PublishStatus.Draft], await VariantStatusesAsync(draft));
     }
 
     [Theory]

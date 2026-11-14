@@ -131,3 +131,42 @@ public sealed class NewEmailVerificationResult : IOperationResult
 
     internal static NewEmailVerificationResult Taken() => new(null, 0, null, null, VerificationLinkStatus.Valid, true);
 }
+
+/// <summary>The reading of the revert link ("bu değişikliği ben yapmadım") for its landing page (T519; 07 UC-75): only the link's status. Another type's key, an administrator's link and an unknown key are <see cref="VerificationLinkStatus.Missing"/>.</summary>
+public sealed record EmailRevertLinkReading(VerificationLinkStatus Status);
+
+/// <summary>
+/// The outcome of the revert link's button (02 3.13.14; 07 UC-76): reverted, with the account's id (the page ends the browser's own session cookie only when it is this account's) and
+/// whether a password reset link went to the earlier address (only an account with a password gets one); or refused - the link is no longer valid (its state; the page answers 200 with
+/// the state it is in now), or the earlier address became another verified account's meanwhile (<c>EmailTakenByOtherAccount</c>, K-1210: nothing is written and the consumption rolls back, 422).
+/// </summary>
+public sealed class EmailRevertResult : IOperationResult
+{
+    private EmailRevertResult(Guid? customerId, bool resetLinkSent, VerificationLinkStatus status, bool addressTaken)
+    {
+        CustomerId = customerId;
+        ResetLinkSent = resetLinkSent;
+        Status = status;
+        AddressTaken = addressTaken;
+    }
+
+    public bool IsReverted => CustomerId is not null;
+
+    public Guid? CustomerId { get; }
+
+    /// <summary>True when the account had a password: it became unusable and the earlier address got the reset link (02 3.13.14).</summary>
+    public bool ResetLinkSent { get; }
+
+    public VerificationLinkStatus Status { get; }
+
+    /// <summary>The earlier address belongs to another verified account (<c>EmailTakenByOtherAccount</c>).</summary>
+    public bool AddressTaken { get; }
+
+    public bool IsRejected => !IsReverted;
+
+    internal static EmailRevertResult Reverted(Guid customerId, bool resetLinkSent) => new(customerId, resetLinkSent, VerificationLinkStatus.Used, false);
+
+    internal static EmailRevertResult LinkInvalid(VerificationLinkStatus status) => new(null, false, status, false);
+
+    internal static EmailRevertResult Taken() => new(null, false, VerificationLinkStatus.Valid, true);
+}

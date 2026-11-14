@@ -18,4 +18,7 @@ internal sealed class CountryList : ICountryList
 
     public Task<CountryInfo?> FindAsync(Guid countryId, CancellationToken ct) =>
         _db.Countries.AsNoTracking().Where(c => c.Id == countryId).Select(c => new CountryInfo(c.Id, c.Code, c.Name)).SingleOrDefaultAsync(ct);
+
+    public async Task<IReadOnlyList<CountryInfo>> ListAsync(CancellationToken ct) =>
+        await _db.Countries.AsNoTracking().OrderBy(c => c.Name).ThenBy(c => c.Code).Select(c => new CountryInfo(c.Id, c.Code, c.Name)).ToListAsync(ct);
 }

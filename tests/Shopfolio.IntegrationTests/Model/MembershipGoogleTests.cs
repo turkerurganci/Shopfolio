@@ -547,14 +547,20 @@ public sealed partial class MembershipTests
         Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
         EmailChangeRequestResult requested = await RequestEmailChangeAsync(id, "yeni@example.com");
         EmailChangeResendResult last = await RunAsync(m => m.ResendEmailChangeLinkAsync(id, Ip, Ct));
+        Guid latestIssued = last.LinkId ?? requested.LinkId!.Value;
         for (int i = 0; i < 20 && last.IsIssued; i++)
         {
             last = await RunAsync(m => m.ResendEmailChangeLinkAsync(id, Ip, Ct));
+            latestIssued = last.LinkId ?? latestIssued;
         }
 
+        // Over the limit the link that was given last stays valid (02 3.13.14): it is that one, not the first request's (superseded by the first resend), that is read (D-578).
         Assert.Equal(ErrorCode.VerificationLinkLimitExceeded, last.Code);
-        EmailLinkReading latest = await ReadAsync(m => m.ReadEmailLinkAsync(_keys.Derive(requested.LinkId!.Value), Ct));
-        Assert.NotEqual(VerificationLinkStatus.Missing, latest.Status);
+        Assert.NotEqual(requested.LinkId, latestIssued);
+        EmailLinkReading latest = await ReadAsync(m => m.ReadEmailLinkAsync(_keys.Derive(latestIssued), Ct));
+        Assert.Equal(VerificationLinkStatus.Valid, latest.Status);
+        EmailLinkReading first = await ReadAsync(m => m.ReadEmailLinkAsync(_keys.Derive(requested.LinkId!.Value), Ct));
+        Assert.Equal(VerificationLinkStatus.Superseded, first.Status);
     }
 
     [Fact]

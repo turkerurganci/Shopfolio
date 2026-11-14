@@ -74,6 +74,50 @@ internal static class RequestBodyLimits
 }
 
 /// <summary>
+/// Puts one named handler of a page into a body ceiling class (07 2.8.1): a page whose handlers have different ceilings - the product form's save is a long text form,
+/// its image upload P-23 plus 1 MB, its publish moves and deletions the general form (07 UC-114…UC-117) - names each larger one. The handler is read from the
+/// request's <c>handler</c> parameter, the same value the page uses to choose the method (07 2.2.1); a request naming no listed handler takes the page's own class.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
+internal sealed class HandlerBodyClassAttribute : Attribute
+{
+    public HandlerBodyClassAttribute(string handler, RequestBodyClass bodyClass)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(handler);
+        Handler = handler;
+        BodyClass = bodyClass;
+    }
+
+    public string Handler { get; }
+
+    public RequestBodyClass BodyClass { get; }
+
+    /// <summary>The class a request to <paramref name="endpoint"/> declares: its handler's, when the page names it, otherwise the page's own (null: the general class).</summary>
+    public static RequestBodyClass? Declared(Endpoint? endpoint, HttpRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (endpoint is null)
+        {
+            return null;
+        }
+
+        string? handler = request.Query["handler"].Count == 1 ? request.Query["handler"][0] : null;
+        if (handler is not null)
+        {
+            foreach (HandlerBodyClassAttribute named in endpoint.Metadata.GetOrderedMetadata<HandlerBodyClassAttribute>())
+            {
+                if (string.Equals(named.Handler, handler, StringComparison.OrdinalIgnoreCase))
+                {
+                    return named.BodyClass;
+                }
+            }
+        }
+
+        return endpoint.Metadata.GetMetadata<RequestBodyClassAttribute>()?.BodyClass;
+    }
+}
+
+/// <summary>
 /// Puts a page or an endpoint into a body ceiling class (07 2.8.1). Without it the endpoint is in the general class, 64 KB; the classes with a larger
 /// ceiling are declared on the page model or in the endpoint's metadata by the task that builds the endpoint.
 /// </summary>
@@ -113,7 +157,7 @@ internal sealed class RequestBodyLimitMiddleware
     {
         ArgumentNullException.ThrowIfNull(context);
         Endpoint? endpoint = context.GetEndpoint();
-        RequestBodyClass? declared = endpoint?.Metadata.GetMetadata<RequestBodyClassAttribute>()?.BodyClass;
+        RequestBodyClass? declared = HandlerBodyClassAttribute.Declared(endpoint, context.Request);
         long limit = RequestBodyLimits.Of(context.Request.Method, declared);
         HttpRequest request = context.Request;
 

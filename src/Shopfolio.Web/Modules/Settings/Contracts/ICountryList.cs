@@ -11,4 +11,7 @@ public interface ICountryList
 {
     /// <summary>The country with this id; null when the id is not on the list.</summary>
     Task<CountryInfo?> FindAsync(Guid countryId, CancellationToken ct);
+
+    /// <summary>The whole closed list by name - the product form's place of origin is chosen from it (04 9.5.6; K-1023). A small start-data list.</summary>
+    Task<IReadOnlyList<CountryInfo>> ListAsync(CancellationToken ct);
 }

@@ -60,9 +60,9 @@ public sealed class AccountHomeModel(AccessWriteLog log) : AccessSamplePage(log)
     protected override string Label => "account-home";
 }
 
-public sealed class AccountAddressesModel(AccessWriteLog log) : AccessSamplePage(log)
+public sealed class AccountSampleModel(AccessWriteLog log) : AccessSamplePage(log)
 {
-    protected override string Label => "account-addresses";
+    protected override string Label => "account-sample";
 }
 
 public sealed class AccountDeletedModel(AccessWriteLog log) : AccessSamplePage(log)

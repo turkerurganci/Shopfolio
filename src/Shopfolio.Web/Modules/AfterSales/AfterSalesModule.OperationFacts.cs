@@ -31,7 +31,7 @@ internal sealed partial class AfterSalesModule
             .ToDictionaryAsync(c => c.OrderItemId, c => c.DefectClaimStatus, ct);
         IReadOnlyList<WithdrawalStanding> standings = await WithdrawalStandingsAsync(ids, ct);
         IReadOnlyList<TerminationStanding> terminations = await TerminationStandingsAsync(ids, ct);
-        IReadOnlyList<ClaimTakenBackStanding> takenBack = await ClaimTakenBackStandingsAsync(ids, rescinded, ct);
+        IReadOnlyList<ClaimTakenBackStanding> takenBack = await ClaimTakenBackStandingsAsync(ids, ct);
         HashSet<Guid> arrivals = [.. (await _db.Returns.AsNoTracking().Where(r => ids.Contains(r.OrderItemId)).Select(r => r.OrderItemId).Distinct().ToListAsync(ct))
             .Concat(await _db.ReturnRejections.AsNoTracking().Where(r => ids.Contains(r.OrderItemId)).Select(r => r.OrderItemId).Distinct().ToListAsync(ct))];
 
@@ -72,8 +72,8 @@ internal sealed partial class AfterSalesModule
                 }
             }
 
-            // The goods of a late-delivery termination arrive the same way (03 1.11.28: "feshedilmiş fiziksel kalem"; D-656), and so do the goods of the units rescinded on
-            // a defect claim (03 8.3.2.1; K-808; D-911): the receipt writer takes them in by the same counts (AddTakenBackReceiptAsync).
+            // The goods of a late-delivery termination arrive the same way (03 1.11.28: "feshedilmiş fiziksel kalem"; D-656), and so do the goods of a defect claim's
+            // defective units the rescission takes back (03 8.3.2.1; K-808; D-911): the receipt writer takes them in by the same counts (AddTakenBackReceiptAsync).
             if (physical)
             {
                 receivable += terminations.Where(t => t.OrderItemId == id).Sum(t => t.Awaiting) + takenBack.Where(c => c.OrderItemId == id).Sum(c => c.Awaiting);
@@ -138,19 +138,18 @@ internal sealed partial class AfterSalesModule
     }
 
     /// <summary>
-    /// The items' defect claims with the units rescinded on them (06 4.33 <c>Quantity</c>; K-1077) and the units taken back against each (D-911): the rescinded goods come back
-    /// through the same receipt step (03 8.3.2.1; K-808).
+    /// The items' defect claims with their defective units (06 4.30 <c>Quantity</c>) and the units taken back against each (D-911): the rescission of a physical item starts with
+    /// the receipt of the goods, so the receipt's bound is the claim's defective units not yet taken back - not a refund already made (03 8.3.2.1; 04 7.2.12.2; K-808).
     /// </summary>
-    private async Task<IReadOnlyList<ClaimTakenBackStanding>> ClaimTakenBackStandingsAsync(Guid[] itemIds, IReadOnlyDictionary<Guid, RescindedShares> rescinded, CancellationToken ct)
+    private async Task<IReadOnlyList<ClaimTakenBackStanding>> ClaimTakenBackStandingsAsync(Guid[] itemIds, CancellationToken ct)
     {
-        var claims = await _db.DefectClaims.AsNoTracking().Where(c => itemIds.Contains(c.OrderItemId)).Select(c => new { c.Id, c.OrderItemId }).ToListAsync(ct);
+        var claims = await _db.DefectClaims.AsNoTracking().Where(c => itemIds.Contains(c.OrderItemId)).Select(c => new { c.Id, c.OrderItemId, c.Quantity }).ToListAsync(ct);
         Guid[] ids = [.. claims.Select(c => c.Id)];
         Dictionary<Guid, int> received = await _db.Returns.AsNoTracking().Where(r => r.DefectClaimId != null && ids.Contains(r.DefectClaimId.Value))
             .GroupBy(r => r.DefectClaimId!.Value).Select(g => new { g.Key, Sum = g.Sum(r => r.Quantity) }).ToDictionaryAsync(g => g.Key, g => g.Sum, ct); // non-null: the Where above keeps only receipts with a claim
         return
         [
-            .. claims.Select(c => new ClaimTakenBackStanding(
-                c.Id, c.OrderItemId, rescinded.TryGetValue(c.OrderItemId, out RescindedShares? shares) ? shares.Quantity : 0, received.GetValueOrDefault(c.Id))),
+            .. claims.Select(c => new ClaimTakenBackStanding(c.Id, c.OrderItemId, c.Quantity, received.GetValueOrDefault(c.Id))),
         ];
     }
 
@@ -159,9 +158,9 @@ internal sealed partial class AfterSalesModule
         public int Awaiting => Math.Max(0, Quantity - Received);
     }
 
-    private sealed record ClaimTakenBackStanding(Guid Id, Guid OrderItemId, int Rescinded, int Received)
+    private sealed record ClaimTakenBackStanding(Guid Id, Guid OrderItemId, int Defective, int Received)
     {
-        public int Awaiting => Math.Max(0, Rescinded - Received);
+        public int Awaiting => Math.Max(0, Defective - Received);
     }
 
     private sealed record WithdrawalStanding(

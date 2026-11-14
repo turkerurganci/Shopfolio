@@ -10,7 +10,7 @@ public sealed record ReturnableWithdrawal(Guid WithdrawalId, Guid OrderItemId, D
 public sealed record ReturnReceiptFact(Guid ReturnId, Guid OrderItemId, int Quantity, DateOnly ArrivalDate, DateTimeOffset? StockAddedAt);
 
 /// <summary>
-/// A termination or a defect claim whose taken-back goods the receipt step may still take in (T528; 03 1.11.28, 8.3.2.1; D-656, D-911): the units terminated or rescinded and not
+/// A termination or a defect claim whose taken-back goods the receipt step may still take in (T528; 03 1.11.28, 8.3.2.1; D-656, D-911): the units terminated or claimed as defective (K-808) and not
 /// received yet. Terminations first, oldest first, then the item's claim.
 /// </summary>
 public sealed record ReturnableTakenBack(TakenBackSource Source, Guid OrderItemId, int Awaiting);

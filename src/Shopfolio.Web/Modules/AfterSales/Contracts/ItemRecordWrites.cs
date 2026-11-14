@@ -135,7 +135,7 @@ public sealed record ReturnReceiptEntry(
 
 /// <summary>
 /// What a taken-back good comes back on, besides a withdrawal (03 1.11.28, 8.3.2.1; 06 4.26 <c>LateDeliveryTerminationId</c>, <c>DefectClaimId</c>; K-808): a late-delivery
-/// termination - the terminated physical item's goods (D-656) - or a defect claim - the goods of the units rescinded on it (D-911). Exactly one is set.
+/// termination - the terminated physical item's goods (D-656) - or a defect claim - the goods of its defective units, which the rescission takes back (D-911; K-808). Exactly one is set.
 /// </summary>
 public sealed record TakenBackSource
 {
@@ -156,7 +156,7 @@ public sealed record TakenBackSource
 
 /// <summary>
 /// The receipt of goods taken back on a late-delivery termination or on a defect claim's rescission (03 1.7.1.6, 1.11.28, 8.3.2.1; K-794, K-808; D-656, D-911): like a withdrawal's,
-/// every partial arrival is a record of its own, at most the units terminated or rescinded and not yet received, the arrival date not before the item's entered delivery date. The
+/// every partial arrival is a record of its own, at most the units terminated or claimed as defective and not yet received, the arrival date not before the item's entered delivery date. The
 /// refund of either starts with its own record (07 UC-130; K-1077), so the receipt asks for no IBAN and starts no refund.
 /// </summary>
 public sealed record TakenBackReceiptEntry(ItemRecordSubject Subject, TakenBackSource Source, int Quantity, DateOnly ArrivalDate, ItemRecordAdmin Admin, DateTimeOffset At);

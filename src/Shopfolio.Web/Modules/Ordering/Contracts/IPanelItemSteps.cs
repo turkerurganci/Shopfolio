@@ -67,8 +67,14 @@ public interface IPanelItemSteps
     /// <summary>UC-129: the firm's cancellation - the whole unpaid order (S3 + Ö2), or the chosen items' units of a paid one, all or none.</summary>
     Task<PanelItemStepResult> CancelByFirmAsync(PanelFirmCancellation request, CancellationToken ct);
 
-    /// <summary>UC-130: a withdrawal notified by another channel, on one item and its units.</summary>
+    /// <summary>UC-130: a withdrawal notified by another channel, on one item and its units (<see cref="RecordWithdrawalsAsync"/> with the request's item).</summary>
     Task<PanelItemStepResult> RecordWithdrawalAsync(RecordWithdrawalRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// UC-130: a withdrawal notified by another channel on one or more items, each with its units (04 7.2.10.2; 07 UC-130 "kalem başına iç anahtar ve adet"): every item is checked
+    /// before anything is written and the request is applied whole or not at all; one declaration per item. The request carries the notice's shared fields - its item and units are not read.
+    /// </summary>
+    Task<PanelItemStepResult> RecordWithdrawalsAsync(RecordWithdrawalRequest request, IReadOnlyList<PanelItemUnits> items, CancellationToken ct);
 
     /// <summary>UC-130: a late delivery termination notified by another channel; no item and no unit - it falls on every undelivered physical item's open units.</summary>
     Task<PanelItemStepResult> RecordLateDeliveryTerminationAsync(TerminateForLateDeliveryRequest request, CancellationToken ct);

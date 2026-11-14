@@ -23,6 +23,8 @@
     List<OrderDefectClaim> claims = [.. Model.Claims.Where(c => Model.Operations.IsOpen(OrderOperation.ResolveOrReopenDefectClaim, c.OrderItemId))];
     bool any = cancelWhole || cancelItems.Count > 0 || withdrawItems.Count > 0 || terminate || removeItems.Count > 0 || receiveItems.Count > 0 || closeItems.Count > 0 || restock.Count > 0 || claims.Count > 0;
     string today = Model.TodayText;
+    // 04 9.9.19, K-798 (2): Z-10 or Z-39 ran out for an item the cancellation may fall on (before the payment the whole order's).
+    bool cancelWarnsInterest = cancelWhole ? items.Any(i => Model.LegalInterestDueItems.Contains(i.OrderItemId)) : cancelItems.Any(i => Model.LegalInterestDueItems.Contains(i.OrderItemId));
 }
 @if (any)
 {
@@ -57,6 +59,10 @@
                 <label for="cancel-reason-note">@Reasons.ExplanationLabel</label>
                 <textarea id="cancel-reason-note" name="Input.ReasonNote"></textarea>
                 <p class="field__hint">@Reasons.ExplanationHint</p>
+                @if (cancelWarnsInterest)
+                {
+                    <p class="order-detail__warning" role="alert" id="cancel-legal-interest-warning">@OrderDetailModel.LegalInterestWarningText</p>
+                }
                 <button type="submit" class="button button--danger" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.CancelByCompanyLabel)">@OrderDetailModel.CancelByCompanyLabel</button>
             </form>
         }
@@ -68,24 +74,34 @@
         {
             <form method="post" action="@(Model.PagePath)?handler=RecordWithdrawal" asp-antiforgery="true" class="form" data-js="submit-once" id="record-withdrawal-form">
                 @VersionFields.Version(Model.Operations.Version, "Input")
-                <label for="withdrawal-item">Kalem</label>
-                <select id="withdrawal-item" name="Input.Items[0].OrderItemId" required>
-                    <option value="">Kalem seçin</option>
-                    @foreach (OrderPageItem item in withdrawItems)
+                <fieldset>
+                    <legend>Cayılan kalemler ve adetleri</legend>
+                    @for (int i = 0; i < withdrawItems.Count; i++)
                     {
-                        <option value="@item.OrderItemId.ToString("D")" selected="@(Model.Notice.Items.FirstOrDefault()?.OrderItemId == item.OrderItemId)">@item.Name</option>
+                        OrderPageItem item = withdrawItems[i];
+                        int open = Model.ItemFactsOf(item)?.OpenQuantity ?? item.Quantity;
+                        RecordWithdrawalInputLine? sent = Model.Notice.Items.FirstOrDefault(l => l.OrderItemId == item.OrderItemId);
+                        <label><input type="checkbox" name="Input.Items[@i].OrderItemId" value="@item.OrderItemId.ToString("D")" checked="@(sent is not null)" /> @item.Name</label>
+                        <label for="withdrawal-quantity-@i">Adet (en çok @open)</label>
+                        <input id="withdrawal-quantity-@i" type="number" min="1" max="@open" name="Input.Items[@i].Quantity" value="@(sent?.Quantity ?? open.ToString(System.Globalization.CultureInfo.InvariantCulture))" />
                     }
-                </select>
-                <label for="withdrawal-quantity">Adet</label>
-                <input id="withdrawal-quantity" type="number" min="1" name="Input.Items[0].Quantity" value="@(Model.Notice.Items.FirstOrDefault()?.Quantity ?? "1")" required />
+                </fieldset>
                 <label for="withdrawal-date">Bildirimin firmaya ulaştığı tarih</label>
                 <input id="withdrawal-date" type="date" max="@today" name="Input.DeclarationDate" value="@Model.Notice.DeclarationDate" required />
                 <label><input type="checkbox" name="Input.IsFromContactEmail" value="true" checked="@Model.Notice.IsFromContactEmail" /> Bildirim siparişin iletişim e-postasından geldi</label>
-                <label for="withdrawal-iban">Bildirimdeki IBAN (isteğe bağlı)</label>
+                <label for="withdrawal-iban">Bildirimdeki IBAN — bildirim iletişim e-postasından geldiyse</label>
                 <input id="withdrawal-iban" name="Input.Iban" value="@Model.Notice.Iban" autocomplete="off" />
+                @if (Model.NoticeWarnings.OutsideWindow || Model.NoticeWarnings.BeyondOneYear)
+                {
+                    <p class="order-detail__warning" role="alert" id="withdrawal-outside-window-warning">@OrderDetailModel.OutsideWindowWarningText@(Model.NoticeWarnings.BeyondOneYear ? " " + OrderDetailModel.BeyondOneYearWarningText : string.Empty)</p>
+                }
+                @if (Model.NoticeWarnings.AbsoluteExemption)
+                {
+                    <p class="order-detail__warning" role="alert" id="withdrawal-exemption-warning">@OrderDetailModel.AbsoluteExemptionWarningText</p>
+                }
                 @if (Model.NoticeWarnings.NeedsConfirmation)
                 {
-                    <label><input type="checkbox" name="Input.IsExceptionAcknowledged" value="true" /> @OrderDetailModel.ExceptionUnacknowledgedText</label>
+                    <label><input type="checkbox" name="Input.IsExceptionAcknowledged" value="true" checked="@Model.Notice.IsExceptionAcknowledged" /> @OrderDetailModel.ExceptionAcknowledgementLabel</label>
                 }
                 @if (Model.AsksNoticeDeliveryOrder)
                 {
@@ -103,9 +119,18 @@
             <form method="post" action="@(Model.PagePath)?handler=RecordLateDeliveryTermination" asp-antiforgery="true" class="form" data-js="submit-once" id="record-late-termination-form">
                 @VersionFields.Version(Model.Operations.Version, "Input")
                 <p>Fesih teslim edilmemiş fiziksel kalemlerin açık adetlerinin tamamına düşer.</p>
+                <ul class="order-detail__list" id="termination-items">
+                    @foreach ((OrderPageItem item, int openUnits) in Model.TerminatedItems)
+                    {
+                        <li>@item.Name — @openUnits adet</li>
+                    }
+                </ul>
+                <p class="order-detail__warning" role="alert" id="termination-legal-interest-warning">@OrderDetailModel.LegalInterestWarningText</p>
                 <label for="termination-date">Bildirimin firmaya ulaştığı tarih</label>
-                <input id="termination-date" type="date" max="@today" name="Input.DeclarationDate" required />
-                <label><input type="checkbox" name="Input.IsFromContactEmail" value="true" /> Bildirim siparişin iletişim e-postasından geldi</label>
+                <input id="termination-date" type="date" max="@today" name="Input.DeclarationDate" value="@Model.Termination.DeclarationDate" required />
+                <label><input type="checkbox" name="Input.IsFromContactEmail" value="true" checked="@Model.Termination.IsFromContactEmail" /> Bildirim siparişin iletişim e-postasından geldi</label>
+                <label for="termination-iban">Bildirimdeki IBAN — bildirim iletişim e-postasından geldiyse</label>
+                <input id="termination-iban" name="Input.Iban" value="@Model.Termination.Iban" autocomplete="off" />
                 <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.RecordLateTerminationLabel)">@OrderDetailModel.RecordLateTerminationLabel</button>
             </form>
         }

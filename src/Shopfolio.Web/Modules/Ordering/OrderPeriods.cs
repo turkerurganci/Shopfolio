@@ -178,6 +178,22 @@ internal sealed class OrderPeriods
     }
 
     /// <summary>
+    /// The order's items whose cancellation at <paramref name="at"/> would carry the legal interest warning (T528; 04 9.9.19; 03 8.3.1.1; K-798 (2)): the same rule as
+    /// <see cref="IsLegalInterestWarningDueAsync"/>, read once for the whole order - the firm's cancellation form shows the warning before the window opens.
+    /// </summary>
+    public async Task<IReadOnlySet<Guid>> LegalInterestDueItemsAsync(Guid orderId, DateTimeOffset at, CancellationToken ct)
+    {
+        int? shippingPeriod = await _db.Orders.AsNoTracking().Where(o => o.Id == orderId).Select(o => o.ShippingPeriod).SingleAsync(ct);
+        var items = await _db.OrderItems.AsNoTracking().Where(i => i.OrderId == orderId).Select(i => new { i.Id, i.ProductType, i.FulfilmentPeriod }).ToListAsync(ct);
+        DateTimeOffset? approvedAt = await PaymentApprovedAtAsync(orderId, ct);
+        DateTimeOffset? firstShippedAt = await FirstShippedAtAsync(orderId, ct);
+        return items
+            .Where(i => DeliveryPeriodRules.IsLegalInterestWarningDue(i.ProductType, approvedAt, shippingPeriod, i.FulfilmentPeriod, at, firstShippedAt))
+            .Select(i => i.Id)
+            .ToHashSet();
+    }
+
+    /// <summary>
     /// The panel's legal interest warning on the order's item records (T368; 02 7.2.3; 03 4.1.10, 4.1.13): every late delivery termination carries it - "gecikme feshi -
     /// kanuni faiz yükümlülüğü" - and a cancellation (the customer's or the firm's) carries it when it came after the item's promise ran out
     /// (<see cref="DeliveryPeriodRules.IsLegalInterestWarningDue"/>). The product computes no interest; the result is the set of the records that show the warning.

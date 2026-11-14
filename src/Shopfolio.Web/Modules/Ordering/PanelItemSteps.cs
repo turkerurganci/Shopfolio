@@ -137,15 +137,29 @@ internal sealed class PanelItemSteps : IPanelItemSteps
         return PanelItemStepResult.Done;
     }
 
-    public async Task<PanelItemStepResult> RecordWithdrawalAsync(RecordWithdrawalRequest request, CancellationToken ct)
+    public Task<PanelItemStepResult> RecordWithdrawalAsync(RecordWithdrawalRequest request, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.OrderItemId == Guid.Empty)
+        return RecordWithdrawalsAsync(request, request.OrderItemId == Guid.Empty ? [] : [new PanelItemUnits(request.OrderItemId, request.Quantity)], ct);
+    }
+
+    public async Task<PanelItemStepResult> RecordWithdrawalsAsync(RecordWithdrawalRequest request, IReadOnlyList<PanelItemUnits> items, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(items);
+
+        // 04 7.2.10.2: at least one item, each once, each with a whole number of units of at least one (07 UC-130: "kalem başına iç anahtar ve adet").
+        if (items.Count == 0 || items.Any(i => i.OrderItemId == Guid.Empty))
         {
             return PanelItemStepResult.Refused(PanelItemObstacle.ItemNotSelected);
         }
 
-        if (request.Quantity < 1)
+        if (items.GroupBy(i => i.OrderItemId).Any(g => g.Count() > 1))
+        {
+            return PanelItemStepResult.Refused(PanelItemObstacle.ItemSelectionInvalid);
+        }
+
+        if (items.Any(i => i.Quantity < 1))
         {
             return PanelItemStepResult.Refused(PanelItemObstacle.QuantityInvalid);
         }
@@ -167,17 +181,30 @@ internal sealed class PanelItemSteps : IPanelItemSteps
             return refused;
         }
 
-        OperationItemFacts? item = facts!.Items.FirstOrDefault(i => i.ItemId == request.OrderItemId); // non-null: LockAsync returns the facts when it refuses nothing
-        OperationVerdict verdict = OrderOperationCatalog.Check(facts, OrderOperation.RecordWithdrawalFromOtherChannel, request.OrderItemId, request.Quantity);
-        if (VerdictObstacle(verdict) is { } closed)
+        // Every item is checked by the one rule before anything is written: the request is applied whole or not at all (K-1188 (4)). The warnings are the items' together.
+        WithdrawalNoticeWarnings warnings = WithdrawalNoticeWarnings.None;
+        List<(PanelItemUnits Units, WithdrawalNoticeWarnings Warnings)> checkedItems = [];
+        foreach (PanelItemUnits units in items)
         {
-            // K-604: a physical item not handed to the carrier is the "müşteriyle anlaşıldı" cancellation's - the form says so.
-            return item is { ProductType: ProductType.Physical } && !facts.HasShipped && closed.Obstacle == PanelItemObstacle.None
-                ? PanelItemStepResult.Refused(PanelItemObstacle.ItemNotShipped)
-                : closed;
+            OperationItemFacts? item = facts!.Items.FirstOrDefault(i => i.ItemId == units.OrderItemId); // non-null: LockAsync returns the facts when it refuses nothing
+            OperationVerdict verdict = OrderOperationCatalog.Check(facts, OrderOperation.RecordWithdrawalFromOtherChannel, units.OrderItemId, units.Quantity);
+            if (VerdictObstacle(verdict) is { } closed)
+            {
+                // K-604: a physical item not handed to the carrier is the "müşteriyle anlaşıldı" cancellation's - the form says so.
+                return item is { ProductType: ProductType.Physical } && !facts.HasShipped && closed.Obstacle == PanelItemObstacle.None
+                    ? PanelItemStepResult.Refused(PanelItemObstacle.ItemNotShipped)
+                    : closed;
+            }
+
+            WithdrawalNoticeWarnings own = WithdrawalNoticeRules.Warnings(item!, request.NoticeDate); // non-null: an allowed verdict names one of the order's items
+            checkedItems.Add((units, own));
+            warnings = new WithdrawalNoticeWarnings(
+                warnings.OutsideWindow || own.OutsideWindow,
+                warnings.BeyondOneYear || own.BeyondOneYear,
+                warnings.AbsoluteExemption || own.AbsoluteExemption,
+                warnings.AsksDeliveryOrder || own.AsksDeliveryOrder);
         }
 
-        WithdrawalNoticeWarnings warnings = WithdrawalNoticeRules.Warnings(item!, request.NoticeDate); // non-null: an allowed verdict names one of the order's items
         if (warnings.AsksDeliveryOrder && request.IsDeliveredBeforeDeclaration is null)
         {
             return new PanelItemStepResult(TransitionRefusal.InvalidInput) { Obstacle = PanelItemObstacle.DeliveryOrderMissing, Warnings = warnings };
@@ -194,17 +221,29 @@ internal sealed class PanelItemSteps : IPanelItemSteps
             return new PanelItemStepResult(TransitionRefusal.ConfirmationRequired) { Warnings = warnings };
         }
 
-        WithdrawalResult result = await _transitions.RecordWithdrawalAsync(request, ct);
-        if (result.Refusal is { } refusal)
+        foreach ((PanelItemUnits units, WithdrawalNoticeWarnings own) in checkedItems)
         {
-            return new PanelItemStepResult(refusal) { Warnings = warnings };
+            // One declaration per item (06 4.25); each raises the version once and the next one reads it as it now stands - the screen's was compared under the lock above.
+            RecordWithdrawalRequest record = request with
+            {
+                OrderItemId = units.OrderItemId,
+                Quantity = units.Quantity,
+                ExpectedVersion = await CurrentVersionAsync(request.OrderId, ct),
+                IsDeliveredBeforeDeclaration = own.AsksDeliveryOrder ? request.IsDeliveredBeforeDeclaration : null,
+            };
+            WithdrawalResult result = await _transitions.RecordWithdrawalAsync(record, ct);
+            if (result.Refusal is { } refusal)
+            {
+                return new PanelItemStepResult(refusal) { Warnings = warnings };
+            }
+
+            await WriteAsync(
+                AuditOperation.RecordWithdrawalFromOtherChannel,
+                request.OrderId,
+                [new AuditValue("ItemId", units.OrderItemId.ToString("D")), new AuditValue("Quantity", Count(units.Quantity)), new AuditValue("Date", DateText(request.NoticeDate)), .. Closure(result.Closure)],
+                ct);
         }
 
-        await WriteAsync(
-            AuditOperation.RecordWithdrawalFromOtherChannel,
-            request.OrderId,
-            [new AuditValue("ItemId", request.OrderItemId.ToString("D")), new AuditValue("Quantity", Count(request.Quantity)), new AuditValue("Date", DateText(request.NoticeDate)), .. Closure(result.Closure)],
-            ct);
         return PanelItemStepResult.Done;
     }
 
@@ -391,7 +430,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
         return result.Refusal is { } refusal ? new PanelItemStepResult(refusal) : PanelItemStepResult.Done;
     }
 
-    // UC-140: the receipt or the rejection on the item's oldest declaration with goods on the way back (K-794). The quantity defaults to that declaration's units still awaited.
+    // UC-140: the receipt or the rejection on the item's oldest declaration with goods on the way back (K-794). The quantity defaults to that declaration's units not come back.
     private async Task<PanelItemStepResult> ArriveAsync(PanelReturnArrival request, bool isRejection, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -421,7 +460,8 @@ internal sealed class PanelItemSteps : IPanelItemSteps
             return takenBack is null ? PanelItemStepResult.NotOpen : await TakeBackAsync(request, facts!, takenBack, ct); // non-null: LockAsync returns the facts
         }
 
-        int quantity = request.Quantity ?? withdrawal.Awaiting;
+        // 04 7.2.12.2: the receipt's default is the units not come back yet - those of the "mal dönmedi" closures included, which the receipt reopens; the rejection's the units on the way.
+        int quantity = request.Quantity ?? (isRejection ? withdrawal.Awaiting : withdrawal.Awaiting + withdrawal.NotReturned);
         OrderOperation operation = isRejection ? OrderOperation.RejectReturnedGoods : OrderOperation.ReceiveReturnedGoods;
 
         if (VerdictObstacle(OrderOperationCatalog.Check(facts!, operation, request.OrderItemId, quantity)) is { } closed) // non-null: LockAsync returns the facts

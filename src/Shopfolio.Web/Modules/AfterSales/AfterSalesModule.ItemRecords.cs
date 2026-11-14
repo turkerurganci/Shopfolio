@@ -267,8 +267,9 @@ internal sealed partial class AfterSalesModule
     }
 
     /// <summary>
-    /// The units of a termination or a defect claim of the item still to come back, the caller's unsaved receipts included: the terminated units, or the units rescinded on the
-    /// claim (06 4.33 <c>Quantity</c>; K-1077), minus those received against it. Zero when the record is not the item's.
+    /// The units of a termination or a defect claim of the item still to come back, the caller's unsaved receipts included: the terminated units, or the claim's defective units
+    /// (06 4.30 <c>Quantity</c>; K-808: the rescission starts with the receipt, so the bound is the claim's, not a refund's), minus those received against it. Zero when the record
+    /// is not the item's.
     /// </summary>
     private async Task<int> TakenBackAwaitingAsync(Guid orderItemId, TakenBackSource source, CancellationToken ct)
     {
@@ -282,14 +283,16 @@ internal sealed partial class AfterSalesModule
         }
 
         Guid? id = source.DefectClaimId;
-        if (id is null || !await _db.DefectClaims.AsNoTracking().AnyAsync(c => c.Id == id && c.OrderItemId == orderItemId, ct))
+        int? defective = id is null
+            ? null
+            : await _db.DefectClaims.AsNoTracking().Where(c => c.Id == id && c.OrderItemId == orderItemId).Select(c => (int?)c.Quantity).SingleOrDefaultAsync(ct);
+        if (defective is not { } claimed)
         {
             return 0;
         }
 
-        int rescinded = (await _payment.RescindedSharesAsync([orderItemId], ct)).TryGetValue(orderItemId, out RescindedShares? shares) ? shares.Quantity : 0;
         int taken = await _db.Returns.Where(r => r.DefectClaimId == id).SumAsync(r => r.Quantity, ct) + AddedSum<Return>(r => r.DefectClaimId == id, r => r.Quantity);
-        return Math.Max(0, rescinded - taken);
+        return Math.Max(0, claimed - taken);
     }
 
     public async Task<ItemRecordWriteResult> AddNotReturnedClosureAsync(NotReturnedClosureEntry entry, CancellationToken ct)

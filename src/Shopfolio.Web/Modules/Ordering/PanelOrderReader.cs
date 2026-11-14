@@ -184,6 +184,8 @@ internal sealed class PanelOrderReader : IPanelOrderReader
             order.PaymentMethod == PaymentMethod.BankTransfer ? PaymentWindowRules.LastPaymentDay(order.PaymentWindowEndsAt) : null);
     }
 
+    public Task<IReadOnlySet<Guid>> LegalInterestDueItemsAsync(Guid orderId, CancellationToken ct) => _periods.LegalInterestDueItemsAsync(orderId, _time.GetUtcNow(), ct);
+
     private static string ProvinceName(IReadOnlyDictionary<Guid, string> provinces, Guid provinceId) =>
         provinces.TryGetValue(provinceId, out string? name) ? name : string.Empty;
 }

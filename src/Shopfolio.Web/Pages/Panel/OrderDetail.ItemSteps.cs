@@ -46,9 +46,24 @@ public sealed partial class OrderDetailModel
 
     public const string ReopenDefectClaimLabel = "Yeniden aç";
 
-    /// <summary>K-798 (6), K-607: the reminder at the head of the record of a notice from another channel and in the "müşteriyle anlaşıldı" cancellation's window.</summary>
-    public const string OwnerCheckReminderText =
-        "Bildirim siparişin e-posta adresinden gelmediyse, kaydetmeden önce siparişin e-posta adresine yazarak ya da teslimat telefonunu arayarak siparişin sahibiyle teyit edin. Sipariş numarası tek başına teyit değildir.";
+    /// <summary>K-798 (6), K-607: the reminder at the head of the record of a notice from another channel and in the "müşteriyle anlaşıldı" cancellation - the address correction's text (U6a).</summary>
+    public const string OwnerCheckReminderText = AddressReminderText;
+
+    /// <summary>K-798 (2) (U2; 10 2 KP-47): the legal interest warning - on the firm's cancellation after Z-10 or Z-39 ran out and on every late delivery termination's record.</summary>
+    public const string LegalInterestWarningText = "gecikme feshi — kanuni faiz yükümlülüğü";
+
+    /// <summary>K-798 (3) (U3a): the notice's date is outside the withdrawal window.</summary>
+    public const string OutsideWindowWarningText =
+        "Girilen tarih cayma süresinin dışında. Kayıt, süresinde gönderilmiş ama geç ulaşmış bir bildirimde ya da eksik bilgilendirmede yapılır; değerlendirme firmanındır.";
+
+    /// <summary>K-1563 (U3a's second sentence): the notice's date is more than a year after the window's end (Mesafeli Sözleşmeler Yönetmeliği m.10/1, m.11/1, m.11/4).</summary>
+    public const string BeyondOneYearWarningText = "Bildirimin bir yıllık süre dolmadan gönderilmiş olması gerekir; gönderimin ispatı tüketicidedir.";
+
+    /// <summary>K-798 (3) (U3b): the item carries an absolute exemption.</summary>
+    public const string AbsoluteExemptionWarningText = "Bu ürün cayma hakkının istisnası olarak işaretli. Kayıt eksik bilgilendirmede yapılır; değerlendirme firmanındır.";
+
+    /// <summary>K-798 (3) (U3c): the separate confirmation's box.</summary>
+    public const string ExceptionAcknowledgementLabel = "Uyarıyı değerlendirdim, kaydı yapıyorum.";
 
     public const string ReasonIncompleteText = "Bir sebep seçin; \"Diğer\" seçildiyse açıklamayı yazın.";
 
@@ -85,6 +100,16 @@ public sealed partial class OrderDetailModel
     /// <summary>The withdrawal record as sent, kept on a refusal (04 9.9.41).</summary>
     public RecordWithdrawalInput Notice { get; private set; } = new();
 
+    /// <summary>The termination record as sent, kept on a refusal (04 9.9.41).</summary>
+    public RecordLateDeliveryTerminationInput Termination { get; private set; } = new();
+
+    /// <summary>The items whose cancellation now carries the legal interest warning (04 9.9.19; 03 8.3.1.1; K-798 (2)).</summary>
+    public IReadOnlySet<Guid> LegalInterestDueItems { get; private set; } = new HashSet<Guid>();
+
+    /// <summary>The undelivered physical items the late delivery termination falls on, with their open units (04 9.9.20; K-796): the form lists them read-only.</summary>
+    public IReadOnlyList<(OrderPageItem Item, int OpenUnits)> TerminatedItems =>
+        [.. Detail.Items.Where(i => i.ProductType == ProductType.Physical && i.DeliveryMarkedAt is null).Select(i => (i, ItemFactsOf(i)?.OpenQuantity ?? 0)).Where(t => t.Item2 > 0)];
+
     /// <summary>Today in Turkey as the date fields' upper bound (OB-16: no date in the future).</summary>
     public string TodayText => TurkeyTime.DateOf(Now).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
@@ -103,14 +128,14 @@ public sealed partial class OrderDetailModel
     }
 
     /// <summary>
-    /// The receipt's default units: the declarations' units on the way back, or - with none - those of the first termination or defect claim whose taken-back goods the step takes
-    /// in (D-656, D-911; the step's own order, PanelItemSteps).
+    /// The receipt's default units (04 7.2.12.2): the first declaration's units not come back - those closed as "mal dönmedi" included -, or - with none - those of the first
+    /// termination or defect claim whose taken-back goods the step takes in (D-656, D-911; K-808; the step's own order, PanelItemSteps).
     /// </summary>
     public int ReceivableUnitsOf(OrderPageItem item)
     {
         ArgumentNullException.ThrowIfNull(item);
-        int awaited = AwaitedUnitsOf(item);
-        return awaited > 0 ? awaited : ReturnSteps.TakenBack.FirstOrDefault(t => t.OrderItemId == item.OrderItemId)?.Awaiting ?? 0;
+        ReturnableWithdrawal? first = ReturnSteps.Withdrawals.FirstOrDefault(w => w.OrderItemId == item.OrderItemId);
+        return first is not null ? first.Awaiting + first.NotReturned : ReturnSteps.TakenBack.FirstOrDefault(t => t.OrderItemId == item.OrderItemId)?.Awaiting ?? 0;
     }
 
     /// <summary>UC-129: the firm's cancellation; unconfirmed 200 with the window (K-797), confirmed 303.</summary>
@@ -140,7 +165,7 @@ public sealed partial class OrderDetailModel
             : await AnswerItemStepAsync(id, result, ErrorCode.OperationNotAvailable, ct);
     }
 
-    /// <summary>UC-130: a withdrawal notified by another channel, on one item and its units; unconfirmed 200, confirmed 303.</summary>
+    /// <summary>UC-130: a withdrawal notified by another channel, on one or more items and their units (04 7.2.10.2); unconfirmed 200, confirmed 303.</summary>
     [GatedOperation]
     public async Task<IActionResult> OnPostRecordWithdrawalAsync(Guid id, RecordWithdrawalInput input, CancellationToken ct)
     {
@@ -156,26 +181,16 @@ public sealed partial class OrderDetailModel
             return await RefuseAsync(id, QuantityInvalidText, ErrorCode.InvalidQuantity, ct);
         }
 
-        // One record is one item (06 4.25); two rows of a hand-made request are the item choice's refusal (07 5.1.5).
-        if (units.Count > 1)
-        {
-            return await RefuseAsync(id, ItemChoiceInvalidText, ErrorCode.InvalidListValue, ct);
-        }
-
-        PanelItemUnits chosen = units.Count == 1 ? units[0] : new PanelItemUnits(Guid.Empty, 0);
+        // The request's own item and units are not read by the many-item step; the shared fields are the notice's (07 UC-130).
         string? iban = string.IsNullOrWhiteSpace(input.Iban) ? null : input.Iban.Trim();
         TransitionAdmin admin = await AdminAsync(ct);
-        PanelItemStepResult result = await RunItemStepAsync(
-            (steps, token) => steps.RecordWithdrawalAsync(
-                new RecordWithdrawalRequest(
-                    id, chosen.OrderItemId, admin, input.Version, input.Confirmed, units.Count == 1 ? chosen.Quantity : 1, date, input.IsFromContactEmail, iban, input.IsDeliveredBeforeDeclaration,
-                    input.IsExceptionAcknowledged),
-                token),
-            ct);
+        RecordWithdrawalRequest notice = new(
+            id, Guid.Empty, admin, input.Version, input.Confirmed, 1, date, input.IsFromContactEmail, iban, input.IsDeliveredBeforeDeclaration, input.IsExceptionAcknowledged);
+        PanelItemStepResult result = await RunItemStepAsync((steps, token) => steps.RecordWithdrawalsAsync(notice, units, token), ct);
         NoticeWarnings = result.Warnings;
         AsksNoticeDeliveryOrder = result.Warnings.AsksDeliveryOrder;
         return result.Refusal == TransitionRefusal.ConfirmationRequired
-            ? await AskAsync(id, () => WithdrawalConfirm(id, input, chosen), ct)
+            ? await AskAsync(id, () => WithdrawalConfirm(id, input, units), ct)
             : await AnswerItemStepAsync(id, result, ErrorCode.OperationNotAvailable, ct);
     }
 
@@ -184,6 +199,7 @@ public sealed partial class OrderDetailModel
     public async Task<IActionResult> OnPostRecordLateDeliveryTerminationAsync(Guid id, RecordLateDeliveryTerminationInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
+        Termination = input;
         if (!TryReadDate(input.DeclarationDate, out DateOnly date))
         {
             return await RefuseAsync(id, NoticeDateMissingText, string.IsNullOrWhiteSpace(input.DeclarationDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate, ct);
@@ -300,8 +316,11 @@ public sealed partial class OrderDetailModel
         return await AnswerItemStepAsync(id, result, ErrorCode.OperationNotAvailable, ct);
     }
 
-    private async Task LoadReturnStepsAsync(CancellationToken ct) =>
+    private async Task LoadReturnStepsAsync(CancellationToken ct)
+    {
         ReturnSteps = await _afterSales.ReturnStepFactsAsync([.. Detail.Items.Select(i => i.OrderItemId)], ct);
+        LegalInterestDueItems = await HttpContext.RequestServices.GetRequiredService<IPanelOrderReader>().LegalInterestDueItemsAsync(Summary.OrderId, ct);
+    }
 
     private async Task<IActionResult> ArriveAsync(Guid id, ReceiveReturnInput input, bool isRejection, CancellationToken ct)
     {
@@ -417,12 +436,17 @@ public sealed partial class OrderDetailModel
         return Confirmations.ForIrreversible(texts, CancelByCompanyLabel, CancelByCompanyLabel, PathOf(id), "CancelOrderByCompany", PathOf(id), fields);
     }
 
-    private static ConfirmView WithdrawalConfirm(Guid id, RecordWithdrawalInput input, PanelItemUnits chosen)
+    private static ConfirmView WithdrawalConfirm(Guid id, RecordWithdrawalInput input, IReadOnlyList<PanelItemUnits> units)
     {
-        List<KeyValuePair<string, string>> fields =
+        List<KeyValuePair<string, string>> fields = [];
+        for (int i = 0; i < units.Count; i++)
+        {
+            fields.Add(new($"Input.Items[{i}].OrderItemId", units[i].OrderItemId.ToString("D")));
+            fields.Add(Field($"Input.Items[{i}].Quantity", units[i].Quantity));
+        }
+
+        fields.AddRange(
         [
-            new("Input.Items[0].OrderItemId", chosen.OrderItemId.ToString("D")),
-            Field("Input.Items[0].Quantity", chosen.Quantity),
             new("Input.DeclarationDate", input.DeclarationDate ?? string.Empty),
             new("Input.IsFromContactEmail", input.IsFromContactEmail ? "true" : "false"),
             new("Input.Iban", input.Iban ?? string.Empty),
@@ -430,10 +454,10 @@ public sealed partial class OrderDetailModel
             new("Input.IsDeliveredBeforeDeclaration", input.IsDeliveredBeforeDeclaration is { } before ? (before ? "true" : "false") : string.Empty),
             Field("Input.Version", input.Version),
             new("Input.Confirmed", "true"),
-        ];
+        ]);
         _ = TryReadDate(input.DeclarationDate, out DateOnly date);
         return Confirmations.ForIrreversible(
-            IrreversibleConfirmations.OtherChannelWithdrawal(Math.Max(1, chosen.Quantity), date), RecordWithdrawalLabel, RecordWithdrawalLabel, PathOf(id), "RecordWithdrawal", PathOf(id), fields);
+            IrreversibleConfirmations.OtherChannelWithdrawal(Math.Max(1, units.Sum(u => u.Quantity)), date), RecordWithdrawalLabel, RecordWithdrawalLabel, PathOf(id), "RecordWithdrawal", PathOf(id), fields);
     }
 
     private ConfirmView TerminationConfirm(Guid id, RecordLateDeliveryTerminationInput input, DateOnly date)
@@ -448,7 +472,7 @@ public sealed partial class OrderDetailModel
         ];
 
         // K-796: the termination falls on the undelivered physical items' open units - the server's open quantity, read for the screen.
-        int units = Detail.Items.Where(i => i.ProductType == ProductType.Physical && i.DeliveryMarkedAt is null).Sum(i => ItemFactsOf(i)?.OpenQuantity ?? 0);
+        int units = TerminatedItems.Sum(t => t.OpenUnits);
         return Confirmations.ForIrreversible(
             IrreversibleConfirmations.OtherChannelTermination(Math.Max(1, units), date),
             RecordLateTerminationLabel,
@@ -469,7 +493,7 @@ public sealed partial class OrderDetailModel
             new("Input.Confirmed", "true"),
         ];
 
-        // 03 1.6.1.5: the card line's removal; the amount is the record's and is written with it (D-1591: the window does not repeat it yet).
+        // 03 1.6.1.5: the card line's removal; the amount is the record's and is written with it (D-1598: the window does not repeat it yet).
         IrreversibleConfirmation texts = new(
             IrreversibleAction.CardRefundingRemoval,
             null,

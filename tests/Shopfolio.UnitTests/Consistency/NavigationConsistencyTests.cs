@@ -452,6 +452,124 @@ public sealed class NavigationConsistencyTests
         Assert.Equal(["Link", "Redirect", "EmptyExit", "Text", "Page"], Enum.GetNames<NavigationEvidenceKind>());
     }
 
+    // T546 correction 4 (B1; K-1617): a link whose address comes from a model, a list or a helper is the same expression whatever it leads to; the row must also carry the line that gives the address its
+    // target (a producer, a text that holds the target) - otherwise a changed or deleted target passes.
+    [Fact]
+    public void ARowWhoseLinkDrawsItsAddressFromAModel_CarriesTheProducerOfTheTarget()
+    {
+        List<string> without = [];
+        foreach (NavigationEntry entry in NavigationInventory.Entries.Where(e => e.Id.StartsWith("3.3.", StringComparison.Ordinal) || e.Id.StartsWith("3.4.", StringComparison.Ordinal)))
+        {
+            bool fed = entry.Evidence.Any(NavigationInventory.AddressComesFromAModel);
+            bool hasTarget = entry.Evidence.Any(v => v.Kind == NavigationEvidenceKind.Text);
+            if (fed && !hasTarget)
+            {
+                without.Add(entry.Id);
+            }
+        }
+
+        Assert.True(without.Count == 0, "Rows whose link address comes from a model and that carry no target text: " + string.Join(", ", without));
+    }
+
+    // T546 correction 4 (B1): one change of the target in the real code for every row of 3.3 and 3.4 - at the producer of the address where the link draws it from a model, else at the link, the redirect or the
+    // text that carries the row. Each is reported on the row, or on the site that changed (the new address is in no row; the count of a repeated site differs).
+    [Theory]
+    [InlineData("3.3.1", "Pages/Lists/ProductCard.cs", "internal const string ProductPathPrefix = \"/urun/\";", "internal const string ProductPathPrefix = \"/baska-yer\";")]
+    [InlineData("3.3.2", "Pages/Storefront/HomePage.cs", "new HomeCategoryLink(c.Name, AddressRules.RecordAddress(AddressRules.CategoryPrefix, c.Slug))", "new HomeCategoryLink(c.Name, AddressRules.OrderArea(AddressRules.CategoryPrefix, c.Slug))")]
+    [InlineData("3.3.3", "Modules/CorporateContent/HomepageReader.cs", "new HomepageIntro(about.ShortIntroduction, \"/\" + AddressRules.AboutPage,", "new HomepageIntro(about.ShortIntroduction, \"/\" + AddressRules.OrderArea,")]
+    [InlineData("3.3.4", "Modules/CorporateContent/HomepageReader.cs", "section.MenuNames.Offerings, \"/\" + AddressRules.ServiceListPage", "section.MenuNames.Offerings, \"/\" + AddressRules.OrderArea")]
+    [InlineData("3.3.5", "Pages/Lists/ProductCard.cs", "internal const string ProductPathPrefix = \"/urun/\";", "internal const string ProductPathPrefix = \"/baska-yer\";")]
+    [InlineData("3.3.6", "Pages/Storefront/CategoryPage.cs", "new CategoryCrumb(current.Name, CategoryPaths.Of(current.Slug))", "Zew CategoryCrumb(current.Name, CategoryPaths.Of(current.Slug))")]
+    [InlineData("3.3.7", "Pages/Product.cshtml.cs", "(VariantSelection.PathFor(productPath, variant)", "(ZariantSelection.PathFor(productPath, variant)")]
+    [InlineData("3.3.8", "Modules/CorporateContent/ContentReaders.cs", "AddressRules.RecordAddress(AddressRules.ServicePrefix, o.Slug)", "AddressRules.OrderArea(AddressRules.ServicePrefix, o.Slug)")]
+    [InlineData("3.3.9", "Pages/Content/ContentRecordPages.cs", "Kind == ContentPageKind.Offering ? FramePaths.Contact : null", "Kind == ContentPageKind.Offering ? FramePaths.Cart : null")]
+    [InlineData("3.3.10", "Pages/Shared/_ContentRecordBody.cshtml", "<partial name=\"_ProductGrid\" model=\"Model.LinkedProducts\" />", "<partial name=\"/baska-yer\" model=\"Model.LinkedProducts\" />")]
+    [InlineData("3.3.11", "Pages/Storefront/Contact.cshtml.cs", "(FramePaths.Contact", "(FramePaths.Cart")]
+    [InlineData("3.3.12", "Pages/Frame/FramedNotFoundPageRenderer.cs", "new(FramePaths.Home, productLinks)", "new(FramePaths.Cart, productLinks)")]
+    [InlineData("3.3.13", "Pages/Storefront/Cart.cshtml", "href=\"/@AddressRules.ProductPrefix/@line.ProductSlug\"", "href=\"/baska-yer\"")]
+    [InlineData("3.3.14", "Pages/Storefront/Cart.cshtml", "href=\"@FramePaths.Checkout\"", "href=\"/baska-yer\"")]
+    [InlineData("3.3.15", "Pages/Frame/StorefrontFrameBuilder.cs", "new FrameCart(FramePaths.Cart, badge.ItemCount)", "new FrameCart(FramePaths.Contact, badge.ItemCount)")]
+    [InlineData("3.3.16", "Pages/Storefront/Checkout.cshtml", "CheckoutModel.LoginTarget", "ZheckoutModel.LoginTarget")]
+    [InlineData("3.3.17", "Pages/Storefront/Checkout.cshtml.cs", ": ConfirmationKeys.MemberConfirmationPath(result.OrderNumber!)", ": FramePaths.Cart")]
+    [InlineData("3.3.18", "Pages/Orders/ConfirmationScreenModels.cs", "PaymentFrameAddress = FrameAddressOf(answer.FrameAddress);", "ZaymentFrameAddress = FrameAddressOf(answer.FrameAddress);")]
+    [InlineData("3.3.19", "Pages/Orders/ConfirmationScreenModels.cs", "public string MemberOrderPath => OrderRoutes.MemberPath(Facts.OrderNumber);", "Zublic string MemberOrderPath => OrderRoutes.MemberPath(Facts.OrderNumber);")]
+    [InlineData("3.3.20", "Pages/Account/OrderHistory.cshtml.cs", "OrderRoutes.MemberPath(o.OrderNumber),", "ZrderRoutes.MemberPath(o.OrderNumber),")]
+    [InlineData("3.3.21", "Infrastructure/Routing/OrderRoutes.cs", "return \"/\" + AddressRules.OrderArea + \"/\" + AccessSegment + \"/\" + accessKey;", "return \"/\" + AddressRules.AboutPage + \"/\" + AccessSegment + \"/\" + accessKey;")]
+    [InlineData("3.3.22", "Pages/Orders/OrderPageModels.cs", "OrderRoutes.ScreenPath(rootPath, \"iptal\")", "OrderRoutes.ScreenPath(rootPath, \"/baska-yer\")")]
+    [InlineData("3.3.23", "Pages/Orders/OrderPageModels.cs", "OrderRoutes.ScreenPath(rootPath, \"cayma\")", "OrderRoutes.ScreenPath(rootPath, \"/baska-yer\")")]
+    [InlineData("3.3.24", "Pages/Orders/OrderPageModels.cs", "OrderRoutes.ScreenPath(rootPath, \"ayip-talebi\")", "OrderRoutes.ScreenPath(rootPath, \"/baska-yer\")")]
+    [InlineData("3.3.25", "Pages/Orders/AfterSalesScreenModels.cs", "public string RootPath => OrderRoots.RootOf(ScreenPath, Screen);", "Zublic string RootPath => OrderRoots.RootOf(ScreenPath, Screen);")]
+    [InlineData("3.3.26", "Pages/Storefront/SignIn.cshtml", "href=\"@FramePaths.Register\"", "href=\"/baska-yer\"")]
+    [InlineData("3.3.27", "Pages/Storefront/SignIn.cshtml.cs", "(_flow.Start(HttpContext, GoogleFlowKind.SignInOrRegistration, null, Input.ReturnUrl)", "(Zflow.Start(HttpContext, GoogleFlowKind.SignInOrRegistration, null, Input.ReturnUrl)")]
+    [InlineData("3.3.28", "Pages/Storefront/Register.cshtml.cs", "(FramePaths.Register + \"?\" + PendingParameter + \"=\" + Uri.EscapeDataString(value)", "(FramePaths.Cart + \"?\" + PendingParameter + \"=\" + Uri.EscapeDataString(value)")]
+    [InlineData("3.3.29", "Pages/Components/RegistrationTexts.cs", "SignInNext, FramePaths.SignIn),", "SignInNext, FramePaths.Cart),")]
+    [InlineData("3.3.30", "Pages/Storefront/ReauthenticationAddresses.cs", "FramePaths.Reauthentication + \"?\" + OperationParameter + \"=\" + Uri.EscapeDataString(operation.ToString())", "FramePaths.Cart + \"?\" + OperationParameter + \"=\" + Uri.EscapeDataString(operation.ToString())")]
+    [InlineData("3.3.31", "Pages/Account/Profile.cshtml.cs", "(FramePaths.AccountDeleted", "(FramePaths.Cart")]
+    [InlineData("3.3.32", "Pages/Shared/_AccountNav.cshtml", "(AccountTexts.NavAccount, FramePaths.Account),", "(AccountTexts.NavAccount, FramePaths.Cart),")]
+    [InlineData("3.3.33", "Pages/Storefront/EmailRevert.cshtml.cs", "(FramePaths.EmailRevert + \"/\" + Uri.EscapeDataString(key)", "(FramePaths.Cart + \"/\" + Uri.EscapeDataString(key)")]
+    [InlineData("3.3.34", "Pages/Components/RegistrationTexts.cs", "\"Kayıt ol\", FramePaths.Register);", "\"Kayıt ol\", FramePaths.Cart);")]
+    [InlineData("3.3.35", "Pages/Components/RegistrationTexts.cs", "string accountPath = isMember ? FramePaths.Account : FramePaths.SignIn;", "string accountPath = isMember ? FramePaths.Cart : FramePaths.SignIn;")]
+    [InlineData("3.3.36", "Pages/Account/Profile.cshtml", "href=\"@FramePaths.PasswordReset\"", "href=\"/baska-yer\"")]
+    [InlineData("3.3.37", "Pages/Storefront/ReauthenticationAddresses.cs", "FramePaths.Reauthentication + \"?\" + OperationParameter + \"=\" + Uri.EscapeDataString(operation.ToString())", "FramePaths.Cart + \"?\" + OperationParameter + \"=\" + Uri.EscapeDataString(operation.ToString())")]
+    [InlineData("3.3.38", "Pages/Orders/ConfirmationScreenModels.cs", "(FramePaths.Cart", "(FramePaths.Contact")]
+    [InlineData("3.3.39", "Pages/Orders/ConfirmationScreenModels.cs", "IsMemberRoot ? MemberOrderPath : FramePaths.OrderTracking;", "IsMemberRoot ? MemberOrderPath : FramePaths.Cart;")]
+    [InlineData("3.3.40", "Pages/Account/Deleted.cshtml", "href=\"@FramePaths.OrderTracking\"", "href=\"/baska-yer\"")]
+    [InlineData("3.3.41", "Pages/Orders/Tracking.cshtml", "href=\"@(HttpContext.GetStorefrontFrame()?.Account.SignInPath ?? FramePaths.SignIn)\"", "href=\"/baska-yer\"")]
+    [InlineData("3.3.42", "Pages/Orders/_OrderPage.cshtml", "shipping.Link is { } tracking", "Zhipping.Link is { } tracking")]
+    [InlineData("3.3.43", "Pages/Storefront/Register.cshtml", "href=\"@FramePaths.SignIn\"", "href=\"/baska-yer\"")]
+    [InlineData("3.3.44", "Pages/Components/IbanModels.cs", "customerSide ? FramePaths.PrivacyNotice : null,", "customerSide ? FramePaths.Cart : null,")]
+    [InlineData("3.3.45", "Pages/Storefront/Contact.cshtml", "branch.MapUrl is { } mapUrl", "Zranch.MapUrl is { } mapUrl")]
+    [InlineData("3.4.1", "Pages/Panel/SignIn.cshtml.cs", "(ReturnPath.Resolve(input.ReturnUrl, ReturnArea.Panel)", "(ZeturnPath.Resolve(input.ReturnUrl, ReturnArea.Panel)")]
+    [InlineData("3.4.2", "Pages/Components/PendingCounters.cs", "PanelListTarget.OrdersAwaitingPaymentApproval => OrdersWith(\"AwaitingPayment\"),", "PanelListTarget.OrdersAwaitingPaymentApproval => OrdersWith(\"/baska-yer\"),")]
+    [InlineData("3.4.3", "Pages/Panel/Index.cshtml.cs", "missing.Length > 0 ? WarningPathOf(gate) : PanelFramePaths.SalesStateSection", "missing.Length > 0 ? WarningPathOf(gate) : PanelFramePaths.Brand")]
+    [InlineData("3.4.4", "Pages/Panel/Index.cshtml.cs", "SetupChecklistItemKind.CompanyIdentity => PanelFramePaths.FirmIdentityAndSales,", "SetupChecklistItemKind.CompanyIdentity => PanelFramePaths.Brand,")]
+    [InlineData("3.4.5", "Pages/Panel/Index.cshtml.cs", "PanelFramePaths.Orders + \"/\" + row.OrderId.ToString(\"D\"),", "PanelFramePaths.Brand + \"/\" + row.OrderId.ToString(\"D\"),")]
+    [InlineData("3.4.6", "Pages/Panel/Orders.cshtml.cs", "ListReturn.LinkTo($\"{PanelFramePaths.Orders}/{order.OrderId}\", listAddress)", "ListReturn.LinkTo($\"{PanelFramePaths.Brand}/{order.OrderId}\", listAddress)")]
+    [InlineData("3.4.7", "Pages/Panel/OrderDetail.cshtml.cs", "$\"{PanelFramePaths.Orders}/{id:D}\"", "$\"{PanelFramePaths.Members}/{id:D}\"")]
+    [InlineData("3.4.8", "Pages/Panel/Requests.cshtml.cs", "ListReturn.LinkTo($\"{PanelFramePaths.Requests}/{row.Id}\", listAddress)", "ListReturn.LinkTo($\"{PanelFramePaths.Brand}/{row.Id}\", listAddress)")]
+    [InlineData("3.4.9", "Pages/Panel/OrderDetail.cshtml.cs", "BackPath = ListReturn.Target(HttpContext.Request.Query[ReturnPath.ParameterName], PanelFramePaths.Orders);", "BackPath = ListReturn.Target(HttpContext.Request.Query[ReturnPath.ParameterName], PanelFramePaths.Brand);")]
+    [InlineData("3.4.10", "Pages/Panel/Products.cshtml.cs", "NewProductPath = ListReturn.LinkTo(PanelFramePaths.Products + \"/yeni\", listAddress);", "NewProductPath = ListReturn.LinkTo(PanelFramePaths.Brand + \"/yeni\", listAddress);")]
+    [InlineData("3.4.11", "Pages/Panel/_ProductFormBody.cshtml", "href=\"/@AddressRules.ProductPrefix/@record.Slug\"", "href=\"/baska-yer\"")]
+    [InlineData("3.4.12", "Pages/Panel/ContentRoutes.cs", "{Root}/{SegmentOf(type)}/{id:D}", "{Root}/{id:D}")]
+    [InlineData("3.4.13", "Modules/CorporateContent/PanelContentEditing.cs", "pagePath = \"/\" + AddressRules.AboutPage;", "pagePath = \"/\" + AddressRules.OrderArea;")]
+    [InlineData("3.4.14", "Pages/Panel/Members.cshtml.cs", "ListReturn.LinkTo(PanelFramePaths.Orders + \"/\" + o.OrderId.ToString(), listAddress)", "ListReturn.LinkTo(PanelFramePaths.Brand + \"/\" + o.OrderId.ToString(), listAddress)")]
+    [InlineData("3.4.15", "Pages/Panel/FirmIdentity.cshtml.cs", "IdentityMissing(), \"#\" + IdentitySectionId)", "IdentityMissing(), \"/baska-yer\" + IdentitySectionId)")]
+    [InlineData("3.4.16", "Pages/Panel/MyAccount.cshtml", "string reauthForEmail = PanelFramePaths.Reauthentication + \"?\" + ReauthModel.OperationParameter + \"=EmailChange\";", "string reauthForEmail = PanelFramePaths.Brand + \"?\" + ReauthModel.OperationParameter + \"=EmailChange\";")]
+    [InlineData("3.4.17", "Pages/Panel/AdminAccounts.cshtml.cs", "public const string ListRoot = PanelFramePaths.AdminAccounts;", "public const string ListRoot = PanelFramePaths.Brand;")]
+    [InlineData("3.4.18", "Pages/Panel/Invite.cshtml.cs", "(PanelFramePaths.SignIn + \"?\" + SignInModel.AcceptedInvitationParameter + \"=\" + Uri.EscapeDataString(protectedAddress)", "(PanelFramePaths.Brand + \"?\" + SignInModel.AcceptedInvitationParameter + \"=\" + Uri.EscapeDataString(protectedAddress)")]
+    [InlineData("3.4.19", "Pages/Panel/ProductForm.cshtml.cs", "$\"{PanelFramePaths.Orders}/{orderId:D}\"", "$\"{PanelFramePaths.Members}/{orderId:D}\"")]
+    [InlineData("3.4.20", "Pages/Panel/ProductForm.cshtml.cs", "ReturnPath = ListReturn.Target(returnUrl, PanelFramePaths.Products);", "ReturnPath = ListReturn.Target(returnUrl, PanelFramePaths.Brand);")]
+    [InlineData("3.4.21", "Pages/Panel/RequestDetail.cshtml.cs", "SearchOrdersPath = $\"{PanelFramePaths.Orders}?search={encodedEmail}\";", "SearchOrdersPath = $\"{PanelFramePaths.Brand}?search={encodedEmail}\";")]
+    [InlineData("3.4.22", "Pages/Panel/LegalTexts.cshtml.cs", "IdentityMissingPrefix + LabelOf(field), PanelFramePaths.FirmIdentityAndSales", "IdentityMissingPrefix + LabelOf(field), PanelFramePaths.Brand")]
+    [InlineData("3.4.23", "Pages/Panel/LandingNextStep.cs", "session.Succeeded ? (PanelFramePaths.MyAccount, PanelAccessTexts.ToMyAccountLink) : (PanelFramePaths.SignIn, PanelAccessTexts.ToSignInLink)", "session.Succeeded ? (PanelFramePaths.Brand, PanelAccessTexts.ToMyAccountLink) : (PanelFramePaths.SignIn, PanelAccessTexts.ToSignInLink)")]
+    [InlineData("3.4.24", "Pages/Panel/PaymentMethods.cshtml", "href=\"@Shopfolio.Pages.Frame.PanelFramePaths.ShippingAndDefaults\"", "href=\"/baska-yer\"")]
+    [InlineData("3.4.25", "Pages/Panel/OrderDetail.cshtml", "display.Link is { } link", "Zisplay.Link is { } link")]
+    [InlineData("3.4.26", "Pages/Panel/Orders.cshtml.cs", "PanelFramePaths.Home", "PanelFramePaths.Brand")]
+    public void TheTargetOfEveryRow_ChangedInTheCode_IsReported(string id, string file, string from, string to)
+    {
+        IReadOnlyList<string> problems = Problems(sources: Changed(file, from, to));
+
+        Assert.Contains(problems, p => p.Contains(":" + id + ":", StringComparison.Ordinal) || p.Contains(file, StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("Pages/Panel/Index.cshtml.cs", "SetupChecklistItemKind.ReturnAddress => PanelFramePaths.ShippingAndDefaults,", "SetupChecklistItemKind.ReturnAddress => PanelFramePaths.Brand,", "EvidenceMissing:3.4.4")]
+    [InlineData("Pages/Panel/Index.cshtml.cs", "SetupChecklistItemKind.PaymentMethod => PanelFramePaths.PaymentMethods,", "SetupChecklistItemKind.PaymentMethod => PanelFramePaths.Members,", "EvidenceMissing:3.4.4")]
+    [InlineData("Pages/Panel/Index.cshtml.cs", "\"?pendingWork=EmailUndeliveredMark\"", "\"?pendingWork=Other\"", "EvidenceMissing:3.4.3")]
+    [InlineData("Pages/Panel/Index.cshtml.cs", "string.Empty), PanelFramePaths.FirmIdentityAndSales", "string.Empty), PanelFramePaths.Members", "EvidenceMissing:3.4.3")]
+    [InlineData("Pages/Shared/_AccountNav.cshtml", "(AccountTexts.NavAddresses, FramePaths.AccountAddresses),", "", "EvidenceMissing:3.3.32")]
+    [InlineData("Pages/Shared/_AccountNav.cshtml", "(AccountTexts.NavOrders, FramePaths.AccountOrders),", "(AccountTexts.NavOrders, FramePaths.Account),", "EvidenceMissing:3.3.32")]
+    [InlineData("Pages/Components/PendingCounters.cs", "OrdersWith(\"AwaitingShipment\")", "OrdersWith(\"AwaitingDeliveryMark\")", "EvidenceMissing:3.4.2")]
+    [InlineData("Pages/Components/PendingCounters.cs", "PanelFramePaths.Requests + \"?requestStatus=Open\"", "PanelFramePaths.Orders + \"?requestStatus=Open\"", "EvidenceMissing:3.4.2")]
+    [InlineData("Pages/Panel/FirmIdentity.cshtml.cs", "\"Eksik: açık ödeme yöntemi yok\", PanelFramePaths.PaymentMethods)", "\"Eksik: açık ödeme yöntemi yok\", PanelFramePaths.Members)", "EvidenceMissing:3.4.15")]
+    [InlineData("Pages/Components/StateModels.cs", "SalesGateCondition.ReturnAddress => PanelFramePaths.ShippingAndDefaults,", "SalesGateCondition.ReturnAddress => PanelFramePaths.Brand,", "EvidenceMissing:3.4.15")]
+    [InlineData("Pages/Panel/LegalTexts.cshtml.cs", "IdentityMissingPrefix + LabelOf(field), PanelFramePaths.FirmIdentityAndSales", "IdentityMissingPrefix + LabelOf(field), PanelFramePaths.Brand", "EvidenceMissing:3.4.22")]
+    [InlineData("Pages/Orders/OrderPageModels.cs", "OrderRoutes.ScreenPath(rootPath, \"cayma\")", "OrderRoutes.ScreenPath(rootPath, \"iptal\")", "EvidenceMissing:3.3.23")]
+    public void ModelFedAddress_ChangedAtItsProducer_IsReportedOnItsRow(string file, string from, string to, string expected)
+    {
+        Assert.Contains(Problems(sources: Changed(file, from, to)), p => p.StartsWith(expected, StringComparison.Ordinal));
+    }
+
     private static List<string> MenuProblems(string document)
     {
         // The screen each menu row names, as the address the panel gives it (07 2.1.5: /panel/{name of the screen}).

@@ -72,6 +72,10 @@ internal static class NavigationCheck
                         {
                             problems.Add($"EvidenceMissing:{entry.Id}: the text '{evidence.Text}' is not in {evidence.File}.");
                         }
+                        else if (Count(text, evidence.Text) != evidence.Occurrences)
+                        {
+                            problems.Add($"EvidenceMissing:{entry.Id}: the text '{evidence.Text}' is {Count(text, evidence.Text)} times in {evidence.File}, the entry says {evidence.Occurrences}.");
+                        }
 
                         break;
                     case NavigationEvidenceKind.Page:
@@ -84,6 +88,24 @@ internal static class NavigationCheck
                     default:
                         throw new InvalidOperationException($"Unknown evidence kind {evidence.Kind}.");
                 }
+            }
+        }
+
+        // A site stands once unless the inventory pins it as repeated: changing one of several equal sites to another address of the same file changes the count (T546 correction 4).
+        foreach (IGrouping<(string, NavigationSiteKind, string), NavigationSite> group in scanned.GroupBy(s => (s.File, s.Kind, s.Key)))
+        {
+            int pinned = NavigationInventory.RepeatedSites.TryGetValue(group.Key, out int count) ? count : 1;
+            if (group.Count() != pinned)
+            {
+                problems.Add($"SiteCountDiffers: {group.Key.Item2} '{group.Key.Item3}' is {group.Count()} times in {group.Key.Item1}, the inventory says {pinned}.");
+            }
+        }
+
+        foreach (((string file, NavigationSiteKind kind, string key), int pinnedCount) in NavigationInventory.RepeatedSites)
+        {
+            if (!scannedSet.Contains((file, kind, key)))
+            {
+                problems.Add($"SiteCountDiffers: {kind} '{key}' is 0 times in {file}, the inventory says {pinnedCount}.");
             }
         }
 
@@ -112,6 +134,17 @@ internal static class NavigationCheck
         }
 
         return problems;
+    }
+
+    private static int Count(string text, string value)
+    {
+        int count = 0;
+        for (int at = text.IndexOf(value, StringComparison.Ordinal); at >= 0; at = text.IndexOf(value, at + value.Length, StringComparison.Ordinal))
+        {
+            count++;
+        }
+
+        return count;
     }
 
     /// <summary>A pin is the screens of the cell (the <c>E-</c> items) and the texts it holds (the <c>~</c> items); a pin without screens says the cell names none.</summary>

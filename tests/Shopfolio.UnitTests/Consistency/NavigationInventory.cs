@@ -19,7 +19,8 @@ internal enum NavigationEvidenceKind
     Page,
 }
 
-internal sealed record NavigationEvidence(NavigationEvidenceKind Kind, string File, string Text);
+/// <summary>One place of the code that carries a row. A text is counted: it must appear exactly <paramref name="Occurrences"/> times, so changing one of two equal lines is seen as well (T546 correction 4).</summary>
+internal sealed record NavigationEvidence(NavigationEvidenceKind Kind, string File, string Text, int Occurrences = 1);
 
 /// <summary>One row of <c>04 3</c> as the code has it: the id, the source and the target pins and the evidence. A pin is the set of the screens the cell names (<c>E-04,E-05</c>) and the texts it must hold (<c>~text</c>).</summary>
 internal sealed record NavigationEntry(string Id, string From, string To, IReadOnlyList<NavigationEvidence> Evidence);
@@ -42,7 +43,7 @@ internal static class NavigationInventory
     private const string PanelBuilder = "Frame/PanelFrameBuilder.cs";
     private const string SessionHandler = "!Infrastructure/Security/SessionAuthenticationHandler.cs";
 
-    public static IReadOnlyList<NavigationEntry> Entries { get; } =
+    private static readonly NavigationEntry[] Rows =
     [
         // 04 3.1: the storefront's frame.
         Row("3.1.1", "~Duyuru şeridi", "~Firmanın girdiği adres", L("Shared/_StorefrontLayout.cshtml", "@announcement.LinkUrl")),
@@ -68,7 +69,7 @@ internal static class NavigationInventory
         Row("3.1.21", "~Altbilgi — kimlik bloğu", "E-10", L(Footer, "@footer.ContactPath")),
 
         // 04 3.2: the panel's frame.
-        Row("3.2.1", "~Ana sayfa", "E-31", L(PanelLayout, "@entry.Path"), X(PanelBuilder, "PanelFramePaths.Home")),
+        Row("3.2.1", "~Ana sayfa", "E-31", L(PanelLayout, "@entry.Path"), X(PanelBuilder, "PanelFramePaths.Home", 2)),
         Row("3.2.2", "~Siparişler", "E-36,E-37", L(PanelLayout, "@entry.Path"), X(PanelBuilder, "PanelFramePaths.Orders")),
         Row("3.2.3", "~Talepler", "E-37,E-38,E-39", L(PanelLayout, "@entry.Path"), X(PanelBuilder, "PanelFramePaths.Requests")),
         Row("3.2.4", "~Katalog / Ürünler", "E-32,E-33", L(PanelLayout, "@item.Path"), X(PanelBuilder, "PanelFramePaths.Products")),
@@ -86,7 +87,7 @@ internal static class NavigationInventory
         Row("3.2.16", "~Ayarlar / Kargo", "E-46", L(PanelLayout, "@item.Path"), X(PanelBuilder, "PanelFramePaths.ShippingAndDefaults")),
         Row("3.2.17", "~Ayarlar / Yasal metinler", "E-47", L(PanelLayout, "@item.Path"), X(PanelBuilder, "PanelFramePaths.LegalTexts")),
         Row("3.2.18", "~Ayarlar / Yönetici hesapları", "E-49", L(PanelLayout, "@item.Path"), X(PanelBuilder, "PanelFramePaths.AdminAccounts")),
-        Row("3.2.19", "~Üst satır — satış durumu göstergesi", "E-44", L(PanelLayout, "@frame.Sales.Path"), X(PanelBuilder, "PanelFramePaths.SalesStateSection")),
+        Row("3.2.19", "~Üst satır — satış durumu göstergesi", "E-44", L(PanelLayout, "@frame.Sales.Path"), X(PanelBuilder, "PanelFramePaths.SalesStateSection", 2)),
         Row("3.2.20", "~Üst satır", "E-01", L(PanelLayout, "@frame.SiteViewPath")),
         Row("3.2.21", "~Üst satır — yöneticinin adı", "E-50", L(PanelLayout, "@frame.Admin.AccountPath")),
         Row("3.2.22", "~Üst satır — yöneticinin adı", "E-29", X(PanelLayout, "?handler=SignOut"), R("Panel/SignOut.cshtml.cs", "SessionSchemes.AdminSignInPath")),
@@ -101,7 +102,7 @@ internal static class NavigationInventory
         Row("3.3.7", "E-04", "E-04", R("Product.cshtml.cs", "VariantSelection.PathFor(productPath, variant)")),
         Row("3.3.8", "E-07", "E-08", L("Shared/_ContentCard.cshtml", "@Model.Path")),
         Row("3.3.9", "E-08", "E-10", L("Shared/_ContentRecordBody.cshtml", "@Model.ContactPath")),
-        Row("3.3.10", "E-08", "E-04", X("Shared/_ContentRecordBody.cshtml", "related-products-heading")),
+        Row("3.3.10", "E-08", "E-04", X("Shared/_ContentRecordBody.cshtml", "related-products-heading", 2)),
         Row("3.3.11", "E-10", "E-10", R("Storefront/Contact.cshtml.cs", "FramePaths.Contact"), L("Storefront/Contact.cshtml", "@FramePaths.Contact")),
         Row(
             "3.3.12",
@@ -121,15 +122,15 @@ internal static class NavigationInventory
         Row("3.3.13", "E-12", "E-04", L("Storefront/Cart.cshtml", "/@AddressRules.ProductPrefix/@line.ProductSlug")),
         Row("3.3.14", "E-12", "E-13", L("Storefront/Cart.cshtml", "@FramePaths.Checkout")),
         Row("3.3.15", "E-13", "E-12", R("Storefront/Checkout.cshtml.cs", "FramePaths.Cart"), L(Header, "@Model.Cart.Path")),
-        Row("3.3.16", "E-13", "E-13,E-22", X("Storefront/Checkout.cshtml", "CheckoutModel.LoginTarget"), R("Storefront/Checkout.cshtml.cs", "SignInPath")),
+        Row("3.3.16", "E-13", "E-13,E-22", X("Storefront/Checkout.cshtml", "CheckoutModel.LoginTarget", 2), R("Storefront/Checkout.cshtml.cs", "SignInPath")),
         Row("3.3.17", "E-13", "E-14", R("Storefront/Checkout.cshtml.cs", """result.IsGuestOrder ? ConfirmationKeys.AccessConfirmationPath(result.OrderAccessKey!) : ConfirmationKeys.MemberConfirmationPath(result.OrderNumber!)""")),
-        Row("3.3.18", "E-14", "~Ürünün ödeme sayfası", X("Orders/ConfirmationScreenModels.cs", "PaymentFrameAddress")),
+        Row("3.3.18", "E-14", "~Ürünün ödeme sayfası", X("Orders/ConfirmationScreenModels.cs", "PaymentFrameAddress", 3)),
         Row("3.3.19", "E-14", "E-15,E-16", L("Orders/_ConfirmationScreen.cshtml", "@Model.MemberOrderPath"), L("Orders/_ConfirmationScreen.cshtml", "@ConfirmationPageModel.OrderTrackingPath")),
         Row("3.3.20", "E-27", "E-16", L("Account/OrderHistory.cshtml", "@row.Path")),
         Row("3.3.21", "E-15", "E-16", R("Orders/Tracking.cshtml.cs", "OrderRoutes.AccessPath(found.AccessKey)")),
-        Row("3.3.22", "E-16", "E-17", L("Orders/_OrderPage.cshtml", "@link.Href"), X("Orders/OrderPageModels.cs", "OrderRoutes.ScreenPath(rootPath, \"iptal\")"), X("Orders/OrderPageModels.cs", "OrderRoutes.ScreenPath(rootPath, \"gecikme-feshi\")")),
+        Row("3.3.22", "E-16", "E-17", L("Orders/_OrderPage.cshtml", "@link.Href"), X("Orders/OrderPageModels.cs", "OrderRoutes.ScreenPath(rootPath, \"iptal\")", 2), X("Orders/OrderPageModels.cs", "OrderRoutes.ScreenPath(rootPath, \"gecikme-feshi\")")),
         Row("3.3.23", "E-16", "E-18", L("Orders/_OrderPage.cshtml", "@link.Href"), X("Orders/OrderPageModels.cs", "OrderRoutes.ScreenPath(rootPath, \"cayma\")")),
-        Row("3.3.24", "E-16", "E-19", L("Orders/_OrderPage.cshtml", "@link.Href"), X("Orders/OrderPageModels.cs", "OrderRoutes.ScreenPath(rootPath, \"ayip-talebi\")")),
+        Row("3.3.24", "E-16", "E-19", L("Orders/_OrderPage.cshtml", "@link.Href"), X("Orders/OrderPageModels.cs", "OrderRoutes.ScreenPath(rootPath, \"ayip-talebi\")", 2)),
         Row(
             "3.3.25",
             "E-17,E-18,E-19",
@@ -374,6 +375,279 @@ internal static class NavigationInventory
             R("Panel/AdminAccounts.cshtml.cs", "PanelFramePaths.SignIn")),
     ];
 
+    // The producers of the addresses (T546 correction 4; B1): a link of a view whose address comes from a model, a list or a helper (@item.Href, @row.Path, @counter.ListPath, @path ...) is the same
+    // expression whatever it leads to, so the link proves nothing about the target. The line of the code that gives the address its target is the evidence of the target: each is a text that holds
+    // the target itself (the screen's constant, the route helper, the prefix), so changing the target in the producer, deleting the list entry or adding another target breaks the row it belongs to.
+    private static readonly NavigationEvidence[] ProductCardAddress =
+    [
+        X("Lists/ProductCard.cs", """internal const string ProductPathPrefix = "/urun/";"""),
+        X("Lists/ProductCard.cs", "ProductPath(item.Slug),"),
+    ];
+
+    private static readonly NavigationEvidence[] ContentCardAddress =
+    [
+        X("!Modules/CorporateContent/ContentReaders.cs", "AddressRules.RecordAddress(AddressRules.ServicePrefix, o.Slug)"),
+        X("!Modules/CorporateContent/ContentReaders.cs", "AddressRules.RecordAddress(AddressRules.ReferencePrefix, p.Slug)"),
+    ];
+
+    private static readonly NavigationEvidence[] TrackingAddress =
+    [
+        X("!Modules/Ordering/Contracts/CarrierCatalog.cs", "new TrackingLink(entry.TrackingUrlPattern.Replace(Placeholder, Uri.EscapeDataString(trackingNumber)"),
+    ];
+
+    private static readonly NavigationEvidence[] CategoryAddress =
+    [
+        X("Frame/FrameMenuTree.cs", "AddressRules.RecordAddress(AddressRules.CategoryPrefix, c.Slug)"),
+    ];
+
+    private static readonly NavigationEvidence[] SalesConditionAddress =
+    [
+        X("Components/StateModels.cs", "SalesGateCondition.CompanyIdentity => PanelFramePaths.FirmIdentityAndSales,"),
+        X("Components/StateModels.cs", "SalesGateCondition.PaymentMethod => PanelFramePaths.PaymentMethods,"),
+        X("Components/StateModels.cs", "SalesGateCondition.PrivacyNotice or SalesGateCondition.CookiePolicy => PanelFramePaths.LegalTexts,"),
+        X("Components/StateModels.cs", "SalesGateCondition.ReturnAddress => PanelFramePaths.ShippingAndDefaults,"),
+    ];
+
+    private static readonly NavigationEvidence[] SetupChecklistAddress =
+    [
+        X("Panel/Index.cshtml.cs", "SetupChecklistItemKind.CompanyIdentity => PanelFramePaths.FirmIdentityAndSales,"),
+        X("Panel/Index.cshtml.cs", "SetupChecklistItemKind.PaymentMethod => PanelFramePaths.PaymentMethods,"),
+        X("Panel/Index.cshtml.cs", "SetupChecklistItemKind.PrivacyNotice or SetupChecklistItemKind.CookiePolicy => PanelFramePaths.LegalTexts,"),
+        X("Panel/Index.cshtml.cs", "SetupChecklistItemKind.ReturnAddress => PanelFramePaths.ShippingAndDefaults,"),
+        X("Panel/Index.cshtml.cs", "PanelHomeTexts.ChecklistPath(i.Kind),"),
+    ];
+
+    private static readonly NavigationEvidence[] LandingAddress =
+    [
+        X("Components/RegistrationTexts.cs", "\"Kayıt ol\", FramePaths.Register);"),
+        X("Components/RegistrationTexts.cs", "SignInNext, FramePaths.SignIn),", 6),
+        X("Components/RegistrationTexts.cs", "string accountPath = isMember ? FramePaths.Account : FramePaths.SignIn;"),
+    ];
+
+    private static readonly NavigationEvidence[] ReauthenticationAddress =
+    [
+        X("Storefront/ReauthenticationAddresses.cs", """FramePaths.Reauthentication + "?" + OperationParameter + "=" + Uri.EscapeDataString(operation.ToString())"""),
+        X("Storefront/ReauthenticationAddresses.cs", """FramePaths.Account + "?" + OperationParameter + "=" + Uri.EscapeDataString(operation.ToString())"""),
+    ];
+
+    /// <summary>The producers by row: the lines of the code that give a model-fed address its target.</summary>
+    private static readonly Dictionary<string, NavigationEvidence[]> Producers = new(StringComparer.Ordinal)
+    {
+        ["3.3.1"] = ProductCardAddress,
+        ["3.3.2"] = [X("Storefront/HomePage.cs", "new HomeCategoryLink(c.Name, AddressRules.RecordAddress(AddressRules.CategoryPrefix, c.Slug))")],
+        ["3.3.3"] = [X("!Modules/CorporateContent/HomepageReader.cs", """new HomepageIntro(about.ShortIntroduction, "/" + AddressRules.AboutPage,"""), X("Storefront/HomePage.cs", "intro.Path,")],
+        ["3.3.4"] =
+        [
+            X("!Modules/CorporateContent/HomepageReader.cs", """section.MenuNames.Offerings, "/" + AddressRules.ServiceListPage"""),
+            X("!Modules/CorporateContent/HomepageReader.cs", """section.MenuNames.PortfolioItems, "/" + AddressRules.ReferenceListPage"""),
+            X("!Modules/CorporateContent/HomepageReader.cs", "AddressRules.RecordAddress(AddressRules.ServicePrefix, o.Slug)"),
+            X("!Modules/CorporateContent/HomepageReader.cs", "AddressRules.RecordAddress(AddressRules.ReferencePrefix, p.Slug)"),
+            X("Storefront/HomePage.cs", "new HomeCardBlock(block.Title, block.ListPath,"),
+        ],
+        ["3.3.5"] = ProductCardAddress,
+        ["3.3.6"] =
+        [
+            X("Storefront/CategoryPage.cs", "new CategoryCrumb(current.Name, CategoryPaths.Of(current.Slug))"),
+            X("Storefront/StorefrontHeads.cs", "public static string Of(string slug) => AddressRules.RecordAddress(AddressRules.CategoryPrefix, slug);"),
+            X("Storefront/ProductView.cs", "new ProductCrumb(current.Name, AddressRules.RecordAddress(AddressRules.CategoryPrefix, current.Slug))"),
+        ],
+        ["3.3.8"] = ContentCardAddress,
+        ["3.3.9"] = [X("Content/ContentRecordPages.cs", "Kind == ContentPageKind.Offering ? FramePaths.Contact : null")],
+        ["3.3.10"] =
+        [
+            X("Shared/_ContentRecordBody.cshtml", """<partial name="_ProductGrid" model="Model.LinkedProducts" />"""),
+            X("Shared/_ProductGrid.cshtml", """<partial name="_ProductCard" model="card" />"""),
+            .. ProductCardAddress,
+        ],
+        ["3.3.12"] =
+        [
+            X("Frame/FramedNotFoundPageRenderer.cs", "new(FramePaths.Home, productLinks)"),
+            .. CategoryAddress,
+        ],
+        ["3.3.15"] = [X("Frame/StorefrontFrameBuilder.cs", "new FrameCart(FramePaths.Cart, badge.ItemCount)")],
+        ["3.3.18"] = [X("Orders/ConfirmationScreenModels.cs", "PaymentFrameAddress = FrameAddressOf(answer.FrameAddress);")],
+        ["3.3.19"] =
+        [
+            X("Orders/ConfirmationScreenModels.cs", "public string MemberOrderPath => OrderRoutes.MemberPath(Facts.OrderNumber);"),
+            X("Orders/ConfirmationScreenModels.cs", "public static string OrderTrackingPath => FramePaths.OrderTracking;"),
+            X("!Infrastructure/Routing/OrderRoutes.cs", "return \"/\" + AddressRules.OrderArea + \"/\" + orderNumber;"),
+        ],
+        ["3.3.17"] =
+        [
+            X("!Infrastructure/Forms/ConfirmationKeys.cs", "return $\"/siparis/{Uri.EscapeDataString(orderNumber)}/{ConfirmationScreen}\";"),
+            X("!Infrastructure/Forms/ConfirmationKeys.cs", "return $\"/siparis/{OrderRoutes.AccessSegment}/{Uri.EscapeDataString(accessKey)}/{ConfirmationScreen}\";"),
+        ],
+        ["3.3.20"] =
+        [
+            X("Account/OrderHistory.cshtml.cs", "OrderRoutes.MemberPath(o.OrderNumber),"),
+            X("!Infrastructure/Routing/OrderRoutes.cs", "return \"/\" + AddressRules.OrderArea + \"/\" + orderNumber;"),
+        ],
+        ["3.3.21"] = [X("!Infrastructure/Routing/OrderRoutes.cs", "return \"/\" + AddressRules.OrderArea + \"/\" + AccessSegment + \"/\" + accessKey;")],
+        ["3.3.25"] =
+        [
+            X("Orders/AfterSalesScreenModels.cs", "public string RootPath => OrderRoots.RootOf(ScreenPath, Screen);"),
+            X("Orders/AfterSalesScreenModels.cs", "ScreenPath, Handler, RootPath, fields)"),
+            X("Orders/OrderScreenModels.cs", "return last > 0 ? path[..last] : path;"),
+        ],
+        ["3.3.29"] = [X("Components/RegistrationTexts.cs", "SignInNext, FramePaths.SignIn),", 6)],
+        ["3.3.30"] = ReauthenticationAddress,
+        ["3.3.32"] =
+        [
+            X("Shared/_AccountNav.cshtml", "(AccountTexts.NavAccount, FramePaths.Account),"),
+            X("Shared/_AccountNav.cshtml", "(AccountTexts.NavAddresses, FramePaths.AccountAddresses),"),
+            X("Shared/_AccountNav.cshtml", "(AccountTexts.NavOrders, FramePaths.AccountOrders),"),
+        ],
+        ["3.3.34"] = [X("Components/RegistrationTexts.cs", "\"Kayıt ol\", FramePaths.Register);")],
+        ["3.3.35"] = [X("Components/RegistrationTexts.cs", "string accountPath = isMember ? FramePaths.Account : FramePaths.SignIn;")],
+        ["3.3.37"] = ReauthenticationAddress,
+        ["3.3.39"] = [X("Orders/ConfirmationScreenModels.cs", "private string NotAwaitingTarget() => IsMemberRoot ? MemberOrderPath : FramePaths.OrderTracking;")],
+        ["3.3.42"] = [X("Orders/_OrderPage.cshtml", "shipping.Link is { } tracking"), .. TrackingAddress],
+        ["3.3.44"] =
+        [
+            X("Components/IbanModels.cs", "customerSide ? FramePaths.PrivacyNotice : null,"),
+            X("Storefront/Contact.cshtml", "l.Path == FramePaths.PrivacyNotice"),
+        ],
+        ["3.3.45"] = [X("Storefront/Contact.cshtml", "branch.MapUrl is { } mapUrl")],
+        ["3.4.2"] =
+        [
+            X("Components/PendingCounters.cs", """PanelListTarget.OrdersAwaitingPaymentApproval => OrdersWith("AwaitingPayment"),"""),
+            X("Components/PendingCounters.cs", """PanelListTarget.OrdersToShip => OrdersWith("AwaitingShipment"),"""),
+            X("Components/PendingCounters.cs", """PanelListTarget.OrdersAwaitingDeliveryMark => OrdersWith("AwaitingDeliveryMark"),"""),
+            X("Components/PendingCounters.cs", """PanelListTarget.OrdersWithServicePending => OrdersWith("AwaitingServiceCompletion"),"""),
+            X("Components/PendingCounters.cs", """PanelListTarget.OpenRequests => PanelFramePaths.Requests + "?requestStatus=Open","""),
+            X("Components/PendingCounters.cs", """PanelListTarget.RefundAndReturnWork => OrdersWith("AwaitingReturnOrRefund"),"""),
+            X("Components/PendingCounters.cs", """private static string OrdersWith(string pendingWork) => PanelFramePaths.Orders + "?pendingWork=" + pendingWork;"""),
+        ],
+        ["3.4.3"] =
+        [
+            X("Panel/Index.cshtml.cs", "missing.Length > 0 ? WarningPathOf(gate) : PanelFramePaths.SalesStateSection"),
+            X("Panel/Index.cshtml.cs", "PanelHomeTexts.FirmNoticesBroken(identity.Email ?? string.Empty), PanelFramePaths.FirmIdentityAndSales"),
+            X("Panel/Index.cshtml.cs", """PanelHomeTexts.EmailNotDelivered(details.EmailNotDeliveredOrders), PanelFramePaths.Orders + "?pendingWork=EmailUndeliveredMark")"""),
+            X("Panel/Index.cshtml.cs", """PanelHomeTexts.CardRefundFailed(details.CardRefundFailedOrders), PanelFramePaths.Orders + "?pendingWork=AwaitingReturnOrRefund")"""),
+            X("Panel/Index.cshtml.cs", """PanelHomeTexts.CardRefundOutcomePending(details.CardRefundOutcomePendingOrders), PanelFramePaths.Orders + "?pendingWork=AwaitingReturnOrRefund")"""),
+            X("Panel/Index.cshtml.cs", "SalesGateCondition.CompanyIdentity => PanelHomeTexts.ChecklistPath(SetupChecklistItemKind.CompanyIdentity),"),
+            X("Panel/Index.cshtml.cs", "SalesGateCondition.PaymentMethod => PanelHomeTexts.ChecklistPath(SetupChecklistItemKind.PaymentMethod),"),
+            X("Panel/Index.cshtml.cs", "SalesGateCondition.PrivacyNotice => PanelHomeTexts.ChecklistPath(SetupChecklistItemKind.PrivacyNotice),"),
+            X("Panel/Index.cshtml.cs", "SalesGateCondition.CookiePolicy => PanelHomeTexts.ChecklistPath(SetupChecklistItemKind.CookiePolicy),"),
+            X("Panel/Index.cshtml.cs", "_ => PanelHomeTexts.ChecklistPath(SetupChecklistItemKind.ReturnAddress),"),
+            .. SalesConditionAddress,
+        ],
+        ["3.4.4"] = SetupChecklistAddress,
+        ["3.4.5"] =
+        [
+            X("Panel/Index.cshtml.cs", """PanelFramePaths.Orders + "/" + row.OrderId.ToString("D"),"""),
+            X("Components/AwaitingCustomerList.cs", "public static string AllPath => PendingCounters.IbanPendingListPath;"),
+            X("Components/PendingCounters.cs", """public static string IbanPendingListPath => OrdersWith("IbanPendingMark");"""),
+        ],
+        ["3.4.9"] =
+        [
+            X("Panel/OrderDetail.cshtml.cs", "BackPath = ListReturn.Target(HttpContext.Request.Query[ReturnPath.ParameterName], PanelFramePaths.Orders);"),
+            X("Panel/RequestDetail.cshtml.cs", "BackPath = ListReturn.Target(HttpContext.Request.Query[ReturnPath.ParameterName], PanelFramePaths.Requests);"),
+        ],
+        ["3.4.10"] = [X("Panel/Products.cshtml.cs", """NewProductPath = ListReturn.LinkTo(PanelFramePaths.Products + "/yeni", listAddress);"""), X("Panel/ProductForm.cshtml.cs", """public static string PathOf(Guid productId) => $"{PanelFramePaths.Products}/{productId:D}";""")],
+        ["3.4.7"] = [X("Panel/OrderDetail.cshtml.cs", """private static string PathOf(Guid id) => $"{PanelFramePaths.Orders}/{id:D}";""")],
+        ["3.4.17"] = [X("Panel/AdminAccounts.cshtml.cs", "public const string ListRoot = PanelFramePaths.AdminAccounts;")],
+        ["3.4.12"] =
+        [
+            X("Panel/ContentRoutes.cs", "public static string FormPath(PanelContentType type, Guid id) => $\"{Root}/{SegmentOf(type)}/{id:D}\";"),
+            X("Panel/ContentRoutes.cs", "public static string NewPath(PanelContentType type) => $\"{Root}/{SegmentOf(type)}/{NewSegment}\";"),
+            X("Panel/ContentRoutes.cs", """public const string Root = "/panel/kurumsal-icerik";"""),
+            X("Panel/ContentForm.cshtml.cs", "public static string ListPath => PanelFramePaths.CorporateContent;"),
+        ],
+        ["3.4.13"] =
+        [
+            X("!Modules/CorporateContent/PanelContentEditing.cs", """pagePath = "/" + AddressRules.AboutPage;"""),
+            X("!Modules/CorporateContent/PanelContentEditing.cs", "pagePath = offering is null ? null : AddressRules.RecordAddress(AddressRules.ServicePrefix, offering.Slug);"),
+            X("!Modules/CorporateContent/PanelContentEditing.cs", "pagePath = item is null ? null : AddressRules.RecordAddress(AddressRules.ReferencePrefix, item.Slug);"),
+            X("!Modules/CorporateContent/PanelContentEditing.cs", "pagePath = page is null ? null : AddressRules.RecordAddress(AddressRules.GeneralPagePrefix, page.Slug);"),
+        ],
+        ["3.4.14"] = [X("Panel/Members.cshtml.cs", """ListReturn.LinkTo(PanelFramePaths.Orders + "/" + o.OrderId.ToString(), listAddress)""")],
+        ["3.4.15"] =
+        [
+            X("Panel/FirmIdentity.cshtml.cs", """IdentityMissing(), "#" + IdentitySectionId)"""),
+            X("Panel/FirmIdentity.cshtml.cs", "\"Eksik: açık ödeme yöntemi yok\", PanelFramePaths.PaymentMethods)"),
+            X("Panel/FirmIdentity.cshtml.cs", "LegalMissing(), PanelFramePaths.LegalTexts)"),
+            X("Panel/FirmIdentity.cshtml.cs", "\"Eksik: iade adresi girilmedi\", PanelFramePaths.ShippingAndDefaults)"),
+            .. SalesConditionAddress,
+        ],
+        ["3.4.16"] =
+        [
+            X("Panel/MyAccount.cshtml", """string reauthForEmail = PanelFramePaths.Reauthentication + "?" + ReauthModel.OperationParameter + "=EmailChange";"""),
+            X("Panel/MyAccount.cshtml", """string reauthForPass = PanelFramePaths.Reauthentication + "?" + ReauthModel.OperationParameter + "=PasswordChange";"""),
+            X("Panel/MyAccount.cshtml.cs", """PanelFramePaths.Reauthentication + "?" + ReauthModel.OperationParameter + "=" + Uri.EscapeDataString(operation.ToString());"""),
+        ],
+        ["3.4.19"] = [X("Panel/ProductForm.cshtml.cs", """public static string OrderPathOf(Guid orderId) => $"{PanelFramePaths.Orders}/{orderId:D}";""")],
+        ["3.4.20"] =
+        [
+            X("Panel/ProductForm.cshtml.cs", "ReturnPath = ListReturn.Target(returnUrl, PanelFramePaths.Products);", 3),
+            X("Panel/OrderDetail.cshtml.cs", "BackPath = ListReturn.Target(HttpContext.Request.Query[ReturnPath.ParameterName], PanelFramePaths.Orders);"),
+        ],
+        ["3.4.21"] =
+        [
+            X("Panel/RequestDetail.cshtml.cs", """SearchOrdersPath = $"{PanelFramePaths.Orders}?search={encodedEmail}";"""),
+            X("Panel/RequestDetail.cshtml.cs", """SearchMembersPath = $"{PanelFramePaths.Members}?search={encodedEmail}";"""),
+        ],
+        ["3.4.22"] = [X("Panel/LegalTexts.cshtml.cs", "IdentityMissingPrefix + LabelOf(field), PanelFramePaths.FirmIdentityAndSales")],
+        ["3.4.23"] =
+        [
+            X("Panel/LandingNextStep.cs", "session.Succeeded ? (PanelFramePaths.MyAccount, PanelAccessTexts.ToMyAccountLink) : (PanelFramePaths.SignIn, PanelAccessTexts.ToSignInLink)"),
+            X("Panel/Revert.cshtml.cs", "public string NextPath { get; private set; } = PanelFramePaths.SignIn;"),
+            X("Panel/Verify.cshtml.cs", "public string NextPath { get; private set; } = PanelFramePaths.SignIn;"),
+        ],
+        ["3.4.25"] = [X("Panel/OrderDetail.cshtml", "display.Link is { } link"), .. TrackingAddress],
+    };
+
+    /// <summary>The rows of the tables and the paragraphs of 3.6 with the producers of the addresses their links draw from a model.</summary>
+    public static IReadOnlyList<NavigationEntry> Entries { get; } =
+        [.. Rows.Select(e => Producers.TryGetValue(e.Id, out NavigationEvidence[]? producers) ? e with { Evidence = [.. e.Evidence, .. producers] } : e)];
+
+    /// <summary>The sites that stand more than once in their file (the same address in two handlers or two links): the count is pinned, so that changing one of them to another address of the same file is seen.</summary>
+    public static IReadOnlyDictionary<(string File, NavigationSiteKind Kind, string Key), int> RepeatedSites { get; } = new Dictionary<(string File, NavigationSiteKind Kind, string Key), int>
+    {
+        [("Pages/Account/Addresses.cshtml.cs", NavigationSiteKind.Redirect, "FramePaths.AccountAddresses")] = 3,
+        [("Pages/Account/Profile.cshtml.cs", NavigationSiteKind.Redirect, "FramePaths.Account")] = 5,
+        [("Pages/Account/Reauthentication.cshtml.cs", NavigationSiteKind.Redirect, "FramePaths.Account")] = 3,
+        [("Pages/Orders/ConfirmationScreenModels.cs", NavigationSiteKind.Redirect, "ScreenPath")] = 3,
+        [("Pages/Orders/ConfirmationScreenModels.cs", NavigationSiteKind.Redirect, "NotAwaitingTarget()")] = 2,
+        [("Pages/Orders/_DefectClaimScreen.cshtml", NavigationSiteKind.Link, "@Model.RootPath")] = 2,
+        [("Pages/Panel/AdminAccounts.cshtml.cs", NavigationSiteKind.Redirect, "ListRoot")] = 3,
+        [("Pages/Panel/AdminAccounts.cshtml.cs", NavigationSiteKind.Redirect, "PanelFramePaths.SignIn")] = 3,
+        [("Pages/Panel/Categories.cshtml.cs", NavigationSiteKind.Redirect, "PanelFramePaths.Categories")] = 2,
+        [("Pages/Panel/ContentList.cshtml", NavigationSiteKind.Link, "@ContentRoutes.NewPath(group.Type)")] = 2,
+        [("Pages/Panel/FirmIdentity.cshtml.cs", NavigationSiteKind.Redirect, "PanelFramePaths.FirmIdentityAndSales")] = 3,
+        [("Pages/Panel/LegalTexts.cshtml.cs", NavigationSiteKind.Redirect, "PanelFramePaths.LegalTexts")] = 2,
+        [("Pages/Panel/MyAccount.cshtml.cs", NavigationSiteKind.Redirect, "PanelFramePaths.MyAccount")] = 4,
+        [("Pages/Panel/ProductForm.cshtml.cs", NavigationSiteKind.Redirect, "FormAddress(productId, returnUrl)")] = 2,
+        [("Pages/Panel/Reauth.cshtml.cs", NavigationSiteKind.Redirect, "PanelFramePaths.MyAccount")] = 3,
+        [("Pages/Panel/RequestDetail.cshtml.cs", NavigationSiteKind.Redirect, "path")] = 2,
+        [("Pages/Panel/Reset.cshtml", NavigationSiteKind.Link, "@PanelFramePaths.SignIn")] = 2,
+        [("Pages/Panel/Revert.cshtml", NavigationSiteKind.Link, "@Model.NextPath")] = 3,
+        [("Pages/Panel/Verify.cshtml", NavigationSiteKind.Link, "@Model.NextPath")] = 3,
+        [("Pages/Panel/_ContentFormBody.cshtml", NavigationSiteKind.Link, "@record.PagePath")] = 3,
+        [("Pages/Shared/_AccountNav.cshtml", NavigationSiteKind.Link, "@path")] = 2,
+        [("Pages/Shared/_HomeCardBlock.cshtml", NavigationSiteKind.Link, "@Model.ListPath")] = 2,
+        [("Pages/Shared/_PanelSalesStatus.cshtml", NavigationSiteKind.Link, "@row.FixPath")] = 2,
+        [("Pages/Shared/_StorefrontHeader.cshtml", NavigationSiteKind.Link, "@Model.Cart.Path")] = 2,
+        [("Pages/Storefront/Cart.cshtml.cs", NavigationSiteKind.Redirect, "FramePaths.Cart")] = 2,
+        [("Pages/Storefront/Checkout.cshtml.cs", NavigationSiteKind.Redirect, "FramePaths.Cart")] = 6,
+        [("Pages/Storefront/Checkout.cshtml.cs", NavigationSiteKind.Redirect, "SignInPath")] = 2,
+        [("Pages/Storefront/PasswordReset.cshtml", NavigationSiteKind.Link, "@FramePaths.SignIn")] = 2,
+        [("Pages/Storefront/Register.cshtml", NavigationSiteKind.Link, "@FramePaths.PrivacyNotice")] = 2,
+    };
+
+    /// <summary>The producers by row id: a row of 3.3 or 3.4 whose link draws its address from a model must be in it.</summary>
+    public static IReadOnlyDictionary<string, NavigationEvidence[]> ProducersByRow => Producers;
+
+    /// <summary>True when the address of a link is not a constant of the routes: it comes from a model, a list or a helper and the link expression alone does not show where it goes.</summary>
+    public static bool AddressComesFromAModel(NavigationEvidence evidence)
+    {
+        ArgumentNullException.ThrowIfNull(evidence);
+        return evidence.Kind == NavigationEvidenceKind.Link
+            && !evidence.Text.StartsWith('/')
+            && !evidence.Text.Contains("FramePaths.", StringComparison.Ordinal)
+            && !evidence.Text.Contains("AddressRules.", StringComparison.Ordinal);
+    }
+
     /// <summary>The sites that stay on their screen or are not a screen (04 3 introduction); no link that leads to another screen is here.</summary>
     public static IReadOnlyList<NavigationExemption> Exemptions { get; } =
     [
@@ -447,7 +721,7 @@ internal static class NavigationInventory
 
     private static NavigationEvidence E(string file, string key) => new(NavigationEvidenceKind.EmptyExit, Path(file), key);
 
-    private static NavigationEvidence X(string file, string text) => new(NavigationEvidenceKind.Text, Path(file), text);
+    private static NavigationEvidence X(string file, string text, int occurrences = 1) => new(NavigationEvidenceKind.Text, Path(file), text, occurrences);
 
     private static NavigationEvidence Page(string route) => new(NavigationEvidenceKind.Page, string.Empty, route);
 

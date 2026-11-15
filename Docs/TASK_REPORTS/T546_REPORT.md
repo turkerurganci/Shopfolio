@@ -78,10 +78,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | — |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-15, dal ucu `a8cb7217`; CI run `43695678189` yeşil) |
+| Bulgu sayısı | 1 (S1, ORTA) |
+| Düzeltme gerekli mi | Evet — B1: `04` 3.3.44 satırı E-19'u (ayıp talebi ekranı) atlıyor; `02 §3.33.5`, `04` 5.19.3 (4), 6.2.19.1 ve KP-74 eşlemesi E-19'da aydınlatma bağlantısını sayar; kodda `_DefectClaimScreen.cshtml` bu bağlantıyı çizmez. Satır koda göre daraltıldığı için denetim farkı gizliyor. Düzeltme: 3.3.44'ün "Nereden"ine E-19 eklenir, E-19'a aydınlatma bağlantısı çizilir (sayfa testiyle), envanter kanıtı ve kırılma testi eklenir. |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 → D-1626 (taramanın görmediği form `action`/`formaction`, `WriteSeeOther`, paylaşılan anahtarlar), K2 → D-1627 (`LinkKeySourceScanTests` yük altında regex zaman aşımı) |
+
+**Doğrulayıcı kabul kriterleri:** 1 ✗ (3.3.44 / E-19, B1) · 2 ✓ · 3 ✓ · 4 ✓ · 5 ✓ · 6 ✓ · 7 ✓ (kapsam notu K1). Yerel: build `-warnaserror` 0 uyarı; `dotnet format --include` değişen 12 `.cs` temiz; Consistency 381/381; Unit (Consistency dışı) 7419/7420 — tek kalan `LinkKeySourceScanTests` regex zaman aşımı, sınıf tek başına 16/16 (K2); betik testleri 4/4; Integration `CartPageTests`, `CartTests`, `CartQuantityTests`, `MainFlowTests` 70/70, TAM: CI. `12`'de T546'ya düşen satır yok.
 
 ## Altyapı Değişiklikleri
 

@@ -174,7 +174,12 @@ public sealed partial class OrderDetailModel : PageModel
     public IReadOnlyList<ItemRecordEntry> RecordsOf(OrderPageItem item)
     {
         ArgumentNullException.ThrowIfNull(item);
-        return ItemRecordLabels.EntriesOf(Records, item.OrderItemId, item.Quantity, item.DeliveryMarkedAt);
+        return ItemRecordLabels.EntriesOf(
+            Records,
+            item.OrderItemId,
+            item.Quantity,
+            item.DeliveryMarkedAt,
+            warningOf: r => r.RecordId is Guid id && LegalInterestRecords.Contains(id) ? LegalInterestWarningText : null);
     }
 
     /// <summary>The item's panel facts (04 9.9.6): the open quantity, its marks and its periods, as the server read them.</summary>

@@ -186,6 +186,8 @@ internal sealed class PanelOrderReader : IPanelOrderReader
 
     public Task<IReadOnlySet<Guid>> LegalInterestDueItemsAsync(Guid orderId, CancellationToken ct) => _periods.LegalInterestDueItemsAsync(orderId, _time.GetUtcNow(), ct);
 
+    public Task<IReadOnlySet<Guid>> LegalInterestRecordsAsync(Guid orderId, CancellationToken ct) => _periods.LegalInterestWarningsAsync(orderId, ct);
+
     private static string ProvinceName(IReadOnlyDictionary<Guid, string> provinces, Guid provinceId) =>
         provinces.TryGetValue(provinceId, out string? name) ? name : string.Empty;
 }

@@ -26,7 +26,8 @@ internal sealed partial class AfterSalesModule
                 m.OrderItemId,
                 m.IsRemoval ? ItemRecordFactKind.ItemRemoval : m.IsTermination ? ItemRecordFactKind.LateDeliveryTermination : ItemRecordFactKind.Cancellation,
                 m.Quantity,
-                m.At)),
+                m.At,
+                RecordId: m.RecordId)),
         ];
         var withdrawals = await _db.Withdrawals.AsNoTracking()
             .Where(w => ids.Contains(w.OrderItemId))

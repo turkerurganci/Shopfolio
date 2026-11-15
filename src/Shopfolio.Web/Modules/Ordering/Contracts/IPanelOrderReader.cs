@@ -27,4 +27,10 @@ public interface IPanelOrderReader
     /// before the order was shipped. A plain read; the firm's cancellation form shows the warning before the window opens.
     /// </summary>
     Task<IReadOnlySet<Guid>> LegalInterestDueItemsAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
+    /// The order's item records whose row carries the legal interest warning (T528; 04 9.9.6; 02 7.2.3; K-798 (2); VAL-A228): every late delivery termination and every cancellation
+    /// made after Z-10 or Z-39 ran out (<c>OrderPeriods.LegalInterestWarningsAsync</c>). The keys are the closing records' ids (<c>ClosingRecordMoment.RecordId</c>). A plain read.
+    /// </summary>
+    Task<IReadOnlySet<Guid>> LegalInterestRecordsAsync(Guid orderId, CancellationToken ct);
 }

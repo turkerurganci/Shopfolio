@@ -124,6 +124,57 @@ public sealed partial class OrderDetailPageTests
     }
 
     [Fact]
+    public async Task ItemRecords_OfACancellationAfterThePromise_AndOfATermination_CarryTheLegalInterestWarning_AndACancellationWithinThePromise_Not_T528_KK1_VAL_A228()
+    {
+        // 04 9.9.6, K-798 (2), VAL-B135, VAL-B136, VAL-B140: the warning stands on the record's row of the item.
+        string onTheRow = $"<span class=\"item-records__warning\" role=\"alert\">{OrderDetailModel.LegalInterestWarningText}</span>";
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        (Guid late, Guid[] lateItems) = await StepOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid, (ProductType.Physical, false));
+        (Guid early, Guid[] earlyItems) = await StepOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid, (ProductType.Physical, false));
+        (Guid terminated, Guid[] terminatedItems) = await StepOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid, (ProductType.Physical, false));
+        await ApprovedAsync(late, DateTimeOffset.UtcNow.AddDays(-30));
+        await ApprovedAsync(early, DateTimeOffset.UtcNow);
+        await using (AppDbContext db = NewContext())
+        {
+            await db.Orders.Where(o => o.Id == terminated).ExecuteUpdateAsync(s => s.SetProperty(o => o.CreatedAt, DateTimeOffset.UtcNow.AddDays(-40)), Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        foreach ((Guid orderId, Guid itemId) in new[] { (late, lateItems[0]), (early, earlyItems[0]) })
+        {
+            (HttpStatusCode cancelled, _) = await PostForLocationAsync(
+                client,
+                $"{OrdersPath}/{orderId:D}?handler=CancelOrderByCompany",
+                [
+                    ("Input.Items[0].OrderItemId", itemId.ToString("D")), ("Input.Items[0].Quantity", "1"),
+                    ("Input.CancellationReason", nameof(CancellationReason.DamagedOrUnsellable)), ("Input.Version", "1"), ("Input.Confirmed", "true"),
+                ],
+                key);
+            Assert.Equal(HttpStatusCode.SeeOther, cancelled);
+        }
+
+        (HttpStatusCode recorded, _) = await PostForLocationAsync(
+            client,
+            $"{OrdersPath}/{terminated:D}?handler=RecordLateDeliveryTermination",
+            [("Input.DeclarationDate", DateText(TurkeyTime.DateOf(DateTimeOffset.UtcNow).AddDays(-1))), ("Input.Version", "1"), ("Input.Confirmed", "true")],
+            key);
+        Assert.Equal(HttpStatusCode.SeeOther, recorded);
+
+        (HttpStatusCode lateStatus, string lateHtml) = await GetAsync(client, $"{OrdersPath}/{late:D}", key);
+        (HttpStatusCode earlyStatus, string earlyHtml) = await GetAsync(client, $"{OrdersPath}/{early:D}", key);
+        (HttpStatusCode terminatedStatus, string terminatedHtml) = await GetAsync(client, $"{OrdersPath}/{terminated:D}", key);
+
+        Assert.Equal(HttpStatusCode.OK, lateStatus);
+        Assert.Matches($"İptal kaydı</span>[^<]*(<span class=\"item-records__(moment|detail)\">[^<]*</span>\\s*)*{Regex.Escape(onTheRow)}", lateHtml);
+        Assert.Equal(HttpStatusCode.OK, earlyStatus);
+        Assert.Contains("İptal kaydı</span>", earlyHtml, StringComparison.Ordinal);
+        Assert.DoesNotContain(OrderDetailModel.LegalInterestWarningText, earlyHtml, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.OK, terminatedStatus);
+        Assert.Matches($"Gecikme feshi</span>[^<]*(<span class=\"item-records__(moment|detail)\">[^<]*</span>\\s*)*{Regex.Escape(onTheRow)}", terminatedHtml);
+    }
+
+    [Fact]
     public async Task WithdrawalRecord_TakesManyItemsWithTheirUnits_AsksOnce_ThenWritesOneDeclarationPerItem_T528_KK4()
     {
         (string key, _) = await TestSessions.AdminAsync(_database.Dsn);

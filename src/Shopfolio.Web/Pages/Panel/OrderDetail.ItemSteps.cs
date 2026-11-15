@@ -112,6 +112,9 @@ public sealed partial class OrderDetailModel
     /// <summary>The items whose cancellation now carries the legal interest warning (04 9.9.19; 03 8.3.1.1; K-798 (2)).</summary>
     public IReadOnlySet<Guid> LegalInterestDueItems { get; private set; } = new HashSet<Guid>();
 
+    /// <summary>The item records whose row carries the legal interest warning (04 9.9.6; K-798 (2); VAL-A228): every termination, every cancellation after Z-10 or Z-39 ran out.</summary>
+    public IReadOnlySet<Guid> LegalInterestRecords { get; private set; } = new HashSet<Guid>();
+
     /// <summary>The undelivered physical items the late delivery termination falls on, with their open units (04 9.9.20; K-796): the form lists them read-only.</summary>
     public IReadOnlyList<(OrderPageItem Item, int OpenUnits)> TerminatedItems =>
         [.. Detail.Items.Where(i => i.ProductType == ProductType.Physical && i.DeliveryMarkedAt is null).Select(i => (i, ItemFactsOf(i)?.OpenQuantity ?? 0)).Where(t => t.Item2 > 0)];
@@ -344,7 +347,9 @@ public sealed partial class OrderDetailModel
     private async Task LoadReturnStepsAsync(CancellationToken ct)
     {
         ReturnSteps = await _afterSales.ReturnStepFactsAsync([.. Detail.Items.Select(i => i.OrderItemId)], ct);
-        LegalInterestDueItems = await HttpContext.RequestServices.GetRequiredService<IPanelOrderReader>().LegalInterestDueItemsAsync(Summary.OrderId, ct);
+        IPanelOrderReader reader = HttpContext.RequestServices.GetRequiredService<IPanelOrderReader>();
+        LegalInterestDueItems = await reader.LegalInterestDueItemsAsync(Summary.OrderId, ct);
+        LegalInterestRecords = await reader.LegalInterestRecordsAsync(Summary.OrderId, ct);
     }
 
     private async Task<IActionResult> ArriveAsync(Guid id, ReceiveReturnInput input, bool isRejection, CancellationToken ct)

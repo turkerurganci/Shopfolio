@@ -4423,7 +4423,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 | 7.2.4.15 | İfa süresi | Yayın için zorunlu — hizmette (P-44) | Gün; P-44'ün alt çiti | Alan mesajı; yayın kapısı (K-799) | — |
 | 7.2.4.16 | Bir siparişte en fazla adet | İsteğe bağlı (P-9) | Tam sayı; P-9'un çiti | Alan mesajı | — |
 | 7.2.4.17 | Cayma istisnası ve sebebi | İsteğe bağlı — işaretlenince sebep zorunlu | Kapalı liste (`02 §7.3.4`; K-509) | Alan mesajı | — |
-| 7.2.4.18 | İndirim — yüzde, başlangıç, bitiş | İsteğe bağlı — yüzde girilince iki tarih zorunlu | Yüzde (7.3.2.9) — %100 olamaz; tarih aralığı (7.3.2.12) — ileri tarih serbest; indirimli fiyat referansın altına inmeli ve sıfıra inmemeli (`02 §3.9.1`, §3.9.5) | Yerinde kalıcı — K-799'un metinleri | — |
+| 7.2.4.18 | İndirim — yüzde, başlangıç, bitiş | İsteğe bağlı — yüzde girilince iki tarih zorunlu | Yüzde (7.3.2.9) — üst sınırı `02 §3.9.1`'dedir; tarih aralığı (7.3.2.12) — ileri tarih serbest; indirimli fiyat referansın altına inmeli ve sıfıra inmemeli (`02 §3.9.1`, §3.9.5) | Yerinde kalıcı — K-799'un metinleri | — |
 
 **7.2.5 E-34 — kategori** (9.6.8).
 
@@ -4438,7 +4438,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 |---|---|---|---|---|---|
 | 7.2.6.1 | Kod | Zorunlu | Kod (7.3.2.19) — kuponlar arasında tekil, büyük-küçük harf ayrımsız (K-806) | Alan mesajı — K-799'un metni | — |
 | 7.2.6.2 | Tür | Zorunlu | Yüzde ya da sabit tutar (`02 §3.10.2`) | Alan mesajı | — |
-| 7.2.6.3 | Değer | Zorunlu | Sıfırdan büyük; yüzdesel %100'e ulaşamaz (`02 §3.10.4`) | Alan mesajı — K-799'un metni | — |
+| 7.2.6.3 | Değer | Zorunlu | Sıfırdan büyük; yüzdesel kuponun üst sınırı `02 §3.10.4`'tedir | Alan mesajı — K-799'un metni | — |
 | 7.2.6.4 | Asgari sepet tutarı | Zorunlu — sabit tutarlı kuponda; yüzdeselde isteğe bağlı | Tutar (7.3.2.8); sabit tutarlıda kupon tutarından büyük | Alan mesajı — K-799'un metni | — |
 | 7.2.6.5 | Başlangıç ve bitiş | Zorunlu | Tarih aralığı (7.3.2.12) — ileri tarih serbest | Alan mesajı | — |
 | 7.2.6.6 | Toplam kullanım adedi | Zorunlu | Tam sayı; kullanılmış ve ayrılmış hakların altına inemez (`02 §3.10.6`) | Alan mesajı — K-799'un metni | — |

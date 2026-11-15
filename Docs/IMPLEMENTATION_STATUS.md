@@ -284,7 +284,7 @@
 | T525 | Ürün listesi ve ürün formu, görsel yükleme (E-32, E-33) | ✓ | ✓ PASS (tur 2) | `6b4f246c` | #570 |
 | T526 | Kategori ağacı ve kuponlar (E-34, E-35) | ✓ | ✓ PASS (tur 1) | `901e0cdc` | #563 |
 | T527 | Sipariş listesi, sipariş ayrıntısı ve durum geçişleri (E-36, E-37) | ✓ | ✓ PASS (tur 5) | `d847e947` | #565 |
-| T528 | Sipariş ayrıntısı: firma iptali, bildirim kaydı, kalem çıkarma, iade malı ve ayıp talebi (E-37) | ⏳ | düzeltme 1 (1b–1e dahil) tamam — doğrulama tur 2 bekliyor (tur 1 ✗ FAIL: beş bulgu) | — | #578 |
+| T528 | Sipariş ayrıntısı: firma iptali, bildirim kaydı, kalem çıkarma, iade malı ve ayıp talebi (E-37) | ✓ | ✓ PASS (tur 2) | `bac948f2` | #578 |
 | T529 | Sipariş ayrıntısı: geri ödeme işlemleri (E-37) | ✓ | ✓ PASS (tur 6) | `ef57ddbe` | #575 |
 | T530 | Sipariş ayrıntısı: adres, kargo, teslim tarihi, durum geçişi ve e-posta düzeltmeleri (E-37) | ✓ | ✓ PASS (tur 2) | `02146b34` | #573 |
 | T531 | Sipariş ayrıntısı: hizmet kalemi, indirme hakkı, iç not ve e-posta yeniden gönderim (E-37) | ✓ | ✓ PASS (tur 1) | `00bef140` | #572 |

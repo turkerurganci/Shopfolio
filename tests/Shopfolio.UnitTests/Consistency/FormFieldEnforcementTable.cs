@@ -10,7 +10,6 @@ internal static class FormFieldEnforcementTable
 {
     private const string Product = "Pages/Product.cshtml.cs";
     private const string Checkout = "Pages/Storefront/Checkout.cshtml.cs";
-    private const string Detail = "Pages/Panel/OrderDetail.cshtml.cs";
     private const string Corrections = "Pages/Panel/OrderDetail.Corrections.cs";
     private const string Item = "Pages/Panel/OrderDetail.ItemSteps.cs";
     private const string Refunds = "Pages/Panel/OrderDetail.Refunds.cs";
@@ -20,7 +19,8 @@ internal static class FormFieldEnforcementTable
     private const string Saves = "Modules/Catalog/ProductSaves.cs";
     private const string Books = "Modules/Membership/AddressBooks.cs";
 
-    public static IReadOnlyDictionary<string, string[]> Lines { get; } = new Dictionary<string, string[]>(StringComparer.Ordinal)
+    /// <summary>The lines of the rows that have one place or whose places carry the rule as attributes (a row with several property places that carry no attribute is in <see cref="FormFieldPlaceEnforcement"/>).</summary>
+    internal static IReadOnlyDictionary<string, string[]> RowLines { get; } = new Dictionary<string, string[]>(StringComparer.Ordinal)
     {
         ["7.1.1.1"] = [$"Amount|Pages/Storefront/CategoryPage.cs#ListFilters.ReadPrice(MinPrice, MaxPrice)"],
         ["7.1.2.1"] = [$"Required|{Product}#nameof(AddCartItemInput.VariantId), FieldCodes.FieldRequired"],
@@ -69,17 +69,11 @@ internal static class FormFieldEnforcementTable
         ["7.1.16.1"] = [$"Required|{Books}#nameof(AddressBookInput.Name), ErrorCode.FieldRequired"],
         ["7.1.16.2"] = ["Required|Modules/Membership/AddressBooks.cs#AddressFieldRules.CheckAddress( AddressFieldRules.BookPrefix, input.RecipientName,", "Required|Modules/Membership/AddressFieldRules.cs#RequiredText(prefix + nameof(AddressBookInput.RecipientName), recipientName, errors)"],
         ["7.1.16.3"] = [$"Phone|{Books}#AddressFieldRules.TryStorePhone(nameof(AddressBookInput.Phone), input.Phone, false, errors"],
-        ["7.2.3.1"] = ["SearchTrim|Modules/Catalog/PanelProductListReader.cs#if (SearchTerm.ToLikePattern(search) is { } pattern)", "SearchTrim|Infrastructure/SearchTerm.cs#if (word.Length > ProductConstants.ProductNameMaxLength)"],
         // Pass 3: the product form, the settings, the corporate content.
         ["7.2.4.1"] = [$"Required|{Saves}#nameof(ProductSaveCommand.ProductType), ErrorCode.FieldRequired"],
         ["7.2.4.2"] = [$"Required|{Saves}#nameof(ProductSaveCommand.Name), ErrorCode.FieldRequired", $"P-27|{Saves}#nameof(ProductSaveCommand.Name), ErrorCode.TextTooLong, ProductConstants.ProductNameMaxLength", $"TextCap|{Saves}#nameof(ProductSaveCommand.Name), ErrorCode.TextTooLong, ProductConstants.ProductNameMaxLength"],
-        ["7.2.4.3"] = [$"Required|{Saves}#new ProductSaveFieldError(\"Categories\", ErrorCode.FieldRequired)"],
-        ["7.2.4.5"] = ["Image|Pages/Panel/ProductForm.cshtml.cs#RefuseUpload(input.ImageTarget, ErrorCode.InvalidImage, UploadRefusalText(result))", "P-22|Pages/Panel/ProductForm.cshtml.cs#ImageUploadResult.OverPixelLimit) ? PixelLimitText : UploadChecks.FormatMessage()", "P-22|Pages/Components/UploadComponentModels.cs#{ProductConstants.ImageFormats} yüklenebilir.", "P-23|Pages/Panel/ProductForm.cshtml.cs#return UploadChecks.SizeMessage(UploadSurface.ProductGallery);", "P-23|Modules/Catalog/ImageUploads.cs#content.LongLength > ProductConstants.ImageMaxBytes", "P-24|Modules/Catalog/ProductSaves.cs#new ProductSaveFieldError(\"Images\", ErrorCode.ImageLimitExceeded, ProductConstants.ImagesPerProductMax)"],
-        ["7.2.4.6"] = ["P-21|Modules/Catalog/OptionStructureRules.cs#order <= ProductConstants.OptionDimensionMax"],
         ["7.2.4.7"] = [$"Required|{Saves}#Field(i, nameof(ProductSaveVariant.SKU)), ErrorCode.FieldRequired"],
         ["7.2.4.8"] = [$"Required|{Saves}#Field(i, nameof(ProductSaveVariant.Price)), ErrorCode.FieldRequired"],
-        ["7.2.4.9"] = [$"Required|{Saves}#Field(i, nameof(ProductSaveVariant.StockQuantity)), ErrorCode.FieldRequired"],
-        ["7.2.4.10"] = ["Image|Pages/Components/UploadComponentModels.cs#sizeBytes > UploadLimits.MaxBytes(UploadSurface.DigitalFile) ? new UploadRefusal(FieldCodes.InvalidImage", "P-26|Infrastructure/Files/DigitalFileDelivery.cs#sizeBytes > ProductConstants.DigitalFileMaxBytes"],
         ["7.2.4.11"] = [$"Required|{Saves}#nameof(ProductSaveCommand.VatRate), ErrorCode.FieldRequired", "P-10|Pages/Panel/ProductForm.cshtml.cs#VatRate = (await _settings.GetProductDefaultsAsync(ct)).DefaultVatRate"],
         ["7.2.4.12"] = [$"Required|{Saves}#nameof(ProductSaveCommand.OriginCountryId), ErrorCode.FieldRequired"],
         ["7.2.4.14"] = ["Period|Modules/Catalog/ProductDefinitionRules.cs#if (!CheckShippingPeriod(shippingPeriod))", "P-5|Modules/Settings/FirmSettings.cs#nameof(PeriodsInput.DefaultShippingPeriod), \"P-5\"", "P-6|Modules/Catalog/ProductDefinitionRules.cs#FirmSettingFences.Check(\"P-6\", days)"],
@@ -104,47 +98,30 @@ internal static class FormFieldEnforcementTable
         // Pass 4: the order detail's operations.
         ["7.1.3.5"] = ["Required|Modules/CorporateContent/ContactFormSending.cs#Require(fields, ContactFormFields.Message, message)", "L-4|Modules/CorporateContent/ContactFormSending.cs#_attempts.RecordAsync(AttemptLimit.L4, byIp, ct)"],
         ["7.1.5.9"] = ["CheckboxAccepted|Pages/Components/ConsentModels.cs#modelState.AddFieldError(NameOf(kind, namePrefix), FieldCodes.CheckboxNotAccepted)"],
-        ["7.2.7.1"] = ["Required|Pages/Panel/OrderDetail.cshtml.cs#ShipmentInfo shipment = new(input.Carrier, input.OtherCarrierName, input.TrackingNumber, input.IsOwnVehicleDelivery); TransitionAdmin admin = await AdminAsync(ct); ShipOrderRequest request = new(id, admin, input.Version, input.Confirmed, shipment); PanelStepResult result = await RunStepAsync( (steps, token) => isResending ? steps.MarkReshippedAsync(request, token) : steps.MarkShippedAsync(request, token), ct); return result.Refusal switch { TransitionRefusal.InvalidInput => await RefuseAsync(id, ShipmentMissingText, ErrorCode.ShipmentInfoMissing, ct)"],
         ["7.2.7.2"] = ["Required|Pages/Panel/OrderDetail.cshtml.cs#ShipmentInfo shipment = new(input.Carrier, input.OtherCarrierName, input.TrackingNumber, input.IsOwnVehicleDelivery); TransitionAdmin admin = await AdminAsync(ct); ShipOrderRequest request = new(id, admin, input.Version, input.Confirmed, shipment); PanelStepResult result = await RunStepAsync( (steps, token) => isResending ? steps.MarkReshippedAsync(request, token) : steps.MarkShippedAsync(request, token), ct); return result.Refusal switch { TransitionRefusal.InvalidInput => await RefuseAsync(id, ShipmentMissingText, ErrorCode.ShipmentInfoMissing, ct)"],
-        ["7.2.8.1"] = [$"Required|{Detail}#string.IsNullOrWhiteSpace(input.DeliveryDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate", $"Date|{Detail}#string.IsNullOrWhiteSpace(input.DeliveryDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate", $"Required|{Corrections}#string.IsNullOrWhiteSpace(input.DeliveryDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate", $"Date|{Corrections}#string.IsNullOrWhiteSpace(input.DeliveryDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate"],
-        ["7.2.8.2"] = ["Required|Modules/Ordering/OrderCorrections.Interventions.cs#if (sameDay.Count > 0 && request.IsDeliveredBeforeDeclaration is null) { return new OrderCorrectionResult(TransitionRefusal.InvalidInput, [], null) { AsksDeliveryOrder = true };"],
-        ["7.2.8.3"] = ["Required|Pages/Panel/OrderDetail.Corrections.cs#string.IsNullOrWhiteSpace(input.ArrivalDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate"],
         ["7.2.9.1"] = ["Required|Modules/Ordering/PanelItemSteps.cs#if (request.Items.Count == 0) { return PanelItemStepResult.Refused(PanelItemObstacle.ItemNotSelected);"],
         ["7.2.9.2"] = ["Quantity|Pages/Panel/OrderDetail.ItemSteps.cs#units)) { return await RefuseAsync(id, QuantityInvalidText, ErrorCode.InvalidQuantity, ct);"],
         ["7.2.9.3"] = ["Required|Pages/Panel/OrderDetail.ItemSteps.cs#string.IsNullOrWhiteSpace(input.CancellationReason) ? ErrorCode.FieldRequired"],
         ["7.2.9.4"] = ["Required|Pages/Components/ReasonModels.cs#new ReasonFieldError(ExplanationMember, FieldCodes.FieldRequired)"],
-        ["7.2.10.1"] = ["Required|Pages/Panel/OrderDetail.ItemSteps.cs#Notice = input; if (!TryReadDate(input.DeclarationDate, out DateOnly date)) { return await RefuseAsync(id, NoticeDateMissingText, string.IsNullOrWhiteSpace(input.DeclarationDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate"],
-        ["7.2.10.2"] = ["Required|Modules/Ordering/PanelItemSteps.cs#if (items.Count == 0 || items.Any(i => i.OrderItemId == Guid.Empty)) { return PanelItemStepResult.Refused(PanelItemObstacle.ItemNotSelected);", "Quantity|Pages/Panel/OrderDetail.ItemSteps.cs#ct); return await RefuseAsync(id, QuantityInvalidText, ErrorCode.InvalidQuantity, ct);"],
-        ["7.2.10.3"] = ["Required|Pages/Panel/OrderDetail.ItemSteps.cs#Termination = input; if (!TryReadDate(input.DeclarationDate, out DateOnly date)) { return await RefuseAsync(id, NoticeDateMissingText, string.IsNullOrWhiteSpace(input.DeclarationDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate"],
-        ["7.2.10.4"] = ["Iban|Pages/Panel/OrderDetail.ItemSteps.cs#if (iban is not null && !NoticeIbanRule.Allows(iban)) { return await RefuseAsync(id, NoticeIbanInvalidText, ErrorCode.InvalidIban, ct);"],
         ["7.2.10.5"] = [$"Required|{Steps}#warnings.NeedsConfirmation && !request.WarningsConfirmed"],
         ["7.2.10.6"] = ["Required|Modules/Ordering/PanelItemSteps.cs#if (warnings.AsksDeliveryOrder && request.IsDeliveredBeforeDeclaration is null) { return new PanelItemStepResult(TransitionRefusal.InvalidInput) { Obstacle = PanelItemObstacle.DeliveryOrderMissing,"],
         ["7.2.11.1"] = ["Required|Pages/Panel/OrderDetail.ItemSteps.cs#if (!TryReadQuantity(input.Quantity, out int quantity)) { return await RefuseAsync(id, QuantityInvalidText, ErrorCode.InvalidQuantity, ct);"],
         ["7.2.11.2"] = ["Required|Pages/Panel/OrderDetail.ItemSteps.cs#ErrorCode.FieldRequired, ct); } int? quantity = null; if (!string.IsNullOrWhiteSpace(input.Quantity)) { if (!TryReadQuantity(input.Quantity, out int read)) { return await RefuseAsync(id, QuantityInvalidText, ErrorCode.InvalidQuantity, ct);"],
         ["7.2.13.1"] = ["Required|Pages/Panel/OrderDetail.Refunds.cs#if (string.IsNullOrWhiteSpace(input.Amount)) { return await RefuseAsync(id, AmountMissingText, ErrorCode.FieldRequired, ct);", "Amount|Pages/Panel/OrderDetail.Refunds.cs#!FieldRuleAttribute.HasAtMostDecimals(amount, AmountDecimals)) { return await RefuseAsync(id, AmountInvalidText, ErrorCode.InvalidAmount, ct);"],
         ["7.2.13.3"] = [$"Required|{Refunds}#PanelRefundObstacle.ItemNotSelected => await RefuseAsync(id, ItemNotSelectedText, ErrorCode.FieldRequired, ct)"],
-        ["7.2.14.3"] = [$"Required|{Corrections}#RefuseCorrectionAsync(id, TransitionFormId, ReasonMissingText, ErrorCode.FieldRequired, ct)"],
         ["7.2.14.4"] = [$"Required|{Corrections}#CorrectionValueProblem.Missing => await RefuseCorrectionAsync(id, OrderEmailFormId, EmailMissingText, ErrorCode.FieldRequired, ct)", $"Email|{Corrections}#CorrectionValueProblem.Invalid => await RefuseCorrectionAsync(id, OrderEmailFormId, EmailInvalidText, ErrorCode.InvalidEmail, ct)"],
 
         // Pass 5: what is left of the order detail, the content, the identity, the lists.
         ["7.1.1.3"] = ["SearchTrim|Modules/Catalog/ProductListReader.cs#string? pattern = SearchTerm.ToLikePattern(search);", "SearchTrim|Infrastructure/SearchTerm.cs#if (word.Length > ProductConstants.ProductNameMaxLength)", "Required|Pages/Search.cshtml.cs#if (list is null) { // No word: no result list"],
         ["7.1.2.2"] = ["Quantity|Pages/Product.cshtml.cs#catalog. ModelState.AddFieldError(nameof(AddCartItemInput.Quantity), FieldCodes.InvalidQuantity", "P-9|Pages/Components/CartRefusalCodes.cs#CartAddOutcome.OverOrderLimit => ErrorCode.MaxQuantityPerOrderExceeded"],
         ["7.2.3.4"] = ["Required|Pages/Panel/Members.cshtml.cs#Record = new MemberRecordView { State = MemberSearchState.NotSearched }"],
-        ["7.2.3.5"] = ["DateRange|Pages/Panel/AuditTrail.cshtml.cs#Components.DateFields.CheckRange(query.StartDate, query.EndDate, today, DateRangePolicy.NoFuture, false, false)"],
         ["7.2.4.15"] = [$"Required|Modules/Catalog/PublishGate.cs#unmet.Add(PublishCondition.FulfilmentPeriod)", $"P-44|{Saves}#command.FulfilmentPeriod is int fulfilmentPeriod && !FirmSettingFences.Check(\"P-44\", fulfilmentPeriod)"],
         ["7.2.12.1"] = [$"Required|{Item}#string.IsNullOrWhiteSpace(input.ArrivalDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate"],
         ["7.2.12.2"] = ["Required|Pages/Panel/OrderDetail.ItemSteps.cs#ErrorCode.InvalidDate, ct); } int? quantity = null; if (!string.IsNullOrWhiteSpace(input.Quantity)) { if (!TryReadQuantity(input.Quantity, out int read)) { return await RefuseAsync(id, QuantityInvalidText, ErrorCode.InvalidQuantity, ct);"],
         ["7.2.12.3"] = ["Required|Pages/Panel/OrderDetail.ItemSteps.cs#if (result.Refusal == TransitionRefusal.ConfirmationRequired) { return await AskAsync(id, () => RejectionConfirm(id, input, quantity), ct);"],
-        ["7.2.14.1"] = ["Required|Modules/Ordering/OrderCorrections.cs#OrderAddressResolution resolution = await _membership.ResolveOrderAddressesAsync(", "Phone|Modules/Ordering/OrderCorrections.cs#OrderAddressResolution resolution = await _membership.ResolveOrderAddressesAsync("],
-        ["7.2.14.2"] = ["Required|Modules/Ordering/PanelOrderCorrections.cs#if (request.Shipment is null || !OrderTransitions.TryNormalizeShipment(request.Shipment, out _)) { return new PanelCorrectionResult(TransitionRefusal.InvalidInput) { Problem = CorrectionValueProblem.Missing };"],
-        ["7.2.16.1"] = [$"Required|{Inputs}#RequiredWithCeiling(rejections, nameof(OfferingInput.Name), input.Name, ContentRules.TitleMaxLength)", $"TextCap|{Inputs}#RequiredWithCeiling(rejections, nameof(OfferingInput.Name), input.Name, ContentRules.TitleMaxLength)", $"P-27|{Inputs}#RequiredWithCeiling(rejections, nameof(OfferingInput.Name), input.Name, ContentRules.TitleMaxLength)", $"P-28|{Inputs}#RequiredWithCeiling(rejections, nameof(FaqItemInput.Question), input.Question, ContentRules.ShortDescriptionMaxLength)"],
-        ["7.2.16.2"] = [$"Required|{Gate}#ContentRecordKind.AboutPage => [ContentGateField.ShortIntroduction]", $"P-28|{Inputs}#Ceiling(rejections, nameof(OfferingInput.ShortDescription), Text(input.ShortDescription), ContentRules.ShortDescriptionMaxLength)", $"P-29|{Inputs}#Ceiling(rejections, nameof(AboutPageInput.ShortIntroduction), Text(input.ShortIntroduction), ContentRules.ShortIntroductionMaxLength)"],
-        ["7.2.16.3"] = [$"Required|{Gate}#ContentRecordKind.FaqItem => [ContentGateField.Question, ContentGateField.Answer]"],
         ["7.2.16.4"] = [$"Required|{Gate}#ContentRecordKind.Announcement => [ContentGateField.Text]", $"P-30|{Inputs}#Ceiling(rejections, nameof(AnnouncementInput.Text), Text(input.Text), ContentRules.AnnouncementTextMaxLength)"],
         ["7.2.16.5"] = [$"Required|{Gate}#ContentRecordKind.Branch => [ContentGateField.Name, ContentGateField.Province, ContentGateField.District, ContentGateField.AddressLine]", "Province|Modules/CorporateContent/ContentAuthoring.cs#rejections.Add(new FieldRejection(nameof(BranchInput.ProvinceId), FieldCodes.InvalidProvince))"],
         ["7.2.16.6"] = [$"Phone|{Inputs}#Apply(rejections, nameof(BranchInput.Phone), Phone(input.Phone), new InvalidPhoneAttribute(), FieldCodes.InvalidPhone)"],
-        ["7.2.16.7"] = [$"Url|{Inputs}#Apply(rejections, nameof(BranchInput.MapUrl), Text(input.MapUrl), new InvalidUrlAttribute(), FieldCodes.InvalidUrl)", $"Url|{Inputs}#Apply(rejections, nameof(AnnouncementInput.LinkUrl), Text(input.LinkUrl), new InvalidUrlAttribute(), FieldCodes.InvalidUrl)"],
-        ["7.2.16.9"] = ["Image|Pages/Panel/ContentForm.cshtml.cs#RefuseUpload(input.ImageTarget, ErrorCode.InvalidImage, UploadRefusalText(result, surface))", "P-22|Pages/Panel/ContentForm.cshtml.cs#? ProductFormModel.PixelLimitText : UploadChecks.FormatMessage()", "P-22|Pages/Components/UploadComponentModels.cs#{ProductConstants.ImageFormats} yüklenebilir.", "P-23|Pages/Panel/ContentForm.cshtml.cs#return UploadChecks.SizeMessage(surface);", "P-23|Modules/Catalog/ImageUploads.cs#content.LongLength > ProductConstants.ImageMaxBytes", "P-25|Pages/Panel/ContentForm.cshtml.cs#input.Images.Count >= ProductConstants.ImagesPerContentRecordMax"],
         ["7.2.18.1"] = ["Required|Modules/CorporateContent/BrandingSettings.cs#nameof(BrandingInput.BrandName), FieldCodes.FilledFieldCleared"],
         ["7.2.18.2"] = ["Image|Modules/CorporateContent/BrandingSettings.cs#rejections.Add(new BrandingRejection(field, FieldCodes.InvalidImage))", "P-22|Pages/Panel/Brand.cshtml.cs#? ProductFormModel.PixelLimitText : UploadChecks.FormatMessage()", "P-22|Pages/Components/UploadComponentModels.cs#{ProductConstants.ImageFormats} yüklenebilir.", "P-23|Pages/Panel/Brand.cshtml.cs#return UploadChecks.SizeMessage(surface);", "P-23|Modules/Catalog/ImageUploads.cs#content.LongLength > ProductConstants.ImageMaxBytes"],
         ["7.2.19.1"] = ["Required|Modules/Settings/CompanyIdentityRules.cs#else if (input.CompanyType is null && current.CompanyType is not null) { rejections.Add(new FieldRejection(typeField, FieldCodes.FilledFieldCleared));"],
@@ -156,4 +133,27 @@ internal static class FormFieldEnforcementTable
         ["7.2.21.6"] = ["Required|Modules/Settings/CompanySettingsWriter.cs#string missingCode = current.IsComplete ? FieldCodes.FilledFieldCleared : FieldCodes.FieldRequired; string[] names = [ nameof(ReturnAddressInput.RecipientName),"],
         ["7.2.25.2"] = ["Required|Pages/Panel/DataExport.cshtml.cs#DateFields.CheckRange(input.StartDate, input.EndDate, Today, DateRangePolicy.NoFuture, startRequired: true, endRequired: true)", "DateRange|Pages/Panel/DataExport.cshtml.cs#DateFields.CheckRange(input.StartDate, input.EndDate, Today, DateRangePolicy.NoFuture, startRequired: true, endRequired: true)"],
     };
+
+    /// <summary>
+    /// The lines of every row as the row's own table and <see cref="FormFieldPlaceEnforcement"/> give them: a row with one place has its lines in <see cref="RowLines"/>; a row with several property places has the
+    /// lines of each place in the place table (E1: the evidence of a place is its own code), and the row's lines are the union of the places' lines. The row-level comparison (<see cref="FormFieldEnforcement"/>) reads this union.
+    /// </summary>
+    public static IReadOnlyDictionary<string, string[]> Lines { get; } = Merge(RowLines, FormFieldPlaceEnforcement.Lines);
+
+    private static Dictionary<string, string[]> Merge(IReadOnlyDictionary<string, string[]> rows, IReadOnlyDictionary<string, string[]> places)
+    {
+        Dictionary<string, string[]> merged = new(rows, StringComparer.Ordinal);
+        foreach ((string key, string[] lines) in places)
+        {
+            string row = key[..key.IndexOf('|', StringComparison.Ordinal)];
+            string[] held = merged.TryGetValue(row, out string[]? own) ? own : [];
+            string[] union = [.. held.Concat(lines).Distinct(StringComparer.Ordinal)];
+            if (union.Length > 0)
+            {
+                merged[row] = union;
+            }
+        }
+
+        return merged;
+    }
 }

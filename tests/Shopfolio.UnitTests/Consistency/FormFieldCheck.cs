@@ -9,7 +9,9 @@ namespace Shopfolio.UnitTests.Consistency;
 /// <c>FieldNotInCode</c> - the property or the identifier the entry names is not in the code; <c>RequirementDiffers</c> and <c>RequirementContradictsCode</c> - the row's requirement word is not the entry's, or
 /// the property carries a required mark and the row says it is not required; <c>RuleDiffers</c> and <c>LimitDiffers</c> - the ids of the rule cell or of the limit cell are not the entry's;
 /// <c>RuleMissesAttribute</c> - the property carries a validation attribute whose field type the row's rule does not name; <c>PlaceMarksDiffer</c> and <c>PlaceMarksNotInInventory</c> - a property place of a row
-/// with several places carries other rule attributes than its pin (each place is read on its own, not through the union of the row), or a pin is of a place the inventory does not hold that way.
+/// with several places carries other rule attributes than its pin (each place is read on its own, not through the union of the row), or a pin is of a place the inventory does not hold that way;
+/// <c>PlaceEnforcementMissing</c>, <c>PlaceLineNotInCode</c> and <c>PlaceEnforcementNotInInventory</c> - a property place of such a row that carries no attribute has no entry in
+/// <see cref="FormFieldPlaceEnforcement"/>, a line of its entry is not held exactly once by its file (its own check changed or left), or an entry is of a place the inventory does not hold that way.
 /// </summary>
 internal static partial class FormFieldCheck
 {
@@ -57,6 +59,7 @@ internal static partial class FormFieldCheck
             }
 
             problems.AddRange(Place(entry, sources, out List<string> marks));
+            problems.AddRange(PlaceLineProblems(entry, sources, FormFieldPlaceEnforcement.Lines, FormFieldPlaceMarks.Marks));
             string[] limits = [.. limitIds];
             string[] enforcement = FormFieldEnforcementTable.Lines.TryGetValue(entry.Row, out string[]? lines) ? lines : [];
             problems.AddRange(FormFieldEnforcement.Problems(entry.Row, row.Requirement, marks, enforcement, ruleIds, limits, knownRows, sources));
@@ -64,6 +67,7 @@ internal static partial class FormFieldCheck
 
         problems.AddRange(OwnLines(FormFieldEnforcementTable.Lines, entries.Select(e => e.Row)));
         problems.AddRange(StrayPlacePins(entries, FormFieldPlaceMarks.Marks));
+        problems.AddRange(StrayPlaceLines(entries, FormFieldPlaceEnforcement.Lines));
 
         foreach (string stray in FormFieldEnforcementTable.Lines.Keys.Where(k => entries.All(e => e.Row != k)))
         {
@@ -187,6 +191,69 @@ internal static partial class FormFieldCheck
         }
 
         return pins.Keys.Where(k => !keys.Contains(k)).Select(k => $"PlaceMarksNotInInventory:{k}: the table pins a place the inventory does not hold as one of several property places of a row.");
+    }
+
+    /// <summary>
+    /// The lines of each property place of a row that has several (KK6, T547 correction 4, E1): every place that carries no rule attribute (no pin in <paramref name="pins"/>) has an entry in
+    /// <paramref name="table"/> - its lines, or an empty entry for no check of its own (<c>PlaceEnforcementMissing</c> otherwise) - and each line of the entry is held exactly once by its file, so the place is
+    /// reported on its own when the code of its check changes or leaves (<c>PlaceLineNotInCode</c>), whatever the other places of the row keep. The kind and its token are read at the row (<see cref="FormFieldEnforcement"/>).
+    /// </summary>
+    internal static IEnumerable<string> PlaceLineProblems(FieldEntry entry, IReadOnlyDictionary<string, string> sources, IReadOnlyDictionary<string, string[]> table, IReadOnlyDictionary<string, string[]> pins)
+    {
+        string[] places = [.. PropertyPlaces(entry)];
+        if (places.Length < 2)
+        {
+            yield break;
+        }
+
+        foreach (string place in places)
+        {
+            string key = PlaceKey(entry.Row, place);
+            if (!table.TryGetValue(key, out string[]? lines))
+            {
+                if (!pins.ContainsKey(key))
+                {
+                    yield return $"PlaceEnforcementMissing:{entry.Row}: the place '{place}' carries no rule attribute and has no entry in the place enforcement table (its lines, or an empty entry for no check of its own).";
+                }
+
+                continue;
+            }
+
+            foreach (string line in lines)
+            {
+                int bar = line.IndexOf('|', StringComparison.Ordinal);
+                int hash = line.IndexOf('#', StringComparison.Ordinal);
+                if (bar <= 0 || hash < bar)
+                {
+                    yield return $"PlaceLineNotInCode:{key}: '{line}' is not of the form Kind|file#fragment.";
+                    continue;
+                }
+
+                string file = line[(bar + 1)..hash];
+                string fragment = line[(hash + 1)..];
+                int held = sources.TryGetValue(file, out string? text) ? Count(Collapse(text), Collapse(fragment)) : 0;
+                if (held != 1)
+                {
+                    yield return $"PlaceLineNotInCode:{key}: '{fragment}' is held {held} times in {file} (the place's check must be the one piece of its code).";
+                }
+            }
+        }
+    }
+
+    /// <summary>The place entries whose row is not in the inventory with several property places, or that do not hold the place.</summary>
+    internal static IEnumerable<string> StrayPlaceLines(IEnumerable<FieldEntry> entries, IReadOnlyDictionary<string, string[]> table)
+    {
+        HashSet<string> keys = new(StringComparer.Ordinal);
+        foreach (FieldEntry entry in entries)
+        {
+            string[] places = [.. PropertyPlaces(entry)];
+            if (places.Length >= 2)
+            {
+                keys.UnionWith(places.Select(p => PlaceKey(entry.Row, p)));
+            }
+        }
+
+        return table.Keys.Where(k => !keys.Contains(k)).Select(k => $"PlaceEnforcementNotInInventory:{k}: the place enforcement table has an entry for a place the inventory does not hold as one of several property places of a row.");
     }
 
     /// <summary>The property places (not the <c>file#anchor</c> ones) of an entry.</summary>

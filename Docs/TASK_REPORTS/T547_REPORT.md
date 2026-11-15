@@ -134,13 +134,76 @@ Düzeltme 3 öz denetimi (bütün maddeler yeniden; `Docs/11` T547 kabul kriterl
 | T538 / T546 emsali: sessiz atlama yok, ortak ifade kanıt değil | ✓ | iki yerli satırda kanıt artık yer başına; tabloda olmayan ya da kaybolan yer sessiz kalmaz |
 | Hedefi T547 olan backlog kalemi | ✓ | `grep T547`: yalnız D-1656, D-1657 (doğrulama tur 1 notları) ve D-1661 (tur 2 K1); üçü ileri, dokunulmadı |
 
+### Düzeltme 4 (doğrulama tur 3: E1)
+
+| Bulgu | Düzeltme | Kanıt |
+|---|---|---|
+| E1 (KK6; C1'in devamı) | Çok yerli satırda nitelik taşımayan her yerin denetimi artık o yerin kendi satırlarıyla kanıtlanır: yeni `FormFieldPlaceEnforcement` (anahtar `satır\|yer` → `Tür\|dosya#parça` satırları; boş giriş "bu yerde satırın adlandırdığı türden denetim yok" beyanı). İki işleyicide denetlenen alan iki ayrı satırdır (ör. 7.2.16.1 başlık: referans + genel sayfa). `FormFieldEnforcementTable.Lines` artık satırın kendi tablosu ile yer girişlerinin birleşimidir (satır düzeyi karşılaştırma değişmedi; tür bazında birleşim yalnız satırın "bu tür kodda var" sorusu içindir). `FormFieldCheck.PlaceLineProblems`: pinlenmeyen her özellik yerinin girişi yoksa `PlaceEnforcementMissing`; girişin her satırı dosyasında tam bir kez tutulmazsa `PlaceLineNotInCode:<satır>\|<yer>` (yer adıyla); envanterde olmayan yerin girişi `PlaceEnforcementNotInInventory`. Gerekli üç yeni "Zorunlu" belirteci (`carrier is null`, `tracking is null`, `Reason is not`). Tabloda üç satır başka forma ortaktı → ayırt edici olmaktan çıkardı (7.1.5.2, 7.1.5.3, 7.2.12.1 `EnforcementNotDistinctive`): 7.2.14.1 yalnız kendi `OrderCorrections.cs` parçalarını kullanır, 7.2.8.3 teslim almada iki ifadeli kendi parçasını | `FormFieldPlaceEnforcementTests` (11 test): `EveryPlace_OfARowWithSeveralPlaces_HasItsEntry_AndItsLinesAreInTheCode` (67 yer), `PlaceWithoutAnEntry_AndAnEntryOfNoPlace_AreReported` (67 yerin her girişi tek tek silinir), `EveryLineOfEveryPlace_RemovedFromTheCode_IsReportedForThePlacesThatHoldIt` (her parça gerçek kaynaktan çıkarılır → o parçayı tutan her yer adıyla raporlanır), `ChangeOfOneHandlersCheck_OnTheRealCode_ReportsThatPlaceAndNoOtherPlace` (raporun 7 deneyi, yalnız beklenen yer raporlanır), `TwoPlacesOfOneRow_WithTheSameKindOfCheck_ReadItInTheirOwnHandlers` |
+
+Gerçek `src` deneyleri (geçici betiklerle, depoya girmez; her deneyde `src` dosyasında parçanın tür belirteci değiştirilir, `FormInventoryConsistencyTests` koşulur, dosya geri alınır; `git status src` temiz). Raporun 7 deneyi (`ContentInputs.cs` `PortfolioItemInput.Title`, `CustomPageInput.Title`, `BranchInput.Name` tavanı `int.MaxValue`; `BranchInput.WorkingHours`, `PortfolioItemInput.ShortDescription` tavanı; `PanelItemSteps.cs` cayma bildirimi IBAN denetimi `false`; `PanelOrderSteps.cs` teslim kaydı sıra sorusu `false`): 7/7 KIRILDI, her biri yalnız kendi yerini raporladı (`PlaceLineNotInCode:7.2.16.1|…Title`, `…|…Name`, `7.2.16.2|…WorkingHours`, `…ShortDescription`, `7.2.10.4|…RecordWithdrawalInput.Iban`, `7.2.8.2|…MarkDeliveredInput.IsDeliveredBeforeDeclaration`).
+
+Satır başına deney: çok yerli 31 satırın 75 özellik yerinden niteliği olan 8'i C1'de (düzeltme 3) sınandı; nitelik taşımayan 67 yerin 43'ü kendi satırıyla denetlenir (61 (yer, tür) çifti, 87 (yer, tür, parça) deneyi): her parça gerçek `src`'de değiştirildi, test KIRILDI ve ilgili yer adıyla raporladı (87/87; "hayır" kalan çift yok, betik hata 0). Kalan 24 yer "yok" beyanlıdır (aşağıda); onların satırın adlandırdığı türden denetimi kodda yoktur, dolayısıyla silinecek denetim yoktur.
+
+| Satır | Yer | (yer, tür) → parça dosyaları | gerçek `src` deneyi |
+|---|---|---|---|
+| 7.2.3.1 | `AdminProductQuery.Search` | SearchTrim → `PanelProductListReader.cs`, `SearchTerm.cs` | kırıldı |
+| 7.2.3.5 | `AuditLogQuery.StartDate`, `EndDate` | DateRange → `AuditTrail.cshtml.cs` (tek `CheckRange` çağrısı iki alanın) | kırıldı (iki yer) |
+| 7.2.4.3 | `SaveProductInput.Categories`; `SaveProductCategoryRow.IsPrimaryCategory` | Required → `ProductSaves.cs` (yayın kapısı `MainCategory`); Required → `ProductSaves.cs` (ana kategori seçili kategoriler arasında) | kırıldı (2/2) |
+| 7.2.4.5 | `SaveProductInput.Images` | Image, P-22, P-23, P-24 → `ProductForm.cshtml.cs`, `UploadComponentModels.cs`, `ImageUploads.cs`, `ProductSaves.cs` | kırıldı (4 tür) |
+| 7.2.4.6 | `SaveProductInput.Options` | P-21 → `OptionStructureRules.cs` | kırıldı |
+| 7.2.4.9 | `SaveProductVariantRow.StockQuantity` | Required → `ProductSaves.cs` | kırıldı |
+| 7.2.4.10 | `SaveProductVariantRow.ImageId`; `SaveProductVariantRow.DigitalFileId`, `SaveProductInput.DigitalFileId` | Image → `ProductForm.cshtml.cs`; Image, P-26 → `UploadComponentModels.cs`, `DigitalFileDelivery.cs` (tek yükleme bileşeni iki yerin) | kırıldı (3 yer) |
+| 7.2.7.1 | `MarkShippedInput.Carrier`, `OtherCarrierName` | Required → `OrderDetail.cshtml.cs`, `OrderTransitions.Shipment.cs` (şirket ya da ad: tek ifade) | kırıldı (2 yer) |
+| 7.2.8.1 | `MarkDeliveredInput.DeliveryDate`; `CorrectDeliveryDateInput.DeliveryDate` | Required, Date → `OrderDetail.cshtml.cs`; Required, Date → `OrderDetail.Corrections.cs` | kırıldı (4 çift) |
+| 7.2.8.2 | `MarkDeliveredInput.…IsDeliveredBeforeDeclaration`; `CorrectDeliveryDateInput.…` | Required → `PanelOrderSteps.cs`; Required → `OrderCorrections.Interventions.cs` | kırıldı (2/2; raporun 7. deneyi) |
+| 7.2.8.3 | `ReceiveReturnInput.ArrivalDate`; `CorrectArrivalDateInput.ArrivalDate` | Required → `OrderDetail.ItemSteps.cs`; Required → `OrderDetail.Corrections.cs` | kırıldı (2/2) |
+| 7.2.10.1, 7.2.10.3 | `RecordWithdrawalInput.DeclarationDate`; `RecordLateDeliveryTerminationInput.DeclarationDate` | Required → `OrderDetail.ItemSteps.cs` (cayma ve gecikme feshi işleyicisi ayrı parça) | kırıldı (4 çift) |
+| 7.2.10.2 | `RecordWithdrawalInput.Items`; `RecordWithdrawalInputLine.Quantity` | Required → `PanelItemSteps.cs`; Quantity → `OrderDetail.ItemSteps.cs` | kırıldı (2/2) |
+| 7.2.10.4 | `RecordWithdrawalInput.Iban`; `RecordLateDeliveryTerminationInput.Iban` | Iban → `PanelItemSteps.cs` (cayma, 173) + `OrderDetail.ItemSteps.cs` (engel eşlemesi); Iban → `OrderDetail.ItemSteps.cs` (238) + `PanelItemSteps.cs` (270) + engel eşlemesi | kırıldı (raporun 6. deneyi dahil, 2/2) |
+| 7.2.14.1 | `CorrectAddressInput.ShippingRecipientName`; `ShippingPhone` | Required → `OrderCorrections.cs`; Required, Phone → `OrderCorrections.cs` | kırıldı (3 çift) |
+| 7.2.14.2 | `CorrectCarrierInput.Carrier`, `TrackingNumber` | Required → `PanelOrderCorrections.cs`, `OrderTransitions.Shipment.cs` | kırıldı (2 yer) |
+| 7.2.14.3 | `CorrectTransitionInput.CorrectionReason`, `ReasonNote` | Required → `OrderDetail.Corrections.cs`, `PanelOrderCorrections.cs` | kırıldı (2 yer) |
+| 7.2.16.1 | `SaveContentInput.Name`; `Title`; `Question` | Required, TextCap, P-27 (Name: teklif + şube; Title: referans + genel sayfa) / P-28 (Question) → `ContentInputs.cs`; Required → `ContentRecords.cs` kapısı | kırıldı (9 çift; raporun 1–3. deneyleri) |
+| 7.2.16.2 | `ShortDescription`; `ShortIntroduction`; `WorkingHours` | P-28 (teklif + referans) / Required (kapı) + P-29 / P-28 → `ContentInputs.cs`, `ContentRecords.cs` | kırıldı (4 çift; raporun 4–5. deneyleri) |
+| 7.2.16.3 | `SaveContentInput.Answer` | Required → `ContentRecords.cs` | kırıldı |
+| 7.2.16.7 | `SaveContentInput.LinkUrl`; `MapUrl` | Url → `ContentInputs.cs` (duyuru, şube) | kırıldı (2/2) |
+| 7.2.16.9 | `SaveContentInput.ImageId` | Image, P-22, P-23, P-25 → `ContentForm.cshtml.cs`, `UploadComponentModels.cs`, `ImageUploads.cs` | kırıldı (4 tür) |
+
+"Yok" beyanlı 24 yer (satırın adlandırdığı türden kodda denetim yok; süzgeç, bayrak, isteğe bağlı metin ya da eşzamanlılık değeri): 7.2.3.1 `PublishStatus`; 7.2.3.2 `Search`, `OrderStatus`, `PaymentStatus`, `PendingWork`; 7.2.3.3 `RequestType`, `RequestStatus`; 7.2.3.5 `AdminId`; 7.2.4.5 `SaveProductImageRow.AltText`; 7.2.4.6 `SaveProductOptionRow.Name`, `SaveProductOptionValueRow.Value`; 7.2.4.9 `OriginalStockQuantity`; 7.2.4.13 `MeasurementUnit`; 7.2.10.4 iki `IsFromContactEmail`; 7.2.13.2 `OrderItemId`, `NotReturnedClosureId`; 7.2.16.3 `LongText`, `Text`; 7.2.16.9 `ImageAltText`, `SaveContentImageRow.AltText`; 7.2.16.10 `LinkedProducts`, `IsShownOnHomepage`, `IsShownInMenu`. Boş girişi silmek `PlaceEnforcementMissing` verir (67/67 yer sınandı).
+
+Düzeltme 4 öz denetimi (bütün maddeler yeniden; `Docs/11` T547 kabul kriterleri ve `12`'nin ilgili kontrol listesi):
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1 / KK1 ekran bloğu | ✓ | `StateRoleConsistencyTests` yeşil (değişmedi) |
+| Kriter 2 / KK2 sayfa testi | ✓ | `StateRolePageTests` kodu değişmedi; `src` bu turda değişmedi |
+| Kriter 3 / KK3 iki kapı | ✓ | `SalesGate_*`, `DataGate_*` yeşil |
+| Kriter 4 / KK4 durum adları | ✓ | `SynonymOfAStatusName_IsReported` yeşil |
+| Kriter 5 / KK5 Yönetici satırı | ✓ | `AdministratorRow_*`, `DraftRead_*` yeşil |
+| Kriter 6 / KK6 alan, zorunluluk, kural | ✓ | E1: yer başına satır (`FormFieldPlaceEnforcementTests` 11/11, `FormFieldPlaceMarksTests` 5/5); raporun 7 deneyi ve 87 (yer, tür, parça) deneyi gerçek `src`'de KIRILDI (yukarıdaki tablo); C1'in nitelik yüzü durur |
+| Kriter 7 / KK7 kimlik, ürün sabiti | ✓ | `Rule_WritingAValue_IsReported`, `ProductConstant_NoValidationReads_IsReported`, `LengthAttribute_WritingTheNumber_IsReported` yeşil (değişmedi) |
+| Kriter 8 / KK8 panel | ✓ | `Panel*_IsReported` yeşil |
+| Kriter 9 / KK9 yer | ✓ | yeni testler `UnitTests/Consistency/` altında, `[Trait("Consistency","true")]`; DB/ağ yok |
+| `09 §25` / güvenlik taraması | ✓ | yalnız test kodu ve belge satırı; `src` yok, yeni bağımlılık, sır, yetki etkisi yok; sır bekçisi adları kullanıldı |
+| Sık FAIL (1) istisna geniş | ✓ | yeni istisna yok; boş giriş yer başına ve tek tek beyan, eksik giriş kırar |
+| Sık FAIL (2) çağrı biçimi kaçıyor | ✓ | her yerin parçası kod metninde tam bir kez tutulur (ek argüman, adlı argüman değişince kırar); iki işleyicili alanda iki ayrı parça |
+| Sık FAIL (3) 06 varsayılanı / FK | ✓ (kapsam dışı) | şema değişmedi |
+| Sık FAIL (4) aynı sayıyı anan yerler | ✓ | 67 yer / 31 satır / 8 niteliği olan yer: `PlaceMarks` özeti ve düzeltme 3 satırı aynı; yeni sayı yalnız bu bölümde ve `FormFieldPlaceEnforcementTests`'te (67); `04` sürüm satırı güncellendi |
+| Sık FAIL (5) karar kaydısız belge kuralı | ✓ | belge kuralı değişmedi (`04` yalnız sürüm satırı); karar kaydı gerekmez |
+| T538 / T546 emsali: sessiz atlama yok, ortak ifade kanıt değil | ✓ | her (yer, tür) kendi parçasıyla; iki yerin tek ifade olduğu yerler (denetim tek çağrıda iki alanı: 7.2.3.5 tarih aralığı, 7.2.7.1 / 7.2.14.2 şirket-ad-takip ifadesi, 7.2.4.10 dijital dosya yükleme bileşeni) tabloda açıkça iki yerin ortak parçasıdır; öteki parçalar yerine özeldir |
+| Hedefi T547 olan backlog kalemi | ✓ | `grep T547`: D-1656, D-1657, D-1661, D-1666; dördü ileri, dokunulmadı (D-1656 kod → satır yönü; bu düzeltme satır → kod yönündedir) |
+
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit (Consistency) | ✓ | `dotnet test tests/Shopfolio.UnitTests --filter-trait "Consistency=true"` | 644 geçti (düzeltme 3; 639 + `FormFieldPlaceMarksTests` 5) |
-| Unit (diğer) | ✓ | `--filter-not-trait "Consistency=true"` | 7420 geçti |
-| Integration | ✓ (ilgili sınıf) — TAM: CI | `dotnet test tests/Shopfolio.IntegrationTests --filter-class "*CategoriesPageTests" "*CategoryTreeAndListsTests"` | düzeltme 3: 42/42 geçti (postgres:18, `track_commit_timestamp=on`, konteyner `t547-fix3-pg`, port 56547); TAM: CI |
+| Unit (Consistency) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build --filter-trait "Consistency=true"` | 655 geçti (düzeltme 4; 644 + `FormFieldPlaceEnforcementTests` 11) |
+| Unit (tamamı) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | düzeltme 4: 8075/8075 |
+| Integration | ✓ (`src` değişmedi, koşulmadı) — TAM: CI | — | düzeltme 4 yalnız test kodu ve belge değiştirdi; Integration'a dokunan kod yok; TAM: CI |
+| Format (düzeltme 4) | ✓ | `dotnet format Shopfolio.slnx --no-restore --include <6 .cs>` | değişiklik yok |
+| Unit (Consistency, düzeltme 3) | ✓ | `dotnet test tests/Shopfolio.UnitTests --filter-trait "Consistency=true"` | 644 geçti (düzeltme 3; 639 + `FormFieldPlaceMarksTests` 5) |
+| Unit (diğer, düzeltme 3) | ✓ | `--filter-not-trait "Consistency=true"` | 7420 geçti |
+| Integration (düzeltme 3) | ✓ (ilgili sınıf) — TAM: CI | `dotnet test tests/Shopfolio.IntegrationTests --filter-class "*CategoriesPageTests" "*CategoryTreeAndListsTests"` | düzeltme 3: 42/42 geçti (postgres:18, `track_commit_timestamp=on`, konteyner `t547-fix3-pg`, port 56547); TAM: CI |
 | Format | ✓ | `dotnet format Shopfolio.slnx --no-restore --verify-no-changes --include <değişen .cs>` | çıkış 0 |
 
 ## Doğrulama

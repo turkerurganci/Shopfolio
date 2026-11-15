@@ -100,6 +100,17 @@
 
 | Alan | Sonuç |
 |---|---|
+| Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-15, dal ucu `07682894`; CI run `43703091010` yeşil) — ikinci iterasyon FAIL'i: eskalasyon (`12 §8.5`) |
+| Bulgu sayısı | 1 (S1, ORTA) |
+| Düzeltme gerekli mi | Evet — B1 (tur 2): panelin boş liste satırının "Ana sayfaya dön" çıkışı E-36, E-38, E-52 → E-31 (`Panel/Orders.cshtml.cs`, `Requests.cshtml.cs`, `AuditTrail.cshtml.cs`) kodda var, `04 §3.4`'te satırı yok; denetim `_EmptyRow.cshtml` `@Model.ExitPath`'i müşteri satırı 3.3.12'nin kanıtı saydığı için yakalamaz (E-36 çıkışı E-40'a çevrildiğinde `NavigationConsistencyTests` 70/70 geçti). Düzeltme: çıkış ya `04 §3.4` satırı olur (karar kaydıyla) ya kalkar; `EmptyStates.WithExit`/`WithFirstRecordButton` çağrıları çağrı yerinden kendi satırına/muafiyetine bağlanır; kırılma testi. Tur 1 B1 (3.3.44 / E-19) kapandı. |
+| Bloke-etmeyen not (K) sayısı — tur 2 | 2 — K1 → D-1631 (3.3.13 "Ürün Yayında" koşulu: vitrinden kalkmış kalemde de bağlantı), K2 → D-1632 (x.1 "Aktör · giriş · çıkış" paragrafları K-1617 satırlarını anmıyor) |
+
+**Doğrulayıcı kabul kriterleri (tur 2):** 1 ✓ (3.3.13 ad bağlantısıyla karşılanmış; görsel D-1189) · 2 ✗ (B1) · 3 ✓ · 4 ✓ · 5 ✓ · 6 ✓ · 7 ✗ (B1: tabloda olmayan geçiş paylaşılan bileşen üzerinden koda girmiş). Yerel: build `-warnaserror` 0 uyarı; `dotnet format --include` 13 `.cs` temiz; Consistency 383/383; Unit (Consistency dışı) 7420/7420; betik 4/4; Integration `CartPageTests`, `AfterSalesScreenTests`, `CartTests`, `CartQuantityTests` 86/86, TAM: CI. `12`'de T546'ya düşen satır yok.
+
+Tur 1 kaydı:
+
+| Alan | Sonuç |
+|---|---|
 | Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-15, dal ucu `a8cb7217`; CI run `43695678189` yeşil) |
 | Bulgu sayısı | 1 (S1, ORTA) |
 | Düzeltme gerekli mi | Evet — B1: `04` 3.3.44 satırı E-19'u (ayıp talebi ekranı) atlıyor; `02 §3.33.5`, `04` 5.19.3 (4), 6.2.19.1 ve KP-74 eşlemesi E-19'da aydınlatma bağlantısını sayar; kodda `_DefectClaimScreen.cshtml` bu bağlantıyı çizmez. Satır koda göre daraltıldığı için denetim farkı gizliyor. Düzeltme: 3.3.44'ün "Nereden"ine E-19 eklenir, E-19'a aydınlatma bağlantısı çizilir (sayfa testiyle), envanter kanıtı ve kırılma testi eklenir. |

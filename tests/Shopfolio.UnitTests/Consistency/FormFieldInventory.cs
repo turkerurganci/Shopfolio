@@ -69,13 +69,13 @@ internal static class FormFieldInventory
         new("7.1.11.4", "Storefront.ResendVerificationLinkInput.PendingRegistration", "—", "", "L-9"),
 
         // 7.1.12 E-22, 7.1.13 E-23, 7.1.14 E-24: the sign-in and the password's screens (views that build their fields).
-        new("7.1.12.1", "Pages/Storefront/SignIn.cshtml#Fields.Email(\"Input.Email\"", "Zorunlu", "7.3.2.1", "L-1"),
-        new("7.1.12.2", "Pages/Storefront/SignIn.cshtml#Fields.Concealed(\"Input.Password\"", "Zorunlu", "", "L-1"),
-        new("7.1.12.3", "Pages/Storefront/SignIn.cshtml#Input.IsLongLived", "İsteğe bağlı", "Z-4 Z-5"),
+        new("7.1.12.1", "Pages/Storefront/SignIn.cshtml#Fields.Email(\"Input.Email\" + Panel.SignInInput.Email", "Zorunlu", "7.3.2.1", "L-1"),
+        new("7.1.12.2", "Pages/Storefront/SignIn.cshtml#Fields.Concealed(\"Input.Password\" + Panel.SignInInput.Password", "Zorunlu", "", "L-1"),
+        new("7.1.12.3", "Pages/Storefront/SignIn.cshtml#Input.IsLongLived + Panel.SignInInput.IsLongLived", "İsteğe bağlı", "Z-4 Z-5"),
         new("7.1.12.4", "Pages/Storefront/SignIn.cshtml.cs#OnPostResendVerificationLinkAsync", "—", "7.1.11.4", "L-9"),
-        new("7.1.13.1", "Pages/Storefront/PasswordReset.cshtml#Fields.Email(\"Input.Email\"", "Zorunlu", "7.3.2.1", "L-2"),
-        new("7.1.13.2", "Pages/Storefront/PasswordReset.cshtml#Fields.Concealed(\"Input.NewPassword\"", "Zorunlu", "7.3.2.2"),
-        new("7.1.14.1", "Pages/Account/Reauthentication.cshtml#Fields.Concealed(\"Input.Password\"", "Zorunlu", "", "L-1"),
+        new("7.1.13.1", "Pages/Storefront/PasswordReset.cshtml#Fields.Email(\"Input.Email\" + Panel.RequestPasswordResetInput.Email", "Zorunlu", "7.3.2.1", "L-2"),
+        new("7.1.13.2", "Pages/Storefront/PasswordReset.cshtml#Fields.Concealed(\"Input.NewPassword\" + Panel.ResetPasswordInput.NewPassword", "Zorunlu", "7.3.2.2"),
+        new("7.1.14.1", "Pages/Account/Reauthentication.cshtml#Fields.Concealed(\"Input.Password\" + Panel.ReauthenticateInput.Password", "Zorunlu", "", "L-1"),
 
         // 7.1.15 E-25: the account.
         new("7.1.15.1", "Account.ChangeNameInput.Name", "Zorunlu", "7.3.2.3"),
@@ -118,7 +118,7 @@ internal static class FormFieldInventory
         new("7.2.4.10", "Panel.SaveProductVariantRow.ImageId + Panel.SaveProductVariantRow.DigitalFileId + Panel.SaveProductInput.DigitalFileId", "İsteğe bağlı", "7.3.2.18 P-26"),
         new("7.2.4.11", "Panel.SaveProductInput.VatRate", "Zorunlu", "7.3.2.9 P-10"),
         new("7.2.4.12", "Panel.SaveProductInput.OriginCountryId", "Zorunlu"),
-        new("7.2.4.13", "Panel.SaveProductInput.MeasurementUnit + Panel.SaveProductVariantRow.NetQuantity", "İsteğe bağlı"),
+        new("7.2.4.13", "Panel.SaveProductInput.MeasurementUnit + Panel.SaveProductVariantRow.NetQuantity", "İsteğe bağlı", "8.2.3"),
         new("7.2.4.14", "Panel.SaveProductInput.ShippingPeriod", "İsteğe bağlı", "7.3.2.11 P-5 P-6"),
         new("7.2.4.15", "Panel.SaveProductInput.FulfilmentPeriod", "Yayın için zorunlu", "P-44"),
         new("7.2.4.16", "Panel.SaveProductInput.MaxQuantityPerOrder", "İsteğe bağlı", "P-9"),
@@ -126,10 +126,10 @@ internal static class FormFieldInventory
         new("7.2.4.18", "Panel.SaveProductDiscountRow.Percentage + Panel.SaveProductDiscountRow.StartDate + Panel.SaveProductDiscountRow.EndDate", "İsteğe bağlı", "7.3.2.9 7.3.2.12"),
 
         // 7.2.5 E-34, 7.2.6 E-35: the category and the coupon.
-        new("7.2.5.1", "Panel.CreateCategoryInput.Name", "Zorunlu"),
+        new("7.2.5.1", "Panel.CreateCategoryInput.Name", "Zorunlu", "7.3.2.14 P-28"),
         new("7.2.5.2", "Panel.MoveCategoryInput.ParentCategoryId", "Seçim", "P-20"),
         new("7.2.6.1", "Panel.SaveCouponInput.Code", "Zorunlu", "7.3.2.19"),
-        new("7.2.6.2", "Panel.SaveCouponInput.CouponType", "Zorunlu"),
+        new("7.2.6.2", "Panel.SaveCouponInput.CouponType", "Zorunlu", "7.3.2.16"),
         new("7.2.6.3", "Panel.SaveCouponInput.Percentage", "Zorunlu", "7.3.2.8 7.3.2.9"),
         new("7.2.6.4", "Panel.SaveCouponInput.MinimumBasketAmount", "Zorunlu", "7.3.2.8"),
         new("7.2.6.5", "Panel.SaveCouponInput.StartDate", "Zorunlu", "7.3.2.12"),

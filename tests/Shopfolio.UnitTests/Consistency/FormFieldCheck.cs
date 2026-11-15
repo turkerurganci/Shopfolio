@@ -12,18 +12,6 @@ namespace Shopfolio.UnitTests.Consistency;
 /// </summary>
 internal static partial class FormFieldCheck
 {
-    /// <summary>The validation attributes of the code and the field type of <c>04 7.3.2</c> each stands for.</summary>
-    private static readonly Dictionary<string, string> AttributeRules = new(StringComparer.Ordinal)
-    {
-        ["InvalidEmailAttribute"] = "7.3.2.1",
-        ["PasswordTooWeakAttribute"] = "7.3.2.2",
-        ["InvalidIbanAttribute"] = "7.3.2.7",
-        ["InvalidAmountAttribute"] = "7.3.2.8",
-        ["InvalidPercentageAttribute"] = "7.3.2.9",
-        ["InvalidQuantityAttribute"] = "7.3.2.10",
-        ["InvalidDateAttribute"] = "7.3.2.12",
-    };
-
     public static IReadOnlyList<string> Problems(string document, IReadOnlyDictionary<string, string> sources)
     {
         ArgumentNullException.ThrowIfNull(document);
@@ -32,6 +20,7 @@ internal static partial class FormFieldCheck
         IReadOnlyList<FormBlock> forms = StateRoleDocument.Forms(document);
         Dictionary<string, FieldRow> rows = forms.SelectMany(f => f.Rows).ToDictionary(r => r.Id, StringComparer.Ordinal);
         IReadOnlyList<FieldEntry> entries = FormFieldInventory.Entries;
+        HashSet<string> knownRows = [.. rows.Keys, .. forms.Select(f => f.Block)];
         List<string> problems = [];
 
         HashSet<string> coveredForms = [.. entries.Select(e => string.Join('.', e.Row.Split('.')[..3]))];
@@ -66,7 +55,15 @@ internal static partial class FormFieldCheck
                 problems.Add($"LimitDiffers:{entry.Row}: the limit cell names [{string.Join(", ", limitIds)}], the entry [{string.Join(", ", pinnedLimits)}].");
             }
 
-            problems.AddRange(Place(entry, row, ruleIds, sources));
+            problems.AddRange(Place(entry, sources, out List<string> marks));
+            string[] limits = [.. limitIds];
+            string[] enforcement = FormFieldEnforcementTable.Lines.TryGetValue(entry.Row, out string[]? lines) ? lines : [];
+            problems.AddRange(FormFieldEnforcement.Problems(entry.Row, row.Requirement, marks, enforcement, ruleIds, limits, knownRows, sources));
+        }
+
+        foreach (string stray in FormFieldEnforcementTable.Lines.Keys.Where(k => entries.All(e => e.Row != k)))
+        {
+            problems.Add($"EnforcementNotInCode:{stray}: the enforcement table has lines for a row the inventory does not hold.");
         }
 
         foreach (IGrouping<string, FieldEntry> twice in entries.GroupBy(e => e.Row, StringComparer.Ordinal).Where(g => g.Count() > 1))
@@ -81,8 +78,10 @@ internal static partial class FormFieldCheck
     /// The places of one row: <see cref="FieldEntry.Where"/> is one place or several joined with <c>" + "</c> (a row that covers two inputs or two properties); every place must be in the code, and the
     /// attributes of every property place are read against the one row.
     /// </summary>
-    private static IEnumerable<string> Place(FieldEntry entry, FieldRow row, string[] documentedRules, IReadOnlyDictionary<string, string> sources)
+    private static List<string> Place(FieldEntry entry, IReadOnlyDictionary<string, string> sources, out List<string> ruleMarks)
     {
+        List<string> found = [];
+        ruleMarks = [];
         foreach (string where in entry.Where.Split(" + ", StringSplitOptions.RemoveEmptyEntries))
         {
             int at = where.IndexOf('#', StringComparison.Ordinal);
@@ -92,7 +91,7 @@ internal static partial class FormFieldCheck
                 string anchor = where[(at + 1)..];
                 if (!sources.TryGetValue(file, out string? text) || !Holds(text, anchor))
                 {
-                    yield return $"FieldNotInCode:{entry.Row}: '{anchor}' is not in {file}.";
+                    found.Add($"FieldNotInCode:{entry.Row}: '{anchor}' is not in {file}.");
                 }
 
                 continue;
@@ -101,31 +100,21 @@ internal static partial class FormFieldCheck
             PropertyInfo? property = Find(where);
             if (property is null)
             {
-                yield return $"FieldNotInCode:{entry.Row}: the property '{where}' is not in the code.";
+                found.Add($"FieldNotInCode:{entry.Row}: the property '{where}' is not in the code.");
                 continue;
             }
 
-            string[] marks = [.. property.GetCustomAttributes().Select(a => a.GetType().Name)];
-            if (marks.Contains("FieldRequiredAttribute", StringComparer.Ordinal) && !row.Requirement.StartsWith("Zorunlu", StringComparison.Ordinal) && !row.Requirement.StartsWith("Yayın için zorunlu", StringComparison.Ordinal))
-            {
-                yield return $"RequirementContradictsCode:{entry.Row}: the property {where} is marked required, the row says '{row.Requirement}'.";
-            }
-
-            foreach (string mark in marks.Where(AttributeRules.ContainsKey))
-            {
-                if (!documentedRules.Contains(AttributeRules[mark], StringComparer.Ordinal))
-                {
-                    yield return $"RuleMissesAttribute:{entry.Row}: the property {where} carries {mark}, the row does not point to {AttributeRules[mark]}.";
-                }
-            }
+            ruleMarks.AddRange(FormFieldEnforcement.RuleMarks(property));
         }
+
+        return found;
     }
 
     /// <summary>
     /// Whether the text holds the anchor as a whole identifier at each end that is an identifier character: <c>MinPrice</c> is not held by <c>MinPriceText</c> (a renamed field must not stay "found" through
     /// a longer name that happens to start or end with it); an end that is a bracket or a quote needs no boundary.
     /// </summary>
-    private static bool Holds(string text, string anchor)
+    internal static bool Holds(string text, string anchor)
     {
         bool startsWord = char.IsLetterOrDigit(anchor[0]) || anchor[0] == '_';
         bool endsWord = char.IsLetterOrDigit(anchor[^1]) || anchor[^1] == '_';
@@ -165,7 +154,7 @@ internal static partial class FormFieldCheck
         return RuleId().Matches(cell).Select(m => m.Value).Distinct(StringComparer.Ordinal);
     }
 
-    [GeneratedRegex(@"\b7\.3\.2\.\d+\b|\bP-\d+\b|\bZ-\d+\b|\b7\.[12]\.\d+(?:\.\d+)?\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    [GeneratedRegex(@"\b7\.3\.2\.\d+\b|\bP-\d+\b|\bZ-\d+\b|\b7\.[12]\.\d+(?:\.\d+)?\b|\b8\.2\.3\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex RuleId();
 
     [GeneratedRegex(@"\bL-\d+\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

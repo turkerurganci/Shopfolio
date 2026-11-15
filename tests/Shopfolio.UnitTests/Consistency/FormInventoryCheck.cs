@@ -155,7 +155,7 @@ internal static partial class FormInventoryCheck
                     yield return $"RuleIdUnknown:{row.Id}: '{id.Value}' is no form or field row of 04 7.";
                 }
 
-                if (Values(cell) is { Length: > 0 } value)
+                if (Values(cell, words: ReferenceEquals(cell, row.Rule)) is { Length: > 0 } value)
                 {
                     yield return $"RuleWritesValue:{row.Id}: '{value}' is a value; the cell points to the id that holds it (04 7 introduction; 02 11).";
                 }
@@ -169,13 +169,18 @@ internal static partial class FormInventoryCheck
     }
 
     /// <summary>The words of a cell that are values: what is left of a cell once the ids, the code spans and the references are taken out, and still holds a digit. The document names a rule by id, never by number.</summary>
-    public static string Values(string cell)
+    public static string Values(string cell, bool words = false)
     {
         // A word inside double quotes is a label of the screen ("Son 30 gün"), not a value of the rule.
         string rest = QuotedLabel().Replace(CodeSpan().Replace(cell, string.Empty), string.Empty);
         rest = AnyId().Replace(rest, string.Empty);
         rest = SectionReference().Replace(rest, string.Empty);
         Match value = DigitWord().Match(rest);
+        if (!value.Success && words)
+        {
+            value = NumberWord().Match(rest);
+        }
+
         return value.Success ? value.Value : string.Empty;
     }
 
@@ -248,6 +253,10 @@ internal static partial class FormInventoryCheck
 
     [GeneratedRegex(@"%?\d+", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex DigitWord();
+
+    // A count written in words is a value as well ("Üç seviyeyi aşmaz"): "bir" is left out, it is the article and the singular of "en fazla bir kod".
+    [GeneratedRegex(@"\b(?:[İi]ki|[Üü]ç|[Dd]ört|[Bb]eş|[Aa]ltı|[Yy]edi|[Ss]ekiz|[Dd]okuz|[Yy]irmi|[Oo]tuz|[Yy]üz)\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex NumberWord();
 
     [GeneratedRegex(@"\b7\.3\.2\.\d+\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex RuleKindId();

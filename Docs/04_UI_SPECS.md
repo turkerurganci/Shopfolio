@@ -2676,7 +2676,7 @@ Siparişin iki ekseni her yerde **iki ayrı rozetle**, yan yana gösterilir; tek
 
 **2.12.7.1** Sipariş onayı iki kutuyla, sepete göre üçüncü ve dördüncü kutuyla verilir; hangi kutunun ne zaman çıktığı `02 §3.24.1` ve §3.24.2'dedir. Hiçbir kutu işaretli gelmez (K-756).
 **2.12.7.2** Kutular onay bölümünde, iki yasal metnin ve cayma özetinin altında ve onay düğmesinin hemen üstünde durur (K-831); kutular ile düğme arasına başka içerik girmez (K-756). Bölümün tam sırası E-13'ün tanımındadır (§5.13.9).
-**2.12.7.3** İşaretlenmemiş kutuyla onaya basılırsa sipariş oluşmaz; eksik kutu alan mesajıyla işaretlenir ve ekran ilk eksiğe gider. Onay adımı açıkken metnin sürümü değişirse kutuların işareti kalkar (K-756); özet farkı Ön Bilgilendirme Formu'nun içeriğini değiştirirse iki yasal metnin kutularının işareti kalkar (`02 §3.24.3`; K-833).
+**2.12.7.3** İşaretlenmemiş kutuyla onaya basılırsa sipariş oluşmaz; eksik kutu alan mesajıyla işaretlenir ve ekran ilk eksiğe gider. Onay adımı açıkken metnin sürümü değişirse kutuların işareti kalkar (K-756); özet farkı Ön Bilgilendirme Formu'nun içeriğini değiştirirse yasal metinlerin kutularının işareti kalkar (`02 §3.24.3`; K-833).
 **2.12.7.4** KVKK rıza kutusu, yaş beyanı ve pazarlama onayı kutusu yoktur (`02 §3.24.1`, §3.24.4, §3.13.18).
 **2.12.7.5** Sipariş sayfası dijital ve hizmet kalemi için işaretlenen kutuların kaydını — kutunun metni ve kapsadığı kalemlerle — salt okunur gösterir (`02 §3.24.6`).
 **2.12.7.6** Dijital kalem ve hizmet kalemi kutularının nihai metni `02 §3.24.2`'nin metnidir; kutu kapsadığı kalemleri adıyla sayar ve kapsamda birden çok kalem varsa metin çoğul söylenir (K-771; §5.13.9).
@@ -4260,7 +4260,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 | 7.1.3.1 | Ad | Zorunlu — üyede ön dolu | Ad (7.3.2.3) | Alan mesajı | L-4 (formun gönderimi) |
 | 7.1.3.2 | E-posta | Zorunlu — üyede ön dolu | E-posta (7.3.2.1) | Alan mesajı | L-4 |
 | 7.1.3.3 | Telefon | İsteğe bağlı | Telefon (7.3.2.4) | Alan mesajı | L-4 |
-| 7.1.3.4 | Konu tipi | Zorunlu | Kapalı beş değer (`02 §3.32.3`; 7.3.2.16) | Alan mesajı | L-4 |
+| 7.1.3.4 | Konu tipi | Zorunlu | Kapalı liste (`02 §3.32.3`; 7.3.2.16) | Alan mesajı | L-4 |
 | 7.1.3.5 | Mesaj | Zorunlu | Uzun metin (7.3.2.15) | Alan mesajı | L-4 |
 | 7.1.3.6 | Görünmez tuzak alan | — | Ziyaretçiye görünmez; doluysa gönderim sessizce düşer (`02 §3.32.7`) | Mesaj yok — gönderim sonrası hâli gösterilir | — |
 
@@ -4282,7 +4282,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 | 7.1.5.6 | Fatura adresi — alıcının adı ve soyadı, il, ilçe, açık adres | Zorunlu — işaret kaldırıldıysa ya da fiziksel kalem yoksa | Adres (7.3.2.5); telefon, posta kodu, T.C. kimlik numarası yok (`02 §3.14.6`) | Alan mesajı | — |
 | 7.1.5.7 | Kupon kodu | İsteğe bağlı | Büyük-küçük harf ayrımsız; `02 §3.10`'un koşulları; en fazla bir kod (`02 §3.10.1`) | Alan mesajı — geçersiz kod (`03 §3.2.1.12`); asgari tutarın altındaki geçerli kodda ayrı mesaj (5.13.15; K-845) | L-6 |
 | 7.1.5.8 | Ödeme yöntemi | Zorunlu | Kullanılamayan yöntem seçilemez (5.13.8) | Alan mesajı | L-8 (havale) |
-| 7.1.5.9 | Onay kutuları — iki kutu; dijital ve hizmet kalemi kutusu | Zorunlu — sepete göre üçüncü ve dördüncü | İşaretli gelmez; metin sürümü değişirse ya da özet farkı Ön Bilgilendirme Formu'nun içeriğini değiştirirse iki yasal metnin kutularının işareti kalkar (§2.12.7.3; `02 §3.24.1`, §3.24.2; K-756, K-833) | Alan mesajı — eksik kutu, ekran ilk eksiğe gider | — |
+| 7.1.5.9 | Onay kutuları — iki kutu; dijital ve hizmet kalemi kutusu | Zorunlu — sepete göre üçüncü ve dördüncü | İşaretli gelmez; metin sürümü değişirse ya da özet farkı Ön Bilgilendirme Formu'nun içeriğini değiştirirse yasal metinlerin kutularının işareti kalkar (§2.12.7.3; `02 §3.24.1`, §3.24.2; K-756, K-833) | Alan mesajı — eksik kutu, ekran ilk eksiğe gider | — |
 | 7.1.5.10 | Onay — siparişin kendisi | — | Sepet onay anında yeniden değerlendirilir (5.13.20) | Yerinde kalıcı — özet farkı, satış kapalı, L-7 (5.13.20, 5.13.21) | L-7 |
 
 **7.1.6 E-15 — sipariş takibi girişi** (5.15.5).
@@ -4418,7 +4418,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 | 7.2.4.10 | Varyant görseli · dijital dosya | İsteğe bağlı — dijitalde yayındaki varyant için dosya zorunlu | Görsel ve dosya (7.3.2.18) — P-26 | Alan mesajı; dosyasız bırakan silmede yerinde kalıcı (K-799) | — |
 | 7.2.4.11 | KDV oranı | Zorunlu — varsayılanla gelir (P-10) | `02 §3.8.2` | Alan mesajı | — |
 | 7.2.4.12 | Üretim yeri | Zorunlu — fizikselde; dijitalde isteğe bağlı | Ülke listesinden seçilir — liste ürünle gelir (`02 §3.8.5`; K-1023) | Alan mesajı | — |
-| 7.2.4.13 | Ölçü birimi ve varyantın net miktarı | İsteğe bağlı — birim ürün düzleminde seçilir; seçilirse her varyantın net miktarı zorunludur, seçilmemişse net miktar alanı yoktur (`02 §3.8.5`; K-1019, K-1020) | Birim kapalı listeden seçilir — liste `02 §3.8.5`'tedir (K-1018), kod adları Veri Modeli'ndedir; yanında K-798'in hatırlatması (K-573) ve birim değişirse var olan net miktarların yeni birimle okunacağını söyleyen satır (K-1020); net miktar varyant tablosunun sütunudur (9.5.5) — sıfırdan büyük, en çok üç ondalıklı sayı (8.2.3; K-1013) | Alan mesajı | — |
+| 7.2.4.13 | Ölçü birimi ve varyantın net miktarı | İsteğe bağlı — birim ürün düzleminde seçilir; seçilirse her varyantın net miktarı zorunludur, seçilmemişse net miktar alanı yoktur (`02 §3.8.5`; K-1019, K-1020) | Birim kapalı listeden seçilir — liste `02 §3.8.5`'tedir (K-1018), kod adları Veri Modeli'ndedir; yanında K-798'in hatırlatması (K-573) ve birim değişirse var olan net miktarların yeni birimle okunacağını söyleyen satır (K-1020); net miktar varyant tablosunun sütunudur (9.5.5) — sıfırdan büyük sayı; ondalık ölçeği 8.2.3'tedir (K-1013) | Alan mesajı | — |
 | 7.2.4.14 | Kargoya verme süresi — ürün düzeyi | İsteğe bağlı — boşsa firma varsayılanı (P-6) | İş günü; P-5'in çiti (7.3.2.11) | Alan mesajı — çit dışı değer sebebiyle (2.12.1.4) | — |
 | 7.2.4.15 | İfa süresi | Yayın için zorunlu — hizmette (P-44) | Gün; P-44'ün alt çiti | Alan mesajı; yayın kapısı (K-799) | — |
 | 7.2.4.16 | Bir siparişte en fazla adet | İsteğe bağlı (P-9) | Tam sayı; P-9'un çiti | Alan mesajı | — |
@@ -4430,7 +4430,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 | # | Alan | Zorunluluk | Kural | Hata mesajı | Limit |
 |---|---|---|---|---|---|
 | 7.2.5.1 | Ad | Zorunlu | Kısa metin | Alan mesajı | — |
-| 7.2.5.2 | Yeni üst kategori — taşıma | Seçim | Üç seviyeyi aşmaz (P-20); kendi alt dalına taşınmaz (`02 §3.4.6`) | Yerinde kalıcı — K-799'un metinleri | — |
+| 7.2.5.2 | Yeni üst kategori — taşıma | Seçim | Seviye sayısı P-20'yi aşmaz; kendi alt dalına taşınmaz (`02 §3.4.6`) | Yerinde kalıcı — K-799'un metinleri | — |
 
 **7.2.6 E-35 — kupon** (9.7.8).
 
@@ -4438,10 +4438,10 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 |---|---|---|---|---|---|
 | 7.2.6.1 | Kod | Zorunlu | Kod (7.3.2.19) — kuponlar arasında tekil, büyük-küçük harf ayrımsız (K-806) | Alan mesajı — K-799'un metni | — |
 | 7.2.6.2 | Tür | Zorunlu | Yüzde ya da sabit tutar (`02 §3.10.2`) | Alan mesajı | — |
-| 7.2.6.3 | Değer | Zorunlu | Sıfırdan büyük; yüzdesel kuponun üst sınırı `02 §3.10.4`'tedir | Alan mesajı — K-799'un metni | — |
+| 7.2.6.3 | Değer | Zorunlu | Tutar (7.3.2.8) ya da yüzde (7.3.2.9); sıfırdan büyük; yüzdesel kuponun üst sınırı `02 §3.10.4`'tedir | Alan mesajı — K-799'un metni | — |
 | 7.2.6.4 | Asgari sepet tutarı | Zorunlu — sabit tutarlı kuponda; yüzdeselde isteğe bağlı | Tutar (7.3.2.8); sabit tutarlıda kupon tutarından büyük | Alan mesajı — K-799'un metni | — |
 | 7.2.6.5 | Başlangıç ve bitiş | Zorunlu | Tarih aralığı (7.3.2.12) — ileri tarih serbest | Alan mesajı | — |
-| 7.2.6.6 | Toplam kullanım adedi | Zorunlu | Tam sayı; kullanılmış ve ayrılmış hakların altına inemez (`02 §3.10.6`) | Alan mesajı — K-799'un metni | — |
+| 7.2.6.6 | Toplam kullanım adedi | Zorunlu | Adet (7.3.2.10); kullanılmış ve ayrılmış hakların altına inemez (`02 §3.10.6`) | Alan mesajı — K-799'un metni | — |
 
 **7.2.7 E-37 — kargoya verme ve yeniden verme** (9.9.16, 9.9.36).
 
@@ -4537,7 +4537,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 
 | # | Alan | Zorunluluk | Kural | Hata mesajı | Limit |
 |---|---|---|---|---|---|
-| 7.2.17.1 | Ana sayfa düzeni | Zorunlu — kurulumda seçili gelir | İki seçenek (K-813) | — | — |
+| 7.2.17.1 | Ana sayfa düzeni | Zorunlu — kurulumda seçili gelir | Kapalı seçenek listesi (K-813) | — | — |
 | 7.2.17.2 | Menü adları | Zorunlu | Kısa metin; boş kaydedilmez | Alan mesajı — K-813'ün metni | — |
 | 7.2.17.3 | Sosyal bağlantılar | İsteğe bağlı | Bağlantı (7.3.2.13) | Alan mesajı | — |
 | 7.2.17.4 | WhatsApp numarası | İsteğe bağlı | Telefon (7.3.2.4) | Alan mesajı | — |
@@ -4575,7 +4575,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 | # | Alan | Zorunluluk | Kural | Hata mesajı | Limit |
 |---|---|---|---|---|---|
 | 7.2.21.1 | Kargo ücreti (P-1) | Zorunlu — kurulumda dolu | Tutar (7.3.2.8) — sıfır ya da sıfırdan büyük | Alan mesajı | — |
-| 7.2.21.2 | Ücretsiz kargo eşiği (P-3) · asgari sipariş tutarı (P-4) | İsteğe bağlı — boşken özellik kapalı | Tutar | Alan mesajı | — |
+| 7.2.21.2 | Ücretsiz kargo eşiği (P-3) · asgari sipariş tutarı (P-4) | İsteğe bağlı — boşken özellik kapalı | Tutar (7.3.2.8) | Alan mesajı | — |
 | 7.2.21.3 | Teslimat illeri | Seçim — varsayılan tüm Türkiye | Hiçbiri seçili değilse kayıt engellenmez, satır uyarır (K-817) | Yerinde kalıcı — K-817'nin metni | — |
 | 7.2.21.4 | Kargoya verme süresi (P-5) · havale ödeme süresi (P-7) | Zorunlu — kurulumda dolu | İş günü; çitler (7.3.2.11; `03 §3.5.4.5`) | Alan mesajı — K-817'nin iki çit metni | — |
 | 7.2.21.5 | İndirme hakkı (P-8) · KDV oranı varsayılanı (P-10) | Zorunlu — kurulumda dolu | İndirme hakkı P-8'in çitinde | Alan mesajı | — |

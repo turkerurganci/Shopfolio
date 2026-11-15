@@ -36,6 +36,81 @@ public sealed class FormInventoryConsistencyTests
     }
 
     [Fact]
+    public void FieldInventory_EqualsTheDocumentsAndTheCode()
+    {
+        IReadOnlyList<string> problems = FormFieldCheck.Problems(Document.Value, Sources.Value);
+
+        Assert.True(problems.Count == 0, string.Join('\n', problems));
+    }
+
+    // KK6: a field's row without an entry, a field that leaves the code, a requirement or a rule changed in the document.
+    [Fact]
+    public void Field_DeletedFromTheCode_IsReported()
+    {
+        Dictionary<string, string> sources = new(Sources.Value, StringComparer.Ordinal);
+        Assert.Contains("MinPrice", sources["Pages/Storefront/CategoryPage.cs"], StringComparison.Ordinal);
+        sources["Pages/Storefront/CategoryPage.cs"] = sources["Pages/Storefront/CategoryPage.cs"].Replace("MinPrice", "LowestPrice", StringComparison.Ordinal);
+
+        Assert.Contains(FormFieldCheck.Problems(Document.Value, sources), p => p.StartsWith("FieldNotInCode:7.1.1.1", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Field_DeletedFromTheDocument_IsReported()
+    {
+        string changed = Changed("| 7.1.3.3 | Telefon | İsteğe bağlı | Telefon (7.3.2.4) | Alan mesajı | L-4 |\n", string.Empty);
+
+        Assert.Contains(FormFieldCheck.Problems(changed, Sources.Value), p => p.StartsWith("FieldRowOnlyInCode:7.1.3.3", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Field_AddedToTheDocument_IsReported()
+    {
+        string changed = Changed("| 7.1.3.6 | Görünmez tuzak alan |", "| 7.1.3.7 | Yeni alan | İsteğe bağlı | Kısa metin | Alan mesajı | — |\n| 7.1.3.6 | Görünmez tuzak alan |");
+
+        Assert.Contains(FormFieldCheck.Problems(changed, Sources.Value), p => p.StartsWith("FieldRowOnlyInDocument:7.1.3.7", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Requirement_ChangedInTheDocument_IsReported()
+    {
+        string changed = Changed("| 7.1.3.3 | Telefon | İsteğe bağlı |", "| 7.1.3.3 | Telefon | Zorunlu |");
+
+        Assert.Contains(FormFieldCheck.Problems(changed, Sources.Value), p => p.StartsWith("RequirementDiffers:7.1.3.3", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Rule_ChangedInTheDocument_IsReported()
+    {
+        string changed = Changed("| 7.1.3.3 | Telefon | İsteğe bağlı | Telefon (7.3.2.4) |", "| 7.1.3.3 | Telefon | İsteğe bağlı | Kısa metin |");
+
+        Assert.Contains(FormFieldCheck.Problems(changed, Sources.Value), p => p.StartsWith("RuleDiffers:7.1.3.3", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Limit_ChangedInTheDocument_IsReported()
+    {
+        string changed = Changed("| 7.1.3.3 | Telefon | İsteğe bağlı | Telefon (7.3.2.4) | Alan mesajı | L-4 |", "| 7.1.3.3 | Telefon | İsteğe bağlı | Telefon (7.3.2.4) | Alan mesajı | L-2 |");
+
+        Assert.Contains(FormFieldCheck.Problems(changed, Sources.Value), p => p.StartsWith("LimitDiffers:7.1.3.3", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void FieldMarkedRequiredInTheCode_ThatTheRowCallsOptional_IsReported()
+    {
+        string changed = Changed("| 7.1.6.2 | E-posta | Zorunlu |", "| 7.1.6.2 | E-posta | İsteğe bağlı |");
+
+        Assert.Contains(FormFieldCheck.Problems(changed, Sources.Value), p => p.StartsWith("RequirementContradictsCode:7.1.6.2", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void FieldWithAnAttribute_WhoseRuleTheRowDoesNotName_IsReported()
+    {
+        string changed = Changed("| 7.1.6.2 | E-posta | Zorunlu | E-posta (7.3.2.1)", "| 7.1.6.2 | E-posta | Zorunlu | Kısa metin");
+
+        Assert.Contains(FormFieldCheck.Problems(changed, Sources.Value), p => p.StartsWith("RuleMissesAttribute:7.1.6.2", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void Document_HasBothFamiliesOfForms()
     {
         IReadOnlyList<FormBlock> forms = StateRoleDocument.Forms(Document.Value);
@@ -98,7 +173,8 @@ public sealed class FormInventoryConsistencyTests
     [Theory]
     [InlineData("| 7.2.4.2 | Ad | Zorunlu | Kısa metin, P-27 (7.3.2.14) |", "| 7.2.4.2 | Ad | Zorunlu | Kısa metin, en çok 150 karakter (7.3.2.14) |")]
     [InlineData("| En fazla P-21 boyut (", "| En fazla 2 boyut (")]
-    [InlineData("| 7.2.6.3 | Değer | Zorunlu | Sıfırdan büyük; yüzdesel kuponun üst sınırı `02 §3.10.4`'tedir |", "| 7.2.6.3 | Değer | Zorunlu | Sıfırdan büyük; yüzdesel %100'e ulaşamaz |")]
+    [InlineData("yüzde (7.3.2.9); sıfırdan büyük; yüzdesel kuponun üst sınırı `02 §3.10.4`'tedir |", "yüzde (7.3.2.9); sıfırdan büyük; yüzdesel %100'e ulaşamaz |")]
+    [InlineData("kutularının işareti kalkar (§2.12.7.3;", "kutularının işareti iki kez kalkar (§2.12.7.3;")]
     public void Rule_WritingAValue_IsReported(string from, string to)
     {
         Assert.Contains(Problems(document: Changed(from, to)), p => p.StartsWith("RuleWritesValue", StringComparison.Ordinal));

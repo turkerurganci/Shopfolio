@@ -13,13 +13,14 @@
 - **Form envanteri, iki yönlü kural ve zorunluluk (kriter 6, düzeltme 1):** `FormFieldEnforcement` (eşleme tabloları, karşılaştırma), `FormFieldEnforcementTable` (işlem satırları), `FormFieldEnforcementTests`.
 - **Form envanteri (kriter 6, 7):** `FormInventoryCheck` (form blokları, satır numaraları, ekran tarafı, kural kimlikleri, değer yasağı, ürün sabiti okuma) ve `FormFieldInventory` + `FormFieldCheck` (her alan satırı = kodda bir yer, gereklilik sözcüğü, kural ve sınır kimlikleri). Bu turda: çapa kanıtı tam tanımlayıcı olarak aranır (`FormFieldCheck.Holds`).
 - **Sayfa testi (kriter 2, KK2):** `StateRolePageTests` — 6.2.16.1–10 ve 6.3.9.1–10 çiftleri üç tohumla (kayıtsız · kayıtlı · açık IBAN isteği); müşteri sayfası ve panel ayrıntısı `IOrderOperations` ile birebir.
+- **Düzeltme 3 (doğrulama tur 2):** iki yerli satırlarda nitelikler yer başına denetlenir (`FormFieldPlaceMarks`, `PlaceMarksDiffer`); kategori adı tavanı P-27 olarak geri geldi (K-1619).
 - **Belge:** `04 §7`'nin 10 kural hücresi kimlikle gösterir; karar kaydı K-1618 (⚠). Düzeltme 1: `04 §7.2.5.1` ve `§7.2.6.2` kural hücreleri kimlik aldı; K-1619 (⚠).
 
 ## Etkilenen Modüller / Dosyalar
 
 - `tests/Shopfolio.UnitTests/Consistency/` — `StateRole*.cs` (4), `FormInventoryCheck.cs`, `FormFieldCheck.cs`, `FormFieldInventory.cs`, `FormFieldEnforcement.cs`, `FormFieldEnforcementTable.cs`, `FormFieldEnforcementTests.cs`, `FormInventoryConsistencyTests.cs`.
 - `tests/Shopfolio.IntegrationTests/Web/StateRolePageTests.cs`.
-- `Docs/04_UI_SPECS.md` (§7 kural hücreleri, sürüm satırı), `Docs/PRODUCT_DISCOVERY_STATUS.md` (K-1618, sürüm satırı), `Docs/STATUS_CHANGELOG.d/T547.md`, `Docs/IMPLEMENTATION_STATUS.md` (satır 306). `src` değişmedi.
+- `Docs/04_UI_SPECS.md` (§7 kural hücreleri, sürüm satırı), `Docs/PRODUCT_DISCOVERY_STATUS.md` (K-1618, sürüm satırı), `Docs/STATUS_CHANGELOG.d/T547.md`, `Docs/IMPLEMENTATION_STATUS.md` (satır 306). Düzeltme 3: `src/Shopfolio.Web/Pages/Panel/Categories.cshtml(.cs)` ve `ProductConstants.cs` (özet yorumu) — kategori adı tavanı P-27; `FormFieldPlaceMarks.cs`, `FormFieldPlaceMarksTests.cs` (yeni), `tests/Shopfolio.IntegrationTests/Web/CategoriesPageTests.cs`; `Docs/02` P-27, `04` 7.2.5.1 / 9.6.8 / 7.3.2.14, `06 §4.9`, `07` 9.6.2–9.6.3, `09` P-27 yorumu.
 
 ## Kabul Kriterleri Kontrolü
 
@@ -57,7 +58,7 @@ Düzeltme 1 öz denetimi (bütün maddeler yeniden): kabul kriterleri 1–9 ve K
 | Bulgu | Düzeltme | Kanıt |
 |---|---|---|
 | B1 (KK6) | `@@@` ve 12 satırlık pencere kaldırıldı: satırın kanıtı tek parça koddur (boşluklar tek boşluk; çok satırlı deyim tek parça), dosyada tam bir kez bulunur (`EnforcementAmbiguous`) ve her satırın başka formun satırının kullanmadığı kendi parçası vardır (`EnforcementNotDistinctive`). 64 satır yeniden yazıldı; sınır satırlarında formun kendi çağrısı (kayıt `L-3`, kayıt bağlantısı yeniden isteği Register/SignIn sayfası `L-9`, giriş `CheckPasswordAsync`, sıfırlama `RequestResetAsync`, yeniden doğrulama `ReauthenticateAsync`, e-posta değişikliği `EmailChanges`/`AdminEmailChanges`) ve ortak sayım satırı (`EmailChangeRules`, `PasswordRegime`) birlikte; "Beni hatırla" `SignInAsync(..., input.IsLongLived, ...)`; adres kuralları `CheckAddress(` çağrısının kendi öneki; zorunlu liste `CommonFields =` öneki | `EveryEnforcementLine_RemovedFromTheCode_ReportsExactlyTheRowsThatHoldThatCode` (her parça gerçek kaynaktan çıkarılır; raporlanan satırlar tam o koda sahip satırlardır), `ChangeOfALimit_OfAFlowsQuantityCheck_AndOfARequiredList_ReportsTheRowsOfThatFlow`, `EnforcementLine_HeldTwiceInItsFile_IsReported`, `Row_WithNoLineOfItsOwn_IsReported`, `EveryRowOfTheTable_HasALineOfItsOwn`. Gerçek `src` deneyleri (betikle, geri alındı): (a) `EmailChangeRules` L-9 → L-3: 7.1.15.2, 7.1.15.4, 7.2.24.2, 7.2.24.4 kırıldı; (b) `ArriveAsync` adet denetimi (371) kaldırıldı: yalnız 7.2.12.2 kırıldı, 7.2.11.2 kırılmadı; (c) 7.2.5.1 artık tavansız (B2) — tavanı geri koymak `RuleMissesAttribute` (`Check_TheRowDoesNotName_IsReported`, `LengthAttribute_WritingTheNumber_IsReported`); (d) `CommonFields` listesinden `ProvinceId`, `Phone`, `Email` çıkarıldı: 7.2.19.3, .4, .5, .6 kırıldı |
-| B2 (KK7, K-1619) | Kaynak arandı (`02` P-28 kapsamı, `06 §4.9`, `04` 9.6.8, T526 raporu): kategori adı tavanı hiçbirinde yok. 7.2.5.1 hücresi eski "Kısa metin"e döndü; koddaki tavan kaldırıldı (`Categories.cshtml.cs` iki `TextTooLong`, `Categories.cshtml` üç `maxlength`); 7.2.5.1 satırının kural kimliği boş. K-1619 buna göre yeniden yazıldı | `Docs/04_UI_SPECS.md`, `Docs/PRODUCT_DISCOVERY_STATUS.md` K-1619; `FieldInventory_EqualsTheDocumentsAndTheCode` |
+| B2 (KK7, K-1619) | **(Düzeltme 3'te geri alındı: C2 — kategori adı tavanı P-27, kaynak `09` 9.4 madde 3.)** Kaynak arandı (`02` P-28 kapsamı, `06 §4.9`, `04` 9.6.8, T526 raporu): kategori adı tavanı hiçbirinde yok. 7.2.5.1 hücresi eski "Kısa metin"e döndü; koddaki tavan kaldırıldı (`Categories.cshtml.cs` iki `TextTooLong`, `Categories.cshtml` üç `maxlength`); 7.2.5.1 satırının kural kimliği boş. K-1619 buna göre yeniden yazıldı | `Docs/04_UI_SPECS.md`, `Docs/PRODUCT_DISCOVERY_STATUS.md` K-1619; `FieldInventory_EqualsTheDocumentsAndTheCode` |
 | B3 (K-1618) | 7.2.4.13 hücresi "ondalık ölçeği K-1013'tedir (`06` `NetQuantity`), ayırıcı biçimi 8.2.3'tedir"; denetimde `K-1013` → `NetQuantity`, `8.2.3` → hiçbir denetim türü (yalnız biçim) | `NetQuantityScale_IsTheIdOfK1013_AndTheSeparatorFormatNamesNoCheck` |
 | B4 | 7.3.2 "Kullanıldığı": 7.3.2.10 ve 7.3.2.16 için `7.2.6` eklendi; 7.3.2.14 (7.2.5.1 geri alındığı için) değişmedi | `Docs/04_UI_SPECS.md` |
 | B5 (KK2) | `Always` kümesi kalktı: 27 işlemin hepsi iki yönlü (açık ⇒ çizildi, aralık dışı ⇒ çizilmedi). Yeni tohumlar `Records.Returns` (teslim edilmiş kalem, koşullu muafiyet, 35 gün önceki cayma, kargo geçiş kaydı) ve `Records.Aged` (120 günlük sipariş: gecikme feshi). Hiç açılmayan ya da açıkken hiç çizilmeyen işlem testi "hiç açılmadı" diye kırar. Deney: `_OrderDetailCorrections.cshtml` `email = false` → `CorrectGuestEmail is open but the page draws none` (120 durum), geri alındı | `StateRolePageTests` 2/2 |
@@ -93,14 +94,54 @@ Düzeltme 2 öz denetimi (bütün maddeler yeniden): 1–9 ve KK1–KK9 testleri
 | gereklilik sözcüğü, kural ve sınır kimlikleri | her satır | `RequirementDiffers`, `RuleDiffers`, `LimitDiffers` (satırın hücresi ↔ envanter) | evet | belge tarafı deneyleri: `Requirement_ChangedInTheDocument_IsReported`, `Rule_ChangedInTheDocument_IsReported`, `Limit_ChangedInTheDocument_IsReported`; kodda `FieldRequired`/`Invalid*` niteliği satırla çelişirse `RequirementContradictsCode`, `RuleMissesAttribute` | belge tarafı; kod tarafı için son satır |
 | kural, sınır ve zorunluluğun kodda karşılığı (127 satır; 182 işlem satırı, 75 nitelik) | satır başına | nitelik (yansıma) ya da işlem satırı (`dosya#parça` ya da `alan@@denetim`: alanı adlayan parça ve hata kodu aynı satırda ya da 12 satır içinde); tür, kural ve nitelik eşleme tabloları açık | evet — alan parçası ve denetim simgesi birlikte; paylaşılan tek ifade yok (sınır satırı formun bekçisidir) | evet: 182 işlem satırının hepsi `src`'den silindi → 127/127 satır `EnforcementNotInCode`; nitelik silindi → 40/40; tür değişti (`InvalidEmail` → `InvalidPhone`) → raporlandı; testler: `EveryEnforcementLine_RemovedFromTheCode_IsReported`, `EveryRuleAttribute_TakenOffTheProperty_IsNoLongerEvidence`, `Attribute_RemovedFromTheProperty_IsReported`, `Requirement_RemovedFromTheCode_IsReported`, `KindOrRule_NotInTheTables_IsReported` | tablo kapalı: `EveryRuleAttributeOfTheCode_IsInTheKindTable`, `EveryFieldType_OfTheDocument_IsInTheRuleTable`; eşlenmeyen tür `RuleKindUnmapped` |
 
+### Düzeltme 3 (doğrulama tur 2: C1, C2)
+
+| Bulgu | Düzeltme | Kanıt |
+|---|---|---|
+| C1 (KK6) | Birden çok özellik yeri olan satırda her yerin nitelikleri ayrı okunur: `FormFieldPlaceMarks` (satır\|yer → nitelik türleri; tabloda olmayan yerin niteliği yoktur) ve `FormFieldCheck.PlaceMarkProblems` — bir yer niteliğini kaybederse ya da kazanırsa `PlaceMarksDiffer:<satır>: the place '<yer>' ...`; tablodaki yer envanterde çok yerli satırın özellik yeri değilse `PlaceMarksNotInInventory`. Satır düzeyi birleşim denetimi (zorunluluk, kural kapsamı, `RuleMissesAttribute`) aynen durur. Çok yerli satır: 31 (75 özellik yeri); nitelik taşıyan 8 yer pinli, öteki 67 yerin niteliği yok (denetimi işleyici satırı; kod → satır yönü D-1656'dadır) | `FormFieldPlaceMarksTests` (5 test): `EveryAttribute_TakenOffOnePlaceOfARowWithSeveralPlaces_IsReportedForThatPlace` (her pinli nitelik tek tek, gerçek envanter), `RequiredMark_OfTheCreateInput_AndDateMark_OfTheEndDate_AreReported_WhileTheOtherPlaceStillCarriesThem` (raporun iki deneyi), `AttributeGained_ByAPlace_AndAStrayPin_AreReported`, `EveryPlace_OfARowWithSeveralPlaces_CarriesItsPinnedMarks`, `RowWithOnePropertyPlace_NeedsNoPin` |
+| C2 (K-1619) | Kategori adı tavanı P-27 (`ProductConstants.ProductNameMaxLength`) geri kondu: `CreateCategoryInput.Name`, `RenameCategoryInput.Name` `[TextTooLong(...)]`, `Categories.cshtml` üç `maxlength`. Kaynak `09` 9.4 madde 3. `04` 7.2.5.1 "Kısa metin — ad P-27 (7.3.2.14)", 9.6.8, 7.3.2.14 tanımı ve "Kullanıldığı" (7.2.5); `02` P-27 kapsamı "kategori adının" ile genişledi (§3.4.1, K-1619); `06 §4.9` `Category.Name` (sütun `text`, tavan uygulamada); `07` 9.6.2 ve 9.6.3 422 listesi; `09` P-27 yorumu; `ProductConstants` özet yorumu. K-1619 baştan yazıldı. Denetim tarafı: `FormFieldInventory` 7.2.5.1 kuralı `7.3.2.14 P-27`; `FormFieldEnforcementTable` iki P-27 satırı (iki girdinin nitelik parçası) | `CategoriesPageTests.ANameOverTheCeiling_IsA422WithTheFieldMessage_OnCreateAndRename_AndWritesNothing_T547_C2` (6000 karakter → 422 + "en çok 150 karakter olabilir.", yazı yok; tam tavandaki ad 303); `LengthAttribute_WritingTheNumber_IsReported` yeni çapaya uyarlandı |
+
+Gerçek `src` deneyleri (betikle, hepsi geri alındı; her biri tüm Consistency koşusu):
+
+| Deney | Sonuç |
+|---|---|
+| Raporun (1): `CreateCategoryInput.Name`'den `[FieldRequired]` | KIRILDI — `PlaceMarksDiffer:7.2.5.1 ... 'Panel.CreateCategoryInput.Name' carries [TextTooLongAttribute], the table pins [FieldRequiredAttribute, TextTooLongAttribute]` (Rename hâlâ taşırken) |
+| Raporun (2): `SaveProductDiscountRow.EndDate`'ten `[InvalidDate]` | KIRILDI — `PlaceMarksDiffer:7.2.4.18 ... 'Panel.SaveProductDiscountRow.EndDate' carries []` (StartDate hâlâ taşırken) |
+| Toplu, her pinli yerin ilk niteliği birlikte (8 yer, 5 satır): 7.2.4.13 `NetQuantity`, 7.2.4.18 `Percentage`, `StartDate`, `EndDate`, 7.2.5.1 Create ve Rename `Name` `FieldRequired`, 7.2.16.8 `StartDate`, `EndDate` (7.2.16.8 dahil) | 8/8 yer kendi satırıyla KIRILDI (her yer için ayrı `PlaceMarksDiffer` satırı) |
+| 7.2.5.1 Create ve Rename `Name`'den `TextTooLong` (ikinci nitelik) | 2/2 yer KIRILDI (`PlaceMarksDiffer` + `RuleWithoutEnforcement` + `EnforcementNotInCode`) |
+
+Çok yerli 31 satırda 8 yerin tamamı nitelik taşıyan yerdir ve hepsi yukarıda tek tek sınandı; öteki 67 yer nitelik taşımaz (silinecek nitelik yok), onların kural ve zorunluluğu işleyici satırıdır ve satır düzeyindedir: yeri adlayan parça ile denetlenir (kod → satır yönü D-1656'dır, dokunulmadı). Satırlar: 7.2.3.1, .2, .3, .5; 7.2.4.3, .5, .6, .9, .10, .13, .18; 7.2.5.1; 7.2.7.1; 7.2.8.1–.3; 7.2.10.1–.4; 7.2.13.2; 7.2.14.1–.3; 7.2.16.1, .2, .3, .7, .8, .9, .10.
+
+Düzeltme 3 öz denetimi (bütün maddeler yeniden; `Docs/11` T547 kabul kriterleri ve `12`'nin ilgili kontrol listesi):
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1 / KK1 ekran bloğu | ✓ | `StateRoleConsistencyTests` yeşil (değişmedi) |
+| Kriter 2 / KK2 sayfa testi | ✓ | `StateRolePageTests` koşulmadı (kodu değişmedi); doğrulama tur 2'de 2/2; `Categories.cshtml` değişti → `CategoriesPageTests`, `CategoryTreeAndListsTests` 42/42 |
+| Kriter 3 / KK3 iki kapı | ✓ | `SalesGate_*`, `DataGate_*` yeşil |
+| Kriter 4 / KK4 durum adları | ✓ | `SynonymOfAStatusName_IsReported` yeşil |
+| Kriter 5 / KK5 Yönetici satırı | ✓ | `AdministratorRow_*`, `DraftRead_*` yeşil |
+| Kriter 6 / KK6 alan, zorunluluk, kural | ✓ | C1: yer başına nitelik (`FormFieldPlaceMarksTests`; gerçek `src` deneyleri yukarıda); satır düzeyi: `FormFieldEnforcementTests` yeşil |
+| Kriter 7 / KK7 kimlik, ürün sabiti | ✓ | `Rule_WritingAValue_IsReported`, `ProductConstant_NoValidationReads_IsReported`; 7.2.5.1 kuralı kimlikle (P-27), değer `ProductConstants`'tan; `LengthAttribute_WritingTheNumber_IsReported` yeni çapada kırar |
+| Kriter 8 / KK8 panel | ✓ | `Panel*_IsReported` yeşil |
+| Kriter 9 / KK9 yer | ✓ | `UnitTests/Consistency/` (644 test, yeni 5 dosya içi test); Integration `CategoriesPageTests` |
+| `09 §25` / güvenlik taraması | ✓ | `src` değişti: kategori adı tavanı; uzun ad artık 422 (kayıt tavanı), 500 yok; yeni bağımlılık, sır, yetki etkisi yok; sır bekçisi adları (`Concealed`, `cancel =>`) kullanıldı |
+| Sık FAIL (1) istisna geniş | ✓ | yeni istisna yok; tablodaki olmayan yer "nitelik yok" sayılır ve kod gerçekte öyleyse eşleşir, fazla nitelik de `PlaceMarksDiffer` verir |
+| Sık FAIL (2) çağrı biçimi kaçıyor | ✓ | yer başına nitelik yansımayla okunur (ek argüman, adlı argüman, Attribute soneki fark etmez: tür adı) |
+| Sık FAIL (3) 06 varsayılanı / FK | ✓ (kapsam dışı) | şema değişmedi; `Category.Name` `text` kaldı |
+| Sık FAIL (4) aynı sayıyı anan yerler | ✓ | P-27 anan yerler arandı: `02` P-27, `04` 7.2.5.1, 9.6.8, 7.3.2.14 + Kullanıldığı, `06 §4.9`, `07` 9.6.2–9.6.3, `09` P-27 yorumu, `ProductConstants`; `04` sürüm dipnotu ve `PRODUCT_DISCOVERY_STATUS.md` satır 48, K-1619 |
+| Sık FAIL (5) karar kaydısız belge kuralı | ✓ | K-1619 (kapsam genişletmesi P-27 → kategori adı) baştan yazıldı |
+| T538 / T546 emsali: sessiz atlama yok, ortak ifade kanıt değil | ✓ | iki yerli satırda kanıt artık yer başına; tabloda olmayan ya da kaybolan yer sessiz kalmaz |
+| Hedefi T547 olan backlog kalemi | ✓ | `grep T547`: yalnız D-1656, D-1657 (doğrulama tur 1 notları) ve D-1661 (tur 2 K1); üçü ileri, dokunulmadı |
+
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit (Consistency) | ✓ | `dotnet test tests/Shopfolio.UnitTests --filter-trait "Consistency=true"` | 639 geçti (düzeltme 2) |
+| Unit (Consistency) | ✓ | `dotnet test tests/Shopfolio.UnitTests --filter-trait "Consistency=true"` | 644 geçti (düzeltme 3; 639 + `FormFieldPlaceMarksTests` 5) |
 | Unit (diğer) | ✓ | `--filter-not-trait "Consistency=true"` | 7420 geçti |
-| Integration | ✓ (ilgili sınıf) — TAM: CI | `dotnet test tests/Shopfolio.IntegrationTests --filter-class "*StateRolePageTests"` | düzeltme 2: `StateRolePageTests` 2/2 geçti (postgres:18, `track_commit_timestamp=on`, konteyner `shopfolio-t547-pg`); TAM: CI |
-| Format | ✓ | `dotnet format Shopfolio.slnx --no-restore --include <değişen .cs>` | temiz |
+| Integration | ✓ (ilgili sınıf) — TAM: CI | `dotnet test tests/Shopfolio.IntegrationTests --filter-class "*CategoriesPageTests" "*CategoryTreeAndListsTests"` | düzeltme 3: 42/42 geçti (postgres:18, `track_commit_timestamp=on`, konteyner `t547-fix3-pg`, port 56547); TAM: CI |
+| Format | ✓ | `dotnet format Shopfolio.slnx --no-restore --verify-no-changes --include <değişen .cs>` | çıkış 0 |
 
 ## Doğrulama
 

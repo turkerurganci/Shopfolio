@@ -26,7 +26,11 @@ internal sealed record NavigationEvidence(NavigationEvidenceKind Kind, string Fi
 internal sealed record NavigationEntry(string Id, string From, string To, IReadOnlyList<NavigationEvidence> Evidence);
 
 /// <summary>A site of the code that stays on its screen or is no screen (the document's own rule, <c>04 3</c> introduction), with the reason. It is no list of known differences: a link that leads to another screen is a row.</summary>
-internal sealed record NavigationExemption(NavigationSiteKind Kind, string File, string Key, string Reason);
+internal sealed record NavigationExemption(NavigationSiteKind Kind, string File, string Key, string Reason, IReadOnlyList<NavigationEvidence>? BoundTo = null)
+{
+    /// <summary>The lines of the code that give the exempt address its target; an exempt address that is a variable must have them (T546 correction 5).</summary>
+    public IReadOnlyList<NavigationEvidence> Binds => BoundTo ?? [];
+}
 
 /// <summary>
 /// The code side of the navigation map (T546; 04 3; 09 21.4 item 1): each row of the tables is claimed by the places of the code that carry it - the link of a view, the redirect of a handler, the route of a page
@@ -42,6 +46,14 @@ internal static class NavigationInventory
     private const string PanelLayout = "Shared/_PanelLayout.cshtml";
     private const string PanelBuilder = "Frame/PanelFrameBuilder.cs";
     private const string SessionHandler = "!Infrastructure/Security/SessionAuthenticationHandler.cs";
+    private const string StorefrontBuilder = "Frame/StorefrontFrameBuilder.cs";
+    private const string MenuReader = "!Modules/CorporateContent/StorefrontMenuReader.cs";
+    private const string ContentPages = "Content/ContentRecordPages.cs";
+
+    // The order page of E-16 by its whole route, never by the prefix the order's other screens share (cancellation, confirmation, defect claim ... start with the same text): the page that is the target is the one that has the route.
+    private const string AccessOrderRoute = "/siparis/erisim/{accessKey:regex(^[A-Za-z0-9_-]+\\z)}";
+    private const string MemberOrderRoute = "/siparis/{orderNumber:regex(^[0-9][0-9][0-9][0-9]-[A-Za-z0-9]+\\z)}";
+    private const string PaymentReturnRoute = "/odeme/donus/{accessKey:regex(^[A-Za-z0-9_-]+\\z)}";
 
     private static readonly NavigationEntry[] Rows =
     [
@@ -305,14 +317,14 @@ internal static class NavigationInventory
             E("Panel/AuditTrail.cshtml.cs", "PanelFramePaths.Home")),
 
         // 04 3.5: entries from outside the site.
-        Row("3.5.1", "~Sipariş e-postası", "E-16", Page("/siparis/erisim/{accessKey*"), Page("/siparis/{orderNumber*")),
-        Row("3.5.2", "~Sipariş e-postası", "E-16", Page("/siparis/erisim/{accessKey*"), Page("/siparis/{orderNumber*")),
-        Row("3.5.3", "~IBAN gerekli", "E-16", Page("/siparis/erisim/{accessKey*")),
+        Row("3.5.1", "~Sipariş e-postası", "E-16", Page(AccessOrderRoute), Page(MemberOrderRoute)),
+        Row("3.5.2", "~Sipariş e-postası", "E-16", Page(AccessOrderRoute), Page(MemberOrderRoute)),
+        Row("3.5.3", "~IBAN gerekli", "E-16", Page(AccessOrderRoute)),
         Row("3.5.4", "~E-posta doğrulama bağlantısı (kayıt)", "E-21", Page("/dogrulama/{key}")),
         Row("3.5.5", "~Şifre sıfırlama bağlantısı", "E-23,E-29", Page("/sifre-sifirlama/{key?}"), Page("/panel/sifre-sifirlama/{key?}")),
         Row("3.5.6", "~Yeni e-posta adresinin doğrulama bağlantısı", "E-21,E-54", Page("/dogrulama/{key}"), Page("/panel/dogrulama/{key}")),
         Row("3.5.7", "~Bu değişikliği ben yapmadım", "E-28,E-54", Page("/geri-al/{key}"), Page("/panel/geri-al/{key}")),
-        Row("3.5.8", "~Ödeme sağlayıcısının formu", "E-16", Page("/odeme/donus/{accessKey*"), L("Payment/Return.cshtml", "@Model.OrderPath")),
+        Row("3.5.8", "~Ödeme sağlayıcısının formu", "E-16", Page(PaymentReturnRoute), L("Payment/Return.cshtml", "@Model.OrderPath")),
         Row(
             "3.5.9",
             "~Google'ın sayfası",
@@ -428,6 +440,59 @@ internal static class NavigationInventory
     [
         X("Storefront/ReauthenticationAddresses.cs", """FramePaths.Reauthentication + "?" + OperationParameter + "=" + Uri.EscapeDataString(operation.ToString())"""),
         X("Storefront/ReauthenticationAddresses.cs", """FramePaths.Account + "?" + OperationParameter + "=" + Uri.EscapeDataString(operation.ToString())"""),
+    ];
+
+    // T546 correction 5 (B1 of round 4, K1 = D-1641): the same rule for 3.1, 3.2, 3.5, 3.6 and 3.7 - the frame builders, the menu reader, the draft calls and the session handler are producers too.
+    private static readonly NavigationEvidence[] CartFrameAddress =
+    [
+        X(StorefrontBuilder, "new FrameCart(FramePaths.Cart, badge.ItemCount)"),
+    ];
+
+    private static readonly NavigationEvidence[] GeneralPageAddress =
+    [
+        X(MenuReader, "AddressRules.RecordAddress(AddressRules.GeneralPagePrefix, p.Slug)"),
+    ];
+
+    private static readonly NavigationEvidence[] FooterFrameAddress =
+    [
+        X(StorefrontBuilder, "return new FrameFooter(FramePaths.Contact, identity, etbis, menu.FooterPages, links, brand.ShowsPlatformSignature);"),
+    ];
+
+    private static readonly NavigationEvidence[] PanelHomeLink =
+    [
+        X(PanelBuilder, "\"/\",\n            new PanelAdminArea(name,"),
+    ];
+
+    private static readonly NavigationEvidence[] SignInGateAddress =
+    [
+        X("!Infrastructure/Security/SessionAccessSetup.cs", "options.SignInPath = SessionSchemes.CustomerSignInPath;"),
+        X("!Infrastructure/Security/SessionAccessSetup.cs", "options.SignInPath = SessionSchemes.AdminSignInPath;"),
+        X("!Infrastructure/Security/SessionSchemes.cs", "public const string CustomerSignInPath = \"/giris\";"),
+        X("!Infrastructure/Security/SessionSchemes.cs", "public const string AdminSignInPath = \"/panel/giris\";"),
+        X(SessionHandler, "$\"{Options.SignInPath}?{ReturnPath.ParameterName}={Uri.EscapeDataString(address)}\""),
+        X(SessionHandler, ": Options.SignInPath;"),
+    ];
+
+    private static readonly NavigationEvidence[] ReturnTargets =
+    [
+        X("!Infrastructure/Security/ReturnPath.cs", "public const string StorefrontHome = \"/\";"),
+        X("!Infrastructure/Security/ReturnPath.cs", "public const string PanelHome = \"/panel\";"),
+        X("!Infrastructure/Security/ReturnPath.cs", "ReturnArea.Storefront => StorefrontHome,"),
+        X("!Infrastructure/Security/ReturnPath.cs", "ReturnArea.Panel => PanelHome,"),
+    ];
+
+    private static readonly NavigationEvidence[] ContentDraftEdit =
+    [
+        X(ContentPages, "HttpContext.SetDraftPreview($\"{PanelFramePaths.CorporateContent}/{PanelType}/{page.RecordId:D}\");"),
+        X(ContentPages, "protected override string PanelType => \"hakkimizda\";"),
+        X(ContentPages, "protected override string PanelType => \"hizmet\";"),
+        X(ContentPages, "protected override string PanelType => \"referans\";"),
+        X(ContentPages, "protected override string PanelType => \"sayfa\";"),
+    ];
+
+    private static readonly NavigationEvidence[] ProductDraftEdit =
+    [
+        X("Product.cshtml.cs", "HttpContext.SetDraftPreview($\"{PanelFramePaths.Products}/{draftId:D}\");"),
     ];
 
     /// <summary>The producers by row: the lines of the code that give a model-fed address its target.</summary>
@@ -554,13 +619,7 @@ internal static class NavigationInventory
             X("Panel/ContentRoutes.cs", """public const string Root = "/panel/kurumsal-icerik";"""),
             X("Panel/ContentForm.cshtml.cs", "public static string ListPath => PanelFramePaths.CorporateContent;"),
         ],
-        ["3.4.13"] =
-        [
-            X("!Modules/CorporateContent/PanelContentEditing.cs", """pagePath = "/" + AddressRules.AboutPage;"""),
-            X("!Modules/CorporateContent/PanelContentEditing.cs", "pagePath = offering is null ? null : AddressRules.RecordAddress(AddressRules.ServicePrefix, offering.Slug);"),
-            X("!Modules/CorporateContent/PanelContentEditing.cs", "pagePath = item is null ? null : AddressRules.RecordAddress(AddressRules.ReferencePrefix, item.Slug);"),
-            X("!Modules/CorporateContent/PanelContentEditing.cs", "pagePath = page is null ? null : AddressRules.RecordAddress(AddressRules.GeneralPagePrefix, page.Slug);"),
-        ],
+        ["3.4.13"] = Producers3413(),
         ["3.4.14"] = [X("Panel/Members.cshtml.cs", """ListReturn.LinkTo(PanelFramePaths.Orders + "/" + o.OrderId.ToString(), listAddress)""")],
         ["3.4.15"] =
         [
@@ -595,7 +654,90 @@ internal static class NavigationInventory
             X("Panel/Verify.cshtml.cs", "public string NextPath { get; private set; } = PanelFramePaths.SignIn;"),
         ],
         ["3.4.25"] = [X("Panel/OrderDetail.cshtml", "display.Link is { } link"), .. TrackingAddress],
+
+        // 3.1: the storefront's frame (the builder and the menu reader hand the header, the menu and the footer their addresses).
+        ["3.1.1"] = [X("!Modules/CorporateContent/AnnouncementReader.cs", "new AnnouncementView(announcement.Text!, announcement.LinkUrl,")],
+        ["3.1.17"] =
+        [
+            X("!Modules/CorporateContent/CorporateContentModule.cs", "new SocialLinkItem(l.Platform, l.Url)"),
+            X("Frame/FrameStyle.cs", "internal const string WhatsAppPrefix = \"https://wa.me/90\";"),
+            X("Frame/FrameStyle.cs", "WhatsAppPrefix + number : null;"),
+        ],
+        ["3.1.3"] = [X(StorefrontBuilder, "new FrameSearch(FramePaths.Search, FramePaths.SearchParameter)")],
+        ["3.1.4"] =
+        [
+            X(StorefrontBuilder, "FramePaths.SignIn, StringComparison.OrdinalIgnoreCase)"),
+            X(StorefrontBuilder, "? FramePaths.SignIn"),
+            X(StorefrontBuilder, "$\"{FramePaths.SignIn}?{ReturnPath.ParameterName}={Uri.EscapeDataString(current)}\""),
+        ],
+        ["3.1.5"] = [X(StorefrontBuilder, "FramePaths.OrderTracking,")],
+        ["3.1.6"] = [X(StorefrontBuilder, "FramePaths.Account,")],
+        ["3.1.7"] = [X(StorefrontBuilder, "FramePaths.AccountOrders,")],
+        ["3.1.8"] = [X(StorefrontBuilder, "new FrameSignOutForm(FramePaths.SignOut,")],
+        ["3.1.9"] = CartFrameAddress,
+        ["3.1.10"] = CartFrameAddress,
+        ["3.1.11"] = CategoryAddress,
+        ["3.1.12"] =
+        [
+            X(MenuReader, "TypeItem(MenuItemKind.Offerings, names.Offerings, \"/\" + AddressRules.ServiceListPage, structure.HasOfferings)"),
+            X(MenuReader, "TypeItem(MenuItemKind.PortfolioItems, names.PortfolioItems, \"/\" + AddressRules.ReferenceListPage, structure.HasPortfolioItems)"),
+        ],
+        ["3.1.13"] = [X(MenuReader, "TypeItem(MenuItemKind.AboutPage, names.AboutPage, \"/\" + AddressRules.AboutPage, structure.HasAboutPage)")],
+        ["3.1.14"] = [X(MenuReader, "TypeItem(MenuItemKind.FaqItems, names.FaqItems, \"/\" + AddressRules.FaqPage, structure.HasFaqItems)")],
+        ["3.1.15"] =
+        [
+            X(MenuReader, "new MenuItem(MenuItemKind.GeneralPage, p.Title, p.Path, true, null)"),
+            .. GeneralPageAddress,
+        ],
+        ["3.1.16"] = [X(MenuReader, "new(MenuItemKind.Contact, names.Contact, \"/\" + AddressRules.ContactPage, true, null)")],
+        ["3.1.18"] = [.. FooterFrameAddress, .. GeneralPageAddress],
+        ["3.1.19"] =
+        [
+            X(StorefrontBuilder, "new FrameLegalLink(FramePaths.PrivacyNoticeTitle, FramePaths.PrivacyNotice)"),
+            X(StorefrontBuilder, "new FrameLegalLink(FramePaths.CookiePolicyTitle, FramePaths.CookiePolicy)"),
+            X(StorefrontBuilder, "new FrameLegalLink(ProcessGuide.Title, FramePaths.ProcessGuide)"),
+        ],
+        ["3.1.20"] = [.. FooterFrameAddress, X(StorefrontBuilder, "string? etbis = string.IsNullOrWhiteSpace(identity.EtbisVerificationUrl) ? null : identity.EtbisVerificationUrl;")],
+        ["3.1.21"] = FooterFrameAddress,
+
+        // 3.2: the panel's frame; the menu is the menu table's own check (PanelMenu_*), the top row has its producers here.
+        ["3.2.19"] = [X(PanelBuilder, "new PanelSalesIndicator(false, PanelFramePaths.SalesClosedText, PanelFramePaths.SalesStateSection)"), X(PanelBuilder, "new PanelSalesIndicator(true, PanelFramePaths.SalesOpenText, PanelFramePaths.SalesStateSection)")],
+        ["3.2.20"] = PanelHomeLink,
+        ["3.2.21"] = [X(PanelBuilder, "new PanelAdminArea(name, PanelFramePaths.MyAccount,")],
+        ["3.2.22"] = [X(PanelBuilder, "new PanelSignOutForm(PanelFramePaths.SignOut)")],
+
+        // 3.5: the entries from outside the site; the pages are the route evidence, the producers below are the lines that give a link or a redirect its target.
+        ["3.5.8"] = [X("Payment/Return.cshtml.cs", "OrderPath = OrderRoutes.AccessPath(RouteData.Values[\"accessKey\"] as string ?? string.Empty);"), X("!Infrastructure/Routing/OrderRoutes.cs", "return \"/\" + AddressRules.OrderArea + \"/\" + AccessSegment + \"/\" + accessKey;")],
+        ["3.5.13"] = [X("Frame/FramedNotFoundPageRenderer.cs", "private const string ViewPath = \"/Pages/Shared/_NotFound.cshtml\";"), X("Frame/FramedNotFoundPageRenderer.cs", "StatusCode = StatusCodes.Status404NotFound")],
+        ["3.5.14"] = SignInGateAddress,
+
+        // 3.6: the paragraphs; the return rules are the functions of ReturnPath (compiled and tested), the handlers hand them the value, and the two gates have their own address.
+        ["3.6.1"] = [.. SignInGateAddress, .. ReturnTargets],
+        ["3.6.3"] = ReturnTargets,
+        ["3.6.4"] = [X(SessionHandler, "? SessionSchemes.AdminSignInPath"), X(SessionHandler, ": ReturnPath.AfterSignOut(await RequestedReturnUrlAsync());"), .. ReturnTargets],
+        ["3.6.5"] = SignInGateAddress,
+
+        // 3.7: between the panel and the storefront.
+        ["3.7.1"] = PanelHomeLink,
+        ["3.7.2"] = Producers3413(),
+        ["3.7.3"] = [X(StorefrontBuilder, "isAdministrator ? new FrameAdminStrip(FramePaths.Panel) : null,")],
+        ["3.7.4"] = [.. ProductDraftEdit, .. ContentDraftEdit],
+        ["3.7.5"] =
+        [
+            X("!Modules/Catalog/ProductPageReader.cs", "product is null || (product.PublishStatus == PublishStatus.Draft && !isAdministrator))"),
+            X("Product.cshtml.cs", "page.Kind == ProductPageKind.NotFound"),
+            X("!Modules/CorporateContent/StorefrontContentPages.cs", "ContentAudience audience = asAdministrator ? ContentAudience.Administrator : ContentAudience.Visitor;"),
+            X("Frame/FramedNotFoundPageRenderer.cs", "private const string ViewPath = \"/Pages/Shared/_NotFound.cshtml\";"),
+        ],
     };
+
+    private static NavigationEvidence[] Producers3413() =>
+    [
+        X("!Modules/CorporateContent/PanelContentEditing.cs", """pagePath = "/" + AddressRules.AboutPage;"""),
+        X("!Modules/CorporateContent/PanelContentEditing.cs", "pagePath = offering is null ? null : AddressRules.RecordAddress(AddressRules.ServicePrefix, offering.Slug);"),
+        X("!Modules/CorporateContent/PanelContentEditing.cs", "pagePath = item is null ? null : AddressRules.RecordAddress(AddressRules.ReferencePrefix, item.Slug);"),
+        X("!Modules/CorporateContent/PanelContentEditing.cs", "pagePath = page is null ? null : AddressRules.RecordAddress(AddressRules.GeneralPagePrefix, page.Slug);"),
+    ];
 
     /// <summary>The rows of the tables and the paragraphs of 3.6 with the producers of the addresses their links draw from a model.</summary>
     public static IReadOnlyList<NavigationEntry> Entries { get; } =
@@ -649,7 +791,61 @@ internal static class NavigationInventory
     }
 
     /// <summary>The sites that stay on their screen or are not a screen (04 3 introduction); no link that leads to another screen is here.</summary>
-    public static IReadOnlyList<NavigationExemption> Exemptions { get; } =
+    // The exempt addresses that are a variable (a model's property, a local, a list root): the screen they stay on is held by the line that gives the variable its value (T546 correction 5; D-1641). A change of
+    // that line - the list root of the filter's link, the page of the post-redirect-get, the path of the empty list's exit - breaks the exemption it binds.
+    private static readonly NavigationEvidence[] PagerAddress =
+    [
+        X("Lists/ListModels.cs", "current > PageNumber.First ? ListAddress.Of(listRoot, query, current - 1) : null,"),
+        X("Lists/ListModels.cs", "current < pageCount ? ListAddress.Of(listRoot, query, current + 1) : null,"),
+        X("Lists/ListModels.cs", "new PagerItem(number, ListAddress.Of(listRoot, query, number), false)"),
+    ];
+
+    private static readonly NavigationEvidence[] CategoryListAddress =
+    [
+        X("Category.cshtml.cs", "string path = CategoryPaths.Of(category.Slug);"),
+        X("Category.cshtml.cs", "new CategoryFilterForm(path, query.MinPrice, query.MaxPrice, ListFilters.ReadInStock(query.InStock), PriceRangeMessage(), applied)"),
+        X("Category.cshtml.cs", "CategoryPage.EmptyStateOf(cards.Count, applied, path)"),
+    ];
+
+    private static readonly NavigationEvidence[] AddressBookAddress =
+    [
+        X("Account/Addresses.cshtml", "string path = FramePaths.AccountAddresses;"),
+        X("Account/Addresses.cshtml", "string addPath = path + \"?create=true\";"),
+    ];
+
+    private static readonly NavigationEvidence[] ErrorExitAddress =
+    [
+        X("Frame/FramedErrorPageRenderer.cs", "string retry = context.Request.Path.ToUriComponent() + context.Request.QueryString.ToUriComponent();"),
+        X("Frame/FramedErrorPageRenderer.cs", "storefront ? \"/\" : PanelFramePaths.Home,"),
+    ];
+
+    private static readonly Dictionary<(string File, NavigationSiteKind Kind, string Key), NavigationEvidence[]> Bindings = new()
+    {
+        [(Path("Shared/_Pager.cshtml"), NavigationSiteKind.Link, "@Model.PrevPagePath")] = PagerAddress,
+        [(Path("Shared/_Pager.cshtml"), NavigationSiteKind.Link, "@item.Path")] = PagerAddress,
+        [(Path("Shared/_Pager.cshtml"), NavigationSiteKind.Link, "@Model.NextPath")] = PagerAddress,
+        [(Path("Category.cshtml"), NavigationSiteKind.Link, "@filter.ActionPath")] = CategoryListAddress,
+        [(Path("Panel/AuditTrail.cshtml"), NavigationSiteKind.Link, "@chip.RemovePath")] = [X("Panel/AuditTrail.cshtml.cs", "public string ListRoot => PanelFramePaths.OperationTrail;"), X("Panel/AuditTrail.cshtml.cs", "ListAddress.Of(ListRoot, ", 3)],
+        [(Path("Panel/Orders.cshtml"), NavigationSiteKind.Link, "@chip.RemovePath")] = [X("Panel/Orders.cshtml.cs", "public string ListRoot => PanelFramePaths.Orders;"), X("Panel/Orders.cshtml.cs", "ListAddress.Of(ListRoot, ", 5)],
+        [(Path("Panel/Requests.cshtml"), NavigationSiteKind.Link, "@chip.RemovePath")] = [X("Panel/Requests.cshtml.cs", "public string ListRoot => PanelFramePaths.Requests;"), X("Panel/Requests.cshtml.cs", "ListAddress.Of(ListRoot, ", 3)],
+        [(Path("Account/Addresses.cshtml"), NavigationSiteKind.Link, "@addPath")] = AddressBookAddress,
+        [(Path("Account/Addresses.cshtml"), NavigationSiteKind.Link, "@path")] = AddressBookAddress,
+        [(Path("Account/Addresses.cshtml"), NavigationSiteKind.Link, "@path?addressBookId=@entry.Id.ToString(\"D\")")] = AddressBookAddress,
+        [(Path("Shared/_UnexpectedError.cshtml"), NavigationSiteKind.Link, "@Model.HomePath")] = ErrorExitAddress,
+        [(Path("Shared/_UnexpectedError.cshtml"), NavigationSiteKind.Link, "@Model.RetryPath")] = ErrorExitAddress,
+        [(Path("Storefront/CategoryPage.cs"), NavigationSiteKind.EmptyExit, "categoryPath")] = CategoryListAddress,
+        [(Path("Storefront/SearchPage.cs"), NavigationSiteKind.EmptyExit, "searchAddress")] = [X("Search.cshtml.cs", "string clearAddress = ListAddress.Of(Frame.FramePaths.Search, new ProductQuery { Search = query.Search }, 1);"), X("Search.cshtml.cs", "SearchPage.EmptyStateOf(cards.Count, applied, clearAddress)")],
+        [(Path("Panel/Orders.cshtml.cs"), NavigationSiteKind.EmptyExit, "ListRoot")] = [X("Panel/Orders.cshtml.cs", "public string ListRoot => PanelFramePaths.Orders;")],
+        [(Path("Panel/Requests.cshtml.cs"), NavigationSiteKind.EmptyExit, "ListRoot")] = [X("Panel/Requests.cshtml.cs", "public string ListRoot => PanelFramePaths.Requests;")],
+        [(Path("Panel/AuditTrail.cshtml.cs"), NavigationSiteKind.EmptyExit, "ListRoot")] = [X("Panel/AuditTrail.cshtml.cs", "public string ListRoot => PanelFramePaths.OperationTrail;")],
+        [(Path("Panel/Products.cshtml.cs"), NavigationSiteKind.EmptyExit, "ListRoot")] = [X("Panel/Products.cshtml.cs", "public string ListRoot => PanelFramePaths.Products;")],
+        [(Path("Account/Addresses.cshtml"), NavigationSiteKind.EmptyExit, "addPath")] = AddressBookAddress,
+        [(Path("Orders/ConfirmationScreenModels.cs"), NavigationSiteKind.Redirect, "ScreenPath")] = [X("Orders/ConfirmationScreenModels.cs", "public string ScreenPath => Request.Path.Value ?? string.Empty;")],
+        [(Path("Orders/OrderPageModels.cs"), NavigationSiteKind.Redirect, "RootPath")] = [X("Orders/OrderPageModels.cs", "public string RootPath => Request.Path.Value ?? string.Empty;")],
+        [(Path("Panel/RequestDetail.cshtml.cs"), NavigationSiteKind.Redirect, "path")] = [X("Panel/RequestDetail.cshtml.cs", "string path = PathOf(id);"), X("Panel/RequestDetail.cshtml.cs", "private static string PathOf(Guid id) => $\"{PanelFramePaths.Requests}/{id:D}\";")],
+    };
+
+    private static readonly NavigationExemption[] ExemptSites =
     [
         // Sorting, paging, in-row editing and the confirmation window are no transitions (04 3 introduction); the lists' own addresses.
         Stay("Shared/_Pager.cshtml", "@Model.PrevPagePath", "paging stays on the list (04 2.13.3)"),
@@ -710,6 +906,9 @@ internal static class NavigationInventory
         // A file is no screen (04 4 lists the 53 screens).
         Stay("Orders/OrderPageModels.cs", "Endpoints.Files.DownloadEndpoint.Prefix + \"/\" + value", "the download's answer is a file, no screen", NavigationSiteKind.Redirect),
     ];
+
+    /// <summary>The sites that stay on their screen or are not a screen (04 3 introduction), each with the lines that bind a variable address to its target; no link that leads to another screen is here.</summary>
+    public static IReadOnlyList<NavigationExemption> Exemptions { get; } = [.. ExemptSites.Select(e => Bindings.TryGetValue((e.File, e.Kind, e.Key), out NavigationEvidence[]? binds) ? e with { BoundTo = binds } : e)];
 
     private static string Path(string file) => file.StartsWith('!') ? file[1..] : "Pages/" + file;
 

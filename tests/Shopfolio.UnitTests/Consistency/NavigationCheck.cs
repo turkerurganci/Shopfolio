@@ -68,13 +68,9 @@ internal static class NavigationCheck
 
                         break;
                     case NavigationEvidenceKind.Text:
-                        if (!sources.TryGetValue(evidence.File, out string? text) || !text.Contains(evidence.Text, StringComparison.Ordinal))
+                        if (TextProblem(sources, evidence) is { } textProblem)
                         {
-                            problems.Add($"EvidenceMissing:{entry.Id}: the text '{evidence.Text}' is not in {evidence.File}.");
-                        }
-                        else if (Count(text, evidence.Text) != evidence.Occurrences)
-                        {
-                            problems.Add($"EvidenceMissing:{entry.Id}: the text '{evidence.Text}' is {Count(text, evidence.Text)} times in {evidence.File}, the entry says {evidence.Occurrences}.");
+                            problems.Add($"EvidenceMissing:{entry.Id}: {textProblem}");
                         }
 
                         break;
@@ -123,6 +119,15 @@ internal static class NavigationCheck
             {
                 problems.Add($"ExemptAndClaimed: {exemption.Kind} '{exemption.Key}' in {exemption.File} is a row's evidence.");
             }
+
+            // The address of an exempt site that is a variable is bound to the line that gives it its target (T546 correction 5; D-1641): the screen it stays on is the screen the variable holds.
+            foreach (NavigationEvidence bound in exemption.Binds)
+            {
+                if (TextProblem(sources, bound) is { } boundProblem)
+                {
+                    problems.Add($"EvidenceMissing:Exemption({exemption.File}|{exemption.Key}): {boundProblem}");
+                }
+            }
         }
 
         foreach ((string file, NavigationSiteKind kind, string key) in scannedSet.Order())
@@ -134,6 +139,18 @@ internal static class NavigationCheck
         }
 
         return problems;
+    }
+
+    /// <summary>The problem of a text evidence - the text is not in its file or stands another number of times - or null.</summary>
+    private static string? TextProblem(IReadOnlyDictionary<string, string> sources, NavigationEvidence evidence)
+    {
+        if (!sources.TryGetValue(evidence.File, out string? text) || !text.Contains(evidence.Text, StringComparison.Ordinal))
+        {
+            return $"the text '{evidence.Text}' is not in {evidence.File}.";
+        }
+
+        int count = Count(text, evidence.Text);
+        return count != evidence.Occurrences ? $"the text '{evidence.Text}' is {count} times in {evidence.File}, the entry says {evidence.Occurrences}." : null;
     }
 
     private static int Count(string text, string value)

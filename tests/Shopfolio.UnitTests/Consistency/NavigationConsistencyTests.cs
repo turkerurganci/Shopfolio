@@ -458,7 +458,8 @@ public sealed class NavigationConsistencyTests
     public void ARowWhoseLinkDrawsItsAddressFromAModel_CarriesTheProducerOfTheTarget()
     {
         List<string> without = [];
-        foreach (NavigationEntry entry in NavigationInventory.Entries.Where(e => e.Id.StartsWith("3.3.", StringComparison.Ordinal) || e.Id.StartsWith("3.4.", StringComparison.Ordinal)))
+        // T546 correction 5 (round 4 B1): every row of 04 3 - 3.1, 3.2, 3.3, 3.4, 3.5, 3.6 and 3.7 - not only 3.3 and 3.4.
+        foreach (NavigationEntry entry in NavigationInventory.Entries)
         {
             bool fed = entry.Evidence.Any(NavigationInventory.AddressComesFromAModel);
             bool hasTarget = entry.Evidence.Any(v => v.Kind == NavigationEvidenceKind.Text);
@@ -568,6 +569,141 @@ public sealed class NavigationConsistencyTests
     public void ModelFedAddress_ChangedAtItsProducer_IsReportedOnItsRow(string file, string from, string to, string expected)
     {
         Assert.Contains(Problems(sources: Changed(file, from, to)), p => p.StartsWith(expected, StringComparison.Ordinal));
+    }
+
+    // T546 correction 5 (round 4 B1, K1 = D-1641): the producer rule and the target change reach 3.1, 3.2, 3.5, 3.6 and 3.7 as well - the frame builders, the menu reader, the draft calls, the session handler. The
+    // assertion is the row itself (EvidenceMissing:<row>) or the changed site (UndocumentedTransition and SiteCountDiffers name the file), never a problem of another place.
+    [Theory]
+    [InlineData("3.1.1", "Pages/Shared/_StorefrontLayout.cshtml", "href=\"@announcement.LinkUrl\"", "href=\"/baska-yer\"")]
+    [InlineData("3.1.2", "Pages/Shared/_StorefrontHeader.cshtml", "<a href=\"/\">", "<a href=\"/baska-yer\">")]
+    [InlineData("3.1.3", "Pages/Frame/StorefrontFrameBuilder.cs", "new FrameSearch(FramePaths.Search,", "new FrameSearch(FramePaths.Cart,")]
+    [InlineData("3.1.4", "Pages/Frame/StorefrontFrameBuilder.cs", "$\"{FramePaths.SignIn}?{ReturnPath.ParameterName}", "$\"{FramePaths.Cart}?{ReturnPath.ParameterName}")]
+    [InlineData("3.1.5", "Pages/Frame/StorefrontFrameBuilder.cs", "FramePaths.OrderTracking,", "FramePaths.Account,")]
+    [InlineData("3.1.6", "Pages/Frame/StorefrontFrameBuilder.cs", "FramePaths.Account,", "FramePaths.Cart,")]
+    [InlineData("3.1.7", "Pages/Frame/StorefrontFrameBuilder.cs", "FramePaths.AccountOrders,", "FramePaths.Cart,")]
+    [InlineData("3.1.8", "Pages/Frame/StorefrontFrameBuilder.cs", "new FrameSignOutForm(FramePaths.SignOut,", "new FrameSignOutForm(FramePaths.Cart,")]
+    [InlineData("3.1.9", "Pages/Frame/StorefrontFrameBuilder.cs", "new FrameCart(FramePaths.Cart, badge.ItemCount)", "new FrameCart(FramePaths.Contact, badge.ItemCount)")]
+    [InlineData("3.1.10", "Pages/Shared/_StorefrontHeader.cshtml", "<a class=\"site-header__back\" href=\"@Model.Cart.Path\">", "<a class=\"site-header__back\" href=\"/baska-yer\">")]
+    [InlineData("3.1.11", "Pages/Frame/FrameMenuTree.cs", "AddressRules.RecordAddress(AddressRules.CategoryPrefix, c.Slug)", "AddressRules.RecordAddress(AddressRules.GeneralPagePrefix, c.Slug)")]
+    [InlineData("3.1.12", "Modules/CorporateContent/StorefrontMenuReader.cs", "\"/\" + AddressRules.ServiceListPage", "\"/\" + AddressRules.FaqPage")]
+    [InlineData("3.1.13", "Modules/CorporateContent/StorefrontMenuReader.cs", "\"/\" + AddressRules.AboutPage, structure.HasAboutPage", "\"/\" + AddressRules.FaqPage, structure.HasAboutPage")]
+    [InlineData("3.1.14", "Modules/CorporateContent/StorefrontMenuReader.cs", "\"/\" + AddressRules.FaqPage, structure.HasFaqItems", "\"/\" + AddressRules.AboutPage, structure.HasFaqItems")]
+    [InlineData("3.1.15", "Modules/CorporateContent/StorefrontMenuReader.cs", "AddressRules.RecordAddress(AddressRules.GeneralPagePrefix, p.Slug)", "AddressRules.RecordAddress(AddressRules.CategoryPrefix, p.Slug)")]
+    [InlineData("3.1.16", "Modules/CorporateContent/StorefrontMenuReader.cs", "\"/\" + AddressRules.ContactPage", "\"/\" + AddressRules.FaqPage")]
+    [InlineData("3.1.17", "Pages/Shared/_StorefrontHeader.cshtml", "<li><a href=\"@link.Url\"", "<li><a href=\"/baska-yer\"")]
+    [InlineData("3.1.18", "Pages/Frame/StorefrontFrameBuilder.cs", "etbis, menu.FooterPages, links,", "etbis, [], links,")]
+    [InlineData("3.1.19", "Pages/Frame/StorefrontFrameBuilder.cs", "new FrameLegalLink(FramePaths.PrivacyNoticeTitle, FramePaths.PrivacyNotice)", "new FrameLegalLink(FramePaths.PrivacyNoticeTitle, FramePaths.Cart)")]
+    [InlineData("3.1.20", "Pages/Shared/_StorefrontFooter.cshtml", "href=\"@etbis\"", "href=\"/baska-yer\"")]
+    [InlineData("3.1.21", "Pages/Frame/StorefrontFrameBuilder.cs", "return new FrameFooter(FramePaths.Contact,", "return new FrameFooter(FramePaths.Cart,")]
+    [InlineData("3.2.1", "Pages/Frame/PanelFrameBuilder.cs", "Screen(\"Ana sayfa\", PanelFramePaths.Home,", "Screen(\"Ana sayfa\", PanelFramePaths.Brand,")]
+    [InlineData("3.2.2", "Pages/Frame/PanelFrameBuilder.cs", "Screen(\"Siparişler\", PanelFramePaths.Orders,", "Screen(\"Siparişler\", PanelFramePaths.Brand,")]
+    [InlineData("3.2.3", "Pages/Frame/PanelFrameBuilder.cs", "Screen(\"Talepler\", PanelFramePaths.Requests,", "Screen(\"Talepler\", PanelFramePaths.Brand,")]
+    [InlineData("3.2.4", "Pages/Frame/PanelFrameBuilder.cs", "(\"Ürünler\", PanelFramePaths.Products)", "(\"Ürünler\", PanelFramePaths.Brand)")]
+    [InlineData("3.2.5", "Pages/Frame/PanelFrameBuilder.cs", "(\"Kategoriler\", PanelFramePaths.Categories)", "(\"Kategoriler\", PanelFramePaths.Brand)")]
+    [InlineData("3.2.6", "Pages/Frame/PanelFrameBuilder.cs", "(\"Kuponlar\", PanelFramePaths.Coupons)", "(\"Kuponlar\", PanelFramePaths.Brand)")]
+    [InlineData("3.2.7", "Pages/Frame/PanelFrameBuilder.cs", "(\"Kurumsal içerik\", PanelFramePaths.CorporateContent)", "(\"Kurumsal içerik\", PanelFramePaths.Brand)")]
+    [InlineData("3.2.8", "Pages/Frame/PanelFrameBuilder.cs", "(\"Ana sayfa ve menü\", PanelFramePaths.HomeAndMenu)", "(\"Ana sayfa ve menü\", PanelFramePaths.Brand)")]
+    [InlineData("3.2.9", "Pages/Frame/PanelFrameBuilder.cs", "(\"Marka\", PanelFramePaths.Brand)", "(\"Marka\", PanelFramePaths.Members)")]
+    [InlineData("3.2.10", "Pages/Frame/PanelFrameBuilder.cs", "Screen(\"Üyeler\", PanelFramePaths.Members,", "Screen(\"Üyeler\", PanelFramePaths.Brand,")]
+    [InlineData("3.2.11", "Pages/Frame/PanelFrameBuilder.cs", "(\"Satış özeti\", PanelFramePaths.SalesSummary)", "(\"Satış özeti\", PanelFramePaths.Brand)")]
+    [InlineData("3.2.12", "Pages/Frame/PanelFrameBuilder.cs", "(\"İşlem izi\", PanelFramePaths.OperationTrail)", "(\"İşlem izi\", PanelFramePaths.Brand)")]
+    [InlineData("3.2.13", "Pages/Frame/PanelFrameBuilder.cs", "(\"Dışa aktarma\", PanelFramePaths.Export)", "(\"Dışa aktarma\", PanelFramePaths.Brand)")]
+    [InlineData("3.2.14", "Pages/Frame/PanelFrameBuilder.cs", "(\"Firma kimliği ve satış\", PanelFramePaths.FirmIdentityAndSales)", "(\"Firma kimliği ve satış\", PanelFramePaths.Brand)")]
+    [InlineData("3.2.15", "Pages/Frame/PanelFrameBuilder.cs", "(\"Ödeme yöntemleri\", PanelFramePaths.PaymentMethods)", "(\"Ödeme yöntemleri\", PanelFramePaths.Brand)")]
+    [InlineData("3.2.16", "Pages/Frame/PanelFrameBuilder.cs", "(\"Kargo, süreler ve varsayılanlar\", PanelFramePaths.ShippingAndDefaults)", "(\"Kargo, süreler ve varsayılanlar\", PanelFramePaths.Brand)")]
+    [InlineData("3.2.17", "Pages/Frame/PanelFrameBuilder.cs", "(\"Yasal metinler\", PanelFramePaths.LegalTexts)", "(\"Yasal metinler\", PanelFramePaths.Brand)")]
+    [InlineData("3.2.18", "Pages/Frame/PanelFrameBuilder.cs", "(\"Yönetici hesapları\", PanelFramePaths.AdminAccounts)", "(\"Yönetici hesapları\", PanelFramePaths.Brand)")]
+    [InlineData("3.2.19", "Pages/Frame/PanelFrameBuilder.cs", "new PanelSalesIndicator(false, PanelFramePaths.SalesClosedText, PanelFramePaths.SalesStateSection)", "new PanelSalesIndicator(false, PanelFramePaths.SalesClosedText, PanelFramePaths.Brand)")]
+    [InlineData("3.2.20", "Pages/Frame/PanelFrameBuilder.cs", "\"/\",\n            new PanelAdminArea(name,", "\"/sepet\",\n            new PanelAdminArea(name,")]
+    [InlineData("3.2.21", "Pages/Frame/PanelFrameBuilder.cs", "new PanelAdminArea(name, PanelFramePaths.MyAccount,", "new PanelAdminArea(name, PanelFramePaths.Brand,")]
+    [InlineData("3.2.22", "Pages/Frame/PanelFrameBuilder.cs", "new PanelSignOutForm(PanelFramePaths.SignOut)", "new PanelSignOutForm(PanelFramePaths.Home)")]
+    [InlineData("3.5.8", "Pages/Payment/Return.cshtml.cs", "OrderPath = OrderRoutes.AccessPath(", "OrderPath = OrderRoutes.MemberPath(")]
+    [InlineData("3.5.9", "Pages/Storefront/GoogleReturn.cshtml.cs", "ReturnPath.AfterSignIn(flow.State.ReturnUrl)", "ReturnPath.AfterSignIn(null)")]
+    [InlineData("3.5.13", "Pages/Frame/FramedNotFoundPageRenderer.cs", "StatusCode = StatusCodes.Status404NotFound", "StatusCode = StatusCodes.Status200OK")]
+    [InlineData("3.5.14", "Infrastructure/Security/SessionAccessSetup.cs", "options.SignInPath = SessionSchemes.AdminSignInPath;", "options.SignInPath = SessionSchemes.CustomerSignInPath;")]
+    [InlineData("3.6.1", "Pages/Storefront/SignIn.cshtml.cs", "ReturnPath.AfterSignIn(input.ReturnUrl)", "ReturnPath.AfterSignIn(null)")]
+    [InlineData("3.6.1", "Infrastructure/Security/ReturnPath.cs", "public const string PanelHome = \"/panel\";", "public const string PanelHome = \"/panel/marka\";")]
+    [InlineData("3.6.2", "Pages/Storefront/Checkout.cshtml.cs", "FramePaths.SignIn + \"?returnUrl=\" + FramePaths.Checkout", "FramePaths.SignIn + \"?returnUrl=\" + FramePaths.Cart")]
+    [InlineData("3.6.3", "Pages/Storefront/GoogleReturn.cshtml.cs", "ReturnPath.AfterSignIn(flow.State.ReturnUrl)", "ReturnPath.AfterSignIn(null)")]
+    [InlineData("3.6.4", "Infrastructure/Security/SessionAuthenticationHandler.cs", "? SessionSchemes.AdminSignInPath", "? SessionSchemes.CustomerSignInPath")]
+    [InlineData("3.6.5", "Pages/Panel/AdminAccounts.cshtml.cs", "PanelFramePaths.SignIn", "PanelFramePaths.Home")]
+    [InlineData("3.7.1", "Pages/Frame/PanelFrameBuilder.cs", "\"/\",\n            new PanelAdminArea(name,", "\"/sepet\",\n            new PanelAdminArea(name,")]
+    [InlineData("3.7.2", "Modules/CorporateContent/PanelContentEditing.cs", "pagePath = \"/\" + AddressRules.AboutPage;", "pagePath = \"/\" + AddressRules.FaqPage;")]
+    [InlineData("3.7.2", "Pages/Panel/_ProductFormBody.cshtml", "href=\"/@AddressRules.ProductPrefix/@record.Slug\"", "href=\"/baska-yer\"")]
+    [InlineData("3.7.3", "Pages/Frame/StorefrontFrameBuilder.cs", "isAdministrator ? new FrameAdminStrip(FramePaths.Panel) : null", "isAdministrator ? new FrameAdminStrip(FramePaths.Cart) : null")]
+    [InlineData("3.7.4", "Pages/Product.cshtml.cs", "SetDraftPreview($\"{PanelFramePaths.Products}/{draftId:D}\")", "SetDraftPreview($\"{PanelFramePaths.Members}/{draftId:D}\")")]
+    [InlineData("3.7.4", "Pages/Content/ContentRecordPages.cs", "SetDraftPreview($\"{PanelFramePaths.CorporateContent}/{PanelType}/{page.RecordId:D}\")", "SetDraftPreview($\"{PanelFramePaths.Members}/{PanelType}/{page.RecordId:D}\")")]
+    [InlineData("3.7.4", "Pages/Content/ContentRecordPages.cs", "HttpContext.SetDraftPreview($\"{PanelFramePaths.CorporateContent}/{PanelType}/{page.RecordId:D}\");", "")]
+    [InlineData("3.7.4", "Pages/Content/ContentRecordPages.cs", "protected override string PanelType => \"hizmet\";", "protected override string PanelType => \"referans\";")]
+    [InlineData("3.7.5", "Modules/Catalog/ProductPageReader.cs", "PublishStatus.Draft && !isAdministrator", "PublishStatus.Archived && !isAdministrator")]
+    public void TheTargetOfEveryFrameRow_ChangedInTheCode_IsReportedOnTheRow(string id, string file, string from, string to)
+    {
+        IReadOnlyList<string> problems = Problems(sources: Changed(file, from, to));
+
+        Assert.Contains(problems, p => p.StartsWith("EvidenceMissing:" + id + ":", StringComparison.Ordinal) || ((p.StartsWith("UndocumentedTransition", StringComparison.Ordinal) || p.StartsWith("SiteCountDiffers", StringComparison.Ordinal)) && p.Contains(file, StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    public void TheDraftEditAddress_OfBothKindsOfRecord_IsCarriedByTheRowOfTheReturnToEditing()
+    {
+        // 04 3.7.4: the draft product returns to E-33 (the product's form), the draft content record to E-41 (the record's form): the two calls that hand the band its address are the row's evidence.
+        NavigationEntry row = NavigationInventory.Entries.Single(e => e.Id == "3.7.4");
+
+        Assert.Contains(row.Evidence, v => v.Kind == NavigationEvidenceKind.Text && v.File.EndsWith("Product.cshtml.cs", StringComparison.Ordinal) && v.Text.Contains("SetDraftPreview($\"{PanelFramePaths.Products}/", StringComparison.Ordinal));
+        Assert.Contains(row.Evidence, v => v.Kind == NavigationEvidenceKind.Text && v.File.EndsWith("ContentRecordPages.cs", StringComparison.Ordinal) && v.Text.Contains("SetDraftPreview($\"{PanelFramePaths.CorporateContent}/", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void AnEntryFromOutside_WhosePageLeavesTheRoutes_IsReportedOnItsRow()
+    {
+        // 04 3.5: every row whose proof is a page loses it when no page has the route any more (the route is read from the compiled pages).
+        foreach (NavigationEntry entry in NavigationInventory.Entries.Where(e => e.Id.StartsWith("3.5.", StringComparison.Ordinal)))
+        {
+            foreach (NavigationEvidence page in entry.Evidence.Where(v => v.Kind == NavigationEvidenceKind.Page))
+            {
+                string[] routes = [.. Routes.Where(r => !(page.Text.EndsWith('*') ? r.StartsWith(page.Text[..^1], StringComparison.Ordinal) : string.Equals(r, page.Text, StringComparison.Ordinal)))];
+
+                Assert.Contains(Problems(routes: routes), p => p.StartsWith("EvidenceMissing:" + entry.Id + ":", StringComparison.Ordinal));
+            }
+        }
+    }
+
+    [Fact]
+    public void AnExemptSite_WhoseAddressIsAVariable_IsBoundToTheLineThatGivesItsTarget()
+    {
+        // T546 correction 5 (D-1641): a site that stays on its screen by a variable (a model's property, a local, a list root) has no address in its expression; the line that gives the variable its value
+        // is its evidence. The two shared empty-state components draw what each call gives them (each call is a site of its own) and the unexpected-error recovery is D-1636.
+        string[] components = ["Pages/Shared/_EmptyRow.cshtml", "Pages/Shared/_EmptyState.cshtml"];
+        List<string> without = [];
+        foreach (NavigationExemption exemption in NavigationInventory.Exemptions)
+        {
+            bool isVariable = !exemption.Key.Contains("FramePaths.", StringComparison.Ordinal) && !exemption.Key.Contains('"', StringComparison.Ordinal);
+            if (isVariable && !components.Contains(exemption.File, StringComparer.Ordinal) && exemption.Binds.Count == 0)
+            {
+                without.Add($"{exemption.File} '{exemption.Key}'");
+            }
+        }
+
+        Assert.True(without.Count == 0, "Exempt sites whose address is a variable and that are bound to no line of the code: " + string.Join("; ", without));
+    }
+
+    [Theory]
+    [InlineData("Pages/Panel/RequestDetail.cshtml.cs", "$\"{PanelFramePaths.Requests}/{id:D}\";", "$\"{PanelFramePaths.Members}/{id:D}\";")]
+    [InlineData("Pages/Orders/ConfirmationScreenModels.cs", "public string ScreenPath => Request.Path.Value ?? string.Empty;", "public string ScreenPath => FramePaths.Cart;")]
+    [InlineData("Pages/Orders/OrderPageModels.cs", "public string RootPath => Request.Path.Value ?? string.Empty;", "public string RootPath => FramePaths.Cart;")]
+    [InlineData("Pages/Panel/Orders.cshtml.cs", "public string ListRoot => PanelFramePaths.Orders;", "public string ListRoot => PanelFramePaths.Members;")]
+    [InlineData("Pages/Panel/Requests.cshtml.cs", "public string ListRoot => PanelFramePaths.Requests;", "public string ListRoot => PanelFramePaths.Members;")]
+    [InlineData("Pages/Panel/AuditTrail.cshtml.cs", "public string ListRoot => PanelFramePaths.OperationTrail;", "public string ListRoot => PanelFramePaths.Members;")]
+    [InlineData("Pages/Panel/Products.cshtml.cs", "public string ListRoot => PanelFramePaths.Products;", "public string ListRoot => PanelFramePaths.Members;")]
+    [InlineData("Pages/Category.cshtml.cs", "string path = CategoryPaths.Of(category.Slug);", "string path = FramePaths.Cart;")]
+    [InlineData("Pages/Search.cshtml.cs", "string clearAddress = ListAddress.Of(Frame.FramePaths.Search,", "string clearAddress = ListAddress.Of(Frame.FramePaths.Cart,")]
+    [InlineData("Pages/Account/Addresses.cshtml", "string path = FramePaths.AccountAddresses;", "string path = FramePaths.Cart;")]
+    [InlineData("Pages/Lists/ListModels.cs", "current < pageCount ? ListAddress.Of(listRoot, query, current + 1) : null,", "current < pageCount ? ListAddress.Of(FramePaths.Cart, query, current + 1) : null,")]
+    [InlineData("Pages/Frame/FramedErrorPageRenderer.cs", "storefront ? \"/\" : PanelFramePaths.Home,", "storefront ? \"/\" : PanelFramePaths.Members,")]
+    public void TheAddressOfAnExemptSite_ChangedAtTheLineThatGivesIt_IsReported(string file, string from, string to)
+    {
+        // The exempt sites stay on their screen: the line that gives the variable its value is bound to the exemption, so the new target breaks it (the variable's name does not change).
+        Assert.Contains(Problems(sources: Changed(file, from, to)), p => p.StartsWith("EvidenceMissing:Exemption(", StringComparison.Ordinal));
     }
 
     private static List<string> MenuProblems(string document)

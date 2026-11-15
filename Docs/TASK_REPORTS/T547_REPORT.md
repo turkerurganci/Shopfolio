@@ -85,10 +85,28 @@ Düzeltme 1 öz denetimi (bütün maddeler yeniden): kabul kriterleri 1–9 ve K
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | — |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-15) |
+| Bulgu sayısı | 5 (B1 ORTA, B2 ORTA, B3 DÜŞÜK, B4 DÜŞÜK, B5 ORTA; hepsi S1) |
+| Düzeltme gerekli mi | Evet — B1–B5 |
+| Bloke-etmeyen not (K) sayısı | 2 (D-1656, D-1657) |
+
+### Doğrulama tur 1 — validator kanıtları
+
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | 53 ekranın bloğu | ✓ | `StateRoleConsistencyTests` yeşil; `Block_DeletedFromTheDocument_IsReported` |
+| 2 | Her çiftte gösterilen ve açık işlemler sayfa testiyle | ~ | `StateRolePageTests` 2/2 yeşil (yerel, postgres:18). B5: `Always` dışındaki 13 işlem (ör. `RemoveOrReduceItem`, `MarkServiceCompleted`, `RetryOrRedirectCardRefund`, `CorrectGuestEmail`) yalnız "aralık dışında çizilmez" yönünde denetleniyor; 12'si `Always`'e eklenince test yine geçti — "açık ama çizilmemiş" yönü gereksiz yere kapalı |
+| 3 | İki kapı yalnız altı vitrin ekranı | ✓ | Gerçek `src` deneyi: `Pages/Product.cshtml.cs`'te satış kapısı belirteçleri kaldırıldı → `GateReadDiffers` |
+| 4 | Durum adları `02 §5`'inki | ✓ | `SynonymOfAStatusName_IsReported`, `StatusBadgeText_OfTheCode_EqualsTheNameOf02` |
+| 5 | Yönetici satırı sınırı | ✓ | `AdministratorRow_*`, `DraftRead_*`; E-06/E-07 belgede listeli, kodda taslak okuması `DraftReadDiffers` ile denetli |
+| 6 | Alan, zorunluluk, kural kodla eşit | ✗ | B1: 11 gerçek `src` deneyinden 6'sı sessiz (8 satır) |
+| 7 | Kural kimlikle işaret eder, değer `02 §11`'den | ✗ | B2: 7.2.5.1'in P-28'i `02 §11`'de bu alanı kapsamıyor; B3: 7.2.4.13'ün 8.2.3'ü ölçeği tutmuyor |
+| 8 | Panel tek rol, `/panel` altında | ✓ | `Panel*_IsReported` testleri |
+| 9 | `Consistency` Unit; 2 Integration | ✓ | 634 Consistency, `StateRolePageTests` Integration |
+
+Gerçek `src` deneyleri (her biri geri alındı): kıran — `OrderDetail.ItemSteps.cs` 163 (7.2.9.2), 262 (7.2.11.1), `FirmSettings.cs` 110 (7.2.17.2), `CompanyIdentityRules.cs` `ChamberName` (7.2.19.6), `Product.cshtml.cs` kapı belirteçleri (KK3); sessiz — `EmailChangeRules.cs` L-9 → L-3, `OrderDetail.ItemSteps.cs` 371 (`ArriveAsync` adet denetimi), `Categories.cshtml.cs` 25 (`ShortTextMaxLength` → `ProductNameMaxLength`), `CompanyIdentityRules.cs` ortak zorunlu listeden `ProvinceId`, `Phone`, `Email`.
+
+Yapım raporuyla uyuşmazlık: öz denetimdeki "182 işlem satırı silindi → 127/127 satır" deneyi satırın kendi metnini sildiği için kanıtın o alana özgü olup olmadığını sınamıyor; B1 bu boşluktan doğdu.
 
 ## Altyapı Değişiklikleri
 

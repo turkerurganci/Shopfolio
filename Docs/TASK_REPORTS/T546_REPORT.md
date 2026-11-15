@@ -317,6 +317,17 @@
 
 | Alan | Sonuç |
 |---|---|
+| Doğrulama durumu | ✓ PASS (tur 5, 2026-11-15, dal ucu `51fda2fe`; CI run `43720634980`: Lint, Build, Unit, Contract, Migration yeşil; Integration ve Paketleme koşuyordu — merge CI yeşilini bekler) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı — tur 5 | 1 — K1 → D-1636'ya kanıt eklendi (sonucu belirsiz işlemin `OutcomeScreen()` hedefi bağlı değil; `resolution.Target` muafiyeti `BoundTo`'suz) |
+
+**Doğrulayıcı kabul kriterleri (tur 5):** 1 ✓ · 2 ✓ · 3 ✓ · 4 ✓ · 5 ✓ · 6 ✓ · 7 ✓. Gerçek dosyada 29 deney, hepsi kırıldı: `§3.1` (3.1.5, 3.1.14, 3.1.19), `§3.2` (3.2.6, 3.2.21), `§3.5` (3.5.8, 3.5.14), `§3.6` (3.6.3, 3.6.4), `§3.7` (3.7.2, 3.7.3, 3.7.4 iki tür), `§3.3`/`§3.4` (3.3.1, 3.3.2, 3.3.9, 3.3.13, 3.3.19, 3.3.20, 3.4.2, 3.4.6, 3.4.21, 3.4.22, 3.4.23, 3.4.26; listeden gelenler dahil) ve dört bağlı muafiyet (`Orders` `ListRoot`, arama `clearAddress`, `RequestDetail` `PathOf`, kategori `path`). Üç `OutcomeScreen()` deneyi kırılmadı (K1, D-1636). 3.3.40–3.3.45 ve 3.4.24–3.4.26 kaynak paragraflarıyla (§5.25.13, §5.15.3, §5.16.8, §5.20.9, §2.12.1.6 + `02 §3.33.5`, §5.10.4, §9.17.4, §9.9.9) birebir. 3.3.13: ad bağlantısı geçişi karşılar; sepet görsel çizmediği için görsel bağlantısı eksiği 5.12.4 içerik eksiğidir (D-1189), koşul farkı D-1631. Yerel: Unit 7.978/7.978, Integration `CartPageTests`, `AfterSalesScreenTests`, `CartTests`, `CartQuantityTests` 86/86 (TAM: CI), betik testleri 4/4, format temiz.
+
+Tur 4 kaydı:
+
+| Alan | Sonuç |
+|---|---|
 | Doğrulama durumu | ✗ FAIL (tur 4, 2026-11-15, dal ucu `5a520cee`; CI run `43714267785` Integration dışı işler yeşil, Integration koşuyordu) — eskalasyon (`12 §8.5`) |
 | Bulgu sayısı | 1 (S1, ORTA) |
 | Düzeltme gerekli mi | Evet — B1 (tur 4): kabul kriteri 5 "Düzenlemeye dön"ü (3.7.4) adıyla sayar; satırın kanıtı `_DraftBand.cshtml` `@Model.EditPath` (paylaşılan bileşen) ve hedefsiz `HttpContext.SetDraftPreview(` metnidir. Hedefi veren iki çağrı (`Product.cshtml.cs` → E-33, `Content/ContentRecordPages.cs` → E-41) bağlı değil; üretici kuralı (`ARowWhoseLinkDrawsItsAddressFromAModel_…`) yalnız 3.3/3.4'e bakar. Gerçek dosyada deney (geri alındı): ürün taslağının hedefi `PanelFramePaths.Products` → `PanelFramePaths.Members`, içerik taslağının hedefi `CorporateContent/…` → `Members`, içerik taslak bandının çağrısı silindi — üçünde de `NavigationMap_EqualsTheCode_InBothDirections` geçti; hiçbir Integration testi gerçek sayfanın "Düzenlemeye dön" adresini sınamaz (`FrameLayoutTests` örnek sayfa kullanır, `ContentPagesTests` yalnız "Taslak" etiketine bakar). Düzeltme: 3.7.4'e iki çağrının hedefli metnini üretici kanıtı olarak eklemek, üretici kuralını 3.7'yi de kapsayacak biçimde genişletmek, kırılma testi. |

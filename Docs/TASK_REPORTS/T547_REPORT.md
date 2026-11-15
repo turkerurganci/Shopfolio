@@ -106,10 +106,10 @@ Düzeltme 2 öz denetimi (bütün maddeler yeniden): 1–9 ve KK1–KK9 testleri
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-15) |
-| Bulgu sayısı | 5 (B1 ORTA, B2 ORTA, B3 DÜŞÜK, B4 DÜŞÜK, B5 ORTA; hepsi S1) |
-| Düzeltme gerekli mi | Evet — B1–B5 |
-| Bloke-etmeyen not (K) sayısı | 2 (D-1656, D-1657) |
+| Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-15; tur 1 de FAIL) |
+| Bulgu sayısı | Tur 2: 2 (C1 ORTA S1, C2 ORTA S2); tur 1'in B1–B5'i kapandı |
+| Düzeltme gerekli mi | Evet — C1, C2 (ikinci iterasyon FAIL: eskalasyon, `INSTRUCTIONS.md` §3.3) |
+| Bloke-etmeyen not (K) sayısı | Tur 1: 2 (D-1656, D-1657); tur 2: 1 (D-1661) |
 
 ### Doğrulama tur 1 — validator kanıtları
 
@@ -128,6 +128,26 @@ Düzeltme 2 öz denetimi (bütün maddeler yeniden): 1–9 ve KK1–KK9 testleri
 Gerçek `src` deneyleri (her biri geri alındı): kıran — `OrderDetail.ItemSteps.cs` 163 (7.2.9.2), 262 (7.2.11.1), `FirmSettings.cs` 110 (7.2.17.2), `CompanyIdentityRules.cs` `ChamberName` (7.2.19.6), `Product.cshtml.cs` kapı belirteçleri (KK3); sessiz — `EmailChangeRules.cs` L-9 → L-3, `OrderDetail.ItemSteps.cs` 371 (`ArriveAsync` adet denetimi), `Categories.cshtml.cs` 25 (`ShortTextMaxLength` → `ProductNameMaxLength`), `CompanyIdentityRules.cs` ortak zorunlu listeden `ProvinceId`, `Phone`, `Email`.
 
 Yapım raporuyla uyuşmazlık: öz denetimdeki "182 işlem satırı silindi → 127/127 satır" deneyi satırın kendi metnini sildiği için kanıtın o alana özgü olup olmadığını sınamıyor; B1 bu boşluktan doğdu.
+
+### Doğrulama tur 2 — validator kanıtları (baş `962a08d9`)
+
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | 53 ekranın bloğu | ✓ | Consistency 639/639 yeşil; `Block_DeletedFromTheDocument_IsReported` |
+| 2 | Her çiftte gösterilen ve açık işlemler sayfa testiyle | ✓ | `StateRolePageTests` 2/2 (yerel postgres:18, `track_commit_timestamp=on`); B5 kapandı: gerçek `src` deneyi `_OrderDetailItemSteps.cshtml` `close-not-returned-form-` kimliği değiştirildi → "CloseAsNotReturned is open but the page draws none" (çok satır); hiç açılmayan işlem de raporlanır |
+| 3 | İki kapı yalnız altı vitrin ekranı | ✓ | `SalesGate_*`, `DataGate_*` yeşil |
+| 4 | Durum adları `02 §5`'inki | ✓ | `SynonymOfAStatusName_IsReported`, `StatusBadgeText_OfTheCode_EqualsTheNameOf02` |
+| 5 | Yönetici satırı sınırı | ✓ | `AdministratorRow_*`, `DraftRead_*` |
+| 6 | Alan, zorunluluk, kural kodla eşit | ✗ | C1: birden çok özellik yerini taşıyan satırda nitelikler birleşimle okunuyor; bir yerin niteliği kalkınca test sessiz (7.2.5.1, 7.2.4.18). B1 deneyleri (a)–(d) ve 9 ek deney kırdı |
+| 7 | Kural kimlikle işaret eder, değer `02 §11`'den | ✓ | B2 (7.2.5.1 "Kısa metin", tavan kimliği yok), B3 (7.2.4.13 → K-1013), B4 (7.3.2 "Kullanıldığı") kapandı; satır → "Kullanıldığı" yönünde açık kalmadı (betikle tarandı) |
+| 8 | Panel tek rol, `/panel` altında | ✓ | `Panel*_IsReported` testleri |
+| 9 | `Consistency` Unit; 2 Integration | ✓ | 639 Consistency; `StateRolePageTests` Integration |
+
+Gerçek `src` deneyleri (hepsi geri alındı). Kıran (13): `EmailChangeRules.cs` 38 L-9 → L-3 (7.1.15.2, 7.1.15.4, 7.2.24.2, 7.2.24.4); `OrderDetail.ItemSteps.cs` 371 `TryReadQuantity` → `int.TryParse` (7.2.12.2); `CompanyIdentityRules.cs` ortak listeden `Email` (7.2.19.5, 7.2.19.6; 7.2.19.4 doğru olarak sessiz), 81 `InvalidUrl` → `InvalidEmail` (7.2.19.7); `Coupons.cshtml.cs` 96 (7.2.6.4); `FirmSettings.cs` 119 (7.2.17.4); `ContentInputs.cs` 120 P-30 → P-28 simgesi (7.2.16.4); `CompanySettingsWriter.cs` 235 (7.2.21.7); `AfterSalesScreenModels.cs` 598 (7.1.10.2); `Modules/Catalog/Coupons.cs` 202 L-6 → L-4 (7.1.5.7); `OrderDetail.ItemSteps.cs` 238 IBAN kuralı (7.2.10.4); `Checkout.cshtml.cs` 281 (7.1.5.8); `RenameCategoryInput.Name`'e `TextTooLong` geri eklendi → `RuleMissesAttribute:7.2.5.1` (B1 (c)). Sessiz (3): `CreateCategoryInput.Name`'den `[FieldRequired]` kaldırıldı (7.2.5.1; C1); `SaveProductDiscountRow.EndDate`'ten `[InvalidDate]` kaldırıldı (7.2.4.18; C1); `EmailChangeRules.cs` 40 `IsExceededAsync(L9, byEmail)` → L3 (parça yalnız sayma satırını tutar; metin tabanlı denetimin doğal sınırı, bulgu sayılmadı).
+
+C2: kategori adı tavanının kaldırılması (`Categories.cshtml(.cs)`, K-1619) 6000 karakterlik adla `POST /panel/kategoriler?handler=CreateCategory`'yi 500'e düşürüyor (geçici sınama, `CategoriesPageTests` içinde; geri alındı) — main'de 200 karakter tavanı 422 alan mesajı veriyordu. `09` 9.4 madde 3 "Kırpma yoktur (ad tavanı P-27)" diyerek kategori dahil beş kayıt türünün adının tavanlı olduğunu varsayıyor; K-1619'un "tavanın kaynağı hiçbir belgede yok" tespiti bu satırı görmemiş. Çözüm belge kararı ister (kategori adına tavan — ör. P-27 kapsamının karar kaydıyla genişletilmesi ve `04` 7.2.5.1, 9.6.8, `06 §4.9` hizası — ya da adresin kırpılması ve `09` 9.4 madde 3'ün düzeltilmesi).
+
+Yapım raporuyla uyuşmazlık: öz denetimde "`09 §25`; güvenlik taraması — `src` değişmedi" yazıyor, düzeltme 2 `src`'yi değiştirdi (C2); KK6 özellik yeri deneyi (194/194, özellik `internal`) yerin tamamını kaldırıyor, iki yerli satırda tek yerin niteliğinin kalkmasını sınamıyor (C1).
 
 ## Altyapı Değişiklikleri
 

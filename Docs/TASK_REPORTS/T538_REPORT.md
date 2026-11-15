@@ -1,6 +1,6 @@
 # T538 — Uç ve model eşitlik denetimleri: uç envanteri, form girdi ve sorgu modelleri, makine ucu gövdeleri
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-15
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-15
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -71,12 +71,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-15, head `ba579a9b`) |
-| Bulgu sayısı | 2 — 1 ORTA S1 (kriter 1 / KK1: `07 §5.2.2`'nin `MarkReshippedInput` ve `RejectReturnInput` adları kodda yok, iki adlı satır istisnası gizliyor) · 1 DÜŞÜK S1 (UC-60, UC-63, UC-108'de yinelenen parametrenin okunuşu değişti; K-1616 (2)) |
-| Düzeltme gerekli mi | Evet — iki bulgu bu dalda |
-| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-1614) |
+| Doğrulama durumu | ✓ PASS (tur 2, 2026-11-15, head `67275a71`) — tur 1: ✗ FAIL (head `ba579a9b`) |
+| Bulgu sayısı | Tur 2: 0 (tur 1'in iki bulgusu kapandı) · tur 1: 2 — 1 ORTA S1, 1 DÜŞÜK S1 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 2 (K1 → D-1616, K2 → D-1617) · tur 1: 1 (K1 → D-1614) |
 
-Tur 1'in tam sonucu raporun sonundaki "Doğrulama Sonucu — T538 … — tur 1" bölümündedir.
+Turların tam sonucu raporun sonundaki "Doğrulama Sonucu — T538 … — tur 1" ve "— tur 2" bölümlerindedir.
 
 ## Altyapı Değişiklikleri
 
@@ -88,7 +88,7 @@ Tur 1'in tam sonucu raporun sonundaki "Doğrulama Sonucu — T538 … — tur 1"
 ## Commit & PR
 
 - **Branch:** `task/T538-uc-model-esitlik`
-- **Commit:** `cccb597b` — T538: Uç ve model eşitlik denetimleri: form girdi, sorgu, makine ucu gövdeleri ve uç bağlama (devam); düzeltme 1 commit'i PR'ın son commit'idir
+- **Commit:** `cccb597b` — T538: Uç ve model eşitlik denetimleri: form girdi, sorgu, makine ucu gövdeleri ve uç bağlama (devam); düzeltme 2 `5f436d41`, doğrulanan head `67275a71`
 - **PR:** #579
 - **CI:** yardımcı yürütür
 - **Post-merge run'lar:** *(validator doldurur)*
@@ -196,3 +196,86 @@ D-1606, D-1607, D-1608, D-1609 (`DEFERRED_BACKLOG.d/T538.md`), D-1333 (`T509.md`
 
 #### Merge ve Post-merge
 - FAIL — merge yok; kayıt dalda kalır.
+
+## Doğrulama tur 2
+
+### Doğrulama Sonucu — T538 Uç ve model eşitlik denetimleri: uç envanteri, form girdi ve sorgu modelleri, makine ucu gövdeleri — tur 2
+**Tarih:** 2026-11-15   **Branch:** task/T538-uc-model-esitlik   **Commit:** `67275a71` (doğrulanan head)
+
+#### Verdict: ✓ PASS
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş; `core.hooksPath` = ana checkout'un `scripts/git-hooks`'u |
+| Ana dal CI (son 3) | ✓ | `43666144462` success, `43666144436` success, `43618088406` success |
+| Memory drift | — | adım 0b kaldırıldı (2026-11-08); MEMORY.md'ye dokunulmadı |
+| main ile güncellik | ✓ | `git fetch` sonrası `origin/main` (`8f27391e`) dalın atası; birleştirme gerekmedi |
+
+#### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Form girdi envanteri (`07 §5.2`) koddaki modellerle eşit; envanterde olmayan model yok | ✓ | `ModelInventoryCheck.Problems` iki yönlü: satırdaki her ad koddaki sınıf (`SetComparison.Compare("Model", …)`), alan ve iç içe liste alanı iki yönlü; `FormInputs_AreTheRowsOf07_5_2_ByNameAndField` yeşil. Bilinen fark/istisna listesi yok (`KnownModelDifferences` silindi). Tur 1 B1 kapandı: iki adlı satırda kodda olmayan ad artık "only in the document" (`FormCheck_ARowOfOneNameGivenASecondNameThatTheCodeLacks_…`, `FormCheck_TheTwoModelsOfOldRowsPutBack_…`) |
+| 2 | Sorgu modelleri (`07 §5.3.2`) ad, camelCase parametre ve uçlarla eşit | ✓ | `QueryModels_AreTheRowsOf07_5_3_2_ByNameAndParameter` yeşil; uç tarafı `CheckRows(queryRows, …)` + `UseCaseNotListed`. Kendi kırılma denemem: `07`'de `firstOptionValue` → `firstOption` yapınca `Field:VariantQuery: only in the document: firstOption` / `only in the model: firstOptionValue` |
+| 3 | Makine ucu gövdeleri (`07 §5.4.2`) alan adlarıyla eşit | ✓ | `MachineBodies_AreTheRowsOf07_5_4_2_ByNameAndField` (JSON adları, `JsonPropertyName`/camelCase) |
+| 4 | "Uçlar"daki her uç modeli bağlar; modelsiz girdi okuyan uç ve ucu olmayan model yok; §5.2.4 modelsiz | ✓ | `EndpointBindingCheck`: `NoHandler`, `ModelNotBound`, `UseCaseNotListed`, `ModelWithoutEndpoint` (model başına), `ModelOnModelless`, `NoModelRow`, `InputWithoutModel`. Muafiyet yalnız rota değerleri ve `07 §5.3.1`'in üç ortak parametresi (`notice`, `returnUrl`, `page` — belgeyle birebir, dar). Envanterde atlanan uçlar yalnız işleyicisiz makine uçları (UC-80, UC-83; §5.4). Kendi kırılma denemem: UC-125'i `MarkShippedInput` satırından silince `UseCaseNotListed:UC-125:MarkShippedInput` + `NoModelRow:UC-125`; UC-27'yi §5.2.4 listesine ekleyince `ModelOnModelless:UC-27` |
+| 5 | Hiçbir işleyici veri modeli varlığını bağlamaz | ✓ | `EntityBound` (`AppDbContext` `DbSet<>` türleri) + `HandlerCheck_AHandlerThatBindsAnEntity_IsNamed`; gerçek uygulamada sonuç boş |
+| 6 | `UnitTests/Consistency/` altında `Consistency` özellikli; Lint koşar, Unit dışarıda bırakır | ✓ | `[Trait("Consistency", "true")]`; `.github/ci-commands.env` LINT `--filter-trait "Consistency=true"`, UNIT `--filter-not-trait "Consistency=true"`; yerel: 313 / 7420, ikincisi bu sınıfı içermez |
+| 7 | Veritabanına ve ağa dokunmaz, dosya yazmaz | ✓ | Kaynak okuması: yalnız `File.ReadAllText` (07 ve kaynak dosyalar) + yansıma (`typeof(Program).Assembly`, `AppDbContext` özellikleri; bağlam örneklenmez); `Checks_TouchNeitherTheDatabaseNorTheNetworkNorAFile`; Consistency koşusu `SHOPFOLIO_TEST_DATABASE` olmadan yeşil |
+
+#### Task Satırları (`12 §7.5`, adım 2a ve 16)
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+| — | — | — | — | — | Task'ın `12` satırı yok (`grep` `07 §5.2/§5.3/§5.4`, `§21.4`, `T538`: yalnız `VAL-A580` — UC-15'in tuzak alanı, başka task'ın); `12` değişmedi |
+
+#### Doğrulama Kontrol Listesi
+- [x] KK1: envanterden satır silinince (`FormCheck_ADocumentRowDeleted_…`), koda model eklenince (`FormCheck_AModelAddedToTheCode_…`, `HandlerCheck_AModelNoHandlerBinds_IsNamed`), satıra kodda olmayan ad eklenince ve iki adlı satırdan ad silinince kırılır
+- [x] KK2: parametre adı değişince kırılır (`QueryCheck_AParameterRenamedInTheDocument_NamesBothSides` + kendi `VariantQuery` denemem)
+- [x] KK3: gövde alanı değişince kırılır (`MachineCheck_AFieldRenamedInTheDocument_NamesBothSides`; form ve liste alanı da)
+- [x] KK4: girdi okuyan modelsiz uç kırar (`HandlerCheck_AHandlerThatReadsInputWithoutAModel_IsNamed`); §5.2.4 işleyicileri kırmaz (gerçek uygulamada boş; model bağlayan modelsiz uç kırar — `HandlerCheck_AModellessHandlerThatBindsAModel_IsNamed` + UC-27 denemem). Doğrudan `Request.Form/Query` okuması kapsam dışı → D-1614 (tur 1 K1, açık)
+- [x] KK5: varlık bağlayan işleyici kırar
+- [x] KK6: Lint koşar, Unit koşmaz
+- [x] KK7: testler bağlantı dizesi okumaz
+- [x] `09 §25` ilgili satır ("eşitlik denetimlerini etkileyen değişiklikte tablo ve denetim güncel mi", §21.4 m.1): `07` tabloları ve denetim aynı değişiklikte; güvenlik taraması aşağıda
+- [x] `07` koda hizalama (K-1616 (1)–(3)): karar kaydında gerekçe var; değişen satırlar denetimle kodla birebir (dört eşitlik testi yeşil); `07` UC-131/132/146/149/162/117 metinleri, §5.1.5, §5.1.6 aynı adlarda; `09`'da eski adlar yok (954 `HomepageVersion` `06`'nın sütunu, 1785 yükleme yolu); `11`'de yok. Kod yorumlarında iki eski ad kaldı → K2
+- [x] Sorgu modelleri: URL parametre adları değişmedi (bağlayıcı adları büyük-küçük harf duyarsız; `[SpecAssignedName]` işaretli); kapalı değerli dört uçta (UC-60, UC-63, UC-104, UC-108) yinelenen parametre eskisi gibi değer sayılmaz (`QueryValues.SentOnce`, dört istek testi) — tur 1 B2 kapandı. Serbest metinli iki parametrede küçük fark → K1
+- [x] Backlog: D-1606–D-1609, D-1333, D-1527, D-1538, D-1551, D-1552 ✅ kanıtlı (K-1616 + test adları; satırların `07`'deki karşılığı denetimle yeşil); D-1205 açık (`DEFERRED_BACKLOG.d/T503.md`); D-1614 açık
+
+#### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Restore | ✓ | `dotnet restore Shopfolio.slnx` | geri yüklendi |
+| Build | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format Shopfolio.slnx --verify-no-changes --no-restore --include <dalın 23 .cs dosyası>` | çıkış 0 |
+| Unit (Consistency / Lint) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/… --no-build --filter-trait "Consistency=true"` | 313 / 313 |
+| Unit (Consistency dışı, Architecture dahil) | ✓ | `… --filter-not-trait "Consistency=true"` | 7420 / 7420 |
+| Kırılma denemeleri (kendi) | ✓ | `07`'de geçici üç değişiklik (UC-125 satırdan, UC-27 §5.2.4'e, `firstOptionValue` adı) → Consistency koşusu | 3 test kırıldı, sorunlar adlarıyla; `07` geri alındı |
+| Betik testleri | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration | ✓ (ilgili sınıflar) — TAM: CI | `AccountProfilePageTests`, `CustomerPasswordResetAndReauthenticationPageTests`, `MyAccountPageTests`, `PanelHomeAndVerificationPagesTests`, `CustomerSignInPageTests`, `CustomerSignOutPageTests`, `RegistrationPageTests`, `GoogleRegistrationTests` · `PanelAccessPagesTests`, `AdminAccountsPageTests`, `CouponsPageTests`, `ContentPagesTests`, `SessionAccessTests`, `ListComponentPageTests` (postgres:18, `track_commit_timestamp=on`, `shopfolio-t538-val-pg`, 127.0.0.1:56838) | 177 / 177 ve 120 / 120 |
+| CI (PR #579, run `43688011477`, head `67275a71`) | koşuyor | `gh pr checks 579` | Lint, Build, Unit, Contract, Migration dry-run, Paketleme, E2E ✓; Integration koşuyor (önceki head'lerin run'ları `43686250396`, `43684165804` success). Merge CI yeşilini bekler |
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz (dalda bağlantı dizesi, anahtar, parola yok)
+- Auth etkisi: Temiz — yeniden doğrulama izni hâlâ oturumda doğrulanıyor; yinelenen kapalı değer eski davranışta; `returnUrl` ilk değeri de `ReturnPath.IsLocalPath` denetiminden geçiyor
+- Input validation: Temiz — sorgu modelleri metin alır, geçersiz değer bağlama hatası değil sayfanın kendi cevabı (`07 §2.6.6`); `AcceptedInvitation` korumalı değer çözümünden geçiyor
+- Yeni bağımlılık: Yok
+
+#### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı (S1/S2/S3) | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| — | — | — | — | Tur 2'de bulgu yok. Tur 1 B1 (iki adlı satır istisnası) ve B2 (kapalı değerli dört uçta yinelenen parametre) kapandı | — | — | — |
+
+#### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | K-1616 (2) "davranış değişmez" diyor; serbest metinli iki sorgu parametresinde yinelenen değerin okunuşu değişti: UC-54 ve UC-84 `returnUrl` ile UC-84 `acceptedInvitation` eskiden `Request.Query[…]` ile virgülle birleşiyordu (`/a,/b` yerel yol sayılıp dönüş adresi olur, birleşik korumalı değer çözülmez), şimdi bağlayıcının ilk değeri (`/a`; ilk davet değeri çözülürse e-posta dolu gelir). İkisinde de değer `IsLocalPath` / korumalı değer denetiminden geçer; güvenlik etkisi yok, yeni davranış daha tutarlı. `QueryValues` kuralı yalnız kapalı değerleri kapsıyor | DEFERRED_BACKLOG'a forward → D-1616 (`Docs/DEFERRED_BACKLOG.d/T538.md`) |
+| K2 | `07` koda hizalanınca iki kod yorumu eski model adlarını anıyor: `src/Shopfolio.Web/Pages/Panel/OrderDetail.Refunds.cs:313` (`MarkBankTransferRefundFailedInput`) ve `:397` (`SwitchRefundToBankTransferInput`, `MarkCardRefundFailedInput`); bu adlar artık `07`'de yok (yalnız yorum, davranış etkisi yok) | DEFERRED_BACKLOG'a forward → D-1617 (`Docs/DEFERRED_BACKLOG.d/T538.md`) |
+
+#### Yapım Raporu Karşılaştırması
+- Uyum: Kriterler ve KK sonuçlarında tam uyumlu (7/7 ✓); 3 küçük uyuşmazlık:
+- Öz denetim "aynı adı anan öteki yerler" ✓ diyor; `OrderDetail.Refunds.cs` yorumlarındaki üç eski model adı taranmamış (K2).
+- Öz denetim güvenlik satırı "iki kez gönderilen parametre eskisi gibi" diyor; bu yalnız dört kapalı değerli uçta doğru, `returnUrl`/`acceptedInvitation` ilk değeri alıyor (K1).
+- Öz denetim KK6 "310 ve 7420" yazıyor, Test Sonuçları tablosu 313; bağımsız koşu 313 / 7420.
+
+#### Merge ve Post-merge
+- Yardımcının işi (adım 17–18); doğrulama ajanı merge etmedi.

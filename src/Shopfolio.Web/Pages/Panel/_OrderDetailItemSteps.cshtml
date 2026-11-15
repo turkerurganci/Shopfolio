@@ -1,0 +1,204 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.Forms
+@using Shopfolio.Modules.AfterSales.Contracts
+@using Shopfolio.Modules.Ordering.Contracts
+@using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Panel
+@model OrderDetailModel
+@*
+    E-37's item steps (T528; 04 9.9.19, 9.9.20, 9.9.25, 9.9.27, 9.9.28, 9.9.30; 07 UC-129, UC-130, UC-138, UC-140...UC-142, UC-144, UC-145). Only the steps the operation decision opened are drawn
+    (09 8.3 item 5; 04 9.9.5 "açık olmayan işlem gösterilmez"); the quantity fields default to the units open to the step (K-794). No inline style, no inline script.
+*@
+@{
+    IReadOnlyList<OrderPageItem> items = Model.Detail.Items;
+    bool cancelWhole = Model.IsOpen(OrderOperation.CancelByFirm);
+    List<OrderPageItem> cancelItems = [.. items.Where(i => Model.Operations.IsOpen(OrderOperation.CancelByFirm, i.OrderItemId))];
+    List<OrderPageItem> withdrawItems = [.. items.Where(i => Model.Operations.IsOpen(OrderOperation.RecordWithdrawalFromOtherChannel, i.OrderItemId))];
+    bool terminate = Model.IsOpen(OrderOperation.RecordLateTerminationFromOtherChannel);
+    List<OrderPageItem> removeItems = [.. items.Where(i => Model.Operations.IsOpen(OrderOperation.RemoveOrReduceItem, i.OrderItemId))];
+    List<OrderPageItem> receiveItems = [.. items.Where(i => Model.Operations.IsOpen(OrderOperation.ReceiveReturnedGoods, i.OrderItemId))];
+    List<OrderPageItem> closeItems = [.. items.Where(i => Model.Operations.IsOpen(OrderOperation.CloseAsNotReturned, i.OrderItemId))];
+    List<(OrderPageItem Item, ReturnReceiptFact Receipt)> restock = [.. items.SelectMany(i => Model.RestockableOf(i).Select(r => (i, r)))];
+    List<OrderDefectClaim> claims = [.. Model.Claims.Where(c => Model.Operations.IsOpen(OrderOperation.ResolveOrReopenDefectClaim, c.OrderItemId))];
+    bool any = cancelWhole || cancelItems.Count > 0 || withdrawItems.Count > 0 || terminate || removeItems.Count > 0 || receiveItems.Count > 0 || closeItems.Count > 0 || restock.Count > 0 || claims.Count > 0;
+    string today = Model.TodayText;
+    // 04 9.9.19, K-798 (2): Z-10 or Z-39 ran out for an item the cancellation may fall on (before the payment the whole order's).
+    bool cancelWarnsInterest = cancelWhole ? items.Any(i => Model.LegalInterestDueItems.Contains(i.OrderItemId)) : cancelItems.Any(i => Model.LegalInterestDueItems.Contains(i.OrderItemId));
+    // K-798 (1), (6), K-1547 (3): the reason's warning stands in the form before the window; the sent reason draws it, admin.css shows it as the reason is chosen (without :has() it comes with the window).
+    string? sentReason = Model.Cancel.CancellationReason;
+    bool warnsOutOfStock = sentReason == nameof(CancellationReason.OutOfStock);
+    bool remindsOwnerCheck = sentReason == nameof(CancellationReason.AgreedWithBuyer);
+}
+@if (any)
+{
+    <section class="order-detail__section" id="kalem-islemleri" aria-labelledby="order-item-steps-heading">
+        <h2 id="order-item-steps-heading">Kalem işlemleri</h2>
+        @if (cancelWhole || cancelItems.Count > 0)
+        {
+            <form method="post" action="@(Model.PagePath)?handler=CancelOrderByCompany" asp-antiforgery="true" class="form" data-js="submit-once" id="cancel-order-by-company-form">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                @if (!cancelWhole)
+                {
+                    <fieldset>
+                        <legend>İptal edilecek kalemler ve adetleri</legend>
+                        @for (int i = 0; i < cancelItems.Count; i++)
+                        {
+                            OrderPageItem item = cancelItems[i];
+                            int open = Model.ItemFactsOf(item)?.OpenQuantity ?? item.Quantity;
+                            CancelOrderByCompanyInputLine? sent = Model.Cancel.Items.FirstOrDefault(l => l.OrderItemId == item.OrderItemId);
+                            <label><input type="checkbox" name="Input.Items[@i].OrderItemId" value="@item.OrderItemId.ToString("D")" checked="@(sent is not null)" /> @item.Name</label>
+                            <label for="cancel-quantity-@i">Adet (en çok @open)</label>
+                            <input id="cancel-quantity-@i" type="number" min="1" max="@open" name="Input.Items[@i].Quantity" value="@(sent?.Quantity ?? open.ToString(System.Globalization.CultureInfo.InvariantCulture))" />
+                        }
+                    </fieldset>
+                }
+                <label for="cancel-reason">@Reasons.ReasonLabel</label>
+                <select id="cancel-reason" name="Input.CancellationReason" required>
+                    <option value="">Sebep seçin</option>
+                    @foreach (FieldOption option in Reasons.CancellationOptions)
+                    {
+                        <option value="@option.Value" selected="@(option.Value == sentReason)">@option.Text</option>
+                    }
+                </select>
+                <p class="order-detail__warning order-detail__reason-warning order-detail__reason-warning--out-of-stock" role="alert" id="cancel-out-of-stock-warning" hidden="@(!warnsOutOfStock)">@OrderDetailModel.OutOfStockLegalNoticeText</p>
+                <p class="order-detail__reminder order-detail__reason-warning order-detail__reason-warning--agreed" id="cancel-owner-check-reminder" hidden="@(!remindsOwnerCheck)">@OrderDetailModel.OwnerCheckReminderText</p>
+                <label for="cancel-reason-note">@Reasons.ExplanationLabel</label>
+                <textarea id="cancel-reason-note" name="Input.ReasonNote">@Model.Cancel.ReasonNote</textarea>
+                <p class="field__hint">@Reasons.ExplanationHint</p>
+                @if (cancelWarnsInterest)
+                {
+                    <p class="order-detail__warning" role="alert" id="cancel-legal-interest-warning">@OrderDetailModel.LegalInterestWarningText</p>
+                }
+                <button type="submit" class="button button--danger" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.CancelByCompanyLabel)">@OrderDetailModel.CancelByCompanyLabel</button>
+            </form>
+        }
+        @if (withdrawItems.Count > 0)
+        {
+            <form method="post" action="@(Model.PagePath)?handler=RecordWithdrawal" asp-antiforgery="true" class="form" data-js="submit-once" id="record-withdrawal-form">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <p class="order-detail__reminder" id="withdrawal-owner-check-reminder">@OrderDetailModel.OwnerCheckReminderText</p>
+                <fieldset>
+                    <legend>Cayılan kalemler ve adetleri</legend>
+                    @for (int i = 0; i < withdrawItems.Count; i++)
+                    {
+                        OrderPageItem item = withdrawItems[i];
+                        int open = Model.ItemFactsOf(item)?.OpenQuantity ?? item.Quantity;
+                        RecordWithdrawalInputLine? sent = Model.Notice.Items.FirstOrDefault(l => l.OrderItemId == item.OrderItemId);
+                        <label><input type="checkbox" name="Input.Items[@i].OrderItemId" value="@item.OrderItemId.ToString("D")" checked="@(sent is not null)" /> @item.Name</label>
+                        <label for="withdrawal-quantity-@i">Adet (en çok @open)</label>
+                        <input id="withdrawal-quantity-@i" type="number" min="1" max="@open" name="Input.Items[@i].Quantity" value="@(sent?.Quantity ?? open.ToString(System.Globalization.CultureInfo.InvariantCulture))" />
+                    }
+                </fieldset>
+                <label for="withdrawal-date">Bildirimin firmaya ulaştığı tarih</label>
+                <input id="withdrawal-date" type="date" max="@today" name="Input.DeclarationDate" value="@Model.Notice.DeclarationDate" required />
+                <partial name="_OrderNoticeContactIban" model='("withdrawal", Model.Notice.IsFromContactEmail, Model.Notice.Iban)' />
+                @if (Model.NoticeWarnings.OutsideWindow || Model.NoticeWarnings.BeyondOneYear)
+                {
+                    <p class="order-detail__warning" role="alert" id="withdrawal-outside-window-warning">@OrderDetailModel.OutsideWindowWarningText@(Model.NoticeWarnings.BeyondOneYear ? " " + OrderDetailModel.BeyondOneYearWarningText : string.Empty)</p>
+                }
+                @if (Model.NoticeWarnings.AbsoluteExemption)
+                {
+                    <p class="order-detail__warning" role="alert" id="withdrawal-exemption-warning">@OrderDetailModel.AbsoluteExemptionWarningText</p>
+                }
+                @if (Model.NoticeWarnings.NeedsConfirmation)
+                {
+                    <label><input type="checkbox" name="Input.IsExceptionAcknowledged" value="true" checked="@Model.Notice.IsExceptionAcknowledged" /> @OrderDetailModel.ExceptionAcknowledgementLabel</label>
+                }
+                @if (Model.AsksNoticeDeliveryOrder)
+                {
+                    <fieldset class="order-detail__question" id="withdrawal-delivery-order-question">
+                        <legend>@OrderDetailModel.DeliveryOrderQuestionText</legend>
+                        <label><input type="radio" name="Input.IsDeliveredBeforeDeclaration" value="true" required /> Teslim beyandan önce</label>
+                        <label><input type="radio" name="Input.IsDeliveredBeforeDeclaration" value="false" /> Teslim beyandan sonra</label>
+                    </fieldset>
+                }
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.RecordWithdrawalLabel)">@OrderDetailModel.RecordWithdrawalLabel</button>
+            </form>
+        }
+        @if (terminate)
+        {
+            <form method="post" action="@(Model.PagePath)?handler=RecordLateDeliveryTermination" asp-antiforgery="true" class="form" data-js="submit-once" id="record-late-termination-form">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <p class="order-detail__reminder" id="termination-owner-check-reminder">@OrderDetailModel.OwnerCheckReminderText</p>
+                <p>Fesih teslim edilmemiş fiziksel kalemlerin açık adetlerinin tamamına düşer.</p>
+                <ul class="order-detail__list" id="termination-items">
+                    @foreach ((OrderPageItem item, int openUnits) in Model.TerminatedItems)
+                    {
+                        <li>@item.Name — @openUnits adet</li>
+                    }
+                </ul>
+                <p class="order-detail__warning" role="alert" id="termination-legal-interest-warning">@OrderDetailModel.LegalInterestWarningText</p>
+                <label for="termination-date">Bildirimin firmaya ulaştığı tarih</label>
+                <input id="termination-date" type="date" max="@today" name="Input.DeclarationDate" value="@Model.Termination.DeclarationDate" required />
+                <partial name="_OrderNoticeContactIban" model='("termination", Model.Termination.IsFromContactEmail, Model.Termination.Iban)' />
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.RecordLateTerminationLabel)">@OrderDetailModel.RecordLateTerminationLabel</button>
+            </form>
+        }
+        @foreach (OrderPageItem item in removeItems)
+        {
+            string key = item.OrderItemId.ToString("D");
+            int open = Model.ItemFactsOf(item)?.OpenQuantity ?? item.Quantity;
+            <form method="post" action="@(Model.PagePath)?handler=RemoveOrderItem" asp-antiforgery="true" class="form" data-js="submit-once" id="remove-item-form-@key">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <input type="hidden" name="Input.OrderItemId" value="@key" />
+                <label for="remove-quantity-@key">@item.Name — çıkarılacak adet (en çok @open)</label>
+                <input id="remove-quantity-@key" type="number" min="1" max="@open" name="Input.Quantity" value="@open" required />
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.RemoveItemLabel)">@OrderDetailModel.RemoveItemLabel</button>
+            </form>
+        }
+        @foreach (OrderPageItem item in receiveItems)
+        {
+            string key = item.OrderItemId.ToString("D");
+            int awaited = Model.ReceivableUnitsOf(item);
+            bool rejectable = Model.Operations.IsOpen(OrderOperation.RejectReturnedGoods, item.OrderItemId);
+            <form method="post" action="@(Model.PagePath)?handler=ReceiveReturn" asp-antiforgery="true" class="form" data-js="submit-once" id="receive-return-form-@key">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <input type="hidden" name="Input.OrderItemId" value="@key" />
+                <p>@item.Name — bekleyen adet: @awaited</p>
+                <label for="arrival-date-@key">Ulaşma tarihi</label>
+                <input id="arrival-date-@key" type="date" max="@today" name="Input.ArrivalDate" required />
+                <label for="arrival-quantity-@key">Ulaşan adet</label>
+                <input id="arrival-quantity-@key" type="number" min="1" name="Input.Quantity" value="@(awaited > 0 ? awaited : null)" />
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.ReceiveReturnLabel)">@OrderDetailModel.ReceiveReturnLabel</button>
+                @if (rejectable)
+                {
+                    <button type="submit" formaction="@(Model.PagePath)?handler=RejectReturn" class="button button--danger" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.RejectReturnLabel)">@OrderDetailModel.RejectReturnLabel</button>
+                }
+            </form>
+        }
+        @foreach ((OrderPageItem item, ReturnReceiptFact receipt) in restock)
+        {
+            <form method="post" action="@(Model.PagePath)?handler=RestockReturn" asp-antiforgery="true" class="form" data-js="submit-once" id="restock-return-form-@receipt.ReturnId.ToString("D")">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <input type="hidden" name="Input.ReturnId" value="@receipt.ReturnId.ToString("D")" />
+                <p>@item.Name — teslim alınan @receipt.Quantity adet, @DisplayFormat.Date(receipt.ArrivalDate)</p>
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.RestockReturnLabel)">@OrderDetailModel.RestockReturnLabel</button>
+            </form>
+        }
+        @foreach (OrderPageItem item in closeItems)
+        {
+            string key = item.OrderItemId.ToString("D");
+            int awaited = Model.AwaitedUnitsOf(item);
+            <form method="post" action="@(Model.PagePath)?handler=CloseNotReturned" asp-antiforgery="true" class="form" data-js="submit-once" id="close-not-returned-form-@key">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <input type="hidden" name="Input.OrderItemId" value="@key" />
+                <label for="close-quantity-@key">@item.Name — ulaşmamış adet (en çok @awaited)</label>
+                <input id="close-quantity-@key" type="number" min="1" max="@awaited" name="Input.Quantity" value="@awaited" />
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.CloseNotReturnedLabel)">@OrderDetailModel.CloseNotReturnedLabel</button>
+            </form>
+        }
+        @foreach (OrderDefectClaim claim in claims)
+        {
+            bool isOpen = claim.Status == DefectClaimStatus.Open;
+            string handler = isOpen ? "ResolveDefectClaim" : "ReopenDefectClaim";
+            string label = isOpen ? OrderDetailModel.ResolveDefectClaimLabel : OrderDetailModel.ReopenDefectClaimLabel;
+            <form method="post" action="@(Model.PagePath)?handler=@handler" asp-antiforgery="true" class="form" data-js="submit-once" id="defect-claim-form-@claim.Id.ToString("D")">
+                @VersionFields.Version(Model.Operations.Version, "Input")
+                <input type="hidden" name="Input.DefectClaimId" value="@claim.Id.ToString("D")" />
+                <p>@Model.ItemNameOf(claim.OrderItemId) — ayıp talebi</p>
+                <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(label)">@label</button>
+            </form>
+        }
+    </section>
+}

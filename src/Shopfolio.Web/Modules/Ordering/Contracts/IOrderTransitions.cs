@@ -157,6 +157,9 @@ public partial interface IOrderTransitions
     /// </summary>
     Task<ItemRecordResult> ReceiveReturnAsync(ReceiveReturnRequest request, CancellationToken ct);
 
+    /// <inheritdoc cref="ReceiveTakenBackRequest" path="/summary"/>
+    Task<ItemRecordResult> ReceiveTakenBackAsync(ReceiveTakenBackRequest request, CancellationToken ct);
+
     /// <summary>
     /// The administrator's "mal dönmedi" closure (T373; 03 1.7.1.8; 02 10.4.9): after Z-42, on the units of an after-delivery withdrawal not come back. No notice, no
     /// refund; the IBAN no pending refund uses goes (K-1127).

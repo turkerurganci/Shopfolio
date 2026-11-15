@@ -31,6 +31,7 @@ internal sealed partial class AfterSalesModule
             .ToDictionaryAsync(c => c.OrderItemId, c => c.DefectClaimStatus, ct);
         IReadOnlyList<WithdrawalStanding> standings = await WithdrawalStandingsAsync(ids, ct);
         IReadOnlyList<TerminationStanding> terminations = await TerminationStandingsAsync(ids, ct);
+        IReadOnlyList<ClaimTakenBackStanding> takenBack = await ClaimTakenBackStandingsAsync(ids, ct);
         HashSet<Guid> arrivals = [.. (await _db.Returns.AsNoTracking().Where(r => ids.Contains(r.OrderItemId)).Select(r => r.OrderItemId).Distinct().ToListAsync(ct))
             .Concat(await _db.ReturnRejections.AsNoTracking().Where(r => ids.Contains(r.OrderItemId)).Select(r => r.OrderItemId).Distinct().ToListAsync(ct))];
 
@@ -71,10 +72,11 @@ internal sealed partial class AfterSalesModule
                 }
             }
 
-            // The goods of a late-delivery termination arrive the same way (03 1.11.28: "feshedilmiş fiziksel kalem").
+            // The goods of a late-delivery termination arrive the same way (03 1.11.28: "feshedilmiş fiziksel kalem"; D-656), and so do the goods of a defect claim's
+            // defective units the rescission takes back (03 8.3.2.1; K-808; D-911): the receipt writer takes them in by the same counts (AddTakenBackReceiptAsync).
             if (physical)
             {
-                receivable += terminations.Where(t => t.OrderItemId == id).Sum(t => Math.Max(0, t.Quantity - t.Received));
+                receivable += terminations.Where(t => t.OrderItemId == id).Sum(t => t.Awaiting) + takenBack.Where(c => c.OrderItemId == id).Sum(c => c.Awaiting);
             }
 
             states[id] = new ItemPeriodState(
@@ -124,17 +126,42 @@ internal sealed partial class AfterSalesModule
             w.Id, w.OrderItemId, w.Quantity, w.DeclarationDate, w.IsDeliveredBeforeDeclaration, received.GetValueOrDefault(w.Id), rejected.GetValueOrDefault(w.Id), notReturned.GetValueOrDefault(w.Id)))];
     }
 
-    /// <summary>The late-delivery terminations of the items with the units received against each.</summary>
+    /// <summary>The late-delivery terminations of the items with the units received against each, oldest first.</summary>
     private async Task<IReadOnlyList<TerminationStanding>> TerminationStandingsAsync(Guid[] itemIds, CancellationToken ct)
     {
-        var rows = await _db.LateDeliveryTerminations.AsNoTracking().Where(t => itemIds.Contains(t.OrderItemId)).Select(t => new { t.Id, t.OrderItemId, t.Quantity }).ToListAsync(ct);
+        var rows = await _db.LateDeliveryTerminations.AsNoTracking().Where(t => itemIds.Contains(t.OrderItemId))
+            .OrderBy(t => t.CreatedAt).Select(t => new { t.Id, t.OrderItemId, t.Quantity }).ToListAsync(ct);
         Guid[] ids = [.. rows.Select(t => t.Id)];
         Dictionary<Guid, int> received = await _db.Returns.AsNoTracking().Where(r => r.LateDeliveryTerminationId != null && ids.Contains(r.LateDeliveryTerminationId.Value))
             .GroupBy(r => r.LateDeliveryTerminationId!.Value).Select(g => new { g.Key, Sum = g.Sum(r => r.Quantity) }).ToDictionaryAsync(g => g.Key, g => g.Sum, ct); // non-null: the Where above keeps only receipts with a termination
-        return [.. rows.Select(t => new TerminationStanding(t.OrderItemId, t.Quantity, received.GetValueOrDefault(t.Id)))];
+        return [.. rows.Select(t => new TerminationStanding(t.Id, t.OrderItemId, t.Quantity, received.GetValueOrDefault(t.Id)))];
     }
 
-    private sealed record TerminationStanding(Guid OrderItemId, int Quantity, int Received);
+    /// <summary>
+    /// The items' defect claims with their defective units (06 4.30 <c>Quantity</c>) and the units taken back against each (D-911): the rescission of a physical item starts with
+    /// the receipt of the goods, so the receipt's bound is the claim's defective units not yet taken back - not a refund already made (03 8.3.2.1; 04 7.2.12.2; K-808).
+    /// </summary>
+    private async Task<IReadOnlyList<ClaimTakenBackStanding>> ClaimTakenBackStandingsAsync(Guid[] itemIds, CancellationToken ct)
+    {
+        var claims = await _db.DefectClaims.AsNoTracking().Where(c => itemIds.Contains(c.OrderItemId)).Select(c => new { c.Id, c.OrderItemId, c.Quantity }).ToListAsync(ct);
+        Guid[] ids = [.. claims.Select(c => c.Id)];
+        Dictionary<Guid, int> received = await _db.Returns.AsNoTracking().Where(r => r.DefectClaimId != null && ids.Contains(r.DefectClaimId.Value))
+            .GroupBy(r => r.DefectClaimId!.Value).Select(g => new { g.Key, Sum = g.Sum(r => r.Quantity) }).ToDictionaryAsync(g => g.Key, g => g.Sum, ct); // non-null: the Where above keeps only receipts with a claim
+        return
+        [
+            .. claims.Select(c => new ClaimTakenBackStanding(c.Id, c.OrderItemId, c.Quantity, received.GetValueOrDefault(c.Id))),
+        ];
+    }
+
+    private sealed record TerminationStanding(Guid Id, Guid OrderItemId, int Quantity, int Received)
+    {
+        public int Awaiting => Math.Max(0, Quantity - Received);
+    }
+
+    private sealed record ClaimTakenBackStanding(Guid Id, Guid OrderItemId, int Defective, int Received)
+    {
+        public int Awaiting => Math.Max(0, Defective - Received);
+    }
 
     private sealed record WithdrawalStanding(
         Guid Id, Guid OrderItemId, int Quantity, DateOnly DeclarationDate, bool? IsDeliveredBeforeDeclaration, int Received, int Rejected, int NotReturned);

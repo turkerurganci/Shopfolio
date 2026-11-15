@@ -1,0 +1,12 @@
+@model (string Prefix, bool IsFromContactEmail, string? Iban)
+@*
+    The contact e-mail option and the notice's IBAN of a record from another channel (T528; 04 7.2.10.4, 9.9.20; 07 UC-130; K-607): one markup for the withdrawal's and the termination's form.
+    The IBAN field opens once the option is ticked (admin.css; without :has() the field stays open, the T539 way); the server carries the IBAN only with the option (02 10.4.10).
+*@
+<div class="order-detail__contact-iban">
+    <label><input type="checkbox" name="Input.IsFromContactEmail" value="true" checked="@Model.IsFromContactEmail" /> Bildirim siparişin iletişim e-postasından geldi</label>
+    <div class="order-detail__notice-iban" id="@(Model.Prefix)-iban-field">
+        <label for="@(Model.Prefix)-iban">Bildirimdeki IBAN — bildirim iletişim e-postasından geldiyse</label>
+        <input id="@(Model.Prefix)-iban" name="Input.Iban" value="@Model.Iban" autocomplete="off" />
+    </div>
+</div>

@@ -55,8 +55,11 @@ public static class IrreversibleConfirmations
     /// <summary>The sentence every irreversible operation's window ends with (04 2.4.1; K-797).</summary>
     public const string IrreversibleSentence = "Bu işlem geri alınamaz.";
 
-    /// <summary>02 7.2.4: the warning of the "stokta bulunamadı" reason - Yönetmelik m.16/4 does not take a missing stock as the impossibility of performance.</summary>
-    public const string OutOfStockLegalNotice = "Stokta bulunmaması yasal olarak ifanın imkânsızlaşması sayılmaz; bu iptalin sonucu firmadadır.";
+    /// <summary>
+    /// K-798 (1) (U1; 02 7.2.4): the warning of the "stokta bulunamadı" reason - Yönetmelik m.16/4 does not take a missing stock as the impossibility of performance. It stands in the firm
+    /// cancellation's form before the window and the window does not repeat it (K-1547 (3)).
+    /// </summary>
+    public const string OutOfStockLegalNotice = "Stok yokluğu, siparişi yerine getirmenin yasal olarak imkânsızlaşması sayılmaz; bu iptalin sonucu firmadadır.";
 
     /// <summary>K-798 (5): the warning before the "paid" mark's sentence on an order with a digital item.</summary>
     public const string DigitalItemPaidMarkWarning = "Siparişte dijital ürün var: işaretle birlikte indirme açılır ve bu işaret sonradan düzeltilemez.";
@@ -78,15 +81,13 @@ public static class IrreversibleConfirmations
     /// <summary>
     /// 03 1.6.1.3: the firm's cancellation. An unpaid order is cancelled as a whole; a paid one by its units, with the line's second sentence (the card
     /// refund starts at once, or the customer is asked for an IBAN) and, on "delivery failed - caused by the customer", that the outbound shipping fee is
-    /// not paid back.
+    /// not paid back. The window carries no warning: the reason's warnings (U1, U6a) and the legal interest warning (U2) stand in the form before it (K-798, K-1547 (3)).
     /// </summary>
-    public static IrreversibleConfirmation FirmCancellation(bool isPaid, int units, bool isCardLine, bool isCustomerCausedDeliveryFailure, bool isOutOfStock = false)
+    public static IrreversibleConfirmation FirmCancellation(bool isPaid, int units, bool isCardLine, bool isCustomerCausedDeliveryFailure)
     {
-        // "Stokta bulunamadı": before the confirmation the panel says that a missing stock is not a legal impossibility and the outcome is the firm's (02 7.2.4; T368 k8).
-        string? warning = isOutOfStock ? OutOfStockLegalNotice : null;
         if (!isPaid)
         {
-            return new(IrreversibleAction.FirmCancellation, warning, "Sipariş iptal edilecek ve müşteriye sebebiyle bildirilecek.");
+            return new(IrreversibleAction.FirmCancellation, null, "Sipariş iptal edilecek ve müşteriye sebebiyle bildirilecek.");
         }
 
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(units);
@@ -97,7 +98,7 @@ public static class IrreversibleConfirmations
             sentence += " Gidiş kargo bedeli geri ödenmeyecek.";
         }
 
-        return new(IrreversibleAction.FirmCancellation, warning, sentence);
+        return new(IrreversibleAction.FirmCancellation, null, sentence);
     }
 
     /// <summary>03 1.6.1.4: the processing of a refund - to the customer's IBAN on the transfer line, to the card on the card line.</summary>

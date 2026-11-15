@@ -531,6 +531,7 @@ internal static class OrderingModuleRegistration
         services.AddScoped<IPanelRefundSteps, PanelRefundSteps>();
         services.AddScoped<IPanelOrderCorrections, PanelOrderCorrections>();
         services.AddScoped<IPanelOrderUpkeep, PanelOrderUpkeep>(); // T531: the service mark, the download renewal, the note and the re-sendings (07 UC-139, UC-143, UC-152...UC-154)
+        services.AddScoped<IPanelItemSteps, PanelItemSteps>(); // T528: the firm's cancellation, the notices from another channel, the removal, the return steps and the claim steps (07 UC-129, UC-130, UC-138, UC-140...UC-145)
         return services;
     }
 }

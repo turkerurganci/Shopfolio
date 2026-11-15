@@ -1,4 +1,5 @@
 using Shopfolio.Infrastructure;
+using Shopfolio.Modules.AfterSales.Contracts;
 
 namespace Shopfolio.Modules.Ordering.Contracts;
 
@@ -52,6 +53,13 @@ public sealed record RejectReturnRequest(
 /// not before the item's entered delivery date -, with the screen's version. The stock is added by its own step (<see cref="AddReturnedStockRequest"/>).
 /// </summary>
 public sealed record ReceiveReturnRequest(Guid OrderId, Guid OrderItemId, Guid WithdrawalId, TransitionAdmin Admin, int ExpectedVersion, int Quantity, DateOnly ArrivalDate);
+
+/// <summary>
+/// The receipt of goods taken back on a late-delivery termination or a defect claim's rescission (03 1.11.28, 8.3.2.1; K-808; D-656, D-911): the termination or the claim, the
+/// units that arrived and their arrival date under the withdrawal receipt's bounds, with the screen's version. No refund, no IBAN and no notice; the stock is its own step.
+/// </summary>
+public sealed record ReceiveTakenBackRequest(
+    Guid OrderId, Guid OrderItemId, TakenBackSource Source, TransitionAdmin Admin, int ExpectedVersion, int Quantity, DateOnly ArrivalDate);
 
 /// <summary>
 /// The "mal dönmedi" closure (03 1.7.1.8; 02 10.4.9; K-496, K-794): the declaration and the units not come back, after the sending period (Z-42), with the screen's

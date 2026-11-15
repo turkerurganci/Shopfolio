@@ -24,7 +24,7 @@ public sealed record ItemPeriodQuery(
 /// withdrawal records closed; <paramref name="WithdrawalWindowOpen"/> and <paramref name="WithdrawalLastDay"/> - Z-13 or Z-14 as 03 4.1.14-4.1.16 read it (the last day is null
 /// while the window has no running period); <paramref name="DefectChannelOpen"/> and <paramref name="DefectLastDay"/> - Z-18; <paramref name="DefectClaim"/> - the item's one
 /// claim; <paramref name="IsExempt"/> and <paramref name="IsConditionallyExempt"/> - the frozen exemption excludes the withdrawal, or holds only while the packaging is unopened;
-/// <paramref name="ReceivableUnits"/> - the withdrawn or terminated units whose goods the firm may still take in, before or after the delivery (the ones on their way back and the ones closed as not come back);
+/// <paramref name="ReceivableUnits"/> - the withdrawn or terminated units and a defect claim's defective units (K-808) whose goods the firm may still take in, before or after the delivery (the ones on their way back and the ones closed as not come back; D-656, D-911);
 /// <paramref name="RejectableUnits"/> - the units on their way back, on an item with a conditional exemption; <paramref name="NotReturnedClosableUnits"/> - the units on their
 /// way back whose sending period (Z-42) has run out; <paramref name="HasArrivalRecord"/> - a receipt or a rejection of the item's returned goods is on file, so an arrival date
 /// exists to correct (03 1.11.25); <paramref name="RescindedUnits"/> - the units rescinded on the item's defect claim: they do not close the item but leave the units open to

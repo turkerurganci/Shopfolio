@@ -65,6 +65,41 @@ internal sealed partial class OrderTransitions
         return new ItemRecordResult(null, written.RecordId);
     }
 
+    public async Task<ItemRecordResult> ReceiveTakenBackAsync(ReceiveTakenBackRequest request, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (!TryAdminActor(request.Admin, out _))
+        {
+            return ItemRefused(TransitionRefusal.ActorNotAllowed);
+        }
+
+        // The withdrawal receipt's date bound (02 7.4.7): never in the future; the lower bound is the writer's.
+        DateTimeOffset now = _time.GetUtcNow();
+        if (request.ArrivalDate > TurkeyTime.DateOf(now))
+        {
+            return ItemRefused(TransitionRefusal.InvalidInput);
+        }
+
+        (Order? order, OrderItem? item, TransitionRefusal? refusal) = await LockItemAsync(request.OrderId, request.OrderItemId, request.ExpectedVersion, ct);
+        if (refusal is { } locked)
+        {
+            return ItemRefused(locked);
+        }
+
+        TakenBackReceiptEntry entry = new(
+            Subject(order!, item!), request.Source, request.Quantity, request.ArrivalDate, new ItemRecordAdmin(request.Admin.AdminId, request.Admin.AdminName.Trim()), now); // non-null: LockItemAsync returns the order and the item when it returns no refusal
+        ItemRecordWriteResult written = await _afterSales.AddTakenBackReceiptAsync(entry, ct);
+        if (written.Refusal is { } refused)
+        {
+            return ItemRefused(Map(refused));
+        }
+
+        // Like a withdrawal's receipt (1.4.4.6): no stock, no refund, no notice; the coupon right goes back when the order's last unit comes to its end (06 4.14; K-1104).
+        await _counters.ReturnAsync(order!, [], ct); // non-null: LockItemAsync returns the order and the item when it returns no refusal
+        RaiseVersionOnce(order!); // non-null: LockItemAsync returns the order and the item when it returns no refusal
+        return new ItemRecordResult(null, written.RecordId);
+    }
+
     public async Task<ItemRecordResult> CloseAsNotReturnedAsync(CloseAsNotReturnedRequest request, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);

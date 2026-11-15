@@ -26,6 +26,10 @@
                 {
                     <span class="item-records__detail">@detail</span>
                 }
+                @if (record.Warning is string warning)
+                {
+                    <span class="item-records__warning" role="alert">@warning</span>
+                }
             </li>
         }
     </ul>

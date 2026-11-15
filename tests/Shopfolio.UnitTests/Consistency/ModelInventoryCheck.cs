@@ -43,8 +43,11 @@ internal static class ModelInventoryCheck
 
         Type[] types = [.. models];
         List<string> problems = [];
-        string[] documented = [.. rows.SelectMany(r => r.Models)];
-        problems.AddRange(SetComparison.Compare("Model", documented, types.Select(t => t.Name)));
+
+        // A row that names two models (MarkShippedInput · MarkReshippedInput) is carried by one class of the code, which names both in its comment; a model name that
+        // two folders both declare (the panel's ChangeNameInput beside the account's) is one model of the inventory with the fields of each declaration (07 5.2.2).
+        string[] documented = [.. rows.SelectMany(r => r.Models.Any(m => types.Any(t => t.Name == m)) ? r.Models.Where(m => types.Any(t => t.Name == m)) : r.Models.Take(1))];
+        problems.AddRange(SetComparison.Compare("Model", documented, types.Select(t => t.Name).Distinct(StringComparer.Ordinal)));
 
         foreach (ModelRow row in rows)
         {
@@ -78,12 +81,20 @@ internal static class ModelInventoryCheck
         return problems;
     }
 
+    /// <summary>The failure text: one problem per line, so a failure names every difference at once.</summary>
+    public static string Report(IReadOnlyList<string> problems)
+    {
+        ArgumentNullException.ThrowIfNull(problems);
+        return string.Join('\n', problems);
+    }
+
     /// <summary>The field names of a model as its kind reads them.</summary>
     public static string[] FieldNames(Type model, Kind kind)
     {
         ArgumentNullException.ThrowIfNull(model);
+        // A list the binder fills in place (<c>IList&lt;Line&gt; Items { get; }</c>) is a field as well as a property with a setter.
         IEnumerable<PropertyInfo> properties = model.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-            .Where(p => kind == Kind.Machine || p.SetMethod is { IsPublic: true });
+            .Where(p => kind == Kind.Machine || p.SetMethod is { IsPublic: true } || (p.GetMethod is { IsPublic: true } && ElementOf(p.PropertyType) is not null && p.PropertyType != typeof(string) && typeof(IEnumerable).IsAssignableFrom(p.PropertyType)));
 
         return kind switch
         {

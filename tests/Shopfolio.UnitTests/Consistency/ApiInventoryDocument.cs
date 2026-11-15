@@ -228,7 +228,7 @@ internal static partial class ApiInventoryDocument
     }
 
     private static IEnumerable<string> Names(string text, bool pascal) =>
-        Token().Matches(text).Where(m => !m.Value.EndsWith("'", StringComparison.Ordinal))
+        Token().Matches(text).Where(m => !m.Value.EndsWith('\''))
             .Select(m => m.Groups["t"].Value)
             .Where(n => pascal ? char.IsUpper(n[0]) : char.IsLower(n[0]))
             .Where(n => !NotFields.Contains(n));

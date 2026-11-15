@@ -30,7 +30,7 @@ internal static partial class EndpointBindingCheck
         foreach (RazorCompiledItemAttribute item in assembly.GetCustomAttributes<RazorCompiledItemAttribute>().Where(i => i.Kind == "mvc.1.0.razor-page"))
         {
             string? template = item.Type.GetCustomAttributes<RazorCompiledItemMetadataAttribute>().FirstOrDefault(m => m.Key == "RouteTemplate")?.Value;
-            Type? model = item.Type.BaseType is { IsGenericType: true } generic ? generic.GetGenericArguments()[0] : null;
+            Type? model = item.Type.GetProperty("Model", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)?.PropertyType;
             if (template is not null && model is not null && typeof(PageModel).IsAssignableFrom(model))
             {
                 pages.Add(new PageRoute(template, model));
@@ -46,8 +46,10 @@ internal static partial class EndpointBindingCheck
         IReadOnlyList<string> modellessUseCases,
         IReadOnlyList<EndpointRef> endpoints,
         IReadOnlyList<PageRoute> pages,
-        IReadOnlySet<Type> entities)
+        IReadOnlySet<Type> entities,
+        IEnumerable<Type> models)
     {
+        ArgumentNullException.ThrowIfNull(models);
         ArgumentNullException.ThrowIfNull(formRows);
         ArgumentNullException.ThrowIfNull(queryRows);
         ArgumentNullException.ThrowIfNull(modellessUseCases);
@@ -93,8 +95,15 @@ internal static partial class EndpointBindingCheck
             }
         }
 
+        // A model class of the code that no handler binds has no endpoint (07 5.2; KK1: a model added to the code without its handler).
+        HashSet<Type> boundTypes = [.. boundByUseCase.Values.SelectMany(b => b).Select(b => b.Type)];
+        problems.AddRange(models.Where(m => !boundTypes.Contains(m)).Select(m => $"ModelWithoutEndpoint:{m.Name}"));
+
         return [.. problems.Distinct(StringComparer.Ordinal)];
     }
+
+    /// <summary>The parameters 07 5.3.1 names as common: a handler may take them as plain values (the panel's record pages have no query row, 07 5.3.2).</summary>
+    private static readonly string[] CommonParameters = ["notice", "returnUrl", "page"];
 
     private static void CheckRows(IReadOnlyList<ModelRow> rows, Dictionary<string, List<Bound>> boundByUseCase, Type marker, List<string> problems)
     {
@@ -112,13 +121,10 @@ internal static partial class EndpointBindingCheck
                 }
             }
 
-            foreach (string model in row.Models)
+            // A row that names two models is carried by one class (07 5.2.2), so one of its names is a model of the code; a row none of whose names is bound has no endpoint.
+            if (!row.Models.Any(model => boundByUseCase.Values.SelectMany(b => b).Any(b => b.Type.Name == model && marker.IsAssignableFrom(b.Type))))
             {
-                bool bound = boundByUseCase.Values.SelectMany(b => b).Any(b => b.Type.Name == model && marker.IsAssignableFrom(b.Type));
-                if (!bound)
-                {
-                    problems.Add($"ModelWithoutEndpoint:{model}");
-                }
+                problems.Add($"ModelWithoutEndpoint:{string.Join('/', row.Models)}");
             }
         }
     }
@@ -127,12 +133,15 @@ internal static partial class EndpointBindingCheck
     {
         List<Bound> found = [];
         bool resolved = false;
-        foreach (PageRoute page in pages.Where(p => Matches(p, endpoint)))
+        foreach (PageRoute page in Candidates(pages, endpoint))
         {
             foreach (MethodInfo method in HandlersOf(page.PageModel, endpoint))
             {
                 resolved = true;
-                string[] routeValues = [.. RouteValue().Matches(page.Template).Select(m => m.Groups["n"].Value)];
+
+                // A handler of a base class or of a model that two addresses share (the new-record and the edit page) reads the route values of every page it serves.
+                string[] routeValues = [.. pages.Where(p => method.DeclaringType!.IsAssignableFrom(p.PageModel))
+                    .SelectMany(p => RouteValue().Matches(p.Template).Select(m => m.Groups["n"].Value))];
                 foreach (ParameterInfo parameter in method.GetParameters().Where(p => p.ParameterType != typeof(CancellationToken)))
                 {
                     Type type = Nullable.GetUnderlyingType(parameter.ParameterType) ?? parameter.ParameterType;
@@ -144,7 +153,7 @@ internal static partial class EndpointBindingCheck
                     {
                         found.Add(new Bound(type, page.PageModel));
                     }
-                    else if (!routeValues.Contains(parameter.Name ?? string.Empty, StringComparer.OrdinalIgnoreCase))
+                    else if (!routeValues.Contains(parameter.Name ?? string.Empty, StringComparer.OrdinalIgnoreCase) && !CommonParameters.Contains(parameter.Name ?? string.Empty, StringComparer.Ordinal))
                     {
                         problems.Add($"InputWithoutModel:{endpoint.UseCase}:{page.PageModel.Name}.{method.Name}({parameter.Name})");
                     }
@@ -152,7 +161,8 @@ internal static partial class EndpointBindingCheck
             }
         }
 
-        if (!resolved)
+        // A GET that no page serves is a machine endpoint (the download, the site map, the liveness, the chunked upload; 07 5.4): its body, if any, is 5.4's.
+        if (!resolved && endpoint.Method == "POST")
         {
             problems.Add($"NoHandler:{endpoint.UseCase}:{endpoint.Method} {endpoint.Path}{(endpoint.Handler is null ? string.Empty : "?handler=" + endpoint.Handler)}");
         }
@@ -174,16 +184,58 @@ internal static partial class EndpointBindingCheck
         }
     }
 
-    private static bool Matches(PageRoute page, EndpointRef endpoint)
+    /// <summary>
+    /// The pages that serve an address: a literal of the document (<c>/panel/kuponlar/yeni</c>) is served by a page of that literal, or - when no page has it - by a page whose
+    /// route value stands there (<c>/panel/kuponlar/{key?}</c>); a value of the document (<c>{iç anahtar}</c>) is any value of the page.
+    /// </summary>
+    private static IEnumerable<PageRoute> Candidates(IReadOnlyList<PageRoute> pages, EndpointRef endpoint)
     {
         if (endpoint.Path is null)
         {
             // UC-117's "…?handler=UploadImage": the address is the form's own, so any page that has the handler is a candidate.
-            return HandlersOf(page.PageModel, endpoint).Any();
+            return pages.Where(p => HandlersOf(p.PageModel, endpoint).Any());
         }
 
-        string[] documented = [.. Normalize(endpoint.Path, isDocument: true)];
-        return Normalize(page.Template, isDocument: false).Any(documented.Contains);
+        string[][] documented = [.. Normalize(endpoint.Path, isDocument: true).Select(p => p.Split('/', StringSplitOptions.RemoveEmptyEntries))];
+        List<(PageRoute Page, int Literals)> matches = [];
+        foreach (PageRoute page in pages)
+        {
+            int best = int.MaxValue;
+            foreach (string[] served in Normalize(page.Template, isDocument: false).Select(p => p.Split('/', StringSplitOptions.RemoveEmptyEntries)))
+            {
+                foreach (string[] asked in documented.Where(d => d.Length == served.Length))
+                {
+                    int literals = 0;
+                    bool same = true;
+                    for (int i = 0; i < asked.Length && same; i++)
+                    {
+                        if (asked[i] == served[i])
+                        {
+                            continue;
+                        }
+
+                        if (served[i] == "{}")
+                        {
+                            literals++;
+                        }
+                        else
+                        {
+                            same = false;
+                        }
+                    }
+
+                    best = same ? Math.Min(best, literals) : best;
+                }
+            }
+
+            if (best != int.MaxValue)
+            {
+                matches.Add((page, best));
+            }
+        }
+
+        int fewest = matches.Count == 0 ? 0 : matches.Min(m => m.Literals);
+        return [.. matches.Where(m => m.Literals == fewest).Select(m => m.Page)];
     }
 
     /// <summary>The path in the form the two sides compare: lower case, every route value as <c>{}</c>; the order root <c>{kök}</c> is two paths, an optional value two.</summary>

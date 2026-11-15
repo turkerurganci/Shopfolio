@@ -372,13 +372,84 @@ public sealed class NavigationConsistencyTests
         Assert.Contains(Problems(document: changed), p => p.StartsWith("FromDiffers:3.3.44", StringComparison.Ordinal));
     }
 
+    // T546 correction 3 (B1; K-1617): the way out of an empty list is proved by the call that gives it to the shared component, never by the component's own link - a change of one screen's exit, or an exit
+    // that no row names, breaks the check on that screen.
+    [Theory]
+    [InlineData("3.4.26", "Pages/Panel/Orders.cshtml.cs", "EmptyStates.WithExit(NoOrdersText, HomeLabel, PanelFramePaths.Home)")]
+    [InlineData("3.4.26", "Pages/Panel/Requests.cshtml.cs", "EmptyStates.WithExit(NoRequestsText, HomeLabel, PanelFramePaths.Home)")]
+    [InlineData("3.4.26", "Pages/Panel/AuditTrail.cshtml.cs", "EmptyStates.WithExit(NoRowsText, HomeLabel, PanelFramePaths.Home)")]
+    public void PanelEmptyListExit_ChangedToAnotherScreen_IsReported(string id, string file, string call)
+    {
+        // E-36, E-38 and E-52 draw "Ana sayfaya dön" to E-31 (04 3.4.26); the exit goes to the members list instead: the row loses its evidence and the new exit is in no row.
+        IReadOnlyList<string> problems = Problems(sources: Changed(file, call, call.Replace("PanelFramePaths.Home", "PanelFramePaths.Members", StringComparison.Ordinal)));
+
+        Assert.Contains(problems, p => p.StartsWith("EvidenceMissing:" + id, StringComparison.Ordinal));
+        Assert.Contains(problems, p => p.StartsWith("UndocumentedTransition", StringComparison.Ordinal) && p.Contains("PanelFramePaths.Members", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("Pages/Account/OrderHistory.cshtml.cs", "OrderHistoryTexts.EmptyExitLabel, \"/\"", "3.3.12")]
+    [InlineData("Pages/Storefront/Cart.cshtml", "CartTexts.EmptyExitLabel, \"/\"", "3.3.12")]
+    [InlineData("Pages/Storefront/FaqPage.cs", "\"Ana sayfaya dön\", FramePaths.Home", "3.3.12")]
+    [InlineData("Pages/Storefront/CategoryPage.cs", "\"Ana sayfaya dön\", \"/\"", "3.3.12")]
+    [InlineData("Pages/Storefront/SearchPage.cs", "\"Ana sayfaya dön\", \"/\"", "3.3.12")]
+    [InlineData("Pages/Content/ContentListPages.cs", "\"Ana sayfaya dön\", \"/\"", "3.3.12")]
+    [InlineData("Pages/Panel/Products.cshtml.cs", "NewProductLabel, NewProductPath", "3.4.10")]
+    public void EmptyListExit_ChangedToAnotherScreen_IsReported_OnTheScreenThatChangedIt(string file, string tail, string id)
+    {
+        string to = tail[..tail.LastIndexOf(", ", StringComparison.Ordinal)] + ", \"/baska-yer\"";
+        IReadOnlyList<string> problems = Problems(sources: Changed(file, tail, to));
+
+        Assert.Contains(problems, p => p.StartsWith("EvidenceMissing:" + id, StringComparison.Ordinal));
+        Assert.Contains(problems, p => p.StartsWith("UndocumentedTransition", StringComparison.Ordinal) && p.Contains("/baska-yer", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EmptyListExit_AddedToAScreen_WithoutARow_IsReported()
+    {
+        // A second exit that goes to another screen, built beside the documented one.
+        const string call = "EmptyStates.WithExit(NoOrdersText, HomeLabel, PanelFramePaths.Home);";
+        IReadOnlyDictionary<string, string> sources = Changed("Pages/Panel/Orders.cshtml.cs", call, call + " _ = EmptyStates.WithExit(NoOrdersText, HomeLabel, PanelFramePaths.Members);");
+
+        Assert.Contains(Problems(sources: sources), p => p.StartsWith("UndocumentedTransition", StringComparison.Ordinal) && p.Contains("PanelFramePaths.Members", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EmptyListExit_OfAnotherKindOfCall_IsAlsoASite()
+    {
+        // The component's second constructor and the list model's own constructor are sites as well, not only the exit call.
+        const string firstRecord = "EmptyStates.WithFirstRecordButton(EmptySentence, NewCouponLabel, PanelFramePaths.Coupons + \"/\" + NewKey)";
+        IReadOnlyDictionary<string, string> coupons = Changed("Pages/Panel/Coupons.cshtml.cs", firstRecord, firstRecord.Replace("PanelFramePaths.Coupons + \"/\" + NewKey", "PanelFramePaths.Members", StringComparison.Ordinal));
+        IReadOnlyDictionary<string, string> faq = Changed("Pages/Storefront/FaqPage.cs", "\"Ana sayfaya dön\", FramePaths.Home", "\"Ana sayfaya dön\", FramePaths.Cart");
+
+        Assert.Contains(Problems(sources: coupons), p => p.StartsWith("UndocumentedTransition", StringComparison.Ordinal) && p.Contains("PanelFramePaths.Members", StringComparison.Ordinal));
+        Assert.Contains(Problems(sources: faq), p => p.StartsWith("UndocumentedTransition", StringComparison.Ordinal) && p.Contains("FramePaths.Cart", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void PanelEmptyListExitRow_DeletedFromTheTable_OrChangedInIt_IsReported()
+    {
+        Assert.Contains(Problems(document: WithoutRow("3.4.26")), p => p.Contains("RowOnlyInCode: 3.4.26", StringComparison.Ordinal));
+
+        string changed = Document.Value.Replace("| 3.4.26 | E-36 · E-38 · E-52", "| 3.4.26 | E-36 · E-38", StringComparison.Ordinal);
+        Assert.NotEqual(Document.Value, changed);
+        Assert.Contains(Problems(document: changed), p => p.StartsWith("FromDiffers:3.4.26", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void TheSharedEmptyComponents_AreNoEvidenceOfAnyRow()
+    {
+        // The component draws what each screen gave it: a row is proved by the call of the screen, so no entry may name the component's file (the weakness of 3.3.12 found in round 2).
+        Assert.DoesNotContain(NavigationInventory.Entries.SelectMany(e => e.Evidence), v => v.File.EndsWith("_EmptyRow.cshtml", StringComparison.Ordinal) || v.File.EndsWith("_EmptyState.cshtml", StringComparison.Ordinal));
+    }
+
     [Fact]
     public void TheInventory_HasNoOpenItemAndNoCitedExemption()
     {
         // Equality has no list of known differences: every kind of evidence is a place of the code, and an exemption is a place that stays on its screen.
         Assert.All(NavigationInventory.Entries, e => Assert.NotEmpty(e.Evidence));
         Assert.All(NavigationInventory.Exemptions, x => Assert.False(string.IsNullOrWhiteSpace(x.Reason)));
-        Assert.Equal(["Link", "Redirect", "Text", "Page"], Enum.GetNames<NavigationEvidenceKind>());
+        Assert.Equal(["Link", "Redirect", "EmptyExit", "Text", "Page"], Enum.GetNames<NavigationEvidenceKind>());
     }
 
     private static List<string> MenuProblems(string document)

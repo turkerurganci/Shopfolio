@@ -53,7 +53,13 @@ internal static class NavigationCheck
                 {
                     case NavigationEvidenceKind.Link:
                     case NavigationEvidenceKind.Redirect:
-                        NavigationSiteKind kind = evidence.Kind == NavigationEvidenceKind.Link ? NavigationSiteKind.Link : NavigationSiteKind.Redirect;
+                    case NavigationEvidenceKind.EmptyExit:
+                        NavigationSiteKind kind = evidence.Kind switch
+                        {
+                            NavigationEvidenceKind.Link => NavigationSiteKind.Link,
+                            NavigationEvidenceKind.Redirect => NavigationSiteKind.Redirect,
+                            _ => NavigationSiteKind.EmptyExit,
+                        };
                         claimed.Add((evidence.File, kind, evidence.Text));
                         if (!scannedSet.Contains((evidence.File, kind, evidence.Text)))
                         {

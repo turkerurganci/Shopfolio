@@ -31,12 +31,33 @@
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
 | 1 | Müşteri geçişleri (`§3.3`) kodla eşit | ✓ ⚠ | `NavigationMap_EqualsTheCode_InBothDirections`: 45 satır (3.3.1–3.3.45), her biri kaynak ve hedef ekranıyla ve en az bir kanıtla; 3.3.13 artık bağlantıyla kanıtlı (sepet satırında ad bağlantısı, `TheLinesProductName_LinksToTheProductPage_T546_3_3_13`); ⚠ 1: satırın "görseli" yarısı D-1189'da (aşağıda) |
-| 2 | Panel geçişleri (`§3.4`) eşit | ✓ | aynı test: 25 satır (3.4.1–3.4.25) |
+| 2 | Panel geçişleri (`§3.4`) eşit | ✓ | aynı test: 26 satır (3.4.1–3.4.26; 3.4.26 panel boş liste çıkışı, düzeltme 3) |
 | 3 | Dış girişler (`§3.5`) eşit | ✓ | aynı test: 15 satır; kanıt derlenmiş `@page` yolları (`Page` kanıtı) ve oturum işleyicisinin yönlendirmeleri |
 | 4 | Dönüşler (`§3.6`) eşit | ✓ | aynı test: 3.6.1–3.6.5 paragrafları; `SignInReturn_GoesToTheAskedPage_ExceptTheEntryScreens`, `PanelSignInReturn_...`, `CustomerSignOut_...`, `TheTwoGatesAreSeparate_...`, `CheckoutSignIn_ReturnsToThePaymentStep` |
 | 5 | Panel ↔ vitrin (`§3.7`) eşit | ✓ | aynı test: 3.7.1–3.7.5 (Düzenlemeye dön = 3.7.4, oturumsuz taslak adresi = 3.7.5) |
 | 6 | İskelet (`§3.1`, `§3.2`) çerçevede ve denetimde | ✓ | 21 + 22 satır; `PanelMenu_EqualsTheMenuTableOfTheDocument_EntryByEntry` |
 | 7 | Tabloda olmayan geçiş koda sızmaz; `Consistency` özellikli birim testi | ✓ | `UndocumentedTransition` denetimi; test sınıfı `[Trait("Consistency", "true")]`, `UnitTests/Consistency/` altında; ekran tanımlarının yazdığı bağlantılar artık muafiyet değil satırdır |
+
+### Düzeltme 3 öz denetimi — tur 2 B1 (panel boş liste çıkışı, paylaşılan bileşen kanıtı) kapatıldı; bütün kriterler ve KK'ler yeniden denetlendi
+
+**Düzeltme 3 notu (K-1617 ek madde 4, sahip yerine karar):** panel boş liste çıkışı "Ana sayfaya dön" (E-36, E-38, E-52 → E-31) kodda kalır, belgeye yazıldı: `04 §3.4`'e 3.4.26 satırı, §9.8.13, §9.10.12, §9.23.11 ve §2.7.1.2'ye çıkış cümlesi (satır ekran paragraflarından yazıldı, koddan değil), `04` v0.55 sürüm satırları. Denetim: paylaşılan boş hâl bileşenlerinin (`_EmptyRow`, `_EmptyState`) bağlantısı artık hiçbir satırın kanıtı değildir (`TheSharedEmptyComponents_AreNoEvidenceOfAnyRow`); çıkışı bileşene veren her çağrı (`EmptyStates.WithExit`, `WithFirstRecordButton`, `new EmptyState`; bileşenin üç kurucusu) yeni `EmptyExit` türüyle taranan bir yerdir ve ya bir satırın kanıtıdır — 3.3.12 (altı müşteri çağrısı: E-27, E-12, E-07, E-02, E-03, E-09), 3.4.10 (E-32 "Yeni ürün"), 3.4.26 (üç panel çağrısı) — ya listede kalan çıkıştır (süzgeç/arama kaldırma, ekranın kendi formu: dar muafiyet, dosya + tür + tam ifade). Tüm çağrılar tarandı (`grep` `EmptyStates.With*`, `new EmptyState(`): tabloda karşılığı olmayan başka çıkış çıkmadı; `_NotFound` tek kullanıcılı (E-06; `FramedNotFoundPageRenderer`), paylaşılan değil.
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1 (`§3.3`) | ✓ ⚠ | `NavigationMap_EqualsTheCode_InBothDirections` 45 satır; 3.3.12'nin kanıtı artık altı müşteri çağrısıdır (bileşen bağlantısı değil); 3.3.13 koşul sapması D-1631 |
+| Kriter 2 (`§3.4`) | ✓ | 3.4.1–3.4.26; 3.4.26 ↔ 9.8.13, 9.10.12, 9.23.11 (çıkış cümlesi bu turda eklendi); panel çağrıları `Orders/Requests/AuditTrail.cshtml.cs` `PanelFramePaths.Home` |
+| Kriter 3–6 | ✓ | değişmedi; `OutsideEntry_*`, `ReturnTarget_*`, `ReturnRedirect_*`, `PanelStorefrontRow_*`, `BackToEditingLink_*`, `StorefrontSkeletonLink_*`, `PanelSkeletonLink_*`, `PanelMenu_*` geçer |
+| Kriter 7 | ✓ | `UndocumentedTransition` `EmptyExit` çağrılarını da kapsar; `[Trait("Consistency","true")]`; dosya yazmaz, DB/ağ yok |
+| KK1 | ✓ | `CustomerTransition_*`, `TheRowsOfTheScreenSpecificationLinks_*`, `TheLinksOfTheScreenSpecificationRows_*`; yeni: `PanelEmptyListExitRow_DeletedFromTheTable_OrChangedInIt_IsReported` (3.4.26 silinince/Nereden değişince) |
+| KK2 | ✓ | `PanelTransition_*`; yeni: `PanelEmptyListExit_ChangedToAnotherScreen_IsReported` (üç panel sayfası) |
+| KK3–KK6 | ✓ | değişmedi |
+| KK7 paylaşılan bileşenle eklenen/değişen geçiş kırılıyor mu | ✓ | sentetik: `PanelEmptyListExit_ChangedToAnotherScreen_IsReported` (3), `EmptyListExit_ChangedToAnotherScreen_IsReported_OnTheScreenThatChangedIt` (7: OrderHistory, Cart, FaqPage, CategoryPage, SearchPage, ContentListPages, Products), `EmptyListExit_AddedToAScreen_WithoutARow_IsReported`, `EmptyListExit_OfAnotherKindOfCall_IsAlsoASite` (`WithFirstRecordButton`, `FaqPage`). **Gerçek dosyada deney (geri alındı):** `Panel/Orders.cshtml.cs` çıkışı `PanelFramePaths.Home` → `PanelFramePaths.Members`: `EvidenceMissing:3.4.26` + `UndocumentedTransition ... PanelFramePaths.Members`; `Storefront/Cart.cshtml` `"/"` → `"/hesabim"`: `EvidenceMissing:3.3.12` + `UndocumentedTransition ... "/hesabim"`; `git checkout` ile geri alındı, çalışma ağacında yalnız bu turun dosyaları kaldı |
+| Sessiz atlama yok | ✓ | yeni tarama yalnız yorum satırını ve bileşenin tanım dosyasını (`StateModels.cs`) atlar; ikisi de gerekçeli |
+| Sık FAIL (eşitlik denetimi paylaşılan bileşen anahtarını tek satıra kanıt sayıyor; belge–kod: satır ekran paragrafından) | ✓ | yukarıdaki not; satır §9.8.13/§9.10.12/§9.23.11/§2.7.1.2 paragraflarından yazıldı |
+| Sık FAIL (aynı sayıyı anan öteki yerler) | ✓ | `04` sürüm satırları (başlık sürümü v0.55 korundu, dipnot, `PRODUCT_DISCOVERY_STATUS`), K-1617 satırı (madde 4), 3.4 Kaynak dipnotu; `07`'nin 9.8.13/9.10.12/9.23.11 özet satırları çıkış cümlesini anmıyor, hedef çelişkisi yok |
+| Güvenlik taraması | ✓ | yalnız test ve belge; kaynak koda dokunulmadı |
+| `09` biçim | ✓ | build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes --include` 4 `.cs` temiz |
+| Test | ✓ | Consistency 397/397 (383 + 14 yeni); Consistency dışı Unit 7420/7420; Integration: sayfa/kaynak değişmedi, TAM: CI |
 
 ### Düzeltme 2 öz denetimi — bütün kabul kriterleri ve KK'ler yeniden denetlendi
 

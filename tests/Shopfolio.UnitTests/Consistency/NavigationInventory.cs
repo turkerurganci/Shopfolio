@@ -9,6 +9,9 @@ internal enum NavigationEvidenceKind
     /// <summary>A redirect call: the file and the expression of its address.</summary>
     Redirect,
 
+    /// <summary>The way out of an empty list: the file and the expression of the address a call gives the shared empty-state component (<c>EmptyStates.WithExit</c>, <c>new EmptyState</c>); the component's own link is no evidence.</summary>
+    EmptyExit,
+
     /// <summary>A text the file holds (a form's action, a constant of the frame).</summary>
     Text,
 
@@ -106,8 +109,12 @@ internal static class NavigationInventory
             "E-01,E-02",
             L("Shared/_NotFound.cshtml", "@Model.HomePath"),
             L("Shared/_NotFound.cshtml", "@category.Path"),
-            L("Shared/_EmptyRow.cshtml", "@Model.ExitPath"),
-            L("Shared/_EmptyState.cshtml", "@Model.ActionPath"),
+            E("Account/OrderHistory.cshtml.cs", "\"/\""),
+            E("Storefront/Cart.cshtml", "\"/\""),
+            E("Content/ContentListPages.cs", "\"/\""),
+            E("Storefront/CategoryPage.cs", "\"/\""),
+            E("Storefront/SearchPage.cs", "\"/\""),
+            E("Storefront/FaqPage.cs", "FramePaths.Home"),
             L("Product.cshtml", "@FramePaths.Home"),
             L("Product.cshtml", "@category.Path"),
             L("Search.cshtml", "@category.Path")),
@@ -225,6 +232,7 @@ internal static class NavigationInventory
             "E-32",
             "E-33",
             L("Panel/Products.cshtml", "@Model.NewProductPath"),
+            E("Panel/Products.cshtml.cs", "NewProductPath"),
             L("Shared/_PanelTable.cshtml", "@row.RecordPath"),
             X("Panel/Products.cshtml.cs", """ListReturn.LinkTo($"{PanelFramePaths.Products}/{row.Id}", listAddress)"""),
             R("Panel/ProductForm.cshtml.cs", "FormAddress(savedId, returnUrl)"),
@@ -287,6 +295,13 @@ internal static class NavigationInventory
             R("Panel/Verify.cshtml.cs", """PanelFramePaths.EmailVerification + "/" + Uri.EscapeDataString(key)""")),
         Row("3.4.24", "E-45", "E-46", L("Panel/PaymentMethods.cshtml", "@Shopfolio.Pages.Frame.PanelFramePaths.ShippingAndDefaults")),
         Row("3.4.25", "E-37", "~Kargo şirketinin takip sayfası (ürünün dışında)", L("Panel/OrderDetail.cshtml", "@link.Href")),
+        Row(
+            "3.4.26",
+            "E-36,E-38,E-52",
+            "E-31",
+            E("Panel/Orders.cshtml.cs", "PanelFramePaths.Home"),
+            E("Panel/Requests.cshtml.cs", "PanelFramePaths.Home"),
+            E("Panel/AuditTrail.cshtml.cs", "PanelFramePaths.Home")),
 
         // 04 3.5: entries from outside the site.
         Row("3.5.1", "~Sipariş e-postası", "E-16", Page("/siparis/erisim/{accessKey*"), Page("/siparis/{orderNumber*")),
@@ -383,6 +398,20 @@ internal static class NavigationInventory
         Stay("Shared/_UnexpectedError.cshtml", "@Model.RetryPath", "the error state's exits are no screen transition (04 2.7.3.2)"),
         Stay("!Infrastructure/Errors/UnexpectedErrorSetup.cs", "resolution.Target ?? \"/\"", "the recovery of an unexpected error returns to the screen it came from (04 2.7.3)", NavigationSiteKind.Redirect),
 
+        // The shared empty-state components draw the way out their callers give; each call is a site of its own (EmptyExit): the ones that go to another screen are rows (3.3.12, 3.4.10, 3.4.26), the
+        // ones below stay on their list - removing the filter or the search, or opening the first record on the screen's own form (04 2.7.1.2, 2.13.2).
+        Stay("Shared/_EmptyRow.cshtml", "@Model.ExitPath", "the component draws the way out each call gives it; the calls are the sites (EmptyExit)"),
+        Stay("Shared/_EmptyState.cshtml", "@Model.ActionPath", "the component draws the way out each call gives it; the calls are the sites (EmptyExit)"),
+        Stay("Storefront/CategoryPage.cs", "categoryPath", "removing the filter stays on the category list (04 2.7.1.2, 2.13.2)", NavigationSiteKind.EmptyExit),
+        Stay("Storefront/SearchPage.cs", "searchAddress", "removing the filter stays on the search result (04 2.7.1.2, 2.13.2)", NavigationSiteKind.EmptyExit),
+        Stay("Panel/Orders.cshtml.cs", "ListRoot", "removing the filter stays on the list (04 2.7.1.2, 2.13.2)", NavigationSiteKind.EmptyExit),
+        Stay("Panel/Requests.cshtml.cs", "ListRoot", "removing the filter stays on the list (04 2.7.1.2, 2.13.2)", NavigationSiteKind.EmptyExit),
+        Stay("Panel/AuditTrail.cshtml.cs", "ListRoot", "removing the filter stays on the list (04 2.7.1.2, 2.13.2)", NavigationSiteKind.EmptyExit),
+        Stay("Panel/Products.cshtml.cs", "ListRoot", "removing the search stays on the list (04 2.7.1.2, 2.13.2)", NavigationSiteKind.EmptyExit),
+        Stay("Account/Addresses.cshtml", "addPath", "E-26's own add form (04 5.26.9)", NavigationSiteKind.EmptyExit),
+        Stay("Panel/Categories.cshtml.cs", """PanelFramePaths.Categories + "#" + NewCategoryFormId""", "E-34's own form (04 2.7.1.2)", NavigationSiteKind.EmptyExit),
+        Stay("Panel/Coupons.cshtml.cs", """PanelFramePaths.Coupons + "/" + NewKey""", "E-35's list and form are one screen (04 3.2.6)", NavigationSiteKind.EmptyExit),
+
         // Post-redirect-get of a screen's own handler: the screen answers itself.
         Stay("Account/Addresses.cshtml.cs", "FramePaths.AccountAddresses", "E-26 answers itself", NavigationSiteKind.Redirect),
         Stay("Orders/ConfirmationScreenModels.cs", "ScreenPath", "E-14 answers itself", NavigationSiteKind.Redirect),
@@ -415,6 +444,8 @@ internal static class NavigationInventory
     private static NavigationEvidence L(string file, string key) => new(NavigationEvidenceKind.Link, Path(file), key);
 
     private static NavigationEvidence R(string file, string key) => new(NavigationEvidenceKind.Redirect, Path(file), key);
+
+    private static NavigationEvidence E(string file, string key) => new(NavigationEvidenceKind.EmptyExit, Path(file), key);
 
     private static NavigationEvidence X(string file, string text) => new(NavigationEvidenceKind.Text, Path(file), text);
 

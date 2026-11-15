@@ -97,6 +97,12 @@ public sealed partial class StateRolePageTests
         None,
         Full,
         IbanRequest,
+
+        /// <summary>The records that open the delivery, return and transition steps: a delivered item with a conditional exemption and a withdrawal whose goods are late, the shipment's own transition record.</summary>
+        Returns,
+
+        /// <summary>An order old enough for the late delivery termination (Z-11) with its physical item not delivered (03 1.11.8, 1.11.41).</summary>
+        Aged,
     }
 
     private readonly CollectionDatabaseFixture _database;
@@ -373,7 +379,33 @@ public sealed partial class StateRolePageTests
             db.RefundIbanRequests.Add(RefundIbanRequest.ForItem(item.Id, state.Card ? RefundIbanRequestReason.CardRefundFailed : RefundIbanRequestReason.AdminRequest, refundId, adminId, "Yönetici", now));
         }
 
+        if (state.Records == Records.Returns)
+        {
+            // Opens the date and return steps (03 1.11.25, 1.11.28-1.11.30): the item was delivered 40 days ago, its exemption holds while the packaging is unopened (reject), a withdrawal of one unit was
+            // declared 35 days ago and nothing came back (receive, reject, close as not returned), and the shipment is on file.
+            if (state.Items == ItemScenario.OpenPhysical)
+            {
+                DateOnly today = DateOnly.FromDateTime(now.UtcDateTime);
+                item.DeliveryDate = today.AddDays(-40);
+                item.DeliveryMarkedAt = now.AddDays(-40);
+                item.WithdrawalExemptionReason = WithdrawalExemptionReason.HygieneSensitive;
+                db.Withdrawals.Add(Withdrawal.ByBuyer(item.Id, 1, today.AddDays(-35), null, new ItemAmounts(50m, 0m, 8.33m), null, now.AddDays(-35)));
+            }
+
+            (_, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
+            TransitionCode[] shipmentCodes = [TransitionCode.S3, TransitionCode.S4, TransitionCode.S5, TransitionCode.S6, TransitionCode.S7, TransitionCode.S8, TransitionCode.S9];
+            foreach (TransitionCode code in shipmentCodes.Where(c => TransitionTable.FindShipment(c)?.To == state.Shipping).Take(1))
+            {
+                db.TransitionRecords.Add(TransitionRecord.Create(orderId, code, ActorKind.Admin, adminId, "Yönetici", null, null, null, null, null, now));
+            }
+        }
+
         await db.SaveChangesAsync(Ct);
+        if (state.Records == Records.Aged)
+        {
+            await db.Database.ExecuteSqlAsync($"UPDATE orders SET created_at = {now.AddDays(-120)} WHERE id = {orderId}", Ct);
+        }
+
         string shipping = state.Shipping.ToString();
         string payment = state.Payment.ToString();
         await db.Database.ExecuteSqlAsync($"UPDATE orders SET order_status = {shipping}, payment_status = {payment} WHERE id = {orderId}", Ct);

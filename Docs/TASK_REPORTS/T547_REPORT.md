@@ -52,6 +52,27 @@
 
 Düzeltme 1 öz denetimi (bütün maddeler yeniden): kabul kriterleri 1–9 ve KK1–KK9 testleri yeşil (Consistency 634/634, Unit diğer 7420/7420); değişen yalnız 6 ve KK6 (iki yön, kural ve zorunluluk, açık eşleme tabloları, eşlenmeyen tür kırar) ile `04 §7.2.5.1`, `§7.2.6.2` hücreleri (K-1619). 7 ve KK7 (kimlik, ürün sabiti okuma) değişmedi, testleri geçti. Quantity kuralını taşıyan zorunlu alanda boş değer "1 den küçük" olarak reddedildiğinden adet kuralı zorunluluğun kanıtı sayılır (`FormFieldEnforcement.Problems`; ⚠ kolay karar).
 
+### Düzeltme 2 (doğrulama tur 1: B1–B5)
+
+| Bulgu | Düzeltme | Kanıt |
+|---|---|---|
+| B1 (KK6) | `@@@` ve 12 satırlık pencere kaldırıldı: satırın kanıtı tek parça koddur (boşluklar tek boşluk; çok satırlı deyim tek parça), dosyada tam bir kez bulunur (`EnforcementAmbiguous`) ve her satırın başka formun satırının kullanmadığı kendi parçası vardır (`EnforcementNotDistinctive`). 64 satır yeniden yazıldı; sınır satırlarında formun kendi çağrısı (kayıt `L-3`, kayıt bağlantısı yeniden isteği Register/SignIn sayfası `L-9`, giriş `CheckPasswordAsync`, sıfırlama `RequestResetAsync`, yeniden doğrulama `ReauthenticateAsync`, e-posta değişikliği `EmailChanges`/`AdminEmailChanges`) ve ortak sayım satırı (`EmailChangeRules`, `PasswordRegime`) birlikte; "Beni hatırla" `SignInAsync(..., input.IsLongLived, ...)`; adres kuralları `CheckAddress(` çağrısının kendi öneki; zorunlu liste `CommonFields =` öneki | `EveryEnforcementLine_RemovedFromTheCode_ReportsExactlyTheRowsThatHoldThatCode` (her parça gerçek kaynaktan çıkarılır; raporlanan satırlar tam o koda sahip satırlardır), `ChangeOfALimit_OfAFlowsQuantityCheck_AndOfARequiredList_ReportsTheRowsOfThatFlow`, `EnforcementLine_HeldTwiceInItsFile_IsReported`, `Row_WithNoLineOfItsOwn_IsReported`, `EveryRowOfTheTable_HasALineOfItsOwn`. Gerçek `src` deneyleri (betikle, geri alındı): (a) `EmailChangeRules` L-9 → L-3: 7.1.15.2, 7.1.15.4, 7.2.24.2, 7.2.24.4 kırıldı; (b) `ArriveAsync` adet denetimi (371) kaldırıldı: yalnız 7.2.12.2 kırıldı, 7.2.11.2 kırılmadı; (c) 7.2.5.1 artık tavansız (B2) — tavanı geri koymak `RuleMissesAttribute` (`Check_TheRowDoesNotName_IsReported`, `LengthAttribute_WritingTheNumber_IsReported`); (d) `CommonFields` listesinden `ProvinceId`, `Phone`, `Email` çıkarıldı: 7.2.19.3, .4, .5, .6 kırıldı |
+| B2 (KK7, K-1619) | Kaynak arandı (`02` P-28 kapsamı, `06 §4.9`, `04` 9.6.8, T526 raporu): kategori adı tavanı hiçbirinde yok. 7.2.5.1 hücresi eski "Kısa metin"e döndü; koddaki tavan kaldırıldı (`Categories.cshtml.cs` iki `TextTooLong`, `Categories.cshtml` üç `maxlength`); 7.2.5.1 satırının kural kimliği boş. K-1619 buna göre yeniden yazıldı | `Docs/04_UI_SPECS.md`, `Docs/PRODUCT_DISCOVERY_STATUS.md` K-1619; `FieldInventory_EqualsTheDocumentsAndTheCode` |
+| B3 (K-1618) | 7.2.4.13 hücresi "ondalık ölçeği K-1013'tedir (`06` `NetQuantity`), ayırıcı biçimi 8.2.3'tedir"; denetimde `K-1013` → `NetQuantity`, `8.2.3` → hiçbir denetim türü (yalnız biçim) | `NetQuantityScale_IsTheIdOfK1013_AndTheSeparatorFormatNamesNoCheck` |
+| B4 | 7.3.2 "Kullanıldığı": 7.3.2.10 ve 7.3.2.16 için `7.2.6` eklendi; 7.3.2.14 (7.2.5.1 geri alındığı için) değişmedi | `Docs/04_UI_SPECS.md` |
+| B5 (KK2) | `Always` kümesi kalktı: 27 işlemin hepsi iki yönlü (açık ⇒ çizildi, aralık dışı ⇒ çizilmedi). Yeni tohumlar `Records.Returns` (teslim edilmiş kalem, koşullu muafiyet, 35 gün önceki cayma, kargo geçiş kaydı) ve `Records.Aged` (120 günlük sipariş: gecikme feshi). Hiç açılmayan ya da açıkken hiç çizilmeyen işlem testi "hiç açılmadı" diye kırar. Deney: `_OrderDetailCorrections.cshtml` `email = false` → `CorrectGuestEmail is open but the page draws none` (120 durum), geri alındı | `StateRolePageTests` 2/2 |
+
+Düzeltme 2 öz denetimi (bütün maddeler yeniden): 1–9 ve KK1–KK9 testleri yeşil (Consistency 639/639; Unit diğer 7420/7420; `StateRolePageTests` 2/2). Kural ve zorunluluk satırlarının kanıtı şimdi ayırt edici: her satırın deneyi `EveryEnforcementLine_RemovedFromTheCode_ReportsExactlyTheRowsThatHoldThatCode` ile bütün işlem satırlarında (126 satır) gerçek kaynak metninden parça çıkarılarak yapılır ve yalnız o koda sahip satırlar raporlanır; nitelik satırları `EveryRuleAttribute_TakenOffTheProperty_IsNoLongerEvidence` ile. Hedefi T547 olan backlog kalemi yok (D-1656, D-1657 doğrulama notlarıdır, ileri).
+
+| Bölüm | Satır grubu | Kanıt | Ayırt edici mi | Gerçek `src` değişimi test kırdı mı |
+|---|---|---|---|---|
+| `04 §7.1` işlem satırları (iletişim, ödeme, sipariş, adres) | 7.1.1.3, 7.1.2.x, 7.1.3.x, 7.1.5.x, 7.1.6.x, 7.1.7–7.1.10, 7.1.16.x | alanın kendi çağrısı (örn. `CheckAddress( ... ShippingPrefix, request.ShippingRecipientName,`) ve sınırın `RecordAsync(AttemptLimit.Lx, ...)` | evet — dosyada tek, başka formun satırı değil | evet: parça çıkarma deneyi satır başına; (a) `EmailChangeRules` |
+| `04 §7.1` giriş, kayıt, sıfırlama, hesap | 7.1.11.x–7.1.15.x | formun kendi çağrısı + ortak sayım satırı | evet — kendi satırı var | evet: (a) |
+| `04 §7.2` panel giriş ve hesap | 7.2.1.x, 7.2.24.x, 7.2.26.1 | `AdministrationModule` kendi çağrısı + `EmailChangeRules`/`PasswordRegime` | evet | evet: (a) |
+| `04 §7.2` ürün ve içerik | 7.2.3.x–7.2.6.x, 7.2.16.x–7.2.18.x | alan ve hata kodu aynı parçada; yükleme `FormatMessage`/`SizeMessage` formun kendi çağrısı | evet | evet: parça çıkarma deneyi |
+| `04 §7.2` sipariş ayrıntısı | 7.2.7.x–7.2.14.x | işleyici imzasından denetime kadar tek parça (`OnPostRecordWithdrawalAsync(` ... `QuantityInvalidText`); `ArriveAsync` ile `OnPostCloseNotReturnedAsync` ayrı | evet | evet: (b) yalnız 7.2.12.2 |
+| `04 §7.2` firma kimliği ve ayarlar | 7.2.17.x, 7.2.19.x, 7.2.21.x | `CommonFields =` öneki, `TradesmanFields`, altı menü adı tek parça | evet | evet: (d) |
+
 ### Sık FAIL nedenleri (öz denetim)
 
 | # | Neden | Sonuç | Kanıt |
@@ -76,9 +97,9 @@ Düzeltme 1 öz denetimi (bütün maddeler yeniden): kabul kriterleri 1–9 ve K
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit (Consistency) | ✓ | `dotnet test tests/Shopfolio.UnitTests --filter-trait "Consistency=true"` | 634 geçti (düzeltme 1; +12) |
+| Unit (Consistency) | ✓ | `dotnet test tests/Shopfolio.UnitTests --filter-trait "Consistency=true"` | 639 geçti (düzeltme 2) |
 | Unit (diğer) | ✓ | `--filter-not-trait "Consistency=true"` | 7420 geçti |
-| Integration | ✓ (ilgili sınıf) — TAM: CI | `dotnet test tests/Shopfolio.IntegrationTests --filter-class "*StateRolePageTests"` | düzeltme 1'de dokunulmadı (`src` ve Integration değişmedi); önceki koşu 2/2 geçti (postgres:18, `track_commit_timestamp=on`) |
+| Integration | ✓ (ilgili sınıf) — TAM: CI | `dotnet test tests/Shopfolio.IntegrationTests --filter-class "*StateRolePageTests"` | düzeltme 2: `StateRolePageTests` 2/2 geçti (postgres:18, `track_commit_timestamp=on`, konteyner `shopfolio-t547-pg`); TAM: CI |
 | Format | ✓ | `dotnet format Shopfolio.slnx --no-restore --include <değişen .cs>` | temiz |
 
 ## Doğrulama

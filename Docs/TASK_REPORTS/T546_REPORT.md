@@ -87,8 +87,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T546-gezinme-gecis-esitlik`
-- **Commit:** *(PR açılınca yazılır)*
-- **PR:** *(PR açılınca yazılır)*
+- **Commit:** `67237e82` — T546: Gezinme ve geçiş eşitlik denetimleri: iskeletler, geçişler, dışarıdan girişler, dönüşler
+- **PR:** #580
 - **CI:** dal CI'ını yönetici izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

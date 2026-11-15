@@ -90,7 +90,7 @@ internal static partial class FormFieldCheck
             {
                 string file = where[..at];
                 string anchor = where[(at + 1)..];
-                if (!sources.TryGetValue(file, out string? text) || !text.Contains(anchor, StringComparison.Ordinal))
+                if (!sources.TryGetValue(file, out string? text) || !Holds(text, anchor))
                 {
                     yield return $"FieldNotInCode:{entry.Row}: '{anchor}' is not in {file}.";
                 }
@@ -119,6 +119,28 @@ internal static partial class FormFieldCheck
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Whether the text holds the anchor as a whole identifier at each end that is an identifier character: <c>MinPrice</c> is not held by <c>MinPriceText</c> (a renamed field must not stay "found" through
+    /// a longer name that happens to start or end with it); an end that is a bracket or a quote needs no boundary.
+    /// </summary>
+    private static bool Holds(string text, string anchor)
+    {
+        bool startsWord = char.IsLetterOrDigit(anchor[0]) || anchor[0] == '_';
+        bool endsWord = char.IsLetterOrDigit(anchor[^1]) || anchor[^1] == '_';
+        for (int at = text.IndexOf(anchor, StringComparison.Ordinal); at >= 0; at = text.IndexOf(anchor, at + 1, StringComparison.Ordinal))
+        {
+            int end = at + anchor.Length;
+            bool before = !startsWord || at == 0 || !(char.IsLetterOrDigit(text[at - 1]) || text[at - 1] == '_');
+            bool after = !endsWord || end >= text.Length || !(char.IsLetterOrDigit(text[end]) || text[end] == '_');
+            if (before && after)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>The property of <c>Namespace.Type.Property</c>: the namespace is the last part of the page namespace (<c>Storefront</c> for <c>Shopfolio.Pages.Storefront</c>).</summary>

@@ -54,6 +54,17 @@ public sealed class FormInventoryConsistencyTests
         Assert.Contains(FormFieldCheck.Problems(Document.Value, sources), p => p.StartsWith("FieldNotInCode:7.1.1.1", StringComparison.Ordinal));
     }
 
+    // T547: a field renamed in the code stays "found" when a longer name still holds its name - the anchor is held only as a whole identifier.
+    [Fact]
+    public void Field_RenamedWhileALongerNameHoldsItsName_IsReported()
+    {
+        Dictionary<string, string> sources = new(Sources.Value, StringComparer.Ordinal);
+        string page = sources["Pages/Storefront/CategoryPage.cs"];
+        sources["Pages/Storefront/CategoryPage.cs"] = System.Text.RegularExpressions.Regex.Replace(page, @"\bMinPrice\b", "LowestPrice", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)) + "\n// MinPriceText";
+
+        Assert.Contains(FormFieldCheck.Problems(Document.Value, sources), p => p.StartsWith("FieldNotInCode:7.1.1.1", StringComparison.Ordinal));
+    }
+
     [Fact]
     public void Field_DeletedFromTheDocument_IsReported()
     {

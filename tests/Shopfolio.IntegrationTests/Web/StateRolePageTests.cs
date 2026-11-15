@@ -7,13 +7,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Security;
-using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Infrastructure.Values;
+using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Notifications;
+using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Payment;
+using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Pages.Components;
 using Shopfolio.Pages.Panel;
 
@@ -29,7 +33,8 @@ public sealed class StateRolePageTestsDefinition : ICollectionFixture<Collection
 /// <summary>
 /// The order page's state by role rows on the opened application (T547 criterion 2, KK2; 04 6.1.4, 6.2.16.1-10, 6.3.9.1-10; 09 19.2; K-1356): the shipping and payment pairs are read from the state cell of the
 /// document's rows, an order is seeded for each pair, and the customer's page and the panel's detail are fetched. What the page offers is exactly what <see cref="IOrderOperations"/> says is open
-/// (the table of 03 1.11); an operation outside the range has no control on the page at all - not a disabled one (04 6.1.4).
+/// (the table of 03 1.11); an operation outside the range has no control on the page at all - not a disabled one (04 6.1.4). Each pair is seeded three times (<see cref="Records"/>): with no record, with the records that open the refund,
+/// defect claim, undelivered e-mail and download steps, and with an open request for the refund IBAN, so that the operations that need a record are compared too.
 /// </summary>
 [Collection(StateRolePageTestsDefinition.Name)]
 public sealed partial class StateRolePageTests
@@ -75,7 +80,24 @@ public sealed partial class StateRolePageTests
         [OrderOperation.CorrectDeliveryOrArrivalDate] = [OrderDetailModel.DeliveryDateFormId, "correct-arrival-date-form"],
         [OrderOperation.CorrectTransition] = [OrderDetailModel.TransitionFormId],
         [OrderOperation.CorrectGuestEmail] = [OrderDetailModel.OrderEmailFormId],
+        [OrderOperation.ProcessRefund] = ["amount-based-refund-form"],
+        [OrderOperation.RequestRefundIban] = ["request-refund-iban-form"],
+        [OrderOperation.ReportTransferRefundFailed] = [Handler + "MarkBankTransferRefundFailed"],
+        [OrderOperation.RetryOrRedirectCardRefund] = [Handler + "RetryCardRefund", Handler + "MarkCardRefundFailed"],
+        [OrderOperation.ResendEmail] = [Handler + "ResendNotification"],
+        [OrderOperation.ResolveOrReopenDefectClaim] = ["defect-claim-form-"],
     };
+
+    /// <summary>A marker that starts with this names the handler a form posts to (the form has no id of its own); any other marker is a form id prefix.</summary>
+    private const string Handler = "handler=";
+
+    /// <summary>The records a pair's order carries besides its items: none; the ones that open the order-level and claim steps; an open request for the customer's IBAN.</summary>
+    private enum Records
+    {
+        None,
+        Full,
+        IbanRequest,
+    }
 
     private readonly CollectionDatabaseFixture _database;
 
@@ -87,7 +109,7 @@ public sealed partial class StateRolePageTests
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     /// <summary>One state row of the document: the row id, the pairs its state cell names and how the order's items are seeded.</summary>
-    private sealed record StateCase(string Row, OrderStatus Shipping, PaymentStatus Payment, bool Card, ItemScenario Items);
+    private sealed record StateCase(string Row, OrderStatus Shipping, PaymentStatus Payment, bool Card, ItemScenario Items, Records Records = Records.None);
 
     private enum ItemScenario
     {
@@ -99,7 +121,7 @@ public sealed partial class StateRolePageTests
     [Fact]
     public async Task TheCustomersPage_OffersExactlyTheOpenOperations_InEveryPairOfTheRows_KK2()
     {
-        StateCase[] cases = Cases("6.2.16");
+        StateCase[] cases = WithRecords(Cases("6.2.16"));
         Assert.NotEmpty(cases);
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
@@ -133,6 +155,19 @@ public sealed partial class StateRolePageTests
                 problems.Add($"{state.Row} {state.Shipping}+{state.Payment}: the operations area has a passive control (04 6.1.4).");
             }
 
+            // The forms that stand on the page's body, not in the operations list: the refund IBAN's form (the customer enters or corrects it) and the digital file's download button.
+            bool ibanOpen = open.Any(e => e.Operation is OrderOperation.EnterRefundIban or OrderOperation.CorrectRefundIban);
+            if (ibanOpen != Drawn(html, Handler + "SaveRefundIban"))
+            {
+                problems.Add($"{state.Row} {state.Shipping}+{state.Payment}: the refund IBAN's form is {(ibanOpen ? "open but not drawn" : "drawn but not open")}.");
+            }
+
+            bool downloadOpen = open.Any(e => e.Operation == OrderOperation.DownloadDigitalFile);
+            if (downloadOpen != Drawn(html, Handler + "DownloadDigitalFile"))
+            {
+                problems.Add($"{state.Row} {state.Shipping}+{state.Payment}: the download button is {(downloadOpen ? "open but not drawn" : "drawn but not open")}.");
+            }
+
             bool transferOpen = open.Any(e => e.Operation == OrderOperation.ViewTransferDetails);
             if (transferOpen != html.Contains("TR00 0000 0000 0000 0000 0000 00", StringComparison.Ordinal) && !state.Card)
             {
@@ -147,7 +182,7 @@ public sealed partial class StateRolePageTests
     [Fact]
     public async Task ThePanelsDetail_DrawsExactlyTheFormsOfTheOpenOperations_InEveryPairOfTheRows_KK2()
     {
-        StateCase[] cases = Cases("6.3.9");
+        StateCase[] cases = WithRecords(Cases("6.3.9"));
         Assert.NotEmpty(cases);
         (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
         await using WebApplicationFactory<Program> factory = Open();
@@ -171,8 +206,9 @@ public sealed partial class StateRolePageTests
 
             foreach ((OrderOperation operation, string[] forms) in PanelForms)
             {
-                bool isOpen = open.Any(e => e.Operation == operation);
-                bool drawn = forms.Any(f => html.Contains($"id=\"{f}", StringComparison.Ordinal));
+                // Two operations may share one form (receiving and rejecting returned goods are chosen in the same form): it is in its range when either is open.
+                bool isOpen = PanelForms.Where(p => p.Value.Intersect(forms, StringComparer.Ordinal).Any()).Any(p => open.Any(e => e.Operation == p.Key));
+                bool drawn = forms.Any(f => Drawn(html, f));
                 offered += drawn ? 1 : 0;
                 if (!isOpen && drawn)
                 {
@@ -210,7 +246,16 @@ public sealed partial class StateRolePageTests
         OrderOperation.CancelByFirm,
         OrderOperation.RecordWithdrawalFromOtherChannel,
         OrderOperation.WriteInternalNote,
+        OrderOperation.ProcessRefund,
+        OrderOperation.RequestRefundIban,
+        OrderOperation.ResendEmail,
+        OrderOperation.ResolveOrReopenDefectClaim,
+        OrderOperation.RenewDownloadAllowance,
     ];
+
+    /// <summary>Each pair three times: with no record, with the records that open the order-level steps, and with an open request for the customer's IBAN.</summary>
+    private static StateCase[] WithRecords(StateCase[] cases) =>
+        [.. cases.SelectMany(c => Enum.GetValues<Records>().Select(r => c with { Row = $"{c.Row} [{r}]", Records = r }))];
 
     /// <summary>The cases of a block: each row's state cell gives its pairs; an item scenario follows the words of the cell.</summary>
     private static StateCase[] Cases(string block)
@@ -246,6 +291,11 @@ public sealed partial class StateRolePageTests
         return [.. cases];
     }
 
+    private static bool Drawn(string html, string marker) =>
+        marker.StartsWith(Handler, StringComparison.Ordinal)
+            ? html.Contains($"?{marker}\"", StringComparison.Ordinal)
+            : html.Contains($"id=\"{marker}", StringComparison.Ordinal);
+
     private async Task<(Guid OrderId, string AccessKey)> SeedAsync(StateCase state)
     {
         (Guid orderId, _, string accessKey) = await TestSessions.OrderAsync(_database.Dsn, null);
@@ -263,6 +313,64 @@ public sealed partial class StateRolePageTests
         if (state.Items == ItemScenario.ClosedPhysical)
         {
             db.Cancellations.Add(Cancellation.ByBuyer(item.Id, 2, new ItemAmounts(100m, 0m, 16.67m), null, now));
+        }
+
+        if (state.Records == Records.Full)
+        {
+            // The records that open the order-level steps: the IBAN on file (the transfer's refund step, the card refund turned to the transfer), an open defect claim with its remedy refund, an e-mail
+            // that did not arrive, a digital item with its download allowance - and on the card line a card refund whose request failed (the retry or the switch to the transfer).
+            if (!state.Card)
+            {
+                db.RefundIbans.Add(RefundIban.Create(orderId, "TR330006100519786457841326", now));
+            }
+
+            DefectClaim claim = DefectClaim.Create(item.Id, 1, "Kusurlu", null, now);
+            Refund remedy = Refund.BySystem(orderId, RefundType.DefectClaimRescission, state.Card ? PaymentMethod.Card : PaymentMethod.BankTransfer, 50m, now);
+            remedy.DefectClaimId = claim.Id;
+            remedy.OrderItemId = item.Id;
+            remedy.Quantity = 1;
+            remedy.CouponShare = 0m;
+            remedy.VatAmount = 8.33m;
+            db.DefectClaims.Add(claim);
+            db.Refunds.Add(remedy);
+            if (state.Card)
+            {
+                RefundRecord record = RefundRecord.Sending(remedy.Id, now);
+                record.State = RefundRecordState.Failed;
+                record.OutcomeAt = now;
+                db.RefundRecords.Add(record);
+            }
+
+            OrderItem digital = OrderItem.Create(orderId, null, null, ProductType.Digital, "Kitap", 1, 30m, 20m, 5m, now);
+            digital.DownloadAllowance = 3;
+            db.OrderItems.Add(digital);
+            DispatchRecord mail = DispatchRecord.Queue(DispatchType.B4, "alici@example.com", orderId, null, null, now.AddHours(-2));
+            mail.DispatchState = DispatchState.Undelivered;
+            mail.LastOutcome = DispatchOutcome.RecipientError;
+            mail.AttemptCount = 3;
+            db.DispatchRecords.Add(mail);
+        }
+
+        if (state.Records == Records.IbanRequest)
+        {
+            (_, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
+            Guid? refundId = null;
+            if (state.Card)
+            {
+                // On the card line the request exists only for a card refund that did not come through (04 2.12.3.1): it names that refund.
+                DefectClaim claim = DefectClaim.Create(item.Id, 1, "Kusurlu", null, now);
+                Refund failed = Refund.BySystem(orderId, RefundType.DefectClaimRescission, PaymentMethod.Card, 50m, now);
+                failed.DefectClaimId = claim.Id;
+                failed.OrderItemId = item.Id;
+                failed.Quantity = 1;
+                failed.CouponShare = 0m;
+                failed.VatAmount = 8.33m;
+                db.DefectClaims.Add(claim);
+                db.Refunds.Add(failed);
+                refundId = failed.Id;
+            }
+
+            db.RefundIbanRequests.Add(RefundIbanRequest.ForItem(item.Id, state.Card ? RefundIbanRequestReason.CardRefundFailed : RefundIbanRequestReason.AdminRequest, refundId, adminId, "Yönetici", now));
         }
 
         await db.SaveChangesAsync(Ct);

@@ -16,6 +16,7 @@ using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Pages.Components;
+using Shopfolio.Pages.Frame;
 using Shopfolio.Pages.Orders;
 
 namespace Shopfolio.IntegrationTests.Files;
@@ -275,6 +276,7 @@ public sealed partial class AfterSalesScreenTests : IAsyncLifetime
         Assert.Contains("en çok 3", html, StringComparison.Ordinal);
         Assert.Contains("name=\"Description\"", html, StringComparison.Ordinal);
         Assert.Contains("Depo Sokak 3", html, StringComparison.Ordinal);
+        Assert.Contains("<a href=\"" + FramePaths.PrivacyNotice + "\">" + FramePaths.PrivacyNoticeTitle + "</a>", html, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.OK, reopening.StatusCode);
         string reopenHtml = WebUtility.HtmlDecode(await reopening.Content.ReadAsStringAsync(Ct));
         Assert.Contains(resolvedName, reopenHtml, StringComparison.Ordinal);

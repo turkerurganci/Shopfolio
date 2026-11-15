@@ -2,6 +2,7 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @using Shopfolio.Infrastructure
 @using Shopfolio.Infrastructure.SearchEngine
+@using Shopfolio.Infrastructure.Routing
 @using Shopfolio.Modules.Catalog.Contracts
 @using Shopfolio.Modules.Ordering.Contracts
 @using Shopfolio.Pages.Components
@@ -44,7 +45,7 @@ else
                 bool refused = Model.RefusedItemId == line.ItemId;
                 string? quantityMessage = refused && Model.RefusalText is not null ? Model.RefusalText : CartTexts.QuantityProblem(line.QuantityProblem, line.OrderLimit);
                 <li class="cart-line" id="line-@line.ItemId.ToString("N")">
-                    <p class="cart-line__name">@line.ProductName</p>
+                    <p class="cart-line__name"><a href="/@AddressRules.ProductPrefix/@line.ProductSlug">@line.ProductName</a></p>
                     <p class="cart-line__price">@DisplayFormat.Amount(line.UnitPrice)</p>
                     @if (line.ProductType != ProductType.Digital)
                     {

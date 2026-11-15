@@ -302,7 +302,7 @@
 | T543 | Form alanı ve düzeni, adres formu, IBAN alanı, sebep seçimi ve ortak alan kuralları (OB-12…OB-15) | ✓ | ✓ PASS (tur 1) | `01411663` | #539 |
 | T544 | Tarih alanı, kupon alanı, onay kutuları, görsel ve dosya yükleme arayüzü (OB-16…OB-19) | ✓ | ✓ PASS (tur 2) | `5a5ec864` | #546 |
 | T545 | Liste ve tablo, ürün kartı (OB-20, OB-11) | ✓ | ✓ PASS (tur 2) | `f40f3a9d` | #538 |
-| T546 | Gezinme ve geçiş eşitlik denetimleri: iskeletler, geçişler, dışarıdan girişler, dönüşler | ⬚ | — | — | — |
+| T546 | Gezinme ve geçiş eşitlik denetimleri: iskeletler, geçişler, dışarıdan girişler, dönüşler | ✓ | ✓ PASS (tur 5) | `51fda2fe` | #580 |
 | T547 | Durum × rol matrisi ve form envanteri eşitlik denetimleri | ⬚ | — | — | — |
 | T548 | Parçalı yükleme betiği: başlatma–parça–durum akışı, 409/404/400/413 yanıtları, ağ hatasında üç kez sürdürme | ✓ | ✓ PASS (tur 1) | `233a5813` | #577 |
 | T549 | Vitrin: arşivlenmiş ürün sayfası (E-05) | ✓ | ✓ PASS (tur 1) | `7973b482` | #550 |

@@ -91,7 +91,7 @@ public sealed class CartPageModelTests
 
     private static CartView ViewWith(CartPaymentBlock block, int lines)
     {
-        List<CartLine> list = [.. Enumerable.Range(0, lines).Select(_ => new CartLine(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Lamba", ProductType.Physical, 1, 100m, false, false, true))];
+        List<CartLine> list = [.. Enumerable.Range(0, lines).Select(_ => new CartLine(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Lamba", "lamba", ProductType.Physical, 1, 100m, false, false, true))];
         return new CartView(Guid.NewGuid(), list, [], [], block, 100m * lines, NoShipping);
     }
 }

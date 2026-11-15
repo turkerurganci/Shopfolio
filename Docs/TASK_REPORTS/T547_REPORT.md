@@ -210,10 +210,10 @@ Düzeltme 4 öz denetimi (bütün maddeler yeniden; `Docs/11` T547 kabul kriterl
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 3, 2026-11-16; tur 1 ve tur 2 de FAIL) |
-| Bulgu sayısı | Tur 3: 1 (E1 ORTA S1 — C1'in işleyici kodundaki yerleri); C2 kapandı, C1'in nitelik yüzü kapandı; tur 2: 2 (C1, C2); tur 1'in B1–B5'i kapandı |
-| Düzeltme gerekli mi | Evet — E1 (ikinci iterasyonun düzeltmesi de FAIL: eskalasyon, `INSTRUCTIONS.md` §3.3; `12 §8.5`) |
-| Bloke-etmeyen not (K) sayısı | Tur 1: 2 (D-1656, D-1657); tur 2: 1 (D-1661); tur 3: 1 (D-1666) |
+| Doğrulama durumu | ✗ FAIL (tur 4, 2026-11-16; tur 1–3 de FAIL) |
+| Bulgu sayısı | Tur 4: 1 (F1 ORTA S1 — "yok" beyanlı yerlerin ve kimliksiz kural hücrelerinin kuralı karşılaştırılmıyor); E1 kapandı; tur 3: 1 (E1); tur 2: 2 (C1, C2); tur 1'in B1–B5'i kapandı |
+| Düzeltme gerekli mi | Evet — F1 (eskalasyon sürer, `INSTRUCTIONS.md` §3.3; `12 §8.5`) |
+| Bloke-etmeyen not (K) sayısı | Tur 1: 2 (D-1656, D-1657); tur 2: 1 (D-1661); tur 3: 1 (D-1666); tur 4: 1 (D-1671) |
 
 ### Doğrulama tur 1 — validator kanıtları
 
@@ -272,6 +272,24 @@ Gerçek `src` deneyleri (hepsi geri alındı). Sessiz (Consistency 644/644 yeşi
 C2 kapandı: `Categories.cshtml(.cs)` `TextTooLong(ProductConstants.ProductNameMaxLength)` ve üç `maxlength`; `ANameOverTheCeiling_IsA422WithTheFieldMessage_OnCreateAndRename_AndWritesNothing_T547_C2` yeşil (6000 karakter ekleme ve yeniden adlandırmada 422 + alan mesajı, tam tavanda 303). K-1619, `02` P-27, `04` 7.2.5.1, 7.3.2.14, 9.6.8, `06 §4.9`, `07` 9.6.2–9.6.3, `09` §3.5 örneği tutarlı ve `09` 9.4 madde 3'e dayanıyor; kalan tek yer `07 §6.2.2` `TextTooLong` satırının UC sütunu (D-1666).
 
 Yapım raporuyla uyuşmazlık: düzeltme 3 bölümü nitelik taşımayan 67 yerin "kural ve zorunluluğu satır düzeyinde, yeri adlayan parça ile denetlenir" diyor; deneyler satırın kuralını başka yerin işlem satırının kanıtladığını gösterdi (E1). D-1656 kod → satır yönüdür, bu boşluk satır → kod yönüdür.
+
+### Doğrulama tur 4 — validator kanıtları (baş `29e97654`)
+
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | 53 ekranın bloğu | ✓ | Consistency 655/655; belge deneyi "6.2.5 E-05" başlığı bozuldu → 3 test kırıldı (`BlockMissing`) |
+| 2 | Her çiftte gösterilen ve açık işlemler sayfa testiyle | ✓ | `StateRolePageTests` + `CategoriesPageTests` 11/11 (yerel postgres:18, `track_commit_timestamp=on`); dosya tur 2'den beri değişmedi |
+| 3 | İki kapı yalnız altı vitrin ekranı | ✓ | `SalesGate_*`, `DataGate_*` yeşil; kod tur 2'den beri değişmedi |
+| 4 | Durum adları `02 §5`'inki | ✓ | belge deneyi 6.3.9.4 "Hazırlanıyor" → "Hazırlanmakta" → `StatusNameDiffers` |
+| 5 | Yönetici satırı sınırı | ✓ | `AdministratorRow_*`, `DraftRead_*` |
+| 6 | Alan, zorunluluk, kural kodla eşit | ✗ | E1 kapandı (raporun 7 deneyi ve 10 rastgele (yer, tür) deneyi gerçek `src`'de kırdı). F1: "yok" beyanlı 24 yerin en az 10'unda satır o yer için bir kural adlandırıyor ve kod onu uyguluyor; test sessiz (aşağıda) |
+| 7 | Kural kimlikle işaret eder, değer `02 §11`'den | ✓ | belge deneyi 7.2.16.4 "P-30" → "en çok 500 karakter" → `RuleDiffers` |
+| 8 | Panel tek rol, `/panel` altında | ✓ | gerçek deney `Brand.cshtml` `@page "/marka"` → `PanelPage_OutsideTheRoot_IsReported` kırıldı |
+| 9 | `Consistency` Unit; 2 Integration | ✓ | 655 Consistency `UnitTests/Consistency/` altında; `StateRolePageTests` Integration |
+
+Gerçek deneyler (hepsi geri alındı). Kıran: E1'in 7 deneyi (`ContentInputs.cs` iki başlık, şube adı, çalışma saatleri, referans kısa açıklaması tavanı; `PanelItemSteps.cs` cayma IBAN'ı; `PanelOrderSteps.cs` sıra sorusu — her biri yalnız kendi yerini `PlaceLineNotInCode` ile raporladı); (yer, tür) deneyleri 7.2.4.3 ana kategori, 7.2.4.9 stok zorunluluğu, 7.2.4.6 P-21, 7.2.8.3 ulaşma tarihi, 7.2.14.3 sebep, 7.2.16.2 P-29, 7.2.16.7 duyuru bağlantısı, 7.2.16.9 P-25, 7.2.10.4 fesih IBAN'ı (modül), 7.2.14.2 takip numarası; satır deneyleri 7.1.3.5 L-4 → L-5, 7.2.4.15 P-44, 7.2.16.6, 7.2.16.4 P-30, 7.2.18.1, 7.2.25.2, 7.1.16.3, 7.2.13.1, 7.2.4.11 P-10, 7.2.5.1 (iki yer; C1 `[FieldRequired]` dahil). Sessiz: `ContentRules.CleanLongText` temizliği kaldırıldı (7.2.16.3 kapalı biçim seti; Consistency sessiz, `ContentRelationsTests` iki test kırdı); `PanelRefundSteps.cs` kapanışın açık olması ve kalemin siparişe ait olması denetimleri (7.2.13.2); `OrderDetail.ItemSteps.cs` 237 ve `OrderTransitions.Withdrawal.cs` 142 IBAN'ı bayrağa bağlayan koşul (7.2.10.4 "işaretsizse kayıt IBAN'sız") — bu dördü birlikte bütün Unit'te de sessiz; `AuditTrail.cshtml.cs` 100 yöneticinin kapalı listeden okunması (7.2.3.5); belge deneyleri 7.2.16.3 `02 §3.11.6` → §3.11.7, 7.2.10.4 "işaretsizse kayıt IBAN'sız (`02 §10.4.10`)" silindi, 7.2.13.2 kural hücresi bütünüyle "—" yapıldı, 7.2.3.5 "yönetici kapalı listeden (K-822)" silindi — dördü de sessiz. `OrderDetail.cshtml.cs` 273 teslim tarihi koşulu sabit tarihe bağlandı → sessiz (parça yalnız hata dalını tutuyor; K1 → D-1671). `EmailChangeRules.cs` 40 eşik L-9 → L-3 sessiz (tur 2 K2, metin tabanlı denetimin sınırı).
+
+Yapım raporuyla uyuşmazlık: düzeltme 4 bölümü 24 yeri "satırın adlandırdığı türden kodda denetim yok; süzgeç, bayrak, isteğe bağlı metin ya da eşzamanlılık değeri" diye beyan ediyor. "Tür" yalnız kimlik düzenli ifadesinin tanıdığı kimliklerden (7.3.2.x, P-, Z-, satır, 8.2.3, K-1013) türüyor; satırın `02 §` bölümüyle ya da K-kararıyla ya da düz yazıyla adlandırdığı kural tür sayılmıyor. 10 yerde satırın kuralı o yerindir ve kodda uygulanıyor (7.2.3.3 iki yer — `ListFilters.ReadCodes`; 7.2.3.5 `AdminId` — kapalı liste; 7.2.4.5 `SaveProductImageRow.AltText` — boşsa üretilir, `ImageAltText` K-564; 7.2.10.4 iki bayrak — "işaretsizse kayıt IBAN'sız"; 7.2.13.2 iki yer — kalem siparişin, kapanış açık; 7.2.16.3 `LongText`, `Text` — kapalı biçim seti, `CleanLongText`); beyan satır metniyle tutarsız (F1). 7.2.3.2 `Search` (tam eşleşme), 7.2.4.13 `MeasurementUnit` (kapalı liste), 7.2.16.10 `LinkedProducts` (katalogdan seçim) da satırda kural adlandırıyor; kodla karşılaştırması bu turda yapılmadı.
 
 ## Altyapı Değişiklikleri
 

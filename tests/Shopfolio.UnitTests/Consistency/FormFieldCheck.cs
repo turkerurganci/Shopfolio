@@ -21,6 +21,7 @@ internal static partial class FormFieldCheck
         ["InvalidAmountAttribute"] = "7.3.2.8",
         ["InvalidPercentageAttribute"] = "7.3.2.9",
         ["InvalidQuantityAttribute"] = "7.3.2.10",
+        ["InvalidDateAttribute"] = "7.3.2.12",
     };
 
     public static IReadOnlyList<string> Problems(string document, IReadOnlyDictionary<string, string> sources)
@@ -76,39 +77,46 @@ internal static partial class FormFieldCheck
         return problems;
     }
 
+    /// <summary>
+    /// The places of one row: <see cref="FieldEntry.Where"/> is one place or several joined with <c>" + "</c> (a row that covers two inputs or two properties); every place must be in the code, and the
+    /// attributes of every property place are read against the one row.
+    /// </summary>
     private static IEnumerable<string> Place(FieldEntry entry, FieldRow row, string[] documentedRules, IReadOnlyDictionary<string, string> sources)
     {
-        int at = entry.Where.IndexOf('#', StringComparison.Ordinal);
-        if (at >= 0)
+        foreach (string where in entry.Where.Split(" + ", StringSplitOptions.RemoveEmptyEntries))
         {
-            string file = entry.Where[..at];
-            string anchor = entry.Where[(at + 1)..];
-            if (!sources.TryGetValue(file, out string? text) || !text.Contains(anchor, StringComparison.Ordinal))
+            int at = where.IndexOf('#', StringComparison.Ordinal);
+            if (at >= 0)
             {
-                yield return $"FieldNotInCode:{entry.Row}: '{anchor}' is not in {file}.";
+                string file = where[..at];
+                string anchor = where[(at + 1)..];
+                if (!sources.TryGetValue(file, out string? text) || !text.Contains(anchor, StringComparison.Ordinal))
+                {
+                    yield return $"FieldNotInCode:{entry.Row}: '{anchor}' is not in {file}.";
+                }
+
+                continue;
             }
 
-            yield break;
-        }
-
-        PropertyInfo? property = Find(entry.Where);
-        if (property is null)
-        {
-            yield return $"FieldNotInCode:{entry.Row}: the property '{entry.Where}' is not in the code.";
-            yield break;
-        }
-
-        string[] marks = [.. property.GetCustomAttributes().Select(a => a.GetType().Name)];
-        if (marks.Contains("FieldRequiredAttribute", StringComparer.Ordinal) && !row.Requirement.StartsWith("Zorunlu", StringComparison.Ordinal) && !row.Requirement.StartsWith("Yayın için zorunlu", StringComparison.Ordinal))
-        {
-            yield return $"RequirementContradictsCode:{entry.Row}: the property {entry.Where} is marked required, the row says '{row.Requirement}'.";
-        }
-
-        foreach (string mark in marks.Where(AttributeRules.ContainsKey))
-        {
-            if (!documentedRules.Contains(AttributeRules[mark], StringComparer.Ordinal))
+            PropertyInfo? property = Find(where);
+            if (property is null)
             {
-                yield return $"RuleMissesAttribute:{entry.Row}: the property {entry.Where} carries {mark}, the row does not point to {AttributeRules[mark]}.";
+                yield return $"FieldNotInCode:{entry.Row}: the property '{where}' is not in the code.";
+                continue;
+            }
+
+            string[] marks = [.. property.GetCustomAttributes().Select(a => a.GetType().Name)];
+            if (marks.Contains("FieldRequiredAttribute", StringComparer.Ordinal) && !row.Requirement.StartsWith("Zorunlu", StringComparison.Ordinal) && !row.Requirement.StartsWith("Yayın için zorunlu", StringComparison.Ordinal))
+            {
+                yield return $"RequirementContradictsCode:{entry.Row}: the property {where} is marked required, the row says '{row.Requirement}'.";
+            }
+
+            foreach (string mark in marks.Where(AttributeRules.ContainsKey))
+            {
+                if (!documentedRules.Contains(AttributeRules[mark], StringComparer.Ordinal))
+                {
+                    yield return $"RuleMissesAttribute:{entry.Row}: the property {where} carries {mark}, the row does not point to {AttributeRules[mark]}.";
+                }
             }
         }
     }

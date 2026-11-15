@@ -36,15 +36,15 @@ internal static class FormFieldPlaceEnforcement
     private const string ReasonPage = "Required|" + Corrections + "#RefuseCorrectionAsync(id, TransitionFormId, ReasonMissingText, ErrorCode.FieldRequired, ct)";
     private const string FaqGate = "Required|" + Gate + "#ContentRecordKind.FaqItem => [ContentGateField.Question, ContentGateField.Answer]";
 
-    public static IReadOnlyDictionary<string, string[]> Lines { get; } = new Dictionary<string, string[]>(StringComparer.Ordinal)
+    private static IReadOnlyDictionary<string, string[]> Own { get; } = new Dictionary<string, string[]>(StringComparer.Ordinal)
     {
         // 7.2.3 the lists' filters (query models): the search term is trimmed and capped; the closed-value filters and the flags carry no check of a kind the rows name.
         ["7.2.3.1|Panel.AdminProductQuery.Search"] = ["SearchTrim|Modules/Catalog/PanelProductListReader.cs#if (SearchTerm.ToLikePattern(search) is { } pattern)", "SearchTrim|Infrastructure/SearchTerm.cs#if (word.Length > ProductConstants.ProductNameMaxLength)"],
-        ["7.2.3.1|Panel.AdminProductQuery.PublishStatus"] = [],
+        ["7.2.3.1|Panel.AdminProductQuery.PublishStatus"] = [], // the row names the search field (7.3.2.17, K-737); a closed filter has no rule of its own in the cell.
         ["7.2.3.2|Panel.OrderQuery.Search"] = [],
-        ["7.2.3.2|Panel.OrderQuery.OrderStatus"] = [],
-        ["7.2.3.2|Panel.OrderQuery.PaymentStatus"] = [],
-        ["7.2.3.2|Panel.OrderQuery.PendingWork"] = [],
+        ["7.2.3.2|Panel.OrderQuery.OrderStatus"] = [], // the cell names exact matching and the e-mail case rule (K-802): rules of the search term only.
+        ["7.2.3.2|Panel.OrderQuery.PaymentStatus"] = [], // as OrderStatus: the cell names no rule of a closed filter.
+        ["7.2.3.2|Panel.OrderQuery.PendingWork"] = [], // as OrderStatus: the cell names no rule of a flag.
         ["7.2.3.3|Panel.RequestQuery.RequestType"] = [],
         ["7.2.3.3|Panel.RequestQuery.RequestStatus"] = [],
         ["7.2.3.5|Panel.AuditLogQuery.StartDate"] = ["DateRange|Pages/Panel/AuditTrail.cshtml.cs#Components.DateFields.CheckRange(query.StartDate, query.EndDate, today, DateRangePolicy.NoFuture, false, false)"],
@@ -58,7 +58,7 @@ internal static class FormFieldPlaceEnforcement
         ["7.2.4.5|Panel.SaveProductImageRow.AltText"] = [],
         ["7.2.4.6|Panel.SaveProductInput.Options"] = ["P-21|Modules/Catalog/OptionStructureRules.cs#order <= ProductConstants.OptionDimensionMax"],
         ["7.2.4.6|Panel.SaveProductOptionRow.Name"] = [],
-        ["7.2.4.6|Panel.SaveProductOptionValueRow.Value"] = [],
+        ["7.2.4.6|Panel.SaveProductOptionValueRow.Value"] = [], // the cell names the ceiling of the option dimensions (P-21, 02 3.3.2), not of the values.
         ["7.2.4.9|Panel.SaveProductVariantRow.StockQuantity"] = [$"Required|{Saves}#Field(i, nameof(ProductSaveVariant.StockQuantity)), ErrorCode.FieldRequired"],
         ["7.2.4.9|Panel.SaveProductVariantRow.OriginalStockQuantity"] = [],
         ["7.2.4.10|Panel.SaveProductVariantRow.ImageId"] = [UploadRefusal],
@@ -107,10 +107,13 @@ internal static class FormFieldPlaceEnforcement
         ["7.2.16.7|Panel.SaveContentInput.LinkUrl"] = [$"Url|{Inputs}#Apply(rejections, nameof(AnnouncementInput.LinkUrl), Text(input.LinkUrl), new InvalidUrlAttribute(), FieldCodes.InvalidUrl)"],
         ["7.2.16.7|Panel.SaveContentInput.MapUrl"] = [$"Url|{Inputs}#Apply(rejections, nameof(BranchInput.MapUrl), Text(input.MapUrl), new InvalidUrlAttribute(), FieldCodes.InvalidUrl)"],
         ["7.2.16.9|Panel.SaveContentInput.ImageId"] = ["Image|Pages/Panel/ContentForm.cshtml.cs#RefuseUpload(input.ImageTarget, ErrorCode.InvalidImage, UploadRefusalText(result, surface))", "P-22|Pages/Panel/ContentForm.cshtml.cs#? ProductFormModel.PixelLimitText : UploadChecks.FormatMessage()", "P-22|Pages/Components/UploadComponentModels.cs#{ProductConstants.ImageFormats} yüklenebilir.", "P-23|Pages/Panel/ContentForm.cshtml.cs#return UploadChecks.SizeMessage(surface);", "P-23|Modules/Catalog/ImageUploads.cs#content.LongLength > ProductConstants.ImageMaxBytes", "P-25|Pages/Panel/ContentForm.cshtml.cs#input.Images.Count >= ProductConstants.ImagesPerContentRecordMax"],
-        ["7.2.16.9|Panel.SaveContentInput.ImageAltText"] = [],
-        ["7.2.16.9|Panel.SaveContentImageRow.AltText"] = [],
+        ["7.2.16.9|Panel.SaveContentInput.ImageAltText"] = [], // the cell names the image file rules (7.3.2.18, P-22, P-23, P-25); the alternative text has none.
+        ["7.2.16.9|Panel.SaveContentImageRow.AltText"] = [], // as ImageAltText.
         ["7.2.16.10|Panel.SaveContentInput.LinkedProducts"] = [],
         ["7.2.16.10|Panel.SaveContentInput.IsShownOnHomepage"] = [],
         ["7.2.16.10|Panel.SaveContentInput.IsShownInMenu"] = [],
     };
+
+    /// <summary>The place lines: the table above and the place lines of <see cref="FormFieldRuleEvidence"/> (the code of the plain-word rules and the references of the rule cell), united place by place.</summary>
+    public static IReadOnlyDictionary<string, string[]> Lines { get; } = FormFieldRuleEvidence.United(Own, places: true);
 }

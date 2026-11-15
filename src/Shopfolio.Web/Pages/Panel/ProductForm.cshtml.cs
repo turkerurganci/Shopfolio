@@ -240,6 +240,9 @@ internal sealed class ProductFormModel : PageModel
     /// <summary>U7, the reminder beside the measurement unit field on every product form (04 9.5.6; K-798 (7), K-573; 12 12.13).</summary>
     public const string MeasurementUnitReminderText = "Ürünü kilo, litre ya da metre gibi bir ölçüyle satıyorsanız bu alanı doldurmanız yasal yükümlülüktür; alan boşsa birim fiyat gösterilmez.";
 
+    /// <summary>The line beside the measurement unit field that says a changed unit reads the variants' existing net quantities in the new unit (04 7.2.4.13; K-1020).</summary>
+    public const string MeasurementUnitChangeText = "Birimi değiştirirseniz varyantlarda kayıtlı net miktarlar yeni birimle okunur.";
+
     // The page's lists for a shown form: read once the handler chose to show the page.
     private async Task LoadChoicesAsync(CancellationToken ct)
     {
@@ -684,7 +687,7 @@ internal sealed class ProductFormModel : PageModel
 
         fields.AddRange(
         [
-            Fields.ClosedList("Input.MeasurementUnit", "Ölçü birimi", FieldRequirement.Optional, units, Form.MeasurementUnit?.ToString(), MeasurementUnitReminderText),
+            Fields.ClosedList("Input.MeasurementUnit", "Ölçü birimi", FieldRequirement.Optional, units, Form.MeasurementUnit?.ToString(), MeasurementUnitReminderText + " " + MeasurementUnitChangeText),
             Fields.Number("Input.ShippingPeriod", "Kargoya verme süresi (gün)", FieldRequirement.Optional, Whole(Form.ShippingPeriod)),
             Fields.Number("Input.FulfilmentPeriod", "İfa süresi (gün)", FieldRequirement.Optional, Whole(Form.FulfilmentPeriod)),
             Fields.Number("Input.MaxQuantityPerOrder", "Siparişte en çok adet", FieldRequirement.Optional, Whole(Form.MaxQuantityPerOrder)),

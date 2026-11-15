@@ -25,6 +25,7 @@ internal static partial class FormFieldCheck
         IReadOnlyList<FieldEntry> entries = FormFieldInventory.Entries;
         HashSet<string> knownRows = [.. rows.Keys, .. forms.Select(f => f.Block)];
         List<string> problems = [];
+        HashSet<string> usedClauses = new(StringComparer.Ordinal);
 
         HashSet<string> coveredForms = [.. entries.Select(e => string.Join('.', e.Row.Split('.')[..3]))];
         foreach (FormBlock uncovered in forms.Where(f => !coveredForms.Contains(f.Block)))
@@ -62,8 +63,11 @@ internal static partial class FormFieldCheck
             problems.AddRange(PlaceLineProblems(entry, sources, FormFieldPlaceEnforcement.Lines, FormFieldPlaceMarks.Marks));
             string[] limits = [.. limitIds];
             string[] enforcement = FormFieldEnforcementTable.Lines.TryGetValue(entry.Row, out string[]? lines) ? lines : [];
-            problems.AddRange(FormFieldEnforcement.Problems(entry.Row, row.Requirement, marks, enforcement, ruleIds, limits, knownRows, sources));
+            problems.AddRange(FormFieldRuleClauses.Read(entry.Row, row.Rule, out IReadOnlyList<string> demanded, usedClauses));
+            problems.AddRange(FormFieldEnforcement.Problems(entry.Row, row.Requirement, marks, enforcement, [.. ruleIds, .. demanded], limits, knownRows, sources));
         }
+
+        problems.AddRange(FormFieldRuleClauses.Stale(usedClauses));
 
         problems.AddRange(OwnLines(FormFieldEnforcementTable.Lines, entries.Select(e => e.Row)));
         problems.AddRange(StrayPlacePins(entries, FormFieldPlaceMarks.Marks));

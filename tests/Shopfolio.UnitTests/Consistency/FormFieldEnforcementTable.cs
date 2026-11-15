@@ -20,7 +20,7 @@ internal static class FormFieldEnforcementTable
     private const string Books = "Modules/Membership/AddressBooks.cs";
 
     /// <summary>The lines of the rows that have one place or whose places carry the rule as attributes (a row with several property places that carry no attribute is in <see cref="FormFieldPlaceEnforcement"/>).</summary>
-    internal static IReadOnlyDictionary<string, string[]> RowLines { get; } = new Dictionary<string, string[]>(StringComparer.Ordinal)
+    private static IReadOnlyDictionary<string, string[]> OwnRowLines { get; } = new Dictionary<string, string[]>(StringComparer.Ordinal)
     {
         ["7.1.1.1"] = [$"Amount|Pages/Storefront/CategoryPage.cs#ListFilters.ReadPrice(MinPrice, MaxPrice)"],
         ["7.1.2.1"] = [$"Required|{Product}#nameof(AddCartItemInput.VariantId), FieldCodes.FieldRequired"],
@@ -133,6 +133,9 @@ internal static class FormFieldEnforcementTable
         ["7.2.21.6"] = ["Required|Modules/Settings/CompanySettingsWriter.cs#string missingCode = current.IsComplete ? FieldCodes.FilledFieldCleared : FieldCodes.FieldRequired; string[] names = [ nameof(ReturnAddressInput.RecipientName),"],
         ["7.2.25.2"] = ["Required|Pages/Panel/DataExport.cshtml.cs#DateFields.CheckRange(input.StartDate, input.EndDate, Today, DateRangePolicy.NoFuture, startRequired: true, endRequired: true)", "DateRange|Pages/Panel/DataExport.cshtml.cs#DateFields.CheckRange(input.StartDate, input.EndDate, Today, DateRangePolicy.NoFuture, startRequired: true, endRequired: true)"],
     };
+
+    /// <summary>The row lines: the table above and the row lines of <see cref="FormFieldRuleEvidence"/> (the code of the plain-word rules and the references of the rule cell), united row by row.</summary>
+    internal static IReadOnlyDictionary<string, string[]> RowLines { get; } = FormFieldRuleEvidence.United(OwnRowLines, places: false);
 
     /// <summary>
     /// The lines of every row as the row's own table and <see cref="FormFieldPlaceEnforcement"/> give them: a row with one place has its lines in <see cref="RowLines"/>; a row with several property places has the

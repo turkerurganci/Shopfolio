@@ -193,11 +193,118 @@ Düzeltme 4 öz denetimi (bütün maddeler yeniden; `Docs/11` T547 kabul kriterl
 | T538 / T546 emsali: sessiz atlama yok, ortak ifade kanıt değil | ✓ | her (yer, tür) kendi parçasıyla; iki yerin tek ifade olduğu yerler (denetim tek çağrıda iki alanı: 7.2.3.5 tarih aralığı, 7.2.7.1 / 7.2.14.2 şirket-ad-takip ifadesi, 7.2.4.10 dijital dosya yükleme bileşeni) tabloda açıkça iki yerin ortak parçasıdır; öteki parçalar yerine özeldir |
 | Hedefi T547 olan backlog kalemi | ✓ | `grep T547`: D-1656, D-1657, D-1661, D-1666; dördü ileri, dokunulmadı (D-1656 kod → satır yönü; bu düzeltme satır → kod yönündedir) |
 
+### Düzeltme 5 (doğrulama tur 4: F1)
+
+Kök: kural hücresi yalnız `RuleId` düzenli ifadesinin tanıdığı kimliklerle okunuyordu; `02 §` bölümü, K-kararı ya da düz yazı kural hiç karşılaştırılmıyordu. Düzeltme: hücrenin **tamamı** okunur.
+
+| Parça | Ne yapar |
+|---|---|
+| `FormFieldRuleClauses` (yeni) + `FormFieldRuleClauseTable` | Kural hücresi `;` ve ` — ` ile (parantez dışında) cümlelere bölünür; her cümle tablonun anahtarı olmak zorundadır, değilse `RuleClauseUnknown:<satır>`; hiçbir hücrede olmayan tablo girişi `RuleClauseNotInDocument` (sessiz geçiş yok). Tablo 199 cümleyi tutar; yalnız tür adı ya da kimlik taşıyan cümle (`Tutar (7.3.2.8)`, `P-22, P-23, P-24`) boş türlü, düz yazı kural (`ayrılmış adedin altına inemez`, `boşsa üretilir`, `kapalı biçim seti` …) bir `C:` türü taşır (`kural cümlesi → tür` eşlemesi). |
+| Atıflar | `02 §x.y.z`, `03 §x.y.z` (ardışık `, §a.b` önceki belgenin öneki ile), `K-nn`, `OB-nn` kural türü olarak okunur (`02§3.6.7`, `K-794` …; `K-1013` eski kimlik yolunda kalır); her biri satırın kodunda kendi parçasıyla kanıtlanır, kanıtsız `RuleWithoutEnforcement`, satırın hücresinin anmadığı türde parça `RuleMissesAttribute`. |
+| `FormFieldRuleEvidence` (yeni, 162 anahtar) | Her (satır ya da `satır\|yer`) için `Tür1+Tür2\|dosya#parça` satırları; `FormFieldEnforcementTable.RowLines` ve `FormFieldPlaceEnforcement.Lines` ile birleşir, böylece "kodda tam bir kez", "satırın kendi parçası", "yerin kendi parçası" karşılaştırmaları aynen işler. 24 "yok" beyanlı yerden 17'si kendi parçalarını aldı; 7'sinin boş girişi gerekçeli yorum taşır (satır o yer için kural adlandırmıyor). |
+| Tek `src` değişikliği (⚠) | `04 7.2.4.13` "birim değişirse var olan net miktarların yeni birimle okunacağını söyleyen satır (K-1020)" kodda yoktu: `ProductFormModel.MeasurementUnitChangeText` eklendi ve birim alanının ipucuna (`MeasurementUnitReminderText` + boşluk + yeni cümle) bağlandı; kanıt parçası bu sabittir. |
+
+Gerçek deneyler (geçici betiklerle, depoya girmez; her deneyde `src` dosyasında parçanın son tanıtıcısı değiştirilir, `FieldInventory_EqualsTheDocumentsAndTheCode` koşulur, dosya geri alınır; `git status` yalnız bilinen değişiklikleri gösterir):
+
+- Kod tarafı: 162 anahtar (satır ya da satır\|yer) × bir parça = **162/162 KIRILDI**; raporun adlı deneyleri bunların içinde: `CleanLongText` kaldırma (7.2.16.3 `LongText`, `Text`, `Answer` kendi dosyasında), kapanış ve kalem denetimleri (7.2.13.2 `OrderItemId`, `NotReturnedClosureId`), IBAN-bayrak koşulu (7.2.10.4 iki `IsFromContactEmail`), yönetici kapalı listesi (7.2.3.5 `AdminId`), `ReadCodes` (7.2.3.3 iki yer), `ImageAltText` (7.2.4.5 `AltText`).
+- Belge tarafı (8/8 KIRILDI): 7.2.16.3 `§3.11.6` → `§3.11.7` (`RuleClauseUnknown`); 7.2.10.4 "işaretsizse kayıt IBAN'sız" silindi (`RuleMissesAttribute`); 7.2.13.2 kural hücresi "—" (`RuleMissesAttribute`); 7.2.3.5 "(K-822)" silindi (`RuleClauseUnknown`); 7.1.3.1 yeni kural cümlesi (`RuleClauseUnknown`); 7.1.5.4 `K-680` → `K-681`; 7.2.4.9 cümle değişti; 7.2.7.2 "Kısa metin" → "Uzun metin".
+- Yeni birim testleri: `FormFieldRuleClausesTests` 12 (bölme, atıf öneki, gerçek belge/kod temiz, 5 bilinmeyen metin, 2 hücreden ayrılan cümle, tablodaki cümle belgede yok).
+
+Kimliksiz kural hücreli 60 satır (7.1.12.2 ve 7.2.1.2 kural hücresi "—": adlandırılan kural yok, listede değil): satır · kural · kanıt parçası · gerçek `src` deneyinde kırıldı mı (çok yerli satırda her yer ayrı deney; "n yer" = n deney).
+
+| Satır | Kural (hücre) | Kanıt parçası (dosya · parça) | Kırıldı |
+|---|---|---|---|
+| 7.1.1.2 | Varsayılan tükenmiş ürünleri de gösterir (03 §2.1.4) | `CategoryPage.cs` · `ListFilters.ReadInStock(InStock)` | evet |
+| 7.1.2.1 | Her boyut seçilmeden ekleme yapılmaz; tükenmiş ve açılmamış kombinasyon seçilemez (02 §3.3.3) | `Product.cshtml.cs` · `ModelState.AddFieldError(nameof(AddCartItemInput.VariantId),` | evet |
+| 7.1.3.6 | Ziyaretçiye görünmez; doluysa gönderim sessizce düşer (02 §3.32.7) | `Contact.cshtml` · `<div class="contact-form__trap" aria-hidden="true"> <label f` | evet |
+| 7.1.5.4 | Kendiliğinden işaretlenmez (K-680) | `AddressBooks.cs` · `if (need.AsksShipping && typedShipping && request.SaveToAddr` | evet |
+| 7.1.5.5 | Kaldırılınca fatura formu açılır (K-756) | `AddressBooks.cs` · `if (need.OffersBillingSameAsShipping && request.IsBillingSam` | evet |
+| 7.1.5.7 | Büyük-küçük harf ayrımsız; 02 §3.10'un koşulları; en fazla bir kod (02 §3.10.1) | `Coupons.cs` · `string normalized = TextNormalizer.NormalizeIdentity(code); ` | evet |
+| 7.1.5.8 | Kullanılamayan yöntem seçilemez (5.13.8) | `Checkout.cshtml.cs` · `ChosenMethod = form.PaymentMethod is PaymentMethod chosen &&` | evet |
+| 7.1.5.9 | İşaretli gelmez; metin sürümü değişirse ya da özet farkı Ön Bilgilendirme Formu'nun içeriğin... | `ConsentModels.cs` · `ConsentSent kept = sent is null ? new ConsentSent(false, fal` | evet |
+| 7.1.5.10 | Sepet onay anında yeniden değerlendirilir (5.13.20) | `OrderConfirmation.cs` · `Evaluation current = await EvaluateAsync(lines, cart.Shippin` | evet |
+| 7.1.6.1 | Numara tek başına açmaz (02 §3.22.3) | `Tracking.cshtml.cs` · `OrderAccessLookup? found = await _ordering.FindOrderByNumber` | evet |
+| 7.1.8.1 | Yalnız iptale açık kalemler (03 §1.11.2, §1.11.3) | `CustomerOperations.cs` · `OperationVerdict verdict = OrderOperationCatalog.Check(facts` | evet |
+| 7.1.9.1 | Yalnız caymaya açık kalemler (03 §1.11.5, §1.11.6) | `AfterSalesScreenModels.cs` · `if (lines.Any(l => !Rows.Any(r => r.OrderItemId == l.ItemId)` | evet |
+| 7.1.10.1 | Talebin açık olduğu kalemlerden biri (03 §1.11.9; 02 §5.10) | `AfterSalesScreenModels.cs` · `.Where(e => e.Operation == OrderOperation.OpenDefectClaim &&` | evet |
+| 7.1.11.4 | Yeni bağlantı kaydın ömrünü uzatmaz (K-659) | `MembershipModule.cs` · `LinkRecord link = LinkRecord.ForCustomer(_linkKeys, LinkType` | evet |
+| 7.1.14.1 | Hesabın şifresi | `Reauthentication.cshtml.cs` · `await _membership.ReauthenticateAsync(session.CustomerId, se` | evet |
+| 7.1.16.1 | Kısa metin — serbest (ör. Ev, İş) (03 §9.3.2) | `AddressBooks.cs` · `string? name = AddressFieldRules.Text(input.Name);` | evet |
+| 7.2.2.1 | Davetin adresi (02 §10.2.1) | `Invite.cshtml` · `FieldView email = Fields.AsReadOnly(Fields.Email("Email", "E` | evet |
+| 7.2.3.2 | Tam eşleşme; e-postada büyük-küçük harf ayrımı yok (K-802) | `PanelOrderListReader.cs` · `query = query.Where(o => o.OrderNumber == number \|\| o.Normal` | evet |
+| 7.2.3.3 | Kapalı değerler (K-809) | `Requests.cshtml.cs` · `IReadOnlyList<PanelRequestStatus> statuses = ListFilters.Rea` (+1 yer) | evet |
+| 7.2.4.1 | Fiziksel ürün · dijital ürün · hizmet (02 §3.2.2) | `ProductSaves.cs` · `if (command.ProductType is not ProductType type \|\| !Enum.IsD` | evet |
+| 7.2.4.3 | Ağaçtan çoklu seçim, biri ana (02 §3.4.4) | `ProductSaves.cs` · `else if (wanted.Count > 0 && (command.PrimaryCategoryId is n` (+1 yer) | evet |
+| 7.2.4.4 | Uzun metin, kapalı biçim seti (02 §3.11.6) | `Product.cs` · `string cleaned = RichTextSanitizer.Sanitize(description); De` | evet |
+| 7.2.4.7 | Tekil; yeni varyantta ad girilince sistemin önerisiyle gelir — ad boşken öneri gelmez (K-801... | `ProductSaves.cs` · `else if (!formCodes.Add(TextNormalizer.NormalizeIdentity(sku` | evet |
+| 7.2.4.9 | Tam sayı; ayrılmış adedin altına inemez (02 §3.6.2, §3.6.7) | `ProductForm.cshtml.cs` · `bool readable = ShownValue.TryReadNumber(row.OriginalStockQu` (+1 yer) | evet |
+| 7.2.4.12 | Ülke listesinden seçilir — liste ürünle gelir (02 §3.8.5; K-1023) | `ProductForm.cshtml.cs` · `fields.Add(Fields.ClosedList("Input.OriginCountryId", "Üreti` | evet |
+| 7.2.4.17 | Kapalı liste (02 §7.3.4; K-509) | `ProductForm.cshtml.cs` · `Fields.ClosedList("Input.WithdrawalExemptionReason", "Cayma ` | evet |
+| 7.2.7.1 | Ürünle gelen liste ya da "Diğer" ve şirketin adı (02 §3.20.7) | `OrderTransitions.Shipment.cs` · `if ((carrier is null) == (other is null) \|\| tracking is null` (+1 yer) | evet |
+| 7.2.7.2 | Kısa metin | `OrderTransitions.Shipment.cs` · `tracking.Length > ShipmentLimits.TrackingNumberMaxLength` | evet |
+| 7.2.8.2 | Teslim beyandan önce mi sonra mı (2.12.5.2; K-608) | `OrderCorrections.Interventions.cs` · `if (sameDay.Count > 0 && request.IsDeliveredBeforeDeclaratio` (+1 yer) | evet |
+| 7.2.8.3 | Olay tarihi — ileri ya da teslim tarihinden önce olamaz; kargodan dönen malda alt sınır yok ... | `OrderCorrections.Interventions.cs` · `if (request.ArrivalDate > TurkeyTime.DateOf(_time.GetUtcNow(` (+1 yer) | evet |
+| 7.2.9.1 | İptale açık kalemler (03 §1.11.21) | `PanelItemSteps.cs` · `foreach (PanelItemUnits units in request.Items) { if (Verdic` | evet |
+| 7.2.9.3 | Kapalı liste (OB-15; 03 §8.3.1.1) | `OrderDetail.ItemSteps.cs` · `if (!Enum.TryParse(input.CancellationReason, false, out Canc` | evet |
+| 7.2.9.4 | Uzun metin | `_OrderDetailItemSteps.cshtml` · `<textarea id="cancel-reason-note" name="Input.ReasonNote">@M` | evet |
+| 7.2.10.1 | Cayma ya da gecikme feshi | `OrderDetail.ItemSteps.cs` · `Termination = input; if (!TryReadDate(input.DeclarationDate,` (+1 yer) | evet |
+| 7.2.10.3 | Olay tarihi — ileri tarih ve kabul süresinin dışı reddedilir (03 §8.4.8) | `PanelItemSteps.cs` · `if (request.NoticeArrivalDate is not { } date \|\| date > Turk` (+1 yer) | evet |
+| 7.2.10.5 | K-798'in metni; işaretlenmeden onay penceresi açılmaz (K-709) | `OrderDetail.ItemSteps.cs` · `public const string ExceptionAcknowledgementLabel = "Uyarıyı` | evet |
+| 7.2.11.1 | Adet — üst sınır açık adet; sebep listesi yok (03 §8.4.2) | `PanelItemSteps.cs` · `OrderOperationCatalog.Check(facts!, OrderOperation.RemoveOrR` | evet |
+| 7.2.11.2 | Adet — üst sınır ve varsayılan ulaşmamış adet (K-794) | `PanelItemSteps.cs` · `int requested = quantity ?? Math.Max(1, withdrawals.Sum(w =>` | evet |
+| 7.2.12.2 | Adet — varsayılan henüz ulaşmamış adet; ayıpta talebin teslim alınmamış ayıplı adedi (K-794,... | `PanelItemSteps.cs` · `int quantity = request.Quantity ?? (isRejection ? withdrawal` | evet |
+| 7.2.12.3 | Ret onay ister (K-656) | `OrderDetail.ItemSteps.cs` · `if (result.Refusal == TransitionRefusal.ConfirmationRequired` | evet |
+| 7.2.12.4 | Varyant silinmişse ve retta yok (K-791) | `OrderTransitions.Returns.cs` · `if (item!.VariantId is not { } variant)` | evet |
+| 7.2.13.2 | Siparişin kalemlerinden biri; kalemde açık "mal dönmedi" kapanışı varsa kapanış da seçilir v... | `PanelRefundSteps.cs` · `IReadOnlyList<OpenNotReturnedClosure> open = request.OrderIt` (+1 yer) | evet |
+| 7.2.13.3 | Havale hattında IBAN'ı olmayan geri ödeme için (03 §8.3.3.6) | `OrderOperationCatalog.cs` · `Firm(OrderOperation.RequestRefundIban, OperationScope.Order,` | evet |
+| 7.2.14.3 | Kapalı liste (OB-15; 03 §8.4.5); yapılamayan düzeltme engellenir (K-703) | `OrderDetail.Corrections.cs` · `FieldView reason = Fields.ClosedList("Input.CorrectionReason` (+1 yer) | evet |
+| 7.2.15.1 | Tek serbest metin; müşteriye görünmez (02 §10.4.7) | `_OrderInternalNote.cshtml` · `<textarea id="internal-note-text" name="Input.Text" class="o` | evet |
+| 7.2.16.3 | Kapalı biçim seti (02 §3.11.6) | `FaqItem.cs` · `public void SetAnswer(string? answer) => Answer = ContentRul` (+2 yer) | evet |
+| 7.2.16.10 | Katalogdan arayarak seçim; işaretler sıradan bağımsız | `StorefrontMenuReader.cs` · `.OrderBy(c => c.SortOrder).ThenBy(c => c.CreatedAt).ThenBy(c` (+2 yer) | evet |
+| 7.2.17.1 | Kapalı seçenek listesi (K-813) | `FirmSettings.cs` · `rejections.Add(new FieldRejection(nameof(HomepageInput.Homep` | evet |
+| 7.2.17.2 | Kısa metin; boş kaydedilmez | `FirmSettings.cs` · `string? products = RequiredName(rejections, nameof(HomepageI` | evet |
+| 7.2.18.1 | Kısa metin (02 §3.29.3) | `BrandingRules.cs` · `public static string? NormalizeName(string? raw) => string.I` | evet |
+| 7.2.18.3 | Tek renk seçimi (K-813) | `BrandingSettings.cs` · `rejections.Add(new BrandingRejection(nameof(BrandingInput.Br` | evet |
+| 7.2.18.4 | 02 §3.29.6 | `BrandingSettings.cs` · `b.IsPlatformSignatureEnabled = input.IsPlatformSignatureEnab` | evet |
+| 7.2.19.1 | Kapalı liste — Esnaf · Gerçek kişi tacir · Tüzel kişi (02 §3.1.3) | `CompanyIdentityFieldSets.cs` · `CompanyType.Tradesman => TradesmanFields, CompanyType.Natura` | evet |
+| 7.2.19.2 | 02 §3.1.3 | `CompanyIdentityFieldSets.cs` · `TradesmanFields = [nameof(CompanyIdentityInput.LegalName), n` | evet |
+| 7.2.20.1 | IBAN'sız açılmaz (03 §3.5.4.2) | `PaymentMethodSettings.cs` · `if (iban is null && input.IsBankTransferEnabled) { return Se` | evet |
+| 7.2.21.3 | Hiçbiri seçili değilse kayıt engellenmez, satır uyarır (K-817) | `ShippingAndDefaults.cshtml.cs` · `public const string NoProvinceText = "Hiçbir il seçili değil` | evet |
+| 7.2.22.1 | Kapalı biçim seti (02 §3.11.6, §3.33.2; K-818) | `LegalTexts.cs` · `text = RichTextSanitizer.Sanitize(text);` | evet |
+| 7.2.22.2 | 02 §3.33.2 | `LegalTexts.cs` · `if (type == LegalTextType.PrivacyNotice && string.IsNullOrWh` | evet |
+| 7.2.25.1 | Hazır dönemler; "Ölçüm penceresi" satış hiç açılmadıysa yok (K-821) | `SalesSummary.cshtml.cs` · `.. Presets.Where(p => p.Preset != SalesSummaryPreset.Measure` | evet |
+| 7.2.26.1 | Hesabın şifresi; yalnız şifreyle (02 §10.2.5) | `PasswordRegime.cs` · `SignInVerdict check = await CheckAsync(accounts, account, ac` | evet |
+
+"Hayır" kalan satır yok (60/60). İki satırın kanıtı yokluk türündendir (⚠): 7.1.5.1 "doğrulama kodu ve ikinci yazım yok" ve 7.1.10.3 "dosya eki yok" için parça girdi sınıfının alanı olmadığını tutar (alan eklenirse parça değişir).
+
+"Yok" beyanlı 24 yer: 17'si kendi parçasını aldı (7.2.3.2 `Search`; 7.2.3.3 `RequestType`, `RequestStatus` — kapalı değerler, `ReadCodes`; 7.2.3.5 `AdminId` — kapalı liste; 7.2.4.5 `AltText` — K-564; 7.2.4.6 `OptionRow.Name`; 7.2.4.9 `OriginalStockQuantity`; 7.2.4.13 `MeasurementUnit`; 7.2.10.4 iki `IsFromContactEmail`; 7.2.13.2 `OrderItemId`, `NotReturnedClosureId`; 7.2.16.3 `LongText`, `Text`; 7.2.16.10 üç yer); kalan 7'si (7.2.3.1 `PublishStatus`, 7.2.3.2 üç süzgeç, 7.2.4.6 `OptionValueRow.Value`, 7.2.16.9 iki `AltText`) için hücre o yere kural adlandırmıyor, giriş gerekçesini yorum olarak taşır.
+
+| Düzeltme 5 öz denetim | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1 / KK1 ekran bloğu | ✓ | `StateRoleConsistencyTests` yeşil (değişmedi) |
+| Kriter 2 / KK2 sayfa testi | ✓ | `StateRolePageTests`, `CategoriesPageTests` değişmedi; bu turda `ProductFormPageTests` 37/37 (ipucu cümlesi) |
+| Kriter 3–5 / KK3–KK5, kriter 7–9 | ✓ | Consistency 667 yeşil (655 + `FormFieldRuleClausesTests` 12); belge hücreleri değişmedi |
+| Kriter 6 / KK6 alan, zorunluluk, kural | ✓ | F1 kapandı: hücrenin tamamı okunur (cümle, `02 §`, `03 §`, K, OB); 162/162 kod + 8/8 belge deneyi KIRILDI; 60/60 satır tablosu; 24 "yok" yeniden kuruldu |
+| `09 §25` / güvenlik taraması | ✓ | `src` yalnız bir sabit ve ipucu birleşimi; sır, yetki, bağımlılık yok |
+| Sık FAIL (1) istisna geniş | ✓ | yeni istisna yok; tür adı/kimlik cümleleri açık listede (`TYPES` mantığı tabloda boş tür), bilinmeyen cümle kırar |
+| Sık FAIL (2) çağrı biçimi kaçıyor | ✓ | her parça tam bir kez tutulur (ek/adlı argüman değişince kırar) |
+| Sık FAIL (3) 06 varsayılanı / FK | ✓ (kapsam dışı) | şema değişmedi |
+| Sık FAIL (4) aynı sayıyı anan yerler | ✓ | 199 cümle, 162 anahtar, 24 yer, 60 satır yalnız bu bölümde ve `04` sürüm satırında; sınıf özetleri güncellendi |
+| Sık FAIL (5) karar kaydısız belge kuralı | ✓ | belge hücresi değişmedi (yalnız `04` sürüm satırı); K-1020 satırı koda hizalandı, belge zaten söylüyordu |
+| T538 / T546 emsali | ✓ | sessiz atlama yok; ortak ifade kanıt değil: IBAN yeri ve bayrak yeri aynı ifadeyi paylaşmaz (`ChangeOfOneHandlersCheck_*` yeşil) |
+| Hedefi T547 olan backlog kalemi | ✓ | `grep T547`: D-1656, D-1657, D-1661, D-1666, D-1671 ileri, dokunulmadı; yeni D-1673 (aşağıda) |
+
+⚠ (kolay, kurala en uygun seçenekle karar verildi): (1) 7.1.16.1 adres adı ve 7.2.17.2 menü adları hücrede "Kısa metin" der ama kodda karakter tavanı yok (kırpma + boş reddi); etiket olarak okundu, kanıt o iki parça → D-1673. (2) K-1020 satırı eklendi (tek `src` değişikliği). (3) İki yokluk kanıtı (yukarıda). (4) Metin tabanlı denetimin sınırı sürer (tur 2 K2: parça sayma satırı tutar, sayısal eşik değişimini değil).
+
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit (Consistency) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build --filter-trait "Consistency=true"` | 655 geçti (düzeltme 4; 644 + `FormFieldPlaceEnforcementTests` 11) |
+| Unit (Consistency, düzeltme 5) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build --filter-trait "Consistency=true"` | 667 geçti (655 + `FormFieldRuleClausesTests` 12) |
+| Unit (tamamı, düzeltme 5) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | 8087/8087 |
+| Integration (düzeltme 5) | ✓ (ilgili sınıf) — TAM: CI | `dotnet test --project tests/Shopfolio.IntegrationTests --no-build --filter-class "*ProductFormPageTests"` | 37/37 (postgres:18, `track_commit_timestamp=on`, konteyner `t547-pg`, port 56754, silindi); TAM: CI |
+| Format (düzeltme 5) | ✓ | `dotnet format Shopfolio.slnx --no-restore --verify-no-changes --include <10 .cs>` | çıkış 0 |
+| Unit (Consistency, düzeltme 4) | ✓ | aynı komut | 655 geçti (düzeltme 4; 644 + `FormFieldPlaceEnforcementTests` 11) |
 | Unit (tamamı) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | düzeltme 4: 8075/8075 |
 | Integration | ✓ (`src` değişmedi, koşulmadı) — TAM: CI | — | düzeltme 4 yalnız test kodu ve belge değiştirdi; Integration'a dokunan kod yok; TAM: CI |
 | Format (düzeltme 4) | ✓ | `dotnet format Shopfolio.slnx --no-restore --include <6 .cs>` | değişiklik yok |

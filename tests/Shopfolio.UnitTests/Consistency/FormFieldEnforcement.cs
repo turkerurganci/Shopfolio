@@ -160,11 +160,11 @@ internal static class FormFieldEnforcement
                 continue;
             }
 
-            string kind = line[..bar];
+            string[] lineKinds = line[..bar].Split('+');
             string file = line[(bar + 1)..hash];
             string fragment = line[(hash + 1)..];
-            string[]? tokens = KindTokens.TryGetValue(kind, out string[]? known) ? known : IdTokens.GetValueOrDefault(kind);
-            if (tokens is null)
+            string[]?[] tokenSets = [.. lineKinds.Select(TokensOf)];
+            if (tokenSets.Any(t => t is null))
             {
                 problems.Add($"RuleKindUnmapped:{row}: the enforcement line '{line}' has a kind the mapping tables do not hold.");
                 continue;
@@ -183,13 +183,14 @@ internal static class FormFieldEnforcement
                 continue;
             }
 
-            if (!tokens.Any(t => fragment.Contains(t, StringComparison.Ordinal)))
+            string? withoutToken = lineKinds.Where((_, i) => tokenSets[i]!.Length > 0 && !tokenSets[i]!.Any(t => fragment.Contains(t, StringComparison.Ordinal))).FirstOrDefault();
+            if (withoutToken is not null)
             {
-                problems.Add($"EnforcementNotInCode:{row}: '{fragment}' does not hold a token of the kind {kind} ({string.Join(", ", tokens)}).");
+                problems.Add($"EnforcementNotInCode:{row}: '{fragment}' does not hold a token of the kind {withoutToken} ({string.Join(", ", KindTokens.TryGetValue(withoutToken, out string[]? held2) ? held2 : IdTokens[withoutToken])}).");
                 continue;
             }
 
-            kinds.Add(kind);
+            kinds.UnionWith(lineKinds);
         }
 
         bool required = RequiredWords.Any(w => requirement.StartsWith(w, StringComparison.Ordinal));
@@ -223,6 +224,14 @@ internal static class FormFieldEnforcement
                     problems.Add($"RuleWithoutEnforcement:{row}: the row names {id} and no enforcement line of the field reads it.");
                 }
             }
+            else if (FormFieldRuleClauses.IsKind(id))
+            {
+                justified.Add(id);
+                if (!kinds.Contains(id))
+                {
+                    problems.Add($"RuleWithoutEnforcement:{row}: the rule cell names {id} and no enforcement line of the field makes it.");
+                }
+            }
             else if (id.StartsWith("7.3.2.", StringComparison.Ordinal) || id.StartsWith("P-", StringComparison.Ordinal) || id.StartsWith("Z-", StringComparison.Ordinal) || id.StartsWith("L-", StringComparison.Ordinal))
             {
                 problems.Add($"RuleKindUnmapped:{row}: the row names {id}, which the mapping tables do not hold.");
@@ -242,6 +251,17 @@ internal static class FormFieldEnforcement
         }
 
         return problems;
+    }
+
+    /// <summary>The tokens one of which a fragment of the kind must hold: those of the kind or id tables, none for a kind of <see cref="FormFieldRuleClauses"/> (its line is the one piece of code held exactly once), null for an unknown kind.</summary>
+    private static string[]? TokensOf(string kind)
+    {
+        if (KindTokens.TryGetValue(kind, out string[]? known) || IdTokens.TryGetValue(kind, out known))
+        {
+            return known;
+        }
+
+        return FormFieldRuleClauses.IsKind(kind) ? Array.Empty<string>() : null;
     }
 
     /// <summary>

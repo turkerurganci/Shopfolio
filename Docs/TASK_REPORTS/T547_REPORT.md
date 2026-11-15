@@ -147,10 +147,10 @@ Düzeltme 3 öz denetimi (bütün maddeler yeniden; `Docs/11` T547 kabul kriterl
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-15; tur 1 de FAIL) |
-| Bulgu sayısı | Tur 2: 2 (C1 ORTA S1, C2 ORTA S2); tur 1'in B1–B5'i kapandı |
-| Düzeltme gerekli mi | Evet — C1, C2 (ikinci iterasyon FAIL: eskalasyon, `INSTRUCTIONS.md` §3.3) |
-| Bloke-etmeyen not (K) sayısı | Tur 1: 2 (D-1656, D-1657); tur 2: 1 (D-1661) |
+| Doğrulama durumu | ✗ FAIL (tur 3, 2026-11-16; tur 1 ve tur 2 de FAIL) |
+| Bulgu sayısı | Tur 3: 1 (E1 ORTA S1 — C1'in işleyici kodundaki yerleri); C2 kapandı, C1'in nitelik yüzü kapandı; tur 2: 2 (C1, C2); tur 1'in B1–B5'i kapandı |
+| Düzeltme gerekli mi | Evet — E1 (ikinci iterasyonun düzeltmesi de FAIL: eskalasyon, `INSTRUCTIONS.md` §3.3; `12 §8.5`) |
+| Bloke-etmeyen not (K) sayısı | Tur 1: 2 (D-1656, D-1657); tur 2: 1 (D-1661); tur 3: 1 (D-1666) |
 
 ### Doğrulama tur 1 — validator kanıtları
 
@@ -189,6 +189,26 @@ Gerçek `src` deneyleri (hepsi geri alındı). Kıran (13): `EmailChangeRules.cs
 C2: kategori adı tavanının kaldırılması (`Categories.cshtml(.cs)`, K-1619) 6000 karakterlik adla `POST /panel/kategoriler?handler=CreateCategory`'yi 500'e düşürüyor (geçici sınama, `CategoriesPageTests` içinde; geri alındı) — main'de 200 karakter tavanı 422 alan mesajı veriyordu. `09` 9.4 madde 3 "Kırpma yoktur (ad tavanı P-27)" diyerek kategori dahil beş kayıt türünün adının tavanlı olduğunu varsayıyor; K-1619'un "tavanın kaynağı hiçbir belgede yok" tespiti bu satırı görmemiş. Çözüm belge kararı ister (kategori adına tavan — ör. P-27 kapsamının karar kaydıyla genişletilmesi ve `04` 7.2.5.1, 9.6.8, `06 §4.9` hizası — ya da adresin kırpılması ve `09` 9.4 madde 3'ün düzeltilmesi).
 
 Yapım raporuyla uyuşmazlık: öz denetimde "`09 §25`; güvenlik taraması — `src` değişmedi" yazıyor, düzeltme 2 `src`'yi değiştirdi (C2); KK6 özellik yeri deneyi (194/194, özellik `internal`) yerin tamamını kaldırıyor, iki yerli satırda tek yerin niteliğinin kalkmasını sınamıyor (C1).
+
+### Doğrulama tur 3 — validator kanıtları (baş `e7a1b07e`)
+
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | 53 ekranın bloğu | ✓ | Consistency 644/644; gerçek belge deneyi `04` "6.2.5 E-05" başlığı bozuldu → `StateRoleMatrix_EqualsTheCode_InBothDirections` dahil 3 test kırıldı |
+| 2 | Her çiftte gösterilen ve açık işlemler sayfa testiyle | ✓ | `StateRolePageTests` + `CategoriesPageTests` 11/11 (yerel postgres:18, `track_commit_timestamp=on`); dosya tur 2'den beri değişmedi, "never open/never drawn" denetimi yerinde |
+| 3 | İki kapı yalnız altı vitrin ekranı | ✓ | `SalesGate_*`, `DataGate_*` yeşil; kod tur 2'den beri değişmedi |
+| 4 | Durum adları `02 §5`'inki | ✓ | `SynonymOfAStatusName_IsReported`, `StatusBadgeText_OfTheCode_EqualsTheNameOf02` |
+| 5 | Yönetici satırı sınırı | ✓ | `AdministratorRow_*`, `DraftRead_*` |
+| 6 | Alan, zorunluluk, kural kodla eşit | ✗ | E1: çok yerli satırda nitelik taşımayan, kuralı işleyici kodunda duran yerlerin kuralı satır düzeyinde birleşimle okunuyor; 8 gerçek `src` deneyinden 7'si sessiz (aşağıda). C1'in nitelik yüzü kapandı (`PlaceMarksDiffer`) |
+| 7 | Kural kimlikle işaret eder, değer `02 §11`'den | ✓ | 7.2.5.1 "Kısa metin — ad P-27 (7.3.2.14)"; belge deneyi kimlik yerine "en çok 150 karakter" → 2 test kırıldı; `LengthAttribute_WritingTheNumber_IsReported` |
+| 8 | Panel tek rol, `/panel` altında | ✓ | `Panel*_IsReported` testleri |
+| 9 | `Consistency` Unit; 2 Integration | ✓ | 644 Consistency `UnitTests/Consistency/` altında; `StateRolePageTests` Integration |
+
+Gerçek `src` deneyleri (hepsi geri alındı). Sessiz (Consistency 644/644 yeşil): `ContentInputs.cs` 73 `PortfolioItemInput.Title` tavanı `int.MaxValue` (7.2.16.1 başlık P-27); 92 `CustomPageInput.Title` (7.2.16.1 başlık P-27); `BranchInput.Name` tavanı (7.2.16.1 ad P-27, şube); 106 `BranchInput.WorkingHours` (7.2.16.2 çalışma saatleri P-28); 74 `PortfolioItemInput.ShortDescription` (7.2.16.2 P-28); `Modules/Ordering/PanelItemSteps.cs` 173 cayma bildiriminin IBAN denetimi (7.2.10.4, `RecordWithdrawalInput.Iban`); `Modules/Ordering/PanelOrderSteps.cs` 94 teslim kaydında sıra sorusu zorunluluğu (7.2.8.2, `MarkDeliveredInput`). İki başlık tavanı ve çalışma saatleri birlikte kaldırılınca bütün Unit 8064/8064 yeşil. Kıran: `OrderDetail.ItemSteps.cs` 365 ulaşma tarihi zorunluluğu (7.2.12.1); `BranchInput.Phone` kuralı (7.2.16.6); `CreateCategoryInput.Name` `[FieldRequired]` → `PlaceMarksDiffer:7.2.5.1`; `SaveProductDiscountRow.EndDate` `[InvalidDate]` → `PlaceMarksDiffer:7.2.4.18`; `AddressBooks.cs` 177 sipariş telefonu (7.1.5.3); `PasswordRegime.cs` 64 L-1 → L-2 (6 satır).
+
+C2 kapandı: `Categories.cshtml(.cs)` `TextTooLong(ProductConstants.ProductNameMaxLength)` ve üç `maxlength`; `ANameOverTheCeiling_IsA422WithTheFieldMessage_OnCreateAndRename_AndWritesNothing_T547_C2` yeşil (6000 karakter ekleme ve yeniden adlandırmada 422 + alan mesajı, tam tavanda 303). K-1619, `02` P-27, `04` 7.2.5.1, 7.3.2.14, 9.6.8, `06 §4.9`, `07` 9.6.2–9.6.3, `09` §3.5 örneği tutarlı ve `09` 9.4 madde 3'e dayanıyor; kalan tek yer `07 §6.2.2` `TextTooLong` satırının UC sütunu (D-1666).
+
+Yapım raporuyla uyuşmazlık: düzeltme 3 bölümü nitelik taşımayan 67 yerin "kural ve zorunluluğu satır düzeyinde, yeri adlayan parça ile denetlenir" diyor; deneyler satırın kuralını başka yerin işlem satırının kanıtladığını gösterdi (E1). D-1656 kod → satır yönüdür, bu boşluk satır → kod yönüdür.
 
 ## Altyapı Değişiklikleri
 

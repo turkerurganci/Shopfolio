@@ -30,7 +30,7 @@ internal sealed record EndpointRef(string UseCase, string Method, string? Path, 
 /// </summary>
 internal static partial class ApiInventoryDocument
 {
-    /// <summary>The names the document writes in backticks inside an explanation without their being fields (07 5.2.1 <c>AcceptedCheckboxes</c>: the values of <c>CheckboxType</c>).</summary>
+    /// <summary>The names the document writes in backticks inside an explanation without their being fields (07 5.2.1 <c>PlaceOrderInput</c>'s boxes: the values of <c>CheckboxType</c>).</summary>
     private static readonly HashSet<string> NotFields = new(StringComparer.Ordinal) { "CheckboxType" };
 
     public static string Text() =>
@@ -170,7 +170,7 @@ internal static partial class ApiInventoryDocument
         }
         while (previous != text);
 
-        text = text.Replace("UC-117'nin iki alanı", "`ImageFile`, `ImageTarget`", StringComparison.Ordinal);
+        text = text.Replace("UC-117'nin alanı", "`ImageTarget`", StringComparison.Ordinal);
 
         List<DocField> fields = [];
         foreach (string segment in text.Split(" · "))

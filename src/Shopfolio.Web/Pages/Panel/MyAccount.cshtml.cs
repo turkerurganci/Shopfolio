@@ -112,17 +112,20 @@ internal sealed class MyAccountModel : PageModel
         await LoadAsync(operation, held, HttpContext.RequestAborted);
     }
 
-    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(AdminAccountQuery query, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(query);
         _loaded = true;
         ReauthenticationOperation? operation = null;
         string? held = null;
-        if (Request.Query.TryGetValue(ReauthModel.OperationParameter, out Microsoft.Extensions.Primitives.StringValues operations) && operations.Count == 1
-            && operations[0] is nameof(ReauthenticationOperation.PasswordChange) or nameof(ReauthenticationOperation.EmailChange)
-            && Request.Query.TryGetValue(HeldValueParameter, out Microsoft.Extensions.Primitives.StringValues tokens) && tokens.Count == 1)
+
+        // A parameter sent twice is no value: the permission opens only for one operation and one single-use value (07 UC-104).
+        if (Request.Query[ReauthModel.OperationParameter].Count == 1 && Request.Query[HeldValueParameter].Count == 1
+            && query.ReauthenticatedOperation is nameof(ReauthenticationOperation.PasswordChange) or nameof(ReauthenticationOperation.EmailChange)
+            && query.ReauthenticationToken is { } heldValue)
         {
-            operation = Enum.Parse<ReauthenticationOperation>(operations.ToString());
-            held = tokens[0];
+            operation = Enum.Parse<ReauthenticationOperation>(query.ReauthenticatedOperation);
+            held = heldValue;
         }
 
         if (!await LoadAsync(operation, held, ct))
@@ -313,6 +316,15 @@ internal sealed class MyAccountModel : PageModel
     {
         public bool IsRejected => false;
     }
+}
+
+/// <summary>The query of UC-104 (07 5.3.2 <c>AdminAccountQuery</c>): the operation whose form opens and the single-use value of the re-verification that holds its permission (07 9.25.2); text, so a wrong value is never a binding error (07 2.6.6).</summary>
+public sealed class AdminAccountQuery : IQueryModel
+{
+    public string? ReauthenticatedOperation { get; init; }
+
+    [SpecAssignedName]
+    public string? ReauthenticationToken { get; init; }
 }
 
 /// <summary>The name form of UC-178 (07 5.2; shared with the storefront account page).</summary>

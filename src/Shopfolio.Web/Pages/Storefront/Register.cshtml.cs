@@ -112,9 +112,10 @@ internal sealed class RegisterModel : PageModel
         }
     }
 
-    public async Task<IActionResult> OnGetAsync(string? pendingRegistration, CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(RegisterQuery query, CancellationToken ct)
     {
-        await LoadAsync(pendingRegistration, ct);
+        ArgumentNullException.ThrowIfNull(query);
+        await LoadAsync(query.PendingRegistration, ct);
 
         // The result code only decides which wording the pending state gets; a code without a pending registration shows the form (04 5.20.4).
         NoticeCode? notice = NoticeParameter.Read(Request, NoticeKind.Result);

@@ -10,8 +10,8 @@ namespace Shopfolio.UnitTests.Consistency;
 /// Keeps the model tables of 07 5.2, 5.3.2 and 5.4.2 equal to the model types of the code, and the use cases of the inventory (07 3.2) equal to what their
 /// handlers bind, in both directions (T538 criteria 1-5, 7; KK1-KK5, KK7; 09 21.4 item 1; 07 5.1.5). The form inputs, the query models and the machine bodies are
 /// compared by name and by field (the query parameters in camelCase); a model of a row's "Uçlar" column is bound by a handler of that use case, a handler that
-/// reads input binds a model of its row or takes a route value, the handlers of 07 5.2.4 bind no model, and no handler binds an entity of 06. The differences that
-/// are open as backlog items are listed one by one in <see cref="KnownModelDifferences"/>. Reads <c>Docs/07_API_DESIGN.md</c> and the application assembly only - no
+/// reads input binds a model of its row or takes a route value, the handlers of 07 5.2.4 bind no model, and no handler binds an entity of 06. There is no list of
+/// known differences: a difference is closed by the document or the code in the same change (K-1616). Reads <c>Docs/07_API_DESIGN.md</c> and the application assembly only - no
 /// database, no network, no file written (09 19.2 item 2). Runs in the Lint step. The checks are shown to fail on a deliberately wrong text and on sample models and
 /// handlers (09 19.2 item 3); each failure names what differs.
 /// </summary>
@@ -25,7 +25,7 @@ public sealed class ModelInventoryConsistencyTests
     {
         List<string> problems = FormProblems(ApiInventoryDocument.Text());
 
-        Assert.True(KnownModelDifferences.Remaining(problems, KnownModelDifferences.Form).Count == 0, Report(problems, KnownModelDifferences.Form));
+        Assert.True(problems.Count == 0, ModelInventoryCheck.Report(problems));
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public sealed class ModelInventoryConsistencyTests
     {
         List<string> problems = QueryProblems(ApiInventoryDocument.Text());
 
-        Assert.True(KnownModelDifferences.Remaining(problems, KnownModelDifferences.Query).Count == 0, Report(problems, KnownModelDifferences.Query));
+        Assert.True(problems.Count == 0, ModelInventoryCheck.Report(problems));
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public sealed class ModelInventoryConsistencyTests
     {
         List<string> problems = HandlerProblems(ApiInventoryDocument.Text());
 
-        Assert.True(KnownModelDifferences.Remaining(problems, KnownModelDifferences.Handlers).Count == 0, Report(problems, KnownModelDifferences.Handlers));
+        Assert.True(problems.Count == 0, ModelInventoryCheck.Report(problems));
     }
 
     [Fact]
@@ -165,22 +165,6 @@ public sealed class ModelInventoryConsistencyTests
     }
 
     [Fact]
-    public void KnownDifferences_ADifferenceThatIsGone_IsReportedAsStale()
-    {
-        List<string> remaining = KnownModelDifferences.Remaining([], [new KnownDifference("Model: only in the document: GoneInput", "D-1606")]);
-
-        Assert.Contains(remaining, r => r.StartsWith("Stale:Model: only in the document: GoneInput", StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public void KnownDifferences_ADifferenceOfAnUnknownBacklogItem_IsReported()
-    {
-        List<string> remaining = KnownModelDifferences.Remaining(["Model: only in the document: GoneInput"], [new KnownDifference("Model: only in the document: GoneInput", "D-9999")]);
-
-        Assert.Contains("NoBacklogItem:D-9999", remaining);
-    }
-
-    [Fact]
     public void Checks_TouchNeitherTheDatabaseNorTheNetworkNorAFile()
     {
         string[] sources =
@@ -188,7 +172,6 @@ public sealed class ModelInventoryConsistencyTests
             "ApiInventoryDocument.cs",
             "EndpointBindingCheck.cs",
             "ModelInventoryCheck.cs",
-            "KnownModelDifferences.cs",
         ];
         string[] forbidden = ["Connection" + "String", "Npg" + "sql", "Http" + "Client", "File.Write", "File.Append", "File.Delete", "Directory.Create"];
         string folder = Path.Combine(RepositoryRoot.Find(), "tests", "Shopfolio.UnitTests", "Consistency");
@@ -199,8 +182,6 @@ public sealed class ModelInventoryConsistencyTests
             Assert.DoesNotContain(forbidden, word => text.Contains(word, StringComparison.Ordinal));
         }
     }
-
-    private static string Report(List<string> problems, IReadOnlyList<KnownDifference> known) => ModelInventoryCheck.Report(KnownModelDifferences.Remaining(problems, known));
 
     private static string DropRow(string text, string rowStart) =>
         string.Join('\n', text.Split('\n').Where(l => !l.StartsWith(rowStart, StringComparison.Ordinal)));

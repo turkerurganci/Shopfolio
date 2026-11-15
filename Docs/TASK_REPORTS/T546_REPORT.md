@@ -121,6 +121,17 @@
 
 | Alan | Sonuç |
 |---|---|
+| Doğrulama durumu | ✗ FAIL (tur 3, 2026-11-15, dal ucu `c0d65410`; CI run `43708482759` Integration dışı işler yeşil, Integration koşuyordu) — eskalasyon (`12 §8.5`) |
+| Bulgu sayısı | 1 (S1, ORTA) |
+| Düzeltme gerekli mi | Evet — B1 (tur 3): bağlantısı bir modelin kurduğu listeden gelen satırlarda kanıt yalnız görünümdeki ortak ifadedir (`@item.Href`, `@warning.Href`, `@path` …); listedeki hedef karşılaştırılmaz. Gerçek dosyada deney (geri alındı): `Panel/Index.cshtml.cs` kurulum listesinin "iade adresi" maddesi `ShippingAndDefaults` → `Brand` (3.4.4'ün E-46 hedefi gitti) ve "e-posta ulaşmadı" uyarısı süzülmüş E-36 → `Members` (3.4.3) — `NavigationConsistencyTests` 84/84 geçti; `_AccountNav.cshtml`'den Adres defteri girdisi silindi (3.3.32'nin E-26 hedefi gitti) — 84/84 geçti. KK1 ve KK2'nin "geçiş eksilince test kırılır" maddesi bu satırlarda karşılanmıyor; 3.3.22–3.3.24 ve menü (3.2, 3.1.12–3.1.16) için yazılan ayırt edici kanıt 3.3.32, 3.4.2, 3.4.3, 3.4.4, 3.4.15, 3.4.22'de yok. Düzeltme: liste kuran her satırda hedefleri kanıtlamak (menüdeki gibi listeyi belgeyle karşılaştırmak ya da her hedefe metin kanıtı) ve kırılma testi. Tur 2 B1 (3.4.26, `EmptyExit`) kapandı — gerçek dosyada hedef değişimi denetimi kırıyor. |
+| Bloke-etmeyen not (K) sayısı — tur 3 | 1 — K1 → D-1636 (`UnexpectedErrorSetup` muafiyetinin gerekçesi yanlış: 2.7.3.3'ün yönlendirmesi başka ekrana gider) |
+
+**Doğrulayıcı kabul kriterleri (tur 3):** 1 ✗ (B1: 3.3.32) · 2 ✗ (B1: 3.4.3, 3.4.4) · 3 ✓ · 4 ✓ · 5 ✓ · 6 ✓ · 7 ✓ (eklemelerin kapsam sınırı D-1626'da). Yerel: build `-warnaserror` 0 uyarı; `dotnet format --include` 13 `.cs` temiz; Consistency 397/397; Unit (Consistency dışı) 7420/7420; betik 4/4; Integration `CartPageTests`, `AfterSalesScreenTests`, `CartTests`, `CartQuantityTests`, `MainFlowTests`, `StorefrontFrameTests` 124/124, TAM: CI. `12`'de T546'ya düşen satır yok.
+
+Tur 2 kaydı:
+
+| Alan | Sonuç |
+|---|---|
 | Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-15, dal ucu `07682894`; CI run `43703091010` yeşil) — ikinci iterasyon FAIL'i: eskalasyon (`12 §8.5`) |
 | Bulgu sayısı | 1 (S1, ORTA) |
 | Düzeltme gerekli mi | Evet — B1 (tur 2): panelin boş liste satırının "Ana sayfaya dön" çıkışı E-36, E-38, E-52 → E-31 (`Panel/Orders.cshtml.cs`, `Requests.cshtml.cs`, `AuditTrail.cshtml.cs`) kodda var, `04 §3.4`'te satırı yok; denetim `_EmptyRow.cshtml` `@Model.ExitPath`'i müşteri satırı 3.3.12'nin kanıtı saydığı için yakalamaz (E-36 çıkışı E-40'a çevrildiğinde `NavigationConsistencyTests` 70/70 geçti). Düzeltme: çıkış ya `04 §3.4` satırı olur (karar kaydıyla) ya kalkar; `EmptyStates.WithExit`/`WithFirstRecordButton` çağrıları çağrı yerinden kendi satırına/muafiyetine bağlanır; kırılma testi. Tur 1 B1 (3.3.44 / E-19) kapandı. |

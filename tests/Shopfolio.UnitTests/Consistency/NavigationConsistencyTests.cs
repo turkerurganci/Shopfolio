@@ -363,6 +363,16 @@ public sealed class NavigationConsistencyTests
     }
 
     [Fact]
+    public void PrivacyNoticeRow_WithoutTheDefectClaimScreenInItsSources_IsReported()
+    {
+        // T546 correction 2 (K-1617): 02 3.33.5 and 04 5.19.3 (4) count the defect claim screen (E-19); a row that drops it from "Nereden" while the code draws the link is a difference.
+        string changed = Document.Value.Replace("E-18 · E-19 · E-20", "E-18 · E-20", StringComparison.Ordinal);
+        Assert.NotEqual(Document.Value, changed);
+
+        Assert.Contains(Problems(document: changed), p => p.StartsWith("FromDiffers:3.3.44", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void TheInventory_HasNoOpenItemAndNoCitedExemption()
     {
         // Equality has no list of known differences: every kind of evidence is a place of the code, and an exemption is a place that stays on its screen.

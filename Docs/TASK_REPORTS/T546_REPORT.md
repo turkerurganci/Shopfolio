@@ -16,6 +16,7 @@
 - **Menü** (`§3.2`): panel menüsü (`PanelFrameBuilder.MenuOf`) menü tablosuyla giriş giriş, sıra dahil karşılaştırılır (ekran → `PanelFramePaths` adresi).
 - **Dönüşler** (`§3.6`): paragraflar envanterde sabitlenir; dönüş kuralları kararı veren işlevlerden (`ReturnPath.AfterSignIn`, `Resolve`, `AfterSignOut`, iki kapının giriş adresleri, ödeme adımının giriş adresi) sınanır.
 - **Düzeltme 1 (K-1617, doğrulamadan önce, yönetici kararı):** (a) ekran tanımlarının yazdığı yedi bağlantı grubu `04 §3.3`'e (3.3.40–3.3.45) ve `§3.4`'e (3.4.24, 3.4.25) satır olarak eklendi, `04` §5.25.13'e sonuç hâlinin iki bağlantısı yazıldı, `04` v0.55; (b) `3.3.13`: sepet satırında ürün adı `/urun/{slug}` bağlantısı yapıldı (D-1189'un bağlantı payı); (c) kırılma örnekleri: tabloya kodda olmayan satır, koda tabloda olmayan bağlantı, yeni satırların silinmesi ve bağlantılarının kalkması, eksik hücreli satır.
+- **Düzeltme 2 (doğrulama tur 1 B1, K-1617 ek madde):** (a) `Pages/Orders/_DefectClaimScreen.cshtml` ayıp talebi ekranında aydınlatma bağlantısını öteki ekranlarla aynı yoldan çizer (`FramePaths.PrivacyNotice` / `PrivacyNoticeTitle`; `04` 5.19.3 (4), 6.2.19.1, KP-74, `02 §3.33.5`); (b) `AfterSalesScreenTests` E-19 sayfasında bağlantıyı ve hedefini sınar; (c) `04` 3.3.44 "Nereden" sütununa E-19 ve kaynak olarak §5.19.3 (4) eklendi, `04` sürüm satırı ve `PRODUCT_DISCOVERY_STATUS` K-1617 satırı güncellendi; (d) envantere E-19 bağlantısı kanıt olarak girdi, `TheLinksOfTheScreenSpecificationRows_LeavingTheCode_AreReported` teorisine E-19 bağlantısı silinince kıran satır, `PrivacyNoticeRow_WithoutTheDefectClaimScreenInItsSources_IsReported` ile belge tarafında E-19 düşürülünce `FromDiffers` kırılması eklendi. 3.3.40–3.3.45 ve 3.4.24–3.4.25 satırlarının her biri kaynak paragraflarıyla yeniden karşılaştırıldı (5.25.13, 5.15.3, 5.16.8, 5.20.9, 2.12.1.6 + `02 §3.33.5` + 5.19.3, 5.10.4, 9.17.4, 9.9.9): başka eksik bağlantı çıkmadı. K1 (D-1626): form `action`/`formaction` taraması ve `WriteSeeOther` bu dala katılmadı — yirmiden fazla yerde (süzgeç ve arama GET formları, `formaction` düğmeleri, `Coupons` formu, `UnexpectedErrorLayer` yönlendirmesi) her birinin muafiyet ya da `04 §3` satırı kararı gerekir, ~100 satırı aşar; D-1626 F5 kapısında kalır. K2 (D-1627) dokunulmadı.
 - Üretim kodu değişikliği yalnız `3.3.13` payıdır (`CartVariantFact.ProductSlug`, `CartLine.ProductSlug`, `Cart.cshtml`'de ad bağlantısı); öteki değişiklik test ve kayıt dosyalarıdır.
 
 ## Etkilenen Modüller / Dosyalar
@@ -36,6 +37,27 @@
 | 5 | Panel ↔ vitrin (`§3.7`) eşit | ✓ | aynı test: 3.7.1–3.7.5 (Düzenlemeye dön = 3.7.4, oturumsuz taslak adresi = 3.7.5) |
 | 6 | İskelet (`§3.1`, `§3.2`) çerçevede ve denetimde | ✓ | 21 + 22 satır; `PanelMenu_EqualsTheMenuTableOfTheDocument_EntryByEntry` |
 | 7 | Tabloda olmayan geçiş koda sızmaz; `Consistency` özellikli birim testi | ✓ | `UndocumentedTransition` denetimi; test sınıfı `[Trait("Consistency", "true")]`, `UnitTests/Consistency/` altında; ekran tanımlarının yazdığı bağlantılar artık muafiyet değil satırdır |
+
+### Düzeltme 2 öz denetimi — bütün kabul kriterleri ve KK'ler yeniden denetlendi
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1 (`§3.3`, 3.3.44 dahil) | ✓ ⚠ | `NavigationMap_EqualsTheCode_InBothDirections` 45 satır; 3.3.44 "Nereden" `02 §3.33.5` sayımıyla birebir (E-10, E-13, E-16, E-17, E-18, E-19, E-20, E-22); E-19 kanıtı `_DefectClaimScreen.cshtml` `@FramePaths.PrivacyNotice`; `AfterSalesScreenTests` E-19 sayfasında bağlantı ve hedef (17/17); ⚠ görsel yarısı D-1189 |
+| Kriter 2 (`§3.4`) | ✓ | aynı test: 3.4.1–3.4.25; 3.4.24 ↔ 9.17.4, 3.4.25 ↔ 9.9.9 yeniden karşılaştırıldı |
+| Kriter 3 (`§3.5`) | ✓ | aynı test: 15 satır, `OutsideEntry_*` |
+| Kriter 4 (`§3.6`) | ✓ | 3.6.1–3.6.5, `ReturnTarget_ChangedInTheDocument_IsReported`, `ReturnRedirect_LeavingTheCode_IsReported` |
+| Kriter 5 (`§3.7`) | ✓ | 3.7.1–3.7.5, `BackToEditingLink_LeavingTheCode_IsReported` |
+| Kriter 6 (`§3.1`, §3.2) | ✓ | 21 + 22 satır; `PanelMenu_EqualsTheMenuTableOfTheDocument_EntryByEntry` |
+| Kriter 7 (tabloda olmayan geçiş sızmaz; `Consistency`, DB/ağ yok) | ✓ | `UndocumentedTransition`; `[Trait("Consistency","true")]`; dosya yazmaz |
+| KK1 satır silinince / bağlantı kalkınca kırılır | ✓ | `TheRowsOfTheScreenSpecificationLinks_DeletedFromTheTable_AreReported` (3.3.44 dahil), `TheLinksOfTheScreenSpecificationRows_LeavingTheCode_AreReported` (3.3.44 için iki kanıt: `_IbanField` ve `_DefectClaimScreen`), `PrivacyNoticeRow_WithoutTheDefectClaimScreenInItsSources_IsReported` |
+| KK2–KK6 | ✓ | düzeltme 1 tablosundaki testler değişmeden geçer (Consistency 383/383) |
+| KK7 tabloda olmayan geçiş koda eklenince kırılır | ✓ | `LinkAddedToTheCode_WithoutARow_IsReported`, `RedirectAddedToTheCode_WithoutARow_IsReported`, `PanelLinkAddedToTheCode_WithoutARow_IsReported`; K1 kapsam notu D-1626 |
+| Sessiz atlama yok | ✓ | `grep -n "continue\|Skip\|Except\|ignore"` Navigation* dosyalarında: `SkippedFolders` (bin, obj, Migrations), `NavigationSites` satır yorumu ve `void` tanım satırı (çağrı değil), tablonun başlık/ayırıcı satırı; başka atlama yok |
+| Sık FAIL (belge–kod eşitliği: belgeye koddan yazılan satır) | ✓ | 3.3.40–3.3.45 ve 3.4.24–3.4.25 kaynak paragraflarıyla satır satır yeniden karşılaştırıldı; E-19 dışında fark yok |
+| Sık FAIL (4) aynı sayıyı anan öteki yerler | ✓ | `04` sürüm satırları (başlık, dipnot, `PRODUCT_DISCOVERY_STATUS`), K-1617 satırı; KP-74 ve 6.2.19.1 zaten E-19'u sayıyordu |
+| Sık FAIL (5) hedefi bu task olan backlog kalemi | ✓ | D-1626 hedefi "düzeltme 2 ya da F5 kapısı": kapsam ~100 satırı aştığı için F5 kapısında kalır (yukarıdaki dayanak); D-1627 F5 kapısı |
+| Güvenlik taraması | ✓ | sabit yol bağlantısı; sır/yetki/girdi etkisi yok; yeni bağımlılık yok |
+| `09` biçim | ✓ | `dotnet format --verify-no-changes --include` 13 `.cs` temiz; build `-warnaserror` 0 uyarı |
 
 ### Öz denetim (bitiş kapısı 2) — Düzeltme 1'de bütün kriterler ve KK'ler yeniden denetlendi
 
@@ -97,6 +119,7 @@
 - **Branch:** `task/T546-gezinme-gecis-esitlik`
 - **Commit:** `67237e82` — T546: Gezinme ve geçiş eşitlik denetimleri: iskeletler, geçişler, dışarıdan girişler, dönüşler
 - **PR:** #580
+- **Düzeltme 2:** `T546-fix2` dalından aynı dala itildi (doğrulama tur 1 B1; Unit Consistency 383/383, Unit diğer 7420/7420, `AfterSalesScreenTests` 17/17; Integration TAM: CI)
 - **Düzeltme 1:** `T546-fix1` dalından aynı dala itildi (düzeltme commit'i dal ucudur; K-1617)
 - **CI:** dal CI'ını yönetici izler
 - **Post-merge run'lar:** *(validator doldurur)*

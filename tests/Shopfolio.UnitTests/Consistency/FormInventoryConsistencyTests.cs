@@ -207,8 +207,9 @@ public sealed class FormInventoryConsistencyTests
     public void LengthAttribute_WritingTheNumber_IsReported()
     {
         Dictionary<string, string> sources = new(Sources.Value, StringComparer.Ordinal);
-        Assert.Contains("[TextTooLong(ProductConstants.ShortTextMaxLength)]", sources["Pages/Panel/Categories.cshtml.cs"], StringComparison.Ordinal);
-        sources["Pages/Panel/Categories.cshtml.cs"] = sources["Pages/Panel/Categories.cshtml.cs"].Replace("[TextTooLong(ProductConstants.ShortTextMaxLength)]", "[TextTooLong(150)]", StringComparison.Ordinal);
+        const string Anchor = "[FieldRequired]\n    public string? Name { get; set; }";
+        Assert.Contains(Anchor, sources["Pages/Panel/Categories.cshtml.cs"], StringComparison.Ordinal);
+        sources["Pages/Panel/Categories.cshtml.cs"] = sources["Pages/Panel/Categories.cshtml.cs"].Replace(Anchor, "[FieldRequired]\n    [TextTooLong(150)]\n    public string? Name { get; set; }", StringComparison.Ordinal);
 
         Assert.Contains(Problems(sources: sources), p => p.StartsWith("AttributeLimitIsANumber: Pages/Panel/Categories.cshtml.cs", StringComparison.Ordinal));
     }

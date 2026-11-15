@@ -118,7 +118,7 @@ internal static class FormFieldInventory
         new("7.2.4.10", "Panel.SaveProductVariantRow.ImageId + Panel.SaveProductVariantRow.DigitalFileId + Panel.SaveProductInput.DigitalFileId", "İsteğe bağlı", "7.3.2.18 P-26"),
         new("7.2.4.11", "Panel.SaveProductInput.VatRate", "Zorunlu", "7.3.2.9 P-10"),
         new("7.2.4.12", "Panel.SaveProductInput.OriginCountryId", "Zorunlu"),
-        new("7.2.4.13", "Panel.SaveProductInput.MeasurementUnit + Panel.SaveProductVariantRow.NetQuantity", "İsteğe bağlı", "8.2.3"),
+        new("7.2.4.13", "Panel.SaveProductInput.MeasurementUnit + Panel.SaveProductVariantRow.NetQuantity", "İsteğe bağlı", "8.2.3 K-1013"),
         new("7.2.4.14", "Panel.SaveProductInput.ShippingPeriod", "İsteğe bağlı", "7.3.2.11 P-5 P-6"),
         new("7.2.4.15", "Panel.SaveProductInput.FulfilmentPeriod", "Yayın için zorunlu", "P-44"),
         new("7.2.4.16", "Panel.SaveProductInput.MaxQuantityPerOrder", "İsteğe bağlı", "P-9"),
@@ -126,7 +126,7 @@ internal static class FormFieldInventory
         new("7.2.4.18", "Panel.SaveProductDiscountRow.Percentage + Panel.SaveProductDiscountRow.StartDate + Panel.SaveProductDiscountRow.EndDate", "İsteğe bağlı", "7.3.2.9 7.3.2.12"),
 
         // 7.2.5 E-34, 7.2.6 E-35: the category and the coupon.
-        new("7.2.5.1", "Panel.CreateCategoryInput.Name", "Zorunlu", "7.3.2.14 P-28"),
+        new("7.2.5.1", "Panel.CreateCategoryInput.Name + Panel.RenameCategoryInput.Name", "Zorunlu", ""),
         new("7.2.5.2", "Panel.MoveCategoryInput.ParentCategoryId", "Seçim", "P-20"),
         new("7.2.6.1", "Panel.SaveCouponInput.Code", "Zorunlu", "7.3.2.19"),
         new("7.2.6.2", "Panel.SaveCouponInput.CouponType", "Zorunlu", "7.3.2.16"),

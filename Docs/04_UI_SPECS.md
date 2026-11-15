@@ -4418,7 +4418,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 | 7.2.4.10 | Varyant görseli · dijital dosya | İsteğe bağlı — dijitalde yayındaki varyant için dosya zorunlu | Görsel ve dosya (7.3.2.18) — P-26 | Alan mesajı; dosyasız bırakan silmede yerinde kalıcı (K-799) | — |
 | 7.2.4.11 | KDV oranı | Zorunlu — varsayılanla gelir (P-10) | Yüzde (7.3.2.9) — `02 §3.8.2` | Alan mesajı | — |
 | 7.2.4.12 | Üretim yeri | Zorunlu — fizikselde; dijitalde isteğe bağlı | Ülke listesinden seçilir — liste ürünle gelir (`02 §3.8.5`; K-1023) | Alan mesajı | — |
-| 7.2.4.13 | Ölçü birimi ve varyantın net miktarı | İsteğe bağlı — birim ürün düzleminde seçilir; seçilirse her varyantın net miktarı zorunludur, seçilmemişse net miktar alanı yoktur (`02 §3.8.5`; K-1019, K-1020) | Birim kapalı listeden seçilir — liste `02 §3.8.5`'tedir (K-1018), kod adları Veri Modeli'ndedir; yanında K-798'in hatırlatması (K-573) ve birim değişirse var olan net miktarların yeni birimle okunacağını söyleyen satır (K-1020); net miktar varyant tablosunun sütunudur (9.5.5) — sıfırdan büyük sayı; ondalık ölçeği 8.2.3'tedir (K-1013) | Alan mesajı | — |
+| 7.2.4.13 | Ölçü birimi ve varyantın net miktarı | İsteğe bağlı — birim ürün düzleminde seçilir; seçilirse her varyantın net miktarı zorunludur, seçilmemişse net miktar alanı yoktur (`02 §3.8.5`; K-1019, K-1020) | Birim kapalı listeden seçilir — liste `02 §3.8.5`'tedir (K-1018), kod adları Veri Modeli'ndedir; yanında K-798'in hatırlatması (K-573) ve birim değişirse var olan net miktarların yeni birimle okunacağını söyleyen satır (K-1020); net miktar varyant tablosunun sütunudur (9.5.5) — sıfırdan büyük sayı; ondalık ölçeği K-1013'tedir (`06` `NetQuantity`), ayırıcı biçimi 8.2.3'tedir | Alan mesajı | — |
 | 7.2.4.14 | Kargoya verme süresi — ürün düzeyi | İsteğe bağlı — boşsa firma varsayılanı (P-6) | İş günü; P-5'in çiti (7.3.2.11) | Alan mesajı — çit dışı değer sebebiyle (2.12.1.4) | — |
 | 7.2.4.15 | İfa süresi | Yayın için zorunlu — hizmette (P-44) | Gün; P-44'ün alt çiti | Alan mesajı; yayın kapısı (K-799) | — |
 | 7.2.4.16 | Bir siparişte en fazla adet | İsteğe bağlı (P-9) | Tam sayı; P-9'un çiti | Alan mesajı | — |
@@ -4429,7 +4429,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 
 | # | Alan | Zorunluluk | Kural | Hata mesajı | Limit |
 |---|---|---|---|---|---|
-| 7.2.5.1 | Ad | Zorunlu | Kısa metin (7.3.2.14; P-28) | Alan mesajı | — |
+| 7.2.5.1 | Ad | Zorunlu | Kısa metin | Alan mesajı | — |
 | 7.2.5.2 | Yeni üst kategori — taşıma | Seçim | Seviye sayısı P-20'yi aşmaz; kendi alt dalına taşınmaz (`02 §3.4.6`) | Yerinde kalıcı — K-799'un metinleri | — |
 
 **7.2.6 E-35 — kupon** (9.7.8).
@@ -4636,13 +4636,13 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 | 7.3.2.7 | IBAN | Girişte biçim ve sağlama basamağıyla denetlenir; boşluklar yok sayılır (`02 §7.4.5`; K-817, K-825); yanında aydınlatma bağlantısı — müşteri tarafında (`02 §3.33.5`) | Alan mesajı | 7.1.7–7.1.9, 7.2.10, 7.2.20 |
 | 7.3.2.8 | Tutar | Kuruş hassasiyeti — en çok iki ondalık; fiyat sıfırdan büyük (`02 §3.8.4`); ayar tutarları sıfır ya da büyük; üst sınır `06 §2.5`'teki para türünün sınırıdır, aşımda alan mesajı (K-1214); biçim 8.2.4 | Alan mesajı — fiyatta K-799'un metinleri | 7.1.1, 7.2.4, 7.2.6, 7.2.13, 7.2.21 |
 | 7.3.2.9 | Yüzde | En çok iki ondalık — oranların tek ölçeği yüzdedir (K-1013); indirim ve yüzdesel kupon sıfırdan büyük, %100'den küçük (`02 §3.9.1`, §3.10.4); KDV oranı ve varsayılanı sıfır ya da büyük, %100'den küçük (`02 §3.8.2`; K-1013); biçim 8.2.3 | Alan mesajı | 7.2.4, 7.2.6, 7.2.21 |
-| 7.3.2.10 | Adet | Tam sayı; birden küçük ve üst sınırı aşan değer reddedilir; dijital kalemde ve adedi bir olan kalemde alan yok (2.12.1.8) | Alan mesajı; sepette 5.4.10 ve 5.12.5'in yerinde kalıcı metinleri | 7.1.2, 7.1.4, 7.1.8–7.1.10, 7.2.9–7.2.12 |
+| 7.3.2.10 | Adet | Tam sayı; birden küçük ve üst sınırı aşan değer reddedilir; dijital kalemde ve adedi bir olan kalemde alan yok (2.12.1.8) | Alan mesajı; sepette 5.4.10 ve 5.12.5'in yerinde kalıcı metinleri | 7.1.2, 7.1.4, 7.1.8–7.1.10, 7.2.6, 7.2.9–7.2.12 |
 | 7.3.2.11 | Süre ve olay tarihi | Süre gün ya da iş günü olarak, çitin içinde (2.12.1.4); olay tarihi geçmişe dönük, ileri tarih reddedilir, alt sınırı olan tarih sınırın altında reddedilir (2.12.5.1); biçim 8.2.1 | Alan mesajı — çit ve tarih için K-799 ve K-817'nin metinleri | 7.2.4, 7.2.8, 7.2.10, 7.2.12, 7.2.21 |
 | 7.3.2.12 | Tarih aralığı | Bitiş başlangıçtan önce olamaz; ileri tarih indirimde, kuponda ve duyuruda serbest, rapor ve iz süzgeçlerinde reddedilir (2.12.5.3; 9.22.9, 9.23.9, 9.24.8) | Alan mesajı | 7.2.3, 7.2.4, 7.2.6, 7.2.16, 7.2.25 |
 | 7.3.2.13 | Bağlantı | "http://" ya da "https://" ile başlayan tam adres (K-825) | Alan mesajı | 7.2.16, 7.2.17, 7.2.19 |
 | 7.3.2.14 | Kısa metin — karakter tavanlı | Ürün adı ve kurumsal içerikte ad ya da başlık P-27; SSS sorusu, kısa açıklama ve çalışma saatleri P-28; Hakkımızda kısa tanıtımı P-29; duyuru metni P-30 (`02 §3.11.5`, §3.27.15) | Alan mesajı | 7.2.4, 7.2.16 |
 | 7.3.2.15 | Uzun metin | Tavan yok; kapalı biçim seti yalnız `02 §3.11.6`'nın saydığı alanlarda; öteki uzun metinler — panelde de — ve müşteri formları düz metin | Alan mesajı — boş zorunlu alan | 7.1.3, 7.1.10, 7.2.4, 7.2.9, 7.2.16, 7.2.22 |
-| 7.3.2.16 | Kapalı liste | Liste ürünle gelir; firma düzenlemez; serbest metin kabul etmez (2.12.1.3) | Alan mesajı | 7.1.3, 7.2.3, 7.2.4, 7.2.7, 7.2.9, 7.2.10, 7.2.14, 7.2.19 |
+| 7.3.2.16 | Kapalı liste | Liste ürünle gelir; firma düzenlemez; serbest metin kabul etmez (2.12.1.3) | Alan mesajı | 7.1.3, 7.2.3, 7.2.4, 7.2.6, 7.2.7, 7.2.9, 7.2.10, 7.2.14, 7.2.19 |
 | 7.3.2.17 | Arama alanı | Serbest metin; biçim denetimi yok; en çok P-27 karakter (ürün adının tavanı), fazlası kırpılır; vitrinde Türkçe karakter ve büyük-küçük harf duyarsız (`10 §2` KP-2), panelde 7.2.3'ün kuralları | Sonuç boşsa boş hâl satırı (K-765) | 7.1.1, 7.2.3 |
 | 7.3.2.18 | Görsel ve dosya | Biçim P-22, tek dosya P-23, adet P-24 ya da P-25, dijital dosya P-26 (2.12.8.3) · kaydedilmeden bir günden eski kalıp silinmiş yükleme (2.12.8.7) | Alan mesajı | 7.2.4, 7.2.16, 7.2.18 |
 | 7.3.2.19 | Kupon kodu | Büyük-küçük harf ayrımsız eşleşir; panelde kuponlar arasında tekil (K-806) | Alan mesajı | 7.1.5, 7.2.6 |

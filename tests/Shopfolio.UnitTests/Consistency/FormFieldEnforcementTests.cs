@@ -64,7 +64,7 @@ public sealed partial class FormFieldEnforcementTests
     {
         Assert.Contains(Run("İsteğe bağlı", [], [], ["P-9"], []), p => p.StartsWith("RuleWithoutEnforcement:", StringComparison.Ordinal) && p.Contains("P-9", StringComparison.Ordinal));
         Assert.Contains(Run("İsteğe bağlı", [], [], [], ["L-4"]), p => p.StartsWith("RuleWithoutEnforcement:", StringComparison.Ordinal) && p.Contains("L-4", StringComparison.Ordinal));
-        Assert.DoesNotContain(Run("İsteğe bağlı", [], ["L-4|Modules/CorporateContent/ContactFormSending.cs#AttemptLimit.L4, byIp"], [], ["L-4"]), p => p.StartsWith("Rule", StringComparison.Ordinal));
+        Assert.DoesNotContain(Run("İsteğe bağlı", [], ["L-4|Modules/CorporateContent/ContactFormSending.cs#_attempts.RecordAsync(AttemptLimit.L4, byIp, ct)"], [], ["L-4"]), p => p.StartsWith("Rule", StringComparison.Ordinal));
     }
 
     // KK6: a kind of check or a rule that the tables do not hold is never skipped.
@@ -89,34 +89,140 @@ public sealed partial class FormFieldEnforcementTests
         Assert.Contains(Run("Zorunlu", [], ["Required without a separator"], [], []), p => p.StartsWith("EnforcementNotInCode:", StringComparison.Ordinal));
     }
 
-    // KK6 on the real table: the code line of every enforcement line of every row is held by the code; removing the field's part of a line from the sources reports that row.
+    // KK6 on the real table: the piece of code of every enforcement line is held exactly once by its file, and removing that piece from the sources reports exactly the rows that hold that code - the rows that
+    // use the piece and the rows whose own piece overlaps it - never the row of another place (the evidence of a row is its own code, not another field's or another flow's).
     [Fact]
-    public void EveryEnforcementLine_RemovedFromTheCode_IsReported()
+    public void EveryEnforcementLine_RemovedFromTheCode_ReportsExactlyTheRowsThatHoldThatCode()
     {
-        List<string> silent = [];
-        Dictionary<string, IReadOnlyList<string>> reportedBy = new(StringComparer.Ordinal);
-        foreach ((string row, string[] lines) in FormFieldEnforcementTable.Lines)
+        List<string> wrong = [];
+        List<(string Row, string File, string Piece)> all =
+        [
+            .. FormFieldEnforcementTable.Lines.SelectMany(r => r.Value.Select(l => (r.Key, File: FileOf(l), Piece: PieceOf(l)))),
+        ];
+        foreach ((string file, string piece) in all.Select(a => (a.File, a.Piece)).Distinct())
         {
-            foreach (string line in lines)
+            string text = FormFieldCheck.Collapse(Sources.Value[file]);
+            string collapsed = FormFieldCheck.Collapse(piece);
+            int at = text.IndexOf(collapsed, StringComparison.Ordinal);
+            if (at < 0 || FormFieldCheck.Count(text, collapsed) != 1)
             {
-                int hash = line.IndexOf('#', StringComparison.Ordinal);
-                string file = line[(line.IndexOf('|', StringComparison.Ordinal) + 1)..hash];
-                string first = line[(hash + 1)..].Split(["@@@", "@@"], StringSplitOptions.None)[0];
-                string key = file + "|" + first;
-                if (!reportedBy.TryGetValue(key, out IReadOnlyList<string>? problems))
-                {
-                    problems = FormFieldCheck.Problems(Document.Value, new Dictionary<string, string>(Sources.Value, StringComparer.Ordinal) { [file] = Sources.Value[file].Replace(first, "RemovedFromTheCode", StringComparison.Ordinal) });
-                    reportedBy[key] = problems;
-                }
+                wrong.Add($"{file}: '{piece}' is held {FormFieldCheck.Count(text, collapsed)} times");
+                continue;
+            }
 
-                if (!problems.Any(p => p.StartsWith($"EnforcementNotInCode:{row}:", StringComparison.Ordinal)))
-                {
-                    silent.Add($"{row}: {line}");
-                }
+            string removed = text[..at] + "RemovedFromTheCode" + text[(at + collapsed.Length)..];
+            IReadOnlyList<string> problems = FormFieldCheck.Problems(Document.Value, new Dictionary<string, string>(Sources.Value, StringComparer.Ordinal) { [file] = removed });
+            string[] reported = [.. problems.Where(p => p.StartsWith("EnforcementNotInCode:", StringComparison.Ordinal) || p.StartsWith("EnforcementAmbiguous:", StringComparison.Ordinal)).Select(RowOf).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)];
+            string[] expected =
+            [
+                .. all.Where(a => a.File == file && Overlaps(text, collapsed, at, FormFieldCheck.Collapse(a.Piece))).Select(a => a.Row).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal),
+            ];
+            if (!reported.SequenceEqual(expected))
+            {
+                wrong.Add($"{file}: removing '{piece}' reported [{string.Join(", ", reported)}], the rows that hold the code are [{string.Join(", ", expected)}]");
             }
         }
 
-        Assert.True(silent.Count == 0, "A line removed from the code was not reported:\n" + string.Join('\n', silent));
+        Assert.True(wrong.Count == 0, "A removed piece of code was not reported by exactly its own rows:\n" + string.Join('\n', wrong));
+    }
+
+    // KK6 on the real code, the changes that remove or change a rule: the limit of the e-mail change moves to another limit, the quantity check of one handler leaves, a field leaves the required list - the
+    // row of that flow is reported and the row of the flow that shares the helper or the text is not reported for the other's change.
+    [Fact]
+    public void ChangeOfALimit_OfAFlowsQuantityCheck_AndOfARequiredList_ReportsTheRowsOfThatFlow()
+    {
+        IReadOnlyList<string> limit = ProblemsWith("Infrastructure/Security/EmailChangeRules.cs", s => s.Replace("attempts.RecordAsync(AttemptLimit.L9, byEmail, ct)", "attempts.RecordAsync(AttemptLimit.L3, byEmail, ct)", StringComparison.Ordinal));
+        foreach (string row in new[] { "7.1.15.2", "7.1.15.4", "7.2.24.2", "7.2.24.4" })
+        {
+            Assert.Contains(limit, p => p.StartsWith($"EnforcementNotInCode:{row}:", StringComparison.Ordinal));
+        }
+
+        IReadOnlyList<string> quantity = ProblemsWith("Pages/Panel/OrderDetail.ItemSteps.cs", s => Cut(s, "Task<IActionResult> ArriveAsync(", "if (!TryReadQuantity(input.Quantity, out int read))", "if (false)"));
+        Assert.Contains(quantity, p => p.StartsWith("EnforcementNotInCode:7.2.12.2:", StringComparison.Ordinal));
+        Assert.DoesNotContain(quantity, p => p.StartsWith("EnforcementNotInCode:7.2.11.2:", StringComparison.Ordinal));
+
+        IReadOnlyList<string> required = ProblemsWith("Modules/Settings/CompanyIdentityRules.cs", s => Cut(s, "CommonFields =", "nameof(CompanyIdentityInput.Phone),", string.Empty));
+        Assert.Contains(required, p => p.StartsWith("EnforcementNotInCode:7.2.19.4:", StringComparison.Ordinal));
+        Assert.DoesNotContain(required, p => p.StartsWith("EnforcementNotInCode:7.2.19.3:", StringComparison.Ordinal));
+        IReadOnlyList<string> province = ProblemsWith("Modules/Settings/CompanyIdentityRules.cs", s => Cut(s, "CommonFields =", "nameof(CompanyIdentityInput.ProvinceId),", string.Empty));
+        Assert.Contains(province, p => p.StartsWith("EnforcementNotInCode:7.2.19.3:", StringComparison.Ordinal));
+    }
+
+    // A piece of code held twice by its file is not the evidence of a place: the row is reported as ambiguous (the same line copied elsewhere in the file).
+    [Fact]
+    public void EnforcementLine_HeldTwiceInItsFile_IsReported()
+    {
+        string line = FormFieldEnforcementTable.Lines["7.2.11.2"][0];
+        string file = FileOf(line);
+        IReadOnlyList<string> problems = ProblemsWith(file, s => s + "\n" + PieceOf(line));
+
+        Assert.Contains(problems, p => p.StartsWith("EnforcementAmbiguous:7.2.11.2:", StringComparison.Ordinal));
+    }
+
+    // A row whose every line another form's row also has has no evidence of its own: reported; one line of its own is enough.
+    [Fact]
+    public void Row_WithNoLineOfItsOwn_IsReported()
+    {
+        Dictionary<string, string[]> shared = new(StringComparer.Ordinal)
+        {
+            ["7.1.1.1"] = ["L-1|Infrastructure/Security/PasswordRegime.cs#AttemptLimit.L1, subject"],
+            ["7.2.1.1"] = ["L-1|Infrastructure/Security/PasswordRegime.cs#AttemptLimit.L1, subject"],
+            ["7.2.1.2"] = ["L-1|Infrastructure/Security/PasswordRegime.cs#AttemptLimit.L1, subject"],
+        };
+        string[] rows = ["7.1.1.1", "7.2.1.1", "7.2.1.2"];
+
+        Assert.Contains(FormFieldCheck.OwnLines(shared, rows), p => p.StartsWith("EnforcementNotDistinctive:7.1.1.1:", StringComparison.Ordinal));
+        Assert.Contains(FormFieldCheck.OwnLines(shared, rows), p => p.StartsWith("EnforcementNotDistinctive:7.2.1.1:", StringComparison.Ordinal));
+        Assert.Contains(FormFieldCheck.OwnLines(shared, rows), p => p.StartsWith("EnforcementNotDistinctive:7.2.1.2:", StringComparison.Ordinal));
+
+        shared["7.2.1.1"] = [.. shared["7.2.1.1"], "L-1|Modules/Administration/AdministrationModule.cs#_passwords.CheckPasswordAsync(_accounts, email, password, ipAddress, recognizedBrowserMark, ct)"];
+        string[] after = [.. FormFieldCheck.OwnLines(shared, rows)];
+        Assert.DoesNotContain(after, p => p.StartsWith("EnforcementNotDistinctive:7.2.1.1:", StringComparison.Ordinal));
+        Assert.Contains(after, p => p.StartsWith("EnforcementNotDistinctive:7.1.1.1:", StringComparison.Ordinal));
+    }
+
+    // The real table: every row has a line of its own (no row stands on code that only another form's row also names).
+    [Fact]
+    public void EveryRowOfTheTable_HasALineOfItsOwn()
+    {
+        string[] none = [.. FormFieldCheck.OwnLines(FormFieldEnforcementTable.Lines, FormFieldEnforcementTable.Lines.Keys)];
+
+        Assert.True(none.Length == 0, "Rows without a line of their own:\n" + string.Join('\n', none));
+    }
+
+    // The 8.2.3 id is the separator's format and names no check; the net quantity's scale is K-1013 and the net quantity check answers to it (04 7.2.4.13).
+    [Fact]
+    public void NetQuantityScale_IsTheIdOfK1013_AndTheSeparatorFormatNamesNoCheck()
+    {
+        Assert.Empty(FormFieldEnforcement.RuleKinds["8.2.3"]);
+        Assert.Equal(["NetQuantity"], FormFieldEnforcement.RuleKinds["K-1013"]);
+        Assert.DoesNotContain(Run("İsteğe bağlı", ["InvalidNetQuantityAttribute"], [], ["8.2.3", "K-1013"], []), p => p.StartsWith("Rule", StringComparison.Ordinal));
+        Assert.Contains(Run("İsteğe bağlı", ["InvalidNetQuantityAttribute"], [], ["8.2.3"], []), p => p.StartsWith("RuleMissesAttribute:", StringComparison.Ordinal));
+        Assert.Contains(Run("İsteğe bağlı", [], [], ["K-1013"], []), p => p.StartsWith("RuleWithoutEnforcement:", StringComparison.Ordinal));
+    }
+
+    private static string FileOf(string line) => line[(line.IndexOf('|', StringComparison.Ordinal) + 1)..line.IndexOf('#', StringComparison.Ordinal)];
+
+    private static string PieceOf(string line) => line[(line.IndexOf('#', StringComparison.Ordinal) + 1)..];
+
+    private static string RowOf(string problem) => problem[(problem.IndexOf(':', StringComparison.Ordinal) + 1)..problem.IndexOf(':', problem.IndexOf(':', StringComparison.Ordinal) + 1)];
+
+    private static bool Overlaps(string text, string removed, int at, string other)
+    {
+        int start = text.IndexOf(other, StringComparison.Ordinal);
+        return start >= 0 && start < at + removed.Length && at < start + other.Length;
+    }
+
+    private static IReadOnlyList<string> ProblemsWith(string file, Func<string, string> change)
+        => FormFieldCheck.Problems(Document.Value, new Dictionary<string, string>(Sources.Value, StringComparer.Ordinal) { [file] = change(Sources.Value[file]) });
+
+    /// <summary>The text with the first <paramref name="what"/> after <paramref name="after"/> replaced; the change is an error of the test when the text is not there.</summary>
+    private static string Cut(string text, string after, string what, string with)
+    {
+        int from = text.IndexOf(after, StringComparison.Ordinal);
+        int at = from < 0 ? -1 : text.IndexOf(what, from, StringComparison.Ordinal);
+        Assert.True(at >= 0, $"'{what}' is not in the text after '{after}'.");
+        return text[..at] + with + text[(at + what.Length)..];
     }
 
     // KK6 on the real code: every rule attribute of every property place of the inventory, taken off the property (the marks given to the comparison without it), reports the row unless the same kind is

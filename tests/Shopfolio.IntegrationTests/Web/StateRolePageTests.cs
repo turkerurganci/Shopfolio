@@ -189,6 +189,8 @@ public sealed partial class StateRolePageTests
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
         List<string> problems = [];
         int offered = 0;
+        Dictionary<OrderOperation, int> opened = [];
+        Dictionary<OrderOperation, int> drawnWhenOpen = [];
 
         foreach (StateCase state in cases)
         {
@@ -215,9 +217,16 @@ public sealed partial class StateRolePageTests
                     problems.Add($"{state.Row} {state.Shipping}+{state.Payment}: {operation} is outside its range but the page draws [{string.Join(", ", forms)}].");
                 }
 
-                if (isOpen && !drawn && Always.Contains(operation))
+                // Both directions for every operation the panel draws (04 6.3.9.11-26): open in the pair and not drawn is as wrong as drawn outside the range.
+                if (isOpen && !drawn)
                 {
                     problems.Add($"{state.Row} {state.Shipping}+{state.Payment}: {operation} is open but the page draws none of [{string.Join(", ", forms)}].");
+                }
+
+                if (open.Any(e => e.Operation == operation))
+                {
+                    opened[operation] = opened.GetValueOrDefault(operation) + 1;
+                    drawnWhenOpen[operation] = drawnWhenOpen.GetValueOrDefault(operation) + (drawn ? 1 : 0);
                 }
             }
 
@@ -227,31 +236,22 @@ public sealed partial class StateRolePageTests
             }
         }
 
+        // No silent pass: an operation the seeds never open, or never see drawn when open, is a seed that cannot reach it - the test says so instead of passing (T547 validation B5).
+        foreach (OrderOperation operation in PanelForms.Keys)
+        {
+            if (opened.GetValueOrDefault(operation) == 0)
+            {
+                problems.Add($"{operation} was never open in any pair of the rows: the seeds cannot reach it, so its drawing is not checked.");
+            }
+            else if (drawnWhenOpen.GetValueOrDefault(operation) == 0)
+            {
+                problems.Add($"{operation} was open in {opened[operation]} cases and never drawn.");
+            }
+        }
+
         Assert.True(problems.Count == 0, string.Join(Environment.NewLine, problems));
         Assert.True(offered > 0, "No control was drawn in any pair: the test would pass on an empty page.");
     }
-
-    /// <summary>
-    /// The operations the page draws whenever the table opens them, in a seed of one item and no record: the ones that need a record (a delivery to correct, a transition to undo, a part of the order to
-    /// correct) are drawn only when that part exists, so for them the test asserts only the other direction - outside the range nothing is drawn.
-    /// </summary>
-    private static readonly HashSet<OrderOperation> Always =
-    [
-        OrderOperation.MarkTransferPaid,
-        OrderOperation.ShipOrder,
-        OrderOperation.MarkDelivered,
-        OrderOperation.MarkDeliveryFailed,
-        OrderOperation.ResendOrder,
-        OrderOperation.CloseOrder,
-        OrderOperation.CancelByFirm,
-        OrderOperation.RecordWithdrawalFromOtherChannel,
-        OrderOperation.WriteInternalNote,
-        OrderOperation.ProcessRefund,
-        OrderOperation.RequestRefundIban,
-        OrderOperation.ResendEmail,
-        OrderOperation.ResolveOrReopenDefectClaim,
-        OrderOperation.RenewDownloadAllowance,
-    ];
 
     /// <summary>Each pair three times: with no record, with the records that open the order-level steps, and with an open request for the customer's IBAN.</summary>
     private static StateCase[] WithRecords(StateCase[] cases) =>

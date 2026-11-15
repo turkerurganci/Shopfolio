@@ -22,7 +22,6 @@ public sealed class CreateCategoryInput : IFormInput
 {
     [Display(Name = "Ad")]
     [FieldRequired]
-    [TextTooLong(ProductConstants.ShortTextMaxLength)]
     public string? Name { get; set; }
 
     public Guid? ParentCategoryId { get; set; }
@@ -35,7 +34,6 @@ public sealed class RenameCategoryInput : IFormInput
 
     [Display(Name = "Ad")]
     [FieldRequired]
-    [TextTooLong(ProductConstants.ShortTextMaxLength)]
     public string? Name { get; set; }
 }
 

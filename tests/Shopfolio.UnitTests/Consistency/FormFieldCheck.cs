@@ -61,6 +61,8 @@ internal static partial class FormFieldCheck
             problems.AddRange(FormFieldEnforcement.Problems(entry.Row, row.Requirement, marks, enforcement, ruleIds, limits, knownRows, sources));
         }
 
+        problems.AddRange(OwnLines(FormFieldEnforcementTable.Lines, entries.Select(e => e.Row)));
+
         foreach (string stray in FormFieldEnforcementTable.Lines.Keys.Where(k => entries.All(e => e.Row != k)))
         {
             problems.Add($"EnforcementNotInCode:{stray}: the enforcement table has lines for a row the inventory does not hold.");
@@ -72,6 +74,38 @@ internal static partial class FormFieldCheck
         }
 
         return problems;
+    }
+
+    /// <summary>
+    /// A line a row has of its own: one that no row of another form uses (the form is the first three parts of the id). A row whose every line is shared with another form has no evidence that is its own - the
+    /// shared boundary call of an attempt limit may stay as a second line, but the form's own call is the evidence (<c>EnforcementNotDistinctive</c>).
+    /// </summary>
+    internal static IEnumerable<string> OwnLines(IReadOnlyDictionary<string, string[]> table, IEnumerable<string> rows)
+    {
+        static string FormOf(string row) => string.Join('.', row.Split('.')[..3]);
+        static string PieceOf(string line) => line[(line.IndexOf('|', StringComparison.Ordinal) + 1)..];
+
+        Dictionary<string, HashSet<string>> formsOf = new(StringComparer.Ordinal);
+        foreach ((string row, string[] lines) in table)
+        {
+            foreach (string line in lines)
+            {
+                if (!formsOf.TryGetValue(PieceOf(line), out HashSet<string>? forms))
+                {
+                    forms = formsOf[PieceOf(line)] = new HashSet<string>(StringComparer.Ordinal);
+                }
+
+                forms.Add(FormOf(row));
+            }
+        }
+
+        foreach (string row in rows.Where(r => table.ContainsKey(r)))
+        {
+            if (table[row].All(l => formsOf[PieceOf(l)].Count > 1))
+            {
+                yield return $"EnforcementNotDistinctive:{row}: every line of the row is shared with a row of another form; the row has no line of its own.";
+            }
+        }
     }
 
     /// <summary>
@@ -114,10 +148,14 @@ internal static partial class FormFieldCheck
     /// Whether the text holds the anchor as a whole identifier at each end that is an identifier character: <c>MinPrice</c> is not held by <c>MinPriceText</c> (a renamed field must not stay "found" through
     /// a longer name that happens to start or end with it); an end that is a bracket or a quote needs no boundary.
     /// </summary>
-    internal static bool Holds(string text, string anchor)
+    internal static bool Holds(string text, string anchor) => Count(text, anchor) > 0;
+
+    /// <summary>How many times the text holds the anchor as <see cref="Holds"/> reads it.</summary>
+    internal static int Count(string text, string anchor)
     {
         bool startsWord = char.IsLetterOrDigit(anchor[0]) || anchor[0] == '_';
         bool endsWord = char.IsLetterOrDigit(anchor[^1]) || anchor[^1] == '_';
+        int count = 0;
         for (int at = text.IndexOf(anchor, StringComparison.Ordinal); at >= 0; at = text.IndexOf(anchor, at + 1, StringComparison.Ordinal))
         {
             int end = at + anchor.Length;
@@ -125,12 +163,30 @@ internal static partial class FormFieldCheck
             bool after = !endsWord || end >= text.Length || !(char.IsLetterOrDigit(text[end]) || text[end] == '_');
             if (before && after)
             {
-                return true;
+                count++;
             }
         }
 
-        return false;
+        return count;
     }
+
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<string, string> Collapsed = new();
+
+    /// <summary>The text with every run of white space read as one space (the code of a statement that runs over several lines is one piece).</summary>
+    internal static string Collapse(string text)
+    {
+        if (Collapsed.TryGetValue(text, out string? known))
+        {
+            return known;
+        }
+
+        string collapsed = WhiteSpace().Replace(text, " ");
+        Collapsed.AddOrUpdate(text, collapsed);
+        return collapsed;
+    }
+
+    [GeneratedRegex(@"\s+", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex WhiteSpace();
 
     /// <summary>The property of <c>Namespace.Type.Property</c>: the namespace is the last part of the page namespace (<c>Storefront</c> for <c>Shopfolio.Pages.Storefront</c>).</summary>
     private static PropertyInfo? Find(string where)
@@ -154,7 +210,7 @@ internal static partial class FormFieldCheck
         return RuleId().Matches(cell).Select(m => m.Value).Distinct(StringComparer.Ordinal);
     }
 
-    [GeneratedRegex(@"\b7\.3\.2\.\d+\b|\bP-\d+\b|\bZ-\d+\b|\b7\.[12]\.\d+(?:\.\d+)?\b|\b8\.2\.3\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    [GeneratedRegex(@"\b7\.3\.2\.\d+\b|\bP-\d+\b|\bZ-\d+\b|\b7\.[12]\.\d+(?:\.\d+)?\b|\b8\.2\.3\b|\bK-1013\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex RuleId();
 
     [GeneratedRegex(@"\bL-\d+\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

@@ -2074,7 +2074,7 @@ Sayısal parametreler koda gömülmez (K-02). Envanter bu bölümde yaşar ve he
 | P-24 | Ürün başına görsel adedi — ürünün ve varyantlarının görselleri birlikte | Ürün sabiti | **20** | — | §3.11.3 | K-92, K-461 |
 | P-25 | Kurumsal içerik kaydı başına görsel adedi | Ürün sabiti | **20** | — | §3.27.15 | K-252, K-461 |
 | P-26 | Dijital ürün dosyasının boyut tavanı | Ürün sabiti | **500 MB** | — | §3.12.3 | K-143, K-461 |
-| P-27 | Ürün adının ve kurumsal içerikte ad ya da başlığın karakter tavanı | Ürün sabiti | **150 karakter** | — | §3.11.5, §3.27.15 | K-95, K-252, K-461 |
+| P-27 | Ürün adının, kategori adının ve kurumsal içerikte ad ya da başlığın karakter tavanı | Ürün sabiti | **150 karakter** | — | §3.4.1, §3.11.5, §3.27.15 | K-95, K-252, K-461, K-1619 |
 | P-28 | SSS sorusunun, kısa açıklamanın ve şubenin çalışma saatlerinin karakter tavanı | Ürün sabiti | **200 karakter** | — | §3.27.6, §3.27.7, §3.27.15 | K-242, K-252, K-461, K-533 |
 | P-29 | Hakkımızda kısa tanıtımının karakter tavanı | Ürün sabiti | **400 karakter** | — | §3.27.3, §3.27.15 | K-239, K-252, K-461 |
 | P-30 | Duyuru metninin karakter tavanı | Ürün sabiti | **120 karakter** | — | §3.27.21 | K-269, K-461 |

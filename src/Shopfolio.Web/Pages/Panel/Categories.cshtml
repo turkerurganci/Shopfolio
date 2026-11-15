@@ -22,7 +22,7 @@
 <form method="post" asp-antiforgery="true" asp-page-handler="CreateCategory" class="form category-new" id="@CategoriesModel.NewCategoryFormId" data-js="submit-once">
     <div class="field">
         <label class="field__label" for="category-new-name">Ad</label>
-        <input class="field__control" type="text" id="category-new-name" name="Input.Name" value="@Model.NewCategoryValue" aria-required="true"
+        <input class="field__control" type="text" id="category-new-name" name="Input.Name" value="@Model.NewCategoryValue" maxlength="@ProductConstants.ProductNameMaxLength" aria-required="true"
                aria-invalid="@(Model.NewCategoryMessage is null ? "false" : "true")" aria-describedby="@(Model.NewCategoryMessage is null ? null : Messages.FieldMessageId("category-new-name"))">
         @if (Model.NewCategoryMessage is not null)
         {
@@ -63,7 +63,7 @@ else
                             <input type="hidden" name="Input.ParentCategoryId" value="@id">
                             <div class="field">
                                 <label class="field__label" for="category-child-@id">Alt kategorinin adı</label>
-                                <input class="field__control" type="text" id="category-child-@id" name="Input.Name" value="@node.ChildValue" aria-required="true"
+                                <input class="field__control" type="text" id="category-child-@id" name="Input.Name" value="@node.ChildValue" maxlength="@ProductConstants.ProductNameMaxLength" aria-required="true"
                                        aria-invalid="@(node.ChildMessage is null ? "false" : "true")" aria-describedby="@(node.ChildMessage is null ? null : Messages.FieldMessageId("category-child-" + id))">
                                 @if (node.ChildMessage is not null)
                                 {
@@ -77,7 +77,7 @@ else
                         <input type="hidden" name="Input.CategoryId" value="@id">
                         <div class="field">
                             <label class="field__label" for="category-name-@id">Yeni ad</label>
-                            <input class="field__control" type="text" id="category-name-@id" name="Input.Name" value="@(node.RenameValue ?? node.Name)" aria-required="true"
+                            <input class="field__control" type="text" id="category-name-@id" name="Input.Name" value="@(node.RenameValue ?? node.Name)" maxlength="@ProductConstants.ProductNameMaxLength" aria-required="true"
                                    aria-invalid="@(node.RenameMessage is null ? "false" : "true")" aria-describedby="@(node.RenameMessage is null ? null : Messages.FieldMessageId("category-name-" + id))">
                             @if (node.RenameMessage is not null)
                             {

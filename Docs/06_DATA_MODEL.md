@@ -3242,7 +3242,7 @@ Seçeneğin aldığı değer — "Kırmızı", "M" — ve sırası; varyantın i
 | Alan | Tip | Zorunlu | Varsayılan | Açıklama | Kaynak |
 |---|---|---|---|---|---|
 | ParentCategoryId | `uuid` → Category | Hayır | — | Üst kategori — kökte boş | `02 §3.4.1`, §3.4.6; K-1022 (4) |
-| Name | `text` | Evet | — | Kategorinin adı — sıra bu sütunun Türkçe sıralamasıdır | `02 §1.2` `Category`, §3.4.1; `04` 7.2.5.1 |
+| Name | `text` | Evet | — | Kategorinin adı — sıra bu sütunun Türkçe sıralamasıdır; karakter tavanı P-27'dir ve uygulamada denetlenir (panel formu tavanı aşan adı alan mesajıyla reddeder, sütun `text` kalır) | `02 §1.2` `Category`, §3.4.1, §11.2 P-27; `04` 7.2.5.1; K-1619 |
 | Level | `integer` | Evet | — | Düzey — kökte 1; üst kategorininkinin bir fazlası (saklanan türetilmiş değer — §2.7.1; K-1040 (4)) | `02 §3.4.1`, §11.2 P-20; K-1022 (4) |
 | Slug | `text` | Evet | — | Sayfa adresinin kayda ait parçası — addan üretilir, tür içinde tekildir; **kategori oluşturulunca sabitlenir** — `SlugFixedAt` taşımaz (§4.72) | `02 §3.30.1`, §3.30.2; `05 §3.7.1`; K-1070 |
 

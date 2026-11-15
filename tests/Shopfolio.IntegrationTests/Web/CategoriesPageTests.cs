@@ -125,6 +125,31 @@ public sealed class CategoriesPageTests : IAsyncLifetime
         Assert.Equal(0L, await CategoryCountAsync());
     }
 
+    // T547 C2 (04 7.2.5.1; 02 P-27; 09 9.4 item 3): the name is capped, so a name past the ceiling is a field message and no write (not a database error).
+    [Fact]
+    public async Task ANameOverTheCeiling_IsA422WithTheFieldMessage_OnCreateAndRename_AndWritesNothing_T547_C2()
+    {
+        string tooLong = new('a', 6000);
+        string atTheCeiling = new('b', ProductConstants.ProductNameMaxLength);
+        Guid id = await CreateAsync("Eski Ad", null);
+        using HttpClient client = ClientOf(Open());
+
+        using HttpResponseMessage created = await PostAsync(client, "CreateCategory", ("Input.Name", tooLong));
+        string createdHtml = await ReadAsync(created);
+        using HttpResponseMessage renamed = await PostAsync(client, "RenameCategory", ("Input.CategoryId", id.ToString("D")), ("Input.Name", tooLong));
+        string renamedHtml = await ReadAsync(renamed);
+        using HttpResponseMessage atLimit = await PostAsync(client, "CreateCategory", ("Input.Name", atTheCeiling));
+
+        string message = $"en çok {ProductConstants.ProductNameMaxLength} karakter olabilir.";
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, created.StatusCode);
+        Assert.Contains(message, createdHtml, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, renamed.StatusCode);
+        Assert.Contains(message, renamedHtml, StringComparison.Ordinal);
+        Assert.Equal("Eski Ad", await ScalarAsync<string>($"SELECT name FROM categories WHERE id = '{id}'"));
+        Assert.Equal(HttpStatusCode.SeeOther, atLimit.StatusCode);
+        Assert.Equal(2L, await CategoryCountAsync());
+    }
+
     [Fact]
     public async Task AChildUnderTheThirdLevel_Is422_AndAMissingParentIs404_T526_KK4()
     {

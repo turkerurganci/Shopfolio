@@ -126,7 +126,7 @@ internal static class FormFieldInventory
         new("7.2.4.18", "Panel.SaveProductDiscountRow.Percentage + Panel.SaveProductDiscountRow.StartDate + Panel.SaveProductDiscountRow.EndDate", "İsteğe bağlı", "7.3.2.9 7.3.2.12"),
 
         // 7.2.5 E-34, 7.2.6 E-35: the category and the coupon.
-        new("7.2.5.1", "Panel.CreateCategoryInput.Name + Panel.RenameCategoryInput.Name", "Zorunlu", ""),
+        new("7.2.5.1", "Panel.CreateCategoryInput.Name + Panel.RenameCategoryInput.Name", "Zorunlu", "7.3.2.14 P-27"),
         new("7.2.5.2", "Panel.MoveCategoryInput.ParentCategoryId", "Seçim", "P-20"),
         new("7.2.6.1", "Panel.SaveCouponInput.Code", "Zorunlu", "7.3.2.19"),
         new("7.2.6.2", "Panel.SaveCouponInput.CouponType", "Zorunlu", "7.3.2.16"),

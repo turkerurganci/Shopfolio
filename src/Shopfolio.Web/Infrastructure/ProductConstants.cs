@@ -108,7 +108,7 @@ internal static class ProductConstants
     /// <summary>P-47 — life of the e-mail change revert link, in days (Z-45).</summary>
     public const int EmailChangeRevertLinkDays = 7;
 
-    /// <summary>P-27 — character ceiling of a product name (and of a name or title in the corporate content).</summary>
+    /// <summary>P-27 — character ceiling of a product name, of a category name (K-1619) and of a name or title in the corporate content.</summary>
     public const int ProductNameMaxLength = 150;
 
     /// <summary>

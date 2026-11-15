@@ -8,7 +8,8 @@ namespace Shopfolio.UnitTests.Consistency;
 /// <c>FieldRowOnlyInDocument</c> and <c>FieldRowOnlyInCode</c> - a row without an entry or an entry without a row; <c>FormFamilyUncovered</c> - a form of the document in a family the inventory does not hold;
 /// <c>FieldNotInCode</c> - the property or the identifier the entry names is not in the code; <c>RequirementDiffers</c> and <c>RequirementContradictsCode</c> - the row's requirement word is not the entry's, or
 /// the property carries a required mark and the row says it is not required; <c>RuleDiffers</c> and <c>LimitDiffers</c> - the ids of the rule cell or of the limit cell are not the entry's;
-/// <c>RuleMissesAttribute</c> - the property carries a validation attribute whose field type the row's rule does not name.
+/// <c>RuleMissesAttribute</c> - the property carries a validation attribute whose field type the row's rule does not name; <c>PlaceMarksDiffer</c> and <c>PlaceMarksNotInInventory</c> - a property place of a row
+/// with several places carries other rule attributes than its pin (each place is read on its own, not through the union of the row), or a pin is of a place the inventory does not hold that way.
 /// </summary>
 internal static partial class FormFieldCheck
 {
@@ -62,6 +63,7 @@ internal static partial class FormFieldCheck
         }
 
         problems.AddRange(OwnLines(FormFieldEnforcementTable.Lines, entries.Select(e => e.Row)));
+        problems.AddRange(StrayPlacePins(entries, FormFieldPlaceMarks.Marks));
 
         foreach (string stray in FormFieldEnforcementTable.Lines.Keys.Where(k => entries.All(e => e.Row != k)))
         {
@@ -110,12 +112,13 @@ internal static partial class FormFieldCheck
 
     /// <summary>
     /// The places of one row: <see cref="FieldEntry.Where"/> is one place or several joined with <c>" + "</c> (a row that covers two inputs or two properties); every place must be in the code, and the
-    /// attributes of every property place are read against the one row.
+    /// attributes of every property place are read against the one row and, for a row with several property places, place by place against <see cref="FormFieldPlaceMarks"/>.
     /// </summary>
     private static List<string> Place(FieldEntry entry, IReadOnlyDictionary<string, string> sources, out List<string> ruleMarks)
     {
         List<string> found = [];
         ruleMarks = [];
+        List<(string Where, string[] Marks)> properties = [];
         foreach (string where in entry.Where.Split(" + ", StringSplitOptions.RemoveEmptyEntries))
         {
             int at = where.IndexOf('#', StringComparison.Ordinal);
@@ -138,11 +141,59 @@ internal static partial class FormFieldCheck
                 continue;
             }
 
-            ruleMarks.AddRange(FormFieldEnforcement.RuleMarks(property));
+            string[] marks = [.. FormFieldEnforcement.RuleMarks(property).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)];
+            properties.Add((where, marks));
+            ruleMarks.AddRange(marks);
         }
 
+        found.AddRange(PlaceMarkProblems(entry.Row, properties, FormFieldPlaceMarks.Marks));
         return found;
     }
+
+    /// <summary>
+    /// The marks of each property place of a row that has several (KK6, T547 correction 3): the row's rule and requirement are read from the union of its places, so a place that loses its attribute would be
+    /// "proved" by the other. <see cref="FormFieldPlaceMarks"/> pins the rule attributes of every place of such a row that carries one (a place without a pin has none); a place whose marks differ from its pin -
+    /// one lost or one gained - is reported on its own (<c>PlaceMarksDiffer</c>), and a pin of a place that is not one of several property places of its row is <c>PlaceMarksNotInInventory</c>
+    /// (see <see cref="StrayPlacePins"/>).
+    /// </summary>
+    internal static IEnumerable<string> PlaceMarkProblems(string row, IReadOnlyList<(string Where, string[] Marks)> properties, IReadOnlyDictionary<string, string[]> pins)
+    {
+        if (properties.Count < 2)
+        {
+            yield break;
+        }
+
+        foreach ((string where, string[] marks) in properties)
+        {
+            string[] pinned = pins.TryGetValue(PlaceKey(row, where), out string[]? held) ? [.. held.Order(StringComparer.Ordinal)] : [];
+            if (!pinned.SequenceEqual(marks))
+            {
+                yield return $"PlaceMarksDiffer:{row}: the place '{where}' carries [{string.Join(", ", marks)}], the table pins [{string.Join(", ", pinned)}].";
+            }
+        }
+    }
+
+    /// <summary>The pins whose row is not in the inventory, has fewer than two property places, or does not hold the place.</summary>
+    internal static IEnumerable<string> StrayPlacePins(IEnumerable<FieldEntry> entries, IReadOnlyDictionary<string, string[]> pins)
+    {
+        HashSet<string> keys = new(StringComparer.Ordinal);
+        foreach (FieldEntry entry in entries)
+        {
+            string[] places = [.. PropertyPlaces(entry)];
+            if (places.Length >= 2)
+            {
+                keys.UnionWith(places.Select(p => PlaceKey(entry.Row, p)));
+            }
+        }
+
+        return pins.Keys.Where(k => !keys.Contains(k)).Select(k => $"PlaceMarksNotInInventory:{k}: the table pins a place the inventory does not hold as one of several property places of a row.");
+    }
+
+    /// <summary>The property places (not the <c>file#anchor</c> ones) of an entry.</summary>
+    internal static IEnumerable<string> PropertyPlaces(FieldEntry entry)
+        => entry.Where.Split(" + ", StringSplitOptions.RemoveEmptyEntries).Where(w => !w.Contains('#', StringComparison.Ordinal));
+
+    internal static string PlaceKey(string row, string where) => row + "|" + where;
 
     /// <summary>
     /// Whether the text holds the anchor as a whole identifier at each end that is an identifier character: <c>MinPrice</c> is not held by <c>MinPriceText</c> (a renamed field must not stay "found" through
@@ -189,7 +240,7 @@ internal static partial class FormFieldCheck
     private static partial Regex WhiteSpace();
 
     /// <summary>The property of <c>Namespace.Type.Property</c>: the namespace is the last part of the page namespace (<c>Storefront</c> for <c>Shopfolio.Pages.Storefront</c>).</summary>
-    private static PropertyInfo? Find(string where)
+    internal static PropertyInfo? Find(string where)
     {
         string[] parts = where.Split('.');
         if (parts.Length < 3)

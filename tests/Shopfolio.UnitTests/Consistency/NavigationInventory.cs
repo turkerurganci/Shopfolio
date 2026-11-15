@@ -194,9 +194,10 @@ internal static class NavigationInventory
         Row("3.3.43", "E-20", "E-22", L("Storefront/Register.cshtml", "@FramePaths.SignIn")),
         Row(
             "3.3.44",
-            "E-10,E-13,E-16,E-17,E-18,E-20,E-22",
+            "E-10,E-13,E-16,E-17,E-18,E-19,E-20,E-22",
             "E-11",
             L("Storefront/Checkout.cshtml", "@FramePaths.PrivacyNotice"),
+            L("Orders/_DefectClaimScreen.cshtml", "@FramePaths.PrivacyNotice"),
             L("Storefront/Contact.cshtml", "@privacyNotice.Path"),
             L("Storefront/Register.cshtml", "@FramePaths.PrivacyNotice"),
             L("Storefront/SignIn.cshtml", "@FramePaths.PrivacyNotice"),

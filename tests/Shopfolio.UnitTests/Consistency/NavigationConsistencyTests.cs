@@ -351,6 +351,7 @@ public sealed class NavigationConsistencyTests
     [InlineData("3.3.42", "Pages/Orders/_OrderPage.cshtml", "href=\"@tracking.Href\"")]
     [InlineData("3.3.43", "Pages/Storefront/Register.cshtml", "href=\"@FramePaths.SignIn\"")]
     [InlineData("3.3.44", "Pages/Shared/_IbanField.cshtml", "href=\"@Model.NoticeHref\"")]
+    [InlineData("3.3.44", "Pages/Orders/_DefectClaimScreen.cshtml", "href=\"@FramePaths.PrivacyNotice\"")]
     [InlineData("3.3.45", "Pages/Storefront/Contact.cshtml", "href=\"@mapUrl\"")]
     [InlineData("3.4.24", "Pages/Panel/PaymentMethods.cshtml", "href=\"@Shopfolio.Pages.Frame.PanelFramePaths.ShippingAndDefaults\"")]
     [InlineData("3.4.25", "Pages/Panel/OrderDetail.cshtml", "href=\"@link.Href\"")]

@@ -1,6 +1,7 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @using Shopfolio.Infrastructure
 @using Shopfolio.Pages.Components
+@using Shopfolio.Pages.Frame
 @using Shopfolio.Pages.Orders
 @model DefectClaimPageModel
 @*
@@ -87,6 +88,7 @@
                     </address>
                 </section>
             }
+            <p class="iban-field__notice"><a href="@FramePaths.PrivacyNotice">@FramePaths.PrivacyNoticeTitle</a></p>
             <div class="operation-screen__buttons">
                 <a class="button button--secondary" href="@Model.RootPath">@OrderScreenTexts.CancelLabel</a>
                 <button type="submit" class="button button--primary" data-busy-label="@LoadingViews.BusyLabelOf(OrderScreenTexts.DefectClaimSubmitLabel)">@OrderScreenTexts.DefectClaimSubmitLabel</button>

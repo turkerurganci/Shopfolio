@@ -10,13 +10,14 @@
 ## Yapılan İşler
 
 - **Durum × rol matrisi (kriter 1, 3, 4, 5, 8):** `StateRoleDocument`, `StateRoleInventory`, `StateRoleCheck`, `StateRoleConsistencyTests` — 53 ekranın blokları, iki kapı, durum adları, Yönetici satırı sınırı, panel tek rol ve `/panel` kökü.
+- **Form envanteri, iki yönlü kural ve zorunluluk (kriter 6, düzeltme 1):** `FormFieldEnforcement` (eşleme tabloları, karşılaştırma), `FormFieldEnforcementTable` (işlem satırları), `FormFieldEnforcementTests`.
 - **Form envanteri (kriter 6, 7):** `FormInventoryCheck` (form blokları, satır numaraları, ekran tarafı, kural kimlikleri, değer yasağı, ürün sabiti okuma) ve `FormFieldInventory` + `FormFieldCheck` (her alan satırı = kodda bir yer, gereklilik sözcüğü, kural ve sınır kimlikleri). Bu turda: çapa kanıtı tam tanımlayıcı olarak aranır (`FormFieldCheck.Holds`).
 - **Sayfa testi (kriter 2, KK2):** `StateRolePageTests` — 6.2.16.1–10 ve 6.3.9.1–10 çiftleri üç tohumla (kayıtsız · kayıtlı · açık IBAN isteği); müşteri sayfası ve panel ayrıntısı `IOrderOperations` ile birebir.
-- **Belge:** `04 §7`'nin 10 kural hücresi kimlikle gösterir; karar kaydı K-1618 (⚠).
+- **Belge:** `04 §7`'nin 10 kural hücresi kimlikle gösterir; karar kaydı K-1618 (⚠). Düzeltme 1: `04 §7.2.5.1` ve `§7.2.6.2` kural hücreleri kimlik aldı; K-1619 (⚠).
 
 ## Etkilenen Modüller / Dosyalar
 
-- `tests/Shopfolio.UnitTests/Consistency/` — `StateRole*.cs` (4), `FormInventoryCheck.cs`, `FormFieldCheck.cs`, `FormFieldInventory.cs`, `FormInventoryConsistencyTests.cs`.
+- `tests/Shopfolio.UnitTests/Consistency/` — `StateRole*.cs` (4), `FormInventoryCheck.cs`, `FormFieldCheck.cs`, `FormFieldInventory.cs`, `FormFieldEnforcement.cs`, `FormFieldEnforcementTable.cs`, `FormFieldEnforcementTests.cs`, `FormInventoryConsistencyTests.cs`.
 - `tests/Shopfolio.IntegrationTests/Web/StateRolePageTests.cs`.
 - `Docs/04_UI_SPECS.md` (§7 kural hücreleri, sürüm satırı), `Docs/PRODUCT_DISCOVERY_STATUS.md` (K-1618, sürüm satırı), `Docs/STATUS_CHANGELOG.d/T547.md`, `Docs/IMPLEMENTATION_STATUS.md` (satır 306). `src` değişmedi.
 
@@ -29,7 +30,7 @@
 | 3 | Satış kapısı yalnız E-04, E-12, E-13; veri kapısı yalnız E-10, E-20, E-22 | ✓ | `SalesGate_ChangingAnotherScreen_IsReported`, `SalesGate_ReadByAnotherScreensPage_IsReported`, `DataGate_*`, `GateSentence_ChangedInTheDocument_IsReported`; belirteçler `StateRoleInventory.SalesGateTokens/DataGateTokens` (satış kapısı 4, veri kapısı 3 çağrı biçimi) |
 | 4 | Durum adları `02 §5`'inkidir, eş anlamlı yok | ✓ | `StatusBadgeText_OfTheCode_EqualsTheNameOf02`, `SynonymOfAStatusName_IsReported` |
 | 5 | Yönetici satırı yalnız taslak ekranlarda | ✓ | `AdministratorRow_*`, `DraftRead_*`; E-06/E-07 "sonuç" ekranları muaf değil, olumsuz kanıtlı: kodda taslak belirteci taşımamaları `DraftReadDiffers` ile denetlenir (kümeler eşit olmalı) |
-| 6 | Form envanteri: alan, zorunluluk, kural kodla eşit | ✓ | `FieldInventory_EqualsTheDocumentsAndTheCode`, `Field_DeletedFromTheCode_IsReported`, `Requirement_*`, `Rule_*`, `FieldMarkedRequiredInTheCode_ThatTheRowCallsOptional_IsReported`, `FieldWithAnAttribute_WhoseRuleTheRowDoesNotName_IsReported`; satır-satır deney aşağıda |
+| 6 | Form envanteri: alan, zorunluluk, kural kodla eşit | ✓ | `FieldInventory_EqualsTheDocumentsAndTheCode`, `Field_DeletedFromTheCode_IsReported`, `Requirement_*`, `Rule_*`, `FieldMarkedRequiredInTheCode_ThatTheRowCallsOptional_IsReported`, `FieldWithAnAttribute_WhoseRuleTheRowDoesNotName_IsReported`; `FormFieldEnforcementTests` (iki yön: satır → kod ve kod → satır; kural, sınır, zorunluluk; eşlenmeyen tür kırar); satır-satır deney aşağıda |
 | 7 | Kural değeri yazmaz, kimlikle işaret eder; ürün sabiti `ProductConstants`'tan | ✓ | `Rule_WritingAValue_IsReported`, `Values_AreTheNumbersThatAreNotIds`, `ProductConstant_NoValidationReads_IsReported`, `LengthAttribute_WritingTheNumber_IsReported`; 10 hücre K-1618 ile kimliğe çevrildi |
 | 8 | Panel tek rol; `/panel` altında | ✓ | `PanelRow_OfAnotherRole_IsReported`, `PanelPage_OutsideTheRoot_IsReported`, `PagePanelRoute_OutsideThePanelFolder_IsReported`, `PanelFolder_NotClosedByThePolicy_IsReported`, `PanelForm_PostingOutsidePanel_IsReported`, `CustomerForm_PostingToThePanel_IsReported` |
 | 9 | 2 dışındakiler `Consistency` Unit; 2 Integration | ✓ | `tests/Shopfolio.UnitTests/Consistency/`; `[Trait("Consistency","true")]` ile 622 test; `StateRolePageTests` Integration |
@@ -43,11 +44,13 @@
 | KK3 iki kapı yalnız altı vitrin ekranını değiştirir | ✓ | `SalesGate_*`, `DataGate_*` |
 | KK4 eş anlamlı durum adı kırar | ✓ | `SynonymOfAStatusName_IsReported` |
 | KK5 Yönetici satırı sınırı | ✓ | `AdministratorRow_InAScreenOutsideTheList_IsReported`, `…OfAListedScreenDeleted…`, `…OfE05_ThatShowsSomethingElse…` |
-| KK6 alan silinince ya da kural değişince kırılır | ✓ | `Field_DeletedFromTheCode_IsReported`, `Field_RenamedWhileALongerNameHoldsItsName_IsReported`, `Rule_ChangedInTheDocument_IsReported`; gerçek `src` deneyi: 21/21 çapa, 194/194 özellik yeri `FieldNotInCode` verdi |
+| KK6 alan silinince ya da kural değişince kırılır | ✓ | `Field_DeletedFromTheCode_IsReported`, `Field_RenamedWhileALongerNameHoldsItsName_IsReported`, `Rule_ChangedInTheDocument_IsReported`, `Attribute_RemovedFromTheProperty_IsReported`, `Requirement_RemovedFromTheCode_IsReported`, `Requirement_AddedToTheCode_IsReported`, `EveryEnforcementLine_RemovedFromTheCode_IsReported`; gerçek `src` deneyi: 21/21 çapa, 194/194 özellik yeri `FieldNotInCode`; kural ve zorunluluk: 182/182 işlem satırı silinince 127/127 satır, 75 nitelik silinince 40/40 satır, nitelik türü değişince raporlandı |
 | KK7 kimlik yerine sayı / `ProductConstants` yerine sayı kırar | ✓ | `Rule_WritingAValue_IsReported`, `ProductConstant_NoValidationReads_IsReported` |
 | KK8 `/panel` dışı panel formu ya da işlemi kırar | ✓ | `PanelForm_PostingOutsidePanel_IsReported` |
 | KK9 testler `UnitTests/Consistency/` altında | ✓ | dosya yolları |
 | `09 §25` ilgili satırlar; güvenlik taraması | ✓ | `src` değişmedi; sır bekçisi yanlış pozitifleri için `Concealed` ve `cancel =>` adları kullanıldı |
+
+Düzeltme 1 öz denetimi (bütün maddeler yeniden): kabul kriterleri 1–9 ve KK1–KK9 testleri yeşil (Consistency 634/634, Unit diğer 7420/7420); değişen yalnız 6 ve KK6 (iki yön, kural ve zorunluluk, açık eşleme tabloları, eşlenmeyen tür kırar) ile `04 §7.2.5.1`, `§7.2.6.2` hücreleri (K-1619). 7 ve KK7 (kimlik, ürün sabiti okuma) değişmedi, testleri geçti. Quantity kuralını taşıyan zorunlu alanda boş değer "1 den küçük" olarak reddedildiğinden adet kuralı zorunluluğun kanıtı sayılır (`FormFieldEnforcement.Problems`; ⚠ kolay karar).
 
 ### Sık FAIL nedenleri (öz denetim)
 
@@ -56,27 +59,26 @@
 | 1 | Bekçi/tarama istisnası geniş | ✓ | Muaf tutulan tek şey E-06/E-07'nin taslak okuması ve bu, kodda belirteç yokluğuyla denetlenir (`DraftReadDiffers`); alan çapasında istisna yok |
 | 2 | Kaynak taraması bir çağrı biçimini kaçırıyor | ✓ | Çapa kanıtı bu turda zayıf bulundu (alt dize): `Holds` tam tanımlayıcı ister, `Field_RenamedWhileALongerNameHoldsItsName_IsReported`; kapı belirteçleri 4+3 biçim |
 | 3 | 06 varsayılanı / FK dizini | ✓ (kapsam dışı) | göç ve şema değişmedi |
-| 4 | Kural değişince aynı sayıyı anan öteki yerler | ✓ | `04` sürüm satırı (satır 5307) ve `PRODUCT_DISCOVERY_STATUS.md` satır 48 K-1618 ile güncellendi; `04` v0.55 kalır |
-| 5 | Belge kuralını değiştiren metin karar kaydısız | ✓ | K-1618 (10 hücre; anlam değişmedi) |
+| 4 | Kural değişince aynı sayıyı anan öteki yerler | ✓ | `04` sürüm satırı (satır 5307) ve `PRODUCT_DISCOVERY_STATUS.md` satır 48 K-1618 ile güncellendi; `04` v0.55 kalır; düzeltme 1: K-1619 (`04` sürüm satırı ve `PRODUCT_DISCOVERY_STATUS.md` satır 48 güncellendi) |
+| 5 | Belge kuralını değiştiren metin karar kaydısız | ✓ | K-1618 (10 hücre; anlam değişmedi); düzeltme 1: K-1619 (7.2.5.1 ve 7.2.6.2 kural hücreleri kimlik aldı) |
 
 ### T546 emsali: her satır için ayırt edici kanıt ve gerçek `src` deneyi
 
-| Bölüm | Satır | Kanıt | Ayırt edici mi | Gerçek `src` değişimi test kırdı mı |
-|---|---|---|---|---|
-| `04 §6.2` / `§6.3` blokları | 53 ekran + panel blokları | ekranın rotası sayfa dosyasına bağlı (`StateRoleInventory`, rota başına) | evet — rota kod dosyasında aranır, iki yönlü | `Screen_WhosePageLeavesTheCode_IsReported` (belgesel) ; sayfa testi her çift için |
-| `04 §7.1` ve `§7.2`, çapa yeri (21 satır: 7.1.1.1–3, 7.1.12.1–4, 7.1.13.1–2, 7.1.14.1, 7.1.15.4, 7.2.2.1, 7.2.9.2, 7.2.10.2, 7.2.10.4, 7.2.11.1–2, 7.2.12.2, 7.2.13.1, 7.2.24.4, 7.2.25.1) | çapa satırı başına | `dosya#çapa`; çapa özellik adı ya da çağrı biçimi (`TryReadUnits(input.Items`, `Fields.Email("Input.Email"`) | evet — kelime sınırlı | evet: `t547-mutate.py anchors` her çapayı gerçek dosyada yeniden adlandırdı; 21/21 satır `FieldNotInCode` (deney betiği geçici klasörde, geri alındı) |
-| `04 §7.1` ve `§7.2`, özellik yeri (194 yer, 151 satır) | satır başına | `Ns.Tür.Özellik` yansıma | evet — tür ve özellik adı | evet: her özellik `public` → `internal` yapıldı (derlenir, yansıma `Public` bulamaz); 194/194 yer `FieldNotInCode`; ad çakışması (`Panel.ChangeNameInput.Name`, `Account` ile aynı ad) tek tek sınandı |
-| gereklilik sözcüğü, kural ve sınır kimlikleri | her satır | `RequirementDiffers`, `RuleDiffers`, `LimitDiffers` (satırın hücresi ↔ envanter) | evet | belge tarafı deneyleri: `Requirement_ChangedInTheDocument_IsReported`, `Rule_ChangedInTheDocument_IsReported`, `Limit_ChangedInTheDocument_IsReported`; kodda `FieldRequired`/`Invalid*` niteliği satırla çelişirse `RequirementContradictsCode`, `RuleMissesAttribute` |
-
-> Not: kuralı kodda değiştirmek (ör. bir `Invalid*` niteliğini kaldırmak) satırı kırmaz; denetim yönü nitelik → satırdır (kod belgede olmayan kural taşırsa kırılır). Niteliğin eksilmesi doğrulama testlerinin işidir (T-doğrulama sınıfları).
+| Bölüm | Satır | Kanıt | Ayırt edici mi | Gerçek `src` değişimi test kırdı mı | Kural ve zorunluluk, iki yön (satır → kod, kod → satır) |
+|---|---|---|---|---|---|
+| `04 §6.2` / `§6.3` blokları | 53 ekran + panel blokları | ekranın rotası sayfa dosyasına bağlı (`StateRoleInventory`, rota başına) | evet — rota kod dosyasında aranır, iki yönlü | `Screen_WhosePageLeavesTheCode_IsReported` (belgesel) ; sayfa testi her çift için | blok düzeyi; alan kuralı yok |
+| `04 §7.1` ve `§7.2`, çapa yeri (21 satır: 7.1.1.1–3, 7.1.12.1–4, 7.1.13.1–2, 7.1.14.1, 7.1.15.4, 7.2.2.1, 7.2.9.2, 7.2.10.2, 7.2.10.4, 7.2.11.1–2, 7.2.12.2, 7.2.13.1, 7.2.24.4, 7.2.25.1) | çapa satırı başına | `dosya#çapa`; çapa özellik adı ya da çağrı biçimi (`TryReadUnits(input.Items`, `Fields.Email("Input.Email"`) | evet — kelime sınırlı | evet: `t547-mutate.py anchors` her çapayı gerçek dosyada yeniden adlandırdı; 21/21 satır `FieldNotInCode` (deney betiği geçici klasörde, geri alındı) | çapa satırının kural ve zorunluluğu `FormFieldEnforcementTable` satırlarıyla ayrıca eşlenir (aşağıdaki son satır) |
+| `04 §7.1` ve `§7.2`, özellik yeri (194 yer, 151 satır) | satır başına | `Ns.Tür.Özellik` yansıma | evet — tür ve özellik adı | evet: her özellik `public` → `internal` yapıldı (derlenir, yansıma `Public` bulamaz); 194/194 yer `FieldNotInCode`; ad çakışması (`Panel.ChangeNameInput.Name`, `Account` ile aynı ad) tek tek sınandı | nitelik → satır: `RuleMissesAttribute`, `RequirementContradictsCode`; satır → nitelik: `RuleWithoutEnforcement`, `RequirementWithoutEnforcement`; gerçek `src`: 75 nitelik satırı silindi → yalnız niteliğe dayanan 40/40 satır raporlandı; `[InvalidEmail]` → `[InvalidPhone]` → `RuleWithoutEnforcement` + `RuleMissesAttribute` |
+| gereklilik sözcüğü, kural ve sınır kimlikleri | her satır | `RequirementDiffers`, `RuleDiffers`, `LimitDiffers` (satırın hücresi ↔ envanter) | evet | belge tarafı deneyleri: `Requirement_ChangedInTheDocument_IsReported`, `Rule_ChangedInTheDocument_IsReported`, `Limit_ChangedInTheDocument_IsReported`; kodda `FieldRequired`/`Invalid*` niteliği satırla çelişirse `RequirementContradictsCode`, `RuleMissesAttribute` | belge tarafı; kod tarafı için son satır |
+| kural, sınır ve zorunluluğun kodda karşılığı (127 satır; 182 işlem satırı, 75 nitelik) | satır başına | nitelik (yansıma) ya da işlem satırı (`dosya#parça` ya da `alan@@denetim`: alanı adlayan parça ve hata kodu aynı satırda ya da 12 satır içinde); tür, kural ve nitelik eşleme tabloları açık | evet — alan parçası ve denetim simgesi birlikte; paylaşılan tek ifade yok (sınır satırı formun bekçisidir) | evet: 182 işlem satırının hepsi `src`'den silindi → 127/127 satır `EnforcementNotInCode`; nitelik silindi → 40/40; tür değişti (`InvalidEmail` → `InvalidPhone`) → raporlandı; testler: `EveryEnforcementLine_RemovedFromTheCode_IsReported`, `EveryRuleAttribute_TakenOffTheProperty_IsNoLongerEvidence`, `Attribute_RemovedFromTheProperty_IsReported`, `Requirement_RemovedFromTheCode_IsReported`, `KindOrRule_NotInTheTables_IsReported` | tablo kapalı: `EveryRuleAttributeOfTheCode_IsInTheKindTable`, `EveryFieldType_OfTheDocument_IsInTheRuleTable`; eşlenmeyen tür `RuleKindUnmapped` |
 
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit (Consistency) | ✓ | `dotnet test tests/Shopfolio.UnitTests --filter-trait "Consistency=true"` | 622 geçti |
+| Unit (Consistency) | ✓ | `dotnet test tests/Shopfolio.UnitTests --filter-trait "Consistency=true"` | 634 geçti (düzeltme 1; +12) |
 | Unit (diğer) | ✓ | `--filter-not-trait "Consistency=true"` | 7420 geçti |
-| Integration | ✓ (ilgili sınıf) — TAM: CI | `dotnet test tests/Shopfolio.IntegrationTests --filter-class "*StateRolePageTests"` | 2/2 geçti (postgres:18, `track_commit_timestamp=on`) |
+| Integration | ✓ (ilgili sınıf) — TAM: CI | `dotnet test tests/Shopfolio.IntegrationTests --filter-class "*StateRolePageTests"` | düzeltme 1'de dokunulmadı (`src` ve Integration değişmedi); önceki koşu 2/2 geçti (postgres:18, `track_commit_timestamp=on`) |
 | Format | ✓ | `dotnet format Shopfolio.slnx --no-restore --include <değişen .cs>` | temiz |
 
 ## Doğrulama

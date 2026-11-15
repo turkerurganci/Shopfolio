@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.RegularExpressions;
+
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.UnitTests.Support;
 

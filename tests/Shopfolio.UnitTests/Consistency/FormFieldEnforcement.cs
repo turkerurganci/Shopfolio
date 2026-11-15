@@ -1,4 +1,5 @@
 using System.Reflection;
+
 using Shopfolio.Infrastructure.Validation;
 
 namespace Shopfolio.UnitTests.Consistency;

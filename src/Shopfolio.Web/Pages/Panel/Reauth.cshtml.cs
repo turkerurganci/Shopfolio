@@ -71,7 +71,7 @@ internal sealed class ReauthModel : PageModel
     {
         ArgumentNullException.ThrowIfNull(query);
         _loaded = true;
-        if (!TryParse(query.ReauthenticatedOperation, out ReauthenticationOperation operation))
+        if (!TryParse(QueryValues.SentOnce(Request, OperationParameter, query.ReauthenticatedOperation), out ReauthenticationOperation operation))
         {
             return FormResults.SeeOther(PanelFramePaths.MyAccount);
         }

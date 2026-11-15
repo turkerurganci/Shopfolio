@@ -72,6 +72,35 @@ public sealed class ModelInventoryConsistencyTests
     }
 
     [Fact]
+    public void FormCheck_ARowOfOneNameGivenASecondNameThatTheCodeLacks_NamesTheInventedModel()
+    {
+        string text = ApiInventoryDocument.Text().Replace("| `CancelOrderInput` |", "| `CancelOrderInput` · `FakeCancelInput` |", StringComparison.Ordinal);
+
+        Assert.Equal(["Model: only in the document: FakeCancelInput"], FormProblems(text).Where(p => p.Contains("FakeCancelInput", StringComparison.Ordinal)));
+        Assert.Contains("ModelWithoutEndpoint:FakeCancelInput", HandlerProblems(text));
+    }
+
+    [Fact]
+    public void FormCheck_ARowOfTwoNamesLosingOne_NamesTheModelOnlyInTheCode()
+    {
+        string text = ApiInventoryDocument.Text().Replace("| `ChangeProductPublishStatusInput` · `ChangeVariantPublishStatusInput` |", "| `ChangeProductPublishStatusInput` |", StringComparison.Ordinal);
+
+        Assert.Contains("Model: only in the model: ChangeVariantPublishStatusInput", FormProblems(text));
+    }
+
+    [Fact]
+    public void FormCheck_TheTwoModelsOfOldRowsPutBack_AreNamedAsOnlyInTheDocument()
+    {
+        string text = ApiInventoryDocument.Text()
+            .Replace("| `MarkShippedInput` | UC-124 · UC-125 |", "| `MarkShippedInput` · `MarkReshippedInput` | UC-124 · UC-125 |", StringComparison.Ordinal)
+            .Replace("| `ReceiveReturnInput` | UC-140 |", "| `ReceiveReturnInput` · `RejectReturnInput` | UC-140 |", StringComparison.Ordinal);
+        List<string> problems = FormProblems(text);
+
+        Assert.Contains("Model: only in the document: MarkReshippedInput", problems);
+        Assert.Contains("Model: only in the document: RejectReturnInput", problems);
+    }
+
+    [Fact]
     public void FormCheck_AFieldRenamedInTheDocument_NamesBothSides()
     {
         string text = ApiInventoryDocument.Text().Replace("`CartItemId` (`06 §4.16`) · `Quantity` (`04` 7.1.4.1)", "`LineId` (`06 §4.16`) · `Quantity` (`04` 7.1.4.1)", StringComparison.Ordinal);

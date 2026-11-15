@@ -14,32 +14,34 @@
 - `ModelInventoryConsistencyTests`: eşitlik testleri (form, sorgu, makine gövdesi, işleyici bağlama) + her denetim için kırıldığını gösteren ihlal örnekleri + dosya/ağ/veritabanına dokunmama denetimi. Bilinen fark listesi yoktur.
 - Kodda hizalamalar: `SignOutInput` (UC-77), `ContentListQuery` → `ContentQuery` (UC-07, UC-08), `CouponListQuery` → `CouponQuery` (UC-90).
 - **Düzeltme 1 (2026-11-15, yönetici kararı, K-1616):** ilk teslimdeki açık farklar ertelenmişti (`KnownModelDifferences`); bu task'ın amacı eşitlik olduğundan hepsi kapatıldı. (a) `07 §5.2` koda hizalandı: geri ödeme işlemleri iki ortak model (`ProcessRefundInput`, `RetryCardRefundInput`), ödeme formunun dört kutusu, görsel dosyasının model alanı olmaması (`ImageTarget` tek alan), `Version`, `Original`, `AddProducts`, `Remove`, `RemoveLogo`, `RemoveFavicon`, `AddressType`, `ArrivalRecordId`; UC-131, UC-132, UC-146, UC-149, UC-162, UC-117 metinleri aynı adlara çekildi. (b) Sorgu modelleri kodda kuruldu: `RegisterQuery`, `SignInQuery`, `ReauthenticateQuery`, `AccountQuery`, `AdminAccountQuery`, `AdminSignInQuery` ve Google dönüşü için `GoogleReturnQuery`; sekiz sayfa bunları bağlar (sorgu dizesi adları ve davranış aynı). `CategoryQuery` (UC-02) `07 §5.3.2`'ye satır oldu, `ProductQuery` yalnız UC-03. (c) `KnownModelDifferences` ve iki testi kaldırıldı; denetim farkı artık kırar. (d) `07` v0.43, K-1616.
+- **Düzeltme 2 (2026-11-15, doğrulama tur 1 FAIL):** bulgu 1 (ORTA): iki adlı model satırında kodda olmayan adı sessizce atlayan istisna kaldırıldı — `ModelInventoryCheck` satırın her adını koddaki sınıfla iki yönlü karşılaştırır, `EndpointBindingCheck` her adın satırın bir ucunda bağlandığını model başına denetler (`ModelWithoutEndpoint:<ad>`); `07 §5.2.2` koda hizalandı (UC-125 `MarkShippedInput`'u, UC-140'ın reddi `ReceiveReturnInput`'u bağlar; `MarkReshippedInput` ve `RejectReturnInput` satırdan çıktı, `§5.1.5` örnekleri, `07` v0.44, K-1616 ek madde); üç kırılma örneği testi eklendi. Bulgu 2 (DÜŞÜK): dört uç (UC-60, UC-63, UC-104, UC-108) tek yardımcıdan (`QueryValues.SentOnce`) geçer — iki kez gönderilen parametre eskisi gibi değer sayılmaz; her biri için istek testi.
 
 ## Etkilenen Modüller / Dosyalar
 
 - `tests/Shopfolio.UnitTests/Consistency/ApiInventoryDocument.cs`, `ModelInventoryCheck.cs`, `EndpointBindingCheck.cs`, `ModelInventoryConsistencyTests.cs` (`KnownModelDifferences.cs` kaldırıldı)
 - `src/Shopfolio.Web/Pages/Storefront/SignOut.cshtml.cs`, `Pages/Content/ContentListPages.cs`, `Pages/Panel/Coupons.cshtml.cs`
 - Düzeltme 1: `Pages/Storefront/AccessQueries.cs` (yeni: `RegisterQuery`, `SignInQuery`, `AccountQuery`, `GoogleReturnQuery`), `Register.cshtml.cs`, `SignIn.cshtml.cs`, `GoogleReturn.cshtml.cs`, `Pages/Account/Reauthentication.cshtml.cs`, `Pages/Account/Profile.cshtml.cs`, `Pages/Panel/Reauth.cshtml.cs` (`ReauthenticateQuery`), `Pages/Panel/MyAccount.cshtml.cs` (`AdminAccountQuery`), `Pages/Panel/SignIn.cshtml.cs` (`AdminSignInQuery`)
-- `Docs/07_API_DESIGN.md` (v0.43), `Docs/PRODUCT_DISCOVERY_STATUS.md` (K-1616, `07` sürüm satırı)
+- Düzeltme 2: `src/Shopfolio.Web/Infrastructure/Binding/QueryValues.cs` (yeni), `Reauthentication.cshtml.cs`, `Profile.cshtml.cs`, `Reauth.cshtml.cs`, `MyAccount.cshtml.cs`, `OrderDetail.cshtml.cs` ve `OrderDetail.ItemSteps.cs` (yalnız özet yorumu); testler: `ModelInventoryCheck.cs`, `EndpointBindingCheck.cs`, `ModelInventoryConsistencyTests.cs`, `AccountProfilePageTests.cs`, `CustomerPasswordResetAndReauthenticationPageTests.cs`, `MyAccountPageTests.cs`, `PanelHomeAndVerificationPagesTests.cs`
+- `Docs/07_API_DESIGN.md` (v0.44), `Docs/PRODUCT_DISCOVERY_STATUS.md` (K-1616 ek madde, `07` sürüm satırı)
 - `Docs/DEFERRED_BACKLOG.d/T538.md`, `T509.md`, `T529.md`, `T530.md`, `T534.md` (kapanan kalemler), `Docs/STATUS_CHANGELOG.d/T538.md`, `Docs/IMPLEMENTATION_STATUS.md` (T538 satırı)
 
 ## Kabul Kriterleri Kontrolü
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | Form girdi modelleri envanteri koddaki modellerle eşit | ✓ | `FormInputs_AreTheRowsOf07_5_2_ByNameAndField` — bilinen fark listesi yok, sonuç boş; fark `07`'yi koda hizalamakla kapandı (K-1616) |
+| 1 | Form girdi modelleri envanteri koddaki modellerle eşit | ✓ | `FormInputs_AreTheRowsOf07_5_2_ByNameAndField` — bilinen fark listesi yok, sonuç boş; fark `07`'yi koda hizalamakla kapandı (K-1616); düzeltme 2: iki adlı satırda her ad kodda sınıf (`FormCheck_ARowOfOneNameGivenASecondNameThatTheCodeLacks_NamesTheInventedModel`, `FormCheck_ARowOfTwoNamesLosingOne_…`, `FormCheck_TheTwoModelsOfOldRowsPutBack_…`) |
 | 2 | Sorgu modelleri koddakilerle eşit (ad, camelCase parametre, uç) | ✓ | `QueryModels_AreTheRowsOf07_5_3_2_ByNameAndParameter`; altı sorgu modeli ve `GoogleReturnQuery` kodda, `CategoryQuery` `07`'de (K-1616) |
 | 3 | Makine ucu gövdeleri alan adlarıyla eşit | ✓ | `MachineBodies_AreTheRowsOf07_5_4_2_ByNameAndField` |
-| 4 | "Uçlar" sütunundaki her uç modeli bağlar; modelsiz bağlayan uç ve uçsuz model yok; §5.2.4 modelsiz | ✓ | `Handlers_BindTheModelsOfTheirRows_AndNoEntity` — bilinen fark listesi yok; UC-47, 51, 54, 60, 63, 84, 104, 108 artık model bağlar |
+| 4 | "Uçlar" sütunundaki her uç modeli bağlar; modelsiz bağlayan uç ve uçsuz model yok; §5.2.4 modelsiz | ✓ | `Handlers_BindTheModelsOfTheirRows_AndNoEntity` — bilinen fark listesi yok; UC-47, 51, 54, 60, 63, 84, 104, 108 artık model bağlar; düzeltme 2: uç ↔ model eşlemesi model başına (`ModelWithoutEndpoint:<ad>`), UC-125 `MarkShippedInput`'u, UC-140 reddi `ReceiveReturnInput`'u bağlar |
 | 5 | Hiçbir işleyici varlık bağlamaz | ✓ | `Handlers_…`; `HandlerCheck_AHandlerThatBindsAnEntity_IsNamed` |
-| 6 | `Consistency` özellikli birim testi | ✓ | sınıf `[Trait("Consistency","true")]`; `--filter-trait "Consistency=true"` 310 test yeşil, `--filter-not-trait` 7420 test yeşil ve bu sınıfı içermez |
+| 6 | `Consistency` özellikli birim testi | ✓ | sınıf `[Trait("Consistency","true")]`; `--filter-trait "Consistency=true"` 313 test yeşil (düzeltme 2), `--filter-not-trait` 7420 test yeşil ve bu sınıfı içermez |
 | 7 | Veritabanına ve ağa dokunmaz, dosya yazmaz | ✓ | `Checks_TouchNeitherTheDatabaseNorTheNetworkNorAFile` |
 
-### Öz denetim (bitiş kapısı 2; düzeltme 1'de yeniden)
+### Öz denetim (bitiş kapısı 2; düzeltme 1 ve düzeltme 2 (yedi kriter ve bütün KK yeniden) )
 
 | Madde (kabul kriteri / KK) | Sonuç | Kanıt (dosya:satır, test adı) |
 |---|---|---|
-| KK1: envanterden satır silinince ya da koda model eklenince kırılır | ✓ | `FormCheck_ADocumentRowDeleted_NamesTheModelOnlyInTheCode`, `FormCheck_AModelAddedToTheCode_NamesTheModelOnlyInTheCode`, `HandlerCheck_AModelNoHandlerBinds_IsNamed`; envanter koda eşit (bilinen fark yok) |
+| KK1: envanterden satır silinince, koda model eklenince, satıra kodda olmayan ad eklenince ya da iki adlı satırdan ad silinince kırılır (düzeltme 2) | ✓ | `FormCheck_ARowOfOneNameGivenASecondNameThatTheCodeLacks_NamesTheInventedModel`, `FormCheck_ARowOfTwoNamesLosingOne_NamesTheModelOnlyInTheCode`, `FormCheck_ADocumentRowDeleted_NamesTheModelOnlyInTheCode`, `FormCheck_AModelAddedToTheCode_NamesTheModelOnlyInTheCode`, `HandlerCheck_AModelNoHandlerBinds_IsNamed`; envanter koda eşit (bilinen fark yok) |
 | KK2: parametre adı değişince kırılır | ✓ | `QueryCheck_AParameterRenamedInTheDocument_NamesBothSides` (iki yönlü) |
 | KK3: gövde alanı değişince kırılır | ✓ | `MachineCheck_AFieldRenamedInTheDocument_NamesBothSides`; form ve iç içe liste: `FormCheck_AFieldRenamedInTheDocument_NamesBothSides`, `FormCheck_AListFieldRenamedInTheDocument_NamesTheNestedField` |
 | KK4: girdi okuyan modelsiz uç kırar; §5.2.4 işleyicileri kırmaz | ✓ | `HandlerCheck_AHandlerThatReadsInputWithoutAModel_IsNamed`, `HandlerCheck_AModellessHandlerThatBindsAModel_IsNamed`; gerçek uygulamada `Handlers_…` boş; `Request.Query` okuyan geriye kalan yerler `07`'nin saydığı ortak `returnUrl` ve `notice` ile UC-88, UC-92, UC-94'ün kayıt sayfalarıdır (`07 §5.3.2` son paragraf) |
@@ -47,19 +49,21 @@
 | KK6: Lint koşar, Unit koşmaz | ✓ | iki süzgeç komutu ayrı koşuldu (310 ve 7420) |
 | KK7: testler bağlantı dizesi okumaz | ✓ | `Checks_TouchNeitherTheDatabaseNorTheNetworkNorAFile`; Consistency koşusu veritabanı değişkeni olmadan yeşil |
 | Kapsam içi fark ertelenmez (yönetici kararı, düzeltme 1) | ✓ | `KnownModelDifferences` kaldırıldı; D-1606–D-1609, D-1333, D-1527, D-1538, D-1551 ve D-1552 ✅ (kanıt: K-1616 + test adları) |
+| Denetim kodunda başka sessiz atlama/istisna kalmadı (düzeltme 2) | ✓ | `grep -n "continue|Skip|Except|ignore"` Consistency dosyalarında: kalanlar yalnız ayrıştırıcı (`ApiInventoryDocument`, eşleşmeyen parça ve çözümlenmiş alan), yol parçası eşlemesi (`EndpointBindingCheck`) ve iki yönlü `Except` karşılaştırmaları; model adı ya da uç atlayan yok |
+| Dört uç aynı yoldan (sık FAIL: yeniden düzenlemede kenar girdi) | ✓ | UC-60, UC-63, UC-104, UC-108 `QueryValues.SentOnce`; testler: `AnOperationParameterSentTwice_IsNoOperation_A303ToTheAccountPage_T538`, `AParameterSentTwice_IsNoValue_TheFormStaysClosed_T538`, `AParameterSentTwice_IsNoValue_KeepsTheFormsClosed_T538` (iki satır), `TheReauthenticationPage_Redirects_…` yeni satır |
 | Aynı sayıyı/adı anan öteki yerler (sık FAIL) | ✓ | `07`'de eski adlar (`AcceptedCheckboxes`, `OriginalIsSalesTemporarilyClosed`, üç eski geri ödeme modeli, `UC-117'nin iki alanı`, `HomepageVersion` form alanı) tarandı: yalnız tarihçe satırları (v0.17 deep review, K-1196, 06'nın veri alanı) kaldı; `07` başlık, dipnot ve `PRODUCT_DISCOVERY_STATUS` tablosu v0.43; `09` 1785 `ImageFile` dosya parçası adı olarak geçerli |
 | Yeni belge metni karar kaydısız (sık FAIL) | ✓ | `07`'deki bütün değişiklikler K-1616 ile kayıtlı |
 | Hedefi T538 olan backlog kalemi | ✓ | `grep T538` backlog: hedefi T538 olan kalem yok; açık kalan D-1205 (iyileştirme) aşağıda |
-| `09 §25` ilgili satırlar; güvenlik taraması | ✓ | yeni dış bağımlılık yok; sorgu modelleri metin alır, geçersiz değer bağlama hatası değil sayfanın kendi cevabıdır; MyAccount'ta aynı parametrenin iki kez gönderilmesi eskisi gibi değer sayılmaz |
+| `09 §25` ilgili satırlar; güvenlik taraması | ✓ | yeni dış bağımlılık yok; sorgu modelleri metin alır, geçersiz değer bağlama hatası değil sayfanın kendi cevabıdır; MyAccount, Reauthentication, Profile ve Panel/Reauth aynı yardımcıdan (`QueryValues.SentOnce`) geçer: iki kez gönderilen parametre eskisi gibi değer sayılmaz (düzeltme 2; istek testleri) |
 
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
 | Build | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı, 0 hata |
-| Unit (Consistency) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --filter-trait "Consistency=true"` | 310 / 310 |
+| Unit (Consistency) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --filter-trait "Consistency=true"` | 313 / 313 |
 | Unit (Consistency dışı) | ✓ | `… --filter-not-trait "Consistency=true"` | 7420 / 7420 (mimari model bağlama kuralı dahil) |
-| Integration | ✓ (ilgili sınıflar) — TAM: CI | `RegistrationPageTests`, `CustomerSignInPageTests`, `AccountProfilePageTests`, `CustomerPasswordResetAndReauthenticationPageTests`, `MyAccountPageTests`, `PanelAccessPagesTests`; `PanelHomeAndVerificationPagesTests`, `OneTimeValueTests`, `SessionAccessTests`, `CookiePolicyTests`, `StorefrontFrameTests`, `FrameLayoutTests` | 158 / 158 ve 102 / 102 |
+| Integration | ✓ (ilgili sınıflar; düzeltme 2) — TAM: CI | `AccountProfilePageTests`, `CustomerPasswordResetAndReauthenticationPageTests`, `MyAccountPageTests`, `PanelHomeAndVerificationPagesTests`, `CustomerSignInPageTests`, `GoogleRegistrationTests` · `CustomerSignOutPageTests`, `RegistrationPageTests`, `PanelAccessPagesTests`, `CouponsPageTests`, `ContentPagesTests`, `OneTimeValueTests`, `AdminAccountsPageTests` (postgres:18, `track_commit_timestamp=on`) | 135 / 135 ve 117 / 117 |
 | Format | ✓ | `dotnet format Shopfolio.slnx --no-restore --include <değişen .cs>` | değişiklik yok |
 | Contract | — | — | NOT_APPLICABLE |
 

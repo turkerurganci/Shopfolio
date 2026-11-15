@@ -121,10 +121,14 @@ internal static partial class EndpointBindingCheck
                 }
             }
 
-            // A row that names two models is carried by one class (07 5.2.2), so one of its names is a model of the code; a row none of whose names is bound has no endpoint.
-            if (!row.Models.Any(model => boundByUseCase.Values.SelectMany(b => b).Any(b => b.Type.Name == model && marker.IsAssignableFrom(b.Type))))
+            // Every model a row names is bound by a handler of one of the row's use cases (a row of two names has two models, each with an endpoint of its own row).
+            foreach (string model in row.Models)
             {
-                problems.Add($"ModelWithoutEndpoint:{string.Join('/', row.Models)}");
+                bool bindsIt = row.UseCases.Any(u => boundByUseCase.TryGetValue(u, out List<Bound>? bound) && bound.Any(b => b.Type.Name == model && marker.IsAssignableFrom(b.Type)));
+                if (!bindsIt)
+                {
+                    problems.Add($"ModelWithoutEndpoint:{model}");
+                }
             }
         }
     }

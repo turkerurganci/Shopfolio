@@ -661,7 +661,7 @@ public sealed class RemoveOrderItemInput : IFormInput
     public bool Confirmed { get; set; }
 }
 
-/// <summary>UC-140 <c>ReceiveReturnInput</c> · <c>RejectReturnInput</c>: the item, the arrival date and the units, the version and - on the rejection - the confirmation.</summary>
+/// <summary>UC-140 <c>ReceiveReturnInput</c> (the rejection binds it too): the item, the arrival date and the units, the version and - on the rejection - the confirmation.</summary>
 public sealed class ReceiveReturnInput : IFormInput
 {
     public Guid? OrderItemId { get; set; }

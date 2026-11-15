@@ -544,7 +544,7 @@ public sealed class MarkPaidInput : IFormInput
     public bool Confirmed { get; set; }
 }
 
-/// <summary>UC-124, UC-125 <c>MarkShippedInput</c> · <c>MarkReshippedInput</c>: the carrier data (06 4.17), the version and the confirmation.</summary>
+/// <summary>UC-124, UC-125 <c>MarkShippedInput</c> (the re-shipping binds it too): the carrier data (06 4.17), the version and the confirmation.</summary>
 public sealed class MarkShippedInput : IFormInput
 {
     public string? Carrier { get; set; }

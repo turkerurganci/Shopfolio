@@ -120,11 +120,11 @@ internal sealed class MyAccountModel : PageModel
         string? held = null;
 
         // A parameter sent twice is no value: the permission opens only for one operation and one single-use value (07 UC-104).
-        if (Request.Query[ReauthModel.OperationParameter].Count == 1 && Request.Query[HeldValueParameter].Count == 1
-            && query.ReauthenticatedOperation is nameof(ReauthenticationOperation.PasswordChange) or nameof(ReauthenticationOperation.EmailChange)
-            && query.ReauthenticationToken is { } heldValue)
+        string? askedOperation = QueryValues.SentOnce(Request, ReauthModel.OperationParameter, query.ReauthenticatedOperation);
+        if (askedOperation is nameof(ReauthenticationOperation.PasswordChange) or nameof(ReauthenticationOperation.EmailChange)
+            && QueryValues.SentOnce(Request, HeldValueParameter, query.ReauthenticationToken) is { } heldValue)
         {
-            operation = Enum.Parse<ReauthenticationOperation>(query.ReauthenticatedOperation);
+            operation = Enum.Parse<ReauthenticationOperation>(askedOperation);
             held = heldValue;
         }
 

@@ -87,7 +87,7 @@ internal sealed class ReauthenticationModel : PageModel
     {
         ArgumentNullException.ThrowIfNull(query);
         _loaded = true;
-        if (!ReauthenticationAddresses.TryParse(query.ReauthenticatedOperation, out ReauthenticationOperation operation))
+        if (!ReauthenticationAddresses.TryParse(QueryValues.SentOnce(Request, ReauthenticationAddresses.OperationParameter, query.ReauthenticatedOperation), out ReauthenticationOperation operation))
         {
             return NotAnOperation();
         }

@@ -44,25 +44,21 @@ internal static class ModelInventoryCheck
         Type[] types = [.. models];
         List<string> problems = [];
 
-        // A row that names two models (MarkShippedInput · MarkReshippedInput) is carried by one class of the code, which names both in its comment; a model name that
-        // two folders both declare (the panel's ChangeNameInput beside the account's) is one model of the inventory with the fields of each declaration (07 5.2.2).
-        string[] documented = [.. rows.SelectMany(r => r.Models.Any(m => types.Any(t => t.Name == m)) ? r.Models.Where(m => types.Any(t => t.Name == m)) : r.Models.Take(1))];
+        // Every name of every row is a model of the code (a row that names two models names two classes; a name only in the document is reported, never skipped); a model
+        // name that two folders both declare (the panel's ChangeNameInput beside the account's) is one model of the inventory with the fields of each declaration (07 5.2.2).
+        string[] documented = [.. rows.SelectMany(r => r.Models)];
         problems.AddRange(SetComparison.Compare("Model", documented, types.Select(t => t.Name).Distinct(StringComparer.Ordinal)));
 
-        foreach (ModelRow row in rows)
+        // A row none of whose models is in the code has no fields to compare: its names are already reported above.
+        foreach (ModelRow row in rows.Where(r => types.Any(t => r.Models.Contains(t.Name))))
         {
             Type[] present = [.. types.Where(t => row.Models.Contains(t.Name))];
-            if (present.Length == 0)
-            {
-                continue;
-            }
-
             string[] documentedFields = [.. row.Fields.Select(f => f.Name)];
             string label = string.Join('/', row.Models);
             string[][] perModel = [.. present.Select(t => FieldNames(t, kind))];
             string[] union = [.. perModel.SelectMany(n => n).Distinct(StringComparer.Ordinal)];
 
-            // A row of two models (MarkShippedInput · MarkReshippedInput) states the fields of both: each model's fields are in the row, and together they are the row.
+            // A row of two models (ChangeProductPublishStatusInput · ChangeVariantPublishStatusInput) states the fields of both: each model's fields are in the row, and together they are the row.
             problems.AddRange(documentedFields.Distinct(StringComparer.Ordinal).Except(union, StringComparer.Ordinal).Select(f => $"Field:{label}: only in the document: {f}"));
             for (int i = 0; i < present.Length; i++)
             {

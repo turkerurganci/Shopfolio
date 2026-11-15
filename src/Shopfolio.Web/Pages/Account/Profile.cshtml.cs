@@ -229,8 +229,8 @@ internal sealed class ProfileModel : PageModel, IOutcomeTarget
 
         // The form of an operation opens only when the session holds the permission for it under this value; a parameter that does not hold is ignored (07 UC-63; 05 6.1.5; K-971).
         bool opened = false;
-        if (ReauthenticationAddresses.TryParse(query.ReauthenticatedOperation, out ReauthenticationOperation operation)
-            && query.ReauthenticationToken is { Length: > 0 } presentedValue
+        if (ReauthenticationAddresses.TryParse(QueryValues.SentOnce(Request, ReauthenticationAddresses.OperationParameter, query.ReauthenticatedOperation), out ReauthenticationOperation operation)
+            && QueryValues.SentOnce(Request, ReauthenticationAddresses.TokenParameter, query.ReauthenticationToken) is { Length: > 0 } presentedValue
             && await _sessions.HoldsReauthenticationAsync(session.CustomerId, session.SessionId, operation, presentedValue, ct))
         {
             Open(operation, presentedValue);

@@ -360,6 +360,21 @@ public sealed class CustomerPasswordResetAndReauthenticationPageTests : IAsyncLi
     }
 
     [Fact]
+    public async Task AnOperationParameterSentTwice_IsNoOperation_A303ToTheAccountPage_T538()
+    {
+        await using WebApplicationFactory<Program> factory = Open(google: null, gateOpen: false);
+        await SeedAsync("ali@example.com", hasPassword: true, googleLinked: false);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string session = await SignInAsync(client, "ali@example.com");
+
+        (HttpStatusCode status, HttpResponseMessage response) = await SendAsync(client, HttpMethod.Get, $"{FramePaths.Reauthentication}?reauthenticatedOperation=PasswordChange&reauthenticatedOperation=EmailChange", session);
+
+        Assert.Equal(HttpStatusCode.SeeOther, status);
+        Assert.Equal(FramePaths.Account, response.Headers.Location!.OriginalString);
+        response.Dispose();
+    }
+
+    [Fact]
     public async Task OpeningTheScreen_DropsTheEarlierPermission_T516_KK8()
     {
         await using WebApplicationFactory<Program> factory = Open(google: null, gateOpen: false);

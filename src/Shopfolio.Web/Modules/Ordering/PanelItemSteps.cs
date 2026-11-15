@@ -198,11 +198,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
 
             WithdrawalNoticeWarnings own = WithdrawalNoticeRules.Warnings(item!, request.NoticeDate); // non-null: an allowed verdict names one of the order's items
             checkedItems.Add((units, own));
-            warnings = new WithdrawalNoticeWarnings(
-                warnings.OutsideWindow || own.OutsideWindow,
-                warnings.BeyondOneYear || own.BeyondOneYear,
-                warnings.AbsoluteExemption || own.AbsoluteExemption,
-                warnings.AsksDeliveryOrder || own.AsksDeliveryOrder);
+            warnings = Either(warnings, own);
         }
 
         if (warnings.AsksDeliveryOrder && request.IsDeliveredBeforeDeclaration is null)
@@ -245,6 +241,21 @@ internal sealed class PanelItemSteps : IPanelItemSteps
         }
 
         return PanelItemStepResult.Done;
+    }
+
+    public async Task<WithdrawalNoticeWarnings> WithdrawalNoticeWarningsAsync(Guid orderId, IReadOnlyList<Guid> itemIds, DateOnly noticeDate, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(itemIds);
+        OrderOperationFacts? facts = itemIds.Count == 0 ? null : await _operations.ReadFactsAsync(orderId, ct);
+        if (facts is null)
+        {
+            return WithdrawalNoticeWarnings.None;
+        }
+
+        // The items the record itself would read: those of the order open to the notice with at least one unit (the same rule as RecordWithdrawalsAsync; the sent units may be the refusal).
+        return facts.Items
+            .Where(i => itemIds.Contains(i.ItemId) && OrderOperationCatalog.Check(facts, OrderOperation.RecordWithdrawalFromOtherChannel, i.ItemId, 1).IsAllowed)
+            .Aggregate(WithdrawalNoticeWarnings.None, (all, item) => Either(all, WithdrawalNoticeRules.Warnings(item, noticeDate)));
     }
 
     public async Task<PanelItemStepResult> RecordLateDeliveryTerminationAsync(TerminateForLateDeliveryRequest request, CancellationToken ct)
@@ -559,6 +570,13 @@ internal sealed class PanelItemSteps : IPanelItemSteps
         OperationDecision.QuantityExceedsOpen => PanelItemStepResult.Refused(PanelItemObstacle.QuantityExceedsOpen),
         _ => PanelItemStepResult.NotOpen,
     };
+
+    // A notice on many items carries every item's warnings together (K-1547: both texts, one box).
+    private static WithdrawalNoticeWarnings Either(WithdrawalNoticeWarnings a, WithdrawalNoticeWarnings b) => new(
+        a.OutsideWindow || b.OutsideWindow,
+        a.BeyondOneYear || b.BeyondOneYear,
+        a.AbsoluteExemption || b.AbsoluteExemption,
+        a.AsksDeliveryOrder || b.AsksDeliveryOrder);
 
     private async Task<int> CurrentVersionAsync(Guid orderId, CancellationToken ct)
     {

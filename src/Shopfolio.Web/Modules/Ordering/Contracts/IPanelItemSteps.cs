@@ -76,6 +76,12 @@ public interface IPanelItemSteps
     /// </summary>
     Task<PanelItemStepResult> RecordWithdrawalsAsync(RecordWithdrawalRequest request, IReadOnlyList<PanelItemUnits> items, CancellationToken ct);
 
+    /// <summary>
+    /// The warnings a withdrawal notice with this date carries on the chosen items open to it (K-709, K-1563, K-608) - the record's own rule, read without a lock and writing nothing:
+    /// the form keeps them on every refusal, also on those answered before the record reads them (IBAN, units, item choice; 12 VAL-B159; K-744, K-1514 (1)).
+    /// </summary>
+    Task<WithdrawalNoticeWarnings> WithdrawalNoticeWarningsAsync(Guid orderId, IReadOnlyList<Guid> itemIds, DateOnly noticeDate, CancellationToken ct);
+
     /// <summary>UC-130: a late delivery termination notified by another channel; no item and no unit - it falls on every undelivered physical item's open units.</summary>
     Task<PanelItemStepResult> RecordLateDeliveryTerminationAsync(TerminateForLateDeliveryRequest request, CancellationToken ct);
 

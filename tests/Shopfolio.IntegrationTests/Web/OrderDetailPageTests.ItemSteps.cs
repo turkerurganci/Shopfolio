@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.RegularExpressions;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -151,8 +152,8 @@ public sealed partial class OrderDetailPageTests
 
         Assert.Equal(HttpStatusCode.OK, status);
         string form = FormOf(html, "record-withdrawal-form");
-        Assert.Contains($"name=\"Input.Items[0].OrderItemId\" value=\"{items[0]:D}\"", form, StringComparison.Ordinal);
-        Assert.Contains($"name=\"Input.Items[1].OrderItemId\" value=\"{items[1]:D}\"", form, StringComparison.Ordinal);
+        // The two items share their creation time, so their rows' order (and index) is the key's: each item has a row, whichever index it takes.
+        Assert.Equal("01", string.Concat(items.Select(i => Regex.Match(form, $"name=\"Input\\.Items\\[(\\d)\\]\\.OrderItemId\" value=\"{i:D}\"").Groups[1].Value).Order()));
         Assert.Contains(OrderDetailModel.OwnerCheckReminderText, html, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.OK, ask);
         Assert.Equal(0, askedWithdrawals);
@@ -194,6 +195,50 @@ public sealed partial class OrderDetailPageTests
         string kept = FormOf(tickedHtml, "record-withdrawal-form");
         Assert.Contains("name=\"Input.IsExceptionAcknowledged\" value=\"true\" checked=\"checked\"", kept, StringComparison.Ordinal);
         Assert.Contains(OrderDetailModel.AbsoluteExemptionWarningText, kept, StringComparison.Ordinal);
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(0, await reader.Withdrawals.CountAsync(w => w.OrderItemId == items[0], Ct));
+    }
+
+    [Fact]
+    public async Task WithdrawalRecord_KeepsTheOutsideWindowAndExemptionWarnings_AndTheSentValues_OnTheUnitsAndTheIbanRefusals_T528_KK5_VAL_B159()
+    {
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        (Guid orderId, Guid[] items) = await StepOrderAsync(OrderStatus.Delivered, PaymentStatus.Paid, (ProductType.Physical, true));
+        DateOnly today = TurkeyTime.DateOf(DateTimeOffset.UtcNow);
+        await DeliveredOnAsync(items, today.AddDays(-60), WithdrawalExemptionReason.MadeToOrder);
+        string path = $"{OrdersPath}/{orderId:D}?handler=RecordWithdrawal";
+        string date = DateText(today.AddDays(-1));
+        (string Name, string Value)[] Fields(string quantity) =>
+            [("Input.Items[0].OrderItemId", items[0].ToString("D")), ("Input.Items[0].Quantity", quantity), ("Input.DeclarationDate", date), ("Input.Version", "1")];
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        // The page's own units refusal, the record's units refusal (over the open units) and its IBAN refusal: none of them reaches the warnings' rule in the record.
+        (HttpStatusCode unreadable, string unreadableHtml) = await PostAsync(client, path, [.. Fields("bir"), ("Input.IsExceptionAcknowledged", "true")], key);
+        (HttpStatusCode exceeding, string exceedingHtml) = await PostAsync(client, path, Fields("5"), key);
+        (HttpStatusCode iban, string ibanHtml) = await PostAsync(client, path, [.. Fields("1"), ("Input.IsFromContactEmail", "true"), ("Input.Iban", "TR00 0000")], key);
+
+        foreach ((HttpStatusCode status, string html, string message) in new[]
+        {
+            (unreadable, unreadableHtml, OrderDetailModel.QuantityInvalidText),
+            (exceeding, exceedingHtml, OrderDetailModel.QuantityExceedsOpenText),
+            (iban, ibanHtml, OrderDetailModel.NoticeIbanInvalidText),
+        })
+        {
+            Assert.Equal(HttpStatusCode.UnprocessableEntity, status);
+            Assert.Contains(message, html, StringComparison.Ordinal);
+            string form = FormOf(html, "record-withdrawal-form");
+            int ownerCheck = form.IndexOf(OrderDetailModel.OwnerCheckReminderText, StringComparison.Ordinal);
+            int outside = form.IndexOf(OrderDetailModel.OutsideWindowWarningText, StringComparison.Ordinal);
+            int exemption = form.IndexOf(OrderDetailModel.AbsoluteExemptionWarningText, StringComparison.Ordinal);
+            Assert.True(ownerCheck >= 0 && outside > ownerCheck && exemption > outside, "VAL-B159: U6a at the head, U3a, then U3b stand on the refusal.");
+            Assert.DoesNotContain(OrderDetailModel.BeyondOneYearWarningText, form, StringComparison.Ordinal);
+            Assert.Single(form.Split("name=\"Input.IsExceptionAcknowledged\"", StringSplitOptions.None).Skip(1));
+            Assert.Contains($"name=\"Input.DeclarationDate\" value=\"{date}\"", form, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("name=\"Input.IsExceptionAcknowledged\" value=\"true\" checked=\"checked\"", FormOf(unreadableHtml, "record-withdrawal-form"), StringComparison.Ordinal);
+        Assert.Contains("value=\"TR00 0000\"", FormOf(ibanHtml, "record-withdrawal-form"), StringComparison.Ordinal);
         await using AppDbContext reader = NewContext();
         Assert.Equal(0, await reader.Withdrawals.CountAsync(w => w.OrderItemId == items[0], Ct));
     }

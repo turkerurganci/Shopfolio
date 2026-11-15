@@ -185,6 +185,7 @@ public sealed partial class OrderDetailModel
 
         if (!TryReadUnits(input.Items.Select(l => (l.OrderItemId, l.Quantity)), out IReadOnlyList<PanelItemUnits> units))
         {
+            await KeepNoticeWarningsAsync(id, input, date, ct);
             return await RefuseAsync(id, QuantityInvalidText, ErrorCode.InvalidQuantity, ct);
         }
 
@@ -196,9 +197,26 @@ public sealed partial class OrderDetailModel
         PanelItemStepResult result = await RunItemStepAsync((steps, token) => steps.RecordWithdrawalsAsync(notice, units, token), ct);
         NoticeWarnings = result.Warnings;
         AsksNoticeDeliveryOrder = result.Warnings.AsksDeliveryOrder;
-        return result.Refusal == TransitionRefusal.ConfirmationRequired
-            ? await AskAsync(id, () => WithdrawalConfirm(id, input, units), ct)
-            : await AnswerItemStepAsync(id, result, ErrorCode.OperationNotAvailable, ct);
+        if (result.Refusal == TransitionRefusal.ConfirmationRequired)
+        {
+            return await AskAsync(id, () => WithdrawalConfirm(id, input, units), ct);
+        }
+
+        if (result.IsRejected && result.Warnings == WithdrawalNoticeWarnings.None)
+        {
+            await KeepNoticeWarningsAsync(id, input, date, ct);
+        }
+
+        return await AnswerItemStepAsync(id, result, ErrorCode.OperationNotAvailable, ct);
+    }
+
+    // 12 VAL-B159 (K-744, K-1514 (1)): the notice's warnings stand on every refusal of the form - also on those answered before the record reads them (the units, the IBAN, the item
+    // choice) - for the chosen items and the date as sent; a refusal before the date reads has no date to judge the window by.
+    private async Task KeepNoticeWarningsAsync(Guid id, RecordWithdrawalInput input, DateOnly date, CancellationToken ct)
+    {
+        Guid[] chosen = [.. input.Items.Select(l => l.OrderItemId).OfType<Guid>().Distinct()];
+        NoticeWarnings = await HttpContext.RequestServices.GetRequiredService<IPanelItemSteps>().WithdrawalNoticeWarningsAsync(id, chosen, date, ct);
+        AsksNoticeDeliveryOrder = NoticeWarnings.AsksDeliveryOrder;
     }
 
     /// <summary>UC-130: a late delivery termination notified by another channel; no item and no unit (K-796); unconfirmed 200, confirmed 303.</summary>

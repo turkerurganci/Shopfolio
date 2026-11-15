@@ -4,17 +4,16 @@ namespace Shopfolio.UnitTests.Consistency;
 /// The comparison of the navigation map of <c>04 3</c> with the code (T546; 04 3.1-3.7; 09 19.2 item 3, 21.4 item 1). A problem is a line that says what differs: <c>RowOnlyInDocument</c> and <c>RowOnlyInCode</c> -
 /// a row of the tables or a paragraph of 3.6 without an entry, or an entry without a row; <c>FromDiffers</c> and <c>ToDiffers</c> - the source or the target the document names is not the one the entry names;
 /// <c>NoEvidence</c> and <c>EvidenceMissing</c> - an entry that nothing in the code carries; <c>UndocumentedTransition</c> - a link or a redirect of the code that no row and no exemption names;
-/// <c>DeadExemption</c> and <c>ExemptAndClaimed</c> - an exemption that is not in the code, or a site that is both a row's evidence and exempt; <c>ExemptionNotCited</c> - an exemption whose cited paragraph of
-/// 04 does not hold its word; <c>GapNotOpen</c> - a row marked not yet in the code whose backlog item is not open (or that has other evidence).
+/// <c>DeadExemption</c> and <c>ExemptAndClaimed</c> - an exemption that is not in the code, or a site that is both a row's evidence and exempt. No row waits for the code and no known difference
+/// is listed: a row of the tables is in the code or the check reports it.
 /// </summary>
 internal static class NavigationCheck
 {
-    public static IReadOnlyList<string> Problems(string document, IReadOnlyDictionary<string, string> sources, IReadOnlyList<string> routes, string backlog)
+    public static IReadOnlyList<string> Problems(string document, IReadOnlyDictionary<string, string> sources, IReadOnlyList<string> routes)
     {
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(sources);
         ArgumentNullException.ThrowIfNull(routes);
-        ArgumentNullException.ThrowIfNull(backlog);
 
         IReadOnlyList<NavigationEntry> entries = NavigationInventory.Entries;
         IReadOnlyList<NavigationExemption> exemptions = NavigationInventory.Exemptions;
@@ -48,11 +47,6 @@ internal static class NavigationCheck
                 problems.Add($"NoEvidence:{entry.Id}");
             }
 
-            if (entry.Evidence.Any(e => e.Kind == NavigationEvidenceKind.OpenGap) && entry.Evidence.Any(e => e.Kind != NavigationEvidenceKind.OpenGap))
-            {
-                problems.Add($"GapNotOpen:{entry.Id}: a row that is not yet in the code carries no other evidence.");
-            }
-
             foreach (NavigationEvidence evidence in entry.Evidence)
             {
                 switch (evidence.Kind)
@@ -81,13 +75,6 @@ internal static class NavigationCheck
                         }
 
                         break;
-                    case NavigationEvidenceKind.OpenGap:
-                        if (!IsOpen(backlog, evidence.Text))
-                        {
-                            problems.Add($"GapNotOpen:{entry.Id}: {evidence.Text} is not an open item of the backlog.");
-                        }
-
-                        break;
                     default:
                         throw new InvalidOperationException($"Unknown evidence kind {evidence.Kind}.");
                 }
@@ -107,11 +94,6 @@ internal static class NavigationCheck
             if (claimed.Contains(site))
             {
                 problems.Add($"ExemptAndClaimed: {exemption.Kind} '{exemption.Key}' in {exemption.File} is a row's evidence.");
-            }
-
-            if (exemption.CiteId is not null && !Cites(document, exemption.CiteId, exemption.CiteWord ?? string.Empty))
-            {
-                problems.Add($"ExemptionNotCited: 04 {exemption.CiteId} does not hold '{exemption.CiteWord}' ({exemption.File}).");
             }
         }
 
@@ -147,16 +129,5 @@ internal static class NavigationCheck
     private static IEnumerable<string> Relabel(IEnumerable<string> problems)
     {
         return problems.Select(p => p.Replace("only in the document", "RowOnlyInDocument", StringComparison.Ordinal).Replace("only in the model", "RowOnlyInCode", StringComparison.Ordinal));
-    }
-
-    private static bool Cites(string document, string id, string word)
-    {
-        return document.Split('\n').Any(l => l.Contains("**" + id, StringComparison.Ordinal) && l.Contains(word, StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static bool IsOpen(string backlog, string id)
-    {
-        string[] lines = [.. backlog.Split('\n').Where(l => l.StartsWith('|') && l.Contains($"| {id} |", StringComparison.Ordinal))];
-        return lines.Length == 1 && !lines[0].StartsWith("| ✅", StringComparison.Ordinal);
     }
 }

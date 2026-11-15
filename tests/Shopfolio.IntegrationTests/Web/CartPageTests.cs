@@ -358,6 +358,27 @@ public sealed class CartPageTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task TheLinesProductName_LinksToTheProductPage_T546_3_3_13()
+    {
+        (string customerKey, Guid customerId) = await TestSessions.CustomerAsync(_database.Dsn);
+        Variant variant = await SeedVariantAsync(price: 130m);
+        Guid cartId = await SeedCartAsync(customerId, null, (variant, 1, 100m));
+        string slug;
+        string name;
+        await using (AppDbContext db = NewContext())
+        {
+            slug = await db.Products.Where(p => p.Id == variant.ProductId).Select(p => p.Slug).SingleAsync(Ct);
+            name = await db.Products.Where(p => p.Id == variant.ProductId).Select(p => p.Name).SingleAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open(salesOpen: true);
+        string html = (await GetAsync(factory, Customer(customerKey))).Html;
+
+        // 04 3.3.13 (K-775): the name of the cart line opens the product page.
+        Assert.Contains($"<a href=\"/urun/{slug}\">{name}</a>", LineOf(html, await ItemIdAsync(cartId, variant.Id)), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task ADigitalLine_HasNoQuantityField_AndAQuantityOtherThanOneIsRefused_T508_KK7()
     {
         (string customerKey, Guid customerId) = await TestSessions.CustomerAsync(_database.Dsn);

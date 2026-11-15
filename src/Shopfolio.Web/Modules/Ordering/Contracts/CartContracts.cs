@@ -55,6 +55,7 @@ public sealed record CartLine(
     Guid VariantId,
     Guid ProductId,
     string ProductName,
+    string ProductSlug,
     ProductType ProductType,
     int Quantity,
     decimal UnitPrice,

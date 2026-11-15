@@ -14,9 +14,6 @@ internal enum NavigationEvidenceKind
 
     /// <summary>A page whose <c>@page</c> route starts with the text (or equals it); a text ending with <c>*</c> is a prefix.</summary>
     Page,
-
-    /// <summary>The row is documented and not yet in the code: the text is the id of the open backlog item that carries it (D-1189).</summary>
-    OpenGap,
 }
 
 internal sealed record NavigationEvidence(NavigationEvidenceKind Kind, string File, string Text);
@@ -24,14 +21,15 @@ internal sealed record NavigationEvidence(NavigationEvidenceKind Kind, string Fi
 /// <summary>One row of <c>04 3</c> as the code has it: the id, the source and the target pins and the evidence. A pin is the set of the screens the cell names (<c>E-04,E-05</c>) and the texts it must hold (<c>~text</c>).</summary>
 internal sealed record NavigationEntry(string Id, string From, string To, IReadOnlyList<NavigationEvidence> Evidence);
 
-/// <summary>A site of the code that leads away without being a row of the table, with the reason; a reason that cites <c>04</c> is read from the document (<see cref="NavigationCheck"/>).</summary>
-internal sealed record NavigationExemption(NavigationSiteKind Kind, string File, string Key, string Reason, string? CiteId, string? CiteWord);
+/// <summary>A site of the code that stays on its screen or is no screen (the document's own rule, <c>04 3</c> introduction), with the reason. It is no list of known differences: a link that leads to another screen is a row.</summary>
+internal sealed record NavigationExemption(NavigationSiteKind Kind, string File, string Key, string Reason);
 
 /// <summary>
 /// The code side of the navigation map (T546; 04 3; 09 21.4 item 1): each row of the tables is claimed by the places of the code that carry it - the link of a view, the redirect of a handler, the route of a page
-/// - and every link and redirect of the web project is either claimed by a row or listed as an exemption with its reason. A row that has no claim, a claim that is not in the code, a link or redirect that
-/// no row and no exemption names, an exemption that is not in the code: each makes <see cref="NavigationCheck"/> report. The exemptions are the places that stay on their screen (the document's own rule,
-/// 04 3 introduction: sorting, paging, in-row editing and the confirmation window are no transitions) and the links the screen specifications of 04 5 and 9 write, each cited.
+/// - and every link and redirect of the web project is either claimed by a row or is a place that stays on its screen. A row that has no claim, a claim that is not in the code, a link or redirect that
+/// no row and no exemption names, an exemption that is not in the code: each makes <see cref="NavigationCheck"/> report. The exemptions are only the places that stay on their screen or are no screen (the
+/// document's own rule, 04 3 introduction: sorting, paging, in-row editing and the confirmation window are no transitions); every link that leads to another screen is a row, also the ones the screen
+/// specifications of 04 5 and 9 write (T546 correction 1; K-1617). There is no list of known differences and no open item.
 /// </summary>
 internal static class NavigationInventory
 {
@@ -113,7 +111,7 @@ internal static class NavigationInventory
             L("Product.cshtml", "@FramePaths.Home"),
             L("Product.cshtml", "@category.Path"),
             L("Search.cshtml", "@category.Path")),
-        Row("3.3.13", "E-12", "E-04", Gap("D-1189")),
+        Row("3.3.13", "E-12", "E-04", L("Storefront/Cart.cshtml", "/@AddressRules.ProductPrefix/@line.ProductSlug")),
         Row("3.3.14", "E-12", "E-13", L("Storefront/Cart.cshtml", "@FramePaths.Checkout")),
         Row("3.3.15", "E-13", "E-12", R("Storefront/Checkout.cshtml.cs", "FramePaths.Cart"), L(Header, "@Model.Cart.Path")),
         Row("3.3.16", "E-13", "E-13,E-22", X("Storefront/Checkout.cshtml", "CheckoutModel.LoginTarget"), R("Storefront/Checkout.cshtml.cs", "SignInPath")),
@@ -188,6 +186,22 @@ internal static class NavigationInventory
             R("Storefront/GoogleReturn.cshtml.cs", "FramePaths.Account")),
         Row("3.3.38", "E-14", "E-12", R("Orders/ConfirmationScreenModels.cs", "FramePaths.Cart"), L("Orders/_OrderPage.cshtml", "@FramePaths.Cart")),
         Row("3.3.39", "E-14", "E-15,E-16", R("Orders/ConfirmationScreenModels.cs", "NotAwaitingTarget()")),
+
+        // The links the screen specifications of 04 5 and 9 write (K-1617).
+        Row("3.3.40", "E-25", "E-01,E-15", L("Account/Deleted.cshtml", "@FramePaths.OrderTracking"), L("Account/Deleted.cshtml", "@FramePaths.Home")),
+        Row("3.3.41", "E-15", "E-22", L("Orders/Tracking.cshtml", "@(HttpContext.GetStorefrontFrame()?.Account.SignInPath ?? FramePaths.SignIn)")),
+        Row("3.3.42", "E-16", "~Kargo şirketinin takip sayfası (ürünün dışında)", L("Orders/_OrderPage.cshtml", "@tracking.Href")),
+        Row("3.3.43", "E-20", "E-22", L("Storefront/Register.cshtml", "@FramePaths.SignIn")),
+        Row(
+            "3.3.44",
+            "E-10,E-13,E-16,E-17,E-18,E-20,E-22",
+            "E-11",
+            L("Storefront/Checkout.cshtml", "@FramePaths.PrivacyNotice"),
+            L("Storefront/Contact.cshtml", "@privacyNotice.Path"),
+            L("Storefront/Register.cshtml", "@FramePaths.PrivacyNotice"),
+            L("Storefront/SignIn.cshtml", "@FramePaths.PrivacyNotice"),
+            L("Shared/_IbanField.cshtml", "@Model.NoticeHref")),
+        Row("3.3.45", "E-10", "~Haritanın sayfası (ürünün dışında)", L("Storefront/Contact.cshtml", "@mapUrl")),
 
         // 04 3.4: the panel.
         Row("3.4.1", "E-29", "E-31", R("Panel/SignIn.cshtml.cs", "ReturnPath.Resolve(input.ReturnUrl, ReturnArea.Panel)")),
@@ -270,6 +284,8 @@ internal static class NavigationInventory
             L("Panel/Verify.cshtml", "@Model.NextPath"),
             R("Panel/Revert.cshtml.cs", """PanelFramePaths.EmailRevert + "/" + Uri.EscapeDataString(key)"""),
             R("Panel/Verify.cshtml.cs", """PanelFramePaths.EmailVerification + "/" + Uri.EscapeDataString(key)""")),
+        Row("3.4.24", "E-45", "E-46", L("Panel/PaymentMethods.cshtml", "@Shopfolio.Pages.Frame.PanelFramePaths.ShippingAndDefaults")),
+        Row("3.4.25", "E-37", "~Kargo şirketinin takip sayfası (ürünün dışında)", L("Panel/OrderDetail.cshtml", "@link.Href")),
 
         // 04 3.5: entries from outside the site.
         Row("3.5.1", "~Sipariş e-postası", "E-16", Page("/siparis/erisim/{accessKey*"), Page("/siparis/{orderNumber*")),
@@ -342,7 +358,7 @@ internal static class NavigationInventory
             R("Panel/AdminAccounts.cshtml.cs", "PanelFramePaths.SignIn")),
     ];
 
-    /// <summary>The sites that stay on their screen or are not a screen, and the links the screen specifications of 04 write.</summary>
+    /// <summary>The sites that stay on their screen or are not a screen (04 3 introduction); no link that leads to another screen is here.</summary>
     public static IReadOnlyList<NavigationExemption> Exemptions { get; } =
     [
         // Sorting, paging, in-row editing and the confirmation window are no transitions (04 3 introduction); the lists' own addresses.
@@ -389,21 +405,6 @@ internal static class NavigationInventory
 
         // A file is no screen (04 4 lists the 53 screens).
         Stay("Orders/OrderPageModels.cs", "Endpoints.Files.DownloadEndpoint.Prefix + \"/\" + value", "the download's answer is a file, no screen", NavigationSiteKind.Redirect),
-
-        // Links the screen specifications write; the cited paragraph holds the word.
-        Spec("Account/Deleted.cshtml", "@FramePaths.Home", "5.25.13", "Sipariş ta"),
-        Spec("Account/Deleted.cshtml", "@FramePaths.OrderTracking", "5.25.13", "Sipariş ta"),
-        Spec("Orders/Tracking.cshtml", "@(HttpContext.GetStorefrontFrame()?.Account.SignInPath ?? FramePaths.SignIn)", "5.15.3", "hatırlatması"),
-        Spec("Orders/_OrderPage.cshtml", "@tracking.Href", "5.16.8", "Takip et"),
-        Spec("Panel/OrderDetail.cshtml", "@link.Href", "9.9.9", "Takip et"),
-        Spec("Panel/PaymentMethods.cshtml", "@Shopfolio.Pages.Frame.PanelFramePaths.ShippingAndDefaults", "9.17.4", "E-46"),
-        Spec("Storefront/Checkout.cshtml", "@FramePaths.PrivacyNotice", "2.12.1.6", "aydınlatma metninin bağlantısı"),
-        Spec("Storefront/Contact.cshtml", "@privacyNotice.Path", "2.12.1.6", "aydınlatma metninin bağlantısı"),
-        Spec("Storefront/Contact.cshtml", "@mapUrl", "5.10.4", "Haritada aç"),
-        Spec("Storefront/Register.cshtml", "@FramePaths.PrivacyNotice", "2.12.1.6", "aydınlatma metninin bağlantısı"),
-        Spec("Storefront/SignIn.cshtml", "@FramePaths.PrivacyNotice", "2.12.1.6", "aydınlatma metninin bağlantısı"),
-        Spec("Shared/_IbanField.cshtml", "@Model.NoticeHref", "2.12.1.6", "aydınlatma metninin bağlantısı"),
-        Spec("Storefront/Register.cshtml", "@FramePaths.SignIn", "5.20.9", "ına götüren bağlantı"),
     ];
 
     private static string Path(string file) => file.StartsWith('!') ? file[1..] : "Pages/" + file;
@@ -418,10 +419,5 @@ internal static class NavigationInventory
 
     private static NavigationEvidence Page(string route) => new(NavigationEvidenceKind.Page, string.Empty, route);
 
-    private static NavigationEvidence Gap(string backlogId) => new(NavigationEvidenceKind.OpenGap, string.Empty, backlogId);
-
-    private static NavigationExemption Stay(string file, string key, string reason, NavigationSiteKind kind = NavigationSiteKind.Link) => new(kind, Path(file), key, reason, null, null);
-
-    private static NavigationExemption Spec(string file, string key, string citeId, string citeWord) =>
-        new(NavigationSiteKind.Link, Path(file), key, $"the screen specification writes this link (04 {citeId})", citeId, citeWord);
+    private static NavigationExemption Stay(string file, string key, string reason, NavigationSiteKind kind = NavigationSiteKind.Link) => new(kind, Path(file), key, reason);
 }

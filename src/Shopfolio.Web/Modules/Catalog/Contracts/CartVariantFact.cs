@@ -8,8 +8,9 @@ namespace Shopfolio.Modules.Catalog.Contracts;
 /// <param name="VariantId">The variant.</param>
 /// <param name="ProductId">The variant's product.</param>
 /// <param name="ProductName">The product's name, as the cart line and the once-told messages show it.</param>
+/// <param name="ProductSlug">The product's address segment; the cart line's name links to the product page with it (04 3.3.13; K-775).</param>
 /// <param name="ProductType">The product's type.</param>
 /// <param name="IsOnShowcase">True when both the product and the variant are Published.</param>
 /// <param name="IsSoldOut">True when the variant cannot be bought now.</param>
 /// <param name="UnitPrice">The unit price that applies now, VAT included.</param>
-public sealed record CartVariantFact(Guid VariantId, Guid ProductId, string ProductName, ProductType ProductType, bool IsOnShowcase, bool IsSoldOut, decimal UnitPrice);
+public sealed record CartVariantFact(Guid VariantId, Guid ProductId, string ProductName, string ProductSlug, ProductType ProductType, bool IsOnShowcase, bool IsSoldOut, decimal UnitPrice);

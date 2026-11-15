@@ -31,9 +31,15 @@ internal static partial class NavigationDocument
             {
                 foreach (string[] cells in tables[t])
                 {
+                    if (cells.Length > 0 && RowId().IsMatch(cells[0]) && cells.Length < 4)
+                    {
+                        // A row id with fewer than the four cells it needs is a broken row, never one the reader passes over.
+                        throw new InvalidOperationException($"04 3 row {cells[0]} has {cells.Length} cells; a row has id, from, trigger, to.");
+                    }
+
                     if (cells.Length < 4 || !RowId().IsMatch(cells[0]))
                     {
-                        continue;
+                        continue; // the header and the separator line of the table
                     }
 
                     bool menuTable = heading == "### 3.2 " && t == 0;

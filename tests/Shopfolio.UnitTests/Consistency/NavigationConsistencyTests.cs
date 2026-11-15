@@ -19,19 +19,11 @@ public sealed class NavigationConsistencyTests
 
     private static readonly Lazy<IReadOnlyDictionary<string, string>> Sources = new(() => NavigationSites.Load(RepositoryRoot.Find()));
 
-    private static readonly Lazy<string> Backlog = new(() =>
-    {
-        string root = RepositoryRoot.Find();
-        string table = File.ReadAllText(Path.Combine(root, "Docs", "DEFERRED_BACKLOG.md"));
-        IEnumerable<string> parts = Directory.EnumerateFiles(Path.Combine(root, "Docs", "DEFERRED_BACKLOG.d"), "*.md").Select(File.ReadAllText);
-        return string.Join('\n', parts.Prepend(table)).ReplaceLineEndings("\n");
-    });
-
     private static readonly string[] Routes =
         [.. EndpointBindingCheck.PagesOf(typeof(Program).Assembly).Select(p => "/" + p.Template.TrimStart('/')).Distinct(StringComparer.Ordinal)];
 
     private static IReadOnlyList<string> Problems(string? document = null, IReadOnlyDictionary<string, string>? sources = null, IReadOnlyList<string>? routes = null)
-        => NavigationCheck.Problems(document ?? Document.Value, sources ?? Sources.Value, routes ?? Routes, Backlog.Value);
+        => NavigationCheck.Problems(document ?? Document.Value, sources ?? Sources.Value, routes ?? Routes);
 
     private static Dictionary<string, string> Changed(string file, string from, string to)
     {
@@ -63,9 +55,15 @@ public sealed class NavigationConsistencyTests
         IReadOnlyList<NavigationRow> rows = NavigationDocument.Rows(Document.Value);
         IReadOnlyDictionary<string, string> returns = NavigationDocument.Returns(Document.Value);
 
-        Assert.Equal(125, rows.Count);
+        // The count is not written here: the entries equal the rows of the document (the row count is read from the table), each table keeps its numbering without a gap.
+        Assert.NotEmpty(rows);
         Assert.Equal(["3.6.1", "3.6.2", "3.6.3", "3.6.4", "3.6.5"], returns.Keys.Order(StringComparer.Ordinal));
         Assert.Equal(rows.Count + returns.Count, NavigationInventory.Entries.Count);
+        foreach (IGrouping<string, NavigationRow> table in rows.GroupBy(r => string.Join('.', r.Id.Split('.')[..2]), StringComparer.Ordinal))
+        {
+            Assert.Equal(Enumerable.Range(1, table.Count()).Select(n => $"{table.Key}.{n}"), table.Select(r => r.Id));
+        }
+
         Assert.Equal(NavigationInventory.Entries.Count, NavigationInventory.Entries.Select(e => e.Id).Distinct(StringComparer.Ordinal).Count());
     }
 
@@ -298,23 +296,78 @@ public sealed class NavigationConsistencyTests
         Assert.Contains(Problems(sources: sources), p => p.StartsWith("DeadExemption", StringComparison.Ordinal));
     }
 
+    // T546 correction 1 (K-1617): a row added to the table that the code does not carry, and a link added to the code that the table does not name, each break the check on their own.
     [Fact]
-    public void CitedExemption_WhoseParagraphLosesTheWord_IsReported()
+    public void RowAddedToTheTable_WithoutCode_IsReported()
     {
-        string changed = Document.Value.Replace("Haritada aç", "Haritada göster", StringComparison.Ordinal);
-        Assert.NotEqual(Document.Value, changed);
+        string anchor = "| 3.3.39 |";
+        int at = Document.Value.IndexOf(anchor, StringComparison.Ordinal);
+        Assert.True(at >= 0);
+        int lineEnd = Document.Value.IndexOf('\n', at);
+        string changed = Document.Value.Insert(lineEnd + 1, "| 3.3.99 | E-01 | Örnek bağlantı | E-02 | — | örnek |\n");
 
-        Assert.Contains(Problems(document: changed), p => p.StartsWith("ExemptionNotCited", StringComparison.Ordinal));
+        IReadOnlyList<string> problems = Problems(document: changed);
+
+        Assert.Contains(problems, p => p.Contains("RowOnlyInDocument", StringComparison.Ordinal) && p.Contains("3.3.99", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void RowNotYetInTheCode_NeedsAnOpenBacklogItem()
+    public void RowWithTooFewCells_IsNotPassedOver_ItBreaksTheReader()
     {
-        IEnumerable<NavigationEntry> gaps = NavigationInventory.Entries.Where(e => e.Evidence.Any(x => x.Kind == NavigationEvidenceKind.OpenGap));
+        int at = Document.Value.IndexOf("| 3.3.39 |", StringComparison.Ordinal);
+        Assert.True(at >= 0);
+        string changed = Document.Value.Insert(Document.Value.IndexOf('\n', at) + 1, "| 3.3.99 | E-01 |\n");
 
-        NavigationEntry gap = Assert.Single(gaps);
-        Assert.Equal("3.3.13", gap.Id);
-        Assert.Single(gap.Evidence);
+        Assert.Throws<InvalidOperationException>(() => NavigationDocument.Rows(changed));
+    }
+
+    [Fact]
+    public void LinkAddedToAScreenThatHadExemptLinks_WithoutARow_IsReported()
+    {
+        IReadOnlyDictionary<string, string> sources = Changed("Pages/Account/Deleted.cshtml", "href=\"@FramePaths.Home\"", "href=\"@FramePaths.Home\"></a><a href=\"/baska-yer\"");
+
+        Assert.Contains(Problems(sources: sources), p => p.StartsWith("UndocumentedTransition", StringComparison.Ordinal) && p.Contains("/baska-yer", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("3.3.13")]
+    [InlineData("3.3.40")]
+    [InlineData("3.3.41")]
+    [InlineData("3.3.42")]
+    [InlineData("3.3.43")]
+    [InlineData("3.3.44")]
+    [InlineData("3.3.45")]
+    [InlineData("3.4.24")]
+    [InlineData("3.4.25")]
+    public void TheRowsOfTheScreenSpecificationLinks_DeletedFromTheTable_AreReported(string id)
+    {
+        Assert.Contains(Problems(document: WithoutRow(id)), p => p.Contains("RowOnlyInCode: " + id, StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("3.3.13", "Pages/Storefront/Cart.cshtml", "href=\"/@AddressRules.ProductPrefix/@line.ProductSlug\"")]
+    [InlineData("3.3.40", "Pages/Account/Deleted.cshtml", "href=\"@FramePaths.OrderTracking\"")]
+    [InlineData("3.3.41", "Pages/Orders/Tracking.cshtml", "href=\"@(HttpContext.GetStorefrontFrame()?.Account.SignInPath ?? FramePaths.SignIn)\"")]
+    [InlineData("3.3.42", "Pages/Orders/_OrderPage.cshtml", "href=\"@tracking.Href\"")]
+    [InlineData("3.3.43", "Pages/Storefront/Register.cshtml", "href=\"@FramePaths.SignIn\"")]
+    [InlineData("3.3.44", "Pages/Shared/_IbanField.cshtml", "href=\"@Model.NoticeHref\"")]
+    [InlineData("3.3.45", "Pages/Storefront/Contact.cshtml", "href=\"@mapUrl\"")]
+    [InlineData("3.4.24", "Pages/Panel/PaymentMethods.cshtml", "href=\"@Shopfolio.Pages.Frame.PanelFramePaths.ShippingAndDefaults\"")]
+    [InlineData("3.4.25", "Pages/Panel/OrderDetail.cshtml", "href=\"@link.Href\"")]
+    public void TheLinksOfTheScreenSpecificationRows_LeavingTheCode_AreReported(string id, string file, string link)
+    {
+        IReadOnlyDictionary<string, string> sources = Changed(file, link, "href=\"#\"");
+
+        Assert.Contains(Problems(sources: sources), p => p.StartsWith("EvidenceMissing:" + id, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void TheInventory_HasNoOpenItemAndNoCitedExemption()
+    {
+        // Equality has no list of known differences: every kind of evidence is a place of the code, and an exemption is a place that stays on its screen.
+        Assert.All(NavigationInventory.Entries, e => Assert.NotEmpty(e.Evidence));
+        Assert.All(NavigationInventory.Exemptions, x => Assert.False(string.IsNullOrWhiteSpace(x.Reason)));
+        Assert.Equal(["Link", "Redirect", "Text", "Page"], Enum.GetNames<NavigationEvidenceKind>());
     }
 
     private static List<string> MenuProblems(string document)

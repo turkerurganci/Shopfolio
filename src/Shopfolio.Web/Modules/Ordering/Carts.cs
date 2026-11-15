@@ -277,6 +277,7 @@ internal sealed class Carts
                 fact.VariantId,
                 fact.ProductId,
                 fact.ProductName,
+                fact.ProductSlug,
                 fact.ProductType,
                 item.Quantity,
                 fact.UnitPrice,

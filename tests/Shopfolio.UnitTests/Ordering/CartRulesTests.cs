@@ -11,7 +11,7 @@ public sealed class CartRulesTests
     private static readonly ShippingFeeSection NoTerms = new(0m, null, null, 1);
 
     private static CartLine Line(int quantity, decimal unitPrice, bool soldOut = false, bool onShowcase = true, ProductType type = ProductType.Physical)
-        => new(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Masa", type, quantity, unitPrice, false, soldOut, CartRules.EntersOrder(onShowcase, soldOut));
+        => new(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Masa", "masa", type, quantity, unitPrice, false, soldOut, CartRules.EntersOrder(onShowcase, soldOut));
 
     private static CartPaymentBlock BlockOf(CartLine[] lines, ShippingFeeSection? terms = null)
         => CartRules.PaymentBlockOf(lines, CartRules.AssessShipping(lines, terms ?? NoTerms));
@@ -91,11 +91,11 @@ public sealed class CartRulesTests
     [Fact]
     public void ALineOverItsStockOrLimit_DoesNotOpenThePaymentStep_AndIsOutOfTheAmounts_T347KK2()
     {
-        CartLine fine = new(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Masa", ProductType.Physical, 1, 50m, false, false, true);
+        CartLine fine = new(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Masa", "masa", ProductType.Physical, 1, 50m, false, false, true);
         CartLine overStock = new(
-            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Sandalye", ProductType.Physical, 9, 10m, false, false, CartRules.EntersOrder(true, false, CartQuantityProblem.NoStock), CartQuantityProblem.NoStock);
+            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Sandalye", "sandalye", ProductType.Physical, 9, 10m, false, false, CartRules.EntersOrder(true, false, CartQuantityProblem.NoStock), CartQuantityProblem.NoStock);
         CartLine overLimit = new(
-            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Lamba", ProductType.Physical, 3, 10m, false, false, CartRules.EntersOrder(true, false, CartQuantityProblem.OverOrderLimit), CartQuantityProblem.OverOrderLimit, 2);
+            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Lamba", "lamba", ProductType.Physical, 3, 10m, false, false, CartRules.EntersOrder(true, false, CartQuantityProblem.OverOrderLimit), CartQuantityProblem.OverOrderLimit, 2);
 
         Assert.Equal(CartPaymentBlock.NoOrderableItem, BlockOf([overStock, overLimit]));
         Assert.Equal(CartPaymentBlock.None, BlockOf([overStock, fine]));

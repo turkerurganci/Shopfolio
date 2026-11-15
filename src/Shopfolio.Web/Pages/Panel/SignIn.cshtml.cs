@@ -73,10 +73,11 @@ internal sealed class SignInModel : PageModel
         }
     }
 
-    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(AdminSignInQuery query, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(query);
         _loaded = true;
-        string? returnUrl = Request.Query[ReturnPath.ParameterName];
+        string? returnUrl = query.ReturnUrl;
         Input = new SignInInput { ReturnUrl = ReturnPath.IsLocalPath(returnUrl) ? returnUrl : null };
 
         switch (NoticeParameter.Read(Request, NoticeKind.Result))
@@ -86,7 +87,7 @@ internal sealed class SignInModel : PageModel
                 break;
             case NoticeCode.AdminAccountCreated:
                 ResultMessage = PanelAccessTexts.InPlace(MessageMeaning.Success, PanelAccessTexts.AccountCreated, "sign-in-result");
-                Input.Email = await AcceptedAddressAsync(ct);
+                Input.Email = await AcceptedAddressAsync(query.AcceptedInvitation, ct);
                 break;
             default:
                 break;
@@ -138,9 +139,8 @@ internal sealed class SignInModel : PageModel
     }
 
     // The address the invitation's protected value names, when it unprotects and the account is there (K-1190 (2)); else null and the field stays empty.
-    private async Task<string?> AcceptedAddressAsync(CancellationToken ct)
+    private async Task<string?> AcceptedAddressAsync(string? raw, CancellationToken ct)
     {
-        string? raw = Request.Query[AcceptedInvitationParameter];
         ProtectedValueResult value = _protectedValues.Unprotect(DataProtectionPurposes.AcceptedInvitation, raw);
         if (!value.IsValid)
         {
@@ -154,6 +154,16 @@ internal sealed class SignInModel : PageModel
     {
         public bool IsRejected => Opening is null;
     }
+}
+
+/// <summary>The query of UC-84 (07 5.3.2 <c>AdminSignInQuery</c>): the address the visitor was sent from and, after the acceptance of an invitation, the invitation's protected value (K-1190 (2)); text, so a wrong value is never a binding error (07 2.6.6).</summary>
+public sealed class AdminSignInQuery : IQueryModel
+{
+    [SpecAssignedName]
+    public string? ReturnUrl { get; init; }
+
+    [SpecAssignedName]
+    public string? AcceptedInvitation { get; init; }
 }
 
 /// <summary>The form of UC-110 (07 9.1.2; 04 7.2.1.1-7.2.1.3): e-mail, password, "beni hatırla" and the return address.</summary>

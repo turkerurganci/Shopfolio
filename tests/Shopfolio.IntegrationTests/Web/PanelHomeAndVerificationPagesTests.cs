@@ -112,6 +112,7 @@ public sealed class PanelHomeAndVerificationPagesTests : IAsyncLifetime
     [InlineData("")]
     [InlineData("?reauthenticatedOperation=AccountDeletion")]
     [InlineData("?reauthenticatedOperation=Nothing")]
+    [InlineData("?reauthenticatedOperation=PasswordChange&reauthenticatedOperation=PasswordChange")]
     public async Task TheReauthenticationPage_Redirects_ToTheAccountPage_ForNoOperationOrOneOutsideTheList_T521_KK4(string query)
     {
         (string key, _) = await TestSessions.AdminAsync(_database.Dsn);

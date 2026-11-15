@@ -119,6 +119,26 @@ public sealed class AccountProfilePageTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task AParameterSentTwice_IsNoValue_TheFormStaysClosed_T538()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        await SeedAsync("ali@example.com", hasPassword: true, googleLinked: false);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string session = await SignInAsync(client, "ali@example.com");
+        string address = await ReauthenticateAsync(client, session, "PasswordChange");
+        string permit = TokenOf(address);
+        string value = Uri.EscapeDataString(permit);
+
+        (_, string twiceOperation, _) = await GetAsync(client, $"{FramePaths.Account}?reauthenticatedOperation=PasswordChange&reauthenticatedOperation=PasswordChange&reauthenticationToken={value}", session);
+        address = await ReauthenticateAsync(client, session, "PasswordChange");
+        value = Uri.EscapeDataString(TokenOf(address));
+        (_, string twiceValue, _) = await GetAsync(client, $"{FramePaths.Account}?reauthenticatedOperation=PasswordChange&reauthenticationToken={value}&reauthenticationToken={value}", session);
+
+        Assert.DoesNotContain("name=\"Input.NewPassword\"", twiceOperation, StringComparison.Ordinal);
+        Assert.DoesNotContain("name=\"Input.NewPassword\"", twiceValue, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task APageRequestOutsideTheForm_DropsThePermission_AndTheFormsDisplayDoesNot_T517_KK2()
     {
         await using WebApplicationFactory<Program> factory = Open();

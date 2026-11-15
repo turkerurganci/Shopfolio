@@ -101,6 +101,23 @@ public sealed class MyAccountPageTests : IAsyncLifetime
         Assert.Null(session.ReauthenticationTokenHash);
     }
 
+    [Theory]
+    [InlineData("&reauthenticatedOperation=PasswordChange")]
+    [InlineData("&reauthenticationToken={0}")]
+    public async Task AParameterSentTwice_IsNoValue_KeepsTheFormsClosed_T538(string extra)
+    {
+        Guid adminId = await SeedAdminAsync();
+        (string key, _, string held) = await SeedSessionAsync(adminId, ReauthenticationOperation.PasswordChange);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string value = Uri.EscapeDataString(held);
+
+        (_, string html) = await GetAsync(client, $"{AccountPath}?reauthenticatedOperation=PasswordChange&reauthenticationToken={value}" + string.Format(System.Globalization.CultureInfo.InvariantCulture, extra, value), key);
+
+        Assert.DoesNotContain("id=\"change-password-form\"", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("id=\"change-email-form\"", html, StringComparison.Ordinal);
+    }
+
     // ---- KK2: the pending change and the open revert link ----
 
     [Fact]

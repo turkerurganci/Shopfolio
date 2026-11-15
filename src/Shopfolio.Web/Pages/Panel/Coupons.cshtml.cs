@@ -21,7 +21,7 @@ using Shopfolio.Pages.Lists;
 namespace Shopfolio.Pages.Panel;
 
 /// <summary>The query of the coupon list (07 UC-90): the page only - there is no search and no filter (04 9.7.5; K-737).</summary>
-public sealed class CouponListQuery : PagedQuery
+public sealed class CouponQuery : PagedQuery
 {
 }
 
@@ -274,7 +274,7 @@ internal sealed class CouponsModel : PageModel
         }
     }
 
-    public async Task<IActionResult> OnGetAsync(CouponListQuery query, CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(CouponQuery query, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(query);
         string? key = RouteKey();
@@ -390,7 +390,7 @@ internal sealed class CouponsModel : PageModel
         _loaded = true;
         CouponListPage list = await _catalog.ListCouponsAsync(page, ct);
         Table = list.Items.Count == 0 ? null : new PanelTable("Kuponlar", Columns, [.. list.Items.Select(RowOf)]);
-        Pager = Pager.Of(PanelFramePaths.Coupons, new CouponListQuery(), list.PageNumber, list.PageCount);
+        Pager = Pager.Of(PanelFramePaths.Coupons, new CouponQuery(), list.PageNumber, list.PageCount);
         Empty = list.Items.Count == 0
             ? EmptyStates.WithFirstRecordButton(EmptySentence, NewCouponLabel, PanelFramePaths.Coupons + "/" + NewKey)
             : null;

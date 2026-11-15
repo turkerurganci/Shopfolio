@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Binding;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Modules.Membership.Contracts;
@@ -37,8 +38,10 @@ internal sealed class SignOutModel : PageModel
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822", Justification = "Razor Pages ignores static handler methods.")]
     public IActionResult OnGet() => AccessDenial.NotFound();
 
-    public async Task<IActionResult> OnPostSignOutAsync(string? returnUrl, CancellationToken ct)
+    public async Task<IActionResult> OnPostSignOutAsync(SignOutInput input, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(input);
+        string? returnUrl = input.ReturnUrl;
         if (Guid.TryParse(User.FindFirstValue(SessionSchemes.SessionIdClaim), out Guid sessionId))
         {
             await _transactions.RunAsync(async cancel => new SessionEnd(await _sessions.EndAsync(sessionId, cancel)), ct);
@@ -52,4 +55,11 @@ internal sealed class SignOutModel : PageModel
     {
         public bool IsRejected => false;
     }
+}
+
+/// <summary>The form of UC-77 (07 5.2.1): the path of the page the sign-out was asked from, a hidden field of the frame's form.</summary>
+public sealed class SignOutInput : IFormInput
+{
+    [SpecAssignedName]
+    public string? ReturnUrl { get; set; }
 }

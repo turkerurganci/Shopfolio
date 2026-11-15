@@ -83,10 +83,11 @@ internal sealed class ReauthenticationModel : PageModel
         }
     }
 
-    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(ReauthenticateQuery query, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(query);
         _loaded = true;
-        if (!ReauthenticationAddresses.TryParse(Request.Query[ReauthenticationAddresses.OperationParameter], out ReauthenticationOperation operation))
+        if (!ReauthenticationAddresses.TryParse(QueryValues.SentOnce(Request, ReauthenticationAddresses.OperationParameter, query.ReauthenticatedOperation), out ReauthenticationOperation operation))
         {
             return NotAnOperation();
         }

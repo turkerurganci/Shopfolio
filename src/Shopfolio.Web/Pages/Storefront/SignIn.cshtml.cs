@@ -109,10 +109,12 @@ internal sealed class SignInModel : PageModel
         }
     }
 
-    public async Task<IActionResult> OnGetAsync(string? pendingRegistration, CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(SignInQuery query, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(query);
         _loaded = true;
-        string? returnUrl = Request.Query[ReturnPath.ParameterName];
+        string? returnUrl = query.ReturnUrl;
+        string? pendingRegistration = query.PendingRegistration;
         Input = new SignInInput { ReturnUrl = ReturnPath.IsLocalPath(returnUrl) ? returnUrl : null };
 
         NoticeCode? notice = NoticeParameter.Read(Request, NoticeKind.Result);

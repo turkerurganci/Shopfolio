@@ -218,8 +218,9 @@ internal sealed class ProfileModel : PageModel, IOutcomeTarget
         return null;
     }
 
-    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(AccountQuery query, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(query);
         _loaded = true;
         if (SessionOf() is not { } session || !await LoadAsync(ct))
         {
@@ -228,8 +229,8 @@ internal sealed class ProfileModel : PageModel, IOutcomeTarget
 
         // The form of an operation opens only when the session holds the permission for it under this value; a parameter that does not hold is ignored (07 UC-63; 05 6.1.5; K-971).
         bool opened = false;
-        if (ReauthenticationAddresses.TryParse(Request.Query[ReauthenticationAddresses.OperationParameter], out ReauthenticationOperation operation)
-            && Request.Query[ReauthenticationAddresses.TokenParameter].ToString() is { Length: > 0 } presentedValue
+        if (ReauthenticationAddresses.TryParse(QueryValues.SentOnce(Request, ReauthenticationAddresses.OperationParameter, query.ReauthenticatedOperation), out ReauthenticationOperation operation)
+            && QueryValues.SentOnce(Request, ReauthenticationAddresses.TokenParameter, query.ReauthenticationToken) is { Length: > 0 } presentedValue
             && await _sessions.HoldsReauthenticationAsync(session.CustomerId, session.SessionId, operation, presentedValue, ct))
         {
             Open(operation, presentedValue);

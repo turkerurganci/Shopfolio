@@ -12,7 +12,7 @@ using Shopfolio.Pages.Lists;
 namespace Shopfolio.Pages.Content;
 
 /// <summary>The query model of a content list page (T505; 07 2.6, 5.3.1): the page number alone - the two lists have no search, no filter and no sort control (04 2.13.1).</summary>
-public sealed class ContentListQuery : PagedQuery
+public sealed class ContentQuery : PagedQuery
 {
 }
 
@@ -39,7 +39,7 @@ public abstract class ContentListPageModel : PageModel, IListPage
 
     public IReadOnlyList<ContentCard> Cards { get; private set; } = [];
 
-    public Pager Pager { get; private set; } = Pager.Of("/", new ContentListQuery(), 1, 1);
+    public Pager Pager { get; private set; } = Pager.Of("/", new ContentQuery(), 1, 1);
 
     public EmptyState? Empty { get; private set; }
 
@@ -51,7 +51,7 @@ public abstract class ContentListPageModel : PageModel, IListPage
     /// <summary>The list's own address (07 2.1.2).</summary>
     protected abstract string Root { get; }
 
-    public async Task<IActionResult> OnGetAsync(ContentListQuery query, CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(ContentQuery query, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(query);
         ContentListView view = await _content.GetContentListAsync(Kind, query.RequestedPage(), ct);

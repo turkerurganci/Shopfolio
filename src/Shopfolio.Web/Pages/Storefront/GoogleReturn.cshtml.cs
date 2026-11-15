@@ -53,8 +53,13 @@ internal sealed class GoogleReturnModel : PageModel
         _flow = flow;
     }
 
-    public async Task<IActionResult> OnGetAsync(string? code, string? state, string? error, CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(GoogleReturnQuery query, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(query);
+        string? code = query.Code;
+        string? state = query.State;
+        string? error = query.Error;
+
         // The flow cookie is read and deleted first, whatever the return holds: its values are used once.
         GoogleFlow? flow = _flow.Consume(HttpContext, state);
         if (flow is null)

@@ -67,10 +67,11 @@ internal sealed class ReauthModel : PageModel
         }
     }
 
-    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(ReauthenticateQuery query, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(query);
         _loaded = true;
-        if (!TryParse(Request.Query[OperationParameter], out ReauthenticationOperation operation))
+        if (!TryParse(QueryValues.SentOnce(Request, OperationParameter, query.ReauthenticatedOperation), out ReauthenticationOperation operation))
         {
             return FormResults.SeeOther(PanelFramePaths.MyAccount);
         }
@@ -152,6 +153,12 @@ internal sealed class ReauthModel : PageModel
     {
         public bool IsRejected => false;
     }
+}
+
+/// <summary>The query of UC-60 and UC-108 (07 5.3.2 <c>ReauthenticateQuery</c>; K-1186 (4)): the operation the screen was opened for, as text - a value outside the list is the screen's own answer, never a binding error (07 2.6.6).</summary>
+public sealed class ReauthenticateQuery : IQueryModel
+{
+    public string? ReauthenticatedOperation { get; init; }
 }
 
 /// <summary>The form of UC-185 (07 UC-185; 04 7.1.14): the password and the operation the page was opened for.</summary>

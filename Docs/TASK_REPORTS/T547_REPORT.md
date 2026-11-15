@@ -317,10 +317,10 @@ Kimliksiz kural hücreli 60 satır (7.1.12.2 ve 7.2.1.2 kural hücresi "—": ad
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 4, 2026-11-16; tur 1–3 de FAIL) |
-| Bulgu sayısı | Tur 4: 1 (F1 ORTA S1 — "yok" beyanlı yerlerin ve kimliksiz kural hücrelerinin kuralı karşılaştırılmıyor); E1 kapandı; tur 3: 1 (E1); tur 2: 2 (C1, C2); tur 1'in B1–B5'i kapandı |
-| Düzeltme gerekli mi | Evet — F1 (eskalasyon sürer, `INSTRUCTIONS.md` §3.3; `12 §8.5`) |
-| Bloke-etmeyen not (K) sayısı | Tur 1: 2 (D-1656, D-1657); tur 2: 1 (D-1661); tur 3: 1 (D-1666); tur 4: 1 (D-1671) |
+| Doğrulama durumu | ✓ PASS (tur 5, 2026-11-16; tur 1–4 FAIL) |
+| Bulgu sayısı | Tur 5: 0 — F1 kapandı; tur 4: 1 (F1); tur 3: 1 (E1); tur 2: 2 (C1, C2); tur 1: 5 (B1–B5); hepsi kapalı |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 1: 2 (D-1656, D-1657); tur 2: 1 (D-1661); tur 3: 1 (D-1666); tur 4: 1 (D-1671); tur 5: 2 (D-1676, D-1677); yapım D-1673 |
 
 ### Doğrulama tur 1 — validator kanıtları
 
@@ -379,6 +379,24 @@ Gerçek `src` deneyleri (hepsi geri alındı). Sessiz (Consistency 644/644 yeşi
 C2 kapandı: `Categories.cshtml(.cs)` `TextTooLong(ProductConstants.ProductNameMaxLength)` ve üç `maxlength`; `ANameOverTheCeiling_IsA422WithTheFieldMessage_OnCreateAndRename_AndWritesNothing_T547_C2` yeşil (6000 karakter ekleme ve yeniden adlandırmada 422 + alan mesajı, tam tavanda 303). K-1619, `02` P-27, `04` 7.2.5.1, 7.3.2.14, 9.6.8, `06 §4.9`, `07` 9.6.2–9.6.3, `09` §3.5 örneği tutarlı ve `09` 9.4 madde 3'e dayanıyor; kalan tek yer `07 §6.2.2` `TextTooLong` satırının UC sütunu (D-1666).
 
 Yapım raporuyla uyuşmazlık: düzeltme 3 bölümü nitelik taşımayan 67 yerin "kural ve zorunluluğu satır düzeyinde, yeri adlayan parça ile denetlenir" diyor; deneyler satırın kuralını başka yerin işlem satırının kanıtladığını gösterdi (E1). D-1656 kod → satır yönüdür, bu boşluk satır → kod yönüdür.
+
+### Doğrulama tur 5 — validator kanıtları (baş `b54de6a4`)
+
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | 53 ekranın bloğu | ✓ | Consistency 667/667; belge deneyi "6.2.5 E-05" → "E-55" → `BlockMissing:E-05`, `AdministratorRowMissing:E-05` |
+| 2 | Her çiftte gösterilen ve açık işlemler sayfa testiyle | ✓ | `StateRolePageTests` + `CategoriesPageTests` + `ProductFormPageTests` 48/48 (yerel postgres:18, `track_commit_timestamp=on`); `StateRolePageTests` tur 2'den beri değişmedi |
+| 3 | İki kapı yalnız altı vitrin ekranı | ✓ | belge deneyi 6.1.5.2 "E-13" → "E-14" → `GateRowsDiffer`, `GateReadDiffers` |
+| 4 | Durum adları `02 §5`'inki | ✓ | belge deneyi 6.3.9.4 "Hazırlanıyor" → "Hazırlanmakta" → `StatusNameDiffers:6.3.9.4` |
+| 5 | Yönetici satırı sınırı | ✓ | E-05 deneyi `AdministratorRow_OfE05_…` testini kırdı (`AdministratorRowOutsideList:E-55`) |
+| 6 | Alan, zorunluluk, kural kodla eşit | ✓ | F1 kapandı: F1'in 4 kod + 4 belge deneyi kırdı; 14 rastgele satırda 18 gerçek `src` deneyi kırdı, her biri yalnız kendi satırını/yerini raporladı; 4 ek belge deneyi (`RuleClauseUnknown`) kırdı |
+| 7 | Kural kimlikle işaret eder, değer `02 §11`'den | ✓ | belge deneyi 7.2.16.4 "P-30" → "en çok 500 karakter" → `RuleWritesValue`, `RuleDiffers` |
+| 8 | Panel tek rol, `/panel` altında | ✓ | gerçek deney `Brand.cshtml` `@page "/marka"` → `PanelPageOutsidePanel`, `PanelPage_OutsideTheRoot_IsReported` kırıldı |
+| 9 | `Consistency` Unit; 2 Integration | ✓ | 667 Consistency `UnitTests/Consistency/` altında, kaynak metni okur; `StateRolePageTests` Integration |
+
+Gerçek deneyler (hepsi geri alındı). F1 kod: `AboutPage.cs` `CleanLongText` çağrısı kaldırıldı (7.2.16.3 `LongText`), `PanelRefundSteps.cs` kalem ve kapanış denetimleri devre dışı (7.2.13.2 iki yer), `OrderDetail.ItemSteps.cs` 237 ve `OrderTransitions.Withdrawal.cs` 142 IBAN–bayrak koşulu kaldırıldı (7.2.10.4 dört yer), `AuditTrail` yönetici kapalı listesi atlandı (7.2.3.5) — hepsi kırdı. F1 belge: 7.2.16.3 `§3.11.6` → `§3.11.7`, 7.2.10.4 "işaretsizse kayıt IBAN'sız" silindi, 7.2.13.2 hücresi "—", 7.2.3.5 "yönetici kapalı listeden (K-822)" silindi — hepsi kırdı. Rastgele satırlar (kod): 7.2.6.6, 7.2.6.4, 7.2.20.1 (7.2.20.2'nin "havale açıkken zorunlu" parçasıyla ortak), 7.2.5.2, 7.2.24.2, 7.2.22.2, 7.2.18.4, 7.1.10.3 (girdi sınıfına dosya eki alanı), 7.1.16.1, 7.2.17.2 (`MenuNameContact`), 7.2.4.13 (K-1020 satırı ipucundan çıkarıldı), 7.2.21.5 (P-8 → P-7), 7.1.12.1 (müşteri yerine yönetici tablosu), 7.2.4.15 (P-44 → P-5) — hepsi kırdı. Rastgele belge: 7.2.17.2 "boş kaydedilmez" → "kaydedilemez", 7.1.10.3 "dosya eki yok" silindi, 7.2.4.9 "inemez" → "inebilir", 7.2.6.4 "büyük" → "küçük" — hepsi kırdı. Boş kalan 7 yer (7.2.3.1 `PublishStatus`, 7.2.3.2 üç süzgeç, 7.2.4.6 `OptionValueRow.Value`, 7.2.16.9 iki `AltText`) satır metniyle tutarlı. 7.1.5.1 yokluk kanıtı parçası girdi sınıfının ilk iki alanını tutar; ikinci e-posta alanı sona eklenince bu parça sessiz, ama derlenmiş kodda T538'in `FormInputs_AreTheRowsOf07_5_2_ByNameAndField` testi kırdı. D-1673: ertelenebilir belge belirsizliği (hücre 7.3.2.14 kimliğini anmıyor, 7.3.2.14 "Kullanıldığı" 7.1.16 ve 7.2.17'yi saymıyor, satırlar main'de de böyle; sütunlar `text`, 500 riski yok). Dal CI'ı (run 43774764739) Unit'te kırmızı: T547 dışı, zamana bağlı kararsız test (`PayTrPaymentGatewayTests.Query_…_KK7`, günlük zaman damgası "39.763Z" yasak "9.76" değerini içeriyor) → D-1676; kayıt commit'inin CI'ı yeşil olmalı.
+
+Yapım raporuyla uyum: düzeltme 5 bölümü ve öz denetim tablosu kanıtlarla uyumlu; yalnız Test Sonuçları dal CI'ının sonucunu anmıyor.
 
 ### Doğrulama tur 4 — validator kanıtları (baş `29e97654`)
 

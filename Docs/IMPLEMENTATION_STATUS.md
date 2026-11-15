@@ -294,7 +294,7 @@
 | T535 | Ana sayfa ve menü, firma kimliği ve satış (E-42, E-44) | ✓ | ✓ PASS (tur 2) | `5e42c12b` | #555 |
 | T536 | Ödeme yöntemleri, kargo, süreler ve varsayılanlar (E-45, E-46) | ✓ | ✓ PASS (tur 2) | `8a51cdcc` | #568 |
 | T537 | Vitrin çerçevesinin modeli: marka, menü, duyuru şeridi, hesap alanı, sepet sayısı | ✓ | ✓ PASS (tur 1) | `b69ac697` | #532 |
-| T538 | Uç ve model eşitlik denetimleri: uç envanteri, form girdi ve sorgu modelleri, makine ucu gövdeleri | ⬚ | — | — | — |
+| T538 | Uç ve model eşitlik denetimleri: uç envanteri, form girdi ve sorgu modelleri, makine ucu gövdeleri | ⏳ | — | `cccb597b` | #579 |
 | T539 | Betiksiz yol: JavaScript kapalıyken temel akışlar ve betikli iyileştirme | ✓ | ✓ PASS (tur 2) | `7fa109f9` | #576 |
 | T540 | Tasarım tabanı, vitrin ve panel çerçevesi, yönetici şeridi ve Taslak bandı (OB-01, OB-02, OB-09) | ✓ | ✓ PASS (tur 2) | `06057bf9` | #534 |
 | T541 | Mesaj, onay, boş ve hata hâlleri ve satış kapalı hâli (OB-03, OB-04, OB-07, OB-08) | ✓ | ✓ PASS (tur 1) | `8ac3b828` | #537 |

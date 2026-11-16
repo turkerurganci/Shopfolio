@@ -61,9 +61,43 @@ public sealed class BrowserHost : IAsyncLifetime
     private WebApplicationFactory<Program>? _factory;
     private IPlaywright? _playwright;
 
+    private readonly bool _empty;
+    private readonly SemaphoreSlim _companionLock = new(1, 1);
+    private BrowserHost? _companion;
+
     public BrowserHost(TemplateDatabaseFixture template)
     {
         _template = template;
+    }
+
+    private BrowserHost(TemplateDatabaseFixture template, bool empty)
+    {
+        _template = template;
+        _empty = empty;
+    }
+
+    /// <summary>
+    /// The host of an installation with no record at all (KK2 (b): the empty state of the panel's lists): its own database made from the template, its own application, one administrator who can sign in and nothing else.
+    /// It is made once on the first ask and goes away with this host; its observations are kept in this host's record (it keeps none of its own).
+    /// </summary>
+    public async Task<BrowserHost> EmptyAsync()
+    {
+        await _companionLock.WaitAsync();
+        try
+        {
+            if (_companion is null)
+            {
+                BrowserHost made = new(_template, empty: true);
+                await made.InitializeAsync();
+                _companion = made;
+            }
+
+            return _companion;
+        }
+        finally
+        {
+            _companionLock.Release();
+        }
     }
 
     /// <summary>The address the application listens on (a real loopback socket).</summary>
@@ -137,6 +171,13 @@ public sealed class BrowserHost : IAsyncLifetime
         using HttpClient probe = _factory.CreateClient();
         BaseUrl = $"https://127.0.0.1:{probe.BaseAddress!.Port}";
         _playwright = await Playwright.CreateAsync();
+        if (_empty)
+        {
+            (string adminKey, Guid adminId) = await TestSessions.AdminAsync(Dsn, longLived: true);
+            Seed = new BrowserSeedData { AdminKey = adminKey, AdminId = adminId };
+            return;
+        }
+
         Seed = await BrowserSeed.RunAsync(Dsn, System.IO.Path.Combine(_filesDirectory, "images"));
         InvitationKey = await BrowserSeed.NewInvitationKeyAsync(Dsn, _factory.Services.GetRequiredService<Shopfolio.Infrastructure.Security.LinkKeys>());
         Record = new ObservationRecord(OutputDirectory());
@@ -145,13 +186,23 @@ public sealed class BrowserHost : IAsyncLifetime
 
     public async ValueTask DisposeAsync()
     {
+        if (_companion is not null)
+        {
+            await _companion.DisposeAsync();
+        }
+
+        _companionLock.Dispose();
         foreach (IBrowser browser in _browsers.Values)
         {
             await browser.CloseAsync();
         }
 
         _playwright?.Dispose();
-        KeepServerLog();
+        if (!_empty)
+        {
+            KeepServerLog();
+        }
+
         if (_factory is not null)
         {
             await _factory.DisposeAsync();
@@ -212,7 +263,7 @@ public sealed class BrowserHost : IAsyncLifetime
         };
         IBrowser browser = await type.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
         _browsers[engine] = browser;
-        Record.SetEngineVersion(engine, browser.Version);
+        Record?.SetEngineVersion(engine, browser.Version);
         return browser;
     }
 

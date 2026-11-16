@@ -125,6 +125,8 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
 
     // ---- the forms of a page (derived from the page) ----
 
+    private static readonly HashSet<string> PerRowHandlers = ["CreateCategory", "RenameCategory", "MoveCategory"];
+
     /// <summary>The keys (<see cref="FormCase.Key"/>) of the post forms of the page that have a field to fill (a hidden-only form such as a sign-out or a confirm has no state that can be invalid).</summary>
     internal static async Task<List<string>> FormKeysAsync(IPage page, string screen)
     {
@@ -150,7 +152,8 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
                     continue;
                 }
 
-                string slot = id.Length > 0 ? id : withoutId.Count > 1 ? "@" + withoutId.IndexOf((handler, id, fields)) : string.Empty;
+                // The category tree draws one form of each kind per category, and how many categories there are depends on what the other tests left: its forms are one case, whatever their count.
+                string slot = id.Length > 0 ? id : withoutId.Count > 1 && !PerRowHandlers.Contains(handler) ? "@" + withoutId.IndexOf((handler, id, fields)) : string.Empty;
                 keys.Add($"{screen}|{handler}|{slot}");
             }
         }

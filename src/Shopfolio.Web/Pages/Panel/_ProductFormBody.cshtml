@@ -54,7 +54,7 @@
         @for (int c = 0; c < Model.CategoryTree.Count; c++)
         {
             Shopfolio.Modules.Catalog.Contracts.Categories.CategoryNode node = Model.CategoryTree[c];
-            SaveProductCategoryRow? chosen = entries.Categories.FirstOrDefault(x => x.CategoryId == node.Id);
+            SaveProductCategoryRow? chosen = entries.Categories.FirstOrDefault(x => x is not null && x.CategoryId == node.Id);
             string key = c.ToString(System.Globalization.CultureInfo.InvariantCulture);
             <div class="product-form__category" data-level="@node.Level.ToString(System.Globalization.CultureInfo.InvariantCulture)">
                 <input type="hidden" name="Input.Categories.Index" value="@key" />

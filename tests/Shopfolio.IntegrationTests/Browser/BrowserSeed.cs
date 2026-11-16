@@ -11,6 +11,8 @@ using Shopfolio.Modules.CorporateContent.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
+using Shopfolio.Modules.Settings;
+using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.IntegrationTests.Browser;
 
@@ -143,6 +145,51 @@ internal static class BrowserSeed
             db.ProductCategories.Add(ProductCategory.Create(product.ProductId, category.Id, true, Now));
         }
 
+        // The firm (04 5.13): the settings with the bank transfer open and the one delivery province, so the payment step opens for a cart of the seed.
+        CompanySettings? settings = await db.CompanySettings.FirstOrDefaultAsync(CancellationToken.None);
+        bool newSettings = settings is null;
+        settings ??= CompanySettings.Create(Now);
+        settings.BankTransferPaymentWindow = 2;
+        settings.DefaultShippingPeriod = 2;
+        settings.DownloadAllowance = 1;
+        settings.IsBankTransferEnabled = true;
+        settings.BankTransferIban = "TR330006100519786457841326";
+        settings.HomepageLayout = HomepageLayout.StoreFirst;
+        settings.MenuNameProducts = "Ürünler";
+        settings.MenuNameOfferings = "Hizmetler";
+        settings.MenuNamePortfolioItems = "Çalışmalar";
+        settings.MenuNameAboutPage = "Hakkımızda";
+        settings.MenuNameFaqItems = "Sıkça Sorulanlar";
+        settings.MenuNameContact = "İletişim";
+        Company? company = await db.Companies.FirstOrDefaultAsync(CancellationToken.None);
+        bool newCompany = company is null;
+        company ??= Company.Create(Now);
+        company.CompanyType = CompanyType.Tradesman;
+        company.LegalName = "Örnek Ticaret";
+        company.TaxIdNumber = "1234567890";
+        company.ProvinceId = province;
+        company.District = "Çankaya";
+        company.AddressLine = "Kızılay 2";
+        company.Phone = "3121234567";
+        company.Email = "firma@example.com";
+        company.KepAddress = "firma@hs01.kep.tr";
+        company.ChamberName = "Ankara Esnaf Odası";
+        company.ProfessionalConductRules = "Meslek kuralları";
+        if (!await db.CompanyDeliveryProvinces.AnyAsync(CancellationToken.None))
+        {
+            db.CompanyDeliveryProvinces.Add(CompanyDeliveryProvince.Create(province, Now));
+        }
+
+        if (newSettings)
+        {
+            db.CompanySettings.Add(settings);
+        }
+
+        if (newCompany)
+        {
+            db.Companies.Add(company);
+        }
+
         await db.Database.ExecuteSqlAsync($"INSERT INTO legal_text_versions (id, created_at, legal_text_type, version_number, published_at, text, hosting_location, version) VALUES ({EntityIds.New()}, now(), 'CookiePolicy', 1, now(), '<p>Çerez politikası yayında.</p>', NULL, 1)", CancellationToken.None);
         await db.SaveChangesAsync(CancellationToken.None);
 
@@ -187,12 +234,15 @@ internal static class BrowserSeed
         }
     }
 
+    /// <summary>One more published product with one variant, for a row that changes the product (each observation has its own).</summary>
+    public static Task<SeededProduct> NewProductAsync(string dsn, string label, ProductType type) => ProductAsync(dsn, label, "Ürün " + label, type, [(60m, null, null)], PublishStatus.Draft);
+
     /// <summary>A published product; with first and second places the variants take one value each of two options (the place being the value's order).</summary>
-    private static async Task<SeededProduct> ProductAsync(string dsn, string label, string name, ProductType type, (decimal Price, int? First, int? Second)[] specs)
+    private static async Task<SeededProduct> ProductAsync(string dsn, string label, string name, ProductType type, (decimal Price, int? First, int? Second)[] specs, PublishStatus status = PublishStatus.Published)
     {
         string slug = $"t551-{label}";
         Product product = Product.Create(name, slug, type, 20m, Now).WithSeededOrigin();
-        product.PublishStatus = PublishStatus.Published;
+        product.PublishStatus = status;
         Option? first = specs.Any(s => s.First is not null) ? Option.Create(product.Id, "Renk", 1, Now) : null;
         Option? second = specs.Any(s => s.Second is not null) ? Option.Create(product.Id, "Beden", 2, Now) : null;
         Dictionary<int, OptionValue> firstValues = [];
@@ -202,8 +252,8 @@ internal static class BrowserSeed
         foreach ((decimal price, int? firstPlace, int? secondPlace) in specs)
         {
             Variant variant = Variant.Create(product.Id, $"T551-{label}-{index}"[..Math.Min(20, $"T551-{label}-{index}".Length)], price, Now.AddSeconds(index));
-            variant.PublishStatus = PublishStatus.Published;
-            variant.StockQuantity = 50;
+            variant.PublishStatus = status;
+            variant.StockQuantity = type == ProductType.Digital ? null : 50;
             if (first is not null && firstPlace is int a)
             {
                 if (!firstValues.TryGetValue(a, out OptionValue? value))

@@ -1,6 +1,7 @@
 using System.Text.Json;
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -87,12 +88,17 @@ public sealed class BrowserHost : IAsyncLifetime
             // The browser connects straight to the application: the tool plays the reverse proxy, so the loopback is trusted for the forwarded headers (the application trusts the proxy network only, 09 15.1 item 8).
             s.Configure<ForwardedHeadersOptions>(o => o.KnownIPNetworks.Add(System.Net.IPNetwork.Parse("127.0.0.0/8")));
             s.RemoveAll<ISettingsModule>();
+            // The upload sections of the file store are made-up directories of the run (the default ones are the container volumes, which a Windows host does not have).
+            s.RemoveAll<Shopfolio.Infrastructure.Files.FileStoreDirectories>();
+            s.AddSingleton(new Shopfolio.Infrastructure.Files.FileStoreDirectories(System.IO.Path.Combine(_filesDirectory, "images"), System.IO.Path.Combine(_filesDirectory, "digital")));
             s.AddScoped(sp => CheckoutPageTests.GateSettings.Create(ActivatorUtilities.CreateInstance<SettingsModule>(sp), true));
         }));
-        _factory.Start();
+        // The application is served over HTTPS with a throwaway certificate of the tool (the contexts ignore its trust): WebKit does not send a Secure cookie over plain HTTP even to localhost, so every engine gets the same, real scheme.
+        _certificate = NewCertificate();
+        _factory.UseKestrel(options => options.Listen(System.Net.IPAddress.Loopback, 0, listen => listen.UseHttps(_certificate)));
+        _factory.StartServer();
         using HttpClient probe = _factory.CreateClient();
-        // The browsers take the name localhost as a secure origin: a Secure cookie (and the __Host- prefix) is accepted and sent there over plain HTTP.
-        BaseUrl = $"http://localhost:{probe.BaseAddress!.Port}";
+        BaseUrl = $"https://localhost:{probe.BaseAddress!.Port}";
         _playwright = await Playwright.CreateAsync();
         Seed = await BrowserSeed.RunAsync(Dsn);
         Record = new ObservationRecord(OutputDirectory());
@@ -112,6 +118,17 @@ public sealed class BrowserHost : IAsyncLifetime
         {
             await _factory.DisposeAsync();
         }
+
+        _certificate?.Dispose();
+        try
+        {
+            Directory.Delete(_filesDirectory, recursive: true);
+        }
+        catch (IOException)
+        {
+            // The run's upload files are in the temporary directory; what cannot be removed now is removed with it.
+        }
+
 
         Record?.Flush();
         if (_databaseName.Length > 0)
@@ -171,8 +188,9 @@ public sealed class BrowserHost : IAsyncLifetime
         IBrowserContext context = await browser.NewContextAsync(new BrowserNewContextOptions
         {
             JavaScriptEnabled = path == ScriptPath.Scripted,
+            IgnoreHTTPSErrors = true,
             ViewportSize = new ViewportSize { Width = width, Height = width < 600 ? 800 : 900 },
-            ExtraHTTPHeaders = new Dictionary<string, string> { ["X-Forwarded-Proto"] = "https", ["X-Forwarded-For"] = "203.0.113.9" },
+            ExtraHTTPHeaders = new Dictionary<string, string> { ["X-Forwarded-Proto"] = "https", ["X-Forwarded-For"] = NextClientAddress() },
             Locale = "tr-TR",
         });
         List<Cookie> cookies = [];
@@ -209,6 +227,32 @@ public sealed class BrowserHost : IAsyncLifetime
         SameSite = SameSiteAttribute.Lax,
     };
 
+    private readonly string _filesDirectory = Path.Combine(Path.GetTempPath(), "t551-browser-files-" + Guid.NewGuid().ToString("N"));
+    private int _clients;
+    private System.Security.Cryptography.X509Certificates.X509Certificate2? _certificate;
+
+    /// <summary>A client address of its own for every context: the order limits count the open unpaid orders by address (L-8), so a run that places many orders must not share one.</summary>
+    private string NextClientAddress()
+    {
+        int n = Interlocked.Increment(ref _clients);
+        return $"198.51.{n / 250 % 250}.{(n % 250) + 1}";
+    }
+
+    private static System.Security.Cryptography.X509Certificates.X509Certificate2 NewCertificate()
+    {
+        using System.Security.Cryptography.RSA key = System.Security.Cryptography.RSA.Create(2048);
+        System.Security.Cryptography.X509Certificates.CertificateRequest request = new("CN=localhost", key, System.Security.Cryptography.HashAlgorithmName.SHA256, System.Security.Cryptography.RSASignaturePadding.Pkcs1);
+        System.Security.Cryptography.X509Certificates.SubjectAlternativeNameBuilder names = new();
+        names.AddDnsName("localhost");
+        names.AddIpAddress(System.Net.IPAddress.Loopback);
+        names.AddIpAddress(System.Net.IPAddress.IPv6Loopback);
+        request.CertificateExtensions.Add(names.Build());
+        request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509EnhancedKeyUsageExtension([new System.Security.Cryptography.Oid("1.3.6.1.5.5.7.3.1")], false));
+        using System.Security.Cryptography.X509Certificates.X509Certificate2 created = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(2));
+        // Exported and loaded again so the private key is usable by the server on every platform.
+        return System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadPkcs12(created.Export(System.Security.Cryptography.X509Certificates.X509ContentType.Pfx), null);
+    }
+
     private static string OutputDirectory()
     {
         string? configured = Environment.GetEnvironmentVariable("SHOPFOLIO_BROWSER_OUT");
@@ -227,7 +271,7 @@ public enum Actor
 }
 
 /// <summary>One observation (12 7.1 "Tarayıcı gözlemi"): the row, the way, the engine and its version, the width, the step, what was expected and what was seen, the screenshot.</summary>
-public sealed record Observation(string Row, string Path, string Engine, int Width, string Step, string Expected, string Observed, bool Ok, string? Screenshot);
+public sealed record Observation(string Row, string Path, string Engine, int Width, string Step, string Expected, string Observed, bool Ok, string? Screenshot, string? Data = null);
 
 /// <summary>The record the gate report attaches (12 12.2 (7)): versions, the seed, and one line per observation. Written as JSON lines and a Markdown table.</summary>
 public sealed class ObservationRecord
@@ -288,11 +332,11 @@ public sealed class ObservationRecord
             table.WriteLine();
             table.WriteLine("Tohum: " + _seed);
             table.WriteLine();
-            table.WriteLine("| Satır | Yol | Tarayıcı | Genişlik | Adım | Beklenen | Gözlenen | Sonuç | Ekran görüntüsü |");
-            table.WriteLine("|---|---|---|---|---|---|---|---|---|");
+            table.WriteLine("| Satır | Yol | Tarayıcı | Genişlik | Adım | Beklenen | Gözlenen | Veri kaydı (maskeli) | Sonuç | Ekran görüntüsü |");
+            table.WriteLine("|---|---|---|---|---|---|---|---|---|---|");
             foreach (Observation o in _observations.OrderBy(o => o.Row, StringComparer.Ordinal).ThenBy(o => o.Engine, StringComparer.Ordinal).ThenBy(o => o.Path, StringComparer.Ordinal))
             {
-                table.WriteLine($"| {o.Row} | {o.Path} | {o.Engine} | {o.Width} | {Cell(o.Step)} | {Cell(o.Expected)} | {Cell(o.Observed)} | {(o.Ok ? "✓" : "✗")} | {o.Screenshot} |");
+                table.WriteLine($"| {o.Row} | {o.Path} | {o.Engine} | {o.Width} | {Cell(o.Step)} | {Cell(o.Expected)} | {Cell(o.Observed)} | {Cell(o.Data ?? "-")} | {(o.Ok ? "✓" : "✗")} | {o.Screenshot} |");
             }
         }
     }

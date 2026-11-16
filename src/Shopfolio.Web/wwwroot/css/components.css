@@ -51,6 +51,13 @@
     cursor: progress;
 }
 
+/* A button hidden in the markup and shown by the page's script (the copy buttons, the product form's row buttons) stays hidden without the script: the class's own display would
+   otherwise beat the hidden attribute and leave a button that does nothing (07 8.2.1; VAL-B106). */
+.button[hidden],
+.form-fields[hidden] {
+    display: none;
+}
+
 /* The menu toggle: hidden in the markup and shown by common.js, so a browser without JavaScript sees the whole menu instead of a button that does nothing (04 2.2.4; 05 3.8.1).
    It exists on the narrow class only. */
 .menu-toggle {

@@ -154,13 +154,15 @@ public sealed class ScriptlessPathTests(BrowserHost host) : BrowserTestBase(host
         await page.Page.WaitForLoadStateAsync(LoadState.Load);
         bool confirmShown = await page.Page.Locator(".confirm--step").CountAsync() > 0;
         string beforeConfirm = await ReadStatusAsync(order.Id);
-        await ObserveAsync("VAL-B096", path, engine, page, "iptal ekranında ilk gönderim (onaysız)", "aynı sayfa onay hâliyle gelir; sipariş durumu Placed kalır (bir şey yazılmaz)", $"onay bölümü {(confirmShown ? "var" : "yok")}; sipariş durumu {beforeConfirm}", confirmShown && beforeConfirm.StartsWith("Placed", StringComparison.Ordinal));
+        await ObserveAsync("VAL-B096", path, engine, page, "iptal ekranında ilk gönderim (onaysız)", "aynı sayfa onay hâliyle gelir; sipariş durumu Placed kalır (bir şey yazılmaz)", $"onay bölümü {(confirmShown ? "var" : "yok")}; sipariş durumu {beforeConfirm}", confirmShown && beforeConfirm.StartsWith("Placed", StringComparison.Ordinal), await OrderRowAsync(order.Id));
         await page.Page.Locator(".confirm--step button[type=submit]").First.ClickAsync();
         await page.Page.WaitForLoadStateAsync(LoadState.Load);
         string afterConfirm = await ReadStatusAsync(order.Id);
-        await ObserveAsync("VAL-B096", path, engine, page, "onay düğmesiyle gönderim", "sipariş iptal olur (Veri kaydı: orders.order_status Cancelled)", $"sipariş durumu {afterConfirm}; adres {new Uri(page.Page.Url).PathAndQuery}", afterConfirm.StartsWith("Cancelled", StringComparison.Ordinal));
+        await ObserveAsync("VAL-B096", path, engine, page, "onay düğmesiyle gönderim", "sipariş iptal olur (Veri kaydı: orders.order_status Cancelled)", $"sipariş durumu {afterConfirm}; adres {new Uri(page.Page.Url).PathAndQuery}", afterConfirm.StartsWith("Cancelled", StringComparison.Ordinal), await OrderRowAsync(order.Id));
         AssertObserved();
     }
+
+    private Task<string> OrderRowAsync(Guid orderId) => DataRecord.RowAsync(Host.Dsn, "SELECT order_number, order_status, payment_status, contact_email FROM orders WHERE id = @id", ("id", orderId));
 
     private async Task<string> ReadStatusAsync(Guid orderId)
     {

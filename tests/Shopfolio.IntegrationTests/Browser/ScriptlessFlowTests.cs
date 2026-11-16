@@ -79,28 +79,26 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
 
     private static string PathOf(WatchedPage page) => new Uri(page.Page.Url).PathAndQuery;
 
-    /// <summary>Runs the action and, with the script on, waits until the page has been replaced (the script sends the form with the changed field, 09 16.2 item 1).</summary>
-    private static async Task ChangeAsync(WatchedPage page, ScriptPath path, Func<Task> act)
+    /// <summary>
+    /// Runs the action; with the script on, waits until the page has been replaced (the script sends the form with the changed field, 09 16.2 item 1). Without the script a changed field
+    /// sends nothing, so no page is waited for unless the action itself is a send (<paramref name="sends"/>).
+    /// </summary>
+    private static async Task ChangeAsync(WatchedPage page, ScriptPath path, Func<Task> act, bool sends = false)
     {
-        if (path == ScriptPath.Scripted)
+        if (path == ScriptPath.Scripted || sends)
         {
-            await page.Page.EvaluateAsync("() => { window.__t551 = 1; }");
-            await act();
-            await page.Page.WaitForFunctionAsync("() => window.__t551 !== 1", null, new PageWaitForFunctionOptions { Timeout = 20000 });
+            await NavigateAsync(page, act, 20000);
         }
         else
         {
             await act();
         }
-
-        await SettleAsync(page);
     }
 
     private async Task AddToCartAsync(WatchedPage page, string slug)
     {
         await GoAsync(page, $"/urun/{slug}");
-        await page.Page.Locator("form.buy-form button[type=submit]").First.ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator("form.buy-form button[type=submit]").First.ClickAsync());
     }
 
     private static async Task<string> TextAsync(ILocator locator)
@@ -218,10 +216,8 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         WatchedPage page = await NewPageAsync(context);
         await GoAsync(page, "/");
         await GoAsync(page, $"/kategori/{Host.Seed.CategorySlug}");
-        await page.Page.Locator($"a[href='/urun/{Host.Seed.Product("plain").Slug}']").First.ClickAsync();
-        await SettleAsync(page);
-        await page.Page.Locator("form.buy-form button[type=submit]").First.ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator($"a[href='/urun/{Host.Seed.Product("plain").Slug}']").First.ClickAsync());
+        await NavigateAsync(page, () => page.Page.Locator("form.buy-form button[type=submit]").First.ClickAsync());
         await GoAsync(page, "/sepet");
         string line = await TextAsync(page.Page.Locator(".cart-line"));
         await page.Page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Ödemeye geç" }).Or(page.Page.Locator("a[href='/odeme']")).First.ClickAsync();
@@ -259,17 +255,15 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
             {
                 await second.Page.Locator("input[name=CouponCode]").PressAsync("Tab");
             }
-        });
+        }, sends: true);
         string applied = await TextAsync(second.Page.Locator(".coupon__applied"));
         string after = await TextAsync(second.Page.Locator("aside .checkout__total strong"));
         await ObserveAsync("VAL-B099", path, engine, second, path == ScriptPath.Scripted ? "kupon kodu yazılır ve alandan çıkılır (betik formu kupon düğmesiyle gönderir)" : "kupon kodu yazılır ve Uygula'ya basılır", "özet sunucudan gelir: kupon uygulanır, toplam düşer", $"kupon \"{applied}\"; toplam önce \"{before}\", sonra \"{after}\"", applied.Contains(Host.Seed.CouponCode, StringComparison.Ordinal) && before != after);
         // The cart changes under the first page (two units): its summary is stale now.
         await GoAsync(second, "/sepet");
         await second.Page.Locator("form.cart-line__quantity input[name=Quantity]").First.FillAsync("2");
-        await second.Page.Locator("form.cart-line__quantity button[type=submit]").First.ClickAsync();
-        await second.Page.WaitForLoadStateAsync(LoadState.Load);
-        await page.Page.Locator(".checkout__confirm button.button--primary[data-js=submit-once]").ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(second, () => second.Page.Locator("form.cart-line__quantity button[type=submit]").First.ClickAsync());
+        await NavigateAsync(page, () => page.Page.Locator(".checkout__confirm button.button--primary[data-js=submit-once]").ClickAsync());
         long orders = await DataRecord.CountAsync(Host.Dsn, "SELECT count(*) FROM orders WHERE contact_email = @e", ("e", email));
         bool onStep = PathOf(page).StartsWith("/odeme", StringComparison.Ordinal);
         await ObserveAsync("VAL-B099", path, engine, page, "eski özetli sayfadan onay gönderilir (sepet ikinci sayfada iki adede çıkarılmıştı)", "özet değiştiyse sipariş oluşmaz ve güncel özet gösterilir", $"adres {PathOf(page)}; sayfadaki uyarı \"{await TextAsync(page.Page.Locator(".checkout__confirm .message"))}\"", onStep && orders == 0, $"orders (contact_email = maskeli): {orders} satır");
@@ -343,15 +337,13 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         string contactBusy = string.Empty;
         if (path == ScriptPath.Scripted)
         {
-            string[] state = await page.Page.EvaluateAsync<string[]>("() => { const f = document.querySelector('form.contact-form'); const b = f.querySelector('button[type=submit]'); f.requestSubmit(b); f.requestSubmit(b); return [b.textContent.trim(), f.getAttribute('aria-busy') ?? '']; }");
+            string[] state = [];
+            await NavigateAsync(page, async () => state = await page.Page.EvaluateAsync<string[]>("() => { const f = document.querySelector('form.contact-form'); const b = f.querySelector('button[type=submit]'); f.requestSubmit(b); f.requestSubmit(b); return [b.textContent.trim(), f.getAttribute('aria-busy') ?? '']; }"));
             contactBusy = $"düğme \"{state[0]}\", aria-busy \"{state[1]}\"";
-            await SettleAsync(page);
-            await Task.Delay(1500, Ct);
         }
         else
         {
-            await page.Page.Locator("form.contact-form button[type=submit]").ClickAsync();
-            await SettleAsync(page);
+            await NavigateAsync(page, () => page.Page.Locator("form.contact-form button[type=submit]").ClickAsync());
             await ReplayAsync(context, contactSends[0]);
         }
 
@@ -416,20 +408,18 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
 
     private static async Task<string> TextMatchingAsync(ILocator locator, string pattern, int milliseconds)
     {
-        string last = string.Empty;
-        DateTime end = DateTime.UtcNow.AddMilliseconds(milliseconds);
-        while (DateTime.UtcNow < end)
+        try
         {
-            last = await TextAsync(locator);
-            if (Regex.IsMatch(last, pattern, RegexOptions.None, TimeSpan.FromSeconds(2)))
-            {
-                return last;
-            }
-
-            await Task.Delay(150, Ct);
+            await Assertions.Expect(locator.First).ToHaveTextAsync(
+                new Regex(pattern, RegexOptions.None, TimeSpan.FromSeconds(2)),
+                new LocatorAssertionsToHaveTextOptions { UseInnerText = true, Timeout = milliseconds });
+        }
+        catch (PlaywrightException)
+        {
+            // The time is over without a match: the text last read is returned and the row's observation records the difference.
         }
 
-        return last;
+        return await TextAsync(locator);
     }
 
     // ---- the customer's own screens ----
@@ -446,8 +436,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         await page.Page.Locator("input[type=checkbox][name='Items[0].OrderItemId']").CheckAsync();
         await page.Page.Locator("input[name='Items[0].Quantity']").FillAsync("1");
         await page.Page.Locator("input[name*=Iban i]").First.FillAsync("TR330006100519786457841326");
-        await page.Page.Locator("form.operation-screen__form button[type=submit]").ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator("form.operation-screen__form button[type=submit]").ClickAsync());
         string chosen = await TextAsync(page.Page.Locator("#withdrawal-chosen"));
         string sentence = await TextAsync(page.Page.Locator(".confirm--step"));
         await ObserveAsync("VAL-B097", path, engine, page, "iki adetli kalem seçilir, adet 1 yazılır, ilk gönderim", "son adımda sunucunun yazdığı kalem listesi (Kapı — 1 adet) ve sonuç cümlesi; iki yolda aynı", $"liste \"{chosen}\"; son adım \"{sentence[..Math.Min(sentence.Length, 160)]}\"", chosen.Contains("Kapı", StringComparison.Ordinal) && chosen.Contains("1 adet", StringComparison.Ordinal) && sentence.Length > 0);
@@ -462,8 +451,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         await using IBrowserContext context = await Host.ContextAsync(engine, path, Actor.Customer);
         WatchedPage page = await NewPageAsync(context);
         await GoAsync(page, "/hesap/adresler");
-        await page.Page.Locator("a[href*='create=true']").First.ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator("a[href*='create=true']").First.ClickAsync());
         string addAddress = PathOf(page);
         bool addForm = await page.Page.Locator("#address-form").CountAsync() > 0;
         string name = $"Ev {Unique(engine, path)}";
@@ -473,11 +461,9 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         await page.Page.Locator("[name='Input.District']").FillAsync("Çankaya");
         await page.Page.Locator("[name='Input.AddressLine']").FillAsync("Kızılay Mah. 2");
         await page.Page.Locator("[name='Input.Phone']").FillAsync("5321234567");
-        await page.Page.Locator("#address-form button[type=submit]").ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator("#address-form button[type=submit]").ClickAsync());
         ILocator card = page.Page.Locator("li.address-card", new PageLocatorOptions { HasText = name });
-        await card.Locator("a[href*='addressBookId=']").First.ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => card.Locator("a[href*='addressBookId=']").First.ClickAsync());
         string editAddress = PathOf(page);
         string editedName = await page.Page.Locator("[name='Input.Name']").InputValueAsync();
         string row = await DataRecord.RowAsync(Host.Dsn, "SELECT name, district, address_line FROM address_books WHERE name = @n", ("n", name));
@@ -498,8 +484,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         await page.Page.Locator("[name=Name]").FillAsync("Ayşe Yılmaz");
         await page.Page.Locator("[name=Email]").FillAsync($"b110-{id}@example.com");
         await page.Page.Locator("[name=Password]").FillAsync("T551-Deneme-Sifre-91!");
-        await page.Page.Locator("#registration-form button[type=submit]").ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator("#registration-form button[type=submit]").ClickAsync());
         string registration = await TextAsync(page.Page.Locator("main"));
         bool registered = await page.Page.Locator("[data-js=error-summary], .field--invalid").CountAsync() == 0 && registration.Length > 0;
         await ObserveAsync("VAL-B110", path, engine, page, "kayıt formu doldurulur ve gönderilir", "kayıt gönderimi tamamlanır; sonuç sayfası (doğrulama bağlantısı gönderildi) gösterilir, alan hatası yoktur", $"adres {PathOf(page)}; sonuç \"{registration[..Math.Min(registration.Length, 140)]}\"", registered);
@@ -507,15 +492,13 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         await GoAsync(page, "/giris");
         await page.Page.Locator("[name='Input.Email']").FillAsync($"b110-yok-{id}@example.com");
         await page.Page.Locator("[name='Input.Password']").FillAsync("T551-Yanlis-Sifre-1!");
-        await page.Page.Locator("#sign-in-form button[type=submit]").ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator("#sign-in-form button[type=submit]").ClickAsync());
         string signIn = await TextAsync(page.Page.Locator("main"));
         await ObserveAsync("VAL-B110", path, engine, page, "giriş formu bilinmeyen hesapla gönderilir", "gönderim tamamlanır; sonuç sayfası aynı giriş ekranında nötr ret cümlesiyle gösterilir (hesabın var olup olmadığı söylenmez)", $"adres {PathOf(page)}; sonuç \"{signIn[..Math.Min(signIn.Length, 140)]}\"", PathOf(page).StartsWith("/giris", StringComparison.Ordinal) && signIn.Length > 0);
 
         await GoAsync(page, "/sifre-sifirlama");
         await page.Page.Locator("[name='Input.Email']").FillAsync($"b110-yok-{id}@example.com");
-        await page.Page.Locator("#reset-request-form button[type=submit]").ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator("#reset-request-form button[type=submit]").ClickAsync());
         string reset = await TextAsync(page.Page.Locator("main"));
         await ObserveAsync("VAL-B110", path, engine, page, "şifre sıfırlama isteği gönderilir", "gönderim tamamlanır; sonuç sayfası bağlantının gönderildiğini söyler (hesap var olsa da olmasa da aynı cümle)", $"adres {PathOf(page)}; sonuç \"{reset[..Math.Min(reset.Length, 140)]}\"", reset.Length > 0 && await page.Page.Locator("[data-js=error-summary]").CountAsync() == 0);
 
@@ -523,8 +506,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         await GoAsync(page, "/siparis-takibi");
         await page.Page.Locator("[name='Input.OrderNumber']").FillAsync(order.Number);
         await page.Page.Locator("[name='Input.ContactEmail']").FillAsync("alici@example.com");
-        await page.Page.Locator("form button[type=submit]").Last.ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator("form button[type=submit]").Last.ClickAsync());
         string tracked = await TextMatchingAsync(page.Page.Locator("main"), Regex.Escape(order.Number), 15000);
         await ObserveAsync("VAL-B110", path, engine, page, "sipariş takibi: numara ve e-posta gönderilir", "sipariş sayfası açılır ve sipariş numarasını gösterir", $"adres {PathOf(page)}; sayfa \"{tracked[..Math.Min(tracked.Length, 120)]}\"", PathOf(page).StartsWith("/siparis/", StringComparison.Ordinal) && tracked.Contains(order.Number, StringComparison.Ordinal));
         Assert.Empty(Failures);
@@ -545,16 +527,14 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         string productName = $"Kayıtlı ürün {id}";
         await GoAsync(page, $"/panel/urunler/{product.ProductId}");
         await page.Page.Locator("[name='Input.Name']").FillAsync(productName);
-        await page.Page.Locator("#product-save").GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Kaydet", Exact = true }).ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator("#product-save").GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Kaydet", Exact = true }).ClickAsync());
         string productRow = await DataRecord.RowAsync(Host.Dsn, "SELECT name FROM products WHERE id = @i", ("i", product.ProductId));
         await ObserveAsync("VAL-B111", path, engine, page, "ürün formunda ad değiştirilir ve Kaydet'e basılır", "ürün kendi işleyicisiyle kaydedilir; ad satırda yeni değerdir", $"adres {PathOf(page)}", productRow.Contains(productName, StringComparison.Ordinal), productRow);
 
         string categoryName = $"Kategori {id}";
         await GoAsync(page, "/panel/kategoriler");
         await page.Page.Locator($"#{CategoryFormId}").Locator("[name='Input.Name']").FillAsync(categoryName);
-        await page.Page.Locator($"#{CategoryFormId}").GetByRole(AriaRole.Button).First.ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator($"#{CategoryFormId}").GetByRole(AriaRole.Button).First.ClickAsync());
         string categoryRow = await DataRecord.RowAsync(Host.Dsn, "SELECT name FROM categories WHERE name = @n", ("n", categoryName));
         await ObserveAsync("VAL-B111", path, engine, page, "kategori ağacında yeni kategori adı yazılır ve eklenir", "kategori kendi işleyicisiyle kaydedilir", $"adres {PathOf(page)}", categoryRow.Contains(categoryName, StringComparison.Ordinal), categoryRow);
 
@@ -562,8 +542,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         Guid offeringId = await BrowserSeed.NewOfferingAsync(Host.Dsn, id);
         await GoAsync(page, $"/panel/kurumsal-icerik/hizmet/{offeringId}");
         await page.Page.Locator("[name='Input.Name']").FillAsync(contentName);
-        await page.Page.Locator("#content-save").GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Kaydet", Exact = true }).ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator("#content-save").GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Kaydet", Exact = true }).ClickAsync());
         string contentRow = await DataRecord.RowAsync(Host.Dsn, "SELECT name FROM offerings WHERE id = @i", ("i", offeringId));
         await ObserveAsync("VAL-B111", path, engine, page, "hizmet içeriğinin adı değiştirilir ve Kaydet'e basılır", "içerik kendi işleyicisiyle kaydedilir", $"adres {PathOf(page)}", contentRow.Contains(contentName, StringComparison.Ordinal), contentRow);
 
@@ -571,16 +550,14 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         string note = $"İç not {id}";
         await GoAsync(page, $"/panel/siparisler/{order.Id}");
         await page.Page.Locator("#internal-note-text").FillAsync(note);
-        await page.Page.Locator("#internal-note-form button[type=submit]").ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator("#internal-note-form button[type=submit]").ClickAsync());
         string shownNote = await page.Page.Locator("#internal-note-text").InputValueAsync();
         await ObserveAsync("VAL-B111", path, engine, page, "sipariş ayrıntısında iç not yazılır ve kaydedilir", "sipariş işlemi kendi işleyicisiyle kaydedilir; not sayfada yeniden okunur", $"adres {PathOf(page)}; not alanında \"{shownNote}\"", shownNote == note);
 
         string window = path == ScriptPath.Scripted ? "3" : "1";
         await GoAsync(page, "/panel/kargo-sureler-ve-varsayilanlar");
         await page.Page.Locator("[name='Input.BankTransferPaymentWindow']").FillAsync(window);
-        await page.Page.Locator("form:has([name='Input.BankTransferPaymentWindow'])").GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Kaydet", Exact = true }).ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator("form:has([name='Input.BankTransferPaymentWindow'])").GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Kaydet", Exact = true }).ClickAsync());
         string settingRow = await DataRecord.RowAsync(Host.Dsn, "SELECT bank_transfer_payment_window FROM company_settings LIMIT 1");
         await ObserveAsync("VAL-B111", path, engine, page, $"kargo ve süreler ekranında havale ödeme süresi {window} yazılır ve kaydedilir", "ayar kendi işleyicisiyle kaydedilir", $"adres {PathOf(page)}", settingRow.Contains($"bank_transfer_payment_window={window}", StringComparison.Ordinal), settingRow);
         Assert.Empty(Failures);
@@ -615,8 +592,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
             await page.Page.Locator("[name='Input.Options[0].Values[1].Value']").FillAsync("Metal");
         }
 
-        await page.Page.Locator("#product-save").GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Kaydet", Exact = true }).ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator("#product-save").GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Kaydet", Exact = true }).ClickAsync());
         string saveMessage = await TextAsync(page.Page.Locator("[data-js=error-summary], .message"));
         string saveAddress = PathOf(page);
         long options = await DataRecord.CountAsync(Host.Dsn, "SELECT count(*) FROM options WHERE product_id = @p", ("p", product.ProductId));
@@ -658,11 +634,14 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
             await GoAsync(page, $"/panel/urunler/{product.ProductId}");
             int fileInputs = await page.Page.Locator("#product-image-file").CountAsync();
             await page.Page.Locator("#product-image-file").SetInputFilesAsync(new FilePayload { Name = name, MimeType = "image/png", Buffer = bytes });
-            IResponse response = await page.Page.RunAndWaitForResponseAsync(
-                () => page.Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Galeriye yükle" }).ClickAsync(),
-                r => r.Request.Method == "POST",
-                new PageRunAndWaitForResponseOptions { Timeout = 60000 });
-            await SettleAsync(page);
+            IResponse response = null!;
+            await NavigateAsync(
+                page,
+                async () => response = await page.Page.RunAndWaitForResponseAsync(
+                    () => page.Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Galeriye yükle" }).ClickAsync(),
+                    r => r.Request.Method == "POST",
+                    new PageRunAndWaitForResponseOptions { Timeout = 60000 }),
+                60000);
             string message = await TextAsync(page.Page.Locator(".field__message, .message, [data-js=error-summary]"));
             await ObserveAsync(
                 "VAL-B101",
@@ -701,8 +680,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         }
         else
         {
-            await Task.Delay(1500, Ct);
-            state = await TextAsync(page.Page.Locator("[data-js=file-state]"));
+            state = await TextMatchingAsync(page.Page.Locator("[data-js=file-state]"), "Dosya yok", 5000);
             fileId = await page.Page.Locator("#product-file-id").InputValueAsync();
         }
 
@@ -718,8 +696,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
             path == ScriptPath.Scripted ? "betikli yolda parçalı yükleme çalışır: dosya durumu değişir, yükleme kimliği forma yazılır" : "betiksiz yolda yükleme yapılamaz: dosya durumu \"Dosya yok\" kalır, kimlik yazılmaz",
             $"dosya alanı {inputs}; durum \"{state}\"; kimlik yazıldı: {uploaded}",
             inputs == 1 && (path == ScriptPath.Scripted ? uploaded : !uploaded && state.Contains("Dosya yok", StringComparison.Ordinal)));
-        await page.Page.Locator("#product-save").GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Kaydet", Exact = true }).ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator("#product-save").GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Kaydet", Exact = true }).ClickAsync());
         string row = await DataRecord.RowAsync(Host.Dsn, "SELECT name FROM products WHERE id = @i", ("i", product.ProductId));
         await ObserveAsync("VAL-B112", path, engine, page, "yükleme dışındaki alan (ad) değiştirilip Kaydet'e basılır", "formun yükleme dışındaki alanları kaydedilebilir", $"adres {PathOf(page)}", row.Contains(productName, StringComparison.Ordinal), row);
         Assert.Empty(Failures);

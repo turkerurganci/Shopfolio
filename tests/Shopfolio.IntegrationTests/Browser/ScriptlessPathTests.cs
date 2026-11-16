@@ -20,30 +20,24 @@ public sealed class ScriptlessPathTests(BrowserHost host) : BrowserTestBase(host
     /// <summary>Waits until the locator's text matches the pattern or the time is over; returns the text last read.</summary>
     private static async Task<string> TextMatchingAsync(ILocator locator, string pattern, int milliseconds = 6000)
     {
-        string last = string.Empty;
-        DateTime end = DateTime.UtcNow.AddMilliseconds(milliseconds);
-        while (DateTime.UtcNow < end)
+        try
         {
-            if (await locator.CountAsync() > 0)
-            {
-                last = Flat(await locator.First.InnerTextAsync());
-                if (Regex.IsMatch(last, pattern, RegexOptions.None, TimeSpan.FromSeconds(2)))
-                {
-                    return last;
-                }
-            }
-
-            await Task.Delay(150, Ct);
+            await Assertions.Expect(locator.First).ToHaveTextAsync(
+                new Regex(pattern, RegexOptions.None, TimeSpan.FromSeconds(2)),
+                new LocatorAssertionsToHaveTextOptions { UseInnerText = true, Timeout = milliseconds });
+        }
+        catch (PlaywrightException)
+        {
+            // The time is over without a match: the text last read is returned and the row's observation records the difference.
         }
 
-        return last;
+        return await locator.CountAsync() > 0 ? Flat(await locator.First.InnerTextAsync()) : string.Empty;
     }
 
     private async Task AddToCartAsync(WatchedPage page, string slug)
     {
         await GoAsync(page, $"/urun/{slug}");
-        await page.Page.Locator("form.buy-form button[type=submit]").First.ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator("form.buy-form button[type=submit]").First.ClickAsync());
     }
 
     /// <summary>VAL-B098: the cart's quantity change - in place by the script, by a 303 to the page without it - gives the server's amount in both ways.</summary>
@@ -76,8 +70,7 @@ public sealed class ScriptlessPathTests(BrowserHost host) : BrowserTestBase(host
         await selects.Nth(1).SelectOptionAsync(new SelectOptionValue { Label = "Beden 1" });
         if (path == ScriptPath.Scriptless)
         {
-            await page.Page.Locator("button[data-js=apply-selection]").ClickAsync();
-            await SettleAsync(page);
+            await NavigateAsync(page, () => page.Page.Locator("button[data-js=apply-selection]").ClickAsync());
         }
 
         string price = await TextMatchingAsync(page.Page.Locator("[data-js=price]"), "140");
@@ -150,19 +143,12 @@ public sealed class ScriptlessPathTests(BrowserHost host) : BrowserTestBase(host
         await using IBrowserContext context = await Host.ContextAsync(engine, path);
         WatchedPage page = await NewPageAsync(context);
         await GoAsync(page, $"/siparis/erisim/{order.AccessKey}/iptal");
-        await page.Page.Locator("form.operation-screen__form button[type=submit]").First.ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator("form.operation-screen__form button[type=submit]").First.ClickAsync());
         bool confirmShown = await page.Page.Locator(".confirm--step").CountAsync() > 0;
         string beforeConfirm = await ReadStatusAsync(order.Id);
         await ObserveAsync("VAL-B096", path, engine, page, "iptal ekranında ilk gönderim (onaysız)", "aynı sayfa onay hâliyle gelir; sipariş durumu Placed kalır (bir şey yazılmaz)", $"onay bölümü {(confirmShown ? "var" : "yok")}; sipariş durumu {beforeConfirm}", confirmShown && beforeConfirm.StartsWith("Placed", StringComparison.Ordinal), await OrderRowAsync(order.Id));
-        await page.Page.Locator(".confirm--step button[type=submit]").First.ClickAsync();
-        await SettleAsync(page);
+        await NavigateAsync(page, () => page.Page.Locator(".confirm--step button[type=submit]").First.ClickAsync());
         string afterConfirm = await ReadStatusAsync(order.Id);
-        for (int wait = 0; wait < 20 && !afterConfirm.StartsWith("Cancelled", StringComparison.Ordinal); wait++)
-        {
-            await Task.Delay(500, Ct);
-            afterConfirm = await ReadStatusAsync(order.Id);
-        }
         await ObserveAsync("VAL-B096", path, engine, page, "onay düğmesiyle gönderim", "sipariş iptal olur (Veri kaydı: orders.order_status Cancelled)", $"sipariş durumu {afterConfirm}; adres {new Uri(page.Page.Url).PathAndQuery}", afterConfirm.StartsWith("Cancelled", StringComparison.Ordinal), await OrderRowAsync(order.Id));
         Assert.Empty(Failures);
     }

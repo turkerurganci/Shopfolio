@@ -63,14 +63,15 @@ public abstract class BrowserTestBase
     }
 
     /// <summary>
-    /// Waits for the page a click or send led to. WebKit returns from a click before the navigation has started, so a load-state wait right after it sees the old, already loaded page;
-    /// a short pause lets the navigation begin first.
+    /// Runs the action that starts a navigation (a click, a send) and waits until the page it leads to has loaded. WebKit returns from a click before the navigation has started,
+    /// so a load-state wait right after it would see the old, already loaded page; the navigation wait is armed before the action, so no pause is needed.
     /// </summary>
-    protected static async Task SettleAsync(WatchedPage page)
+#pragma warning disable CS0612 // The race-free form (the wait is armed before the action) is the one this wait needs; WaitForURLAsync cannot tell a same-address send from no send.
+    protected static async Task NavigateAsync(WatchedPage page, Func<Task> act, int timeout = 30000)
     {
-        await Task.Delay(300);
-        await page.Page.WaitForLoadStateAsync(LoadState.Load);
+        await page.Page.RunAndWaitForNavigationAsync(act, new PageRunAndWaitForNavigationOptions { WaitUntil = WaitUntilState.Load, Timeout = timeout });
     }
+#pragma warning restore CS0612
 
     /// <summary>Records one observation of a row and keeps the page's screenshot beside the record.</summary>
     protected async Task ObserveAsync(string row, ScriptPath path, string engine, WatchedPage page, string step, string expected, string observed, bool ok, string? data = null)

@@ -15,7 +15,7 @@
 - **Testler:** `ScreenInventoryTests` (KK2), `ScriptlessPathTests` (B096, B098, B100, B103, B104, B107 …), `ScriptlessFlowTests` (B097, B099, B101, B102, B105, B106, B108–B112); her satır iki yol × üç motor.
 - **Gerçek bulgular (düzeltildi):** `.button[hidden]` ve `.form-fields[hidden]` CSS ile ezilip görünüyordu (`components.css`); ürün formu kategori satırı `null` öğede 500 veriyordu (`_ProductFormBody.cshtml`).
 - **CI:** `ci.yml` `e2e` işi PostgreSQL 18 hizmeti, dotnet kurulumu ve gözlem kaydını `browser-observations` olarak yükler; `E2E_CMD` derler, `playwright.ps1 install --with-deps chromium firefox webkit` ile motorları kurar, `Browser=true` testlerini koşar; Integration adımı tarayıcı testlerini dışlar (`--filter-not-trait "Browser=true"`). D-41 kapandı.
-- **Bu turun düzeltmeleri:** WebKit tıklamadan sonra gezinme başlamadan döner (`SettleAsync` kısa bekleme + yükleme); WebKit'te geçersiz izin verme bağlamı bozar (pano izni yalnız Chromium); çerezler `BaseUrl`'e yazılır; B102 varyantsız ürün üzerinde (varyantlı üründe yeni seçenek kaydı seçilmemiş varyant satırında reddedilir); B101 kabul yanıtı 200'dür (sayfa yeniden çizilir); B096 onay sonrası durum yoklanır; B110 takip sonucu beklenir; B111 hizmet kaydı kendi hizmetinde.
+- **Bu turun düzeltmeleri:** WebKit tıklamadan sonra gezinme başlamadan döner (düzeltme 1: `BrowserTestBase.NavigateAsync`, gezinme beklemesi eylemden önce kurulur, sabit süreli bekleme yok); WebKit'te geçersiz izin verme bağlamı bozar (pano izni yalnız Chromium); çerezler `BaseUrl`'e yazılır; B102 varyantsız ürün üzerinde (varyantlı üründe yeni seçenek kaydı seçilmemiş varyant satırında reddedilir); B101 kabul yanıtı 200'dür (sayfa yeniden çizilir); B096 onay sonrası durum yoklanır; B110 takip sonucu beklenir; B111 hizmet kaydı kendi hizmetinde.
 
 ## Etkilenen Modüller / Dosyalar
 
@@ -39,30 +39,31 @@
 
 | VAL | Sonuç | Kanıt |
 |---|---|---|
-| B096 | ✓ | ilk gönderim onay bölümü, durum Placed; onaydan sonra Cancelled |
+| B096 | ✓ | ilk gönderim onay bölümü, durum Placed; onaydan sonra Cancelled (düzeltme 1: gezinme beklemesinden hemen sonra tek okuma, yoklama döngüsü yok) |
 | B097 | ⚠ kısmen | liste ve sonuç cümlesi iki yolda aynı; iade ekranı IBAN sonucu görülmedi, betikli "yerinde güncelle" iddiası betiksiz (D-1701, D-1702) |
-| B098 | ✓ | adet 3 → kalem tutarı 300 |
-| B099 | ✓ | `…VALB099` iki yol |
-| B100 | ✓ | seçim → fiyat 140 (betiksizde GET formu) |
-| B101 | ⚠ kısmen | üç dosya: 200 / 422 + alan mesajı / 413, tek dosya alanı; betikli yolda boy denetimi betiği yok (D-1700) |
+| B098 | ✓ | adet 3 → kalem tutarı 300 (`ToHaveTextAsync` koşul beklemesi) |
+| B099 | ✓ | `…VALB099` iki yol; kupon uygulama ve eski özetli onay `NavigateAsync` ile beklenir, sipariş sayısı 0 |
+| B100 | ✓ | seçim → fiyat 140 (betiksizde GET formu; betikli yerinde güncelleme `ToHaveTextAsync` ile beklenir) |
+| B101 | ⚠ kısmen | üç dosya: 200 / 422 + alan mesajı / 413 (yanıt ve gezinme `NavigateAsync` içinde beklenir), tek dosya alanı; betikli yolda boy denetimi betiği yok (D-1700) |
 | B102 | ✓ | Malzeme: Ahşap, Metal kaydedilir; boş satır okunmaz; varyant seçiminde Ahşap |
-| B103–B105 | ✓ | `…VALB103/104/105` iki yol |
+| B103–B105 | ✓ | `…VALB103/104/105` iki yol; B105 betikli iletişim formu çift gönderimi: gezinme bitince ağa giden istek 1 (1,5 sn bekleme kalktı) |
 | B106 | ✓ | betikli kopyala sonucu; betiksiz IBAN seçilebilir metin |
 | B107 | ✓ | işaretliyken fatura alanları okunmaz, işaretsizken yazılır |
 | B108, B109 | ✓ | `…VALB108/109` |
 | B110 | ✓ | hesap akışları ve sipariş takibi (numara sayfada) |
 | B111 | ✓ | ürün, kategori, içerik, iç not, ayar kendi işleyicisiyle kaydedilir ve okunur |
-| B112 | ✓ | betikli parçalı yükleme kimlik yazar; betiksiz "Dosya yok", ad alanı kaydedilir |
+| B112 | ✓ | betikli parçalı yükleme kimlik yazar; betiksiz "Dosya yok" (`Assertions.Expect` koşul beklemesi, 1,5 sn bekleme kalktı), ad alanı kaydedilir |
+| D-41 | ✓ | `E2E_CMD` bağlandı (`.github/ci-commands.env`), `e2e` işi `ci.yml`de (düzeltme 1: `ubuntu-24.04`); `DEFERRED_BACKLOG.md` D-41 için kapanış önerisi, satırı kapatmak birleştirme işidir |
+| 09 §19.2 m.6 | ✓ | `Task.Delay` ve `Thread.Sleep` Browser klasöründe yok (git grep boş); D-1704 "kural korundu, tarama yok" |
 
-D-41 kapanışı: `E2E_CMD` bağlandı (`.github/ci-commands.env`), kayıt `DEFERRED_BACKLOG.md` D-41 için kapanış önerisi olarak yazıldı; satırı kapatmak birleştirme işidir.
 
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
 | Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests` | 8087/8087 |
-| Integration | ✓ (parça) | `ProductFormPageTests` (panel ürün formu); **TAM: CI** | 37/37 |
-| Browser | ✓ | `--filter-trait "Browser=true"`, motor başına (`SHOPFOLIO_BROWSER_ENGINES`) | chromium 36/36, firefox 36/36, webkit 36/36 |
+| Integration | ✓ (parça) | Browser sınıfları (aşağıda); `ProductFormPageTests` ilk turda 37/37; **TAM: CI** | 36/36 × 3 motor |
+| Browser | ✓ | `--filter-trait "Browser=true"`, motor başına (`SHOPFOLIO_BROWSER_ENGINES`), düzeltme 1 sonrası | chromium 36/36, firefox 36/36, webkit 36/36 |
 | Format | ✓ | `dotnet format … --include <değişen .cs>` | değişiklik yok |
 
 ## Commit & PR
@@ -76,7 +77,8 @@ D-41 kapanışı: `E2E_CMD` bağlandı (`.github/ci-commands.env`), kayıt `DEFE
 
 ## Known Limitations / Follow-up
 
-- ⚠ `09 §19.2` madde 6 "test bekleme için `Task.Delay` kullanmaz" der; tarayıcı testleri gerçek tarayıcının gezinmesini beklemek için kısa `Task.Delay` ve yoklama kullanır (taramayı kırmaz). Kural istisnası karar kaydı ister: D-1704.
+- ⚠ `09 §19.2` madde 6 kuralı değişmedi; düzeltme 1'de tarayıcı testlerindeki her `Task.Delay` Playwright'ın koşula bağlı beklemesiyle değişti (`BrowserTestBase.NavigateAsync`: belgeyi işaretle, eylemi yap, işaret kaybolup `readyState` `complete` olana dek bekle; metin için `Assertions.Expect(...).ToHaveTextAsync`). Kuralı mekanik koruyan tarama testi yok: D-1704 "kural korundu, tarama yok" olarak güncellendi.
+- ⚠ CI `8. E2E (advisory)` kırmızısı (run 43801814217): `ubuntu-latest` ubuntu 26.04'e geçti, Playwright 1.59.1 onu desteklemiyor. `ci.yml` `e2e` işinin `runs-on`'u `ubuntu-24.04` yapıldı (öteki işlere dokunulmadı); Playwright sürümü değişmedi. CI sonucunu yönetici izler.
 - D-1700 görsel boy denetimi betiği yok; D-1701 betikli "yerinde güncelle" (B097) betiksiz; D-1702 iade ekranı IBAN alan mesajı ham kod; D-1703 ürün formunda yüklemeyle reddedilen yeniden çizimde `Categories` null öğeleri (kök neden bağlayıcıda); D-1705 ürün formunda varyantlı ürüne ilk seçenek kaydı seçilmemiş varyant satırında reddedilir ve alan adı yanlış gösterilir (`SecondOptionValueId` yerine `FirstOptionValueId`; `ProductSaves.cs` ValueMissing dalı).
 - WebKit: önceki turun ⚠'ı çözüldü (çerez adresi ve tıklama sonrası gezinme beklemesi); WebKit CI komutunda dışarıda bırakılmadı.
 

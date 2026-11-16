@@ -206,7 +206,8 @@ jobs:
   e2e:
     name: 8. E2E (advisory)
     needs: [build]
-    runs-on: ubuntu-latest
+    # Playwright 1.59 ubuntu 26.04 destekleme ("does not support chromium on ubuntu26.04-x64"); ubuntu-latest o surume geciyor, bu is surume sabit.
+    runs-on: ubuntu-24.04
     continue-on-error: true
     services:
       postgres:

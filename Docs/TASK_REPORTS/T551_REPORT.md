@@ -369,3 +369,33 @@ Beş değişinim birlikte uygulandı, 10 testin 8'i beklenen yerde kırıldı (d
 #### Merge ve Post-merge
 - Squash: — (FAIL; merge yok)
 - Post-merge run'lar: —
+
+## 2026-11-17 — T551 düzeltme 3 (aynı dal, PR #583)
+
+- **VAL-B105 (tur 2 Bulgu 1):** betikli yolda ikinci gönderimin betik tarafından durdurulması artık ayırt edici ölçülür: formun `submit` olayına, `common.js` dinleyicisinden SONRA kayıtlı bir yakalayıcı eklenir; iki `requestSubmit` sonrası `defaultPrevented` dizisi `false,true` olmalıdır (ödeme adımı ve iletişim formu). `[data-js=file-state]` (B112) seçicisi `#product-file` alanına daraltıldı (r2 K2b). K1 ve K2(a) D-1713, D-1714 kayıtlarında kalır.
+- **Değişinim:** `common.js:213` (`bindSubmitOnce`) `if (form.getAttribute("aria-busy") === "true")` -> `if (false && ...)`: `TheDoubleSend_..._VALB105(chromium, Scripted)` KIRILDI (ödeme adımı gözlemi `defaultPrevented "false,false"`), betiksiz yol geçti; geri alındı, yeniden derlendi, test yeşil.
+
+### Düzeltme 3 — test satırları
+
+| Koşu | Sonuç |
+|---|---|
+| `ScriptlessFlowTests` (motor başına ayrı) | chromium 24/24, firefox 24/24, webkit 24/24 |
+| `Browser=true` tam (motor başına ayrı) | chromium 172/172, firefox 172/172, webkit 172/172 |
+| `dotnet build -warnaserror` | 0 uyarı, 0 hata |
+| `dotnet format --verify-no-changes --include ScriptlessFlowTests.cs` | çıkış 0 |
+| Integration TAM | CI |
+
+### Düzeltme 3 — öz denetim (düzeltme farkı: `ScriptlessFlowTests.cs`; üretim kodu değişmedi)
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| KK1 üç motor, iki yol | ✓ | `Ways()`; Browser tam 172/172 × 3 |
+| KK2 ekran, onay, hata, boş hâl | ✓ | Bu düzeltme dokunmadı; tur 2 doğrulaması ✓ |
+| KK3 17 satır iki yol + Veri kaydı | ✓ | B105 betikli pay ayırt edici (aşağıda); öteki 16 satır tur 2'de ✓ |
+| KK4 B096, B107 KRİTİK | ✓ | `ScriptlessPathTests` `…VALB096`, `ScriptlessFlowTests` `…VALB107` yeşil × 3 |
+| KK5 CI işi | ✓ | Bu düzeltme dokunmadı; tur 2 run `43945619413` ✓ |
+| KK6 kayıt | ✓ | `observations.md` başlığı değişmedi |
+| B096, B097, B098, B099, B100, B101, B102, B103, B104, B106, B107, B108, B109, B110, B111 | ✓ | Düzeltme dokunmadı; tur 2 doğrulaması PASS (değişinimli); testler yeşil × 3 |
+| B105 | ✓ | Ödeme adımı (`secondPrevented = state[2] == "false,true"`) ve iletişim formu (`contactSecondPrevented`) betikli yolda `defaultPrevented` ile ölçülür; değişinim `common.js:213` `if (false && …)` -> `…VALB105(chromium, Scripted)` KIRILDI, geri alınınca yeşil; betiksiz yol değişmedi |
+| B112 | ✓ | `#product-file [data-js=file-state]`; `…VALB112` yeşil × 3 |
+| Backlog (D-41, D-1713, D-1714) | ✓ | K1, K2(a) kayıtlı; yeni kalem yok |

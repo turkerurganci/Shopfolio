@@ -393,12 +393,14 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         await FillCheckoutAsync(page, path, email, true);
         string busy = string.Empty;
         bool labelSaysBusy = path == ScriptPath.Scriptless;
+        bool secondPrevented = path == ScriptPath.Scriptless;
         if (path == ScriptPath.Scripted)
         {
             string original = await TextAsync(page.Page.Locator(".checkout__confirm button.button--primary"));
-            string[] state = await page.Page.EvaluateAsync<string[]>("() => { const f = document.querySelector('form[data-js=checkout]'); const b = f.querySelector('.checkout__confirm button.button--primary'); f.requestSubmit(b); f.requestSubmit(b); return [b.textContent.trim(), f.getAttribute('aria-busy') ?? '']; }");
-            busy = $"düğme \"{original}\" iken \"{state[0]}\", aria-busy \"{state[1]}\"";
+            string[] state = await page.Page.EvaluateAsync<string[]>("() => { const f = document.querySelector('form[data-js=checkout]'); const b = f.querySelector('.checkout__confirm button.button--primary'); const seen = []; f.addEventListener('submit', (e) => seen.push(e.defaultPrevented)); f.requestSubmit(b); f.requestSubmit(b); return [b.textContent.trim(), f.getAttribute('aria-busy') ?? '', seen.join(',')]; }");
+            busy = $"düğme \"{original}\" iken \"{state[0]}\", aria-busy \"{state[1]}\", submit olaylarında defaultPrevented \"{state[2]}\"";
             labelSaysBusy = state[0].Length > 0 && state[0] != original;
+            secondPrevented = state[2] == "false,true";
             await page.Page.WaitForURLAsync(u => u.Contains("/teyit", StringComparison.Ordinal), new PageWaitForURLOptions { Timeout = 25000 });
         }
         else
@@ -412,14 +414,14 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         IAPIResponse again = await ReplayAsync(context, sends[0]);
         string location = again.Headers.TryGetValue("location", out string? target) ? target : string.Empty;
         long orders = await DataRecord.CountAsync(Host.Dsn, "SELECT count(*) FROM orders WHERE contact_email = @e", ("e", email));
-        bool stopped = path == ScriptPath.Scriptless || (sends.Count == 1 && busy.Contains("aria-busy \"true\"", StringComparison.Ordinal) && labelSaysBusy);
+        bool stopped = path == ScriptPath.Scriptless || (sends.Count == 1 && busy.Contains("aria-busy \"true\"", StringComparison.Ordinal) && labelSaysBusy && secondPrevented);
         await ObserveAsync(
             "VAL-B105",
             path,
             engine,
             page,
             path == ScriptPath.Scripted ? "ödeme adımında iki gönderim art arda (aynı anda requestSubmit), sonra aynı istek yeniden gönderilir" : "ödeme adımı onaylanır, sonra aynı istek (aynı onay anahtarı) yeniden gönderilir",
-            "betikli yolda ikinci submit durdurulur ve düğme sürdüğünü söyler; ikinci gönderim var olan siparişin teyit ekranına gider; yeni sipariş oluşmaz",
+            "betikli yolda ikinci submit olayı betik tarafından iptal edilir (defaultPrevented) ve düğme sürdüğünü söyler; ikinci gönderim var olan siparişin teyit ekranına gider; yeni sipariş oluşmaz",
             $"{(busy.Length > 0 ? busy + "; " : string.Empty)}ağa giden gönderim {sends.Count}; yeniden gönderim {again.Status} -> {location}; teyit ekranı {firstAddress}",
             stopped && orders == 1 && location.Contains("/teyit", StringComparison.Ordinal) && firstAddress.Split('?')[0] == new Uri(new Uri(Host.BaseUrl), location).AbsolutePath,
             $"orders (contact_email = maskeli): {orders} satır");
@@ -440,11 +442,13 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         await page.Page.Locator("[name='Input.ContactTopic']").SelectOptionAsync(new SelectOptionValue { Index = 1 });
         await page.Page.Locator("[name='Input.Message']").FillAsync(marker);
         string contactBusy = string.Empty;
+        bool contactSecondPrevented = path == ScriptPath.Scriptless;
         if (path == ScriptPath.Scripted)
         {
             string[] state = [];
-            await NavigateAsync(page, async () => state = await page.Page.EvaluateAsync<string[]>("() => { const f = document.querySelector('form.contact-form'); const b = f.querySelector('button[type=submit]'); f.requestSubmit(b); f.requestSubmit(b); return [b.textContent.trim(), f.getAttribute('aria-busy') ?? '']; }"));
-            contactBusy = $"düğme \"{state[0]}\", aria-busy \"{state[1]}\"";
+            await NavigateAsync(page, async () => state = await page.Page.EvaluateAsync<string[]>("() => { const f = document.querySelector('form.contact-form'); const b = f.querySelector('button[type=submit]'); const seen = []; f.addEventListener('submit', (e) => seen.push(e.defaultPrevented)); f.requestSubmit(b); f.requestSubmit(b); return [b.textContent.trim(), f.getAttribute('aria-busy') ?? '', seen.join(',')]; }"));
+            contactBusy = $"düğme \"{state[0]}\", aria-busy \"{state[1]}\", submit olaylarında defaultPrevented \"{state[2]}\"";
+            contactSecondPrevented = state[2] == "false,true";
         }
         else
         {
@@ -453,7 +457,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         }
 
         long written = await DataRecord.CountAsync(Host.Dsn, "SELECT count(*) FROM contact_requests WHERE message = @m", ("m", marker));
-        bool contactOk = path == ScriptPath.Scripted ? written == 1 && contactSends.Count == 1 : written == 2;
+        bool contactOk = path == ScriptPath.Scripted ? written == 1 && contactSends.Count == 1 && contactSecondPrevented : written == 2;
         await ObserveAsync(
             "VAL-B105",
             path,
@@ -904,12 +908,12 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         string fileId = string.Empty;
         if (path == ScriptPath.Scripted)
         {
-            state = await TextMatchingAsync(page.Page.Locator("[data-js=file-state]"), "^(?!.*(yükleniyor|Dosya yok))", 25000);
+            state = await TextMatchingAsync(page.Page.Locator("#product-file [data-js=file-state]"), "^(?!.*(yükleniyor|Dosya yok))", 25000);
             fileId = await page.Page.Locator("#product-file-id").InputValueAsync();
         }
         else
         {
-            state = await TextMatchingAsync(page.Page.Locator("[data-js=file-state]"), "Dosya yok", 5000);
+            state = await TextMatchingAsync(page.Page.Locator("#product-file [data-js=file-state]"), "Dosya yok", 5000);
             fileId = await page.Page.Locator("#product-file-id").InputValueAsync();
         }
 

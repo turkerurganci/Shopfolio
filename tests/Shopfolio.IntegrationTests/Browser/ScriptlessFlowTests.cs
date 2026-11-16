@@ -2,8 +2,11 @@ using System.Text.RegularExpressions;
 
 using Microsoft.Playwright;
 
+using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Pages.Components;
 
 namespace Shopfolio.IntegrationTests.Browser;
 
@@ -614,45 +617,94 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         Assert.Empty(Failures);
     }
 
-    /// <summary>VAL-B101: the image upload of the product form - three files: within P-23, over P-23 by less than 1 MB (a 422 field message), over the body ceiling (a 413); each send carries one image.</summary>
+    /// <summary>
+    /// VAL-B101: the image upload of the product form - three files: within P-23, over P-23 by less than 1 MB, over the body ceiling. With the script on, the file over P-23 sends no request and the
+    /// sentence is shown at the field, and a file within P-23 shows its progress; with the script off each send carries one image and the sent file gets its 422 field message or its 413. The expected
+    /// texts are the ones 12 VAL-B101 gives; the sentence compared is the server's own (the limit comes to the page from the constant).
+    /// </summary>
     [Theory]
     [MemberData(nameof(Ways))]
-    public async Task TheImageUpload_CarriesOneImagePerSend_AndTheLimitsAnswer_InBothWays_VALB101(string engine, ScriptPath path)
+    public async Task TheImageUpload_ChecksTheSizeAtTheChoice_AndCarriesOneImagePerSend_InBothWays_VALB101(string engine, ScriptPath path)
     {
         string id = Unique(engine, path);
         SeededProduct product = await BrowserSeed.NewProductAsync(Host.Dsn, $"p{id}", ProductType.Physical);
         await using IBrowserContext context = await Host.ContextAsync(engine, path, Actor.Admin);
         WatchedPage page = await NewPageAsync(context);
-        const int tenMegabytes = 10 * 1024 * 1024;
+        int imageMax = checked((int)ProductConstants.ImageMaxBytes);
         (string Label, string Name, byte[] Bytes, int Expected)[] files =
         [
             ("P-23'ü aşmayan", "kucuk.png", MakePng(), 200),
-            ("P-23'ü bir megabayttan az aşan", "orta.png", new byte[tenMegabytes + (100 * 1024)], 422),
-            ("gövdeyi tavanın üstüne taşıyan", "buyuk.png", new byte[tenMegabytes + (2 * 1024 * 1024)], 413),
+            ("P-23'ü bir megabayttan az aşan", "orta.png", new byte[imageMax + (100 * 1024)], 422),
+            ("gövdeyi tavanın üstüne taşıyan", "buyuk.png", new byte[checked((int)RequestBodyLimits.ImageUploadMaxBytes) + (1024 * 1024)], 413),
         ];
+        string sizeMessage = UploadChecks.SizeMessage(UploadSurface.ProductGallery);
+        ILocator fileState = page.Page.Locator("#product-image-file + [data-js=file-state]");
+        ILocator uploadButton = page.Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Galeriye yükle" });
+
+        // The send replaces the page, so the progress the script shows while it goes is kept by a script that runs in every page: the field's text and the upload button's aria-disabled, in the session.
+        await context.AddInitScriptAsync("(() => { const note = () => { const s = document.querySelector('#product-image-file + [data-js=file-state]'); if (s && s.dataset.state === 'busy') { const b = document.querySelector('button[name=\"Input.ImageTarget\"]'); sessionStorage.setItem('t551Progress', s.textContent + '|' + (b ? b.getAttribute('aria-disabled') : '')); } }; new MutationObserver(note).observe(document, { subtree: true, childList: true, characterData: true, attributes: true }); })();");
         foreach ((string label, string name, byte[] bytes, int expected) in files)
         {
             await GoAsync(page, $"/panel/urunler/{product.ProductId}");
             int fileInputs = await page.Page.Locator("#product-image-file").CountAsync();
+            string step = $"üründe {label} görsel ({bytes.Length / 1024} KB) seçilir ve Galeriye yükle'ye basılır";
+            if (path == ScriptPath.Scripted && expected != 200)
+            {
+                int posts = 0;
+                void CountPosts(object? sender, IRequest request)
+                {
+                    if (request.Method == "POST")
+                    {
+                        Interlocked.Increment(ref posts);
+                    }
+                }
+
+                page.Page.Request += CountPosts;
+                string addressBefore = PathOf(page);
+                await page.Page.Locator("#product-image-file").SetInputFilesAsync(new FilePayload { Name = name, MimeType = "image/png", Buffer = bytes });
+                string atChoice = await TextMatchingAsync(fileState, Regex.Escape(sizeMessage), 10000);
+                await uploadButton.ClickAsync();
+                await page.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+                string afterClick = await TextAsync(fileState);
+                page.Page.Request -= CountPosts;
+                await ObserveAsync(
+                    "VAL-B101",
+                    path,
+                    engine,
+                    page,
+                    step,
+                    "aşan dosya için istek gitmez ve mesaj gösterilir (sunucunun boyut cümlesi alanın yanında durur; Galeriye yükle bir şey göndermez)",
+                    $"gönderilen POST {posts}; seçimde mesaj \"{atChoice}\"; düğmeden sonra mesaj \"{afterClick}\"; adres değişmedi: {PathOf(page) == addressBefore}",
+                    fileInputs == 1 && posts == 0 && atChoice == sizeMessage && afterClick == sizeMessage && PathOf(page) == addressBefore,
+                    "uç yanıtı: yok (istek gitmedi)");
+                continue;
+            }
+
             await page.Page.Locator("#product-image-file").SetInputFilesAsync(new FilePayload { Name = name, MimeType = "image/png", Buffer = bytes });
             IResponse response = null!;
             await NavigateAsync(
                 page,
                 async () => response = await page.Page.RunAndWaitForResponseAsync(
-                    () => page.Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Galeriye yükle" }).ClickAsync(),
+                    () => uploadButton.ClickAsync(),
                     r => r.Request.Method == "POST",
                     new PageRunAndWaitForResponseOptions { Timeout = 60000 }),
                 60000);
             string message = await TextAsync(page.Page.Locator(".field__message, .message, [data-js=error-summary]"));
+
+            // The progress the script showed while the send went is what the init script kept in the session (the page that showed it was replaced).
+            string progressNote = await page.Page.EvaluateAsync<string?>("() => { const note = sessionStorage.getItem('t551Progress'); sessionStorage.removeItem('t551Progress'); return note; }") ?? string.Empty;
+            string progress = progressNote.Split('|')[0];
+            bool held = progressNote.EndsWith("|true", StringComparison.Ordinal);
+            bool sentWithProgress = path != ScriptPath.Scripted || (progress.Contains("yükleniyor", StringComparison.Ordinal) && progress.Contains(name, StringComparison.Ordinal) && held);
             await ObserveAsync(
                 "VAL-B101",
                 path,
                 engine,
                 page,
-                $"üründe {label} görsel ({bytes.Length / 1024} KB) seçilir ve Galeriye yükle'ye basılır",
-                $"her gönderim tek görsel taşır ({fileInputs} dosya alanı); sunucu {expected} yanıtı verir" + (expected == 200 ? " (kabul: sayfa yeniden çizilir, görsel forma girer)" : string.Empty) + (expected == 422 ? " ve alan mesajı gösterir" : string.Empty) + (path == ScriptPath.Scripted && expected != 200 ? " (sayfada boy denetimi betiği yoktur: istek gider, bkz. D-1700)" : string.Empty),
-                $"yanıt {response.Status}; mesaj \"{message[..Math.Min(message.Length, 120)]}\"",
-                fileInputs == 1 && response.Status == expected && (expected != 422 || message.Length > 0),
+                step,
+                $"her gönderim tek görsel taşır ({fileInputs} dosya alanı); sunucu {expected} yanıtı verir" + (expected == 200 ? " (kabul: sayfa yeniden çizilir, görsel forma girer)" : string.Empty) + (expected == 422 ? " ve alan mesajı gösterilir" : string.Empty) + (path == ScriptPath.Scripted ? "; gönderim sürerken ilerleme gösterilir (dosya adı, \"yükleniyor\"; Galeriye yükle aria-disabled)" : string.Empty),
+                $"yanıt {response.Status}; mesaj \"{message[..Math.Min(message.Length, 120)]}\"" + (path == ScriptPath.Scripted ? $"; ilerleme \"{progress}\"; düğme aria-disabled: {held}" : string.Empty),
+                fileInputs == 1 && response.Status == expected && (expected != 422 || message.Length > 0) && sentWithProgress,
                 $"uç yanıtı: POST görsel yükleme -> {response.Status}");
         }
 

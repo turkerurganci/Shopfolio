@@ -487,5 +487,9 @@ public sealed class UploadFileTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.
         {
             output.Attributes.SetAttribute("accept", accept);
         }
+
+        // The size limit and the sentence that names it travel to the page script, which checks the file at the choice (04 2.12.8.3; T551 VAL-B101); the script holds neither a number nor a text of its own.
+        output.Attributes.SetAttribute("data-max-bytes", UploadLimits.MaxBytes(Surface).ToString(CultureInfo.InvariantCulture));
+        output.Attributes.SetAttribute("data-size-message", UploadChecks.SizeMessage(Surface));
     }
 }

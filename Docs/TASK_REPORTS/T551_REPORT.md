@@ -130,12 +130,12 @@
 
 | Alan | Değer |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-16, head `0f3f98fc`) |
-| Bulgu sayısı | 5 — 4 ORTA S1 (KK5: E2E işi `dotnet tool restore` eksikliğinden hiç koşmadı · KK2: E-05, yönetici onay pencereleri, hata ve boş hâller eksik · VAL-B101 betikli yolda boy denetimi yok · B099/B100/B102/B105/B110 kısmi gözlem) · 1 DÜŞÜK S1 (gözlem kaydının `Observed` sütunu maskesiz) |
-| Düzeltme gerekli mi | Evet — beş bulgu bu dalda |
-| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-1709, K2 → D-1710) |
+| Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-17, head `d72ac1cd`) |
+| Bulgu sayısı | 1 — ORTA S1 (`VAL-B105` betikli "ikinci `submit` durdurulur" gözlemi ayırt edici değil: `common.js` durdurması etkisizleştirilince test geçiyor) |
+| Düzeltme gerekli mi | Evet — bir bulgu bu dalda |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-1713, K2 → D-1714) |
 
-Tur 1'in tam sonucu raporun sonundaki "Doğrulama Sonucu — T551 … — tur 1" bölümündedir.
+Tur 1 ve tur 2'nin tam sonuçları raporun sonundaki "Doğrulama Sonucu — T551 … — tur 1" ve "— tur 2" bölümlerindedir.
 
 ## Doğrulama tur 1
 
@@ -246,6 +246,125 @@ Beş değişinim birlikte uygulandı, 10 testin 8'i beklenen yerde kırıldı (d
 - KK5: rapor "✓ ⚠ … CI süresi ilk koşuda ölçülür" der; CI'da araç hiç koşmadı (Bulgu 1).
 - Maske: rapor "Veri kaydı sütunu maskeli" der — doğru, ama `Observed` sütunu maskesiz (Bulgu 5).
 - Uyumlu: KK1, KK4, KK6, `09 §19.2` madde 6, üretim kodu değişikliklerinin darlığı, Unit 8087/8087, Browser 36/36 × 3.
+
+#### Merge ve Post-merge
+- Squash: — (FAIL; merge yok)
+- Post-merge run'lar: —
+
+## Doğrulama tur 2
+
+### Doğrulama Sonucu — T551 Tarayıcı aracı ve betiksiz yol gözlemi — tur 2
+**Tarih:** 2026-11-17   **Branch:** task/T551-tarayici-betiksiz-yol   **Commit:** `d72ac1cd` (doğrulanan head; kayıt commit'i: bu raporu taşıyan commit)
+
+#### Verdict: ✗ FAIL
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş (worktree, `T551-val` = `origin/task/T551-tarayici-betiksiz-yol`, head `d72ac1cd`) |
+| Hook kurulumu | ✓ | `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` |
+| Ana dal CI (son 3) | ✓ | `43788205169` success · `43788205183` success · `43779716328` success |
+| Memory drift | — | Adım 0b kaldırıldı (2026-11-08) |
+| main birleştirmesi | ✓ | `git merge origin/main` → "Already up to date" (main `3fb77b9d`); çakışma yok |
+
+#### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Playwright; Chromium, Firefox, WebKit; her ekran betik açık ve kapalı | ✓ | Motor süzgeciyle ayrı koşular (`SHOPFOLIO_BROWSER_ENGINES`, `--filter-trait "Browser=true"`, PostgreSQL 18 `127.0.0.1:25552`): chromium 172/172 (3 dk 20 sn), firefox 172/172 (8 dk 30 sn), webkit 172/172 (5 dk 25 sn). `BrowserTestBase.Ways()` motor × {betikli, betiksiz}; `BrowserHost.ContextAsync` `JavaScriptEnabled` bağlam düzeyinde. |
+| 2 | Tohum müşteri, yönetici, her durumdaki sipariş; `04 §4` envanterinin her ekranı onay pencereleri, hata ve boş hâlleriyle | ✓ | Tohum (kayıt başlığı): 6 sipariş durumunun 6'sı (Placed, Preparing, Shipped, Delivered, DeliveryFailed, Cancelled) ve 5 ödeme durumunun 5'i (Pending, Paid, Failed, PartiallyRefunded, Refunded), arşivli ürün. Yürüyüş: 53 ekranın 53'ü (E-01…E-47, E-49…E-54; E-05 artık var); `EveryScreenOfTheInventoryDocument_HasAStopInTheWalk_KK2` listeyi `04 §4.1–4.2`'den okur. Onay pencereleri: `_Confirm` kullanan 9 panel/hesap ekranının 9'u (E-25, E-33, E-37, E-40, E-41, E-44, E-45, E-46, E-49 — `ConfirmWindowTests`, aç + Vazgeç + tablo parmak izi değişmez); müşteri son adımı E-17/E-18 (B096, B097). Hata hâli: `ValidationStateTests` 53 form vakası (422 + geçersiz alan + tablo değişmez; iki formun doğrulama hâli yok, D-1712), sayfalardan türetilen form listesiyle eşitlik testi. Boş hâl: `EmptyStateTests` tohumsuz ikinci veritabanında E-32, E-35, E-36, E-38, E-52. Eksik ekran: yok. |
+| 3 | `VAL-B096`…`VAL-B112` her biri için iki yol gözlemi; Veri kaydı satırında tablo kaydı, kişisel veri maskeli | ✗ | 17 satırın 17'si × 2 yol × 3 motor kayıtta (her motor kaydı 417 satır, 0 ✗, ~409 ekran görüntüsü); Veri kaydı satırlarında tablo satırı maskeli; `Observed` sütunu artık `DataRecord.Mask`'tan geçiyor — üç kayıtta e-posta 0, erişim anahtarı/jeton yalnız `***`. **Ama `VAL-B105` betikli payı ayırt edici değil (Bulgu 1):** `common.js` `bindSubmitOnce` içindeki ikinci-gönderim durdurması (`if (form.getAttribute("aria-busy") === "true") { event.preventDefault(); … }`, satır 213) etkisizleştirildiğinde B105 betikli testi yine geçti ve kayıt yine "ağa giden gönderim 1; yazılan talep 1 ✓" yazdı: test iki `requestSubmit`'i aynı görevde art arda çağırıyor, tarayıcı iki gönderimi tek gezinmeye indiriyor; "ikinci `submit` durdurulur" iddiası betikten bağımsız olarak doğru görünüyor. Öteki 16 satır ✓ (aşağıdaki değişinimler). |
+| 4 | KRİTİK `VAL-B096` ve `VAL-B107` iki yolda; onaysız gönderim bir şey yazmaz | ✓ | B096: ilk (onaysız) gönderimden sonra DB `order_status/payment_status` = `Placed/Pending`, onaydan sonra `Cancelled` (iki yol, üç motor). B107: işaretliyken `billing_equals_shipping=True; decoy_taken=False`, işaretsizken `billing_recipient_name=Fatura Sahibi`. Değişinim: `OrderScreenModels.cs:247` onay koşulu etkisizleştirildi → B096 iki yolda kırıldı; `PlaceOrderInput.cs:147` `IsBillingSameAsShipping` → `false` → B107 iki yolda kırıldı; geri alındı. |
+| 5 | Araç CI'da koşar; iş adı ve süresi `12 §6.2` F5 B satırına ve `11 §6.2` F5'e uygun | ✓ | Run `43945619413` (head `d72ac1cd`) job `133579443615` **"8. E2E (advisory)" success**, 512/512 test (170 teori × 3 motor + 2), 16 dk 5 sn (20:10:58–20:27:03); `runs-on: ubuntu-24.04`; `browser-observations` kaydı yüklendi (118,9 MB). Tur 1 bulgusu (dotnet tool restore) kapandı. Integration işi `--filter-not-trait "Browser=true"` ile tarayıcı testlerini dışlıyor. |
+| 6 | Çıktı gate raporuna eklenebilir kayıt; sürümler ve tohum | ✓ | `observations.md`/`.jsonl`: "Sürümler: playwright 1.59.0.0, dotnet 10.0.11, <motor> <sürüm>" (webkit 26.4), "Tohum: {customers, admins, coupon, products, orders…}"; CI artifact `browser-observations` (`if: always()`). |
+
+#### Task Satırları (`12 §7.5`, adım 2a ve 16)
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+| VAL-B096 | KRİTİK | yok | PASS | PASS | — |
+| VAL-B097 | ORTA | yok | PASS | PASS | — |
+| VAL-B098 | ORTA | yok | PASS | PASS | — |
+| VAL-B099 | ORTA | yok | FAIL | PASS (kupon, il ve yöntem değişikliği iki yolda; eski özetle onay sipariş açmaz, güncel toplam gösterilir) | — |
+| VAL-B100 | ORTA | yok | FAIL | PASS (fiyat, varyantın görseli, tükenen birleşim, sepete eklemenin seçimi taşıması) | — |
+| VAL-B101 | ORTA | yok | FAIL | PASS (betikli: aşan iki dosyada POST 0 ve sunucunun cümlesi, küçük dosyada ilerleme; betiksiz: 200/422/413) | — |
+| VAL-B102 | ORTA | yok | FAIL | PASS (seçenek, değer ve varyant satırı iki yolda; boş satır okunmaz) | — |
+| VAL-B103 | DÜŞÜK | yok | PASS | PASS | — |
+| VAL-B104 | DÜŞÜK | yok | PASS | PASS | — |
+| VAL-B105 | ORTA | yok | FAIL | FAIL — betikli yolda "ikinci `submit` durdurulur" gözlemi betiğin durdurmasını ayırt etmiyor (Bulgu 1); betiksiz paylar (teyit ekranına dönüş, iletişim ve sepete ekleme iki kez işlenir) ✓ | — |
+| VAL-B106 | DÜŞÜK | yok | PASS | PASS | — |
+| VAL-B107 | KRİTİK | yok | PASS | PASS | — |
+| VAL-B108 | DÜŞÜK | yok | PASS | PASS | — |
+| VAL-B109 | ORTA | yok | PASS | PASS | — |
+| VAL-B110 | ORTA | yok | FAIL | PASS (kayıt sonucu, bilinmeyen hesapla ret, kayıtlı hesapla giriş + oturum + hesap sayfası, sıfırlama isteği, sipariş takibi; maskeli) | — |
+| VAL-B111 | ORTA | yok | PASS | PASS | — |
+| VAL-B112 | ORTA | yok | PASS | PASS | — |
+
+`python -I -X utf8 scripts/doc-scans/12_matris_denetle.py --kapsam 1-77` → Hata: 0.
+
+#### Tur 1 bulgularının kapanışı
+| Tur 1 # | Konu | Durum | Kanıt |
+|---|---|---|---|
+| 1 | KK5 E2E işi koşmuyordu | Kapandı | Run `43945619413` "8. E2E (advisory)" success, 512/512, 16 dk 5 sn |
+| 2 | KK2 eksik ekran ve hâller | Kapandı | E-05 yürüyüşte; 9 onay penceresi; 53 form vakası; 5 boş liste; DeliveryFailed, PartiallyRefunded, Refunded tohumda, kargodaki sipariş E-16/E-37'de açılıyor |
+| 3 | B101 betikli boy denetimi | Kapandı | `product-form.js` `checkSize`; değişinim (`if (tooBig)` → `if (false && tooBig)`) B101 betikliyi kırdı |
+| 4 | B099, B100, B102, B105, B110 kısmi | B099, B100, B102, B110 kapandı; **B105 kısmen** | B105 sepete ekleme betiksiz tekrar gönderimi ve düğme metni artık ölçülüyor, ama betikli "ikinci submit durdurulur" ayırt edici değil (Bulgu 1) |
+| 5 | `Observed` maskesiz | Kapandı | `ObserveAsync` `DataRecord.Mask(observed)`; `ObservationMaskTests` 4/4; üç kayıtta e-posta yok, anahtar ve jeton `***` |
+
+#### Doğrulama Kontrol Listesi
+- [x] KK1: üç motor, iki bağlam (motor başına ayrı koşu, 172/172 × 3)
+- [x] KK2: ekran envanteri eksiksiz gezilir (53/53 ekran, onay pencereleri, hata ve boş hâller; eksik ekran yok)
+- [ ] KK3: 17 satırın iki yol gözlemi ve Veri kaydı — B105 betikli payı ayırt edici değil
+- [x] KK4: iki KRİTİK satır (DB'den, değişinimle kanıtlı)
+- [x] KK5: CI işi, adı ve süresi (`8. E2E (advisory)`, ubuntu-24.04, success, 16 dk 5 sn)
+- [x] KK6: kayıt gate raporuna girer (sürümler, tohum, CI artifact)
+- [x] `09 §19.2` madde 6: `git grep -nE "Task\.Delay|Thread\.Sleep" tests/Shopfolio.IntegrationTests/Browser` boş (çıkış 1); `BrowserTestBase.cs` `#pragma warning disable CS0612` tek yöntemi sarar, gerekçe yorumu aynı satırda, hemen `restore` — `09 §3.1` madde 5'e ("uyarı bastırma yalnız gerekçe yorumuyla ve en dar kapsamda") uygun
+- [x] `09 §25` ilgili satırlar; güvenlik taraması (aşağıda)
+
+#### Değişinim denemeleri (chromium, motor süzgeciyle; hepsi `git checkout -- src` ile geri alındı, yeniden derlendi)
+| # | Değişiklik | Beklenen kırılma | Sonuç |
+|---|---|---|---|
+| 1 | `OrderScreenModels.cs:247` `!input.Confirmed` → `!input.Confirmed && input.Confirmed` | VALB096 iki yol | ✓ kırıldı |
+| 2 | `PlaceOrderInput.cs:147` `input.IsBillingSameAsShipping` → `false` | VALB107 iki yol | ✓ kırıldı (ödeme adımını kullanan B099, B105, B109 da kırıldı) |
+| 3 | `product-form.js` `checkSize` `if (tooBig)` → `if (false && tooBig)` | VALB101 betikli | ✓ kırıldı (yalnız betikli) |
+| 4 | `ProductForm.cshtml.cs:266/269` ve `ProductSaves.cs:343` boş satır ayıklaması kaldırıldı (tek başına 266 ya da 343 eşdeğer değişinimdir: ayıklama iki katmanda) | VALB102 iki yol | ✓ kırıldı (iki yol) |
+| 5 | `product.js` `image.src = variant.imagePath` kaldırıldı | VALB100 betikli (görsel) | ✓ kırıldı ("varyantın görsel kaydıyla eşleşen 0") |
+| 6 | `checkout.js:11` `form.requestSubmit(submitter)` kaldırıldı | VALB099 betikli | ✓ kırıldı |
+| 7 | `common.js:213` `bindSubmitOnce` ikinci-gönderim durdurması `if (false)` | VALB105 betikli | **✗ kırılmadı** — kayıt "ağa giden gönderim 1; yazılan talep 1 ✓" (Bulgu 1) |
+
+#### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Restore | ✓ | `dotnet restore Shopfolio.slnx` | çıkış 0 |
+| Build | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format Shopfolio.slnx --verify-no-changes --no-restore --include <dalın 11 .cs dosyası>` | çıkış 0 |
+| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/... --no-build` | 8087/8087 |
+| Betik testleri | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration (Browser + dalın sınıfları) | ✓ | `--filter-trait "Browser=true"` motor başına; `--filter-class …ObservationMaskTests` | chromium/firefox/webkit 172/172; ObservationMaskTests 4/4; **TAM: CI** (CI `4. Integration test` success, 14 dk 20 sn) |
+| CI (PR #583, head `d72ac1cd`) | ✓ | `gh pr checks 583` / `gh run view 43945619413` | Lint, Build, Unit, Integration, Contract, Migration, Paketleme, **8. E2E (advisory)**, CI Gate success |
+| Locked restore | ✓ | `dotnet restore Shopfolio.slnx --locked-mode` | çıkış 0 |
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz — `Observed` ve Veri kaydı maskeli (e-posta, IBAN, uzun rakam, `/siparis/erisim/`, `/panel/davet/`, `pendingRegistration`, `reauthenticationToken`); sertifika testin kendi atılan sertifikası; ekran görüntüleri atılan test veritabanının sahte verisini gösterir
+- Auth etkisi: Temiz — üretim kodu değişikliği: `components.css` `.button[hidden]`, `.form-fields[hidden]` (dar, doğru), `_ProductFormBody.cshtml` `x is not null` (dar; kök neden D-1703), `UploadComponentModels.cs` `data-max-bytes`/`data-size-message` (sınır ve cümle sunucudan), `product-form.js` seçimde boy denetimi (istemci tarafı ek; sunucu denetimi yerinde, betiksiz 422/413 gözlendi)
+- Input validation: Temiz
+- Yeni bağımlılık: `Microsoft.Playwright` 1.59.0 (yalnız Integration test projesi; Apache-2.0; `09` tablosunda; `restore --locked-mode` çıkış 0)
+
+#### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı (S1/S2/S3) | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| 1 | VAL-B105 (KK3) | ORTA | S1 | "Betikli yolda ikinci `submit` durdurulur" gözlenir ↔ test iki `requestSubmit`'i aynı görevde çağırır; tarayıcı iki gönderimi tek gezinmeye indirdiği için ağa giden istek betik olsa da olmasa da 1'dir. `common.js:213` durdurması etkisizleştirilince ödeme adımı ve iletişim formu gözlemleri yine ✓ (değişinim 7). Ayırt edici gözlem gerekir: ör. ilk gönderim yoldayken (yanıtı `page.RouteAsync` ile bekletilmiş) ikinci tıklama, ya da ikinci `submit` olayının `defaultPrevented` değeri | VAL-B113 (aynı kalıbın altı tarayıcı satırı) | bu PR'da düzeltilecek | `Browser/ScriptlessFlowTests.cs` `TheDoubleSend_…_VALB105` |
+
+#### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | `D-41` (E2E komutu bağlanmadı) `DEFERRED_BACKLOG.md`'de 🟡 açık; `.github/ci-commands.env` yorumu "D-41 kapandı" diyor. D-41'in "Yapılacak"ındaki `SETUP.md` §4 notu ve parametre kaydı, `DEPLOY_RUNBOOK` §K.11 yer tutucu ifadesi güncellenmedi; `05 §8.3.11` hâlâ "uçtan uca doğrulama fazında bağlanır" yazıyor. Aynı yorumdaki "36 test x 3 motor, motor başına 3-4 dk" ölçümü eski (şimdi 170 teori × 3, CI 16 dk) | DEFERRED_BACKLOG'a forward: D-1713 |
+| K2 | Kanıt zayıflıkları: (a) B110 kayıt ve şifre sıfırlama akışları bağlantıyla açılan ikinci adıma (E-21 doğrulama, E-23 yeni şifre formu) gitmiyor; yürüyüş bu ekranları yalnız geçersiz bağlantı hâlinde açıyor — geçerli bağlantılı yeni şifre formu hiçbir yolda gönderilmiyor. (b) B112 `[data-js=file-state]` `.First` dijital dosya alanının değil formdaki ilk durum öğesinin metnini okuyor: betikli yolda yükleme kimliği yazıldığı hâlde gözlem "durum \"Dosya yok\"" yazıyor (ölçü kimliğe dayandığı için sonuç doğru) | DEFERRED_BACKLOG'a forward: D-1714 |
+
+#### Yapım Raporu Karşılaştırması
+- Uyum: 3 uyuşmazlık
+- B105: öz denetim "B103–B105 ✓ … ağa giden istek 1" der; bu ölçü betikten bağımsızdır (Bulgu 1).
+- Öz denetim tablosu (düzeltme 2) satır başına ayırt edici kanıt yerine "testler yeşil" der ve kendisi "satır satır yeniden okuma yerine yeşil testlerle" yapıldığını yazar; B097 ve B101 "⚠ kısmen" kalmış (B101'in gerekçesi D-1705 B102'ye aittir) — kısmi satırla ✓ verilmez; bu turda iki satırı kendi kanıtımla PASS buldum.
+- Öz denetim "D-41 … kayıtları güncel" der; D-41 açık, `ci-commands.env` kapandı der (K1).
+- Uyumlu: KK1, KK2, KK4, KK5, KK6, tur 1 bulguları 1, 2, 3, 5; `09 §19.2` madde 6; üretim kodu değişikliklerinin darlığı.
 
 #### Merge ve Post-merge
 - Squash: — (FAIL; merge yok)

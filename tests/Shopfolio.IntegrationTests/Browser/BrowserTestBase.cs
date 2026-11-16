@@ -64,6 +64,16 @@ public abstract class BrowserTestBase
         return response;
     }
 
+    /// <summary>
+    /// Waits for the page a click or send led to. WebKit returns from a click before the navigation has started, so a load-state wait right after it sees the old, already loaded page;
+    /// a short pause lets the navigation begin first.
+    /// </summary>
+    protected static async Task SettleAsync(WatchedPage page)
+    {
+        await Task.Delay(300);
+        await page.Page.WaitForLoadStateAsync(LoadState.Load);
+    }
+
     /// <summary>Records one observation of a row and keeps the page's screenshot beside the record.</summary>
     protected async Task ObserveAsync(string row, ScriptPath path, string engine, WatchedPage page, string step, string expected, string observed, bool ok, string? data = null)
     {

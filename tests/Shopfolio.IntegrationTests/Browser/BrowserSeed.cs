@@ -237,6 +237,9 @@ internal static class BrowserSeed
     /// <summary>One more published product with one variant, for a row that changes the product (each observation has its own).</summary>
     public static Task<SeededProduct> NewProductAsync(string dsn, string label, ProductType type) => ProductAsync(dsn, label, "Ürün " + label, type, [(60m, null, null)], PublishStatus.Draft);
 
+    /// <summary>A draft product with no variant yet: its first option can be saved (an existing variant row would have to bind an option value that does not exist before the save).</summary>
+    public static Task<SeededProduct> NewProductWithoutVariantAsync(string dsn, string label, ProductType type) => ProductAsync(dsn, label, "Ürün " + label, type, [], PublishStatus.Draft);
+
     /// <summary>A published product; with first and second places the variants take one value each of two options (the place being the value's order).</summary>
     private static async Task<SeededProduct> ProductAsync(string dsn, string label, string name, ProductType type, (decimal Price, int? First, int? Second)[] specs, PublishStatus status = PublishStatus.Published)
     {
@@ -295,6 +298,18 @@ internal static class BrowserSeed
         db.Variants.AddRange(variants);
         await db.SaveChangesAsync(CancellationToken.None);
         return new SeededProduct(label, product.Id, slug, [.. variants.Select(v => v.Id)]);
+    }
+
+    /// <summary>One more offering for a row that saves the content form (the saved form changes the record; the shared offering of the screen inventory stays as seeded).</summary>
+    public static async Task<Guid> NewOfferingAsync(string dsn, string label)
+    {
+        Offering offering = Offering.Create("Bakım hizmeti " + label, "t551-hizmet-" + label, 2, Now);
+        offering.PublishStatus = PublishStatus.Published;
+        offering.SetText("<p>Yılda iki bakım.</p>");
+        await using AppDbContext db = NewContext(dsn);
+        db.Offerings.Add(offering);
+        await db.SaveChangesAsync(CancellationToken.None);
+        return offering.Id;
     }
 
     private static AppDbContext NewContext(string dsn)

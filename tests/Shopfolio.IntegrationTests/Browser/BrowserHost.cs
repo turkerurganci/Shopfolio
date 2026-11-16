@@ -98,7 +98,7 @@ public sealed class BrowserHost : IAsyncLifetime
         _factory.UseKestrel(options => options.Listen(System.Net.IPAddress.Loopback, 0, listen => listen.UseHttps(_certificate)));
         _factory.StartServer();
         using HttpClient probe = _factory.CreateClient();
-        BaseUrl = $"https://localhost:{probe.BaseAddress!.Port}";
+        BaseUrl = $"https://127.0.0.1:{probe.BaseAddress!.Port}";
         _playwright = await Playwright.CreateAsync();
         Seed = await BrowserSeed.RunAsync(Dsn);
         Record = new ObservationRecord(OutputDirectory());
@@ -217,11 +217,11 @@ public sealed class BrowserHost : IAsyncLifetime
         return context;
     }
 
-    private static Cookie Secure(string name, string value) => new()
+    private Cookie Secure(string name, string value) => new()
     {
         Name = name,
         Value = value,
-        Url = "https://localhost",
+        Url = BaseUrl,
         HttpOnly = true,
         Secure = true,
         SameSite = SameSiteAttribute.Lax,

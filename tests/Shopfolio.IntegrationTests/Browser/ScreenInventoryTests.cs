@@ -128,8 +128,8 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
         return stops;
     }
 
-    /// <summary>The screen ids of 04 4.1 and 4.2 (the inventory's own tables): the list is read from the document, so a screen the document adds and the walk lacks breaks this test.</summary>
-    private static List<string> InventoryIds()
+    /// <summary>The text of <c>Docs/04_UI_SPECS.md</c>, found above the test's folder (the tests read the screen document, they keep no second copy of its lists).</summary>
+    internal static string ReadScreenDocument()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
         while (directory is not null && !File.Exists(System.IO.Path.Combine(directory.FullName, "Docs", "04_UI_SPECS.md")))
@@ -137,7 +137,13 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
             directory = directory.Parent;
         }
 
-        string document = File.ReadAllText(System.IO.Path.Combine(directory?.FullName ?? throw new InvalidOperationException("Docs/04_UI_SPECS.md was not found above the test's folder."), "Docs", "04_UI_SPECS.md"));
+        return File.ReadAllText(System.IO.Path.Combine(directory?.FullName ?? throw new InvalidOperationException("Docs/04_UI_SPECS.md was not found above the test's folder."), "Docs", "04_UI_SPECS.md"));
+    }
+
+    /// <summary>The screen ids of 04 4.1 and 4.2 (the inventory's own tables): the list is read from the document, so a screen the document adds and the walk lacks breaks this test.</summary>
+    private static List<string> InventoryIds()
+    {
+        string document = ReadScreenDocument();
         int start = document.IndexOf("### 4.1 ", StringComparison.Ordinal);
         int end = document.IndexOf("### 4.3 ", StringComparison.Ordinal);
         Assert.True(start >= 0 && end > start, "04 4.1 and 4.2 were not found.");

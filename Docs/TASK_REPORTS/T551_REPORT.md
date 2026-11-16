@@ -400,6 +400,65 @@ Beş değişinim birlikte uygulandı, 10 testin 8'i beklenen yerde kırıldı (d
 | B112 | ✓ | `#product-file [data-js=file-state]`; `…VALB112` yeşil × 3 |
 | Backlog (D-41, D-1713, D-1714) | ✓ | K1, K2(a) kayıtlı; yeni kalem yok |
 
+## 2026-11-17 — T551 düzeltme 4 (aynı dal, PR #583)
+
+Tur 3 Bulgu 1 (KK2, boş hâller): ekran listesi elle tutulmaz, `Docs/04_UI_SPECS.md`'den test içinde türetilir. Kapsam daraltma ve T552'ye erteleme seçilmedi.
+
+### Düzeltme 4 — türetme tablosu (ekran · 04 maddesi · durak)
+
+Kaynak: `EmptyStateTests.EveryScreenWithAnEmptyStateInTheDocument_HasAStop_AndEveryStopIsOfSuchAScreen_KK2` (kayıt klasöründe `empty-state-derivation.md`). Kural: 3.3.12 ve 3.4.26 satırları; her ekran bölümünün "Boş / yükleniyor / hata durumları" maddesinde "boş hâl" geçen satır ("ekranın/ekrana özgü boş hâl(i) yoktur" diyenler sayılmaz); 6.2.x ve 6.3.x tablolarında "Boş hâl satırı" olan satırlar (6.2.N = 5.N, 6.3.N = 9.N). 15 ekran:
+
+| Ekran | 04 maddesi | Durak |
+|---|---|---|
+| E-02 | 3.3.12, 5.2.9, 6.2.2.2 | /kategori/t551-bos-kategori (boş kategori); /kategori/t551-kategori?minPrice=99999 (süzgecin sonucu boş) |
+| E-03 | 3.3.12, 5.3.8, 6.2.3.2 | /arama?search=zzzzzz (sonuçsuz arama); /arama?search=ürün&minPrice=99999 (süzgecin sonucu boş) |
+| E-07 | 3.3.12, 5.7.8, 6.2.7.2 | /hizmetler (hizmetler, yayında kayıt yok); /referanslar (referanslar, yayında kayıt yok) |
+| E-09 | 3.3.12, 5.9.8, 6.2.9.3 | /sss (yayında soru yok) |
+| E-12 | 3.3.12, 5.12.16, 6.2.12.9 | /sepet (boş sepet) |
+| E-26 | 5.26.9, 6.2.26.2 | /hesap/adresler (adresi olmayan defter) |
+| E-27 | 3.3.12, 5.27.10, 6.2.27.3 | /hesap/siparisler (siparişi olmayan üye) |
+| E-32 | 6.3.4.2, 9.4.9 | /panel/urunler (ürün yok); /panel/urunler?search=zzzzzz (aramanın sonucu boş) |
+| E-34 | 6.3.6.3, 9.6.10 | /panel/kategoriler (kategori yok) |
+| E-35 | 6.3.7.3, 9.7.10 | /panel/kuponlar (kupon yok) |
+| E-36 | 3.4.26, 6.3.8.4, 9.8.13 | /panel/siparisler (sipariş yok); /panel/siparisler?search=zzzzzz (aramanın sonucu boş) |
+| E-38 | 3.4.26, 6.3.10.3, 9.10.12 | /panel/talepler (talep yok); /panel/talepler?requestStatus=Closed (süzgecin sonucu boş) |
+| E-41 | 6.3.13.5, 9.13.16 | /panel/kurumsal-icerik (yedi grubun hepsi boş) |
+| E-51 | 9.22.11 | /panel/satis-ozeti (ilk kurulum, dağılım tabloları) |
+| E-52 | 3.4.26, 6.3.23.2, 9.23.11 | /panel/islem-izi (işlem izi kaydı yok); /panel/islem-izi?adminId=<yönetici> (süzgecin sonucu boş) |
+
+Durak başına ölçülen: 200; cümle (neyin olmadığını söyleyen kalıp); çıkış bağlantısı sayısı, etiketi ve adresi (04 2.7.1.2); kayıt satırı yok; hata yok; çıkış tıklanır ve açılan sayfa yanıt verir (aynı sayfadaki yere giden çıkışta yer sayfada olmalı). E-51'in dağılım tablolarında 04 çıkış yolu tanımlamaz, yalnız cümle ölçülür. Ayrı kurulumlar: tohumsuz kurulum (`BrowserHost.EmptyAsync`), tohumlu kurulumda boş kategori (`t551-bos-kategori`) ve adresi/siparişi olmayan müşteri (`BareCustomerKey`).
+
+### Düzeltme 4 — test satırları
+
+| Koşu | Sonuç |
+|---|---|
+| `EmptyStateTests` (chromium) | 45/45 (22 durak × 2 yol + türetme testi) |
+| `Browser=true` tam (motor başına ayrı) | chromium 207/207, firefox 207/207, webkit 207/207 |
+| `dotnet build -warnaserror` | 0 uyarı, 0 hata |
+| `dotnet format --include` (değişen 4 `.cs`) | uygulandı, yeniden derleme temiz |
+| Unit | koşulmadı (yalnız Integration test projesine dokunuldu) |
+| Integration TAM | CI |
+
+### Düzeltme 4 — değişinim (kapsam testi)
+
+`EmptyStateTests.cs`'den E-27 durağı geçici silindi: `EveryScreenWithAnEmptyStateInTheDocument_…_KK2` KIRILDI ("Filter not matched" ile E-27'yi saydı); durak geri konuldu, test yeşil. Başarısızlık iletisi sonradan okunur hâle getirildi ("04 gives these screens an empty state and no stop observes it: E-27"). Tersi: durağı olup 04'te boş hâli olmayan ekran da testi kırar.
+
+### Düzeltme 4 — öz denetim (KK1–KK6, `04` §4'e karşı; önceki doğrulamaya dayanılmadı)
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| KK1 üç motor, iki yol | ✓ | `Ways()`/`Cases`; Browser tam 207/207 × 3 |
+| KK2 onay pencereleri | ✓ | Bu düzeltme dokunmadı; `ConfirmWindowTests` bu koşuda 3 motorda yeşil, `_Confirm` kullanan sayfalar E-25, E-33, E-37, E-40, E-41, E-44, E-45, E-46, E-49 |
+| KK2 hata hâlleri | ✓ | `ValidationStateTests` bu koşuda 3 motorda yeşil; dokunulmadı |
+| KK2 boş hâller | ✓ | Liste `04`'ten türetilir (15 ekran, yukarıdaki tablo); her ekranın durağı var; E-02, E-07, E-27, E-34, E-09, E-03, E-12, E-26 ve E-32, E-35, E-36, E-38, E-41, E-51, E-52 gözlendi; cümle ve çıkış ölçüldü ve çıkış izlendi; değişinim E-27 durağını silince kırıldı; süzgeç sonucu boş hâller (E-02, E-03, E-32, E-36, E-38, E-52) de gözlendi |
+| KK3 17 satır iki yol + Veri kaydı | ✓ | Dokunulmadı; `ScriptlessPathTests`, `ScriptlessFlowTests` 3 motorda yeşil |
+| KK4 B096, B107 KRİTİK | ✓ | Dokunulmadı; 3 motorda yeşil |
+| KK5 CI işi | ✓ | Dokunulmadı (`ci.yml` değişmedi); yeni sınıf `Browser=true` iznindedir, CI'da koşar |
+| KK6 kayıt | ✓ | Tohum başlığı: müşteri sayısı 2 (boş hâl müşterisi eklendi); `empty-state-derivation.md` kayıt klasöründe |
+| Backlog (D-1717) | ✓ | Kapatıldı: E-26 ayrı müşteriyle, cümle ve çıkış ölçülerek; yeni kalem yok |
+
+⚠ Süzgeç sonucu boş hâlleri 04 6.x satırlarında aynı satırda tanımlıdır; sahip yerine karar: boş hâl durağına ek durak olarak gözlendi (E-02, E-03, E-32, E-36, E-38, E-52). E-35 ve E-41 kuponlar/kurumsal içerikte süzgeç yoktur.
+
 ## Doğrulama tur 3
 
 ### Doğrulama Sonucu — T551 Tarayıcı aracı ve betiksiz yol gözlemi — tur 3

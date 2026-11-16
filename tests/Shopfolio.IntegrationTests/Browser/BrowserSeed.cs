@@ -42,6 +42,12 @@ public sealed class BrowserSeedData
 
     public string CategorySlug { get; init; } = string.Empty;
 
+    /// <summary>The category no published product is in: its page is the empty category page (04 5.2.9).</summary>
+    public string EmptyCategorySlug { get; init; } = string.Empty;
+
+    /// <summary>The session key of the bare customer: a second member with no address and no order, so the empty states of the address book (E-26) and the order history (E-27) do not depend on what another test saved (D-1717). Never written to the record.</summary>
+    public string BareCustomerKey { get; init; } = string.Empty;
+
     public string OfferingSlug { get; init; } = string.Empty;
 
     public Guid OfferingId { get; init; }
@@ -61,7 +67,7 @@ public sealed class BrowserSeedData
     /// <summary>The seed as the record keeps it: the labels, the states and the counts; never a session key or an access key.</summary>
     public object ForRecord() => new
     {
-        customers = 1,
+        customers = 2,
         admins = 1,
         coupon = CouponCode,
         products = Products.Select(p => new { p.Label, p.Slug, variants = p.VariantIds.Count }),
@@ -110,6 +116,8 @@ internal static class BrowserSeed
         _imagesDirectory = imagesDirectory;
         (string customerKey, Guid customerId) = await TestSessions.CustomerAsync(dsn, longLived: true);
         (string adminKey, Guid adminId) = await TestSessions.AdminAsync(dsn, longLived: true);
+        // The bare customer: no address, no order; only the empty-state observations sign in as it (D-1717).
+        (string bareCustomerKey, _) = await TestSessions.CustomerAsync(dsn, longLived: true);
         List<SeededOrder> orders = [];
         foreach ((string label, OrderStatus shipping, PaymentStatus payment, bool card) in States)
         {
@@ -159,7 +167,9 @@ internal static class BrowserSeed
         db.PortfolioItems.Add(portfolio);
         db.CustomPages.Add(page);
         Category category = Category.Create("Mobilya", "t551-kategori", null, 1, Now);
+        Category emptyCategory = Category.Create("Boş kategori", "t551-bos-kategori", null, 1, Now);
         db.Categories.Add(category);
+        db.Categories.Add(emptyCategory);
         foreach (SeededProduct product in products.Where(p => p.Label is not ("second" or "archived")))
         {
             db.ProductCategories.Add(ProductCategory.Create(product.ProductId, category.Id, true, Now));
@@ -223,6 +233,8 @@ internal static class BrowserSeed
             CouponCode = coupon,
             ContactRequestId = contactId,
             CategorySlug = category.Slug,
+            EmptyCategorySlug = emptyCategory.Slug,
+            BareCustomerKey = bareCustomerKey,
             OfferingSlug = offering.Slug,
             OfferingId = offering.Id,
             PortfolioSlug = portfolio.Slug,

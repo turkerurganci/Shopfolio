@@ -288,6 +288,11 @@ public sealed class BrowserHost : IAsyncLifetime
             cookies.Add(Secure(CookieNames.Session, Seed.CustomerKey));
         }
 
+        if (actor == Actor.BareCustomer)
+        {
+            cookies.Add(Secure(CookieNames.Session, Seed.BareCustomerKey));
+        }
+
         if (actor == Actor.Admin)
         {
             cookies.Add(Secure(CookieNames.AdminSession, Seed.AdminKey));
@@ -356,6 +361,9 @@ public enum Actor
 {
     Visitor,
     Customer,
+
+    /// <summary>A member with no address and no order (<see cref="BrowserSeedData.BareCustomerKey"/>): the actor of the empty states of the member's screens.</summary>
+    BareCustomer,
     Admin,
 }
 

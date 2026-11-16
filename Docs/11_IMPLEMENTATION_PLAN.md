@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.65** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-11
+**Versiyon: v0.66** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-16
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -100,7 +100,7 @@ Sayımlar `scripts/doc-scans/11_matris_envanter.py` ve `11_matris_kapsama.py` ç
 
 > **Ne yazılır:** Fazlar ve task aralıkları. Faz sayısı projeye göre değişir; **şekil sabittir**: iskelet → veri → çekirdek servisler → iş mantığı → entegrasyonlar → arayüz → uçtan uca doğrulama.
 
-Yedi faz sabittir (K-1407 (1)); faz sayısı artırılmaz ya da azaltılmaz. Task aralıkları yüzlük bloklardır, arada `TXXa` girer (`00 §J`; K-1407 (2)). Task sayıları §7 aday task tablosundandır (219 task; sayım `scripts/doc-scans/11_task_blok_denetle.py` çıktısında).
+Yedi faz sabittir (K-1407 (1)); faz sayısı artırılmaz ya da azaltılmaz. Task aralıkları yüzlük bloklardır, arada `TXXa` girer (`00 §J`; K-1407 (2)). Task sayıları §7 aday task tablosundandır (221 task; sayım `scripts/doc-scans/11_task_blok_denetle.py` çıktısında).
 
 | Faz | Ad | Kapsam | Task aralığı |
 |---|---|---|---|
@@ -109,7 +109,7 @@ Yedi faz sabittir (K-1407 (1)); faz sayısı artırılmaz ya da azaltılmaz. Tas
 | F2 | Çekirdek servisler | Ortak altyapı (`05 §3.3.11`): modül iskeletleri ve Contracts, kimlik şemaları ve sayfa–form kalıbı, iş kuyruğu ve zamanlayıcı, dosya deposu, kayıt ve maskeleme, ayar katmanları, veri koruma halkası, dış servislerin bağlantı katmanı arayüzleri ve sahteleri (gerçek bağlayıcılar F4'tedir). **Çıkış ürünü:** modül sınırı mimari testle korunur, kayıt maskeleme testleri geçer | `T201`–`T233` (33) |
 | F3 | İş mantığı | Dokuz modülün iş mantığı: sipariş ve ödeme durum makinesi (`02 §5.4`, §5.5), stok, kupon, iptal–cayma–iade, zaman kuralları, bildirim kararları, yönetim komutları, sayfasız uçlar. **Çıkış ürünü:** ürün → sepet → sipariş → `FakePaymentGateway` sonucu → kargo → teslim akışı servis düzeyinde entegrasyon testiyle geçer (K-1410 (2)) | `T301`–`T390` (90) |
 | F4 | Entegrasyonlar | Gerçek bağlayıcılar: PayTR (başlatma, bildirim, sorgu, iade, 3D Secure), SES (gönderim, geri dönen adresler), Google girişi; dış olgu varsayımlarının doğrulama kanıtları. **Çıkış ürünü:** üç servisin sandbox kanıtı, imza doğrulaması, DV-1, DV-2, DV-9 | `T401`–`T412` (12) |
-| F5 | Kullanıcı arayüzü | Ortak bileşenler (`OB-01`…`OB-20`), ekranlar (`E-01`…`E-54`; E-48 ekran değildir — `04 §4.3`), sayfa işleyicileri, betiksiz yol, parçalı yükleme betiği. **Çıkış ürünü:** betiksiz yol çalışır, erişilebilirlik (A seviyesi) taraması geçer, referans kuruluma iniş | `T501`–`T550` (50) |
+| F5 | Kullanıcı arayüzü | Ortak bileşenler (`OB-01`…`OB-20`), ekranlar (`E-01`…`E-54`; E-48 ekran değildir — `04 §4.3`), sayfa işleyicileri, betiksiz yol, parçalı yükleme betiği. **Çıkış ürünü:** betiksiz yol çalışır, erişilebilirlik (A seviyesi) taraması geçer, referans kuruluma iniş | `T501`–`T552` (52) |
 | F6 | Uçtan uca doğrulama | gerçek sunucuya ilk iniş (T603); `DEPLOY_RUNBOOK §I` provası ve güncelleme komutu; canlı kanıt ve dağıtım; `12` senaryolarına bağlanış (`12` henüz yazılmadı — bağlanış ileri işaret olarak `IP5-12`'de yazılır). **Çıkış ürünü:** gerçek yapılandırmayla açılış provası ve canlı ödeme kanıtı (K-1411) | `T601`–`T603`, `T601b` (4) |
 
 Faz başına kapı ölçütleri §6.2'dedir (`IP6-01`, K-1411).
@@ -4271,7 +4271,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 ### F5 — Kullanıcı arayüzü
 
-**Yürütme sırası:** T550 → T537 → T540 → T541 → T542 → T543 → T544 → T545 → T504 → T501 → T502 → T503 → T549 → T505 → T506 → T507 → T508 → T509 → T511 → T510 → T512 → T513 → T514 → T515 → T516 → T517 → T518 → T519 → T520 → T521 → T522 → T523 → T524 → T525 → T526 → T527 → T529 → T528 → T530 → T531 → T532 → T533 → T534 → T535 → T536 → T539 → T548 → T538 → T546 → T547
+**Yürütme sırası:** T550 → T537 → T540 → T541 → T542 → T543 → T544 → T545 → T504 → T501 → T502 → T503 → T549 → T505 → T506 → T507 → T508 → T509 → T511 → T510 → T512 → T513 → T514 → T515 → T516 → T517 → T518 → T519 → T520 → T521 → T522 → T523 → T524 → T525 → T526 → T527 → T529 → T528 → T530 → T531 → T532 → T533 → T534 → T535 → T536 → T539 → T548 → T538 → T546 → T547 → T551 → T552
 
 #### T501: Yerli üretim logosu varlığı ve gösterimi
 - **Bağımlılık:** T540
@@ -5615,6 +5615,46 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK6: paket betiği eşit ya da gerekçeli.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
+#### T551: Tarayıcı aracı ve betiksiz yol gözlemi
+- **Bağımlılık:** —
+- **Dokümanlar:** çekirdek; `12` §4.17, §6.2 (F5), §7.1, §12.2; `11` §6.2 (F5); `07 §8.2`; `04` §4; `09` §16
+- **Kabul kriterleri:**
+  1. Araç Playwright'tır; Chromium, Firefox ve WebKit'te koşar; her ekran betik açık ve kapalı iki bağlamda açılır (`12` §12.2 (2), (4); K-1620).
+  2. Tohumlu veri müşteriyi, yöneticiyi ve her durumdaki siparişi kurar; `04` §4 ekran envanterinin her ekranı onay pencereleri, hata ve boş hâlleriyle gezilir (`12` §12.2 (1)).
+  3. `VAL-B096`…`VAL-B112` satırlarının her biri için iki yolun gözlemi (ekran görüntüsü, genişlik, tarayıcı) alınır; kanıt türü Veri kaydı olan satırda tablo satırının kaydı da alınır, kişisel veri maskelidir (`12` §4.17, §7.1).
+  4. KRİTİK `VAL-B096` ve `VAL-B107` iki yolda gözlenir; onaysız gönderim bir şey yazmaz (`12` §4.17).
+  5. Araç CI'da koşar; işin adı ve süresi kapıdaki `12` §6.2 F5 B satırına ve `11` §6.2 F5'e uygundur (`12` §6.2; K-1620).
+  6. Araç çıktısı gate raporuna eklenebilir bir kayıt üretir; sürümler ve tohum kayda yazılır (`12` §12.2 (7)).
+- **Test beklentisi:** E2E
+- **Doğrulama kontrol listesi:**
+  - KK1: üç motor, iki bağlam.
+  - KK2: ekran envanteri eksiksiz gezilir.
+  - KK3: 17 satırın iki yol gözlemi ve Veri kaydı.
+  - KK4: iki KRİTİK satır.
+  - KK5: CI işi, adı ve süresi.
+  - KK6: kayıt gate raporuna girer.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T552: A seviyesi erişilebilirlik taraması ve ihlal düzeltmesi
+- **Bağımlılık:** T551
+- **Dokümanlar:** çekirdek; `12` §4.12, §8.2, §12.2 (`VAL-A776`…`VAL-A791`); `11` §6.2 (F5); `02 §3.34.5`; `04` §2.1.4; `10` KP-71
+- **Kabul kriterleri:**
+  1. axe-core'un WCAG 2.2 A etiketli kural kümesi, T551 aracıyla `04` ekran envanterinin bütün ekranlarında betik açık ve kapalı iki yolda koşar (`12` §12.2 (1)–(3); `VAL-A790`).
+  2. Elle denetim kaydı her ekran için beş başlıkta sonuç yazar: klavye, odak sırası ve görünürlüğü, %200 yakınlaştırma, erişilebilir ad, hata mesajı; kayıtsız ekran PASS alamaz (`12` §12.2 (3); `VAL-A791`).
+  3. 31 ölçüt × sonuç kaydında her ölçüt "karşılandı" ya da gerekçeli "uygulanmaz" yazar; ekran × ölçüt kesişiminde atlanan yoktur (`12` §12.2 (5); `VAL-A776`).
+  4. Kontrol Listesi A maddeleri karşılık geldiği WCAG ölçütüyle eşlenir; karşılığı olmayan madde de sonuç alır. Metin dış kaynaktır: erişilemezse o pay `BLOCKED (OWNER_INPUT)` yazılır (`12` §12.2 Ayrım; K-1620).
+  5. Çıkan her ihlal §8.2 akışıyla, kaynağında düzeltilir (bileşen tabanı T540, T543, T544 ya da ekran); ihlal listesi boşalır (`12` §12.2 (6); `VAL-A340`).
+  6. Otomatik taramanın temizliği tek başına PASS değildir; araç çıktısı ve elle denetim kaydı gate raporuna eklenir (`12` §12.2 (3), (7)).
+- **Test beklentisi:** E2E
+- **Doğrulama kontrol listesi:**
+  - KK1: tüm ekranlar, iki yol.
+  - KK2: beş başlıklı elle kayıt.
+  - KK3: 31 ölçüt kaydı.
+  - KK4: Kontrol Listesi eşlemesi ya da `OWNER_INPUT`.
+  - KK5: ihlal listesi boş.
+  - KK6: gate raporu kanıtı.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
 ### F6 — Uçtan uca doğrulama
 
 **Yürütme sırası:** T603 → T601 → T601b → T602
@@ -5734,7 +5774,7 @@ Genel gate check'e (§6.1) eklenen kontroller K-1411'dendir; fazın kapısı hep
 | F2 | Mimari testler kasıtlı bir ihlalle kırmızıya döner; kayıt maskeleme testleri yeşildir (`09 §19.2`) |
 | F3 | İlk uçtan uca akış testi (T329) yeşildir; durum makinesi geçiş tablosu `02 §5.4` ve §5.5 ile eşittir; F4 ön koşullarının (OK-1, OK-2, OK-3, OK-4, OK-6, OK-12) hazır olup olmadığı sorulur (K-1408 (3)) |
 | F4 | PayTR, SES ve Google sandbox kanıtı alınmıştır; imza doğrulaması sınanmıştır; DV-1, DV-2 ve DV-9 referans kurulumun işaretli kaydından okunmuştur (`08 §2.1.10`, §4.1); DV-5 bu kapıya girmez, T510'dadır (K-1450 (4)) |
-| F5 | Betiksiz yol çalışır; erişilebilirlik taraması (A seviyesi) gate-check'te koşar ve temizdir — bileşen tabanı T540, T543, T544'tedir, taramanın maddeleri ve yöntemi `12`'dedir (`02 §3.34.5`; `04` 2.1.4; ileri işaret: 12); sürüm referans kuruluma inmiştir; DV-5 satırı T510'un gözlemiyle kapanmıştır |
+| F5 | Betiksiz yol çalışır; erişilebilirlik taraması (A seviyesi) gate-check'te koşar ve temizdir — bileşen tabanı T540, T543, T544'tedir, taramanın maddeleri ve yöntemi `12`'dedir (`02 §3.34.5`; `04` 2.1.4; ileri işaret: 12); tarayıcı aracı ve betiksiz yol gözlemi T551'de, tarama ve ihlal düzeltmesi T552'dedir (K-1620); sürüm referans kuruluma inmiştir; DV-5 satırı T510'un gözlemiyle kapanmıştır |
 | F6 | Gerçek sunucuya ilk iniş yapılmıştır (T603); gerçek yapılandırmayla açılış provası koşmuştur (`DEPLOY_RUNBOOK §I`); canlı kanıt alınmıştır — gerçek kartla küçük tutar, 3D Secure, panelden uçtan uca işletme, geri ödeme; taksit sunuluyorsa taksitli (`08 §2.1.10`); güvenlik taraması temizdir (derlemenin bilinen açık taraması bulgusuzdur ve gate-check'in güvenlik özeti temizdir; `05 §8.8.4`, K-1512 (3), K-1556); `DEPLOY_RUNBOOK §F` kutuları işaretlidir |
 
 **F6'nın `12` ile bağı.** F6'nın kabul kanıtı `12` senaryolarına bağlanır; `12` henüz yazılmadığından bağlanış ileri işarettir (ileri işaret: 12) ve `12` yazılınca T601'in kabul kriteri 10'u senaryo kimlikleriyle eşler.
@@ -5798,7 +5838,7 @@ Kaynak (O5 2/2): `09` (25: `## n.` bölümü), `10` (143: KP satırı 77 · KD s
 | F2 | T233 | T234 |
 | F3 | T390 | T391 |
 | F4 | T412 | T413 |
-| F5 | T550 | T551 |
+| F5 | T552 | T553 |
 | F6 | T603 | T604 |
 
 **Aday task tablosu (O1).** F1 eksiksiz ayrıldı (79 entity, en çok 8 entity/göç — K-1409; sıra yukarıdaki (5)); öteki fazlarda yalnız `06`, `07` ve `08` satırlarının gerek duyduğu task'lar vardır (O2 55 aday ekledi: F0 1, F2 12, F3 4, F5 38; toplam 102; O3 23 aday ekledi: F3 15 `T315`–`T329`, F5 8 `T540`–`T547`; toplam 125; O4a 37 aday ekledi: F3 `T330`–`T366`, `02 §3`'ün iş kuralı task'ları; toplam 162; O4b 1/2 12 aday ekledi: F3 `T367`–`T378`, `02 §4`–§8'in iş kuralı task'ları; toplam 174; O4b 2/2 8 aday ekledi: F3 `T379`–`T386`, `02 §9`–§12'nin iş kuralı task'ları; toplam 182; O5 1/2 23 aday ekledi: F0 `T02`–`T09`, F2 `T218`–`T229`, F3 `T387`–`T388`, F6 `T602`, `05`in mimari kararları; toplam 205; O5 2/2 3 aday ekledi: F2 `T230`, `T231`, F5 `T548`, `09`'un park bloğunun üç yapım işi; toplam 208; O6 1/2 1 aday ekledi: F5 `T549`, K-1409 ekran sınırını aşan T503'ün E-05 payı (K-1437); toplam 209; O6 2/2 5 aday ekledi: F0 `T10`, F2 `T232`, `T233`, F3 `T389`, `T390`, okuma derinliği örnekleminin genişlemesinden çıkan sahipsiz işler (K-1441); toplam 214; plan düzeltmesi (T09, 2026-11-03) 1 aday ekledi: F6 T603; toplam 215. Sayaçlar: F0 T11 · F2 T234 · F3 T391 · F4 T411 · F5 T550 · F6 T604).
@@ -6015,6 +6055,8 @@ Kaynak (O5 2/2): `09` (25: `## n.` bölümü), `10` (143: KP satırı 77 · KD s
 | T548 | F5 | Parçalı yükleme betiği: başlatma–parça–durum akışı, 409/404/400/413 yanıtları, ağ hatasında üç kez sürdürme | Ortak altyapı | `09 §16.2`; `07 §4.31.2`; K-1354 |
 | T549 | F5 | Vitrin: arşivlenmiş ürün sayfası (E-05) — "bu ürün artık satılmıyor" bilgisi, fiyatsız gösterim (KP-7, `02 §3.7`, §5.1) | Katalog | `04` E-05; `07` UC-04 (K-1437) |
 | T550 | F5 | F4 kapanış düzeltmeleri: null-forgiving temizliği ve sır bekçisi önek soyma | Ortak altyapı | `09 §3`, §17 · D-778, D-1036 · K-1613 |
+| T551 | F5 | Tarayıcı aracı ve betiksiz yol gözlemi: Playwright, iki bağlam, tohumlu veri, `VAL-B096`…`VAL-B112` | Ortak altyapı | `07 §8.2`; `12 §4.17`, §12.2 · K-1620 |
+| T552 | F5 | A seviyesi erişilebilirlik taraması ve ihlal düzeltmesi: axe-core, elle denetim kaydı, 31 ölçüt, Kontrol Listesi eşlemesi | Ortak altyapı | `02 §3.34.5`; `10` KP-71; `12 §12.2` · K-1620 |
 | T10 | F0 | Veritabanı kullanıcıları: kurucu betik, beş kullanıcı, `pg_hba`, rol ayarları, `pg_trgm`, yetki matrisi testi | Ortak altyapı | `09 §10.8`, §17 madde 1; `05 §7.1.3` (K-1098, K-1124, K-1343; K-1441) |
 | T232 | F2 | Veri koruma halkası: tek kurulum, amaç dizgeleri listesi, istisna fırlatmayan çözme, çapraz amaç testi | Ortak altyapı | `09 §15.5`; `05 §7.6.3` (K-1082, K-1217; K-1441) |
 | T233 | F2 | Veritabanı oturum süreleri: `DatabaseTimeouts`, Web ve Maintenance bağlantı profilleri, aşımın beklenmeyen hâle düşmesi | Ortak altyapı | `09 §10.7`, §3.5 (K-1441) |
@@ -6388,7 +6430,7 @@ python -I scripts/doc-scans/11_geri_yon.py . --denetle                       # 7
 | 07:§6.3 Kısa süreli bildirim kodları | T214 | ✓ T214 | T214 KK1–KK2: kapalı notice listesi; kod adreste taşınır — `NoticeParameterTests` · T214 #410 |
 | 07:§6.4 Özel hâller | T212 | ✓ T212 | T212 KK8–KK9: belirsiz sonuç 303; silinmiş yükleme 422 — `UnexpectedErrorLayerTests` · T212 #407 |
 | 07:§8.1 Yapılabilir işlemler sunucuda | T217 | ✓ T217 | T217 KK1, KK3: düğmeler sunucu kararından; POST yeniden denetler — `OperationPatternTests`, `OperationGateTests` · T217 #412 |
-| 07:§8.2 JavaScript kapalıyken temel akışlar | T539 | | |
+| 07:§8.2 JavaScript kapalıyken temel akışlar | T539, T551 | | |
 
 #### 7.1.3 Entegrasyon → task
 
@@ -6894,7 +6936,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 02:§3.34.2 Vitrin mobil önceliklidir, panel masaüstü önceliklidir; panelde hiçbir işlev mobilde kapatılmaz | T540 | | |
 | 02:§3.34.3 Tarayıcı tabanı son iki büyük sürümdür | T540 | | |
 | 02:§3.34.4 En dar desteklenen ekran genişliği bir sayıdır; | T540 | | |
-| 02:§3.34.5 Erişilebilirliğin tabanı Aile ve Sosyal Hizmetler Bakanlığı'nın "Web Siteleri ve Mobil Uygulamaların Erişilebilirliği Kontrol Listesi — A Seviyesi"… | T540, T543 | | |
+| 02:§3.34.5 Erişilebilirliğin tabanı Aile ve Sosyal Hizmetler Bakanlığı'nın "Web Siteleri ve Mobil Uygulamaların Erişilebilirliği Kontrol Listesi — A Seviyesi"… | T540, T543, T552 | | |
 | 02:§3.34.6 Sitede ziyaretçi ölçümü yoktur | T540 | | |
 | 02:§3.34.7 Ürün çalışma süresi taahhüdü vermez | T327 | ✓ T327 | T327 KK2 — `AutomaticMomentsTests`, `CatalogCoreTablesTests` · T327 #480 |
 | 02:§3.34.8 Sipariş tarafında veri kaybı toleransı sıfırdır | T07, T118, T327 | ✓ T07, T118, T327 | T07 KK1: işlem günlüğü ≤ 1 dk, `archive_timeout` 50 sn — `BackupLayoutConsistencyTests.ArchiveSettings_…` · T07 #351; F1: T118 KK3, KK7: `BackupStatusRecord` ve durum kullanıcısının iki sütunluk yetkisi — `SchedulerBackupDisposalAndKeyTablesTests` · T118 #376; T327 (Dokümanlar satırı; kriterlerin bütünü) — `AutomaticMomentsTests`, `CatalogCoreTablesTests` · T327 #480 |
@@ -7513,7 +7555,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 10:KP-68 Yanıtlanabilir e-posta, üç yeniden deneme, "ulaşmadı" işareti, yeniden gönderim | T220, T305, T385 | ✓ T220, T305, T385 | T220 KK5: yeniden deneme kuralı — `JobRetryPolicyTests` · T220 #393; T305 KK8, KK9 — `EmailRenderingSourceScanTests`, `EmailCompositionTests` · T305 #422; T385 KK1, KK6, KK9 — `DispatchRetryScheduleTests`, `OutageConsistencyTests`, `OrderOperationsTests` · T385 #512 |
 | 10:KP-69 Duyarlı site; panelin her işi telefondan | T540, T541 | | |
 | 10:KP-70 Desteklenen tarayıcı tabanı | T540 | | |
-| 10:KP-71 Erişilebilirlik: A Seviyesi, WCAG 2.2, yedi ayrıca sınanan kural | T540, T543, T544 | | |
+| 10:KP-71 Erişilebilirlik: A Seviyesi, WCAG 2.2, yedi ayrıca sınanan kural | T540, T543, T544, T552 | | |
 | 10:KP-72 Deneme limitleri, ödenmemiş sipariş tavanı, giriş kaydı | T215, T341, T376, T377 | ✓ T215, T341, T376, T377 | T215 KK6: deneme limitleri 429 — `AttemptLimitPatternTests` · T215 #409; T341 KK9 — `MembershipTests`, `LinkKeySourceScanTests` · T341 #433; T376 KK1 — `AttemptLimitInventoryTests` · T376 #493; T377 KK6–KK8 — `MembershipSignInAxesTests`, `OrderPlacementLimitTests`, `AttemptLimitInventoryTests` · T377 #497 |
 | 10:KP-73 Çerez onayı gerektirmeyen site: yalnız zorunlu çerezler; ödeme çerçevesi dışında hepsi birinci taraf | T224, T366 | ✓ T224, T366 | T224 KK1, KK9: birinci taraf, Secure/HttpOnly/Lax; analitik ve üçüncü taraf çerezi yok — `CookieRulesTests`, `ThirdPartyContentScanTests` · T224 #400; T366 (Dokümanlar satırı; kriterlerin bütünü) — `LegalTextTests`, `LegalTextTemplateTests` · T366 #428 |
 | 10:KP-74 Aydınlatma bağlantısı, günlük imha, imha kaydı | T201, T225, T301, T302, T324, T327, T343, T345, T370, T373, T514, T519, T522, T529, T533 | ✓ F2 payı (T201, T225); F3 payı (T301, T302, T324, T327, T343, T345, T370, T373); kalan T514, T519, T522, T529, T533 | T201 KK1, KK5: gece 03:00 imha işi; anlık silmede imha kaydı; T225 KK5: P-45 saklama — `DisposalTests`, `SystemLogsDeployConsistencyTests` · T201 #395, T225 #389; T301 (raporda kaynağa adıyla bağlı satır) — `OrderDisposalTests`, `DisposalTests`, `ModuleCallTransactionTests` · T301 #431; T302 (matris eşlemesi; kriterlerin bütünü) — `RecordDisposalTests`, `OrderDisposalTests` · T302 #446; T324 KK1 — `LinkLifetimeTests`, `PendingRecordDisposalTests`, `MembershipTests` · T324 #454; T327 (matris eşlemesi; kriterlerin bütünü) — `AutomaticMomentsTests`, `CatalogCoreTablesTests` · T327 #480; T343 (matris eşlemesi; kriterlerin bütünü) — `SingleSocialSignInScanTests`, `MembershipTests` · T343 #468; T345 (matris eşlemesi; kriterlerin bütünü) — `MembershipTests`, `AddressTests` · T345 #477; T370 (matris eşlemesi; kriterlerin bütünü) — `StatusCorrectionTests`, `ItemRecordsTests` · T370 #506; T373 (matris eşlemesi; kriterlerin bütünü) — `ReturnShapeTests`, `ItemRecordsTests` · T373 #507 |
@@ -7833,6 +7875,8 @@ Her task → hangi kaynak öğeden besleniyor?
 | T548 | `09` §16; `devir` K-1354, K-1391, P8.5 | ✓ gerekçeli (alt bölüm + devir) — K-1435 |
 | T549 | `04` E-05; `02` §3.7.6; `10` KP-7 | ✓ 3 kaynak (özgün 3, alt bölüm 0, devir 0) |
 | T550 | `09` §3, §17 | ✓ gerekçeli (alt bölüm) — K-1613 |
+| T551 | `07` §8.2 | ✓ gerekçeli (alt bölüm) — K-1620 |
+| T552 | `02` §3.34.5; `10` KP-71 | ✓ 2 kaynak (özgün 2, alt bölüm 0, devir 0) |
 | T601 | `06` §8.5; `08` §4.2; `02` §9.1, §9.1.5, §10.1, §10.1.3, §10.2, §10.2.7, §12.2, §12.2.1, §12.2.8, §12.3, §12.3.1, §12.3.2, §12.3.3, §12.5; `05` MK-07, MK-25, MK-27, MK-75, MK-76, §6.3, §6.9, §7.6, §8.8, §8.9; `10` §4.1 | ✓ 27 kaynak (özgün 13, alt bölüm 14, devir 0) |
 | T601b | `08` §4.1; `05` §11.1 | ✓ gerekçeli (alt bölüm) — K-1579 |
 | T602 | `05` MK-73, MK-74, §8.6, §8.7 | ✓ 4 kaynak (özgün 2, alt bölüm 2, devir 0) |
@@ -7875,4 +7919,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.65 — ✓ Tamamlandı (v0.65 F4 faz kapısı: yeni F5 task'ı T550 (D-778, D-1036), §3 faz tablosunun task sayıları, §7.1 F4 hücreleri — K-1613; ✓ korunur · v0.64 F3 faz kapısı: yeni F4 task'ları T411 ve T412, T601'in bölünmesi (T601b), T330 ve T525 bloklarının sınıra indirilmesi, §7.1 F3 hücreleri — K-1579; ✓ korunur · v0.59 Implementation Planı aşamasının kapanışının arşiv işaretidir — kapanış sürümü; yalnız başlık notunun yazım durumu paragrafı ve bu dipnot değişti, gövdeye dokunulmadı; uyarılı üç karar gözden geçirildi, itiraz yok — K-1503; K-437'nin altı adımı tamam)*
+*Shopfolio — Implementation Plan v0.66 — ✓ Tamamlandı (v0.66 F5 faz kapısı tur 1 FAIL: yeni F5 task'ları T551 (tarayıcı aracı ve betiksiz yol gözlemi) ve T552 (A seviyesi erişilebilirlik taraması), §3 faz tablosunun task sayıları, §7.1 F5 hücreleri — K-1620; ✓ korunur · v0.65 F4 faz kapısı: yeni F5 task'ı T550 (D-778, D-1036), §3 faz tablosunun task sayıları, §7.1 F4 hücreleri — K-1613; ✓ korunur · v0.64 F3 faz kapısı: yeni F4 task'ları T411 ve T412, T601'in bölünmesi (T601b), T330 ve T525 bloklarının sınıra indirilmesi, §7.1 F3 hücreleri — K-1579; ✓ korunur · v0.59 Implementation Planı aşamasının kapanışının arşiv işaretidir — kapanış sürümü; yalnız başlık notunun yazım durumu paragrafı ve bu dipnot değişti, gövdeye dokunulmadı; uyarılı üç karar gözden geçirildi, itiraz yok — K-1503; K-437'nin altı adımı tamam)*

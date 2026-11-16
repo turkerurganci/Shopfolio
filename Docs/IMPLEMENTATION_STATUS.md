@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-11 — F4 (Entegrasyonlar) faz kapısı ✓ PASS (`chore: F4 gate check PASS`): 11/12 task, T410 `⛔ BLOCKED (OWNER_INPUT)`; Unit 6598, Integration 3575, Release 0 uyarı; `12 §6.2` F4 E çevrimdışı payı ✓, gerçek gözlem payı OWNER_INPUT (T410); backlog 20 kalem karara bağlandı (10 ✅, 10 yeniden hedef; yeni F5 task'ı T550); aktif kalem 279; ayrıntı [GATE_CHECK_F4](CHECKPOINT_REPORTS/GATE_CHECK_F4.md) ve `STATUS_CHANGELOG.md`.
+**Son güncelleme:** 2026-11-16 — F5 (Kullanıcı arayüzü) faz kapısı tur 1 ✗ FAIL (kod sağlam: Unit 8087, Integration 4579, Release 0 uyarı; faz ölçütü olan A seviyesi tarama ve betiksiz yol gözlemi için araç yok); plan düzeltmesi (`chore: F5 plan düzeltmesi`): F5 `T501`–`T552` (52), yeni T551 (tarayıcı aracı ve betiksiz yol gözlemi) ve T552 (A seviyesi erişilebilirlik taraması), K-1620; kapı tur 2 bu iki task'tan sonra.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -35,7 +35,7 @@
 | F2 | Çekirdek servisler | `T201`–`T233` (33) | ✓ PASS | `phase/F2-pass` | [GATE_CHECK_F2](CHECKPOINT_REPORTS/GATE_CHECK_F2.md) |
 | F3 | İş mantığı | `T301`–`T390` (90) | ✓ PASS | `phase/F3-pass` | [GATE_CHECK_F3](CHECKPOINT_REPORTS/GATE_CHECK_F3.md) |
 | F4 | Entegrasyonlar | `T401`–`T412` (12) | ✓ (E ölçütü OWNER_INPUT — T410) | `phase/F4-pass` | [GATE_CHECK_F4](CHECKPOINT_REPORTS/GATE_CHECK_F4.md) |
-| F5 | Kullanıcı arayüzü | `T501`–`T550` (50) | ⬚ | — | |
+| F5 | Kullanıcı arayüzü | `T501`–`T552` (52) | ⬚ | — | |
 | F6 | Uçtan uca doğrulama | `T601`–`T603`, `T601b` (4) | ⬚ | — | |
 
 ---
@@ -307,6 +307,8 @@
 | T548 | Parçalı yükleme betiği: başlatma–parça–durum akışı, 409/404/400/413 yanıtları, ağ hatasında üç kez sürdürme | ✓ | ✓ PASS (tur 1) | `233a5813` | #577 |
 | T549 | Vitrin: arşivlenmiş ürün sayfası (E-05) | ✓ | ✓ PASS (tur 1) | `7973b482` | #550 |
 | T550 | F4 kapanış düzeltmeleri: null-forgiving temizliği ve sır bekçisi önek soyma | ✓ | ✓ PASS (tur 1) | `bf77ceaf` | #533 |
+| T551 | Tarayıcı aracı ve betiksiz yol gözlemi | ⬚ | — | — | — |
+| T552 | A seviyesi erişilebilirlik taraması ve ihlal düzeltmesi | ⬚ | — | — | — |
 
 ---
 

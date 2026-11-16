@@ -5595,7 +5595,7 @@ Ekran `04 §9.6` · durum × rol `04` 6.3.6 · form `04` 7.2.5. Kategori sürüm
 - **Amaç:** birinci seviyede ya da bir düğümün altında kategori açmak (`03 §8.1.14`; `04` 9.6.5) · **Yetki:** Yönetici — panel oturumu · **Hız sınırı:** form · 64 KB.
 - **İstek:** ad (`Name`) ve üst kategori (`ParentCategoryId`; `06 §4.9`) — birinci seviyede boş. Doğrulama `04` 7.2.5.
 - **Yanıt (başarı):** 303 → `/panel/kategoriler`, kodla (`04` 9.6.5).
-- **Yanıt (hata):** **422** — ad boş · üst kategori üçüncü seviyede (P-20; `02 §3.4.1`). **404** — üst kategori yok.
+- **Yanıt (hata):** **422** — ad boş ya da P-27'nin tavanını aşıyor · üst kategori üçüncü seviyede (P-20; `02 §3.4.1`). **404** — üst kategori yok.
 - **Yan etkiler:** kategori ve seviyesi (`06 §4.9`); kategorinin adresi adından üretilir ve oluşturulduğunda sabitlenir — aynı adres varsa sonuna sayı eklenir (`02 §3.30.2`; `06 §4.72`); oluşturma ağacın danışma kilidiyle sıraya girer (`05 §7.3.5`; K-1089).
 - **Idempotency:** tekrar gönderim ikinci bir kategori açar (K-1191).
 
@@ -5603,7 +5603,7 @@ Ekran `04 §9.6` · durum × rol `04` 6.3.6 · form `04` 7.2.5. Kategori sürüm
 - **Amaç:** kategorinin adını değiştirmek (`03 §8.1.14`; `04` 9.6.5) · **Yetki:** Yönetici — panel oturumu · **Hız sınırı:** form · 64 KB.
 - **İstek:** kategorinin iç anahtarı ve ad. Doğrulama `04` 7.2.5.1.
 - **Yanıt (başarı):** 303 → `/panel/kategoriler`, kodla.
-- **Yanıt (hata):** **422** — ad boş. **404** — kategori yok.
+- **Yanıt (hata):** **422** — ad boş ya da P-27'nin tavanını aşıyor. **404** — kategori yok.
 - **Yan etkiler:** kategorinin adı (`06 §4.9`); adresi değişmez (`02 §3.30.2`); ağaçtaki yeri alfabetik sırayla değişebilir (K-805).
 - **Idempotency:** ad mutlak bir değerdir — tekrar gönderim aynı sonucu yazar.
 

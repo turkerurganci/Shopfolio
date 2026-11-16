@@ -316,7 +316,7 @@ Parametrenin üç katmanı (`02 §10.1.3`, `05 §8.4`; K-412) kodda üç ayrı e
    ```csharp
    public static class ProductConstants
    {
-       /// <summary>P-27 — ürün adının ve kurumsal içerikte ad ya da başlığın karakter tavanı.</summary>
+       /// <summary>P-27 — ürün adının, kategori adının ve kurumsal içerikte ad ya da başlığın karakter tavanı.</summary>
        public const int ProductNameMaxLength = 150;
    }
    ```

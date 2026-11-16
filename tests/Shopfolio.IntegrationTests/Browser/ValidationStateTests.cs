@@ -19,7 +19,8 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
     /// <summary>
     /// One form: the screen, the handler its address names, the slot (its id, or "@n" for the n-th form of the handler with no id, or empty for the only one), who opens it, the address, the table that must not change,
     /// a preparation after the page opens and a way to break the form where the generic one (<see cref="BreakGenericAsync"/>) is not enough. <paramref name="FromFlow"/> is a form the walk's pages do not show
-    /// until a flow opens it (a re-verified account change, a cart).
+    /// until a flow opens it (a re-verified account change, a cart). <paramref name="NoValidationState"/> names the product rule (04) that makes a form one with no invalid value at all (D-1712): its case observes that the
+    /// form is accepted and shows no error, instead of a 422.
     /// </summary>
     internal sealed record FormCase(
         string Screen,
@@ -32,7 +33,8 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
         Func<Run, Task>? Prepare = null,
         Func<ILocator, Task>? Break = null,
         string? Button = null,
-        bool FromFlow = false)
+        bool FromFlow = false,
+        string? NoValidationState = null)
     {
         public string Key => $"{Screen}|{Handler}|{Slot}";
     }
@@ -43,6 +45,8 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
     [
         new("E-04", "AddCartItem", "", "sepete ekleme formu (adet)", Actor.Visitor, h => $"/urun/{h.Seed.Product("plain").Slug}"),
         new("E-10", "SendContactRequest", "", "iletişim formu", Actor.Visitor, _ => "/iletisim", "contact_requests"),
+        new("E-12", "UpdateCartItem", "", "sepet satırı adet formu", Actor.Visitor, _ => "/sepet", Prepare: r => CartWithAProductAsync(r, "/sepet"), FromFlow: true),
+        new("E-13", "PlaceOrder", "checkout-form", "ödeme adımı formu (siparişi onayla)", Actor.Visitor, _ => "/odeme", "orders", Prepare: r => CartWithAProductAsync(r, "/odeme"), Button: "css:button[data-js=submit-once]", FromFlow: true),
         new("E-15", "FindOrder", "", "sipariş takibi formu", Actor.Visitor, _ => "/siparis-takibi", "orders"),
         new("E-17", "CancelOrderItems", "", "iptal ekranı (üye): kalemler ve IBAN", Actor.Customer, h => $"/siparis/{h.Seed.Order("member-paid").Number}/iptal"),
         new("E-18", "SubmitWithdrawal", "", "cayma beyanı formu", Actor.Visitor, h => $"/siparis/erisim/{h.Seed.Order("delivered").AccessKey}/cayma"),
@@ -62,13 +66,15 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
         new("E-34", "CreateCategory", "yeni-kategori", "yeni kategori formu", Actor.Admin, _ => "/panel/kategoriler", "categories"),
         new("E-34", "CreateCategory", "", "alt kategori formu", Actor.Admin, _ => "/panel/kategoriler", "categories"),
         new("E-34", "RenameCategory", "", "kategori adı formu", Actor.Admin, _ => "/panel/kategoriler", "categories"),
-        new("E-34", "MoveCategory", "", "kategori taşıma formu", Actor.Admin, _ => "/panel/kategoriler", "categories"),
+        // The list offers only parents the category may move under, so the wrong value is one the page does not offer: the category's own branch (UC-120: 422 in place; a parent that does not exist is 404).
+        new("E-34", "MoveCategory", "", "kategori taşıma formu (kendi dalına taşıma)", Actor.Admin, _ => "/panel/kategoriler", "categories", Break: async form =>
+            await form.Locator("select[name='Input.ParentCategoryId']").EvaluateAsync("(s) => { const id = s.form.querySelector('input[name=\"Input.CategoryId\"]').value; const o = document.createElement('option'); o.value = id; o.text = 'kendisi'; s.appendChild(o); s.value = id; }")),
         new("E-35", "SaveCoupon", "", "kupon formu (yeni kupon)", Actor.Admin, _ => "/panel/kuponlar/yeni", "coupons"),
         new("E-37", "CancelOrderByCompany", "cancel-order-by-company-form", "firma iptali formu", Actor.Admin, h => $"/panel/siparisler/{Order(h, "awaiting-transfer")}", "orders"),
         new("E-37", "CorrectAddress", "correct-shipping-address-form", "teslimat adresi düzeltme formu", Actor.Admin, h => $"/panel/siparisler/{Order(h, "awaiting-transfer")}", "orders"),
         new("E-37", "CorrectAddress", "correct-billing-address-form", "fatura adresi düzeltme formu", Actor.Admin, h => $"/panel/siparisler/{Order(h, "awaiting-transfer")}", "orders"),
         new("E-37", "CorrectOrderEmail", "correct-order-email-form", "sipariş e-postası düzeltme formu", Actor.Admin, h => $"/panel/siparisler/{Order(h, "awaiting-transfer")}", "orders"),
-        new("E-37", "SaveInternalNote", "internal-note-form", "iç not formu", Actor.Admin, h => $"/panel/siparisler/{Order(h, "awaiting-transfer")}", "orders"),
+        new("E-37", "SaveInternalNote", "internal-note-form", "iç not formu", Actor.Admin, h => $"/panel/siparisler/{Order(h, "awaiting-transfer")}", "orders", NoValidationState: "04 7.2.15.1: iç not isteğe bağlı tek serbest metindir, sınırı yoktur"),
         new("E-37", "RecordWithdrawal", "record-withdrawal-form", "cayma kaydı formu", Actor.Admin, h => $"/panel/siparisler/{Order(h, "delivered")}", "orders"),
         new("E-37", "RequestRefundIban", "request-refund-iban-form", "iade IBAN'ı isteme formu", Actor.Admin, h => $"/panel/siparisler/{Order(h, "delivered")}", "orders"),
         new("E-37", "CorrectCarrier", "correct-carrier-form", "kargo firması düzeltme formu", Actor.Admin, h => $"/panel/siparisler/{Order(h, "delivered")}", "orders"),
@@ -76,11 +82,11 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
         new("E-37", "MarkReshipped", "mark-reshipped-form", "yeniden gönderildi formu", Actor.Admin, h => $"/panel/siparisler/{Order(h, "delivery-failed")}", "orders"),
         new("E-41", "SaveContent", "content-save", "kurumsal içerik formu (yeni hizmet)", Actor.Admin, _ => "/panel/kurumsal-icerik/hizmet/yeni", "offerings", Button: "Kaydet"),
         new("E-42", "SaveHomepage", "", "ana sayfa ve menü formu", Actor.Admin, _ => "/panel/ana-sayfa-ve-menu", "company_settings"),
-        new("E-43", "SaveBranding", "brand-save", "marka formu", Actor.Admin, _ => "/panel/marka", "company_settings"),
+        new("E-43", "SaveBranding", "brand-save", "marka formu", Actor.Admin, _ => "/panel/marka", "company_settings", Button: "Kaydet"),
         new("E-44", "SaveCompany", "", "firma kimliği formu", Actor.Admin, _ => "/panel/firma-kimligi-ve-satis", "companies"),
         new("E-45", "SavePaymentMethods", "", "ödeme yöntemleri formu (havale açık, IBAN geçersiz)", Actor.Admin, _ => "/panel/odeme-yontemleri", "company_settings", async r => await r.Page.Page.Locator("#transfer-switch").CheckAsync()),
         new("E-46", "SaveShippingFee", "", "kargo ücreti formu", Actor.Admin, _ => "/panel/kargo-sureler-ve-varsayilanlar", "company_settings"),
-        new("E-46", "SaveDeliveryProvinces", "", "teslimat illeri formu", Actor.Admin, _ => "/panel/kargo-sureler-ve-varsayilanlar", "company_delivery_provinces"),
+        new("E-46", "SaveDeliveryProvinces", "", "teslimat illeri formu", Actor.Admin, _ => "/panel/kargo-sureler-ve-varsayilanlar", "company_delivery_provinces", NoValidationState: "04 5.4.5 / K-828: hiçbir il seçilmeden kayıt geçerlidir, vitrin 'hiçbir ile teslimat yapılmıyor' der"),
         new("E-46", "SavePeriods", "", "süreler formu", Actor.Admin, _ => "/panel/kargo-sureler-ve-varsayilanlar", "company_settings"),
         new("E-46", "SaveProductDefaults", "", "ürün varsayılanları formu", Actor.Admin, _ => "/panel/kargo-sureler-ve-varsayilanlar", "company_settings"),
         new("E-46", "SaveReturnAddress", "", "iade adresi formu", Actor.Admin, _ => "/panel/kargo-sureler-ve-varsayilanlar", "company_settings"),
@@ -224,15 +230,26 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
     /// <summary>The generic break: every text field takes a value that is not allowed (an emptied field when no kind of value fits), a select goes to its empty option when it has one, a date is emptied, a ticked box stays.</summary>
     private static async Task BreakGenericAsync(ILocator form)
     {
-        foreach (ILocator input in await form.Locator("input:not([type=hidden]):not([type=submit]):not([type=button]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=search]):not([disabled])").AllAsync())
+        foreach (ILocator input in await form.Locator("input:not([type=hidden]):not([type=submit]):not([type=button]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=search]):not([disabled]):not([readonly])").AllAsync())
         {
+            // A field the form keeps hidden until a choice (an IBAN before the method is chosen) or fixed (the invitation's address) is not one a person can send a wrong value in.
+            if (!await input.IsVisibleAsync())
+            {
+                continue;
+            }
+
             string type = await input.GetAttributeAsync("type") ?? "text";
             string name = await input.GetAttributeAsync("name") ?? string.Empty;
             await input.FillAsync(InvalidValueOf(type, name));
         }
 
-        foreach (ILocator area in await form.Locator("textarea:not([disabled])").AllAsync())
+        foreach (ILocator area in await form.Locator("textarea:not([disabled]):not([readonly])").AllAsync())
         {
+            if (!await area.IsVisibleAsync())
+            {
+                continue;
+            }
+
             await area.FillAsync(string.Empty);
         }
 
@@ -270,6 +287,13 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
         await run.Page.Page.GotoAsync(run.Host.BaseUrl + address + "?reauthenticatedOperation=" + operation);
         await run.Page.Page.Locator("input[type=password]").First.FillAsync("Dogru-Sifre-1");
         await NavigateAsync(run.Page, () => run.Page.Page.Locator("form button[type=submit]").Last.ClickAsync());
+    }
+
+    private static async Task CartWithAProductAsync(Run run, string address)
+    {
+        await run.Page.Page.GotoAsync(run.Host.BaseUrl + $"/urun/{run.Host.Seed.Product("plain").Slug}");
+        await NavigateAsync(run.Page, () => run.Page.Page.Locator("form.buy-form button[type=submit]").First.ClickAsync());
+        await run.Page.Page.GotoAsync(run.Host.BaseUrl + address);
     }
 
     private static async Task CustomerReopensAsync(Run run, string operation)
@@ -318,22 +342,44 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
         ILocator target = FormOf(page.Page, form);
         string before = await FingerprintAsync(form.Table);
         // What is observed is the server's answer to the value, not the browser's own constraint bubble (which differs among the engines and stops the send for an e-mail or a number field): the form is sent as the scriptless browser of a client without the check would.
-        await target.EvaluateAsync("(f) => { f.noValidate = true; }");
+        // A form inside a closed disclosure (the category tree's actions) is opened first: a person opens it to type in it.
+        await target.EvaluateAsync("(f) => { f.noValidate = true; for (let d = f.closest('details'); d; d = d.parentElement ? d.parentElement.closest('details') : null) { d.open = true; } }");
         await (form.Break ?? BreakGenericAsync)(target);
-        ILocator button = form.Button is null ? target.Locator("button[type=submit]").First : target.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = form.Button });
+        ILocator button = form.Button is null
+            ? target.Locator("button[type=submit]").First
+            : form.Button.StartsWith("css:", StringComparison.Ordinal) ? target.Locator(form.Button[4..]).First : target.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = form.Button });
         await NavigateAsync(page, () => button.ClickAsync(), 12000);
         int summary = await page.Page.Locator("[data-js=error-summary]").CountAsync();
         int invalid = await page.Page.Locator("[aria-invalid=true]").CountAsync();
+        // The order screen's forms (E-37) answer in the place of the form with the error message of the form (04 2.3.1 "in place") and have no field of their own to mark; the count of those messages is the other kind of sign.
+        int messages = await page.Page.Locator("main .message--error").CountAsync();
         string after = await FingerprintAsync(form.Table);
+        string state = $"gönderim durumu {string.Join(",", posts)}; hata özeti {summary}; geçersiz alan {invalid}; hata iletisi {messages}; {form.Table ?? "tablo"} {(before == after ? "değişmedi" : "DEĞİŞTİ")}";
+        if (form.NoValidationState is not null)
+        {
+            await ObserveAsync(
+                form.Screen,
+                path,
+                engine,
+                page,
+                $"{form.Form}: doğrulama hâli yok ({form.NoValidationState}); izin verilmeyen değer yoktur, en boş hâliyle gönderilir",
+                "gönderim kabul edilir (422 değil); hata gösterilmez; D-1712",
+                state,
+                posts.Count > 0 && posts[0] != 422 && invalid == 0 && messages == 0,
+                after);
+            Assert.Empty(Failures);
+            return;
+        }
+
         await ObserveAsync(
             form.Screen,
             path,
             engine,
             page,
             $"{form.Form}: bir değer izin verilmeyen biçimde gönderilir",
-            "gönderim 422 döner; geçersiz alan (alanın kendi iletisiyle) sayfadadır; kayıt değişmez",
-            $"gönderim durumu {string.Join(",", posts)}; hata özeti {summary}; geçersiz alan {invalid}; {form.Table ?? "tablo"} {(before == after ? "değişmedi" : "DEĞİŞTİ")}",
-            posts.Count > 0 && posts[0] == 422 && invalid > 0 && before == after,
+            "gönderim 422 döner; geçersiz alan (alanın kendi iletisiyle) ya da formun yerinde hata iletisi sayfadadır; kayıt değişmez",
+            state,
+            posts.Count > 0 && posts[^1] == 422 && (invalid > 0 || messages > 0) && before == after,
             after);
         Assert.Empty(Failures);
     }

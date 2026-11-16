@@ -75,6 +75,9 @@ public sealed class BrowserHost : IAsyncLifetime
     /// <summary>The seeded data every observation starts from (<see cref="BrowserSeed"/>).</summary>
     public BrowserSeedData Seed { get; private set; } = null!;
 
+    /// <summary>The address key of a valid administrator invitation (the invitation screen's form opens for such a link only); never written to the record.</summary>
+    public string InvitationKey { get; private set; } = string.Empty;
+
     /// <summary>The record of the run: observations, versions and the seed.</summary>
     public ObservationRecord Record { get; private set; } = null!;
 
@@ -135,6 +138,7 @@ public sealed class BrowserHost : IAsyncLifetime
         BaseUrl = $"https://127.0.0.1:{probe.BaseAddress!.Port}";
         _playwright = await Playwright.CreateAsync();
         Seed = await BrowserSeed.RunAsync(Dsn, System.IO.Path.Combine(_filesDirectory, "images"));
+        InvitationKey = await BrowserSeed.NewInvitationKeyAsync(Dsn, _factory.Services.GetRequiredService<Shopfolio.Infrastructure.Security.LinkKeys>());
         Record = new ObservationRecord(OutputDirectory());
         Record.SetSeed(Seed);
     }

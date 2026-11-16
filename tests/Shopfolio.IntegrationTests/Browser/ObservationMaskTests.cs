@@ -21,6 +21,17 @@ public sealed class ObservationMaskTests
     }
 
     [Fact]
+    public void Mask_HidesTheInvitationKey_AndTheReauthenticationToken()
+    {
+        string masked = DataRecord.Mask($"adres /panel/davet/{Key}; /hesap?reauthenticatedOperation=EmailChange&reauthenticationToken={Token}");
+
+        Assert.DoesNotContain(Key, masked, StringComparison.Ordinal);
+        Assert.DoesNotContain(Token, masked, StringComparison.Ordinal);
+        Assert.Contains("/panel/davet/***", masked, StringComparison.Ordinal);
+        Assert.Contains("reauthenticationToken=***", masked, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Mask_KeepsTheTextAroundTheMaskedValues_SoTheEvidenceStaysReadable()
     {
         string masked = DataRecord.Mask("sonuç \"Doğrulama bağlantısı gönderildi\"; adres /giris");

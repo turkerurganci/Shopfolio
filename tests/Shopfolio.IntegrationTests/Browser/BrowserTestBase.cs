@@ -109,8 +109,8 @@ public static class DataRecord
     private static readonly System.Text.RegularExpressions.Regex Iban = new(@"TR\d{2}[\d ]{10,}", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(2));
 
     // The guest order's access key is the credential in the address (/siparis/erisim/<key>/...); the pending-registration token travels as a query value.
-    private static readonly System.Text.RegularExpressions.Regex AccessKey = new(@"(?<=/siparis/erisim/)[^/?#\s""]+", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(2));
-    private static readonly System.Text.RegularExpressions.Regex QueryToken = new(@"(?<=[?&]pendingRegistration=)[^&#\s""]+", System.Text.RegularExpressions.RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
+    private static readonly System.Text.RegularExpressions.Regex AccessKey = new(@"(?<=/siparis/erisim/|/panel/davet/)[^/?#\s""]+", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(2));
+    private static readonly System.Text.RegularExpressions.Regex QueryToken = new(@"(?<=[?&](?:pendingRegistration|reauthenticationToken)=)[^&#\s""]+", System.Text.RegularExpressions.RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
 
     /// <summary>Masks an e-mail address, an IBAN, a long digit run (a phone, a number), an order access key and a pending-registration token in a value the record keeps.</summary>
     public static string Mask(string text) => Digits.Replace(Iban.Replace(Email.Replace(QueryToken.Replace(AccessKey.Replace(text, "***"), "***"), "***@***"), "TR**IBAN**"), "***");

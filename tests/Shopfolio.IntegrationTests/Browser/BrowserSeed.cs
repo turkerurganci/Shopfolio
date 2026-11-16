@@ -249,6 +249,27 @@ internal static class BrowserSeed
         await db.SaveChangesAsync(CancellationToken.None);
     }
 
+    /// <summary>An administrator with a known password (the sign-in and the re-verification of the panel's account screen need an account that can sign in).</summary>
+    public static async Task NewAdminWithPasswordAsync(string dsn, string email, string typed)
+    {
+        Shopfolio.Modules.Administration.Admin admin = Shopfolio.Modules.Administration.Admin.Create("Giriş Yöneticisi", email, new PasswordService().Hash(typed), Now);
+        await using AppDbContext db = NewContext(dsn);
+        db.Admins.Add(admin);
+        await db.SaveChangesAsync(CancellationToken.None);
+    }
+
+    /// <summary>A valid, unused administrator invitation: the address key of its link (the invitation screen's form opens only for such a link, 04 5.30).</summary>
+    public static async Task<string> NewInvitationKeyAsync(string dsn, LinkKeys keys)
+    {
+        Shopfolio.Modules.Administration.AdminInvitation invitation = Shopfolio.Modules.Administration.AdminInvitation.Create($"davetli-{Guid.NewGuid():N}@example.com", null, "Gönderen", Now);
+        LinkRecord link = LinkRecord.ForInvitation(keys, invitation.Id, Now.AddDays(1), Now);
+        await using AppDbContext db = NewContext(dsn);
+        db.AdminInvitations.Add(invitation);
+        db.LinkRecords.Add(link);
+        await db.SaveChangesAsync(CancellationToken.None);
+        return keys.Derive(link.Id);
+    }
+
     private static async Task AddItemsAndStateAsync(string dsn, Guid orderId, OrderStatus shipping, PaymentStatus payment, bool card)
     {
         await using AppDbContext db = NewContext(dsn);

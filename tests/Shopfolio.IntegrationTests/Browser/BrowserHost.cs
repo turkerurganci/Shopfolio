@@ -54,6 +54,7 @@ public sealed class BrowserHost : IAsyncLifetime
     public const int DesktopWidth = 1280;
 
     private readonly TemplateDatabaseFixture _template;
+    private readonly System.Runtime.CompilerServices.StrongBox<bool> _cardOpen = new(false);
     private string _databaseName = string.Empty;
     private readonly Dictionary<string, IBrowser> _browsers = [];
     private ShopfolioWebApplicationFactory? _root;
@@ -77,6 +78,33 @@ public sealed class BrowserHost : IAsyncLifetime
     /// <summary>The record of the run: observations, versions and the seed.</summary>
     public ObservationRecord Record { get; private set; } = null!;
 
+    /// <summary>Opens the card line of the conditional settings (the payment provider's keys defined) until the returned scope is disposed: the payment step then offers two open methods. The tests of a collection run one after the other, so one switch is enough.</summary>
+    public IDisposable OpenCard()
+    {
+        _cardOpen.Value = true;
+        return new CardScope(_cardOpen);
+    }
+
+    private sealed class CardScope(System.Runtime.CompilerServices.StrongBox<bool> box) : IDisposable
+    {
+        public void Dispose() => box.Value = false;
+    }
+
+    /// <summary>The conditional lines of the installation with the card line forced open while the run's switch is on.</summary>
+    private sealed class SwitchableLines(IReadOnlyList<Shopfolio.Infrastructure.InstallationSettings.ConditionalLine> installed, System.Runtime.CompilerServices.StrongBox<bool> cardOpen) : IReadOnlyList<Shopfolio.Infrastructure.InstallationSettings.ConditionalLine>
+    {
+        public int Count => installed.Count;
+
+        public Shopfolio.Infrastructure.InstallationSettings.ConditionalLine this[int index] => Of(installed[index]);
+
+        public IEnumerator<Shopfolio.Infrastructure.InstallationSettings.ConditionalLine> GetEnumerator() => installed.Select(Of).GetEnumerator();
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+
+        private Shopfolio.Infrastructure.InstallationSettings.ConditionalLine Of(Shopfolio.Infrastructure.InstallationSettings.ConditionalLine line) =>
+            cardOpen.Value && line.Name == Shopfolio.Infrastructure.InstallationSettings.ConditionalLine.CardPayment ? line with { MissingKeys = [] } : line;
+    }
+
     public async ValueTask InitializeAsync()
     {
         _databaseName = await _template.CreateDatabaseFromTemplateAsync(CancellationToken.None);
@@ -92,6 +120,12 @@ public sealed class BrowserHost : IAsyncLifetime
             s.RemoveAll<Shopfolio.Infrastructure.Files.FileStoreDirectories>();
             s.AddSingleton(new Shopfolio.Infrastructure.Files.FileStoreDirectories(System.IO.Path.Combine(_filesDirectory, "images"), System.IO.Path.Combine(_filesDirectory, "digital")));
             s.AddScoped(sp => CheckoutPageTests.GateSettings.Create(ActivatorUtilities.CreateInstance<SettingsModule>(sp), true));
+            // The card line of the conditional settings follows the run's switch (OpenCard): closed as the installation has it, open for the one observation that needs a second open payment method (VAL-B099).
+            ServiceDescriptor original = s.Last(d => d.ServiceType == typeof(IReadOnlyList<Shopfolio.Infrastructure.InstallationSettings.ConditionalLine>));
+            s.Remove(original);
+            s.AddSingleton<IReadOnlyList<Shopfolio.Infrastructure.InstallationSettings.ConditionalLine>>(sp => new SwitchableLines(
+                (IReadOnlyList<Shopfolio.Infrastructure.InstallationSettings.ConditionalLine>)(original.ImplementationFactory?.Invoke(sp) ?? original.ImplementationInstance!),
+                _cardOpen));
         }));
         // The application is served over HTTPS with a throwaway certificate of the tool (the contexts ignore its trust): WebKit does not send a Secure cookie over plain HTTP even to localhost, so every engine gets the same, real scheme.
         _certificate = NewCertificate();

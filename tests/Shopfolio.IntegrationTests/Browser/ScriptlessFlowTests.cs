@@ -326,33 +326,49 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
             $"seçimden sonra giden hesap isteği {afterProvince}; toplam hesap isteği {recalculations.Count}; seçili il \"{kept.Trim()}\" -> \"{keptAfter}\"; toplam \"{recalculatedTotal}\"",
             (path == ScriptPath.Scripted ? afterProvince == 1 : afterProvince == 0 && recalculations.Count == 1) && keptAfter == chosenProvince && recalculatedTotal.Length > 0);
 
-        ILocator method = fresh.Page.Locator("#method-banktransfer");
-        int beforeMethod = recalculations.Count;
-        if (await method.CountAsync() > 0 && !await method.IsDisabledAsync())
+        // The payment method: the seed's installation has the bank transfer open only, so for this one observation the card line is opened too (two open methods) and the choice is changed by a real selection - no event is raised by hand.
+        using IDisposable cardOpen = Host.OpenCard();
+        WatchedPage methodPage = await NewPageAsync(context);
+        List<string> methodRecalculations = [];
+        methodPage.Page.Request += (_, r) =>
         {
-            // Only the bank transfer is open in this seed, so the change event is raised on its radio, which the page's own listener answers (a real change needs a second open method).
-            if (path == ScriptPath.Scripted)
+            if (r.Method == "POST" && r.Url.Contains("handler=Recalculate", StringComparison.Ordinal))
             {
-                await NavigateAsync(fresh, () => method.EvaluateAsync("(r) => { r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true })); }"), 20000);
+                methodRecalculations.Add(r.Url);
             }
-            else
-            {
-                await method.EvaluateAsync("(r) => { r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true })); }");
-                await NavigateAsync(fresh, () => fresh.Page.Locator("button[data-js=recalculate]").ClickAsync());
-            }
+        };
+        await GoAsync(methodPage, "/odeme");
+        ILocator card = methodPage.Page.Locator("#method-card");
+        ILocator transfer = methodPage.Page.Locator("#method-banktransfer");
+        bool twoOpen = await card.CountAsync() == 1 && await transfer.CountAsync() == 1 && !await card.IsDisabledAsync() && !await transfer.IsDisabledAsync();
+        bool cardWasChosen = twoOpen && await card.IsCheckedAsync();
+        if (path == ScriptPath.Scripted)
+        {
+            await NavigateAsync(methodPage, () => transfer.CheckAsync(), 20000);
+        }
+        else
+        {
+            await transfer.CheckAsync();
         }
 
-        string methodTotal = await TextAsync(fresh.Page.Locator("aside .checkout__total strong"));
-        bool methodChecked = await fresh.Page.Locator("#method-banktransfer").IsCheckedAsync();
+        int afterMethod = methodRecalculations.Count;
+        if (path == ScriptPath.Scriptless)
+        {
+            await NavigateAsync(methodPage, () => methodPage.Page.Locator("button[data-js=recalculate]").ClickAsync());
+        }
+
+        string methodTotal = await TextAsync(methodPage.Page.Locator("aside .checkout__total strong"));
+        bool transferChecked = await methodPage.Page.Locator("#method-banktransfer").IsCheckedAsync();
+        bool cardStillChecked = await methodPage.Page.Locator("#method-card").IsCheckedAsync();
         await ObserveAsync(
             "VAL-B099",
             path,
             engine,
-            fresh,
-            path == ScriptPath.Scripted ? "ödeme yöntemi (havale) seçilir (değişim olayı)" : "ödeme yöntemi (havale) seçilir, sonra Hesapla'ya basılır",
-            path == ScriptPath.Scripted ? "yöntem değişince form kendiliğinden hesap işleyicisine gönderilir" : "yöntem değişimi Hesapla ile hesaplanır; seçim korunur",
-            $"yöntemden sonra giden hesap isteği {recalculations.Count - beforeMethod}; havale seçili {methodChecked}; toplam \"{methodTotal}\"",
-            recalculations.Count - beforeMethod == 1 && methodChecked && methodTotal.Length > 0);
+            methodPage,
+            path == ScriptPath.Scripted ? "iki açık yöntem varken ödeme yöntemi Kart'tan Havale'ye seçimle değiştirilir" : "iki açık yöntem varken ödeme yöntemi Kart'tan Havale'ye seçimle değiştirilir, sonra Hesapla'ya basılır",
+            path == ScriptPath.Scripted ? "yöntem değişince form kendiliğinden hesap işleyicisine gönderilir ve seçim korunur" : "yöntem değişince bir şey gönderilmez; özet Hesapla ile yenilenir ve seçim korunur",
+            $"iki açık yöntem {twoOpen}; önce kart seçili {cardWasChosen}; seçimden sonra giden hesap isteği {afterMethod}; toplam hesap isteği {methodRecalculations.Count}; havale seçili {transferChecked}, kart seçili {cardStillChecked}; toplam \"{methodTotal}\"",
+            twoOpen && cardWasChosen && (path == ScriptPath.Scripted ? afterMethod == 1 : afterMethod == 0 && methodRecalculations.Count == 1) && transferChecked && !cardStillChecked && methodTotal.Length > 0);
         Assert.Empty(Failures);
     }
 

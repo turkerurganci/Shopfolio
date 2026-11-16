@@ -77,6 +77,27 @@ public sealed class ScriptlessPathTests(BrowserHost host) : BrowserTestBase(host
         string address = new Uri(page.Page.Url).PathAndQuery;
         bool queryOk = path == ScriptPath.Scripted || address.Contains('?', StringComparison.Ordinal);
         await ObserveAsync("VAL-B100", path, engine, page, "iki seçenekli üründe Renk 2 ve Beden 1 seçilir", "fiyat 140 (Renk 2, Beden 1); betiksiz yolda seçim ürün adresinin sorgu parametresindedir", $"fiyat: \"{price}\"; adres {address}", price.Contains("140", StringComparison.Ordinal) && queryOk);
+
+        // The image: the chosen variant carries its own image, the lead image of the page is that one now (not the first variant's).
+        Guid chosen = Host.Seed.Product("variants").VariantIds[2];
+        string lead = await page.Page.Locator("[data-js=lead-image]").GetAttributeAsync("src") ?? string.Empty;
+        long imageIsChosens = await DataRecord.CountAsync(Host.Dsn, "SELECT count(*) FROM variants WHERE id = @v AND image_id IS NOT NULL AND @src LIKE '%' || image_id::text || '%'", ("v", chosen), ("src", lead));
+        await ObserveAsync("VAL-B100", path, engine, page, "Renk 2 ve Beden 1 seçildikten sonra ürün görseli", "görsel seçilen varyantın kendi görselidir (adresi varyantın görsel kaydıyla aynı)", $"ana görsel {lead}; varyantın görsel kaydıyla eşleşen {imageIsChosens}", imageIsChosens == 1);
+
+        // The purchasability: the sold-out combination (Renk 2, Beden 2) is shown as sold out and cannot be chosen; the chosen one can be bought.
+        ILocator soldOut = page.Page.Locator("form.variant-form select[data-js=option]").Nth(1).Locator("option", new LocatorLocatorOptions { HasTextString = "Beden 2" });
+        string soldOutText = Flat(await soldOut.First.InnerTextAsync());
+        bool soldOutDisabled = await soldOut.First.IsDisabledAsync();
+        ILocator add = page.Page.Locator("form.buy-form button[data-js=add-button]");
+        bool canBuy = await add.CountAsync() > 0 && await add.IsEnabledAsync();
+        await ObserveAsync("VAL-B100", path, engine, page, "Renk 2 seçiliyken Beden 2 seçeneği ve Sepete ekle düğmesi", "tükenen birleşim \"(Tükendi)\" yazar ve seçilemez; seçilen varyant satın alınabilir (düğme açık)", $"seçenek \"{soldOutText}\", seçilemez {soldOutDisabled}; Sepete ekle açık {canBuy}", soldOutText.Contains("Tükendi", StringComparison.Ordinal) && soldOutDisabled && canBuy);
+
+        // The add to cart carries the choice: the variant the form sends is the chosen one and the cart line is its price.
+        string sentVariant = await page.Page.Locator("form.buy-form [data-js=variant-id]").InputValueAsync();
+        await NavigateAsync(page, () => add.ClickAsync());
+        await GoAsync(page, "/sepet");
+        string line = Flat(await page.Page.Locator(".cart-line").First.InnerTextAsync());
+        await ObserveAsync("VAL-B100", path, engine, page, "seçilen varyantla Sepete ekle'ye basılır", "sepet satırı seçilen varyantın fiyatını (140) taşır; forma giden varyant seçilendir", $"forma giden varyant {(sentVariant == chosen.ToString("D") ? "seçilen" : sentVariant)}; sepet satırı \"{line}\"", sentVariant == chosen.ToString("D") && line.Contains("140", StringComparison.Ordinal));
         Assert.Empty(Failures);
     }
 

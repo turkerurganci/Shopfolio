@@ -100,7 +100,7 @@ public sealed class BrowserHost : IAsyncLifetime
         using HttpClient probe = _factory.CreateClient();
         BaseUrl = $"https://127.0.0.1:{probe.BaseAddress!.Port}";
         _playwright = await Playwright.CreateAsync();
-        Seed = await BrowserSeed.RunAsync(Dsn);
+        Seed = await BrowserSeed.RunAsync(Dsn, System.IO.Path.Combine(_filesDirectory, "images"));
         Record = new ObservationRecord(OutputDirectory());
         Record.SetSeed(Seed);
     }

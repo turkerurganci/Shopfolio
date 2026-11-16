@@ -269,7 +269,90 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         await NavigateAsync(page, () => page.Page.Locator(".checkout__confirm button.button--primary[data-js=submit-once]").ClickAsync());
         long orders = await DataRecord.CountAsync(Host.Dsn, "SELECT count(*) FROM orders WHERE contact_email = @e", ("e", email));
         bool onStep = PathOf(page).StartsWith("/odeme", StringComparison.Ordinal);
-        await ObserveAsync("VAL-B099", path, engine, page, "eski özetli sayfadan onay gönderilir (sepet ikinci sayfada iki adede çıkarılmıştı)", "özet değiştiyse sipariş oluşmaz ve güncel özet gösterilir", $"adres {PathOf(page)}; sayfadaki uyarı \"{await TextAsync(page.Page.Locator(".checkout__confirm .message"))}\"", onStep && orders == 0, $"orders (contact_email = maskeli): {orders} satır");
+        string warning = await TextAsync(page.Page.Locator(".checkout__confirm .message"));
+        string shownTotal = await TextAsync(page.Page.Locator("aside .checkout__total strong"));
+        await GoAsync(second, "/odeme");
+        string currentTotal = await TextAsync(second.Page.Locator("aside .checkout__total strong"));
+        await ObserveAsync(
+            "VAL-B099",
+            path,
+            engine,
+            page,
+            "eski özetli sayfadan onay gönderilir (sepet ikinci sayfada iki adede çıkarılmıştı)",
+            "özet değiştiyse sipariş oluşmaz ve güncel özet gösterilir (toplam sunucunun şimdiki toplamıdır, eski toplam değildir)",
+            $"adres {PathOf(page)}; sayfadaki uyarı \"{warning}\"; gösterilen toplam \"{shownTotal}\", eski \"{after}\", sunucunun şimdiki \"{currentTotal}\"",
+            onStep && orders == 0 && warning.Length > 0 && shownTotal.Length > 0 && shownTotal == currentTotal && shownTotal != after,
+            $"orders (contact_email = maskeli): {orders} satır");
+
+        // The delivery address and the payment method: with the script a change sends the form to the recalculation handler by itself; without it nothing is sent until "Hesapla", and the summary is recalculated there.
+        WatchedPage fresh = await NewPageAsync(context);
+        List<string> recalculations = [];
+        fresh.Page.Request += (_, r) =>
+        {
+            if (r.Method == "POST" && r.Url.Contains("handler=Recalculate", StringComparison.Ordinal))
+            {
+                recalculations.Add(r.Url);
+            }
+        };
+        await GoAsync(fresh, "/odeme");
+        ILocator province = fresh.Page.Locator("select[name=ShippingProvinceId]");
+        IReadOnlyList<string> options = await province.Locator("option").AllInnerTextsAsync();
+        string chosenProvince = options.Count > 2 ? options[2].Trim() : options[^1].Trim();
+        if (path == ScriptPath.Scripted)
+        {
+            await NavigateAsync(fresh, () => province.SelectOptionAsync(new SelectOptionValue { Label = chosenProvince }), 20000);
+        }
+        else
+        {
+            await province.SelectOptionAsync(new SelectOptionValue { Label = chosenProvince });
+        }
+
+        int afterProvince = recalculations.Count;
+        string kept = await fresh.Page.Locator("select[name=ShippingProvinceId] option:checked").InnerTextAsync();
+        if (path == ScriptPath.Scriptless)
+        {
+            await NavigateAsync(fresh, () => fresh.Page.Locator("button[data-js=recalculate]").ClickAsync());
+        }
+
+        string recalculatedTotal = await TextAsync(fresh.Page.Locator("aside .checkout__total strong"));
+        string keptAfter = (await fresh.Page.Locator("select[name=ShippingProvinceId] option:checked").InnerTextAsync()).Trim();
+        await ObserveAsync(
+            "VAL-B099",
+            path,
+            engine,
+            fresh,
+            path == ScriptPath.Scripted ? $"teslimat ili \"{chosenProvince}\" seçilir" : $"teslimat ili \"{chosenProvince}\" seçilir, sonra Hesapla'ya basılır",
+            path == ScriptPath.Scripted ? "il değişince form kendiliğinden hesap işleyicisine gönderilir ve özet sunucudan yenilenir" : "il değişince bir şey gönderilmez; özet Hesapla ile yenilenir",
+            $"seçimden sonra giden hesap isteği {afterProvince}; toplam hesap isteği {recalculations.Count}; seçili il \"{kept.Trim()}\" -> \"{keptAfter}\"; toplam \"{recalculatedTotal}\"",
+            (path == ScriptPath.Scripted ? afterProvince == 1 : afterProvince == 0 && recalculations.Count == 1) && keptAfter == chosenProvince && recalculatedTotal.Length > 0);
+
+        ILocator method = fresh.Page.Locator("#method-banktransfer");
+        int beforeMethod = recalculations.Count;
+        if (await method.CountAsync() > 0 && !await method.IsDisabledAsync())
+        {
+            // Only the bank transfer is open in this seed, so the change event is raised on its radio, which the page's own listener answers (a real change needs a second open method).
+            if (path == ScriptPath.Scripted)
+            {
+                await NavigateAsync(fresh, () => method.EvaluateAsync("(r) => { r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true })); }"), 20000);
+            }
+            else
+            {
+                await method.EvaluateAsync("(r) => { r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true })); }");
+                await NavigateAsync(fresh, () => fresh.Page.Locator("button[data-js=recalculate]").ClickAsync());
+            }
+        }
+
+        string methodTotal = await TextAsync(fresh.Page.Locator("aside .checkout__total strong"));
+        bool methodChecked = await fresh.Page.Locator("#method-banktransfer").IsCheckedAsync();
+        await ObserveAsync(
+            "VAL-B099",
+            path,
+            engine,
+            fresh,
+            path == ScriptPath.Scripted ? "ödeme yöntemi (havale) seçilir (değişim olayı)" : "ödeme yöntemi (havale) seçilir, sonra Hesapla'ya basılır",
+            path == ScriptPath.Scripted ? "yöntem değişince form kendiliğinden hesap işleyicisine gönderilir" : "yöntem değişimi Hesapla ile hesaplanır; seçim korunur",
+            $"yöntemden sonra giden hesap isteği {recalculations.Count - beforeMethod}; havale seçili {methodChecked}; toplam \"{methodTotal}\"",
+            recalculations.Count - beforeMethod == 1 && methodChecked && methodTotal.Length > 0);
         Assert.Empty(Failures);
     }
 
@@ -293,10 +376,13 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         await GoAsync(page, "/odeme");
         await FillCheckoutAsync(page, path, email, true);
         string busy = string.Empty;
+        bool labelSaysBusy = path == ScriptPath.Scriptless;
         if (path == ScriptPath.Scripted)
         {
+            string original = await TextAsync(page.Page.Locator(".checkout__confirm button.button--primary"));
             string[] state = await page.Page.EvaluateAsync<string[]>("() => { const f = document.querySelector('form[data-js=checkout]'); const b = f.querySelector('.checkout__confirm button.button--primary'); f.requestSubmit(b); f.requestSubmit(b); return [b.textContent.trim(), f.getAttribute('aria-busy') ?? '']; }");
-            busy = $"düğme \"{state[0]}\", aria-busy \"{state[1]}\"";
+            busy = $"düğme \"{original}\" iken \"{state[0]}\", aria-busy \"{state[1]}\"";
+            labelSaysBusy = state[0].Length > 0 && state[0] != original;
             await page.Page.WaitForURLAsync(u => u.Contains("/teyit", StringComparison.Ordinal), new PageWaitForURLOptions { Timeout = 25000 });
         }
         else
@@ -310,7 +396,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         IAPIResponse again = await ReplayAsync(context, sends[0]);
         string location = again.Headers.TryGetValue("location", out string? target) ? target : string.Empty;
         long orders = await DataRecord.CountAsync(Host.Dsn, "SELECT count(*) FROM orders WHERE contact_email = @e", ("e", email));
-        bool stopped = path == ScriptPath.Scriptless || (sends.Count == 1 && busy.Contains("aria-busy \"true\"", StringComparison.Ordinal));
+        bool stopped = path == ScriptPath.Scriptless || (sends.Count == 1 && busy.Contains("aria-busy \"true\"", StringComparison.Ordinal) && labelSaysBusy);
         await ObserveAsync(
             "VAL-B105",
             path,
@@ -362,6 +448,34 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
             $"{(contactBusy.Length > 0 ? contactBusy + "; " : string.Empty)}ağa giden gönderim {contactSends.Count}; yazılan talep {written}",
             contactOk,
             $"contact_requests (message = {marker}): {written} satır");
+
+        // The add to cart is not compared with the current state either (07 8.2.2): without the script the same send is processed again and the line holds two units.
+        if (path == ScriptPath.Scriptless)
+        {
+            List<IRequest> cartSends = [];
+            page.Page.Request += (_, r) =>
+            {
+                if (r.Method == "POST" && r.Url.Contains("AddCartItem", StringComparison.Ordinal))
+                {
+                    cartSends.Add(r);
+                }
+            };
+            await GoAsync(page, $"/urun/{Host.Seed.Product("second").Slug}");
+            await NavigateAsync(page, () => page.Page.Locator("form.buy-form button[type=submit]").First.ClickAsync());
+            await ReplayAsync(context, cartSends[0]);
+            await GoAsync(page, "/sepet");
+            string quantity = await page.Page.Locator(".cart-line", new PageLocatorOptions { HasText = "İkinci ürün" }).Locator("input[name=Quantity]").First.InputValueAsync();
+            await ObserveAsync(
+                "VAL-B105",
+                path,
+                engine,
+                page,
+                "ürün sayfasında sepete ekle gönderilir, aynı istek yeniden gönderilir",
+                "güncel hâlle karşılaştırılmayan işlemde tekrar gönderim ikinci kez işlenir: satırda iki adet",
+                $"ağa giden gönderim {cartSends.Count}; sepet satırı adedi {quantity}",
+                cartSends.Count == 1 && quantity == "2");
+        }
+
         Assert.Empty(Failures);
     }
 
@@ -499,6 +613,21 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         string signIn = await TextAsync(page.Page.Locator("main"));
         await ObserveAsync("VAL-B110", path, engine, page, "giriş formu bilinmeyen hesapla gönderilir", "gönderim tamamlanır; sonuç sayfası aynı giriş ekranında nötr ret cümlesiyle gösterilir (hesabın var olup olmadığı söylenmez)", $"adres {PathOf(page)}; sonuç \"{signIn[..Math.Min(signIn.Length, 140)]}\"", PathOf(page).StartsWith("/giris", StringComparison.Ordinal) && signIn.Length > 0);
 
+        // The sign-in with an account that exists: it completes, leaves the sign-in screen and the session is real (the account page opens).
+        string member = $"b110-uye-{id}@example.com";
+        await BrowserSeed.NewCustomerWithPasswordAsync(Host.Dsn, member, "T551-Giris-Sifre-77!");
+        await using IBrowserContext memberContext = await Host.ContextAsync(engine, path);
+        WatchedPage memberPage = await NewPageAsync(memberContext);
+        await GoAsync(memberPage, "/giris");
+        await memberPage.Page.Locator("[name='Input.Email']").FillAsync(member);
+        await memberPage.Page.Locator("[name='Input.Password']").FillAsync("T551-Giris-Sifre-77!");
+        await NavigateAsync(memberPage, () => memberPage.Page.Locator("#sign-in-form button[type=submit]").ClickAsync());
+        string landed = PathOf(memberPage);
+        long sessions = await DataRecord.CountAsync(Host.Dsn, "SELECT count(*) FROM sessions s JOIN customers c ON c.id = s.customer_id WHERE c.email = @e", ("e", member));
+        await GoAsync(memberPage, "/hesap");
+        string accountPath = PathOf(memberPage);
+        await ObserveAsync("VAL-B110", path, engine, memberPage, "giriş formu kayıtlı hesabın e-postası ve şifresiyle gönderilir, sonra hesap sayfası açılır", "gönderim tamamlanır, giriş ekranından çıkılır, oturum açılır ve hesap sayfası gösterilir", $"gönderimden sonraki adres {landed}; oturum kaydı {sessions}; hesap sayfası adresi {accountPath}", !landed.StartsWith("/giris", StringComparison.Ordinal) && sessions == 1 && accountPath.StartsWith("/hesap", StringComparison.Ordinal));
+
         await GoAsync(page, "/sifre-sifirlama");
         await page.Page.Locator("[name='Input.Email']").FillAsync($"b110-yok-{id}@example.com");
         await NavigateAsync(page, () => page.Page.Locator("#reset-request-form button[type=submit]").ClickAsync());
@@ -614,6 +743,37 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
             $"sayfada seçenek satırı {blankOptions} -> {rowsOnPage}; kayıtlı seçenek {options}, değer {values}; varyant seçiminde Ahşap {inChoice} kez; kayıttan sonraki adres {saveAddress}; mesaj \"{saveMessage[..Math.Min(saveMessage.Length, 160)]}\"",
             options == 1 && values == addedValues && inChoice > 0,
             optionRow);
+
+        // The variant row: added in place with the script (a second row is left blank), the GET's blank row without it; the filled row is saved with the new option value chosen, the blank one is not read.
+        int variantRowsBefore = await page.Page.Locator("[name^='Input.Variants['][name$='].Price']").CountAsync();
+        if (path == ScriptPath.Scripted)
+        {
+            await page.Page.Locator("button[data-js=row-add][data-template=product-variant-template]").ClickAsync();
+        }
+
+        int variantRowsAfter = await page.Page.Locator("[name^='Input.Variants['][name$='].Price']").CountAsync();
+        string stockCode = $"B102{id}"[..Math.Min(20, $"B102{id}".Length)].ToUpperInvariant();
+        await page.Page.Locator("select[name='Input.Variants[0].FirstOptionValueId']").SelectOptionAsync(new SelectOptionValue { Label = "Ahşap" });
+        await page.Page.Locator("[name='Input.Variants[0].SKU']").FillAsync(stockCode);
+        await page.Page.Locator("[name='Input.Variants[0].Price']").FillAsync("75");
+        await page.Page.Locator("[name='Input.Variants[0].StockQuantity']").FillAsync("5");
+        await NavigateAsync(page, () => page.Page.Locator("#product-save").GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Kaydet", Exact = true }).ClickAsync());
+        string variantMessage = await TextAsync(page.Page.Locator("[data-js=error-summary], .message"));
+        long variants = await DataRecord.CountAsync(Host.Dsn, "SELECT count(*) FROM variants WHERE product_id = @p", ("p", product.ProductId));
+        string variantRow = await DataRecord.RowAsync(
+            Host.Dsn,
+            "SELECT v.price, v.stock_quantity, ov.value AS first_option_value FROM variants v LEFT JOIN option_values ov ON ov.id = v.first_option_value_id WHERE v.product_id = @p",
+            ("p", product.ProductId));
+        await ObserveAsync(
+            "VAL-B102",
+            path,
+            engine,
+            page,
+            path == ScriptPath.Scripted ? "Varyant ekle düğmesiyle ikinci varyant satırı eklenir; ilk satırda Ahşap seçilir, stok kodu, fiyat ve stok yazılır; ikinci satır boş bırakılır; Kaydet" : "GET'in boş varyant satırında Ahşap seçilir, stok kodu, fiyat ve stok yazılır; Kaydet",
+            "varyant satırı aynı UC-114 gönderimiyle kaydedilir; boş bırakılan satır kayıt oluşturmaz; yeni seçenek değeri varyantın seçimidir",
+            $"sayfada varyant satırı {variantRowsBefore} -> {variantRowsAfter}; kayıtlı varyant {variants}; mesaj \"{variantMessage[..Math.Min(variantMessage.Length, 160)]}\"",
+            variants == 1 && variantRowsAfter == (path == ScriptPath.Scripted ? variantRowsBefore + 1 : variantRowsBefore) && variantRow.Contains("first_option_value=Ahşap", StringComparison.Ordinal),
+            variantRow);
         Assert.Empty(Failures);
     }
 

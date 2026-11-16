@@ -8,6 +8,7 @@ using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.CorporateContent;
 using Shopfolio.Modules.CorporateContent.Contracts;
+using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
@@ -87,8 +88,23 @@ internal static class BrowserSeed
         ("closed", OrderStatus.Cancelled, PaymentStatus.Failed, false),
     ];
 
-    public static async Task<BrowserSeedData> RunAsync(string dsn)
+    /// <summary>A real 1 x 1 PNG; the seeded images (VAL-B100) all show it, so the pages load them without a browser error.</summary>
+    private const string PixelPng = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+
+    private static string _imagesDirectory = string.Empty;
+
+    /// <summary>An image row whose source copy is on disk (the key is the fingerprint's shape, 64 hexadecimal digits).</summary>
+    private static Image SeededImage(string name)
     {
+        string key = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("t551-" + name)));
+        Directory.CreateDirectory(_imagesDirectory);
+        File.WriteAllBytes(Path.Combine(_imagesDirectory, key), Convert.FromBase64String(PixelPng));
+        return Image.Create(key, ImageFormat.Png, 1, 1, Now);
+    }
+
+    public static async Task<BrowserSeedData> RunAsync(string dsn, string imagesDirectory)
+    {
+        _imagesDirectory = imagesDirectory;
         (string customerKey, Guid customerId) = await TestSessions.CustomerAsync(dsn, longLived: true);
         (string adminKey, Guid adminId) = await TestSessions.AdminAsync(dsn, longLived: true);
         List<SeededOrder> orders = [];
@@ -220,6 +236,15 @@ internal static class BrowserSeed
         return new SeededOrder(label, id, number, accessKey, shipping, payment);
     }
 
+    /// <summary>A verified customer with a known password (the sign-in of VAL-B110 needs an account that can sign in).</summary>
+    public static async Task NewCustomerWithPasswordAsync(string dsn, string email, string password)
+    {
+        Customer customer = Customer.Create("Giriş Müşterisi", email, new PasswordService().Hash(password), Now, null, Now);
+        await using AppDbContext db = NewContext(dsn);
+        db.Customers.Add(customer);
+        await db.SaveChangesAsync(CancellationToken.None);
+    }
+
     private static async Task AddItemsAndStateAsync(string dsn, Guid orderId, OrderStatus shipping, PaymentStatus payment, bool card)
     {
         await using AppDbContext db = NewContext(dsn);
@@ -251,12 +276,13 @@ internal static class BrowserSeed
         Dictionary<int, OptionValue> firstValues = [];
         Dictionary<int, OptionValue> secondValues = [];
         List<Variant> variants = [];
+        List<Image> variantImages = [];
         int index = 0;
         foreach ((decimal price, int? firstPlace, int? secondPlace) in specs)
         {
             Variant variant = Variant.Create(product.Id, $"T551-{label}-{index}"[..Math.Min(20, $"T551-{label}-{index}".Length)], price, Now.AddSeconds(index));
             variant.PublishStatus = status;
-            variant.StockQuantity = type == ProductType.Digital ? null : 50;
+            variant.StockQuantity = type == ProductType.Digital ? null : (label == "variants" && index == 3 ? 0 : 50);
             if (first is not null && firstPlace is int a)
             {
                 if (!firstValues.TryGetValue(a, out OptionValue? value))
@@ -277,6 +303,14 @@ internal static class BrowserSeed
                 variant.SecondOptionValueId = value.Id;
             }
 
+            if (label == "variants" && index is 0 or 2)
+            {
+                // Two of the variants carry an image of their own: the script and the server both change the page's lead image to it (VAL-B100).
+                Image own = SeededImage($"{label}-{index}");
+                variantImages.Add(own);
+                variant.ImageId = own.Id;
+            }
+
             variants.Add(variant);
             index++;
         }
@@ -295,6 +329,14 @@ internal static class BrowserSeed
             db.OptionValues.AddRange(secondValues.Values);
         }
 
+        if (label == "variants")
+        {
+            Image lead = SeededImage($"{label}-lead");
+            db.Images.Add(lead);
+            db.ProductImages.Add(ProductImage.Create(product.Id, lead.Id, 1, true, Now));
+        }
+
+        db.Images.AddRange(variantImages);
         db.Variants.AddRange(variants);
         await db.SaveChangesAsync(CancellationToken.None);
         return new SeededProduct(label, product.Id, slug, [.. variants.Select(v => v.Id)]);

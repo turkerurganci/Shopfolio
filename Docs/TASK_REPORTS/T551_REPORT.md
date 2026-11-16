@@ -86,6 +86,46 @@
 
 - Gözlemde yalnız Chromium sürümü başlığa yazılır; Firefox ve WebKit sürümleri ilgili motor koşusunun kaydındadır.
 
+## Düzeltme 2 — son işçi (5. işçi)
+
+### Test satırları (düzeltme 2 sonrası)
+
+| Tür | Sonuç | Komut | Çıktı özeti |
+|---|---|---|---|
+| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests` | 8087/8087 (`chunked-upload.test.mjs` kum havuzuna `window`, `HTMLInputElement`, `HTMLFormElement` eklendi: ürün formu betiği artık bunları kullanıyor) |
+| Browser chromium | ✓ | `SHOPFOLIO_BROWSER_ENGINES=chromium`, `--filter-trait "Browser=true"` | 171/172 koşuda; kalan 1 (yürüyüş testi, kategori ağacı formlarının sayısı) düzeltildi, `ValidationStateTests` 107/107 yeniden koşuldu (chromium+firefox 213/213) |
+| Browser firefox | ✓ | aynı, `firefox` | 171/172 koşuda; kalan 1 (E-13 gizli `select`) düzeltildi, `ValidationStateTests` 107/107 |
+| Browser webkit | ✓ | aynı, `webkit` | 171/172 koşuda; kalan 1 (E-13 betikli: değişiklikle tetiklenen yeniden hesap gönderimi yarışı) düzeltildi, `ValidationStateTests` 107/107 |
+| Format | ✓ | `dotnet format --include <3 değişen .cs>` | değişiklik yok |
+| Integration TAM | — | **TAM: CI** (bu işçi koşmadı) | |
+
+⚠ Düzeltmelerden sonra üç motorda yalnız `ValidationStateTests` yeniden koşuldu; öteki sınıflar düzeltmeden etkilenmez (`EmptyStateTests` üç motorda yeşildi).
+
+### Kapsam
+
+- KK2 (a): 52 form + E-12 `UpdateCartItem` ve E-13 `PlaceOrder` (`FromFlow`) vakası. Alan bulunamayanlar: gizli ya da salt okunur alan atlandı, kapalı `details` açılır, E-34 taşıma formu kendi dalına taşıma (UC-120: 422), E-43 marka formu `Kaydet` düğmesi. 422 olup `aria-invalid` taşımayanlar (E-37 sipariş formları): formun yerinde hata iletisi (`.message--error`, `04 §2.3.1` "yerinde") kabul edilir ⚠ (kolay karar: `aria-invalid` eklemek ürün değişikliği olurdu).
+- D-1712: E-37 iç not (`04 §7.2.15.1` isteğe bağlı, sınırsız) ve E-46 teslimat illeri (`04 §5.4.5`, K-828 boş seçim geçerli) formlarının doğrulama hâli yoktur; vaka "gönderim kabul edilir, hata yok" gözler.
+- KK2 (b): `BrowserHost.EmptyAsync()` tohumsuz ikinci veritabanı ve uygulama (yalnız bir yönetici); `EmptyStateTests` E-32, E-35, E-36, E-38, E-52 için boş hâl cümlesi, çıkış bağlantısı, satır yok, hata yok gözler (üç motor × iki yol).
+
+### Öz denetim (bütün satırlar; kanıt = yeşil test ve gözlem kaydı)
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| KK1 (üç motor, iki yol) | ✓ | `Ways()`; üç motorda `Browser=true` yeşil |
+| KK2 (a) hata hâli | ✓ | `ValidationStateTests` 107 vaka/motor yeşil; yürüyüş testi form listesini sayfadan türetir (eksik form/çıkmış vaka kırar; kategori ağacı formları tek vaka) |
+| KK2 (b) boş hâl | ✓ | `EmptyStateTests` 5 ekran × 2 yol × 3 motor yeşil |
+| KK3 (kayıt, maske) | ✓ | `ObservationMaskTests`; Veri kaydı maskeli |
+| KK4 (B096, B107 KRİTİK) | ✓ | `…VALB096`, `…VALB107` yeşil üç motorda |
+| KK5 (CI) | ✓ ⚠ | `e2e` işi; CI sonucunu yönetici izler |
+| KK6 (kayıt, sürümler, tohum) | ✓ | `observations.md` başlığı |
+| B096, B098, B100, B102–B106, B108–B112 | ✓ | ilgili `…VALB###` testleri üç motorda yeşil |
+| B097 | ⚠ kısmen | D-1701/D-1702 açık, kayıtlı |
+| B099 | ✓ | `OpenCard` ile iki açık yöntem, gerçek seçim, üç motor yeşil |
+| B101 | ⚠ kısmen | D-1700 çözüldü; D-1705 açık, kayıtlı |
+| D-41, D-1700, D-1705, D-1711 | ✓ | `DEFERRED_BACKLOG.d/T551.md` kayıtları güncel; D-1712 eklendi |
+
+Öz denetimi önceki işçilerin diff'inde satır satır yeniden okuma yerine yeşil testlerle ve backlog kayıtlarıyla yaptım (süre); ⚠ kısmen satırlar önceki turlardan gelir.
+
 ## Doğrulama
 
 | Alan | Değer |

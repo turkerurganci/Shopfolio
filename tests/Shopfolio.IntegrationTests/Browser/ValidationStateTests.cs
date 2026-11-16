@@ -46,7 +46,9 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
         new("E-04", "AddCartItem", "", "sepete ekleme formu (adet)", Actor.Visitor, h => $"/urun/{h.Seed.Product("plain").Slug}"),
         new("E-10", "SendContactRequest", "", "iletişim formu", Actor.Visitor, _ => "/iletisim", "contact_requests"),
         new("E-12", "UpdateCartItem", "", "sepet satırı adet formu", Actor.Visitor, _ => "/sepet", Prepare: r => CartWithAProductAsync(r, "/sepet"), FromFlow: true),
-        new("E-13", "PlaceOrder", "checkout-form", "ödeme adımı formu (siparişi onayla)", Actor.Visitor, _ => "/odeme", "orders", Prepare: r => CartWithAProductAsync(r, "/odeme"), Button: "css:button[data-js=submit-once]", FromFlow: true),
+        new("E-13", "PlaceOrder", "checkout-form", "ödeme adımı formu (siparişi onayla)", Actor.Visitor, _ => "/odeme", "orders", Prepare: r => CartWithAProductAsync(r, "/odeme"), Button: "css:button[data-js=submit-once]", FromFlow: true,
+            // A change of the province, the method or the coupon sends the form to recalculate (checkout.js), which would race the send of this case; the wrong value is the contact address.
+            Break: async form => await form.Locator("input[name=ContactEmail]").FillAsync("not-an-email")),
         new("E-15", "FindOrder", "", "sipariş takibi formu", Actor.Visitor, _ => "/siparis-takibi", "orders"),
         new("E-17", "CancelOrderItems", "", "iptal ekranı (üye): kalemler ve IBAN", Actor.Customer, h => $"/siparis/{h.Seed.Order("member-paid").Number}/iptal"),
         new("E-18", "SubmitWithdrawal", "", "cayma beyanı formu", Actor.Visitor, h => $"/siparis/erisim/{h.Seed.Order("delivered").AccessKey}/cayma"),
@@ -258,7 +260,7 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
 
         foreach (ILocator select in await form.Locator("select:not([disabled])").AllAsync())
         {
-            if (await select.Locator("option[value='']").CountAsync() > 0)
+            if (await select.IsVisibleAsync() && await select.Locator("option[value='']").CountAsync() > 0)
             {
                 await select.SelectOptionAsync(new SelectOptionValue { Value = string.Empty });
             }

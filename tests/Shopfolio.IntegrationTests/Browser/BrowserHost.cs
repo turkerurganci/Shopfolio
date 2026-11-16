@@ -312,6 +312,15 @@ public sealed class ObservationRecord
         }
     }
 
+    /// <summary>The observations added so far; a test reads them to prove what the record keeps (the masked text), not what the page showed.</summary>
+    public IReadOnlyList<Observation> Snapshot()
+    {
+        lock (_lock)
+        {
+            return [.. _observations];
+        }
+    }
+
     /// <summary>Writes <c>observations.jsonl</c> and <c>observations.md</c>; the files of earlier runs are replaced.</summary>
     public void Flush()
     {

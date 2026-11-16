@@ -509,6 +509,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         await NavigateAsync(page, () => page.Page.Locator("form button[type=submit]").Last.ClickAsync());
         string tracked = await TextMatchingAsync(page.Page.Locator("main"), Regex.Escape(order.Number), 15000);
         await ObserveAsync("VAL-B110", path, engine, page, "sipariş takibi: numara ve e-posta gönderilir", "sipariş sayfası açılır ve sipariş numarasını gösterir", $"adres {PathOf(page)}; sayfa \"{tracked[..Math.Min(tracked.Length, 120)]}\"", PathOf(page).StartsWith("/siparis/", StringComparison.Ordinal) && tracked.Contains(order.Number, StringComparison.Ordinal));
+        Assert.DoesNotContain(Host.Record.Snapshot().Where(o => o.Row == "VAL-B110" && o.Engine == engine), o => o.Observed.Contains($"b110-{id}@", StringComparison.Ordinal) || o.Observed.Contains(order.AccessKey, StringComparison.Ordinal));
         Assert.Empty(Failures);
     }
 

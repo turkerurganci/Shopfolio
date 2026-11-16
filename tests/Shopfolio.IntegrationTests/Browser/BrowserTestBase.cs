@@ -91,10 +91,12 @@ public abstract class BrowserTestBase
             // A page that cannot be drawn (a download, an aborted load) has no image; the line still stands with its text.
         }
 
-        Host.Record.Add(new Observation(row, path == ScriptPath.Scripted ? "betikli" : "betiksiz", engine, width, step, expected, observed, ok, shot, data));
+        // The free "observed" text carries addresses and page texts, so it passes the same mask as the data record (12 7.1: personal data masked, no access key in the evidence).
+        string maskedObserved = DataRecord.Mask(observed);
+        Host.Record.Add(new Observation(row, path == ScriptPath.Scripted ? "betikli" : "betiksiz", engine, width, step, expected, maskedObserved, ok, shot, data));
         if (!ok)
         {
-            Failures.Add($"{row} {engine} {path} - {step}: expected [{expected}], observed [{observed}]");
+            Failures.Add($"{row} {engine} {path} - {step}: expected [{expected}], observed [{maskedObserved}]");
         }
     }
 }
@@ -106,8 +108,12 @@ public static class DataRecord
     private static readonly System.Text.RegularExpressions.Regex Digits = new(@"\d{7,}", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(2));
     private static readonly System.Text.RegularExpressions.Regex Iban = new(@"TR\d{2}[\d ]{10,}", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(2));
 
-    /// <summary>Masks an e-mail address, an IBAN and a long digit run (a phone, a number) in a value the record keeps.</summary>
-    public static string Mask(string text) => Digits.Replace(Iban.Replace(Email.Replace(text, "***@***"), "TR**IBAN**"), "***");
+    // The guest order's access key is the credential in the address (/siparis/erisim/<key>/...); the pending-registration token travels as a query value.
+    private static readonly System.Text.RegularExpressions.Regex AccessKey = new(@"(?<=/siparis/erisim/)[^/?#\s""]+", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(2));
+    private static readonly System.Text.RegularExpressions.Regex QueryToken = new(@"(?<=[?&]pendingRegistration=)[^&#\s""]+", System.Text.RegularExpressions.RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
+
+    /// <summary>Masks an e-mail address, an IBAN, a long digit run (a phone, a number), an order access key and a pending-registration token in a value the record keeps.</summary>
+    public static string Mask(string text) => Digits.Replace(Iban.Replace(Email.Replace(QueryToken.Replace(AccessKey.Replace(text, "***"), "***"), "***@***"), "TR**IBAN**"), "***");
 
     /// <summary>Reads the first row of the query as <c>column=value; ...</c>, masked; "satır yok" when the query gives none.</summary>
     public static async Task<string> RowAsync(string dsn, string sql, params (string Name, object Value)[] parameters)

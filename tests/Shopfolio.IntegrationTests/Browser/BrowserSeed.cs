@@ -86,6 +86,9 @@ internal static class BrowserSeed
         ("shipped", OrderStatus.Shipped, PaymentStatus.Paid, false),
         ("delivered", OrderStatus.Delivered, PaymentStatus.Paid, false),
         ("closed", OrderStatus.Cancelled, PaymentStatus.Failed, false),
+        ("delivery-failed", OrderStatus.DeliveryFailed, PaymentStatus.Paid, false),
+        ("partially-refunded", OrderStatus.Delivered, PaymentStatus.PartiallyRefunded, false),
+        ("refunded", OrderStatus.Cancelled, PaymentStatus.Refunded, false),
     ];
 
     /// <summary>A real 1 x 1 PNG; the seeded images (VAL-B100) all show it, so the pages load them without a browser error.</summary>
@@ -128,6 +131,7 @@ internal static class BrowserSeed
             await ProductAsync(dsn, "plain", "Sade ürün", ProductType.Physical, [(100m, null, null)]),
             await ProductAsync(dsn, "variants", "Renkli ve bedenli ürün", ProductType.Physical, [(100m, 1, 1), (120m, 1, 2), (140m, 2, 1), (160m, 2, 2)]),
             await ProductAsync(dsn, "second", "İkinci ürün", ProductType.Physical, [(50m, null, null)]),
+            await ProductAsync(dsn, "archived", "Arşivli ürün", ProductType.Physical, [(10m, null, null)], PublishStatus.Archived),
         ];
 
         const string coupon = "T551KUPON";
@@ -156,7 +160,7 @@ internal static class BrowserSeed
         db.CustomPages.Add(page);
         Category category = Category.Create("Mobilya", "t551-kategori", null, 1, Now);
         db.Categories.Add(category);
-        foreach (SeededProduct product in products.Where(p => p.Label != "second"))
+        foreach (SeededProduct product in products.Where(p => p.Label is not ("second" or "archived")))
         {
             db.ProductCategories.Add(ProductCategory.Create(product.ProductId, category.Id, true, Now));
         }

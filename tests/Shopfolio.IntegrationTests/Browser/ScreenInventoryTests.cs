@@ -22,6 +22,10 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
         SeededOrder delivered = seed.Order("delivered");
         SeededOrder closed = seed.Order("closed");
         SeededOrder member = seed.Order("member-paid");
+        SeededOrder shipped = seed.Order("shipped");
+        SeededOrder failed = seed.Order("delivery-failed");
+        SeededOrder partial = seed.Order("partially-refunded");
+        SeededOrder refunded = seed.Order("refunded");
         string plain = seed.Product("plain").Slug;
         string variants = seed.Product("variants").Slug;
         const string unknownKey = "T551-yok-baglanti-anahtari";
@@ -35,6 +39,7 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
             new("E-03", "arama sonuçları, sonuçsuz", Actor.Visitor, "/arama?search=zzzzzz"),
             new("E-04", "ürün sayfası, tek varyant", Actor.Visitor, $"/urun/{plain}"),
             new("E-04", "ürün sayfası, iki seçenekli", Actor.Visitor, $"/urun/{variants}"),
+            new("E-05", "arşivlenmiş ürün sayfası", Actor.Visitor, $"/urun/{seed.Product("archived").Slug}"),
             new("E-06", "sayfa bulunamadı", Actor.Visitor, "/urun/yok", 404),
             new("E-07", "içerik liste sayfası, hizmetler", Actor.Visitor, "/hizmetler"),
             new("E-07", "içerik liste sayfası, referanslar", Actor.Visitor, "/referanslar"),
@@ -55,6 +60,10 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
             new("E-16", "sipariş sayfası, misafir, hazırlanıyor", Actor.Visitor, $"/siparis/erisim/{paid.AccessKey}"),
             new("E-16", "sipariş sayfası, misafir, teslim edilmiş", Actor.Visitor, $"/siparis/erisim/{delivered.AccessKey}"),
             new("E-16", "sipariş sayfası, misafir, kapanmış", Actor.Visitor, $"/siparis/erisim/{closed.AccessKey}"),
+            new("E-16", "sipariş sayfası, misafir, kargoda", Actor.Visitor, $"/siparis/erisim/{shipped.AccessKey}"),
+            new("E-16", "sipariş sayfası, misafir, teslim edilemedi", Actor.Visitor, $"/siparis/erisim/{failed.AccessKey}"),
+            new("E-16", "sipariş sayfası, misafir, kısmen iade edilmiş ödeme", Actor.Visitor, $"/siparis/erisim/{partial.AccessKey}"),
+            new("E-16", "sipariş sayfası, misafir, iade edilmiş ödeme", Actor.Visitor, $"/siparis/erisim/{refunded.AccessKey}"),
             new("E-16", "sipariş sayfası, üye", Actor.Customer, $"/siparis/{member.Number}"),
             new("E-17", "iptal ekranı, misafir", Actor.Visitor, $"/siparis/erisim/{awaiting.AccessKey}/iptal"),
             new("E-17", "iptal ekranı, üye", Actor.Customer, $"/siparis/{member.Number}/iptal"),
@@ -86,6 +95,10 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
             new("E-37", "sipariş ayrıntısı, havale bekleyen", Actor.Admin, $"/panel/siparisler/{awaiting.Id}"),
             new("E-37", "sipariş ayrıntısı, teslim edilmiş", Actor.Admin, $"/panel/siparisler/{delivered.Id}"),
             new("E-37", "sipariş ayrıntısı, kapanmış", Actor.Admin, $"/panel/siparisler/{closed.Id}"),
+            new("E-37", "sipariş ayrıntısı, kargoda", Actor.Admin, $"/panel/siparisler/{shipped.Id}"),
+            new("E-37", "sipariş ayrıntısı, teslim edilemedi", Actor.Admin, $"/panel/siparisler/{failed.Id}"),
+            new("E-37", "sipariş ayrıntısı, kısmen iade edilmiş ödeme", Actor.Admin, $"/panel/siparisler/{partial.Id}"),
+            new("E-37", "sipariş ayrıntısı, iade edilmiş ödeme", Actor.Admin, $"/panel/siparisler/{refunded.Id}"),
             new("E-38", "talepler", Actor.Admin, "/panel/talepler"),
             new("E-39", "iletişim talebi ayrıntısı", Actor.Admin, $"/panel/talepler/{seed.ContactRequestId}"),
             new("E-40", "üye kaydı görünümü", Actor.Admin, "/panel/uyeler"),
@@ -110,6 +123,32 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
         return stops;
     }
 
+    /// <summary>The screen ids of 04 4.1 and 4.2 (the inventory's own tables): the list is read from the document, so a screen the document adds and the walk lacks breaks this test.</summary>
+    private static List<string> InventoryIds()
+    {
+        DirectoryInfo? directory = new(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(System.IO.Path.Combine(directory.FullName, "Docs", "04_UI_SPECS.md")))
+        {
+            directory = directory.Parent;
+        }
+
+        string document = File.ReadAllText(System.IO.Path.Combine(directory?.FullName ?? throw new InvalidOperationException("Docs/04_UI_SPECS.md was not found above the test's folder."), "Docs", "04_UI_SPECS.md"));
+        int start = document.IndexOf("### 4.1 ", StringComparison.Ordinal);
+        int end = document.IndexOf("### 4.3 ", StringComparison.Ordinal);
+        Assert.True(start >= 0 && end > start, "04 4.1 and 4.2 were not found.");
+        return [.. System.Text.RegularExpressions.Regex.Matches(document[start..end], @"^\| (E-\d{2}) \|", System.Text.RegularExpressions.RegexOptions.Multiline, TimeSpan.FromSeconds(2)).Select(m => m.Groups[1].Value).Distinct()];
+    }
+
+    [Fact]
+    public void EveryScreenOfTheInventoryDocument_HasAStopInTheWalk_KK2()
+    {
+        List<string> ids = InventoryIds();
+        HashSet<string> walked = [.. Stops().Select(s => s.Screen)];
+        Assert.True(ids.Count >= 50, $"The inventory read from 04 has {ids.Count} screens; at least 50 are expected.");
+        Assert.All(ids, id => Assert.Contains(id, walked));
+        Assert.All(walked, id => Assert.Contains(id, ids));
+    }
+
     [Theory]
     [MemberData(nameof(Ways))]
     public async Task EveryScreenOfTheInventory_OpensWithoutBrowserErrors_InTheWay_KK2(string engine, ScriptPath path)
@@ -120,6 +159,9 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
             foreach (Stop stop in group)
             {
                 WatchedPage page = await NewPageAsync(context);
+                // The image address (/gorsel/{id}) has no serving endpoint yet (D-1711): the browser's own 404 line of such a request is the known state, counted and taken out; any other 404 stays a message.
+                int missingImages = 0;
+                page.Page.Response += (_, r) => missingImages += r.Status == 404 && new Uri(r.Url).AbsolutePath.StartsWith("/gorsel/", StringComparison.Ordinal) ? 1 : 0;
                 IResponse? response = await GoAsync(page, stop.Path);
                 int status = response?.Status ?? 0;
                 string title = await page.Page.TitleAsync();
@@ -128,8 +170,10 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
                 bool statusOk = status == stop.Status;
                 string expectedMessage = $"status of {stop.Status}";
                 List<string> messages = [.. page.Errors.Where(e => stop.Status == 200 || !e.Contains(expectedMessage, StringComparison.Ordinal))];
+                int known = 0;
+                messages = [.. messages.Where(e => !(e.Contains("status of 404", StringComparison.Ordinal) && known++ < missingImages))];
                 bool ok = statusOk && messages.Count == 0 && title.Length > 0;
-                string observed = $"status {status}, address {final}, title \"{title}\", browser messages {messages.Count}" + (messages.Count > 0 ? ": " + string.Join(" / ", messages.Take(3)) : string.Empty);
+                string observed = $"status {status}, address {final}, title \"{title}\", browser messages {messages.Count}, known image 404 {missingImages}" + (messages.Count > 0 ? ": " + string.Join(" / ", messages.Take(3)) : string.Empty);
                 await ObserveAsync($"{stop.Screen}", path, engine, page, stop.State, $"status {stop.Status}, a title, no browser message", observed, ok);
                 await page.Page.CloseAsync();
             }

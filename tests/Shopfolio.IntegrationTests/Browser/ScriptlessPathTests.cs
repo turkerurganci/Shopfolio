@@ -60,7 +60,7 @@ public sealed class ScriptlessPathTests(BrowserHost host) : BrowserTestBase(host
         await page.Page.Locator("form.cart-line__quantity button[type=submit]").First.ClickAsync();
         string total = await TextMatchingAsync(page.Page.Locator(".cart-line__total"), "300");
         await ObserveAsync("VAL-B098", path, engine, page, "sepette sade ürünün adedi 3 yapılır ve Güncelle'ye basılır", "kalem tutarı 3 x 100 = 300 (sunucunun hesabı); sayfada betiksiz yolda 303 sonrası aynı tutar", $"kalem tutarı: \"{total}\"; adres {new Uri(page.Page.Url).PathAndQuery}", total.Contains("300", StringComparison.Ordinal));
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 
     /// <summary>VAL-B100: the variant choice of the product page - in place by the script, by a GET form without it - gives the chosen variant's price.</summary>
@@ -84,7 +84,7 @@ public sealed class ScriptlessPathTests(BrowserHost host) : BrowserTestBase(host
         string address = new Uri(page.Page.Url).PathAndQuery;
         bool queryOk = path == ScriptPath.Scripted || address.Contains('?', StringComparison.Ordinal);
         await ObserveAsync("VAL-B100", path, engine, page, "iki seçenekli üründe Renk 2 ve Beden 1 seçilir", "fiyat 140 (Renk 2, Beden 1); betiksiz yolda seçim ürün adresinin sorgu parametresindedir", $"fiyat: \"{price}\"; adres {address}", price.Contains("140", StringComparison.Ordinal) && queryOk);
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 
     /// <summary>VAL-B103: "Tümünü seç" and "Seçimi kaldır" of the delivery provinces exist on the scripted path only; the boxes are ticked one by one without them.</summary>
@@ -113,7 +113,7 @@ public sealed class ScriptlessPathTests(BrowserHost host) : BrowserTestBase(host
             await ObserveAsync("VAL-B103", path, engine, page, "il kutularının sayfası betiksiz açılır", $"düğme yoktur; {boxCount} kutu tek tek işaretlenir", $"düğme sayısı {buttons}; kutu sayısı {boxCount}", buttons == 0 && boxCount > 0);
         }
 
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 
     /// <summary>VAL-B104: the sales summary's period choice goes by itself with the script and by the button without it; both give a GET with the chosen period.</summary>
@@ -138,7 +138,7 @@ public sealed class ScriptlessPathTests(BrowserHost host) : BrowserTestBase(host
         string address = new Uri(page.Page.Url).PathAndQuery;
         string selected = await page.Page.Locator("form.summary-period select").First.InputValueAsync();
         await ObserveAsync("VAL-B104", path, engine, page, $"dönem seçeneği \"{chosen}\" seçilir" + (path == ScriptPath.Scriptless ? ", Göster'e basılır" : string.Empty), "özet seçilen dönemle GET'le yenilenir; seçili dönem korunur", $"adres {address}; seçili dönem \"{selected}\"", selected == chosen && address.Contains('=', StringComparison.Ordinal));
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 
     /// <summary>VAL-B096: the customer's last step - the first send of the operation only shows the confirmation, nothing is written; the confirmation button writes. The same in both ways.</summary>
@@ -164,7 +164,7 @@ public sealed class ScriptlessPathTests(BrowserHost host) : BrowserTestBase(host
             afterConfirm = await ReadStatusAsync(order.Id);
         }
         await ObserveAsync("VAL-B096", path, engine, page, "onay düğmesiyle gönderim", "sipariş iptal olur (Veri kaydı: orders.order_status Cancelled)", $"sipariş durumu {afterConfirm}; adres {new Uri(page.Page.Url).PathAndQuery}", afterConfirm.StartsWith("Cancelled", StringComparison.Ordinal), await OrderRowAsync(order.Id));
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 
     private Task<string> OrderRowAsync(Guid orderId) => DataRecord.RowAsync(Host.Dsn, "SELECT order_number, order_status, payment_status, contact_email FROM orders WHERE id = @id", ("id", orderId));

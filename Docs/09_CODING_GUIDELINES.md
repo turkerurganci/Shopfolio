@@ -370,6 +370,7 @@ Kütüphane yalnız bu tabloda seçilir; kuralı kullanan bölüm tabloya atıf 
 |---|---|---|---|---|---|
 | `xunit.v3` | Test çatısı (iki test projesi) | Apache-2.0 (deponun LICENSE dosyası okundu, T03) | yok | 3.2.2, 14 Ocak 2026; .NET 10.0.11'de iki test projesi çalıştı (T03); .NET 10 SDK'da `dotnet test` için `global.json`'da MTP seçilir (§19.1 madde 1) | K-1313 |
 | `Microsoft.AspNetCore.Mvc.Testing` | Sayfa ve uç testleri (`WebApplicationFactory`) | MIT (T03'te okundu) | yok | 10.0.15, 10 Kasım 2026 (D-1074); Microsoft paketi | K-1313 |
+| `Microsoft.Playwright` | Tarayıcı testleri: üç motorda (Chromium, Firefox, WebKit) betikli ve betiksiz yol gözlemi (yalnız Integration test projesi; ürünle dağıtılmaz) | Apache-2.0 (paketin nuspec'i, T551) | yok | 1.59.0 (T551); tarayıcı ikilileri `playwright.ps1 install` ile kurulur, depoya girmez | K-1620 · T551 |
 | Mailpit | Geliştirme ortamının e-posta yakalayıcısı (geliştirme aracı; ürünle dağıtılmaz) | MIT (deponun LICENSE dosyası okundu, T05; erişim 2026-11-03) | yok | v1.33.0, 31 Ekim 2026 (bakımcı: axllent/mailpit deposu; önceki sürümler 22 Ekim 2026, 15 Ekim 2026); imaj etiketi tam sürüm ve özetle `deploy/compose.dev.yaml`'da sabit (`axllent/mailpit:v1.33.0@sha256:9b3a463b…d5231`; kayıt defteri özeti yeniden okundu); Dependabot izlemez — sürümü aylık bakım sürümünde (`05 §8.8.2`) elle denetlenir | K-1313 |
 | `Serilog` | Yapılandırılmış kayıt | Apache-2.0 | yok | 4.3.1 | K-1314 |
 | `Serilog.Sinks.File` | Dosya yazıcısı; kütüphanenin kendi silme sınırı kapatılır | Apache-2.0 | yok | 7.0.0 | K-1314 |

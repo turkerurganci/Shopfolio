@@ -23,8 +23,6 @@ public abstract class BrowserTestBase
     /// <summary>The observations that did not match; the test asserts the list is empty at its end, so one failing line does not hide the others.</summary>
     protected List<string> Failures { get; } = [];
 
-    protected void AssertObserved() => Assert.True(Failures.Count == 0, string.Join(Environment.NewLine, Failures));
-
     protected static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     /// <summary>The engine and way pairs every row is observed in: the three engines, the script on and off (T551 criterion 1).</summary>

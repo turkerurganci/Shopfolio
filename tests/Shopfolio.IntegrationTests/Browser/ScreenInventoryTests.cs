@@ -135,6 +135,6 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
             }
         }
 
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 }

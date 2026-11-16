@@ -204,7 +204,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
                 $"fatura formu görünür: {billingShown}; sipariş {number}",
                 ok,
                 row);
-            AssertObserved();
+            Assert.Empty(Failures);
         }
     }
 
@@ -230,7 +230,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         string number = await SubmitCheckoutAsync(page);
         string row = await DataRecord.RowAsync(Host.Dsn, "SELECT order_number, contact_email, order_status, payment_status FROM orders WHERE order_number = @n", ("n", number));
         await ObserveAsync("VAL-B109", path, engine, page, "kategori, ürün, sepete ekle, sepet, ödeme adımı, onay", "sipariş açılır ve teyit ekranı gösterilir (sipariş numarası, havale bilgileri)", $"sepet satırı \"{line}\"; teyit ekranı {PathOf(page)}; sipariş {number}", row.StartsWith("order_number=", StringComparison.Ordinal) && !row.Contains("satır yok", StringComparison.Ordinal), row);
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 
     /// <summary>VAL-B099: the payment step's summary - the script sends the form with the coupon button's own handler (the same handler), the scriptless path sends it by the button; a changed summary opens no order.</summary>
@@ -273,7 +273,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         long orders = await DataRecord.CountAsync(Host.Dsn, "SELECT count(*) FROM orders WHERE contact_email = @e", ("e", email));
         bool onStep = PathOf(page).StartsWith("/odeme", StringComparison.Ordinal);
         await ObserveAsync("VAL-B099", path, engine, page, "eski özetli sayfadan onay gönderilir (sepet ikinci sayfada iki adede çıkarılmıştı)", "özet değiştiyse sipariş oluşmaz ve güncel özet gösterilir", $"adres {PathOf(page)}; sayfadaki uyarı \"{await TextAsync(page.Page.Locator(".checkout__confirm .message"))}\"", onStep && orders == 0, $"orders (contact_email = maskeli): {orders} satır");
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 
     /// <summary>VAL-B105: a double send - the script stops the second send and the button says it is going on; without it the order's second send goes to the existing order's confirmation and the contact request is written twice.</summary>
@@ -367,7 +367,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
             $"{(contactBusy.Length > 0 ? contactBusy + "; " : string.Empty)}ağa giden gönderim {contactSends.Count}; yazılan talep {written}",
             contactOk,
             $"contact_requests (message = {marker}): {written} satır");
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 
     private static async Task<IAPIResponse> ReplayAsync(IBrowserContext context, IRequest request)
@@ -411,7 +411,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
             await ObserveAsync("VAL-B106", path, engine, page, "teyit ekranı betiksiz açılır", "düğme yoktur (gizli); IBAN sayfada seçilebilir metin olarak durur; paylaşılacak adres sayfanın adresidir", $"düğme görünür: {visible}; IBAN metni \"{DataRecord.Mask(iban)}\"; seçilebilir: {selectable}; adres {PathOf(page)}", !visible && selectable && iban.Contains("TR", StringComparison.Ordinal));
         }
 
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 
     private static async Task<string> TextMatchingAsync(ILocator locator, string pattern, int milliseconds)
@@ -451,7 +451,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         string chosen = await TextAsync(page.Page.Locator("#withdrawal-chosen"));
         string sentence = await TextAsync(page.Page.Locator(".confirm--step"));
         await ObserveAsync("VAL-B097", path, engine, page, "iki adetli kalem seçilir, adet 1 yazılır, ilk gönderim", "son adımda sunucunun yazdığı kalem listesi (Kapı — 1 adet) ve sonuç cümlesi; iki yolda aynı", $"liste \"{chosen}\"; son adım \"{sentence[..Math.Min(sentence.Length, 160)]}\"", chosen.Contains("Kapı", StringComparison.Ordinal) && chosen.Contains("1 adet", StringComparison.Ordinal) && sentence.Length > 0);
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 
     /// <summary>VAL-B108: the address book's add and edit forms are opened by the buttons' own addresses (<c>create=true</c>, <c>addressBookId</c>), the save is the same handler.</summary>
@@ -482,7 +482,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         string editedName = await page.Page.Locator("[name='Input.Name']").InputValueAsync();
         string row = await DataRecord.RowAsync(Host.Dsn, "SELECT name, district, address_line FROM address_books WHERE name = @n", ("n", name));
         await ObserveAsync("VAL-B108", path, engine, page, "Yeni adres bağlantısı, kayıt, sonra Düzenle bağlantısı", "ekleme create=true, düzenleme addressBookId parametresiyle açılır; kayıt aynı işleyicide; form düzenlemede kayıtlı değerle dolu", $"ekleme adresi {addAddress} (form {addForm}); düzenleme adresi {editAddress}; düzenleme formunda ad \"{editedName}\"", addAddress.Contains("create=true", StringComparison.Ordinal) && addForm && editAddress.Contains("addressBookId=", StringComparison.Ordinal) && editedName == name, row);
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 
     /// <summary>VAL-B110: the account screens' basic flows complete by form sends - the registration, the sign-in, the password reset's request and the order tracking - and each shows its result page.</summary>
@@ -527,7 +527,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         await SettleAsync(page);
         string tracked = await TextMatchingAsync(page.Page.Locator("main"), Regex.Escape(order.Number), 15000);
         await ObserveAsync("VAL-B110", path, engine, page, "sipariş takibi: numara ve e-posta gönderilir", "sipariş sayfası açılır ve sipariş numarasını gösterir", $"adres {PathOf(page)}; sayfa \"{tracked[..Math.Min(tracked.Length, 120)]}\"", PathOf(page).StartsWith("/siparis/", StringComparison.Ordinal) && tracked.Contains(order.Number, StringComparison.Ordinal));
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 
     // ---- the panel's forms ----
@@ -583,7 +583,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         await SettleAsync(page);
         string settingRow = await DataRecord.RowAsync(Host.Dsn, "SELECT bank_transfer_payment_window FROM company_settings LIMIT 1");
         await ObserveAsync("VAL-B111", path, engine, page, $"kargo ve süreler ekranında havale ödeme süresi {window} yazılır ve kaydedilir", "ayar kendi işleyicisiyle kaydedilir", $"adres {PathOf(page)}", settingRow.Contains($"bank_transfer_payment_window={window}", StringComparison.Ordinal), settingRow);
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 
     private const string CategoryFormId = "yeni-kategori";
@@ -634,7 +634,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
             $"sayfada seçenek satırı {blankOptions} -> {rowsOnPage}; kayıtlı seçenek {options}, değer {values}; varyant seçiminde Ahşap {inChoice} kez; kayıttan sonraki adres {saveAddress}; mesaj \"{saveMessage[..Math.Min(saveMessage.Length, 160)]}\"",
             options == 1 && values == addedValues && inChoice > 0,
             optionRow);
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 
     /// <summary>VAL-B101: the image upload of the product form - three files: within P-23, over P-23 by less than 1 MB (a 422 field message), over the body ceiling (a 413); each send carries one image.</summary>
@@ -676,7 +676,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
                 $"uç yanıtı: POST görsel yükleme -> {response.Status}");
         }
 
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 
     /// <summary>VAL-B112: the chunked upload of the digital file needs the script - it is not made without it - and the form's other fields are saved without it.</summary>
@@ -722,6 +722,6 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         await SettleAsync(page);
         string row = await DataRecord.RowAsync(Host.Dsn, "SELECT name FROM products WHERE id = @i", ("i", product.ProductId));
         await ObserveAsync("VAL-B112", path, engine, page, "yükleme dışındaki alan (ad) değiştirilip Kaydet'e basılır", "formun yükleme dışındaki alanları kaydedilebilir", $"adres {PathOf(page)}", row.Contains(productName, StringComparison.Ordinal), row);
-        AssertObserved();
+        Assert.Empty(Failures);
     }
 }

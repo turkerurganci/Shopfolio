@@ -165,6 +165,14 @@ internal static class BrowserSeed
         };
     }
 
+    /// <summary>One more guest order in the given pair of states, for a row that changes the order (the confirmed step writes it).</summary>
+    public static async Task<SeededOrder> NewOrderAsync(string dsn, string label, OrderStatus shipping, PaymentStatus payment)
+    {
+        (Guid id, string number, string accessKey) = await TestSessions.OrderAsync(dsn, null);
+        await AddItemsAndStateAsync(dsn, id, shipping, payment, false);
+        return new SeededOrder(label, id, number, accessKey, shipping, payment);
+    }
+
     private static async Task AddItemsAndStateAsync(string dsn, Guid orderId, OrderStatus shipping, PaymentStatus payment, bool card)
     {
         await using AppDbContext db = NewContext(dsn);

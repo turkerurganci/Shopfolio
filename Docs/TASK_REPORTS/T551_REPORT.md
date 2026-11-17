@@ -756,3 +756,114 @@ Altı ekran (E-21, E-23, E-28, E-29, E-30, E-54), dokuz geçerli bağlantılı d
 | Backlog (D-1714 (a), D-1721) | ✓ | İkisi de kapatıldı (`Docs/DEFERRED_BACKLOG.d/T551.md`); yeni kalem D-1723 (⚠ satırı) |
 
 ⚠ E-21 yeni e-posta ve Google teyidi, E-28 ve E-54 geri alma, E-54 doğrulama durakları geçerli hâlde açılır ve düğmenin varlığı ölçülür; düğmenin gönderimi yalnız kayıt doğrulaması ve şifre sıfırlamalarında denenir (`VAL-B110` ve KK2 yalnız bunları ister; öteki düğmeler aynı sayfa modelini kullanır, K-904 kalıbı). Sahip yerine karar: öteki düğme gönderimleri bu turda eklenmedi; D-1723 olarak kaydedildi (T552, aynı araçla aynı ekranlar).
+
+## Doğrulama tur 5
+
+### Doğrulama Sonucu — T551 Tarayıcı aracı ve betiksiz yol gözlemi — tur 5
+**Tarih:** 2026-11-17   **Branch:** task/T551-tarayici-betiksiz-yol   **Commit:** head `d7331fdc` (incelenen)
+
+#### Verdict: ✓ PASS
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş; `core.hooksPath` = `scripts/git-hooks` |
+| Ana dal CI (son 3) | ✓ | `43788205169` success, `43788205183` success, `43779716328` success |
+| Memory drift | — | adım 0b kaldırıldı (2026-11-08); aranmadı |
+| main birleştirmesi | ✓ | `git merge origin/main` → "Already up to date" (main dalın tabanında) |
+
+#### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Playwright; Chromium, Firefox, WebKit; her ekran betik açık/kapalı | ✓ | `SHOPFOLIO_BROWSER_ENGINES` süzgeciyle ayrı koşular: chromium 211/211 (3 dk 19 sn), firefox 211/211 (7 dk 29 sn), webkit 211/211 (5 dk 57 sn). Kayıt sürümleri: chromium 147.0.7727.15, firefox 148.0.2, webkit 26.4, playwright 1.59.0. `Ways()` = motor × {Scripted, Scriptless} |
+| 2 | Tohum müşteri, yönetici, her durumdaki sipariş; `04` §4 her ekranı onay, hata, boş hâlleriyle | ✓ | Tohum: 2 müşteri, 1 yönetici, 9 sipariş — `OrderStatus` 6 değerin 6'sı, `PaymentStatus` 5 değerin 5'i. `04` 4.1/4.2'den 53 ekran (E-48 yok); yürüyüş belgeden okur ve iki yönlü eşitler (`EveryScreenOfTheInventoryDocument_HasAStopInTheWalk_KK2`). Onay: `ConfirmWindowTests` E-25, E-33, E-37, E-40, E-41, E-44, E-45, E-46, E-49 + müşteri son adımı E-17 (B096), E-18 (B097); `04` §5/§9 "onay pencere/adımı" taramamda başka ekran çıkmadı (E-11, E-19, E-21, E-28, E-47, E-54 satırları olumsuzlama ya da onay adımı değil; E-21 Google teyidi durakta). Hata: `ValidationStateTests` alanlı her form (E-23, E-29 yeni şifre dahil) + iki yönlü kapsam testi. Boş hâl: `grep -nE "Boş (durum\|hâl)\|boş hâl" 04` elle → E-02, E-03, E-07, E-09, E-12, E-26, E-27, E-32, E-34, E-35, E-36, E-38, E-41, E-51, E-52; `EmptyStateTests` 15'inin hepsini taşır (tohumsuz ikinci veritabanı dahil). Eksik ekran: yok |
+| 3 | 17 satırın iki yol gözlemi; Veri kaydı satırında tablo kaydı; kişisel veri maskeli | ✓ | Üç motorun `observations.md` kaydında 17 satırın her biri iki yolda var (34 × 3); her VAL satırının ekran görüntüsü var; Veri kaydı türündeki B096, B099, B102, B105, B107, B109, B111 ve Uç yanıtlı B101'in her yolunda veri sütunu dolu. Gözlem metinleri satıra özgü (adres, tutar, sayaç, DB değeri). Maske: üç kayıtta `@example.com` 0; erişim/bağlantı anahtarı `***`; `ObservationMaskTests` yeşil |
+| 4 | KRİTİK B096 ve B107 iki yolda; onaysız gönderim bir şey yazmaz | ✓ | B096: ilk (onaysız) gönderimden sonra `orders.order_status` Placed DB'den okunur, onayla Cancelled. Değişinim `OrderScreenModels.cs:247` onay denetimi etkisiz → B096 iki yolda kırıldı. B107: işaretliyken betiksiz yolda başka değerli fatura alanları gönderilir, `decoy_taken=False`, `billing_equals_shipping=True` DB'den; işaretsizken girilen değerler yazılır. Değişinim `AddressBooks.cs:187` → betiksiz vaka kırıldı (betikli vaka için K1) |
+| 5 | CI'da koşar; ad ve süre `12` §6.2 F5 B ve `11` §6.2 F5'e uygun | ✓ | `ci.yml` `e2e`: `name: 8. E2E (advisory)`, `runs-on: ubuntu-24.04`, `continue-on-error: true`, PostgreSQL 18 hizmeti, `browser-observations` yüklemesi. Run `43989323601` (head `d7331fdc`): 8. E2E pass, 14 dk 43 sn, 627/627, yapıt 132 MB. `12` §6.2 F5 "B `[tarayıcı]` — betiksiz yol", `11` §6.2 F5 "tarayıcı aracı ve betiksiz yol gözlemi T551'de" — ikisi de süre sınırı yazmaz; CI adımı `05 §8.3.11` adıyla aynı |
+| 6 | Gate raporuna eklenebilir kayıt; sürümler ve tohum | ✓ | `observations.jsonl` ilk satırı `{"versions":{playwright, dotnet, <motor>}, "seed":{müşteri, yönetici, kupon, ürünler, 9 sipariş + durumları}}`; `observations.md` "Sürümler:" ve "Tohum:" satırları; ekran görüntüleri ve sunucu günlüğü; CI yapıtı |
+
+#### Task Satırları (`12 §7.5`, adım 2a ve 16)
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+| VAL-B096 | KRİTİK | yok | PASS | PASS | — |
+| VAL-B097 | ORTA | yok | PASS | PASS | — |
+| VAL-B098 | ORTA | yok | PASS | PASS | — |
+| VAL-B099 | ORTA | yok | PASS | PASS | — |
+| VAL-B100 | ORTA | yok | PASS | PASS | — |
+| VAL-B101 | ORTA | yok | PASS | PASS | — |
+| VAL-B102 | ORTA | yok | PASS | PASS | — |
+| VAL-B103 | DÜŞÜK | yok | PASS | PASS | — |
+| VAL-B104 | DÜŞÜK | yok | PASS | PASS | — |
+| VAL-B105 | ORTA | yok | PASS | PASS | — |
+| VAL-B106 | DÜŞÜK | yok | PASS | PASS | — |
+| VAL-B107 | KRİTİK | yok | PASS | PASS | — |
+| VAL-B108 | DÜŞÜK | yok | PASS | PASS | — |
+| VAL-B109 | ORTA | yok | PASS | PASS | — |
+| VAL-B110 | ORTA | yok | FAIL | PASS | — |
+| VAL-B111 | ORTA | yok | PASS | PASS | — |
+| VAL-B112 | ORTA | yok | PASS | PASS | — |
+
+`12_matris_denetle.py --kapsam 1-77`: 1503 satır, kimlik tekil, Hata 0.
+
+#### Önceki turların bulgularının kapanışı
+- **Tur 4 Bulgu 1 (KK2 + B110):** `04` §4'ten bağlantı/anahtar arkasındaki ekranları kendim çıkardım: E-14, E-16…E-19 (sipariş erişim anahtarı), E-21 (kayıt, yeni e-posta, Google teyidi; 5.21.1), E-23, E-28, E-29 (sıfırlama), E-30 (davet), E-54 (yeni adres doğrulaması, geri alma; 9.25.1). Yürüyüşte hepsinin geçerli hâli var; geçerli hâl `Marker` ile kendi formu/düğmesiyle ölçülüyor. E-23 ve E-29 yeni şifre formları `ValidationStateTests`'te. B110: kayıt → doğrulama bağlantısı → düğme → `email_verified_at` dolu → kayıt şifresiyle giriş; sıfırlama isteği → bağlantı → yeni şifre → özet değişti + `used=True` → yeni şifreyle giriş; panel sıfırlaması → panele giriş; sipariş takibi. Kapandı.
+- **Tur 3 Bulgu 1 (boş hâl):** elle grep listesi (15 ekran) `EmptyStateTests` durak listesiyle birebir. Kapandı.
+- **Tur 2 Bulgu 1 (B105):** `common.js:214` `event.preventDefault()` etkisizleştirildi → `…VALB105(chromium, Scripted)` kırıldı (`defaultPrevented "false,false"`, ödeme ve iletişim gözlemleri ✗). Kapandı.
+- **Tur 1:** (1) `E2E_CMD` `dotnet tool restore` ile başlıyor, CI 627/627; (2) onay pencereleri, E-05, tohumdaki DeliveryFailed/PartiallyRefunded/Refunded ve kargodaki sipariş durakta; (3) B101 betiği seçimde boy denetler — değişinimle kırıldı; (4) B099, B100, B102, B105, B110 payları gözleniyor; (5) `ObserveAsync` gözlemi maskeliyor. Kapandı.
+
+#### Doğrulama Kontrol Listesi
+- [x] KK1: üç motor, iki bağlam — motor süzgeciyle üç ayrı koşu
+- [x] KK2: ekran envanteri eksiksiz gezilir — eksik ekran yok
+- [x] KK3: 17 satırın iki yol gözlemi ve Veri kaydı
+- [x] KK4: iki KRİTİK satır — DB'den onaysız gönderimin yazmadığı
+- [x] KK5: CI işi, adı ve süresi — `ubuntu-24.04`, run `43989323601`
+- [x] KK6: kayıt gate raporuna girer — sürüm + tohum
+- [x] `09 §19.2` madde 6: `git grep -nE "Task\.Delay|Thread\.Sleep" tests/Shopfolio.IntegrationTests/Browser` boş (çıkış 1)
+- [x] `09 §3.1` madde 5: `BrowserTestBase.cs` `#pragma warning disable CS0612` gerekçe yorumlu, yalnız üç satırlık `NavigateAsync` yöntemini sarar, hemen `restore` — kurala uygun
+- [x] Üretim kodu dar: `components.css` `.button[hidden], .form-fields[hidden] { display: none }`; `_ProductFormBody.cshtml` `x is not null` (kök neden D-1703'te); `UploadComponentModels.cs` + `product-form.js` B101 boy denetimi — sınır ve cümle sunucudan (`data-max-bytes`, `data-size-message`)
+- [x] `09 §25` ilgili sorular (paket tablosu satırı `Microsoft.Playwright` Apache-2.0 1.59.0; ön yüz §16 kalıbı; uyarı bastırma)
+- [x] Güvenlik taraması
+
+#### Değişinim denemeleri (chromium, `--filter-method`; hepsi `git checkout -- src` ile geri alındı, yeniden derlendi)
+| # | Bozulan yer | Satır | Sonuç |
+|---|---|---|---|
+| 1 | `common.js:214` ikinci gönderim durdurması | B105 | KIRILDI (Scripted) |
+| 2 | `product-form.js:436` seçimde boy denetimi | B101 | KIRILDI (Scripted: istek gitti, mesaj yok) |
+| 3 | `components.css` `.button[hidden]` | B106 | KIRILDI (Scriptless: düğme görünür) |
+| 4 | `OrderScreenModels.cs:247` onay işareti denetimi | B096 KRİTİK | KIRILDI (iki yol: onay bölümü yok, sipariş iptal oldu) |
+| 5 | `AddressBooks.cs:187` işaretliyken gönderilen alıcı adı okunur | B107 KRİTİK | KIRILDI (Scriptless: `decoy_taken=True`); Scripted yeşil kaldı → K1 |
+
+#### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Restore | ✓ | `dotnet restore Shopfolio.slnx` | 3 proje |
+| Build | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format … --verify-no-changes --include` (dalın 11 `.cs` dosyası) | çıkış 0 |
+| Unit | ✓ | `--no-build --filter-not-trait Consistency=true` / `--filter-trait Consistency=true` | 7420/7420, 667/667 |
+| Betik testleri | ✓ | `bash tests/scripts/run-script-tests.sh` | 4/4 |
+| Integration | ✓ | yalnız Browser sınıfları (`--filter-trait Browser=true`; dal yalnız `Browser/` altına dokunuyor), motor başına: ConfirmWindowTests, EmptyStateTests, ObservationMaskTests, ScreenInventoryTests, ScriptlessFlowTests, ScriptlessPathTests, ValidationStateTests — TAM: CI | 211/211 × 3 |
+| CI | ✓ | `gh pr checks 583` | 1–8 ve CI Gate pass; Integration 11 dk 46 sn; E2E 14 dk 43 sn |
+| Locked restore | ✓ | `dotnet restore Shopfolio.slnx --locked-mode` | çıkış 0 |
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz — sertifika koşu başına üretilir; kayıtta anahtar ve e-posta maskeli
+- Auth etkisi: Temiz — yönlendirilen başlık güveni yalnız test sunucusunda (`127.0.0.0/8`); üretim yapılandırması değişmedi
+- Input validation: Temiz — boy denetimi yalnız istemci iyileştirmesi, sunucu denetimi (422/413) yerinde; `data-size-message` tag helper ile kodlanır
+- Yeni bağımlılık: `Microsoft.Playwright` 1.59.0 (yalnız Integration test projesi, Apache-2.0, `09` tablo satırı ve kilit dosyası güncel)
+
+#### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı (S1/S2/S3) | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| — | — | — | — | Bulgu yok | — | — | — |
+
+#### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | B107 betikli vakada fatura alanları gizli ve boş gönderildiği için "gönderilen fatura alanları siparişe girmez" ölçüsü ayırt edici değil (değişinim 5'te betikli vaka yeşil kaldı); sunucu kuralı yoldan bağımsız ve betiksiz vaka kuralı yakalıyor | DEFERRED_BACKLOG'a forward: D-1725 (`DEFERRED_BACKLOG.d/T551.md`) |
+
+#### Yapım Raporu Karşılaştırması
+- Uyum: Tam uyumlu
+- Düzeltme 5 öz denetimi KK1–KK6'yı ✓ ve kanıtla verir; benim sonucumla aynı. KK4 ve KK5 için kanıt "dokunulmadı, yeşil" — bu turda kendi koşularımla ve değişinimle doğruladım. D-1723 (öteki bağlantı düğmelerinin gönderimi) ⚠ olarak açıkça yazılmış; KK2 ve B110 bunu istemiyor, kabul.
+
+#### Merge ve Post-merge
+- Merge yardımcıda (adım 17–18).

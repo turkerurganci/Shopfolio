@@ -35,7 +35,10 @@ internal static class AuditScripts
             const s = getComputedStyle(e); const r = e.getBoundingClientRect();
             const outline = s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0;
             const shadow = s.boxShadow !== 'none';
-            const entry = { e, d: describe(e), indicator: outline || shadow, pageY: r.top + window.scrollY, pageX: r.left + window.scrollX, inView: r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth };
+            // A control inside a region that scrolls (the panel menu on a short window) is placed by its layout position: what the region has scrolled is added back, so the scroll is not read as the order going up.
+            let innerY = 0; let innerX = 0;
+            for (let p = e.parentElement; p && p !== document.body && p !== document.documentElement; p = p.parentElement) { innerY += p.scrollTop; innerX += p.scrollLeft; }
+            const entry = { e, d: describe(e), indicator: outline || shadow, pageY: r.top + window.scrollY + innerY, pageX: r.left + window.scrollX + innerX, inView: r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth };
             window.__a11y.log.push(entry);
             if (window.__a11y.log.length > 1 && e === window.__a11y.log[0].e) { window.__a11y.wrapped = true; }
           }, true);

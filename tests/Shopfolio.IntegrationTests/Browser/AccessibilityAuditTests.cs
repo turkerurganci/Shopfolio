@@ -96,8 +96,37 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
         }
         """;
 
+    /// <summary>How long the page's autofocus is waited for: the browser takes the focus to the field in its first rendering update after the load, which on a slow host comes after the load event the test returned on.</summary>
+    internal const int FocusWaitMilliseconds = 5000;
+
+    /// <summary>
+    /// Waits, with a bound, until the condition (a script expression) holds in the page: the focus is read after the browser's own autofocus has run, not at the instant the load event fired. No pause and no fixed delay:
+    /// the wait returns the moment the condition holds, and a focus that never comes (a page whose autofocus was taken away) is still read as it is when the time is up, so the violation stays a violation. T552 finding 2.
+    /// </summary>
+    internal static async Task<bool> WaitForFocusAsync(IPage page, string condition)
+    {
+        try
+        {
+            await page.WaitForFunctionAsync(condition, null, new PageWaitForFunctionOptions { Timeout = FocusWaitMilliseconds });
+            return true;
+        }
+        catch (TimeoutException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>The focus has left the document body: the field, the summary or a control holds it.</summary>
+    internal const string FocusIsOnAnElement = "() => !!document.activeElement && document.activeElement !== document.body && document.activeElement !== document.documentElement";
+
     internal static async Task<(bool Ok, string Text)> InspectErrorAsync(WatchedPage page)
     {
+        // A form answer that has a wrong field or a summary takes the focus to it (04 2.3.2): the wait is for that focus; an answer with only the in-place message has no focus to wait for.
+        if (await page.Page.Locator("[data-js=error-summary], [aria-invalid=true]").CountAsync() > 0)
+        {
+            await WaitForFocusAsync(page.Page, FocusIsOnAnElement);
+        }
+
         using JsonDocument document = JsonDocument.Parse(await page.Page.EvaluateAsync<string>(ErrorState));
         List<string> problems = Strings(document.RootElement, "problems");
         string text = $"hata özeti {document.RootElement.GetProperty("summary").GetBoolean()}, geçersiz alan {document.RootElement.GetProperty("invalid").GetInt32()}, hata iletisi {document.RootElement.GetProperty("messages").GetInt32()}" + (problems.Count > 0 ? "; sorun: " + string.Join(" / ", problems.Take(4)) : string.Empty);

@@ -202,6 +202,9 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
     /// <summary>The keys of the forms of the screen that the walk's pages do not show (a flow opens them); the audit sends them too.</summary>
     internal static IEnumerable<string> FlowKeysOf(string screen) => AllCases.Where(c => c.FromFlow && c.Screen == screen).Select(c => c.Key);
 
+    /// <summary>The keys of the forms that can answer with an error (every case but the forms that take any value, <see cref="NoValidationStateOf"/>): the accessibility pass scans the answer of each (T552, 12 12.2 (1)).</summary>
+    internal static IEnumerable<string> ErrorStateKeys() => AllCases.Where(c => c.NoValidationState is null).Select(c => c.Key);
+
     /// <summary>The reason a form has no invalid state at all (04 says it takes any value), or null when a value can be not allowed; the audit's error message heading has nothing to read on such a form.</summary>
     internal static string? NoValidationStateOf(string key) => ByKey[key].NoValidationState;
 

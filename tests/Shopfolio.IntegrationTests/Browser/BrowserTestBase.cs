@@ -31,7 +31,7 @@ public abstract class BrowserTestBase
         TheoryData<string, ScriptPath> data = [];
         foreach (string engine in BrowserHost.Engines)
         {
-            foreach (ScriptPath path in Enum.GetValues<ScriptPath>())
+            foreach (ScriptPath path in BrowserHost.Paths)
             {
                 data.Add(engine, path);
             }

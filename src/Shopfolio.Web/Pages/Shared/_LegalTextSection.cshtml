@@ -17,6 +17,11 @@
     string headingId = Model.IdPrefix + "-heading";
     string? textError = Model.IsPosted ? ViewData.ModelState.TryGetValue("input.Text", out var textEntry) && textEntry.Errors.Count > 0 ? textEntry.Errors[0].ErrorMessage : null : null;
     string? hostingError = Model.IsPosted ? ViewData.ModelState.TryGetValue("input.HostingLocation", out var hostingEntry) && hostingEntry.Errors.Count > 0 ? hostingEntry.Errors[0].ErrorMessage : null : null;
+    // The summary at the head of the sent section's form (04 2.3.2): the wrong fields in the order the form draws them; the focus goes to the first of them.
+    FormErrorSummary errors = new([
+        .. textError is null ? [] : new[] { new FormFieldError(textId, textError) },
+        .. hostingError is null || !Model.HasHostingLocation ? [] : new[] { new FormFieldError(hostingId, hostingError) },
+    ]);
     string saveLabel = "Taslağı kaydet";
     string publishLabel = "Yayına al";
 }
@@ -60,12 +65,13 @@
         <partial name="_Message" model="incomplete" />
     }
     <form method="post" asp-antiforgery="true" asp-page-handler="SaveLegalTextDraft" class="form" data-js="submit-once">
+        <partial name="_FormErrorSummary" model="errors" />
         <input type="hidden" name="Input.LegalTextType" value="@Model.Type">
         @VersionFields.Version(Model.FormVersion, "Input")
         <div class="form-fields">
             <div class="field@(textError is null ? string.Empty : " field--invalid")" data-js="field">
                 <label class="field__label" for="@textId">Metin <span class="field__requirement">@FieldRequirements.TextOf(FieldRequirement.Required)</span></label>
-                <textarea class="field__control" id="@textId" name="Input.Text" rows="16" aria-required="true" aria-invalid="@(textError is null ? null : "true")" aria-describedby="@(textError is null ? null : Messages.FieldMessageId(textId))">
+                <textarea class="field__control" id="@textId" name="Input.Text" rows="16" aria-required="true" autofocus="@(errors.AutofocusFor(textId).Length > 0)" aria-invalid="@(textError is null ? null : "true")" aria-describedby="@(textError is null ? null : Messages.FieldMessageId(textId))">
 @Model.Text</textarea>
                 @if (textError is not null)
                 {
@@ -77,7 +83,7 @@
             {
                 <div class="field@(hostingError is null ? string.Empty : " field--invalid")" data-js="field">
                     <label class="field__label" for="@hostingId">Barındırma ve e-posta altyapısının konumu <span class="field__requirement">@FieldRequirements.TextOf(FieldRequirement.RequiredForPublish)</span></label>
-                    <textarea class="field__control" id="@hostingId" name="Input.HostingLocation" rows="3" aria-invalid="@(hostingError is null ? null : "true")" aria-describedby="@(hostingError is null ? null : Messages.FieldMessageId(hostingId))">
+                    <textarea class="field__control" id="@hostingId" name="Input.HostingLocation" rows="3" autofocus="@(errors.AutofocusFor(hostingId).Length > 0)" aria-invalid="@(hostingError is null ? null : "true")" aria-describedby="@(hostingError is null ? null : Messages.FieldMessageId(hostingId))">
 @Model.HostingLocation</textarea>
                     @if (hostingError is not null)
                     {

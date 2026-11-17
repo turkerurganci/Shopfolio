@@ -42,6 +42,7 @@
 <h1>@CheckoutTexts.ScreenName</h1>
 <partial name="_FormErrorSummary" model="errors" />
 <form method="post" asp-antiforgery="true" id="checkout-form" class="checkout" action="@(FramePaths.Checkout)?handler=PlaceOrder" data-js="checkout" novalidate>
+    <partial name="_ChangeNotice" />
     @ConfirmationKeys.Hidden(Model.ConfirmationKey)
     <input type="hidden" name="@nameof(PlaceOrderInput.SummaryFingerprint)" value="@Model.Fingerprint" />
     <input type="hidden" name="@nameof(PlaceOrderInput.PreInformationFormVersionId)" value="@confirmation.ShownPreInformationFormId.ToString("D")" />

@@ -50,6 +50,15 @@ public sealed class BrowserHost : IAsyncLifetime
         return string.IsNullOrWhiteSpace(chosen) ? all : [.. all.Where(e => chosen.Split(',').Contains(e))];
     }
 
+    /// <summary>The ways of the run: both, or the one named by <c>SHOPFOLIO_BROWSER_PATHS</c> (scripted, scriptless) - a long engine pass can be run in two calls.</summary>
+    public static readonly ScriptPath[] Paths = PathsOfTheRun();
+
+    private static ScriptPath[] PathsOfTheRun()
+    {
+        string? chosen = Environment.GetEnvironmentVariable("SHOPFOLIO_BROWSER_PATHS");
+        return string.IsNullOrWhiteSpace(chosen) ? [.. Enum.GetValues<ScriptPath>()] : [.. Enum.GetValues<ScriptPath>().Where(p => chosen.Split(',').Contains(p.ToString(), StringComparer.OrdinalIgnoreCase))];
+    }
+
     /// <summary>The widths the observations are taken at: a desktop and a phone (12 4.17 "genişlik").</summary>
     public const int DesktopWidth = 1280;
 

@@ -20,6 +20,7 @@
 <h1>Satış özeti</h1>
 <partial name="_FormErrorSummary" model="summary" />
 <form method="get" action="@PanelFramePaths.SalesSummary" class="form summary-period" data-js="submit-on-change">
+    <partial name="_ChangeNotice" />
     <div class="form-fields">
         <partial name="_Field" model="periodField" />
     </div>

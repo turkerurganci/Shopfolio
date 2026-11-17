@@ -225,6 +225,10 @@
     .panel-menu__list {
         position: sticky;
         top: 0;
+
+        /* A menu taller than the window scrolls inside itself: a link reached with the Tab key is always brought into view (WCAG 2.4.7; T552). */
+        max-height: 100vh;
+        overflow-y: auto;
     }
 
     /* The content keeps a limited width on the wide class (04 2.1.1): the same limit as the storefront's, one definition in the base file. */

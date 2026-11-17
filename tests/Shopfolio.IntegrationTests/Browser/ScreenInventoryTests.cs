@@ -13,8 +13,9 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
     /// <summary>
     /// One address of the walk: the inventory id, the state it shows, who opens it and the status it must answer. <paramref name="Marker"/> is the selector only the stop's own state draws (the form or the
     /// button of a valid link), so a stop whose seeded link stopped being valid (the page shows its invalid-link sentence and answers 200 all the same) breaks the walk.
+    /// <paramref name="Prepare"/> (the accessibility pass only; T552) puts the context in the state the stop shows (a filled cart) before the page is opened; the walk of T551 does not use it.
     /// </summary>
-    internal sealed record Stop(string Screen, string State, Actor Actor, string Path, int Status = 200, string? Marker = null);
+    internal sealed record Stop(string Screen, string State, Actor Actor, string Path, int Status = 200, string? Marker = null, Func<WatchedPage, Task>? Prepare = null);
 
     /// <summary>The inventory's screens E-01...E-54 (E-48 is not a screen, 04 4.3) with the states the walk opens each in.</summary>
     internal IReadOnlyList<Stop> Stops()

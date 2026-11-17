@@ -111,6 +111,20 @@ public sealed class MessageStateModelTests
     }
 
     [Fact]
+    public void TheLowerCasePrefix_IsTheFormsSpelling_AlsoWithoutTheFormOrder_AndOtherKeysKeepTheirSpelling_T552()
+    {
+        ModelStateDictionary state = new();
+        state.AddModelError("input.Name", "n");
+        state.AddModelError("Variants[0].Sku", "s");
+        state.AddModelError("inputs.Other", "o");
+
+        FormErrorSummary summary = FormErrorSummary.From(state);
+
+        Assert.Equal(["Input_Name", "inputs_Other", "Variants_0__Sku"], summary.Fields.Select(f => f.FieldId).ToArray());
+        Assert.Equal("Input_Name", summary.FirstFieldId);
+    }
+
+    [Fact]
     public void TheSummary_OfAFormMessageOnly_IsNotDrawn_KeepsTheMessageForTheScreen_AndHasNoFieldToFocus_KK2()
     {
         ModelStateDictionary state = new();

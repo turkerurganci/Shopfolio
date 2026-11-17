@@ -31,7 +31,7 @@ public abstract class BrowserTestBase
         TheoryData<string, ScriptPath> data = [];
         foreach (string engine in BrowserHost.Engines)
         {
-            foreach (ScriptPath path in Enum.GetValues<ScriptPath>())
+            foreach (ScriptPath path in BrowserHost.Paths)
             {
                 data.Add(engine, path);
             }
@@ -53,6 +53,7 @@ public abstract class BrowserTestBase
             }
         };
         page.PageError += (_, message) => watched.Errors.Add("page: " + message);
+        page.RequestFailed += (_, request) => watched.CutScripts += request.ResourceType == "script" ? 1 : 0;
         return watched;
     }
 
@@ -67,9 +68,14 @@ public abstract class BrowserTestBase
     /// so a load-state wait right after it would see the old, already loaded page; the navigation wait is armed before the action, so no pause is needed.
     /// </summary>
 #pragma warning disable CS0612 // The race-free form (the wait is armed before the action) is the one this wait needs; WaitForURLAsync cannot tell a same-address send from no send.
-    protected static async Task NavigateAsync(WatchedPage page, Func<Task> act, int timeout = 30000)
+    protected static async Task NavigateAsync(WatchedPage page, Func<Task> act, int timeout = 30000, WaitUntilState until = WaitUntilState.Load)
     {
-        await page.Page.RunAndWaitForNavigationAsync(act, new PageRunAndWaitForNavigationOptions { WaitUntil = WaitUntilState.Load, Timeout = timeout });
+        await page.Page.RunAndWaitForNavigationAsync(act, new PageRunAndWaitForNavigationOptions { WaitUntil = until, Timeout = timeout });
+        if (until == WaitUntilState.Commit)
+        {
+            // The answer's document has been taken over (the wait was armed before the action, so this is the new document, not the old loaded one); its own markup is what is read, not its pictures and scripts.
+            await page.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded, new PageWaitForLoadStateOptions { Timeout = timeout });
+        }
     }
 #pragma warning restore CS0612
 
@@ -179,4 +185,7 @@ public sealed class WatchedPage(IPage page)
     public IPage Page { get; } = page;
 
     public List<string> Errors { get; } = [];
+
+    /// <summary>How many script requests the page made that failed at the network (the accessibility pass cuts them on the scriptless way, AccessibilityScanTests.AuditContextAsync).</summary>
+    public int CutScripts { get; set; }
 }

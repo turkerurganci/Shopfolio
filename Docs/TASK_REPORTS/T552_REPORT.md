@@ -1,0 +1,258 @@
+# T552 — A seviyesi erişilebilirlik taraması ve ihlal düzeltmesi
+
+**Faz:** F5 | **Durum:** Yapım tamamlandı, doğrulama bekliyor | **Tarih:** 2026-11-17
+
+> Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
+
+---
+
+## Yapılan İşler
+
+- **Tarama (KK1):** `AccessibilityScanTests` — axe-core (`Deque.AxeCore.Playwright` 4.14.0) WCAG 2.2 A etiketli kural kümesi; durak listesi T551'in durakları + "E-12 sepet, ürünlü" + "E-13 ödeme adımı, ürünlü sepetle" (`AuditStops`); her durak iki yolda (betik açık/kapalı; betiksizde araç betiği çalışmadığı için betik istekleri ağda iptal edilir), üç motorda.
+- **Elle denetim (KK2):** `AccessibilityAuditTests` — her durak için beş başlık (klavye, odak sırası ve görünürlüğü, %200 yakınlaştırma, erişilebilir ad, hata mesajı) ayrı gözlem satırı; başlığı boş kalan durak testi kırar. Klavye başlığı 3.2.1'i de ölçer.
+- **31 ölçüt kaydı (KK3):** `WcagCriteria` + `AccessibilityRecordTests` (12 §12.2 tablosuyla çift yönlü eşitlik); Audit sonunda `accessibility-record-<motor>-<yol>.md` (31 ölçüt tablosu, Kontrol Listesi A payı, ekran × ölçüt matrisi) gözlem klasörüne yazılır, boş hücre testi kırar.
+- **Ölçüt testleri:** `AccessibilityCriteriaTests` — 3.2.2 (dört ekranda değişince aynı adres/başlık + değişimden önce görünen bildirim), 3.2.6 (altbilgi İletişim bağlantısı sırası), 3.3.7 (ödeme adımından girişe gidip dönünce alanlar durur). Kaynak taraması (2.1.4, 2.5.1/2/4; 3.2.2 bildirimi) `AccessibilityRecordTests`'te.
+- **Bulunan ihlaller, kaynağında düzeltildi (KK5):** (1) hata özetinin bağlantı kimliği: işleyici parametresi `input` olduğu için `input.Name` anahtarı `Input_Name` kimliğine çevrilmiyordu (`FormErrorSummary.From`); (2) panel yan menüsü uzun olunca kaydırılamıyordu (`admin.css`); (3) kendiliğinden gönderilen dört formda (sepet adedi, ödeme adımı, ürün seçeneği, satış özeti dönemi) önceden bildirim yoktu — `_ChangeNotice` bileşeni, metin `ChangeNotice.Text`'te tek yerde, betik çalışınca `common.js` gösterir.
+- **Kütüphane:** `09` §3.3'e `Deque.AxeCore.Playwright` satırı (geçişli `Deque.AxeCore.Commons` MPL-2.0, `Newtonsoft.Json`, `System.IO.Abstractions` aynı satırda; props'ta olmayan paket satırı tutarlılık testini kırdığı için ayrı satır açılmadı).
+- **Birim testi:** `MessageStateModelTests.TheLowerCasePrefix_IsTheFormsSpelling_AlsoWithoutTheFormOrder_...`. `ForbiddenTestPatternScan` yanlış-pozitifi (InlineData içindeki JS metni) `Fact` + dizi ile giderildi; `ValidationStateTests` testi eksik `Assert.Empty(Failures)` aldı.
+
+## Etkilenen Modüller / Dosyalar
+
+- `tests/Shopfolio.IntegrationTests/Browser/Accessibility*.cs`, `AuditScripts.cs`, `WcagCriteria.cs`, `ScreenInventoryTests.cs`, `ValidationStateTests.cs`
+- `src/Shopfolio.Web/Pages/Components/{MessageModels,ChangeNotice}.cs`, `Pages/Shared/_ChangeNotice.cshtml`, `Cart`, `Checkout`, `Product`, `Panel/SalesSummary` sayfaları, `wwwroot/js/common.js`, `wwwroot/css/admin.css`
+- `Directory.Packages.props`, `Shopfolio.IntegrationTests.csproj`, `packages.lock.json`, `Docs/09_CODING_GUIDELINES.md`
+
+## Kabul Kriterleri Kontrolü (öz denetim; önceki işçinin işi dahil)
+
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | axe-core A kümesi, bütün ekranlar, iki yol | ✓ | `AccessibilityScanTests...KK1` chromium, firefox, webkit × iki yol yeşil (ürünlü sepet/ödeme sonrası Scan: firefox ve webkit; chromium Scan değişinim koşusunda ilk hâli yeşil, bildirim sonrası yerelde tekrar edilmedi, CI) |
+| 2 | Beş başlıklı elle kayıt | ✓ | `AccessibilityAuditTests...KK2` chromium iki yol, firefox iki yol (bildirimden önce) yeşil; webkit Audit ve bildirim sonrası Audit yerelde koşulmadı, CI (D-1729) |
+| 3 | 31 ölçüt kaydı, ekran × ölçüt | ✓ | `AccessibilityRecordTests` (tablo eşitliği, kırık kayıt örnekleri), Audit sonundaki `accessibility-record-*.md` |
+| 4 | Kontrol Listesi A eşlemesi ya da `BLOCKED (OWNER_INPUT)` | BLOCKED (OWNER_INPUT) | madde metni dış kaynak, arama (2026-11-17) yalnız genelge ve haber sayfalarını getirdi; kayıtta `WcagCriteria.ChecklistAStatus`; D-1727. Eşleme tablosu madde metni olmadan yapılamaz |
+| 5 | İhlal listesi boş | ✓ | yukarıdaki üç ihlal düzeltildi; Scan/Criteria/Record webkit 22/22 |
+| 6 | Araç çıktısı + elle kayıt gate raporuna eklenebilir | ✓ | `observations.md/.jsonl` ve `accessibility-record-*.md`, CI `browser-observations` kaydı |
+
+### Doğrulama kontrol listesi
+
+| KK | Sonuç | Kanıt |
+|---|---|---|
+| KK1 | ✓ | Scan, iki yol × üç motor, durak listesi `AuditStops` |
+| KK2 | ✓ (⚠ kısmi koşu) | Audit; webkit ve son hâl CI |
+| KK3 | ✓ | Record testleri + kayıt dosyası |
+| KK4 | BLOCKED (OWNER_INPUT) | D-1727 |
+| KK5 | ✓ | ihlal kaynağında düzeltildi |
+| KK6 | ✓ | kayıt dosyaları |
+| 09 §25 | ✓ | sık FAIL nedenleri: (1) tarama istisnası yok — kaynak taramaları ihlal ve geçen örnek taşır; (2) bildirim taraması `requestSubmit` çağrısını bilinen dört betikle sınırlar, form etiketini ve `Quantity` biçimini ayrı sınar; (3) DB yok; (4) kural değişince başka yer: 09 tablo sayısı tutarlılık testi yeşil; (5) belge kuralı değişmedi, `12` VAL-A784'ün "önceden söylenmiştir" yolu uygulandı |
+
+### Backlog (hedefi bu task olan kalem)
+
+Hedefi T552 olan önceden yazılı kalem yok (`grep T552` yalnız T551 kayıtlarında anma). Yeni kalemler: D-1727, D-1728, D-1729 (`DEFERRED_BACKLOG.d/T552.md`).
+
+## Değişinim (korunan davranış bozulunca test kırılır)
+
+Geçici bozma, tek derleme + tek koşu, sonra `git checkout` ile geri alındı: (a) altbilgideki İletişim bağlantısı kaldırıldı → `TheHelpLink_...VALA341` iki yolda kırıldı; (b) ürün kartı `<img>`'inden `alt` silindi → `EveryScreenOfTheInventory_HasNoViolation...KK1` iki yolda kırıldı (axe `image-alt`); (c) sepet satırından `_ChangeNotice` kaldırıldı → `EveryFormThatSendsItselfByAChange...` ve `AChangedValue...VALA784` kırıldı. Bağlantıya `tabindex=-1` bozması süre nedeniyle denenmedi (Audit klavye başlığı; CI/doğrulama).
+
+## Test Sonuçları
+
+- Unit TAM: 8088/8088. `dotnet format` (değişen `.cs`): temiz.
+- Integration (ilgili sınıflar; **TAM: CI**): chromium `AccessibilityRecordTests` + `AccessibilityCriteriaTests` yeşil (36); webkit Record + Criteria + Scan 22/22; firefox Scan 2/2 (bildirimden önce).
+- Koşulmadı, CI: firefox/webkit Audit, firefox Criteria, bildirim sonrası firefox/chromium Scan ve Audit.
+
+## ⚠ Kararlar (sahip yerine)
+
+1. **3.2.2:** değer değişince kendiliğinden gönderilen her forma bildirim eklendi (VAL-A784 "değişim önceden söylenmiştir"); betiksiz yolda gösterilmez, düğme var.
+2. **Hata mesajı odağı:** `04` §2.3.2 her formda özet ve odak ister; Audit yalnız özetli formlarda ölçüyor — özetsiz formlar D-1728 (doğrulayıcı karar versin).
+3. Duyusal tarif: "aşağıdaki IBAN'a" öğeyi adıyla anar, ihlal sayılmadı.
+4. Tarama süresi: iki yol × üç motor; CI e2e süresi ~3 kat, firefox Audit tek başına ~9,5 dk.
+5. Kontrol Listesi A: `BLOCKED (OWNER_INPUT)`.
+
+---
+
+## Düzeltme 1 (2026-11-17)
+
+**Durum: BÖLÜNDÜ (süre).** D-1728 ve değişinim tamam; D-1729 (üç motor koşuları) tamamlanmadı, devir notunda.
+
+- **D-1728 kapandı.** `AccessibilityAuditTests.ErrorState`: alan hatası olup özeti olmayan form ihlaldir; hiçbir hata göstermeyen yanıt ihlaldir; odak ilk hatalı alanda ya da özette olmalıdır (özet olmasa da). Form listesi `ValidationStateTests`'ten (ikinci liste yok); iç not ve teslimat illeri formları (`NoValidationState`) "uygulanmaz" satırı alır. İlk ölçüm (chromium, `ValidationStateTests` gözlemi) özetsiz alan hatalı formları buldu ve kaynağında düzeltildi: E-04 sepete ekleme (`Product.cshtml`), E-12 sepet adedi (`Cart.cshtml`), E-33 ürün formu (`_ProductFormBody`, `ProductFormModel.ErrorSummary`: varyant satırı bağlantıları kendi girdi kimliğine eşlendi; ilk denemede `Input_Variants_0__StockQuantity` bağlantısı sayfada olmayan kimliğe gidiyordu), E-34 kategori üç form (`Categories.cshtml`), E-47 yasal metin (`_LegalTextSection`). Alansız ret (E-34 taşıma, E-37 işlem formları): `04` §2.3.1.2 ve §2.3.3 yerinde kalıcı iletidir, §2.3.2 "hatalı alanlar" için özettir; bu formlar kapsam dışıdır, ölçü onlar için ileti sayısına bakar.
+- **Ölçü açığı bulundu (değişinim):** `tabindex=-1` bağlantı ilk denemede KIRMADI: `AuditScripts.Install` `tabindex=-1` öğeleri beklenen listesinden çıkarıyordu. Düzeltildi: yerel bağlantı/düğme/girdi `tabindex=-1` ise beklenir; yalnız denetim olmayan odak hedefleri ve kasıtlı `aria-hidden` tuzak alanı (iletişim formu, `02` 3.32.7) dışarıda. Sonra: üst bilgi sepet bağlantısına `tabindex=-1` verildi, chromium Audit klavye başlığı 112 satırda kırıldı (geri alındı). İletişim formundan özet kaldırıldı, E-10 hata başlığı iki yolda "hata özeti False, geçersiz alan 5" ile kırıldı (geri alındı); aynı koşu tuzak alanı muafiyeti eksikliğini de gösterdi, eklendi.
+- **Test (Düzeltme 1, bütün değişikliklerden sonra, motor başına ayrı çağrı, iki yol):**
+
+| Sınıf | chromium | firefox | webkit |
+|---|---|---|---|
+| `AccessibilityScanTests` | 2/2 yeşil | 2/2 yeşil | 2/2 yeşil |
+| `AccessibilityCriteriaTests` | 5/5 yeşil | 5/5 yeşil | 5/5 yeşil |
+| `AccessibilityRecordTests` | 15/15 yeşil | 15/15 yeşil | 15/15 yeşil |
+| `AccessibilityAuditTests` | 2/2 yeşil (3 dk 12 sn) | 2/2 yeşil (8 dk 4 sn, tek çağrıya sığdı) | **2/2 KIRMIZI** |
+
+- **⚠ WebKit Audit klavye başlığı kırmızı (bulgu, site ihlali değil, bu makinenin WebKit yapısı):** Windows'taki Playwright WebKit 26.4'te Tab tuşu bağlantıları atlıyor (E-01: beklenen 22, ulaşılan 3; yalnız düğme ve girdiler). `Alt+Tab` denendi, sonuç aynı (ulaşılan 3), geri alındı. Aynı sınıf chromium ve firefox'ta yeşil, yani bağlantılar klavyeyle erişilebilir; sorun WebKit'in Windows yapısında Tab'ın bağlantıya gitmemesi. Karar gerekir: WebKit için klavye ölçüsünü Linux CI'da (WebKit Linux yapısı bağlantıya Tab ile gider; doğrulanmadı) mı sınamalı, yoksa WebKit'te odak sırasını `Alt+Tab` dışında bir yolla mı (örn. `page.focus` ile sıralı) ölçmeli. D-1729 bu yüzden açık.
+- **Koşulmadı (süre):** değişen sayfaların Integration sayfa testleri (Product, Cart, Categories, LegalTexts, ProductForm sınıfları).
+
+### Öz denetim (KK1–KK6, baştan)
+
+| KK | Sonuç | Kanıt |
+|---|---|---|
+| KK1 tüm ekranlar, iki yol | ✓ | Scan üç motor × iki yol yeşil (tablo) |
+| KK2 beş başlık | ⚠ kısmi | chromium ve firefox iki yol yeşil; webkit klavye başlığı Windows WebKit'te Tab bağlantıyı atladığı için kırmızı (D-1729 açık) |
+| KK3 31 ölçüt kaydı | ✓ chromium, firefox | kayıt dosyaları yazıldı, boş hücre yok; webkit kaydı klavye hücreleri yüzünden boşluklu |
+| KK4 | BLOCKED (OWNER_INPUT) | D-1727, dokunulmadı |
+| KK5 ihlal listesi boş | ⚠ kısmi | chromium ve firefox'ta boş; webkit'te yalnız ölçü sınırı (site ihlali değil) |
+| KK6 gate kanıtı | ✓ | `observations.md` ve kayıt dosyaları |
+
+⚠ Kısmi satırlar ✓ sayılmadı. Düzeltme 1 BÖLÜNDÜ (süre); kalan: WebKit klavye ölçüsü kararı ve sayfa testleri.
+
+---
+
+## Düzeltme 1 — son işçi (2026-11-17)
+
+- **CI kırmızıları (89ec8e42) ve düzeltmesi:** Unit `NullForgivingSourceScanTests` — `Product.cshtml` 28-29'daki gerekçesiz `!` kalktı (özet satırı zaten çizilen `MessageView.Text`'ten kuruluyor). Unit `CacheSourceScanTests` — `ProductForm.cshtml.cs` `VariantInputSuffixes` `FrozenDictionary` oldu (testin izinli listesi genişletilmedi). Integration `CartPageTests` 3 + `LegalTextPageTests` 2: özet eklenince satır/bölüm içinde ikinci `<li>`/`<section>` doğdu, testin `LineOf`/`SectionOf` dilimi ilk kapanış etiketinde bitiyordu; davranış (`04` 2.3.2 özet) esas alındı, dilimler iç içe sayarak güncellendi.
+- **WebKit Audit klavye başlığı:** CI run 44024980434 "8. E2E (advisory)" günlüğünde `The operation was canceled` (test sonucu yok) → seçenek (b). WebKit'te klavye gözlemi odak sırasıyla (`tabIndex >= 0` olanları) `focus()` ile geziyor ve her denetimin etkinleştirme tuşunu (bağlantı, düğme, özet: Enter; onay kutusu: Space) gerçekten basıp oluşan tıklamayı yakalayıp reddediyor (sayfadan çıkmadan). chromium/firefox Tab yolu aynen. **Değişinim:** üst bilgi sepet bağlantısına `tabindex=-1` verildi, webkit Audit iki yolda kırıldı (112 satır, chromium ile aynı sayı), geri alındı. Odaklama kaydırmadan önce sayıldığı için ilk denemede "görünüm dışı 1" çıktı; `scrollIntoView` + `preventScroll` ile düzeltildi.
+- **Test (bütün değişikliklerden sonra):** Unit TAM 8088/8088; `dotnet format` değişen `.cs` temiz. Integration sayfa testleri (CartPage, CategoriesPage, LegalTextPage, ProductFormPage, StorefrontSearchAndProduct, CheckoutPage, SalesSummaryPage, PageFormPattern) 176/176. Tarayıcı (webkit, yerel Windows): `AccessibilityAuditTests` 2/2 yeşil (iki yol); Scan + Criteria + Record 22/22. chromium/firefox: bu turda kod değişmedi (Tab yolu aynı), önceki tur sonuçları geçerli; CI doğrular.
+
+| Sınıf | chromium | firefox | webkit |
+|---|---|---|---|
+| `AccessibilityScanTests` | 2/2 (önceki tur) | 2/2 (önceki tur) | 2/2 |
+| `AccessibilityCriteriaTests` | 5/5 (önceki tur) | 5/5 (önceki tur) | 5/5 |
+| `AccessibilityRecordTests` | 15/15 (önceki tur) | 15/15 (önceki tur) | 15/15 |
+| `AccessibilityAuditTests` | 2/2 (önceki tur) | 2/2 (önceki tur) | 2/2 (odak yolu) |
+
+- **D-1729 kapandı**, D-1727 (OWNER_INPUT) dokunulmadı.
+
+### Öz denetim (KK1–KK6, baştan)
+
+| KK | Sonuç | Kanıt |
+|---|---|---|
+| KK1 tüm ekranlar, iki yol, ihlal | ✓ | Scan üç motor × iki yol yeşil (webkit bu turda, öteki ikisi önceki tur; kod değişmedi) |
+| KK2 beş başlık × ekran × iki yol × motor | ✓ | Audit: webkit odak yolu 2/2 (bu tur), chromium 2/2, firefox 2/2 (önceki tur); boş hücre denetimi testin kendisinde |
+| KK3 31 ölçüt kaydı | ✓ | webkit Record 15/15 (bu tur), chromium/firefox önceki tur; webkit klavye hücreleri artık dolu |
+| KK4 Kontrol Listesi A | BLOCKED (OWNER_INPUT) | D-1727, sahip girdisi bekliyor, dokunulmadı |
+| KK5 ihlal listesi boş | ✓ | üç motorda ihlal yok; webkit ölçü sınırı çözüldü |
+| KK6 gate kanıtı | ✓ | `observations.md`, kayıt dosyaları, değişinim satırları |
+
+⚠ Webkit'te klavye yolu Tab yerine odak gezisi (Linux CI'da Tab yolu denenmedi; E2E işi iptal edilmişti). KK4 dışında kısmi satır yok.
+
+## Doğrulama — tur 1 (2026-11-17): ✗ FAIL
+
+- **Bulgu sayısı:** 2 (ORTA, S1); K-notları D-1732'de. Düzeltme gerekli.
+- **B1 (KK1, `VAL-A776`, `A790`, `A781`, `A343`):** `12 §12.2` (1) kapsamı ekranlarla birlikte onay pencerelerini ve hata hâllerini sayar; axe taraması yalnız yürüyüşün duraklarında koşar, onay pencereleri (E-44, E-45 … `ConfirmWindowTests`) ve hatalı gönderimin cevap sayfası taranmaz; onay penceresinde odağın "Vazgeç"te başladığı tarayıcıda gözlenmez.
+- **B2 (KK2/KK5, `VAL-A791`, `A781`):** CI run 44031956010 "8. E2E" (head `c23db333`): `AccessibilityAuditTests` chromium betiksiz yolda E-34, E-47, E-50, E-53 hata başlığı kırmızı (odak BODY); yerel Windows'ta yeşil. Ölçü yarışı ya da gerçek odak sorunu; araç CI'da temiz değil.
+- **Doğrulanan:** beş değişinim ilgili testi kırdı (chromium Audit + Scan; webkit Audit tabindex=-1); Unit 8088/8088; build `-warnaserror` temiz; sayfa testleri 169/169; Record + ScreenInventory 22/22; chromium Scan/Criteria/Audit yeşil.
+
+## Düzeltme 2 (2026-11-17) — BÖLÜNDÜ (süre); yarısı yapıldı
+
+- **B2 neden:** CI artefaktı (run 44031956010 `observations.jsonl`): E-34 `CreateCategory|yeni-kategori` kırmızı, aynı sayfanın `CreateCategory|` formu yeşil; E-47 `@1` kırmızı, `@0` yeşil; E-50 `ChangeEmail` kırmızı, `ChangeName`/`ChangePassword` yeşil; E-53 `ExportOrders` kırmızı. Aynı sayfa, aynı alan türü, aynı autofocus, farklı sonuç: sayfa değil ölçü yarışı (tarayıcının autofocus'u ilk çizim güncellemesinde işler, `activeElement` load olayının hemen ardından okunuyordu). **Düzeltme:** `AccessibilityAuditTests.InspectErrorAsync` hata özeti/geçersiz alan varsa odağın gövdeden çıkmasını `WaitForFunctionAsync` ile bekler (5 sn sınır; `Task.Delay` yok), süre dolunca BODY yine ihlal. Chromium Audit iki yol yerelde yeşil (3 dk 22 sn). **Değişinim (autofocus kaldırınca ölçü kırılır): koşulmadı** (süre) — devir notunda.
+- **B1 düzeltme:** yeni `AccessibilityStatesTests`: (1) onay pencereleri `ConfirmWindowTests`'in kendi teorileri yansımayla koşturulur (`AtWindow` kancası; ikinci liste yok), pencere açıkken axe (iki yol) ve odağın "Vazgeç"te başladığı (`VAL-A781`; müşteri adımı pencere değil, yalnız tarama); (2) hata hâlleri `ValidationStateTests.ErrorStateKeys()` (denetimin gönderdiği formlar) cevap sayfasında axe, cevap 422 doğrulanır. Chromium 4/4 yeşil (8 dk 6 sn). **Değişinim (bir pencerede Vazgeç autofocus kaldır → kırılmalı): koşulmadı** (Web yeniden derleme + köprü paketi süresi) — devir notunda.
+- **D-1732:** (a) kanıt sınıf adı `AccessibilityRecordTests.TheSourceScan...`; kayıttaki "Sınıf.Yöntem..." kanıtlarının var olduğunu denetleyen test eklendi. (b) 31 ölçüt tablosu sonucu ekran × ölçüt matrisinden üretir (`ResultOf`; ✗'li koşuda "karşılanmadı (ekran: …)"; birim testi). (e), (f), (c), (d) AÇIK.
+- **Testler:** chromium `AccessibilityStatesTests` 4/4, `AccessibilityAuditTests` 2/2, `AccessibilityRecordTests` 17/17; build `-warnaserror` temiz; `dotnet format --verify-no-changes --include` temiz. Firefox/webkit koşulmadı. `SHOPFOLIO_BROWSER_PATHS` (scripted/scriptless) eklendi: uzun motor koşusu iki çağrıya bölünür.
+- **Öz denetim (KK1–KK6):** KK1 ~ (pencere ve hata hâli taraması yazıldı, yalnız chromium koşuldu; değişinim yok), KK2 ~ (bekleme düzeltmesi; CI Linux sonucu bu head'de okunmadı), KK3 ✓ (b), KK4 ✓ (OWNER_INPUT, D-1727), KK5 ~ (CI sonucu bekleniyor), KK6 ✓. ✓ verilmeyen paylar yukarıda "koşulmadı" diye açık.
+
+### Düzeltme 2 — devam (2b, 2026-11-17) — BÖLÜNDÜ (süre)
+
+- **Değişinim 1 (pencere odağı):** `_ConfirmForm.cshtml` "Vazgeç" `autofocus` kaldırıldı → chromium betiksiz `AccessibilityStatesTests.EveryConfirmationWindow...` KIRMIZI (tüm pencerelerde "onay penceresi odağı" ihlali, 1 dk 9 sn); geri alındı.
+- **Değişinim 2 (hata alanı odağı):** `_Field.cshtml` giriş alanı `autofocus` kaldırıldı → chromium betiksiz `AccessibilityAuditTests` KIRMIZI (hata başlığında ekran × ölçüt boşlukları: E-10, E-13, E-17 … 1.3.1/1.4.1/3.3.1; 4 dk 27 sn); geri alındı.
+- **D-1732 (e):** ● hücreleri `AccessibilityAuditTests.CommonResultOf` ile koşunun kaydından: kaynak taraması `AccessibilityRecordTests.Violations(Sources())` sayısından; bağlam değişimi (`VAL-A784`), tutarlı yardım (`VAL-A341`), tekrarlı giriş (`VAL-A342`), klavyeyle tamamlama (`VAL-A345`) gözlem satırlarından. Gözlem varsa ve uyuyorsa ● (sonuç "karşılandı"), uymayan varsa ✗ (boşluk, test kırılır, "karşılanmadı"), kayıtta hiç yoksa "–" ("ölçülmedi"; test sırası varsayılmaz). Birim testi `ACriterionAnsweredForAllScreens_IsReadFromTheObservationsOfTheRun_KK3` (üç durum, motor/yol ayrımı). Chromium betiksiz Audit+Criteria koşusunun kaydında 2.1.1, 2.1.2, 2.3.1, 2.5.1, 3.2.2, 3.2.6, 3.3.7 "karşılandı".
+- **D-1732 (f):** `VAL-A345`: `TheStorefrontFlow_FromTheCartToTheOrderConfirmation_IsDoneByTheKeyboardAlone_VALA345` (iki yol): sepetten "Ödemeye geç" bağlantısı, alanlar, il (oklarla), onay kutuları (boşluk), onay düğmesi (Enter) Tab ile ulaşılıp tuşla işlenir; tuzak (aynı öğede iki Tab) ya da ulaşılamayan öğe adıyla kırar; WebKit'te (Windows WebKit Tab'ı bağlantıya vermez) odak öğeye verilir, eylem tuşladır. Chromium betikli/betiksiz yeşil. **Değişinim:** sepet bağlantısına `tabindex="-1"` → KIRMIZI; geri alındı. `VAL-A350`: `TheSiteAndThePanel_GiveNoStatementOfAccessibilityConformance_VALA350`: ziyaretçi ve yönetici bağlamında denetimin bütün duraklarında (≥ 50 ekran) metin, bağlantı adı ve adres "erişilebilirlik/WCAG/uyumluluk beyanı" ifadesi için okunur; chromium yeşil. **Değişinim:** vitrin altbilgisine "Bu site WCAG 2.2 A seviyesiyle uyumludur." → KIRMIZI; geri alındı. 2.1.1 ve 2.1.2 kanıtına `KeyboardFlow` eklendi (kayıt testi bu adı yapı olarak denetler).
+- **Testler (chromium):** `AccessibilityRecordTests` 18/18; `AccessibilityAuditTests` + `AccessibilityCriteriaTests` (betiksiz) 6/6; `VALA345` betikli ve betiksiz, `VALA350` yeşil; build `-warnaserror` temiz; `dotnet format --verify-no-changes --include` temiz.
+- **AÇIK (süre bitti):** firefox ve webkit koşuları (`AccessibilityStatesTests` ve Audit/Scan/Criteria/Record, yeni `VALA345`/`VALA350`); D-1732 (c) ve (d). Devir notunda.
+- **Öz denetim (baştan):** KK1 ~ (pencere, hata hâli taraması chromium ✓ iki yol + değişinim ✓; firefox/webkit ✗ koşulmadı), KK2 ~ (bekleme düzeltmesi + değişinim ✓ chromium; Linux CI sonucu okunmadı; firefox/webkit yok), KK3 ✓ (31 ölçüt + ● hücreleri koşudan, (a), (b), (e)), KK4 ✓ (OWNER_INPUT, D-1727), KK5 ~ (CI sonucu bekleniyor; `VAL-A345`, `VAL-A350` firefox/webkit yok), KK6 ✓. ✓ verilmeyen paylar yukarıda açık; kısmi satıra ✓ verilmedi.
+
+### Düzeltme 2 — devam 2 (2c, 2026-11-17) — BÖLÜNDÜ (süre)
+
+- **Bulgu (firefox):** `VAL-A345` firefox betiksiz KIRMIZI: "alıcı adı yazılır" adımı il seçiminden sonra geriye Tab ile aranıyordu; Firefox (başsız) sayfa sonundan başa dönmediği için odak son bağlantıda kaldı ("klavye tuzağı"). Gerçek sorun test sırasıdır (sayfa sırası e-posta, alıcı, il, ilçe, açık adres, telefon). **Düzeltme:** yürüyüş sayfa sırasına çevrildi (alıcı il seçiminden önce); ölçü gevşetilmedi (tuzak ve ulaşılamayan öğe hâlâ kırar). Sonra firefox/webkit/chromium × iki yol 6/6 yeşil.
+- **Testler (motor × yol):** `VAL-A345` firefox 2/2, webkit 2/2, chromium 2/2; `VAL-A350` firefox, webkit (yalnız betikli yol vardır) yeşil; `AccessibilityStatesTests` firefox betikli 2/2 (8 dk 23 sn), webkit betikli 2/2 (6 dk), webkit betiksiz 2/2 (6 dk 5 sn). webkit `VAL-A345`'te seçim/ok tuşu sorunu çıkmadı. `dotnet format --verify-no-changes --include` temiz; build uyarısız.
+- **Scan ve Record:** değişmediler; firefox/webkit koşuları CI "8. E2E" işine kalır (üç motor, Linux); son head'in sonucunu yardımcı okur.
+- **AÇIK (süre bitti):** firefox `AccessibilityStatesTests` betiksiz; Audit ve `VALA345`/`VALA350` dışındaki Criteria firefox/webkit; D-1732 (c), (d) (D-1732'de açık).
+- **Öz denetim (baştan):** KK1 ~ (pencere ve hata hâli taraması: chromium iki yol ✓, webkit iki yol ✓, firefox betikli ✓, firefox betiksiz ✗ koşulmadı), KK2 ~ (bekleme düzeltmesi + değişinim chromium ✓; Audit firefox/webkit ve Linux CI sonucu okunmadı), KK3 ✓ (31 ölçüt, ● hücreleri, (a), (b), (e)), KK4 ✓ (OWNER_INPUT, D-1727), KK5 ~ (`VAL-A345` üç motor iki yol ✓, `VAL-A350` üç motor ✓; Audit firefox/webkit yok), KK6 ✓. Kısmi satıra ✓ verilmedi.
+
+## Doğrulama — tur 2 (2026-11-17): ✗ FAIL
+
+- **Bulgu sayısı:** 1 (ORTA, S1); K-notları D-1736'da. Düzeltme gerekli.
+- **B1 (KK1, `VAL-A790`, `A776`, `A343`):** `12 §12.2` (1) kapsamı ekranlarla birlikte "onay pencereleri, hata hâlleri ve boş durumlar"dır; pencereler ve hata hâlleri artık taranıyor, boş durumlar taranmıyor. `EmptyStateTests`'in durumlarından yalnız yürüyüşte de olanlar (E-03 sonuçsuz arama, E-12 boş sepet) taranıyor; boş kurulum, süzgeç sonucu boş ve adressiz/siparişsiz üye durumları (E-02, E-26, E-27, E-32, E-34, E-35, E-36, E-38, E-41, E-51, E-52) hiçbir motorda ve yolda axe'ten geçmiyor. Öneri: pencerelerdeki gibi `EmptyStateTests` yürüyüşüne tarama kancası; liste ikinci kez yazılmaz.
+- **Tur 1 bulguları kapandı:** B1 (9 pencere × "Vazgeç" odağı, 53 hata hâli; üç motor × iki yol; CI 44069637871 E2E 675/675). B2 (`WaitForFocusAsync` 5 sn; autofocus silme değişinimi chromium/firefox betiksiz yolda "odak BODY" ile kırdı; bekleme sorunu gizlemiyor).
+- **Doğrulanan:** yedi değişinim (tabindex=-1 chromium + webkit, hata özeti silme, düğme adı silme, odak çerçevesi kaldırma, `lang` silme, autofocus silme, sepetin ödeme bağlantısına tabindex=-1 → `VAL-A345`) ilgili testleri kırdı; Unit 8088/8088; build `-warnaserror` temiz; format temiz; sayfa testleri 165/165; States/Criteria/Audit üç motor × iki yol yerelde yeşil; Record + Scan chromium 20/20.
+
+## Düzeltme 3 (2026-11-17)
+
+**Bulgu (tur 2 B1, `VAL-A790`, `A776`, `A343`):** `12 §12.2` (1) kapsamı "onay pencereleri, hata hâlleri ve boş durumlar"dır; boş durumlar taranmıyordu (E-02, E-26, E-27, E-32, E-34, E-35, E-36, E-38, E-41, E-51, E-52).
+
+**Neden:** tur 1'de pencere ve hata hâli payı eklenirken `EmptyStateTests` durumları sayılmadı; kapsam maddesinin sınıfları tek tek karşılaştırılmadı (sık FAIL nedeni: kabul kriteri kısmen karşılandı).
+
+**Düzeltme:**
+- `EmptyStateTests`: gövde `RunStopAsync`'e çıktı; `AtEmptyState` kancası (boş durum açıkken, çıkış bağlantısı izlenmeden önce çağrılır). Kanca doluyken bağlam taramanın okuyabildiği bağlamdır (`AuditContextAsync`; betiksiz yolda sayfa betiği ağda kesilir) ve kesilen betiğin durumsuz "Failed to load resource" satırı hata sayılmaz (`OwnErrors`; 404 gibi durumlu satır hâlâ hata).
+- `AccessibilityStatesTests.EveryEmptyStateOfTheInventory_...`: liste ikinci kez yazılmadı; `EmptyStateTests.Stops(...)` (22 durak, E-03/E-12 dahil) her motor × yolda kancayla gezilir; taban 22 ve `taranan == durak sayısı` denetlenir. Gözlem adımı "boş durum taraması: <durum>".
+- D-1732 hedefi "T552 düzeltme turu" → F5 faz kapısı; metindeki olmayan D-1734 anışı kaldırıldı; D-1736 (e) ✅ (backlog `T552.md`). D-1736 (a), (b) bu turda yapılmadı, açık.
+
+**Değişinim:** (1) `EmptyStateTests.Stops`'tan bir durak (E-52 süzgeç) silindi → `EveryEmptyStateOfTheInventory` chromium iki yolda kırıldı (taban); geri alındı. (2) `_EmptyState.cshtml` bağlantı metni `aria-hidden` içine alındı (erişilebilir ad boş) → aynı test iki yolda kırıldı, gözlem 7+ satırda `link-name (wcag2a wcag244 wcag412) .empty-state__action`; geri alındı. Yeni ihlal çıkmadı, kaynakta düzeltme gerekmedi.
+
+**12 §12.2 (1) sınıf × kaynak (satır satır):**
+
+| §12.2 (1) sayılan sınıf | Taramanın kaynağı | Sınıf/test |
+|---|---|---|
+| Vitrin ekranları | `ScreenInventoryTests.Stops()` + sepet/ödeme ürünlü | `AccessibilityScanTests` (53 ekran, 101 durak) |
+| Ödeme adımı (E-13, ürünlü) | `AccessibilityScanTests.AuditStops()` | `AccessibilityScanTests` |
+| Hesap ekranları | `ScreenInventoryTests.Stops()` (E-24…E-27) | `AccessibilityScanTests` |
+| Panel ekranları (E-48 ekran değil) | `ScreenInventoryTests.Stops()` (E-31…E-54) | `AccessibilityScanTests` |
+| Onay pencereleri | `ConfirmWindowTests` teorileri (yansıma, 9) | `AccessibilityStatesTests.EveryConfirmationWindow...` |
+| Hata hâlleri | `ValidationStateTests.ErrorStateKeys()` (53) | `AccessibilityStatesTests.EveryFormAnswerWithAnError...` |
+| Boş durumlar | `EmptyStateTests.Stops()` (22) | `AccessibilityStatesTests.EveryEmptyStateOfTheInventory...` (yeni) |
+| İki yol, üç motor | `Ways` × `BrowserHost.Engines` | hepsi |
+
+**Testler (yerel):** build `-warnaserror` 0/0; `dotnet format --verify-no-changes` (iki `.cs`) çıkış 0; Unit'e dokunulmadı (koşulmadı). Integration: `EmptyStateTests` + `AccessibilityStatesTests` chromium 51/51; yeni test `EveryEmptyState...` firefox ve webkit × iki yol 4/4. Koşulmadı (CI E2E): Audit/Criteria/Record/Scan (kod değişmedi), tam üç motor.
+
+### Öz denetim (KK1–KK6, baştan, kod commit'i `beaa64d9`; son head dönüşte)
+
+| KK | Pay | Sonuç | Kanıt |
+|---|---|---|---|
+| KK1 | ekranlar × iki yol × üç motor | ✓ | `AccessibilityScanTests` (değişmedi; tur 2 CI 606 gözlem) |
+| KK1 | onay pencereleri | ✓ | 9 pencere, `AccessibilityStatesTests` (değişmedi) |
+| KK1 | hata hâlleri | ✓ | 53 durum, `AccessibilityStatesTests` (değişmedi) |
+| KK1 | boş durumlar × iki yol × üç motor | ✓ | 22 durak; chromium 2/2, firefox+webkit 4/4; değişinim 2 kırdı |
+| KK1 | §12.2 (1) sınıf karşılaştırması | ✓ | yukarıdaki tablo; yeni sınıf eksiği yok |
+| KK2 | beş başlık | ✓ | `AccessibilityAuditTests` değişmedi; boş durum sayfaları 04'te ekran olarak yürüyüşte de var (E-03, E-12) ya da aynı bileşen |
+| KK3 | 31 ölçüt kaydı | ✓ | `AccessibilityRecordTests` değişmedi; yeni adım adı kaydı bozmaz (`ScanStep` yalnız "otomatik tarama") |
+| KK4 | Kontrol Listesi A | `BLOCKED (OWNER_INPUT)` | D-1727, değişmedi |
+| KK5 | ihlal listesi boş | ✓ | boş durumlarda 0 ihlal (kontrast dahil), üç motor |
+| KK6 | gate kanıtı | ✓ | `observations.md` "boş durum taraması" satırları (22 durak × 6 yol-motor) |
+
+⚠ Kolay kararlar: (1) kesilen betiğin durumsuz "Failed to load resource" satırı yalnız boş durum taramasında hata sayılmıyor (betiksiz yolun doğası; 404 hâlâ hata). (2) D-1736 (a), (b) bu turda yapılmadı (süre/kapsam; zaten bloke-etmeyen K-notu), açık. Advisory CI E2E'nin son head sonucu doğrulayıcıda okunur.
+
+## Düzeltme 4 (2026-11-17)
+
+**Bulgu 1 (tur 3, ORTA, S2, `09 §19`):** `EmptyStateTests.TheScreenWithNothingToShow_..._KK2` ifade gövdeliydi (`=> RunStopAsync(...)`), gövdede `Assert` yok: `ForbiddenTestPatterns` `TestWithoutAssertion` Unit'i (8087/8088) ve CI Gate'i kırdı.
+
+**Neden:** düzeltme 3'te assert `RunStopAsync` içine kaldı; test dosyasına dokunan tur Unit TAM koşmadı (sık FAIL nedeni listesinde T552 r3 satırı).
+
+**Düzeltme:** `RunStopAsync` artık `IReadOnlyList<string>` (Failures) döner; teori `Assert.Empty(await RunStopAsync(...))` ile bitirir, `AccessibilityStatesTests` boş durum döngüsü her durak için aynı assert'i yapar. Bekçi istisnası eklenmedi, kural gevşetilmedi. Dalın değiştirdiği öteki test dosyalarında ifade gövdeli teori araması (`=> Run…Async(`, `Task … =>`): başka örnek yok (yalnız `DisposeAsync` ValueTask'ları, teori değil). **Unit TAM: 8088/8088.**
+
+**D-1740 (b) (CI E2E firefox betiksiz `NavigateAsync` 12 sn):** CI günlüğü: `waiting for navigation until "Load"`, `ValidationStateTests.cs:386`; test 2 dk 35 sn çalıştıktan sonra (hangi form olduğu günlükte yok). Yerelde firefox betiksiz Audit bu kodla ve eski kodla yeşil (yeniden üretilemedi); ağ kesme kuralı (betik istekleri iptal) ve gönderim aynı iken kırılan tek şey "load" olayı beklemesi. Düzeltme: gönderimin cevabı okunacağı için bekleme "load" (resim/betik bitişi) yerine tarayıcının cevabı devraldığı an (`Commit`) + `DOMContentLoaded`'dır (`NavigateAsync(until:)`, koşullu bekleme; `Task.Delay`/yeniden deneme yok; süre 12 sn → varsayılan 30 sn ile birlikte, tek başına süre değişikliği değil). ⚠ Kök neden CI'daki Linux firefox'ta yerelde gözlenemedi; düzeltme olay seçimini sağlamlaştırır, CI "8. E2E" son head'de doğrulayıcıda okunur.
+
+**D-1740 (a):** `EmptyStateTests.OwnErrorsOf` (saf işlev): istisna yalnız betiksiz yol + tarama kancası + sayfanın `RequestFailed` ile kesilen betik isteği sayısı (`WatchedPage.CutScripts`) kadar satırla sınırlı. Yeni test `TheCutScriptExemption_IsOnlyOnTheScriptlessWayOfTheScan_AndOnlyAsManyLinesAsScriptsWereCut_KK2` (betikli yol, kancasız, sayıdan fazla satır, durum kodlu satır, sayfa hatası).
+
+**Değişinim:** (1) `path != Scriptless` denetimi kaldırıldı → yeni test kırıldı (`Assert.Equal` 2); (2) `toDrop > 0` sayı sınırı kaldırıldı → kırıldı; ikisi geri alındı.
+
+**Testler (yerel):** build `-warnaserror` 0/0; `dotnet format --verify-no-changes --include` (4 `.cs`) çıkış 0; Unit TAM 8088/8088. Integration: `EmptyStateTests` chromium iki yol 46/46; `AccessibilityStatesTests` + `ValidationStateTests` chromium iki yol 117/117; firefox betiksiz `AccessibilityAuditTests` + `EmptyStateTests` 47/47 (Audit firefox betiksiz 590 sn'ye sığdı). Integration TAM: CI.
+
+### Öz denetim (KK1–KK6, baştan, son head)
+
+| KK | Pay | Sonuç | Kanıt |
+|---|---|---|---|
+| KK1 | ekranlar × iki yol × üç motor | ✓ | `AccessibilityScanTests` değişmedi (tur 3 doğrulayıcı: Scan 2/2) |
+| KK1 | onay pencereleri | ✓ | `ConfirmWindowTests` dokunulmadı; `AccessibilityStatesTests` pencere teorisi chromium iki yol yeşil |
+| KK1 | hata hâlleri | ✓ | `ValidationStateTests` + States chromium iki yol 117/117; gönderim beklemesi commit + DOMContentLoaded; Audit firefox betiksiz yeşil |
+| KK1 | boş durumlar × iki yol × motor | ✓ | 22 durak; `EmptyStateTests` chromium 46/46 iki yol, firefox betiksiz yeşil; tarama kancası aynı yürüyüş; Unit 8088 |
+| KK2 | beş başlık | ✓ | `AccessibilityAuditTests` firefox betiksiz yeşil (hata başlığı `ProbeAsync` yolundan) |
+| KK3 | 31 ölçüt kaydı | ✓ | `AccessibilityRecordTests` değişmedi |
+| KK4 | Kontrol Listesi A | `BLOCKED (OWNER_INPUT)` | D-1727, değişmedi |
+| KK5 | ihlal listesi boş | ✓ | tüm yerel koşularda 0 ihlal |
+| KK6 | gate kanıtı | ✓ | `observations.*` üretiliyor; yeni gözlem satırı yok |
+| — | backlog: D-1740 (a), (b) | ✓ kapandı | `DEFERRED_BACKLOG.d/T552.md`; (a) değişinimli test, (b) bekleme olayı değişti |
+| — | sık FAIL: ifade gövdeli teori / Unit TAM | ✓ | arama + Unit 8088/8088 |
+
+⚠ Kolay karar: D-1740 (b) kök nedeni yerelde yeniden üretilemedi; CI günlüğündeki "waiting for navigation until Load" kanıtıyla "load" olayı bağımlılığı kaldırıldı. D-1736 (a)–(d), D-1732 (c)(d) F5 faz kapısında açık (değişmedi).
+
+## Doğrulama — tur 4 (2026-11-18): ✓ PASS
+
+- **Bulgu sayısı:** 0; K-notları D-1746'da (bloke etmez). Düzeltme gerekmez.
+- **Tur 3 Bulgu 1 kapandı:** teori `Assert.Empty(await RunStopAsync(...))`; dalın değiştirdiği test dosyalarında assert'siz ifade gövdeli teori yok (grep); `ForbiddenTestPatterns` dosyalarına dokunulmamış (bekçi istisnası yok); Unit TAM 8088/8088; CI 44159518261 "3. Unit test" ve CI Gate yeşil.
+- **D-1740 (a), (b):** (a) istisna yalnız betiksiz yol + tarama kancası + kesilen betik sayısı kadar satır; yol denetimini silme değişinimi `TheCutScriptExemption_…` testini kırdı. (b) gönderim beklemesi `Commit` + `DOMContentLoaded`, 30 sn; sayfa hiç gelmezse yine zaman aşımıyla kırılır, 422 denetimi ve sayımlar aynı. CI "8. E2E" 682/682 (firefox betiksiz dahil); altı kayıt dosyasında "ölçülmedi", "karşılanmadı", "–" ya da "✗" hücresi yok; 6618 gözlemin hiçbiri kırmızı değil.
+- **Değişinimler (doğrulayıcı):** `tabindex=-1` (chromium ve webkit Audit klavye başlığı), hata özeti silme (E-10 hata başlığı), düğme adı silme (axe `button-name`), odak çerçevesi kaldırma (odak başlığı), `lang` silme (sayfa olguları + axe `html-has-lang`), autofocus kaldırma (betiksiz hata başlığı: odak BODY), boş durum ve pencere düşürme (States taban denetimleri), istisna yol denetimi silme; hepsi kırdı, geri alındı.
+- **Yerel:** build `-warnaserror` 0/0; `dotnet format --include` (19 `.cs`) çıkış 0; Unit 8088/8088; Integration: States + Audit + Criteria üç motor × iki yol, Record + Scan chromium iki yol, sayfa sınıfları 182/182 yeşil. Integration TAM: CI.

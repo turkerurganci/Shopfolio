@@ -19,6 +19,16 @@ public sealed class ConfirmWindowTests(BrowserHost host) : BrowserTestBase(host)
     private Task<string> FingerprintAsync(string table, string? where = null, params (string Name, object Value)[] parameters) =>
         DataRecord.RowAsync(Host.Dsn, $"SELECT count(*) AS rows, md5(coalesce(string_agg(t::text, ',' ORDER BY t::text), '')) AS fingerprint FROM {table} t {(where is null ? string.Empty : "WHERE " + where)}", parameters);
 
+    /// <summary>
+    /// What the accessibility pass does with the window while it is open (T552, 12 12.2 (1), VAL-A776, VAL-A781): the scan and the focus reading of <see cref="AccessibilityStatesTests"/> run through the very walk of this class,
+    /// so the list of windows is this class's own and no second list can drift from it. Null in this class's own tests.
+    /// </summary>
+    internal Func<string, string, WatchedPage, Task>? AtWindow { get; set; }
+
+    /// <summary>The context of a walk: the plain one, or the one the scan can read the page in (the scriptless way cuts the page's script at the network) when the accessibility pass walks the windows.</summary>
+    private Task<IBrowserContext> ContextAsync(string engine, ScriptPath path, Actor actor) =>
+        AtWindow is null ? Host.ContextAsync(engine, path, actor) : AccessibilityScanTests.AuditContextAsync(Host, engine, path, actor);
+
     /// <summary>Opens the window with the trigger, observes it, presses "Vazgeç" and observes the page it returns to and the fingerprint.</summary>
     private async Task WindowAsync(string screen, string operation, ScriptPath path, string engine, WatchedPage page, string returnPrefix, Func<Task> trigger, Func<Task<string>> fingerprint)
     {
@@ -29,6 +39,11 @@ public sealed class ConfirmWindowTests(BrowserHost host) : BrowserTestBase(host)
         string sentence = open ? Flat(await window.InnerTextAsync()) : string.Empty;
         string afterOpen = await fingerprint();
         await ObserveAsync(screen, path, engine, page, $"{operation}: işlem gönderilir", "onay penceresi açılır; işlemin adı, sonucu söyleyen cümle ve Vazgeç gösterilir; hiçbir şey yazılmaz", $"pencere açık {open}; metin \"{sentence[..Math.Min(sentence.Length, 140)]}\"; kayıt {(afterOpen == before ? "değişmedi" : "DEĞİŞTİ")}", open && sentence.Contains("Vazgeç", StringComparison.Ordinal) && afterOpen == before, before);
+        if (AtWindow is not null && open)
+        {
+            await AtWindow(screen, operation, page);
+        }
+
         await NavigateAsync(page, () => page.Page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Vazgeç", Exact = true }).ClickAsync());
         string back = new Uri(page.Page.Url).PathAndQuery;
         int windows = await page.Page.Locator(".confirm").CountAsync();
@@ -43,7 +58,7 @@ public sealed class ConfirmWindowTests(BrowserHost host) : BrowserTestBase(host)
     [MemberData(nameof(Ways))]
     public async Task TheFirmScreen_ConfirmsClosingTheSales_KK2_E44(string engine, ScriptPath path)
     {
-        await using IBrowserContext context = await Host.ContextAsync(engine, path, Actor.Admin);
+        await using IBrowserContext context = await ContextAsync(engine, path, Actor.Admin);
         WatchedPage page = await NewPageAsync(context);
         await GoAsync(page, "/panel/firma-kimligi-ve-satis");
         await WindowAsync("E-44", "satış geçici olarak kapatılır", path, engine, page, "/panel/firma-kimligi-ve-satis", () => page.Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Satışı geçici olarak kapat" }).ClickAsync(), () => FingerprintAsync("company_settings"));
@@ -55,7 +70,7 @@ public sealed class ConfirmWindowTests(BrowserHost host) : BrowserTestBase(host)
     [MemberData(nameof(Ways))]
     public async Task ThePaymentMethodsScreen_ConfirmsClosingTheTransfer_KK2_E45(string engine, ScriptPath path)
     {
-        await using IBrowserContext context = await Host.ContextAsync(engine, path, Actor.Admin);
+        await using IBrowserContext context = await ContextAsync(engine, path, Actor.Admin);
         WatchedPage page = await NewPageAsync(context);
         await GoAsync(page, "/panel/odeme-yontemleri");
         await page.Page.Locator("#transfer-switch").UncheckAsync();
@@ -69,7 +84,7 @@ public sealed class ConfirmWindowTests(BrowserHost host) : BrowserTestBase(host)
     public async Task TheShippingScreen_ConfirmsChangingTheReturnAddress_KK2_E46(string engine, ScriptPath path)
     {
         await DataRecord.RowAsync(Host.Dsn, "UPDATE company_settings SET return_recipient_name = 'İade Alıcısı', return_province_id = (SELECT id FROM provinces ORDER BY id LIMIT 1), return_district = 'Çankaya', return_address_line = 'İade Cad. 1' RETURNING 1 AS done");
-        await using IBrowserContext context = await Host.ContextAsync(engine, path, Actor.Admin);
+        await using IBrowserContext context = await ContextAsync(engine, path, Actor.Admin);
         WatchedPage page = await NewPageAsync(context);
         await GoAsync(page, "/panel/kargo-sureler-ve-varsayilanlar");
         await page.Page.Locator("[name='Input.ReturnDistrict']").FillAsync("Keçiören");
@@ -87,7 +102,7 @@ public sealed class ConfirmWindowTests(BrowserHost host) : BrowserTestBase(host)
         await using Npgsql.NpgsqlCommand command = new("SELECT email FROM customers WHERE id = @c", connection);
         command.Parameters.AddWithValue("c", Host.Seed.CustomerId);
         string address = (string)(await command.ExecuteScalarAsync(Ct))!;
-        await using IBrowserContext context = await Host.ContextAsync(engine, path, Actor.Admin);
+        await using IBrowserContext context = await ContextAsync(engine, path, Actor.Admin);
         WatchedPage page = await NewPageAsync(context);
         await GoAsync(page, "/panel/uyeler?search=" + Uri.EscapeDataString(address));
         await WindowAsync("E-40", "üye hesabı silinir", path, engine, page, "/panel/uyeler", () => page.Page.Locator("#member-delete-button").ClickAsync(), () => FingerprintAsync("customers", "id = @c", ("c", Host.Seed.CustomerId)));
@@ -100,7 +115,7 @@ public sealed class ConfirmWindowTests(BrowserHost host) : BrowserTestBase(host)
     public async Task TheAdminAccountsScreen_ConfirmsRemovingAnAdministrator_KK2_E49(string engine, ScriptPath path)
     {
         (_, Guid other) = await TestSessions.AdminAsync(Host.Dsn);
-        await using IBrowserContext context = await Host.ContextAsync(engine, path, Actor.Admin);
+        await using IBrowserContext context = await ContextAsync(engine, path, Actor.Admin);
         WatchedPage page = await NewPageAsync(context);
         await GoAsync(page, "/panel/yonetici-hesaplari");
         await WindowAsync("E-49", "yönetici kaldırılır", path, engine, page, "/panel/yonetici-hesaplari", () => page.Page.Locator($"form:has(input[name='Input.AdminId'][value='{other:D}']) button[type=submit]").First.ClickAsync(), () => FingerprintAsync("admins", "id = @a", ("a", other)));
@@ -113,7 +128,7 @@ public sealed class ConfirmWindowTests(BrowserHost host) : BrowserTestBase(host)
     public async Task TheOrderScreen_ConfirmsMarkingTheTransferPaid_KK2_E37(string engine, ScriptPath path)
     {
         SeededOrder order = await BrowserSeed.NewOrderAsync(Host.Dsn, $"e37-{engine}-{path}-{Unique()}", Shopfolio.Modules.Ordering.Contracts.OrderStatus.Placed, Shopfolio.Modules.Ordering.Contracts.PaymentStatus.Pending);
-        await using IBrowserContext context = await Host.ContextAsync(engine, path, Actor.Admin);
+        await using IBrowserContext context = await ContextAsync(engine, path, Actor.Admin);
         WatchedPage page = await NewPageAsync(context);
         await GoAsync(page, $"/panel/siparisler/{order.Id}");
         await WindowAsync("E-37", "havale siparişi ödendi işaretlenir", path, engine, page, $"/panel/siparisler/{order.Id}", () => page.Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Ödendi olarak işaretle" }).First.ClickAsync(), () => FingerprintAsync("orders", "id = @o", ("o", order.Id)));
@@ -126,7 +141,7 @@ public sealed class ConfirmWindowTests(BrowserHost host) : BrowserTestBase(host)
     public async Task TheProductForm_ConfirmsDeletingTheProduct_KK2_E33(string engine, ScriptPath path)
     {
         SeededProduct product = await BrowserSeed.NewProductAsync(Host.Dsn, $"w{Unique()}", Shopfolio.Modules.Catalog.Contracts.ProductType.Physical);
-        await using IBrowserContext context = await Host.ContextAsync(engine, path, Actor.Admin);
+        await using IBrowserContext context = await ContextAsync(engine, path, Actor.Admin);
         WatchedPage page = await NewPageAsync(context);
         await GoAsync(page, $"/panel/urunler/{product.ProductId}");
         await WindowAsync("E-33", "ürün kalıcı olarak silinir", path, engine, page, $"/panel/urunler/{product.ProductId}", () => page.Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Kalıcı olarak sil" }).First.ClickAsync(), () => FingerprintAsync("products", "id = @p", ("p", product.ProductId)));
@@ -139,7 +154,7 @@ public sealed class ConfirmWindowTests(BrowserHost host) : BrowserTestBase(host)
     public async Task TheContentForm_ConfirmsDeletingTheRecord_KK2_E41(string engine, ScriptPath path)
     {
         Guid offering = await BrowserSeed.NewOfferingAsync(Host.Dsn, $"w{Unique()}");
-        await using IBrowserContext context = await Host.ContextAsync(engine, path, Actor.Admin);
+        await using IBrowserContext context = await ContextAsync(engine, path, Actor.Admin);
         WatchedPage page = await NewPageAsync(context);
         await GoAsync(page, $"/panel/kurumsal-icerik/hizmet/{offering}");
         await WindowAsync("E-41", "hizmet kaydı kalıcı olarak silinir", path, engine, page, $"/panel/kurumsal-icerik/hizmet/{offering}", () => page.Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Kalıcı olarak sil" }).First.ClickAsync(), () => FingerprintAsync("offerings", "id = @o", ("o", offering)));
@@ -154,7 +169,7 @@ public sealed class ConfirmWindowTests(BrowserHost host) : BrowserTestBase(host)
         string email = $"e25-{Unique()}-{engine[..2]}@example.com";
         const string typed = "T551-Giris-Sifre-77!";
         await BrowserSeed.NewCustomerWithPasswordAsync(Host.Dsn, email, typed);
-        await using IBrowserContext context = await Host.ContextAsync(engine, path);
+        await using IBrowserContext context = await ContextAsync(engine, path, Actor.Visitor);
         WatchedPage page = await NewPageAsync(context);
         await GoAsync(page, "/giris");
         await page.Page.Locator("[name='Input.Email']").FillAsync(email);

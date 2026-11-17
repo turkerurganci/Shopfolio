@@ -668,8 +668,28 @@ public sealed class CartPageTests : IAsyncLifetime
     {
         int start = html.IndexOf($"id=\"line-{itemId:N}\"", StringComparison.Ordinal);
         Assert.True(start > 0, "The line is not on the page: " + html[Math.Max(0, html.IndexOf("<main", StringComparison.Ordinal))..]);
-        int end = html.IndexOf("</li>", start, StringComparison.Ordinal);
-        return html[start..end];
+
+        // The line holds the summary of its quantity form (04 2.3.2), a list of its own: the line ends at the </li> that closes the line's own <li>, not at the first one.
+        int depth = 1;
+        int position = html.IndexOf('>', start) + 1;
+        while (depth > 0)
+        {
+            int open = html.IndexOf("<li", position, StringComparison.Ordinal);
+            int close = html.IndexOf("</li>", position, StringComparison.Ordinal);
+            Assert.True(close >= 0, "The line is not closed.");
+            if (open >= 0 && open < close)
+            {
+                depth++;
+                position = open + 3;
+            }
+            else
+            {
+                depth--;
+                position = close + 5;
+            }
+        }
+
+        return html[start..(position - 5)];
     }
 
     private static async Task<CartView> ReadViewAsync(WebApplicationFactory<Program> factory, CartOwner owner)

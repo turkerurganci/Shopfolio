@@ -50,6 +50,7 @@ else
                     @if (line.ProductType != ProductType.Digital)
                     {
                         <form method="post" asp-antiforgery="true" action="@(FramePaths.Cart)?handler=UpdateCartItem" class="cart-line__quantity" data-js="submit-once">
+                            <partial name="_ChangeNotice" />
                             <input type="hidden" name="CartItemId" value="@line.ItemId" />
                             <label for="@quantityId">Adet</label>
                             <input id="@quantityId" name="Quantity" type="number" min="1" step="1" inputmode="numeric" value="@(refused && Model.SentQuantity is not null ? Model.SentQuantity : line.Quantity.ToString(System.Globalization.CultureInfo.InvariantCulture))" aria-describedby="@Messages.FieldMessageId(quantityId)" aria-invalid="@(refused && summary.HasContent ? "true" : null)" />

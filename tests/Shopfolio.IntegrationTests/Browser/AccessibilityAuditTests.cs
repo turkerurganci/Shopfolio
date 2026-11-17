@@ -274,6 +274,7 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
             text.Add($"| {c.Id} {c.Name} | {(c.Applies ? "karşılandı" : "uygulanmaz")} | {(c.Applies ? string.Empty : c.Reason + "; ")}kanıt: {string.Join(", ", c.Evidence)} | {string.Join(", ", c.Rows)} |");
         }
 
+        text.AddRange(["", "## Kontrol Listesi A Seviyesi maddeleri (12 §12.2 Ayrım; T552 kabul kriteri 4)", string.Empty, WcagCriteria.ChecklistAStatus + ": " + WcagCriteria.ChecklistAReason]);
         text.AddRange(["", "## Ekran × ölçüt matrisi (✓ karşılandı, o uygulanmaz, ● ortak kanıt)", string.Empty]);
         text.AddRange(["| Ekran | " + string.Join(" | ", WcagCriteria.All.Select(c => c.Id)) + " |", "|---|" + string.Concat(Enumerable.Repeat("---|", WcagCriteria.All.Count))]);
         foreach (string screen in screens)

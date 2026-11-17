@@ -205,33 +205,110 @@ public sealed class AccessibilityRecordTests
         Assert.True(found.Count == 0, string.Join(Environment.NewLine, found.Take(10)));
     }
 
-    [Theory]
-    [InlineData("document.addEventListener(\"keydown\", (e) => { if (e.key === \"s\") { save(); } });")]
-    [InlineData("window.onkeydown = (e) => { if (e.key == 'k') { go(); } };")]
-    [InlineData("el.addEventListener('touchmove', move);")]
-    [InlineData("<button type=\"button\" onpointerdown=\"press()\">x</button>")]
-    [InlineData("<a href=\"/x\" accesskey=\"s\">x</a>")]
-    [InlineData("window.addEventListener(\"devicemotion\", shake);")]
-    [InlineData("document.addEventListener(\"keydown\", (event) => { const { key } = event; if (key === \"/\") { focusSearch(); } });")]
-    [InlineData("document.addEventListener(\"keyup\", (event) => { if ([\"j\", \"k\"].includes(event.key)) { next(); } });")]
-    [InlineData("document.addEventListener(\"keydown\", (event) => { switch (event.key) { case \"g\": go(); break; } });")]
-    [InlineData("el.addEventListener(`mousedown`, press);")]
-    [InlineData("el.setAttribute(\"onmouseup\", \"release()\");")]
-    [InlineData("document.addEventListener(\"keydown\", (e) => { if (\"s\" === e.key) { save(); } });")]
-    [InlineData("document.addEventListener(\"keydown\", (e) => { if (e.keyCode === 83) { save(); } });")]
-    [InlineData("<div draggable=\"true\">x</div>")]
-    public void TheSourceScan_CatchesEachFormOfWhatTheCriteriaForbid_KK3(string source)
+    [Fact]
+    public void TheSourceScan_CatchesEachFormOfWhatTheCriteriaForbid_KK3()
     {
-        Assert.NotEmpty(Violations("sample", source));
+        string[] samples =
+        [
+            "document.addEventListener(\"keydown\", (e) => { if (e.key === \"s\") { save(); } });",
+            "window.onkeydown = (e) => { if (e.key == 'k') { go(); } };",
+            "el.addEventListener('touchmove', move);",
+            "<button type=\"button\" onpointerdown=\"press()\">x</button>",
+            "<a href=\"/x\" accesskey=\"s\">x</a>",
+            "window.addEventListener(\"devicemotion\", shake);",
+            "document.addEventListener(\"keydown\", (event) => { const { key } = event; if (key === \"/\") { focusSearch(); } });",
+            "document.addEventListener(\"keyup\", (event) => { if ([\"j\", \"k\"].includes(event.key)) { next(); } });",
+            "document.addEventListener(\"keydown\", (event) => { switch (event.key) { case \"g\": go(); break; } });",
+            "el.addEventListener(`mousedown`, press);",
+            "el.setAttribute(\"onmouseup\", \"release()\");",
+            "document.addEventListener(\"keydown\", (e) => { if (\"s\" === e.key) { save(); } });",
+            "document.addEventListener(\"keydown\", (e) => { if (e.keyCode === 83) { save(); } });",
+            "<div draggable=\"true\">x</div>",
+        ];
+        foreach (string source in samples)
+        {
+            Assert.NotEmpty(Violations("sample", source));
+        }
+    }
+
+    private static readonly string[] SendingMarkers = ["data-js=\"submit-on-change\"", "data-js=\"checkout\"", "data-js=\"variant-form\""];
+
+    private static readonly string[] SendingScripts = ["common.js", "cart.js", "checkout.js", "product.js"];
+
+    /// <summary>
+    /// 3.2.2 (T552): a form whose value change sends it by itself carries the one notice (<c>_ChangeNotice</c>) before the change is made. A form sends itself when its tag carries the marker of a script that does it (the sales
+    /// summary period, the payment step, a product's variant choice) or when it is a quantity form (<c>name="Quantity"</c> in a <c>submit-once</c> form); a script that sends a form (<c>requestSubmit</c>) outside the four known
+    /// scripts is a new way to send by a change that this scan has not been told about.
+    /// </summary>
+    internal static List<string> ChangeNoticeViolations(string name, string text)
+    {
+        List<string> found = [];
+        if (name.EndsWith(".cshtml", StringComparison.Ordinal))
+        {
+            foreach (System.Text.RegularExpressions.Match form in System.Text.RegularExpressions.Regex.Matches(text, "<form\\b([^>]*)>(.*?)</form>", System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.CultureInvariant, RegexTimeout))
+            {
+                string tag = form.Groups[1].Value;
+                string body = form.Groups[2].Value;
+                bool sends = SendingMarkers.Any(m => tag.Contains(m, StringComparison.Ordinal))
+                    || (tag.Contains("data-js=\"submit-once\"", StringComparison.Ordinal) && body.Contains("name=\"Quantity\"", StringComparison.Ordinal));
+                if (sends && !body.Contains("<partial name=\"_ChangeNotice\"", StringComparison.Ordinal))
+                {
+                    found.Add($"{name}: a form that sends itself by a change has no notice (T552, 3.2.2).");
+                }
+            }
+        }
+        else if (text.Contains("requestSubmit", StringComparison.Ordinal) && !SendingScripts.Any(s => name.EndsWith(s, StringComparison.Ordinal)))
+        {
+            found.Add($"{name}: sends a form by script outside the scripts this scan knows (T552, 3.2.2).");
+        }
+
+        return found;
+    }
+
+    [Fact]
+    public void EveryFormThatSendsItselfByAChange_CarriesTheNoticeOnce_AndTheKnownScriptsAreTheOnlySenders_T552()
+    {
+        List<(string Name, string Text)> sources = [.. Sources()];
+        List<string> found = [.. sources.SelectMany(s => ChangeNoticeViolations(s.Name, s.Text))];
+        Assert.True(found.Count == 0, string.Join(Environment.NewLine, found.Take(10)));
+        Assert.Equal(4, sources.Count(s => s.Text.Contains("<partial name=\"_ChangeNotice\"", StringComparison.Ordinal)));
+        Assert.All(SendingScripts, s => Assert.Contains(sources, x => x.Name.EndsWith(s, StringComparison.Ordinal) && x.Text.Contains("requestSubmit", StringComparison.Ordinal)));
     }
 
     [Theory]
-    [InlineData("panel.addEventListener(\"keydown\", (event) => { if (event.key === \"Escape\") { close(); } });")]
-    [InlineData("button.addEventListener(\"click\", () => open());")]
-    [InlineData("group.addEventListener(\"keydown\", (event) => { if ([\"ArrowDown\", \"ArrowUp\", \" \"].includes(event.key)) { move(); } });")]
-    [InlineData("form.addEventListener(\"change\", () => send());")]
-    public void TheSourceScan_LetsTheEscapeKeyTheArrowsAndTheClickPass_KK3(string source)
+    [InlineData("a.cshtml", "<form method=\"get\" data-js=\"submit-on-change\"><select></select></form>")]
+    [InlineData("a.cshtml", "<form data-js=\"checkout\"><input /></form>")]
+    [InlineData("a.cshtml", "<form data-js=\"variant-form\">x</form>")]
+    [InlineData("a.cshtml", "<form data-js=\"submit-once\"><input name=\"Quantity\" /></form>")]
+    [InlineData("new.js", "form.requestSubmit(button);")]
+    public void TheNoticeScan_CatchesAFormOrAScriptThatSendsWithoutTheNotice_T552(string name, string source)
     {
-        Assert.Empty(Violations("sample", source));
+        Assert.NotEmpty(ChangeNoticeViolations(name, source));
+    }
+
+    [Theory]
+    [InlineData("a.cshtml", "<form data-js=\"submit-once\"><partial name=\"_ChangeNotice\" /><input name=\"Quantity\" /></form>")]
+    [InlineData("a.cshtml", "<form data-js=\"submit-once\"><input name=\"Other\" /></form>")]
+    [InlineData("a.cshtml", "<form method=\"post\"><input /></form>")]
+    [InlineData("cart.js", "owner.requestSubmit(button);")]
+    public void TheNoticeScan_LetsTheNoticedFormAndTheOtherFormsPass_T552(string name, string source)
+    {
+        Assert.Empty(ChangeNoticeViolations(name, source));
+    }
+
+    [Fact]
+    public void TheSourceScan_LetsTheEscapeKeyTheArrowsAndTheClickPass_KK3()
+    {
+        string[] samples =
+        [
+            "panel.addEventListener(\"keydown\", (event) => { if (event.key === \"Escape\") { close(); } });",
+            "button.addEventListener(\"click\", () => open());",
+            "group.addEventListener(\"keydown\", (event) => { if ([\"ArrowDown\", \"ArrowUp\", \" \"].includes(event.key)) { move(); } });",
+            "form.addEventListener(\"change\", () => send());",
+        ];
+        foreach (string source in samples)
+        {
+            Assert.Empty(Violations("sample", source));
+        }
     }
 }

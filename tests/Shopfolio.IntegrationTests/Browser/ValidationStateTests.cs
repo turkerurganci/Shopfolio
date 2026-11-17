@@ -339,6 +339,7 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
         FormCase form = ByKey[key];
         await using IBrowserContext context = await Host.ContextAsync(engine, path, form.Actor);
         await ObserveProbeAsync(engine, path, form, context, null);
+        Assert.Empty(Failures);
     }
 
     /// <summary>Sends the case's form with a value that is not allowed in the context and lets <paramref name="inspect"/> read the page that answers (the manual audit's error message heading, T552).</summary>

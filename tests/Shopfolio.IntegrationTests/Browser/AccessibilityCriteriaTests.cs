@@ -65,6 +65,19 @@ public sealed class AccessibilityCriteriaTests(BrowserHost host) : BrowserTestBa
             pathBefore == pathAfter && headingBefore == headingAfter && valueBefore != valueAfter);
     }
 
+    /// <summary>
+    /// The notice before the change (VAL-A784, "değişim önceden söylenmiştir"): the form that holds the field says, visibly and in its own text, that a change of a value updates the page by itself - measured on the page the
+    /// visitor sees before touching the field, with the text the one component writes (<see cref="Shopfolio.Pages.Components.ChangeNotice.Text"/>).
+    /// </summary>
+    private async Task NoticeAsync(string engine, WatchedPage page, string screen, ILocator field)
+    {
+        string told = await field.EvaluateAsync<string>("(el) => { const n = el.closest('form')?.querySelector('[data-js=\"change-notice\"]'); return n && !n.hidden && n.getClientRects().length > 0 ? n.textContent.trim() : ''; }");
+        await ObserveAsync(
+            "VAL-A784", ScriptPath.Scripted, engine, page, $"{screen}: değişim önceden söylenir",
+            "değer değişince kendiliğinden gönderilen formda değişiklikten önce görünen kısa bilgilendirme vardır (WCAG 3.2.2)",
+            $"formdaki bilgilendirme: «{told}»", told == Shopfolio.Pages.Components.ChangeNotice.Text);
+    }
+
     [Theory]
     [MemberData(nameof(ScriptedEngines))]
     public async Task AChangedValue_OnTheScreensThatReactToIt_LeavesTheSameScreenWithItsOwnFiguresChanged_VALA784(string engine)
@@ -79,6 +92,7 @@ public sealed class AccessibilityCriteriaTests(BrowserHost host) : BrowserTestBa
         string[] values = await select.EvaluateAsync<string[]>("(s) => [...s.options].map((o) => o.value)");
         string current = await select.InputValueAsync();
         string other = values.First(v => v != current);
+        await NoticeAsync(engine, product, "E-04", select);
         await ChangeAsync(engine, product, "E-04", "seçenek değiştirilir", () => select.SelectOptionAsync(other), "seçilen seçenek", async () => await select.InputValueAsync(), mayStayInPlace: true);
         await product.Page.CloseAsync();
 
@@ -87,6 +101,7 @@ public sealed class AccessibilityCriteriaTests(BrowserHost host) : BrowserTestBa
         await scan.FillCartAsync(cart);
         await GoAsync(cart, "/sepet");
         ILocator quantity = cart.Page.Locator("form[data-js='submit-once'] input[name='Quantity']").First;
+        await NoticeAsync(engine, cart, "E-12", quantity);
         await ChangeAsync(engine, cart, "E-12", "adet değiştirilir", async () =>
         {
             await quantity.FillAsync("2");
@@ -98,6 +113,7 @@ public sealed class AccessibilityCriteriaTests(BrowserHost host) : BrowserTestBa
         WatchedPage checkout = await NewPageAsync(visitor);
         await GoAsync(checkout, "/odeme");
         ILocator province = checkout.Page.Locator("select[name=ShippingProvinceId]");
+        await NoticeAsync(engine, checkout, "E-13", province);
         await ChangeAsync(engine, checkout, "E-13", "teslimat ili değiştirilir", () => province.SelectOptionAsync(new SelectOptionValue { Label = "Ankara" }), "seçilen il", async () => await province.EvaluateAsync<string>("(s) => s.options[s.selectedIndex].text"));
         await checkout.Page.CloseAsync();
 
@@ -108,6 +124,7 @@ public sealed class AccessibilityCriteriaTests(BrowserHost host) : BrowserTestBa
         ILocator period = summary.Page.Locator("select[name=period]");
         string[] periods = await period.EvaluateAsync<string[]>("(s) => [...s.options].map((o) => o.value)");
         string chosen = await period.InputValueAsync();
+        await NoticeAsync(engine, summary, "E-51", period);
         await ChangeAsync(engine, summary, "E-51", "dönem değiştirilir", () => period.SelectOptionAsync(periods.First(v => v != chosen && v.Length > 0)), "seçilen dönem", async () => await period.InputValueAsync());
         await summary.Page.CloseAsync();
 

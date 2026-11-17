@@ -107,6 +107,7 @@
             @if (view.Options.Count > 0)
             {
                 <form class="variant-form" method="get" action="@view.Path" data-js="variant-form">
+                    <partial name="_ChangeNotice" />
                     @foreach (OptionField field in view.Options)
                     {
                         <div class="variant-form__field">

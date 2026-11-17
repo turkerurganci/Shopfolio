@@ -10,6 +10,14 @@ internal static class WcagCriteria
     /// <summary>The evidence of the criteria that every screen answers for itself: the headings of the manual audit and its page facts, read from the record of the screen.</summary>
     internal static readonly string[] ScreenEvidence = [.. AccessibilityAuditTests.Headings, FactsStep];
 
+    /// <summary>
+    /// The result of the Checklist A items (T552 criterion 4): the text of the Ministry's list is an outside source and its item numbers are not copied into the documents (12 12.2 Ayrım); the search of 2026-11-17 reached the
+    /// circular and the news pages of the Ministry but not the item text, so every item is blocked until the owner supplies the list, and each item then maps to the WCAG criterion it corresponds to (or "no counterpart").
+    /// </summary>
+    internal const string ChecklistAStatus = "BLOCKED (OWNER_INPUT)";
+
+    internal const string ChecklistAReason = "Kontrol Listesi A Seviyesi madde metni dış kaynaktır (Bakanlığın belgesi) ve erişilemedi; her madde, listeyi sahip verince WCAG ölçütüyle eşlenir ya da karşılığı yok diye sonuç alır. 31 WCAG ölçütünün sonucu yukarıdadır.";
+
     internal const string FactsStep = "sayfa olguları";
     internal const string ScanStep = "otomatik tarama";
     internal const string SourceScan = "kaynak taraması (AccessibilitySourceScanTests)";

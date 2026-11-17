@@ -308,7 +308,7 @@
 | T549 | Vitrin: arşivlenmiş ürün sayfası (E-05) | ✓ | ✓ PASS (tur 1) | `7973b482` | #550 |
 | T550 | F4 kapanış düzeltmeleri: null-forgiving temizliği ve sır bekçisi önek soyma | ✓ | ✓ PASS (tur 1) | `bf77ceaf` | #533 |
 | T551 | Tarayıcı aracı ve betiksiz yol gözlemi | ✓ | ✓ PASS (tur 5) | `d7331fdc` | #583 |
-| T552 | A seviyesi erişilebilirlik taraması ve ihlal düzeltmesi | ⬚ | — | — | — |
+| T552 | A seviyesi erişilebilirlik taraması ve ihlal düzeltmesi | ⏳ | — | — | — |
 
 ---
 

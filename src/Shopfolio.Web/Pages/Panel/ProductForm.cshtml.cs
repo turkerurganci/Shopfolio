@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -694,6 +696,40 @@ internal sealed class ProductFormModel : PageModel
             Fields.ClosedList("Input.WithdrawalExemptionReason", "Cayma hakkı istisnası", FieldRequirement.Optional, exemptions, Form.WithdrawalExemptionReason?.ToString(), NewOrdersOnlyText),
         ]);
         return Fields.BindAll(fields, summary);
+    }
+
+    /// <summary>The element ids of a variant row's inputs by the member they carry; a member without an input of its own is reached through the row (<see cref="UploadFieldId"/>).</summary>
+    private static readonly FrozenDictionary<string, string> VariantInputSuffixes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["SKU"] = "sku",
+        ["Price"] = "price",
+        ["StockQuantity"] = "stock",
+        ["NetQuantity"] = "net",
+        ["FirstOptionValueId"] = "option-0",
+        ["SecondOptionValueId"] = "option-1",
+    }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// The summary at the head of the product form (04 2.3.2): the wrong fields of the sent form, each linked to the element that carries it. The variant rows name their inputs by row and
+    /// column (<c>product-variant-{n}-stock</c>), not by the framework's spelling of the member, so a variant member's link is mapped to the input's own id (the row when the member has no input).
+    /// </summary>
+    public FormErrorSummary ErrorSummary()
+    {
+        FormErrorSummary summary = FormErrorSummary.From(ModelState);
+        const string prefix = "Input_Variants_"; // the framework's id of "Input.Variants[n].Member" is "Input_Variants_n__Member"
+        static FormFieldError Mapped(FormFieldError error)
+        {
+            if (!error.FieldId.StartsWith(prefix, StringComparison.Ordinal) || error.FieldId.IndexOf("__", prefix.Length, StringComparison.Ordinal) is not (> 0 and var split))
+            {
+                return error;
+            }
+
+            string row = error.FieldId[prefix.Length..split];
+            string name = error.FieldId[(split + 2)..];
+            return error with { FieldId = VariantInputSuffixes.TryGetValue(name, out string? suffix) ? $"product-variant-{row}-{suffix}" : UploadFieldId($"Variants[{row}].ImageId") };
+        }
+
+        return new FormErrorSummary([.. summary.Fields.Select(Mapped)], summary.FormMessages);
     }
 
     /// <summary>The screen names of the gate's conditions (04 9.5.10): ad, ana kategori, tip, en az bir yayındaki seçenek, yayındaki her seçeneğin dosyası, ifa süresi.</summary>

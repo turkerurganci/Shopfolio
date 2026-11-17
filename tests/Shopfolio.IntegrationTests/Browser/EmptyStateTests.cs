@@ -230,14 +230,24 @@ public sealed class EmptyStateTests(BrowserHost host) : BrowserTestBase(host)
         await File.WriteAllLinesAsync(System.IO.Path.Combine(Host.Record.Directory, "empty-state-derivation.md"), table, Ct);
     }
 
+    /// <summary>
+    /// What the accessibility pass does with an empty state while it is open (T552, 12 12.2 (1), VAL-A776, VAL-A790): the scan of <see cref="AccessibilityStatesTests"/> runs through the very walk of this class,
+    /// so the list of empty states is <see cref="Stops"/> and no second list can drift from it. Null in this class's own tests.
+    /// </summary>
+    internal Func<EmptyStop, ScriptPath, string, WatchedPage, Task>? AtEmptyState { get; set; }
+
     [Theory]
     [MemberData(nameof(AllCases))]
-    public async Task TheScreenWithNothingToShow_SaysWhatIsNotThere_AndShowsAWayOut_KK2(string engine, ScriptPath path, string key)
+    public async Task TheScreenWithNothingToShow_SaysWhatIsNotThere_AndShowsAWayOut_KK2(string engine, ScriptPath path, string key) => Assert.Empty(await RunStopAsync(engine, path, key));
+
+    /// <summary>Opens one stop in the engine and the way, measures it and follows its way out; the accessibility pass runs this with <see cref="AtEmptyState"/> set.</summary>
+    internal async Task<IReadOnlyList<string>> RunStopAsync(string engine, ScriptPath path, string key)
     {
         EmptyStop stop = Stops(Host.Seed).Single(s => s.Key == key);
         BrowserHost on = stop.On == EmptyOn.NoRecord ? await Host.EmptyAsync() : Host;
         string address = stop.Address.Replace("{admin}", on.Seed.AdminId.ToString("D"), StringComparison.Ordinal);
-        await using IBrowserContext context = await on.ContextAsync(engine, path, stop.Actor);
+        // The scan cannot run in a context with the script switched off: when the pass walks the states, the scriptless way is a context whose page script is cut at the network (AccessibilityScanTests.AuditContextAsync).
+        await using IBrowserContext context = AtEmptyState is null ? await on.ContextAsync(engine, path, stop.Actor) : await AccessibilityScanTests.AuditContextAsync(on, engine, path, stop.Actor);
         WatchedPage page = await NewPageAsync(context);
         IResponse? response = await page.Page.GotoAsync(on.BaseUrl + address, new PageGotoOptions { WaitUntil = WaitUntilState.Load, Timeout = 30000 });
         ILocator main = page.Page.Locator("main");
@@ -268,7 +278,7 @@ public sealed class EmptyStateTests(BrowserHost host) : BrowserTestBase(host)
 
         int rows = await main.Locator(stop.Rows).CountAsync();
         int errors = await main.Locator(".message--error, [data-js=error-summary]").CountAsync();
-        bool ok = response?.Status == 200 && sentencesOk && exitsOk && rows == 0 && errors == 0 && page.Errors.Count == 0;
+        bool ok = response?.Status == 200 && sentencesOk && exitsOk && rows == 0 && errors == 0 && OwnErrors(page, path).Count == 0;
         await ObserveAsync(
             stop.Screen,
             path,
@@ -276,15 +286,68 @@ public sealed class EmptyStateTests(BrowserHost host) : BrowserTestBase(host)
             page,
             $"{stop.State}: {address.Split('?')[0]} açılır",
             $"200 döner; boş hâl cümlesi (\"{stop.Says}\") {stop.Count} kez; çıkış {(stop.ExitHref is null ? "04'te tanımlı değil" : $"{stop.Count} bağlantı, {stop.ExitHref}")}; kayıt satırı yok; hata gösterilmez",
-            $"durum {response?.Status}; cümle {count}: \"{string.Join("\" / \"", said.Take(3))}\"; çıkış {exitCount}: {string.Join(" / ", exitLines.Take(3))}; kayıt satırı {rows}; hata {errors}; sayfa hatası {page.Errors.Count}",
+            $"durum {response?.Status}; cümle {count}: \"{string.Join("\" / \"", said.Take(3))}\"; çıkış {exitCount}: {string.Join(" / ", exitLines.Take(3))}; kayıt satırı {rows}; hata {errors}; sayfa hatası {OwnErrors(page, path).Count}",
             ok);
+
+        if (AtEmptyState is not null)
+        {
+            await AtEmptyState(stop, path, engine, page);
+        }
 
         if (stop.ExitHref is not null && exitCount > 0)
         {
             await FollowFirstExitAsync(stop, path, engine, page, exits.First, on);
         }
 
-        Assert.Empty(Failures);
+        return Failures;
+    }
+
+    /// <summary>
+    /// The browser's own error messages of the page. When the accessibility pass walks the states the scriptless way cuts the page's script at the network (<see cref="AccessibilityScanTests.AuditContextAsync"/>),
+    /// and the browser reports each cut script as a failed request with no status; those lines are the cut itself, not a fault of the page (a status such as 404 is still a fault).
+    /// The exemption is that and nothing wider (D-1740 (a)): only on the scriptless way, only with the scan hook set, and no more lines than the script requests that failed at the network.
+    /// </summary>
+    private List<string> OwnErrors(WatchedPage page, ScriptPath path) =>
+        OwnErrorsOf(page.Errors, page.CutScripts, path, AtEmptyState is not null);
+
+    /// <summary>The page's error lines without the lines of the cut script requests: at most <paramref name="cutScripts"/> lines of a failed load with no status, and only when the scan walks the states on the scriptless way.</summary>
+    internal static List<string> OwnErrorsOf(IReadOnlyList<string> errors, int cutScripts, ScriptPath path, bool scanIsWalking)
+    {
+        if (!scanIsWalking || path != ScriptPath.Scriptless)
+        {
+            return [.. errors];
+        }
+
+        int toDrop = cutScripts;
+        List<string> own = [];
+        foreach (string error in errors)
+        {
+            bool cut = toDrop > 0 && error.StartsWith("console: Failed to load resource", StringComparison.Ordinal) && !error.Contains("status of", StringComparison.Ordinal);
+            toDrop -= cut ? 1 : 0;
+            if (!cut)
+            {
+                own.Add(error);
+            }
+        }
+
+        return own;
+    }
+
+    [Fact]
+    public void TheCutScriptExemption_IsOnlyOnTheScriptlessWayOfTheScan_AndOnlyAsManyLinesAsScriptsWereCut_KK2()
+    {
+        string[] twoCuts = ["console: Failed to load resource: net::ERR_FAILED", "console: Failed to load resource: net::ERR_FAILED"];
+
+        // The exemption: both lines are the cut of two scripts.
+        Assert.Empty(OwnErrorsOf(twoCuts, 2, ScriptPath.Scriptless, true));
+        // Not on the scripted way (a failed script there is a fault), not without the scan walking the states.
+        Assert.Equal(2, OwnErrorsOf(twoCuts, 2, ScriptPath.Scripted, true).Count);
+        Assert.Equal(2, OwnErrorsOf(twoCuts, 2, ScriptPath.Scriptless, false).Count);
+        // Not for another resource: a third line has no cut script behind it, a status line is a fault, a page error is a fault.
+        Assert.Single(OwnErrorsOf([.. twoCuts, "console: Failed to load resource: net::ERR_FAILED"], 2, ScriptPath.Scriptless, true));
+        Assert.Single(OwnErrorsOf(["console: Failed to load resource: the server responded with a status of 404 ()"], 1, ScriptPath.Scriptless, true));
+        Assert.Single(OwnErrorsOf(["page: boom"], 1, ScriptPath.Scriptless, true));
+        Assert.Single(OwnErrorsOf(twoCuts, 1, ScriptPath.Scriptless, true));
     }
 
     /// <summary>The way out leads to the address the document names; the first of a group leads to a record form under it.</summary>
@@ -299,7 +362,7 @@ public sealed class EmptyStateTests(BrowserHost host) : BrowserTestBase(host)
     {
         string href = await exit.GetAttributeAsync("href") ?? string.Empty;
         string target = new Uri(new Uri(on.BaseUrl), href).GetLeftPart(UriPartial.Path);
-        int before = page.Errors.Count;
+        int before = OwnErrors(page, path).Count;
         int missingImages = 0;
         IResponse? response = null;
         int hash = href.IndexOf('#', StringComparison.Ordinal);
@@ -324,7 +387,7 @@ public sealed class EmptyStateTests(BrowserHost host) : BrowserTestBase(host)
             string landed = new Uri(page.Page.Url).PathAndQuery;
             string title = await page.Page.TitleAsync();
             // The image address has no serving endpoint yet (D-1711): the browser's own 404 line of such a request is the known state, as in the walk.
-            List<string> fresh = [.. page.Errors.Skip(before)];
+            List<string> fresh = [.. OwnErrors(page, path).Skip(before)];
             int known = Math.Min(missingImages, fresh.Count(e => e.Contains("status of 404", StringComparison.Ordinal)));
             int unknown = fresh.Count - known;
             ok = (response?.Status ?? 0) is >= 200 and < 400 && page.Page.Url.StartsWith(target, StringComparison.Ordinal) && title.Length > 0 && unknown == 0;

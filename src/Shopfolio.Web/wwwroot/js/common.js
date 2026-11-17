@@ -275,6 +275,11 @@ function bindDownloadOnce(form) {
     });
 }
 
+// The notice of a form whose change sends it by itself (T552, WCAG 2.2 3.2.2): drawn hidden by the server and told here, where the scripts that send the change run; without a script nothing is sent by a change.
+for (const notice of document.querySelectorAll('[data-js="change-notice"]')) {
+    notice.hidden = false;
+}
+
 // A reading form whose choice applies at once (the sales summary's period, 04 9.22.8): a change of the closed list sends the form, unless the choice is the custom range, whose two dates are sent by
 // the form's button. Without a script the button sends the form. The send is the form's own button's send (09 16.2 item 1): requestSubmit with the submitter, so the same handler answers.
 for (const form of document.querySelectorAll('[data-js="submit-on-change"]')) {

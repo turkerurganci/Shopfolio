@@ -10,8 +10,11 @@ namespace Shopfolio.IntegrationTests.Browser;
 /// </summary>
 public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(host)
 {
-    /// <summary>One address of the walk: the inventory id, the state it shows, who opens it and the status it must answer.</summary>
-    internal sealed record Stop(string Screen, string State, Actor Actor, string Path, int Status = 200);
+    /// <summary>
+    /// One address of the walk: the inventory id, the state it shows, who opens it and the status it must answer. <paramref name="Marker"/> is the selector only the stop's own state draws (the form or the
+    /// button of a valid link), so a stop whose seeded link stopped being valid (the page shows its invalid-link sentence and answers 200 all the same) breaks the walk.
+    /// </summary>
+    internal sealed record Stop(string Screen, string State, Actor Actor, string Path, int Status = 200, string? Marker = null);
 
     /// <summary>The inventory's screens E-01...E-54 (E-48 is not a screen, 04 4.3) with the states the walk opens each in.</summary>
     internal IReadOnlyList<Stop> Stops()
@@ -29,6 +32,8 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
         string plain = seed.Product("plain").Slug;
         string variants = seed.Product("variants").Slug;
         const string unknownKey = "T551-yok-baglanti-anahtari";
+        const string VerifyButton = "form[action*='handler=VerifyEmail']";
+        BrowserSeed.SeededLinks links = Host.Links;
         List<Stop> stops =
         [
             // Customer side (04 4.1).
@@ -72,9 +77,13 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
             new("E-19", "ayıp talebi ekranı, teslim edilmiş", Actor.Visitor, $"/siparis/erisim/{delivered.AccessKey}/ayip-talebi"),
             new("E-20", "kayıt ekranı", Actor.Visitor, "/kayit"),
             new("E-21", "doğrulama bağlantısı, geçersiz bağlantı", Actor.Visitor, $"/dogrulama/{unknownKey}"),
+            new("E-21", "doğrulama bağlantısı, geçerli kayıt bağlantısı (doğrulama adımı)", Actor.Visitor, $"/dogrulama/{links.Registration}", Marker: VerifyButton),
+            new("E-21", "doğrulama bağlantısı, geçerli yeni e-posta bağlantısı (doğrulama adımı)", Actor.Visitor, $"/dogrulama/{links.NewAddress}", Marker: VerifyButton),
+            new("E-21", "doğrulama bağlantısı, geçerli Google girişi teyit bağlantısı (doğrulama adımı)", Actor.Visitor, $"/dogrulama/{links.GoogleConfirmation}", Marker: VerifyButton),
             new("E-22", "müşteri girişi", Actor.Visitor, "/giris"),
             new("E-23", "şifre sıfırlama, bağlantı isteme", Actor.Visitor, "/sifre-sifirlama"),
             new("E-23", "şifre sıfırlama, geçersiz bağlantı", Actor.Visitor, $"/sifre-sifirlama/{unknownKey}"),
+            new("E-23", "şifre sıfırlama, geçerli bağlantı (yeni şifre adımı)", Actor.Visitor, $"/sifre-sifirlama/{links.PasswordReset}", Marker: "form#reset-set-form"),
             new("E-24", "yeniden doğrulama", Actor.Customer, "/hesap/yeniden-dogrulama"),
             new("E-24", "yeniden doğrulama, e-posta değişikliği için", Actor.Customer, "/hesap/yeniden-dogrulama?reauthenticatedOperation=EmailChange"),
             new("E-25", "hesap, profil ve güvenlik", Actor.Customer, "/hesap"),
@@ -82,12 +91,15 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
             new("E-26", "adres defteri, yeni adres formu", Actor.Customer, "/hesap/adresler?create=true"),
             new("E-27", "sipariş geçmişi", Actor.Customer, "/hesap/siparisler"),
             new("E-28", "e-posta değişikliğini geri alma, geçersiz bağlantı", Actor.Visitor, $"/geri-al/{unknownKey}"),
+            new("E-28", "e-posta değişikliğini geri alma, geçerli bağlantı (geri alma adımı)", Actor.Visitor, $"/geri-al/{links.EmailRevert}", Marker: "form[action*='handler=RevertPendingEmailChange']"),
 
             // Panel (04 4.2).
             new("E-29", "panel girişi", Actor.Visitor, "/panel/giris"),
             new("E-29", "panel şifre sıfırlama, bağlantı isteme", Actor.Visitor, "/panel/sifre-sifirlama"),
             new("E-30", "yönetici daveti, geçersiz bağlantı", Actor.Visitor, $"/panel/davet/{unknownKey}"),
-            new("E-30", "yönetici daveti, geçerli bağlantı", Actor.Visitor, $"/panel/davet/{Host.InvitationKey}"),
+            new("E-29", "panel şifre sıfırlama, geçersiz bağlantı", Actor.Visitor, $"/panel/sifre-sifirlama/{unknownKey}"),
+            new("E-29", "panel şifre sıfırlama, geçerli bağlantı (yeni şifre adımı)", Actor.Visitor, $"/panel/sifre-sifirlama/{links.AdminPasswordReset}", Marker: "form[action*='handler=ResetPassword']"),
+            new("E-30", "yönetici daveti, geçerli bağlantı", Actor.Visitor, $"/panel/davet/{Host.InvitationKey}", Marker: "form[action*='handler=AcceptAdminInvitation']"),
             new("E-31", "panel ana sayfası", Actor.Admin, "/panel"),
             new("E-32", "ürün listesi", Actor.Admin, "/panel/urunler"),
             new("E-33", "ürün formu, yeni ürün", Actor.Admin, "/panel/urunler/yeni"),
@@ -123,7 +135,9 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
             new("E-54", "yeniden doğrulama", Actor.Admin, "/panel/yeniden-dogrulama"),
             new("E-54", "yeniden doğrulama, e-posta değişikliği için", Actor.Admin, "/panel/yeniden-dogrulama?reauthenticatedOperation=EmailChange"),
             new("E-54", "doğrulama bağlantısı, geçersiz bağlantı", Actor.Visitor, $"/panel/dogrulama/{unknownKey}"),
+            new("E-54", "doğrulama bağlantısı, geçerli yeni e-posta bağlantısı (doğrulama adımı)", Actor.Visitor, $"/panel/dogrulama/{links.AdminNewAddress}", Marker: VerifyButton),
             new("E-54", "geri alma bağlantısı, geçersiz bağlantı", Actor.Visitor, $"/panel/geri-al/{unknownKey}"),
+            new("E-54", "geri alma bağlantısı, geçerli bağlantı (geri alma adımı)", Actor.Visitor, $"/panel/geri-al/{links.AdminEmailRevert}", Marker: "form[action*='handler=RevertPendingEmailChange']"),
         ];
         return stops;
     }
@@ -183,9 +197,11 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
                 List<string> messages = [.. page.Errors.Where(e => stop.Status == 200 || !e.Contains(expectedMessage, StringComparison.Ordinal))];
                 int known = 0;
                 messages = [.. messages.Where(e => !(e.Contains("status of 404", StringComparison.Ordinal) && known++ < missingImages))];
-                bool ok = statusOk && messages.Count == 0 && title.Length > 0;
-                string observed = $"status {status}, address {final}, title \"{title}\", browser messages {messages.Count}, known image 404 {missingImages}" + (messages.Count > 0 ? ": " + string.Join(" / ", messages.Take(3)) : string.Empty);
-                await ObserveAsync($"{stop.Screen}", path, engine, page, stop.State, $"status {stop.Status}, a title, no browser message", observed, ok);
+                // The state of a valid link is told by its own form or button (the invalid-link state answers 200 too and draws only its sentence).
+                int marked = stop.Marker is null ? 1 : await page.Page.Locator(stop.Marker).CountAsync();
+                bool ok = statusOk && messages.Count == 0 && title.Length > 0 && marked > 0;
+                string observed = $"status {status}, address {final}, title \"{title}\", browser messages {messages.Count}, known image 404 {missingImages}" + (stop.Marker is null ? string.Empty : $", the state's own form or button {marked}") + (messages.Count > 0 ? ": " + string.Join(" / ", messages.Take(3)) : string.Empty);
+                await ObserveAsync($"{stop.Screen}", path, engine, page, stop.State, "status " + stop.Status + ", a title, no browser message" + (stop.Marker is null ? string.Empty : ", the form or button of the link's valid state"), observed, ok);
                 await page.Page.CloseAsync();
             }
         }

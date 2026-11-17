@@ -34,7 +34,8 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
         Func<ILocator, Task>? Break = null,
         string? Button = null,
         bool FromFlow = false,
-        string? NoValidationState = null)
+        string? NoValidationState = null,
+        string? Watch = null)
     {
         public string Key => $"{Screen}|{Handler}|{Slot}";
     }
@@ -56,6 +57,8 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
         new("E-20", "Register", "registration-form", "kayıt formu", Actor.Visitor, _ => "/kayit", "customers"),
         new("E-22", "SignIn", "sign-in-form", "müşteri giriş formu", Actor.Visitor, _ => "/giris", "customers"),
         new("E-23", "RequestPasswordReset", "reset-request-form", "şifre sıfırlama isteği formu", Actor.Visitor, _ => "/sifre-sifirlama", "customers"),
+        // The new password forms of the e-mailed reset links (the walk opens them with a valid link): a refused send writes neither the password nor the link's use, so what is watched is the account and its link rows together.
+        new("E-23", "ResetPassword", "reset-set-form", "yeni şifre formu (geçerli sıfırlama bağlantısı)", Actor.Visitor, h => $"/sifre-sifirlama/{h.Links.PasswordReset}", "customers", Watch: "(SELECT l.*, c.password_hash FROM link_records l LEFT JOIN customers c ON c.id = l.customer_id)"),
         new("E-24", "Reauthenticate", "reauth-form", "müşterinin yeniden doğrulama formu", Actor.Customer, _ => "/hesap/yeniden-dogrulama?reauthenticatedOperation=EmailChange"),
         new("E-25", "ChangeName", "account-name-form", "hesap adı formu", Actor.Customer, _ => "/hesap", "customers"),
         new("E-25", "ChangeEmail", "account-email-form", "yeni e-posta formu (yeniden doğrulamadan sonra)", Actor.Visitor, _ => "/giris", "customers", Prepare: r => CustomerReopensAsync(r, "EmailChange"), FromFlow: true),
@@ -63,6 +66,7 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
         new("E-26", "CreateAddressBook", "address-form", "yeni adres formu", Actor.Customer, _ => "/hesap/adresler?create=true"),
         new("E-29", "SignIn", "", "panel giriş formu", Actor.Visitor, _ => "/panel/giris", "admins"),
         new("E-29", "RequestPasswordReset", "", "panel şifre sıfırlama isteği formu", Actor.Visitor, _ => "/panel/sifre-sifirlama", "admins"),
+        new("E-29", "ResetPassword", "", "panel yeni şifre formu (geçerli sıfırlama bağlantısı)", Actor.Visitor, h => $"/panel/sifre-sifirlama/{h.Links.AdminPasswordReset}", "admins", Watch: "(SELECT l.*, a.password_hash FROM link_records l LEFT JOIN admins a ON a.id = l.admin_id)"),
         new("E-30", "AcceptAdminInvitation", "", "yönetici daveti formu (geçerli bağlantı)", Actor.Visitor, h => $"/panel/davet/{h.InvitationKey}", "admins"),
         new("E-33", "SaveProduct", "product-save", "ürün formu (yeni ürün)", Actor.Admin, _ => "/panel/urunler/yeni", "products", Button: "Kaydet"),
         new("E-34", "CreateCategory", "yeni-kategori", "yeni kategori formu", Actor.Admin, _ => "/panel/kategoriler", "categories"),
@@ -345,7 +349,7 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
         }
 
         ILocator target = FormOf(page.Page, form);
-        string before = await FingerprintAsync(form.Table);
+        string before = await FingerprintAsync(form.Watch ?? form.Table);
         // What is observed is the server's answer to the value, not the browser's own constraint bubble (which differs among the engines and stops the send for an e-mail or a number field): the form is sent as the scriptless browser of a client without the check would.
         // A form inside a closed disclosure (the category tree's actions) is opened first: a person opens it to type in it.
         await target.EvaluateAsync("(f) => { f.noValidate = true; for (let d = f.closest('details'); d; d = d.parentElement ? d.parentElement.closest('details') : null) { d.open = true; } }");
@@ -358,7 +362,7 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
         int invalid = await page.Page.Locator("[aria-invalid=true]").CountAsync();
         // The order screen's forms (E-37) answer in the place of the form with the error message of the form (04 2.3.1 "in place") and have no field of their own to mark; the count of those messages is the other kind of sign.
         int messages = await page.Page.Locator("main .message--error").CountAsync();
-        string after = await FingerprintAsync(form.Table);
+        string after = await FingerprintAsync(form.Watch ?? form.Table);
         string state = $"gönderim durumu {string.Join(",", posts)}; hata özeti {summary}; geçersiz alan {invalid}; hata iletisi {messages}; {form.Table ?? "tablo"} {(before == after ? "değişmedi" : "DEĞİŞTİ")}";
         if (form.NoValidationState is not null)
         {

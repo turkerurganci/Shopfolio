@@ -700,3 +700,59 @@ Durak başına ölçülen: 200; cümle (neyin olmadığını söyleyen kalıp); 
 
 #### Merge ve Post-merge
 - FAIL: merge yok. Kayıt dalda (bu doğrulamanın kayıt commit'i).
+
+## 2026-11-17 — T551 düzeltme 5 (aynı dal, PR #583)
+
+Tur 4 Bulgu 1 (KK2 hata hâlleri + `VAL-B110`): bağlantı arkasındaki ekranlar geçerli bağlantıyla gezilir. Kapsam daraltma ve T552'ye erteleme seçilmedi (eskalasyon).
+
+### Düzeltme 5 — bağlantılı ekran tablosu (ekran · 04 maddesi · tohum anahtarı · durak)
+
+Liste `Docs/04_UI_SPECS.md` §4.1/§4.2 satırları ile `src/Shopfolio.Web/Pages` altındaki `@page` adreslerinde `{key}` taşıyanların karşılaştırılmasından çıkarıldı. Sipariş erişim anahtarlı adresler (E-14, E-16…E-19) tohumda zaten geçerli anahtarla açılır; `/odeme/donus/{accessKey}` `04` §4 envanterinde ekran değildir (ödeme sağlayıcı dönüşü).
+
+| Ekran | 04 maddesi | Tohum anahtarı (`SeededLinks`) | Durak |
+|---|---|---|---|
+| E-21 kayıt | 5.21.2, 5.21.3 | `Registration` (doğrulanmamış kayıt + `EmailVerification`) | /dogrulama/{anahtar} (doğrulama adımı); geçersiz bağlantı durağı kaldı |
+| E-21 yeni e-posta | 5.21.2, 5.21.7 | `NewAddress` (bekleyen adres değişikliği + `NewEmailVerification`) | /dogrulama/{anahtar} (doğrulama adımı) |
+| E-21 Google teyidi | 5.21.9, 5.21.14 | `GoogleConfirmation` (`GoogleLinkConfirmation`) | /dogrulama/{anahtar} (doğrulama adımı) |
+| E-23 | 5.23.4, 5.23.8 | `PasswordReset` (şifreli doğrulanmış müşteri + `PasswordReset`) | /sifre-sifirlama/{anahtar} (yeni şifre adımı); geçersiz bağlantı durağı kaldı |
+| E-28 | 5.28.3 | `EmailRevert` (`EmailChangeRevert`, önceki adresli) | /geri-al/{anahtar} (geri alma adımı); geçersiz bağlantı kaldı |
+| E-29 | 9.1.4, 9.1.5 | `AdminPasswordReset` (yönetici + `PasswordReset`) | /panel/sifre-sifirlama/{anahtar} (yeni şifre adımı); geçersiz bağlantı durağı eklendi |
+| E-30 | 9.2 | `Host.InvitationKey` (önceden vardı) | /panel/davet/{anahtar}; artık kendi formunun varlığını da ölçer |
+| E-54 doğrulama | 9.25.2, 9.25.4 | `AdminNewAddress` (yönetici + bekleyen değişiklik + `NewEmailVerification`) | /panel/dogrulama/{anahtar} (doğrulama adımı); geçersiz kaldı |
+| E-54 geri alma | 9.25.2, 9.25.8 | `AdminEmailRevert` | /panel/geri-al/{anahtar} (geri alma adımı); geçersiz kaldı |
+
+Altı ekran (E-21, E-23, E-28, E-29, E-30, E-54), dokuz geçerli bağlantılı durak. Yürüyüş durağı artık `Stop.Marker` ile geçerli hâlin kendi formunu ya da düğmesini de ölçer (geçersiz bağlantı hâli de 200 döner, yalnız cümle çizer, bu yüzden durum kodu ayırt etmez).
+
+### Düzeltme 5 — test satırları
+
+| Koşu | Sonuç |
+|---|---|
+| `Browser=true` tam (motor başına ayrı, PostgreSQL 18 `127.0.0.1:25581`) | chromium 211/211, firefox 211/211, webkit 211/211 (önceki 207; +4 = iki yeni `ValidationStateTests` vakası × iki yol) |
+| `ObservationMaskTests` | 10/10 (altı yeni anahtar adresi biçimi) |
+| `dotnet build -warnaserror` | 0 uyarı, 0 hata |
+| `dotnet format --verify-no-changes --include` (değişen 7 `.cs`) | çıkış 0 |
+| Unit | koşulmadı (yalnız Integration test projesine dokunuldu) |
+| Integration TAM | CI |
+
+`VAL-B110` artık: kayıt, doğrulama bağlantısı, düğme, hesap doğrulanır, kayıt şifresiyle giriş; şifre sıfırlama isteği (var olan hesap), hesabın `link_records` satırından türetilen anahtarla bağlantı, yeni şifre formu gönderimi (şifre özeti değişir, bağlantı kullanılır), yeni şifreyle giriş ve hesap sayfası; panel: geçerli bağlantı, yeni şifre, panele giriş. İki yol × üç motor.
+
+### Düzeltme 5 — değişinim
+
+1. `ScreenInventoryTests.cs`'den E-23 geçerli bağlantı durağı geçici silindi: `ValidationStateTests.EveryFormWithFieldsOfTheWalk_HasACase_AndEveryCaseIsInTheWalk_KK2` KIRILDI ("Validation cases whose form is not in the walk's pages: E-23|ResetPassword|reset-set-form"); durak geri konuldu.
+2. `PasswordRegime.cs` yeni şifre yazan `accounts.SetPasswordAsync` satırları geçici yorumlandı: `VAL-B110` iki yolda KIRILDI; `git checkout -- src` ile geri alındı, yeniden derlendi, üç motorun tam Browser koşuları geri alınmış ağaçta yapıldı.
+
+### Düzeltme 5 — öz denetim (KK1–KK6, `04` §4'e karşı; önceki doğrulamaya dayanılmadı)
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| KK1 üç motor, iki yol | ✓ | `Ways()`/`Cases`; Browser tam 211/211 × 3 |
+| KK2 onay pencereleri | ✓ | `ConfirmWindowTests` bu koşuda 3 motorda yeşil; bu düzeltme onay penceresi olan ekran eklemedi (bağlantı ekranları pencere taşımaz: 5.21.9, 5.28.6) |
+| KK2 hata hâlleri | ✓ | Bağlantı arkasındaki altı ekranın geçerli hâli açılır; alanlı iki form (E-23, E-29 yeni şifre) `ValidationStateTests` vakası (422 + geçersiz alan + hesap ve bağlantı satırları değişmez); öteki ekranlarda form alanı yoktur (5.21.10); geçersiz bağlantı hâlleri durakta |
+| KK2 boş hâller | ✓ | Dokunulmadı; `EmptyStateTests` 3 motorda yeşil (bağlantı ekranlarının boş hâli yoktur: 5.21, 5.23, 5.28) |
+| KK3 17 satır + B110 | ✓ | B110 dört akışın ikinci adımlarıyla form gönderimlerinde biter, iki yol × üç motor; Veri kaydı: doğrulama (`verified`), bağlantı satırı (`used`); B111 iç not `internal_notes` satırı (D-1721) |
+| KK4 B096, B107 KRİTİK | ✓ | Dokunulmadı; 3 motorda yeşil |
+| KK5 CI işi | ✓ | Dokunulmadı (`ci.yml` değişmedi) |
+| KK6 kayıt | ✓ | Bağlantı anahtarı adresleri maskeli (`/dogrulama/***`); webkit kaydı `observations.jsonl` taraması: maskesiz anahtar 0, `"Ok":false` 0 |
+| Backlog (D-1714 (a), D-1721) | ✓ | İkisi de kapatıldı (`Docs/DEFERRED_BACKLOG.d/T551.md`); yeni kalem D-1723 (⚠ satırı) |
+
+⚠ E-21 yeni e-posta ve Google teyidi, E-28 ve E-54 geri alma, E-54 doğrulama durakları geçerli hâlde açılır ve düğmenin varlığı ölçülür; düğmenin gönderimi yalnız kayıt doğrulaması ve şifre sıfırlamalarında denenir (`VAL-B110` ve KK2 yalnız bunları ister; öteki düğmeler aynı sayfa modelini kullanır, K-904 kalıbı). Sahip yerine karar: öteki düğme gönderimleri bu turda eklenmedi; D-1723 olarak kaydedildi (T552, aynı araçla aynı ekranlar).

@@ -31,6 +31,21 @@ public sealed class ObservationMaskTests
         Assert.Contains("reauthenticationToken=***", masked, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("/dogrulama/")]
+    [InlineData("/sifre-sifirlama/")]
+    [InlineData("/geri-al/")]
+    [InlineData("/panel/sifre-sifirlama/")]
+    [InlineData("/panel/dogrulama/")]
+    [InlineData("/panel/geri-al/")]
+    public void Mask_HidesTheKeyOfEveryEmailedLinkAddress(string prefix)
+    {
+        string masked = DataRecord.Mask($"adres {prefix}{Key}?handler=VerifyEmail; adres {prefix}{Key}");
+
+        Assert.DoesNotContain(Key, masked, StringComparison.Ordinal);
+        Assert.Contains($"{prefix}***?handler=VerifyEmail", masked, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Mask_KeepsTheTextAroundTheMaskedValues_SoTheEvidenceStaysReadable()
     {

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Web;
 using Shopfolio.Modules.Catalog;
@@ -280,6 +281,56 @@ internal static class BrowserSeed
         db.LinkRecords.Add(link);
         await db.SaveChangesAsync(CancellationToken.None);
         return keys.Derive(link.Id);
+    }
+
+    /// <summary>An administrator whose password reset link is valid (the panel's new password form opens only for such a link, 04 9.1.5): the account has a password; the returned key is the one the e-mail would carry. <paramref name="typed"/> is the password before the reset.</summary>
+    public static async Task<string> NewAdminResetKeyAsync(string dsn, LinkKeys keys, string email, string typed)
+    {
+        Shopfolio.Modules.Administration.Admin admin = Shopfolio.Modules.Administration.Admin.Create("Sıfırlama Yöneticisi", email, new PasswordService().Hash(typed), Now);
+        LinkRecord link = LinkRecord.ForAdmin(keys, LinkType.PasswordReset, admin.Id, Now.AddDays(1), Now);
+        await using AppDbContext db = NewContext(dsn);
+        db.Admins.Add(admin);
+        db.LinkRecords.Add(link);
+        await db.SaveChangesAsync(CancellationToken.None);
+        return keys.Derive(link.Id);
+    }
+
+    /// <summary>The address keys of the valid links behind the e-mailed link screens (04 4.1, 4.2): each opens its screen's own, valid state (the button or the form of the link), not the invalid-link state.</summary>
+    internal sealed record SeededLinks(string Registration, string NewAddress, string GoogleConfirmation, string PasswordReset, string EmailRevert, string AdminPasswordReset, string AdminNewAddress, string AdminEmailRevert);
+
+    /// <summary>One valid link of every kind the screen inventory opens by a key in its address, each with the record it belongs to (an unverified registration, a pending address change, a verified account).</summary>
+    public static async Task<SeededLinks> NewLinksAsync(string dsn, LinkKeys keys)
+    {
+        string unique = Guid.NewGuid().ToString("N");
+        string digest = new PasswordService().Hash("T551-Baglanti-Sifre-1!");
+        Customer pending = Customer.Create("Bekleyen Kayıt", $"bekleyen-{unique}@example.com", digest, null, null, Now);
+        Customer changing = Customer.Create("Adres Değiştiren", $"degisen-{unique}@example.com", digest, Now, null, Now);
+        Customer google = Customer.Create("Google Müşterisi", $"google-{unique}@example.com", null, Now, null, Now);
+        Customer reverting = Customer.Create("Geri Alan", $"geri-{unique}@example.com", digest, Now, null, Now);
+        Customer resetting = Customer.Create("Sıfırlayan", $"sifirlayan-{unique}@example.com", digest, Now, null, Now);
+        Shopfolio.Modules.Administration.Admin adminResetting = Shopfolio.Modules.Administration.Admin.Create("Sıfırlayan Yönetici", $"yonetici-sifirlayan-{unique}@example.com", digest, Now);
+        Shopfolio.Modules.Administration.Admin adminChanging = Shopfolio.Modules.Administration.Admin.Create("Adres Değiştiren Yönetici", $"yonetici-degisen-{unique}@example.com", digest, Now);
+        Shopfolio.Modules.Administration.Admin adminReverting = Shopfolio.Modules.Administration.Admin.Create("Geri Alan Yönetici", $"yonetici-geri-{unique}@example.com", digest, Now);
+        DateTimeOffset end = Now.AddDays(1);
+        LinkRecord registration = LinkRecord.ForCustomer(keys, LinkType.EmailVerification, pending.Id, end, Now);
+        LinkRecord newAddress = LinkRecord.ForCustomer(keys, LinkType.NewEmailVerification, changing.Id, end, Now);
+        LinkRecord confirmation = LinkRecord.ForCustomer(keys, LinkType.GoogleLinkConfirmation, google.Id, end, Now);
+        LinkRecord revert = LinkRecord.ForCustomer(keys, LinkType.EmailChangeRevert, reverting.Id, end, Now);
+        revert.PreviousEmail = $"onceki-{unique}@example.com";
+        LinkRecord reset = LinkRecord.ForCustomer(keys, LinkType.PasswordReset, resetting.Id, end, Now);
+        LinkRecord adminReset = LinkRecord.ForAdmin(keys, LinkType.PasswordReset, adminResetting.Id, end, Now);
+        LinkRecord adminNewAddress = LinkRecord.ForAdmin(keys, LinkType.NewEmailVerification, adminChanging.Id, end, Now);
+        LinkRecord adminRevert = LinkRecord.ForAdmin(keys, LinkType.EmailChangeRevert, adminReverting.Id, end, Now);
+        adminRevert.PreviousEmail = $"yonetici-onceki-{unique}@example.com";
+        await using AppDbContext db = NewContext(dsn);
+        db.Customers.AddRange(pending, changing, google, reverting, resetting);
+        db.Admins.AddRange(adminResetting, adminChanging, adminReverting);
+        await db.SaveChangesAsync(CancellationToken.None);
+        db.PendingEmailChanges.Add(PendingEmailChange.ForCustomer(changing.Id, $"yeni-{unique}@example.com", Now));
+        db.PendingEmailChanges.Add(PendingEmailChange.ForAdmin(adminChanging.Id, $"yonetici-yeni-{unique}@example.com", Now));
+        db.LinkRecords.AddRange(registration, newAddress, confirmation, revert, reset, adminReset, adminNewAddress, adminRevert);
+        await db.SaveChangesAsync(CancellationToken.None);
+        return new SeededLinks(keys.Derive(registration.Id), keys.Derive(newAddress.Id), keys.Derive(confirmation.Id), keys.Derive(reset.Id), keys.Derive(revert.Id), keys.Derive(adminReset.Id), keys.Derive(adminNewAddress.Id), keys.Derive(adminRevert.Id));
     }
 
     private static async Task AddItemsAndStateAsync(string dsn, Guid orderId, OrderStatus shipping, PaymentStatus payment, bool card)

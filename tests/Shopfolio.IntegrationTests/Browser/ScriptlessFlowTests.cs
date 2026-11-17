@@ -608,7 +608,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         Assert.Empty(Failures);
     }
 
-    /// <summary>VAL-B110: the account screens' basic flows complete by form sends - the registration, the sign-in, the password reset's request and the order tracking - and each shows its result page.</summary>
+    /// <summary>VAL-B110: the four flows complete by form sends - the registration (then its e-mail link's button and the sign-in), the sign-in, the password reset (the request, then the link's new password form and the sign-in with the new password; the panel's too) and the order tracking - and each shows its result page.</summary>
     [Theory]
     [MemberData(nameof(Ways))]
     public async Task TheAccountFlows_CompleteByFormSends_InBothWays_VALB110(string engine, ScriptPath path)
@@ -648,11 +648,76 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         string accountPath = PathOf(memberPage);
         await ObserveAsync("VAL-B110", path, engine, memberPage, "giriş formu kayıtlı hesabın e-postası ve şifresiyle gönderilir, sonra hesap sayfası açılır", "gönderim tamamlanır, giriş ekranından çıkılır, oturum açılır ve hesap sayfası gösterilir", $"gönderimden sonraki adres {landed}; oturum kaydı {sessions}; hesap sayfası adresi {accountPath}", !landed.StartsWith("/giris", StringComparison.Ordinal) && sessions == 1 && accountPath.StartsWith("/hesap", StringComparison.Ordinal));
 
+        // The registration's second step: the e-mail's link is opened, its button is sent, and the account that was pending can sign in with the password it registered with (04 5.21.2, 5.21.3).
+        string registeredEmail = $"b110-{id}@example.com";
+        string verifyKey = Host.LinkKeys.Derive(Guid.Parse(await DataRecord.ScalarAsync(Host.Dsn, "SELECT l.id FROM link_records l JOIN customers c ON c.id = l.customer_id WHERE c.email = @e AND l.link_type = 'EmailVerification' ORDER BY l.created_at DESC LIMIT 1", ("e", registeredEmail))));
+        long pendingBefore = await DataRecord.CountAsync(Host.Dsn, "SELECT count(*) FROM customers WHERE email = @e AND email_verified_at IS NULL", ("e", registeredEmail));
+        await GoAsync(page, $"/dogrulama/{verifyKey}");
+        bool verifyStep = await page.Page.Locator("form[action*='handler=VerifyEmail']").CountAsync() == 1;
+        await NavigateAsync(page, () => page.Page.Locator("form[action*='handler=VerifyEmail'] button[type=submit]").ClickAsync());
+        string verified = await TextAsync(page.Page.Locator("main"));
+        long verifiedAfter = await DataRecord.CountAsync(Host.Dsn, "SELECT count(*) FROM customers WHERE email = @e AND email_verified_at IS NOT NULL", ("e", registeredEmail));
+        bool buttonGone = await page.Page.Locator("form[action*='handler=VerifyEmail']").CountAsync() == 0;
+        string verifyRow = await DataRecord.RowAsync(Host.Dsn, "SELECT (email_verified_at IS NOT NULL) AS verified FROM customers WHERE email = @e", ("e", registeredEmail));
+        await ObserveAsync("VAL-B110", path, engine, page, "kayıt e-postasının doğrulama bağlantısı açılır ve doğrulama düğmesi gönderilir", "doğrulama adımı (düğme) açılır; gönderimden sonra hesap doğrulanmış olur ve sayfa sonucu söyler (düğme kalkar)", $"doğrulama adımı {verifyStep}; gönderimden önce bekleyen kayıt {pendingBefore}; gönderimden sonra adres {PathOf(page)}; sonuç \"{verified[..Math.Min(verified.Length, 120)]}\"", verifyStep && pendingBefore == 1 && verifiedAfter == 1 && buttonGone && verified.Length > 0, verifyRow);
+        await using IBrowserContext registeredContext = await Host.ContextAsync(engine, path);
+        WatchedPage registeredPage = await NewPageAsync(registeredContext);
+        await GoAsync(registeredPage, "/giris");
+        await registeredPage.Page.Locator("[name='Input.Email']").FillAsync(registeredEmail);
+        await registeredPage.Page.Locator("[name='Input.Password']").FillAsync("T551-Deneme-Sifre-91!");
+        await NavigateAsync(registeredPage, () => registeredPage.Page.Locator("#sign-in-form button[type=submit]").ClickAsync());
+        string registeredLanded = PathOf(registeredPage);
+        long registeredSessions = await DataRecord.CountAsync(Host.Dsn, "SELECT count(*) FROM sessions s JOIN customers c ON c.id = s.customer_id WHERE c.email = @e", ("e", registeredEmail));
+        await ObserveAsync("VAL-B110", path, engine, registeredPage, "kayıtla doğrulanan hesap kayıt şifresiyle giriş yapar", "gönderim tamamlanır, giriş ekranından çıkılır ve oturum açılır", $"gönderimden sonraki adres {registeredLanded}; oturum kaydı {registeredSessions}", !registeredLanded.StartsWith("/giris", StringComparison.Ordinal) && registeredSessions == 1);
+
+        // The reset's two steps: the request is made for the account that exists (the sentence is the same for an unknown address, 04 5.23.3), the link the e-mail carries is read from the account's reset row, its
+        // new password form is sent, the password and the link's use are written, and the account signs in with the new password (04 5.23.4, 5.23.6).
+        const string fresh = "T551-Yeni-Sifre-55!";
         await GoAsync(page, "/sifre-sifirlama");
-        await page.Page.Locator("[name='Input.Email']").FillAsync($"b110-yok-{id}@example.com");
+        await page.Page.Locator("[name='Input.Email']").FillAsync(member);
         await NavigateAsync(page, () => page.Page.Locator("#reset-request-form button[type=submit]").ClickAsync());
         string reset = await TextAsync(page.Page.Locator("main"));
         await ObserveAsync("VAL-B110", path, engine, page, "şifre sıfırlama isteği gönderilir", "gönderim tamamlanır; sonuç sayfası bağlantının gönderildiğini söyler (hesap var olsa da olmasa da aynı cümle)", $"adres {PathOf(page)}; sonuç \"{reset[..Math.Min(reset.Length, 140)]}\"", reset.Length > 0 && await page.Page.Locator("[data-js=error-summary]").CountAsync() == 0);
+        Guid resetLink = Guid.Parse(await DataRecord.ScalarAsync(Host.Dsn, "SELECT l.id FROM link_records l JOIN customers c ON c.id = l.customer_id WHERE c.email = @e AND l.link_type = 'PasswordReset' ORDER BY l.created_at DESC LIMIT 1", ("e", member)));
+        string resetKey = Host.LinkKeys.Derive(resetLink);
+        string digestBefore = await DataRecord.ScalarAsync(Host.Dsn, "SELECT password_hash FROM customers WHERE email = @e", ("e", member));
+        await GoAsync(page, $"/sifre-sifirlama/{resetKey}");
+        bool setForm = await page.Page.Locator("#reset-set-form").CountAsync() == 1;
+        await page.Page.Locator("[name='Input.NewPassword']").FillAsync(fresh);
+        await NavigateAsync(page, () => page.Page.Locator("#reset-set-form button[type=submit]").ClickAsync());
+        string completed = await TextAsync(page.Page.Locator("main"));
+        string digestAfter = await DataRecord.ScalarAsync(Host.Dsn, "SELECT password_hash FROM customers WHERE email = @e", ("e", member));
+        bool formGone = await page.Page.Locator("#reset-set-form").CountAsync() == 0;
+        string linkRow = await DataRecord.RowAsync(Host.Dsn, "SELECT link_type, (used_at IS NOT NULL) AS used FROM link_records WHERE id = @i", ("i", resetLink));
+        await ObserveAsync("VAL-B110", path, engine, page, "sıfırlama bağlantısı açılır, yeni şifre yazılır ve gönderilir", "yeni şifre formu açılır; gönderimden sonra şifre değişir, bağlantı kullanılmış olur, sayfa sonucu söyler (form kalkar)", $"yeni şifre formu {setForm}; gönderimden sonra adres {PathOf(page)}; sonuç \"{completed[..Math.Min(completed.Length, 120)]}\"; şifre {(digestBefore == digestAfter ? "DEĞİŞMEDİ" : "değişti")}", setForm && formGone && completed.Length > 0 && digestBefore != digestAfter && linkRow.Contains("used=True", StringComparison.Ordinal), linkRow);
+        await using IBrowserContext againContext = await Host.ContextAsync(engine, path);
+        WatchedPage again = await NewPageAsync(againContext);
+        await GoAsync(again, "/giris");
+        await again.Page.Locator("[name='Input.Email']").FillAsync(member);
+        await again.Page.Locator("[name='Input.Password']").FillAsync(fresh);
+        await NavigateAsync(again, () => again.Page.Locator("#sign-in-form button[type=submit]").ClickAsync());
+        string againLanded = PathOf(again);
+        await GoAsync(again, "/hesap");
+        string againAccount = PathOf(again);
+        await ObserveAsync("VAL-B110", path, engine, again, "sıfırlanan hesap yeni şifreyle giriş yapar, sonra hesap sayfası açılır", "gönderim tamamlanır, giriş ekranından çıkılır ve hesap sayfası gösterilir", $"gönderimden sonraki adres {againLanded}; hesap sayfası adresi {againAccount}", !againLanded.StartsWith("/giris", StringComparison.Ordinal) && againAccount.StartsWith("/hesap", StringComparison.Ordinal));
+
+        // The panel's reset: the same two steps of the administrator's link (04 9.1.5): the new password form is sent and the administrator enters the panel with the new password.
+        string admin = $"b110-yonetici-{id}@example.com";
+        string adminKey = await BrowserSeed.NewAdminResetKeyAsync(Host.Dsn, Host.LinkKeys, admin, "T551-Eski-Sifre-11!");
+        await using IBrowserContext adminContext = await Host.ContextAsync(engine, path);
+        WatchedPage adminPage = await NewPageAsync(adminContext);
+        await GoAsync(adminPage, $"/panel/sifre-sifirlama/{adminKey}");
+        bool adminForm = await adminPage.Page.Locator("form[action*='handler=ResetPassword']").CountAsync() == 1;
+        await adminPage.Page.Locator("[name='Input.NewPassword']").FillAsync(fresh);
+        await NavigateAsync(adminPage, () => adminPage.Page.Locator("form[action*='handler=ResetPassword'] button[type=submit]").ClickAsync());
+        bool adminFormGone = await adminPage.Page.Locator("form[action*='handler=ResetPassword']").CountAsync() == 0;
+        await GoAsync(adminPage, "/panel/giris");
+        await adminPage.Page.Locator("[name='Input.Email']").FillAsync(admin);
+        await adminPage.Page.Locator("[name='Input.Password']").FillAsync(fresh);
+        await NavigateAsync(adminPage, () => adminPage.Page.Locator("main form button[type=submit]").First.ClickAsync());
+        string adminLanded = PathOf(adminPage);
+        long adminSessions = await DataRecord.CountAsync(Host.Dsn, "SELECT count(*) FROM sessions s JOIN admins a ON a.id = s.admin_id WHERE a.email = @e", ("e", admin));
+        await ObserveAsync("VAL-B110", path, engine, adminPage, "panel sıfırlama bağlantısı açılır, yeni şifre gönderilir ve yönetici yeni şifreyle girer", "yeni şifre formu açılır ve gönderimden sonra kalkar; yönetici giriş ekranından çıkar ve oturum açılır", $"yeni şifre formu {adminForm}, gönderimden sonra {(adminFormGone ? "kalktı" : "durdu")}; girişten sonraki adres {adminLanded}; oturum kaydı {adminSessions}", adminForm && adminFormGone && !adminLanded.StartsWith("/panel/giris", StringComparison.Ordinal) && adminSessions == 1);
 
         SeededOrder order = Host.Seed.Order("awaiting-transfer");
         await GoAsync(page, "/siparis-takibi");
@@ -661,7 +726,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         await NavigateAsync(page, () => page.Page.Locator("form button[type=submit]").Last.ClickAsync());
         string tracked = await TextMatchingAsync(page.Page.Locator("main"), Regex.Escape(order.Number), 15000);
         await ObserveAsync("VAL-B110", path, engine, page, "sipariş takibi: numara ve e-posta gönderilir", "sipariş sayfası açılır ve sipariş numarasını gösterir", $"adres {PathOf(page)}; sayfa \"{tracked[..Math.Min(tracked.Length, 120)]}\"", PathOf(page).StartsWith("/siparis/", StringComparison.Ordinal) && tracked.Contains(order.Number, StringComparison.Ordinal));
-        Assert.DoesNotContain(Host.Record.Snapshot().Where(o => o.Row == "VAL-B110" && o.Engine == engine), o => o.Observed.Contains($"b110-{id}@", StringComparison.Ordinal) || o.Observed.Contains(order.AccessKey, StringComparison.Ordinal));
+        Assert.DoesNotContain(Host.Record.Snapshot().Where(o => o.Row == "VAL-B110" && o.Engine == engine), o => o.Observed.Contains($"b110-{id}@", StringComparison.Ordinal) || o.Observed.Contains(order.AccessKey, StringComparison.Ordinal) || o.Observed.Contains(verifyKey, StringComparison.Ordinal) || o.Observed.Contains(resetKey, StringComparison.Ordinal) || o.Observed.Contains(adminKey, StringComparison.Ordinal));
         Assert.Empty(Failures);
     }
 
@@ -705,7 +770,8 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         await page.Page.Locator("#internal-note-text").FillAsync(note);
         await NavigateAsync(page, () => page.Page.Locator("#internal-note-form button[type=submit]").ClickAsync());
         string shownNote = await page.Page.Locator("#internal-note-text").InputValueAsync();
-        await ObserveAsync("VAL-B111", path, engine, page, "sipariş ayrıntısında iç not yazılır ve kaydedilir", "sipariş işlemi kendi işleyicisiyle kaydedilir; not sayfada yeniden okunur", $"adres {PathOf(page)}; not alanında \"{shownNote}\"", shownNote == note);
+        string noteRow = await DataRecord.RowAsync(Host.Dsn, "SELECT text, admin_name FROM internal_notes WHERE order_id = @o AND text = @t", ("o", order.Id), ("t", note));
+        await ObserveAsync("VAL-B111", path, engine, page, "sipariş ayrıntısında iç not yazılır ve kaydedilir", "sipariş işlemi kendi işleyicisiyle kaydedilir; not sayfada yeniden okunur ve tablo satırı yazılan nottur", $"adres {PathOf(page)}; not alanında \"{shownNote}\"", shownNote == note && noteRow.Contains($"text={note}", StringComparison.Ordinal), noteRow);
 
         string window = path == ScriptPath.Scripted ? "3" : "1";
         await GoAsync(page, "/panel/kargo-sureler-ve-varsayilanlar");

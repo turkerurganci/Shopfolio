@@ -112,6 +112,12 @@ public sealed class BrowserHost : IAsyncLifetime
     /// <summary>The address key of a valid administrator invitation (the invitation screen's form opens for such a link only); never written to the record.</summary>
     public string InvitationKey { get; private set; } = string.Empty;
 
+    /// <summary>The address keys of one valid link of every kind behind the e-mailed link screens (the walk opens each screen in its valid-link state); never written to the record.</summary>
+    internal BrowserSeed.SeededLinks Links { get; private set; } = null!;
+
+    /// <summary>The application's own link keys: a flow that asks for a link (the reset request, the registration) derives the key the e-mail would carry from the link row.</summary>
+    internal Shopfolio.Infrastructure.Security.LinkKeys LinkKeys => _factory!.Services.GetRequiredService<Shopfolio.Infrastructure.Security.LinkKeys>();
+
     /// <summary>The record of the run: observations, versions and the seed.</summary>
     public ObservationRecord Record { get; private set; } = null!;
 
@@ -179,7 +185,8 @@ public sealed class BrowserHost : IAsyncLifetime
         }
 
         Seed = await BrowserSeed.RunAsync(Dsn, System.IO.Path.Combine(_filesDirectory, "images"));
-        InvitationKey = await BrowserSeed.NewInvitationKeyAsync(Dsn, _factory.Services.GetRequiredService<Shopfolio.Infrastructure.Security.LinkKeys>());
+        InvitationKey = await BrowserSeed.NewInvitationKeyAsync(Dsn, LinkKeys);
+        Links = await BrowserSeed.NewLinksAsync(Dsn, LinkKeys);
         Record = new ObservationRecord(OutputDirectory());
         Record.SetSeed(Seed);
     }

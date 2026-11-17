@@ -108,8 +108,8 @@ public static class DataRecord
     private static readonly System.Text.RegularExpressions.Regex Digits = new(@"\d{7,}", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(2));
     private static readonly System.Text.RegularExpressions.Regex Iban = new(@"TR\d{2}[\d ]{10,}", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(2));
 
-    // The guest order's access key is the credential in the address (/siparis/erisim/<key>/...); the pending-registration token travels as a query value.
-    private static readonly System.Text.RegularExpressions.Regex AccessKey = new(@"(?<=/siparis/erisim/|/panel/davet/)[^/?#\s""]+", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(2));
+    // The guest order's access key and the key of an e-mailed link (invitation, verification, reset, revert; the panel's addresses end in the same segments) are the credential in the address; the pending-registration token travels as a query value.
+    private static readonly System.Text.RegularExpressions.Regex AccessKey = new(@"(?<=/siparis/erisim/|/panel/davet/|/dogrulama/|/sifre-sifirlama/|/geri-al/)[^/?#\s""]+", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(2));
     private static readonly System.Text.RegularExpressions.Regex QueryToken = new(@"(?<=[?&](?:pendingRegistration|reauthenticationToken)=)[^&#\s""]+", System.Text.RegularExpressions.RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
 
     /// <summary>Masks an e-mail address, an IBAN, a long digit run (a phone, a number), an order access key and a pending-registration token in a value the record keeps.</summary>
@@ -139,6 +139,23 @@ public static class DataRecord
         }
 
         return string.Join("; ", cells);
+    }
+
+    /// <summary>
+    /// The first cell of the query as it is stored, not masked: a value a test compares or derives a key from (a link's id, a password digest). It never reaches the record; a caller that writes it into an observation passes it through <see cref="Mask"/> by the
+    /// observation itself.
+    /// </summary>
+    public static async Task<string> ScalarAsync(string dsn, string sql, params (string Name, object Value)[] parameters)
+    {
+        await using Npgsql.NpgsqlConnection connection = new(dsn);
+        await connection.OpenAsync(CancellationToken.None);
+        await using Npgsql.NpgsqlCommand command = new(sql, connection);
+        foreach ((string name, object value) in parameters)
+        {
+            command.Parameters.AddWithValue(name, value);
+        }
+
+        return Convert.ToString(await command.ExecuteScalarAsync(CancellationToken.None), System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty;
     }
 
     /// <summary>One number of the database (a count).</summary>

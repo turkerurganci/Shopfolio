@@ -307,7 +307,7 @@
 | T548 | Parçalı yükleme betiği: başlatma–parça–durum akışı, 409/404/400/413 yanıtları, ağ hatasında üç kez sürdürme | ✓ | ✓ PASS (tur 1) | `233a5813` | #577 |
 | T549 | Vitrin: arşivlenmiş ürün sayfası (E-05) | ✓ | ✓ PASS (tur 1) | `7973b482` | #550 |
 | T550 | F4 kapanış düzeltmeleri: null-forgiving temizliği ve sır bekçisi önek soyma | ✓ | ✓ PASS (tur 1) | `bf77ceaf` | #533 |
-| T551 | Tarayıcı aracı ve betiksiz yol gözlemi | ✓ | ✗ FAIL (tur 3) | `6ec49c58`+ | #583 |
+| T551 | Tarayıcı aracı ve betiksiz yol gözlemi | ✓ | ✗ FAIL (tur 4) | `6ec49c58`+ | #583 |
 | T552 | A seviyesi erişilebilirlik taraması ve ihlal düzeltmesi | ⬚ | — | — | — |
 
 ---

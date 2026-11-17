@@ -580,3 +580,123 @@ Durak başına ölçülen: 200; cümle (neyin olmadığını söyleyen kalıp); 
 #### Merge ve Post-merge
 - Squash: — (FAIL; merge yok)
 - Post-merge run'lar: —
+
+## Doğrulama tur 4
+
+### Doğrulama Sonucu — T551 Tarayıcı aracı ve betiksiz yol gözlemi — tur 4
+**Tarih:** 2026-11-17   **Branch:** task/T551-tarayici-betiksiz-yol   **Commit:** `7d744666` (doğrulanan head; kayıt commit'i: bu doğrulamanın kayıt commit'i)
+
+#### Verdict: ✗ FAIL
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş (worktree, `T551-val` = `origin/task/T551-tarayici-betiksiz-yol`, head `7d744666`) |
+| Hook kurulumu | ✓ | `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` |
+| Ana dal CI (son 3) | ✓ | `43788205169` success · `43788205183` success · `43779716328` success |
+| Memory drift | — | Adım 0b kaldırıldı (2026-11-08) |
+| main birleştirmesi | gerek yok | `origin/main` = `3fb77b9d` = dalın tabanı (merge-base) |
+
+#### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Playwright; Chromium, Firefox, WebKit; her ekran betik açık ve kapalı | ✓ | Motor süzgeciyle ayrı koşular (`SHOPFOLIO_BROWSER_ENGINES`, `--filter-trait "Browser=true"`, PostgreSQL 18 `127.0.0.1:25571`): chromium 207/207 (4 dk 16 sn), firefox 207/207 (6 dk 59 sn), webkit 207/207 (5 dk 44 sn). `Ways()` motor × {Scripted, Scriptless}; `ContextAsync` `JavaScriptEnabled = path == Scripted`. Yürüyüş her motorda 53 ekranın 53'ünü iki yolda açar (kayıtta 106 ekran × yol çifti). |
+| 2 | Tohum müşteri, yönetici, her durumdaki sipariş; `04 §4` envanterinin her ekranı onay pencereleri, hata ve boş hâlleriyle | ~ | **Karşılanan:** tohum `OrderStatus` 6 değerinin ve `PaymentStatus` 5 değerinin hepsi (9 sipariş), iki müşteri (biri adressiz/siparişsiz), yönetici. Onay pencereleri: `_Confirm` kullanan sayfaların hepsi (E-17/E-18 müşteri son adımı, E-25, E-33, E-37, E-40, E-41, E-44, E-45, E-46, E-49). Boş hâl: `04`'ten türetilen 15 ekran (E-02, E-03, E-07, E-09, E-12, E-26, E-27, E-32, E-34, E-35, E-36, E-38, E-41, E-51, E-52) — kendi `grep -nE "Boş (durum\|hâl)\|boş hâl" Docs/04_UI_SPECS.md` listemle birebir; 22 durak × 2 yol × 3 motor ✓, çıkışlar izleniyor. **Eksik ekran listesi:** E-23 şifre sıfırlamanın yeni şifre adımı (`/sifre-sifirlama/{anahtar}`, `reset-set-form`, `04` 5.23.4, form 7.1.13.2) ve E-29 panel şifre sıfırlamanın yeni şifre adımı (`/panel/sifre-sifirlama/{anahtar}`, form 7.2.1.5) hiçbir testte açılmıyor; iki formun hata hâli yok. E-21 doğrulama ekranı yalnız geçersiz bağlantıyla açılıyor. Neden: `ValidationStateTests` form listesini yürüyüşün sayfalarından türetiyor, yürüyüş bu ekranları yalnız geçersiz bağlantıyla açıyor (E-30 için geçerli davet anahtarı var, sıfırlama için yok) → Bulgu 1 |
+| 3 | `VAL-B096`…`VAL-B112` her biri için iki yol gözlemi; Veri kaydı satırında tablo kaydı, kişisel veri maskeli | ~ | Her motor kaydında 17 satırın 17'si iki yolda (B096 2+2, B099 4+4, B100 4+4, B101 3+3, B105 2+3, B110 5+5, B111 5+5 …), 0 ✗; 486 satır, 443 ekran görüntüsü, genişlik 1280. Her gözlem satırın kendi adımı ve gözlenenini yazar. Veri kaydı satırları (B096, B099, B102, B105, B107, B109, B111) tablo satırını okur (B111 iç not hariç, K1); B101 uç yanıtını (200/422/413, betikli "istek gitmedi") yazar. Maske: üç kayıtta `@example` 0, maskesiz erişim anahtarı / `pendingRegistration` / `reauthenticationToken` / davet anahtarı 0; tohum başlığında anahtar yok. **Eksik:** `VAL-B110` "dört akış da form gönderimleriyle tamamlanır" — şifre sıfırlama yalnız istek adımında, kayıt yalnız ilk gönderimde biter (yeni şifre ve doğrulama adımı yok) → Bulgu 1 |
+| 4 | KRİTİK `VAL-B096` ve `VAL-B107` iki yolda; onaysız gönderim bir şey yazmaz | ✓ | B096: ilk (onaysız) gönderimden sonra DB `Placed/Pending`, onaydan sonra `Cancelled/Failed` (iki yol, üç motor). Değişinim `OrderScreenModels.cs:247` `if (!input.Confirmed && false)` → `…VALB096` iki yolda KIRILDI. B107: işaretliyken `billing_equals_shipping=True; decoy_taken=False` (betiksiz yolda fatura alanları başka kişinin değerleriyle dolu gönderildi), işaretsizken `billing_recipient_name=Fatura Sahibi` (üç motor). |
+| 5 | Araç CI'da koşar; iş adı ve süresi `12 §6.2` F5 B satırına ve `11 §6.2` F5'e uygun | ✓ | Run `43975904593` (head `7d744666`) success; "8. E2E (advisory)" job `133683476766` success, 615/615 test, 13 dk 19 sn (23:11:05–23:24:24 UTC), `Image: ubuntu-24.04`; artifact `browser-observations` (126,4 MB, `14282741114`). `12 §6.2` F5 B satırı ve `11 §6.2` F5 ad/süre sınırı koymaz; iş adı CI iskeletinin 8. adımıdır. Integration işi `--filter-not-trait "Browser=true"`. |
+| 6 | Çıktı gate raporuna eklenebilir kayıt; sürümler ve tohum | ✓ | `observations.md`/`.jsonl`: "Sürümler: playwright 1.59.0.0, dotnet 10.0.11, chromium 147.0.7727.15 / firefox 148.0.2 / webkit 26.4", "Tohum: {customers 2, admins 1, coupon, products, orders 9 …}"; `empty-state-derivation.md`; ekran görüntüleri, sunucu günlüğü; CI artifact `if: always()`. |
+
+#### Task Satırları (`12 §7.5`, adım 2a ve 16)
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+| VAL-B096 | KRİTİK | yok | PASS | PASS | — |
+| VAL-B097 | ORTA | yok | PASS | PASS | — |
+| VAL-B098 | ORTA | yok | PASS | PASS | — |
+| VAL-B099 | ORTA | yok | PASS | PASS | — |
+| VAL-B100 | ORTA | yok | PASS | PASS | — |
+| VAL-B101 | ORTA | yok | PASS | PASS | — |
+| VAL-B102 | ORTA | yok | PASS | PASS | — |
+| VAL-B103 | DÜŞÜK | yok | PASS | PASS | — |
+| VAL-B104 | DÜŞÜK | yok | PASS | PASS | — |
+| VAL-B105 | ORTA | yok | PASS | PASS | — |
+| VAL-B106 | DÜŞÜK | yok | PASS | PASS | — |
+| VAL-B107 | KRİTİK | yok | PASS | PASS | — |
+| VAL-B108 | DÜŞÜK | yok | PASS | PASS | — |
+| VAL-B109 | ORTA | yok | PASS | PASS | — |
+| VAL-B110 | ORTA | yok | PASS | FAIL | — (kabul edilmiş risk kaydı yok) |
+| VAL-B111 | ORTA | yok | PASS | PASS | — |
+| VAL-B112 | ORTA | yok | PASS | PASS | — |
+
+`12_matris_denetle.py --kapsam 1-77`: Hata 0 (77/77 KP).
+
+#### Önceki turların bulgularının kapanışı
+| Tur / Bulgu | Durum | Kanıt |
+|---|---|---|
+| Tur 1 B1 (E2E CI'da koşmuyor) | kapandı | Run `43975904593` "8. E2E (advisory)" 615/615 |
+| Tur 1 B2 (KK2 ekran ve hâller) | kısmen | E-05, onay pencereleri, form hata hâli, sipariş durumları, boş hâller kapandı; yeni şifre adımı (E-23, E-29) açık → Bulgu 1 |
+| Tur 1 B3 (B101 boy denetimi) | kapandı | Betikli yolda aşan iki dosya için "istek gitmedi", betiksiz 422/413 (üç motor); `checkSize` sunucunun `data-max-bytes`/`data-size-message`'ını kullanır |
+| Tur 1 B4 (B099, B100, B102, B105, B110 payları) | kapandı (B110 dışında) | B099 4+4, B100 4+4, B102 2+2, B105 2+3 gözlem; B110'un şifre sıfırlama/kayıt ikinci adımı → Bulgu 1 |
+| Tur 1 B5 (maske) | kapandı | Üç kayıtta e-posta 0, anahtar/jeton maskesiz 0; `ObservationMaskTests` 4/4 |
+| Tur 2 B1 (B105 betikli ayırt edici değil) | kapandı | `common.js:214` `event.preventDefault();` yoruma alındı → `…VALB105(chromium, Scripted)` KIRILDI (yalnız betikli), geri alındı |
+| Tur 3 B1 (KK2 boş hâl E-02, E-07, E-27, E-34) | kapandı | Liste `04`'ten türetilir (15 ekran = elle grep listesi); dört ekran iki yol × üç motor gözlendi; değişinimle E-27 ve E-34 durakları KIRILDI |
+
+#### Doğrulama Kontrol Listesi
+- [x] KK1: üç motor, iki bağlam — motor başına ayrı koşu, 207/207 × 3
+- [ ] KK2: ekran envanteri eksiksiz gezilir — onay penceresi, boş hâl tam; E-23 ve E-29 yeni şifre adımı ve hata hâli eksik (Bulgu 1)
+- [ ] KK3: 17 satırın iki yol gözlemi ve Veri kaydı — 16 satır tam; B110 eksik (Bulgu 1)
+- [x] KK4: iki KRİTİK satır — DB'den doğrulandı, değişinimle kırıldı
+- [x] KK5: CI işi, adı ve süresi — run `43975904593`, E2E 13 dk 19 sn, ubuntu-24.04
+- [x] KK6: kayıt gate raporuna girer — sürümler, tohum, türetme tablosu, artifact
+- [x] `09 §19.2` madde 6: `git grep -nE "Task\.Delay|Thread\.Sleep" tests/Shopfolio.IntegrationTests/Browser` boş; `Skip`/`Explicit`/`Assert.Skip`/`Assert.True(true)` yok; CI süzgeci trait düzeyinde
+- [x] `BrowserTestBase.cs` `#pragma warning disable CS0612`: gerekçe yorumlu, tek yöntemi saran en dar kapsam, hemen `restore` — `09 §3.1` madde 5'e uyar
+- [x] Üretim kodu darlığı: `components.css` yalnız `.button[hidden]`, `.form-fields[hidden]`; `_ProductFormBody.cshtml` `x is not null` (kök neden D-1703); `UploadFileTagHelper` `data-max-bytes`/`data-size-message`; `product-form.js` boy denetimi sunucunun değerleriyle (sayı/metin taşımaz)
+- [x] `09 §25` ilgili satırlar; güvenlik taraması (aşağıda)
+
+##### Değişinim denemeleri (chromium; `ScriptlessPathTests`, `ScriptlessFlowTests`, `EmptyStateTests`, `ConfirmWindowTests` = 97 vaka; tek koşu, 11 düşen vakanın hepsi hedefli; `git checkout -- src` ile geri alındı)
+| # | Değişinim | Beklenen kırılma | Sonuç |
+|---|---|---|---|
+| 1 | `common.js:214` ikinci gönderim `preventDefault` kaldırıldı | B105 betikli | KIRILDI (yalnız betikli) |
+| 2 | `OrderScreenModels.cs:247` `!input.Confirmed && false` (onaysız gönderim yazar) | B096 iki yol | KIRILDI (iki yol) |
+| 3 | `Addresses.cshtml.cs:94` `create=true` tanınmaz | B108 | KIRILDI (iki yol) |
+| 4 | `AddressBookTexts.cs:67` siparişsiz üye cümlesi "Liste." | E-27 boş hâl | KIRILDI (iki yol) |
+| 5 | `Categories.cshtml.cs:270` "Yeni kategori" çıkışı `#yok` | E-34 boş hâl çıkışı | KIRILDI (iki yol) |
+| 6 | `Members.cshtml.cs:209` `!input.Confirmed && false` (onaysız üye silme) | E-40 onay penceresi | KIRILDI (iki yol) |
+
+#### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Restore | ✓ | `dotnet restore Shopfolio.slnx` | 3 proje |
+| Build | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format … --verify-no-changes --include <dalın 11 .cs dosyası>` | çıkış 0 |
+| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests … --no-build --filter-not-trait "Consistency=true"` / `--filter-trait "Consistency=true"` | 7420/7420 · 667/667 |
+| Betik testleri | ✓ | `bash tests/scripts/run-script-tests.sh` | 4/4 dosya |
+| Integration (Browser) | ✓ | `--filter-trait "Browser=true"`, `SHOPFOLIO_BROWSER_ENGINES` = chromium / firefox / webkit (ayrı) | 207/207 × 3; dalın dokunduğu Integration sınıflarının hepsi `Browser/` altında. TAM: CI (run `43975904593` "4. Integration test" success) |
+| CI (dal) | ✓ | `gh run list --branch task/T551-tarayici-betiksiz-yol` | `43975904593` success (Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E, CI Gate) |
+| Kilitli restore | ✓ | `dotnet restore Shopfolio.slnx --locked-mode` | çıkış 0; çalışma ağacında yalnız kayıt belgeleri |
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz (CI `POSTGRES_HOST_AUTH_METHOD: trust` yalnız CI hizmeti; tohum kaydı anahtar taşımaz; gözlem metni maskeli)
+- Auth etkisi: Temiz (üretim yetki koduna dokunulmadı; oturum çerezleri yalnız testte tohumdan)
+- Input validation: Temiz (betikli boy denetimi ek katman; sunucu 422/413'ü korur, betiksiz yolda gözlendi)
+- Yeni bağımlılık: `Microsoft.Playwright` 1.59.0 (yalnız Integration test projesi, Apache-2.0, `09` kütüphane tablosuna yazıldı; geçişli `System.ComponentModel.Annotations` 5.0.0)
+
+#### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı (S1/S2/S3) | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| 1 | KK2 (`12 §12.2` (1)) + `VAL-B110` (KK3) | ORTA | S1 | `04 §4` envanterinin her ekranı hata hâlleriyle gezilir; B110 "dört akış da form gönderimleriyle tamamlanır" ↔ şifre sıfırlamanın yeni şifre adımı hiçbir testte açılmaz: E-23 `/sifre-sifirlama/{anahtar}` (`reset-set-form`, `Input.NewPassword`, `04` 5.23.4, form 7.1.13.2) ve E-29 `/panel/sifre-sifirlama/{anahtar}` (form 7.2.1.5); iki formun hata hâli yok (`Browser/` altında `reset-set-form\|ResetPassword\|NewPassword` 0 eşleşme). `ValidationStateTests` form listesini yürüyüşün sayfalarından türettiği için geçerli bağlantı arkasındaki formlar listeye ve korumaya girmez (E-30 için geçerli davet anahtarı tohumlanmış, sıfırlama için yok). B110'un şifre sıfırlama akışı istek adımında, kayıt akışı ilk gönderimde biter (E-21 geçerli doğrulama bağlantısı açılmaz). Öz denetim bunu D-1714 (a) olarak taşıdı | T552 (aynı araçla aynı ekranları tarar); D-1714 (a) | bu PR'da düzeltilecek (tohum geçerli sıfırlama ve doğrulama anahtarı kurar — `NewInvitationKeyAsync` kalıbı; yürüyüşe E-23/E-29 yeni şifre adımı ve E-21 geçerli bağlantı durakları; iki form `ValidationStateTests` vakası; B110'da yeni şifre gönderimi ve doğrulama sonucu iki yolda) | `Browser/BrowserSeed.cs`, `Browser/ScreenInventoryTests.cs`, `Browser/ValidationStateTests.cs`, `Browser/ScriptlessFlowTests.cs` `…VALB110` |
+
+#### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | `VAL-B111` sipariş iç notu gözleminde tablo kaydı yok (Veri kaydı "-"); not yeniden açılan sayfadan okunuyor, öteki dört form tabloyu okuyor | DEFERRED_BACKLOG'a forward: D-1721 |
+#### Yapım Raporu Karşılaştırması
+- Uyum: 1 uyuşmazlık
+- Düzeltme 4 öz denetimi (KK1–KK6) ve türetme tablosu benim koşularımla birebir (207/207 × 3; 15 ekran). Uyuşmazlık: öz denetim KK2 hata hâllerini ve KK3/B110'u "✓, dokunulmadı" diye geçti; E-23/E-29 yeni şifre adımının ve hata hâlinin gezilmediği, D-1714 (a)'nın B110'un beklenen sonucunu karşılamadığı öz denetimde yazmıyor.
+- Öz denetim tablosu var ve her maddesi kanıt gösteriyor; önceki düzeltmelerin öz denetimleri büyük ölçüde "yeşil test" kanıtına dayanıyor.
+
+#### Birleştirme notu
+- `origin/main` dalın tabanıyla aynı (`3fb77b9d`); birleştirme gerekmedi.
+
+#### Merge ve Post-merge
+- FAIL: merge yok. Kayıt dalda (bu doğrulamanın kayıt commit'i).

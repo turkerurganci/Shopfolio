@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -697,7 +698,7 @@ internal sealed class ProductFormModel : PageModel
     }
 
     /// <summary>The element ids of a variant row's inputs by the member they carry; a member without an input of its own is reached through the row (<see cref="UploadFieldId"/>).</summary>
-    private static readonly Dictionary<string, string> VariantInputSuffixes = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly FrozenDictionary<string, string> VariantInputSuffixes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
         ["SKU"] = "sku",
         ["Price"] = "price",
@@ -705,7 +706,7 @@ internal sealed class ProductFormModel : PageModel
         ["NetQuantity"] = "net",
         ["FirstOptionValueId"] = "option-0",
         ["SecondOptionValueId"] = "option-1",
-    };
+    }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// The summary at the head of the product form (04 2.3.2): the wrong fields of the sent form, each linked to the element that carries it. The variant rows name their inputs by row and

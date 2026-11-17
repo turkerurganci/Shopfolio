@@ -25,8 +25,8 @@
     MessageView? quantityError = ProductBuyArea.QuantityMessageOf(errors) is { } quantityText ? Messages.ForField(ProductBuyArea.QuantityFieldId, quantityText) : null;
     // The summary of the page's buy forms (04 2.3.2): the selection and the quantity, in the order the page draws them; the focus goes to the first of them.
     FormErrorSummary buyErrors = new([
-        .. optionError is null ? [] : new[] { new FormFieldError(VariantQuery.FirstParameter, ProductBuyArea.OptionMessageOf(errors)!) },
-        .. quantityError is null ? [] : new[] { new FormFieldError(ProductBuyArea.QuantityFieldId, ProductBuyArea.QuantityMessageOf(errors)!) },
+        .. optionError is null ? [] : new[] { new FormFieldError(VariantQuery.FirstParameter, optionError.Text) },
+        .. quantityError is null ? [] : new[] { new FormFieldError(ProductBuyArea.QuantityFieldId, quantityError.Text) },
     ]);
     ViewData["Title"] = view.Name;
 }

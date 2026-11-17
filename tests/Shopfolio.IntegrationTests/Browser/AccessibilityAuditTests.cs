@@ -340,8 +340,60 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
     }
 
     /// <summary>The result a criterion carries in the record: "uygulanmaz" when it does not apply, "karşılandı" when no screen failed it, otherwise "karşılanmadı" with the screens (T552 D-1732 (b)).</summary>
-    internal static string ResultOf(bool applies, IReadOnlyList<string> unmetScreens) =>
-        !applies ? "uygulanmaz" : unmetScreens.Count == 0 ? "karşılandı" : $"karşılanmadı (ekran: {string.Join(", ", unmetScreens.Take(8))}{(unmetScreens.Count > 8 ? ", …" : string.Empty)})";
+    internal static string ResultOf(bool applies, IReadOnlyList<string> unmetScreens, bool notMeasured = false) =>
+        !applies ? "uygulanmaz" : unmetScreens.Count > 0 ? $"karşılanmadı (ekran: {string.Join(", ", unmetScreens.Take(8))}{(unmetScreens.Count > 8 ? ", …" : string.Empty)})" : notMeasured ? "ölçülmedi (bu koşuda ilgili gözlem yok)" : "karşılandı";
+
+    /// <summary>The state of a criterion answered for all screens at once: every observation it needs was made and agreed, one of them failed, or none was made in this run (T552 D-1732 (e)).</summary>
+    internal enum CommonState
+    {
+        Met,
+        Unmet,
+        NotMeasured,
+    }
+
+    /// <summary>The rows of 12 and the way an evidence of a cross-screen criterion is read from the record: the way of the run, or any way for the observation that only the scripted way makes (the change of a value).</summary>
+    private static readonly Dictionary<string, (string Row, bool AnyWay)> CrossObservations = new(StringComparer.Ordinal)
+    {
+        [WcagCriteria.ContextChange] = ("VAL-A784", true),
+        [WcagCriteria.ConsistentHelp] = ("VAL-A341", false),
+        [WcagCriteria.RedundantEntry] = ("VAL-A342", false),
+        [WcagCriteria.KeyboardFlow] = ("VAL-A345", false),
+    };
+
+    /// <summary>
+    /// The result of a criterion that no screen answers for itself, read from the run and not assumed (T552 D-1732 (e)): the source scan counts what the sources of the pages hold against the criteria; the cross-screen tests answer through
+    /// their observations in the record. An observation the run did not make is "not measured" (the order of the tests is not assumed), one that disagreed is "unmet".
+    /// </summary>
+    internal static (CommonState State, string Detail) CommonResultOf(WcagCriteria.Criterion criterion, IReadOnlyList<Observation> record, string engine, string wayName)
+    {
+        List<string> unmet = [];
+        List<string> notMeasured = [];
+        foreach (string evidence in criterion.Evidence)
+        {
+            if (evidence == WcagCriteria.SourceScan)
+            {
+                List<string> found = [.. AccessibilityRecordTests.Sources().SelectMany(s => AccessibilityRecordTests.Violations(s.Name, s.Text))];
+                if (found.Count > 0)
+                {
+                    unmet.Add($"{evidence}: {found.Count} bulgu");
+                }
+            }
+            else if (CrossObservations.TryGetValue(evidence, out (string Row, bool AnyWay) cross))
+            {
+                List<Observation> made = [.. record.Where(o => o.Row == cross.Row && o.Engine == engine && (cross.AnyWay || o.Path == wayName))];
+                if (made.Count == 0)
+                {
+                    notMeasured.Add(evidence);
+                }
+                else if (made.Any(o => !o.Ok))
+                {
+                    unmet.Add($"{evidence}: {made.Count(o => !o.Ok)} gözlem uymadı");
+                }
+            }
+        }
+
+        return unmet.Count > 0 ? (CommonState.Unmet, string.Join("; ", unmet)) : notMeasured.Count > 0 ? (CommonState.NotMeasured, string.Join("; ", notMeasured)) : (CommonState.Met, string.Empty);
+    }
 
     /// <summary>
     /// The 31 criteria x result record and the screen x criterion matrix of this engine and way (T552 criterion 3, KK3; 12 12.2 (5), VAL-A776), written beside the observations as <c>accessibility-record-engine-way.md</c>. A cell is
@@ -356,6 +408,13 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
         text.AddRange([$"# Erişilebilirlik tarama kaydı: {engine}, {wayName} yol", string.Empty]);
         // The result of a criterion is read from the run (T552 D-1732 (b)): the matrix below is evaluated first, and a criterion with a screen that did not meet it is "karşılanmadı", whatever the table of the document says.
         Dictionary<string, List<string>> unmet = WcagCriteria.All.ToDictionary(c => c.Id, _ => new List<string>(), StringComparer.Ordinal);
+        Dictionary<string, (CommonState State, string Detail)> common = WcagCriteria.All.Where(c => c.Applies && c.Evidence.Any(e => e == WcagCriteria.SourceScan || CrossObservations.ContainsKey(e))).ToDictionary(c => c.Id, c => CommonResultOf(c, record, engine, wayName), StringComparer.Ordinal);
+        foreach (KeyValuePair<string, (CommonState State, string Detail)> answered in common.Where(a => a.Value.State == CommonState.Unmet))
+        {
+            unmet[answered.Key].Add("ortak");
+            gaps.Add($"ortak / {answered.Key}: {answered.Value.Detail}");
+        }
+
         List<string> matrix = [];
         matrix.AddRange(["| Ekran | " + string.Join(" | ", WcagCriteria.All.Select(c => c.Id)) + " |", "|---|" + string.Concat(Enumerable.Repeat("---|", WcagCriteria.All.Count))]);
         foreach (string screen in screens)
@@ -372,7 +431,8 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
                 string[] own = [.. c.Evidence.Where(WcagCriteria.ScreenEvidence.Contains)];
                 if (own.Length == 0)
                 {
-                    cells.Add("●");
+                    // Answered for all screens at once: the cell is "●" only when the run made the observation and it agreed ("–": not made in this run, "✗": it disagreed).
+                    cells.Add(common[c.Id].State switch { CommonState.Met => "●", CommonState.Unmet => "✗", _ => "–" });
                     continue;
                 }
 
@@ -393,11 +453,11 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
         text.AddRange(["| Ölçüt | Sonuç | Gerekçe ya da kanıt | Satır |", "|---|---|---|---|"]);
         foreach (WcagCriteria.Criterion c in WcagCriteria.All)
         {
-            text.Add($"| {c.Id} {c.Name} | {ResultOf(c.Applies, unmet[c.Id])} | {(c.Applies ? string.Empty : c.Reason + "; ")}kanıt: {string.Join(", ", c.Evidence)} | {string.Join(", ", c.Rows)} |");
+            text.Add($"| {c.Id} {c.Name} | {ResultOf(c.Applies, unmet[c.Id], common.TryGetValue(c.Id, out (CommonState State, string Detail) answer) && answer.State == CommonState.NotMeasured)} | {(c.Applies ? string.Empty : c.Reason + "; ")}kanıt: {string.Join(", ", c.Evidence)} | {string.Join(", ", c.Rows)} |");
         }
 
         text.AddRange(["", "## Kontrol Listesi A Seviyesi maddeleri (12 §12.2 Ayrım; T552 kabul kriteri 4)", string.Empty, WcagCriteria.ChecklistAStatus + ": " + WcagCriteria.ChecklistAReason]);
-        text.AddRange(["", "## Ekran × ölçüt matrisi (✓ karşılandı, o uygulanmaz, ● ortak kanıt)", string.Empty]);
+        text.AddRange(["", "## Ekran × ölçüt matrisi (✓ karşılandı, o uygulanmaz, ● ortak kanıt koşuda ölçüldü ve uydu, – bu koşuda ölçülmedi, ✗ uymadı)", string.Empty]);
         text.AddRange(matrix);
 
         string file = System.IO.Path.Combine(Host.Record.Directory, $"accessibility-record-{engine}-{wayName}.md");

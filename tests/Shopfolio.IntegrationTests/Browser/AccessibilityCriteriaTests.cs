@@ -222,4 +222,229 @@ public sealed class AccessibilityCriteriaTests(BrowserHost host) : BrowserTestBa
             sameChecked && lost.Count == 0 && leftTo.StartsWith("/giris", StringComparison.Ordinal));
         Assert.Empty(Failures);
     }
+
+    // ---- 2.1.1, 2.1.2 (VAL-A345) ----
+
+    private const int MaxTabs = 300;
+
+    /// <summary>The element that holds the focus: its place in the document, tag, id, name and text (two elements are told apart by the place).</summary>
+    private const string FocusedElement = "() => { const a = document.activeElement; if (!a || a === document.body) { return 'body'; } return [...document.querySelectorAll('*')].indexOf(a) + ':' + a.tagName + '#' + a.id + '[' + (a.getAttribute('name') || '') + ']' + (a.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 24); }";
+
+    private static async Task<bool> FocusIsOnAsync(IPage page, string selector) => await page.EvaluateAsync<bool>("(s) => !!document.activeElement && document.activeElement.matches(s)", selector);
+
+    /// <summary>
+    /// Takes the focus to the element the way a person without a pointer does: the Tab key, from where the focus is, until it is on the element. A focus that does not leave an element after two presses, or that does not reach the element in
+    /// <see cref="MaxTabs"/> presses, is a keyboard trap or an element the keyboard cannot reach. WebKit (Playwright 26.4 on Windows) does not take a link to its Tab order, so there the focus is set on the element and the keys (Enter, Space, the arrows) that work it are still the keyboard's.
+    /// </summary>
+    private static async Task<(bool Reached, int Tabs, string Problem)> ReachAsync(IPage page, string engine, string selector)
+    {
+        if (engine == "webkit")
+        {
+            ILocator target = page.Locator(selector).First;
+            if (await target.CountAsync() == 0)
+            {
+                return (false, 0, $"{selector} is not on the page");
+            }
+
+            await target.FocusAsync();
+            return (await FocusIsOnAsync(page, selector), 0, "the element does not take the focus");
+        }
+
+        string previous = string.Empty;
+        int stuck = 0;
+        for (int tabs = 0; tabs <= MaxTabs; tabs++)
+        {
+            if (await FocusIsOnAsync(page, selector))
+            {
+                return (true, tabs, string.Empty);
+            }
+
+            await page.Keyboard.PressAsync("Tab");
+            string now = await page.EvaluateAsync<string>(FocusedElement);
+            stuck = now == previous ? stuck + 1 : 0;
+            if (stuck >= 2)
+            {
+                return (false, tabs, $"keyboard trap: the focus does not leave {now}");
+            }
+
+            previous = now;
+        }
+
+        return (false, MaxTabs, $"{selector} is not reached in {MaxTabs} Tab presses");
+    }
+
+    /// <summary>One step of the walk: the focus is taken to the element by the keyboard, the action is done by keys, and the step is written down.</summary>
+    private static async Task StepAsync(List<string> steps, List<string> problems, IPage page, string engine, string what, string selector, Func<Task> act)
+    {
+        (bool reached, int tabs, string problem) = await ReachAsync(page, engine, selector);
+        if (!reached)
+        {
+            problems.Add($"{what}: {problem}");
+            return;
+        }
+
+        await act();
+        steps.Add($"{what} ({tabs} Tab)");
+    }
+
+    /// <summary>
+    /// VAL-A345: from the cart to the order confirmation with the keyboard alone (WCAG 2.1.1, 2.1.2). Every control of the walk is reached by the Tab key and worked by keys: the link of the cart, the fields typed, the province chosen with the arrows,
+    /// the consents ticked with the space, the confirm button pressed with Enter. Distinguishing: an element the Tab key does not reach (tabindex -1) or a trap ends the walk with the problem named, and the observation fails.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Ways))]
+    public async Task TheStorefrontFlow_FromTheCartToTheOrderConfirmation_IsDoneByTheKeyboardAlone_VALA345(string engine, ScriptPath path)
+    {
+        await using IBrowserContext context = await Host.ContextAsync(engine, path);
+        WatchedPage page = await NewPageAsync(context);
+        await new AccessibilityScanTests(Host).FillCartAsync(page);
+        await GoAsync(page, "/sepet");
+        IPage p = page.Page;
+        List<string> steps = [];
+        List<string> problems = [];
+        string email = $"a345-{engine}-{path}@example.com".ToLowerInvariant();
+
+        // Without the script a changed field sends nothing; with it the page is replaced after the change (09 16.2 item 1), so the wait is for the page.
+        async Task ChangedAsync(Func<Task> act)
+        {
+            if (path == ScriptPath.Scripted)
+            {
+                await NavigateAsync(page, act, 20000);
+            }
+            else
+            {
+                await act();
+            }
+        }
+
+        await StepAsync(steps, problems, p, engine, "sepetten ödemeye geç bağlantısı", "main a[href='/odeme']", () => NavigateAsync(page, () => p.Keyboard.PressAsync("Enter")));
+        if (problems.Count == 0 && !new Uri(p.Url).AbsolutePath.StartsWith("/odeme", StringComparison.Ordinal))
+        {
+            problems.Add($"Enter on the link did not open the payment step ({new Uri(p.Url).AbsolutePath})");
+        }
+
+        (string Name, string Text)[] typed =
+        [
+            ("ContactEmail", email),
+            ("ShippingRecipientName", "Ali Veli"),
+            ("ShippingDistrict", "Çankaya"),
+            ("ShippingAddressLine", "Kızılay Mah. 2"),
+            ("ShippingPhone", "5321234567"),
+        ];
+        if (problems.Count == 0)
+        {
+            await StepAsync(steps, problems, p, engine, "e-posta yazılır", "[name=ContactEmail]", () => p.Keyboard.TypeAsync(email));
+
+            // The province: the arrows move the choice one place at a time; with the script every move sends the form, and the focus is taken back by the keyboard.
+            for (int move = 0; move < 100 && problems.Count == 0; move++)
+            {
+                string chosen = await p.Locator("select[name=ShippingProvinceId]").EvaluateAsync<string>("(s) => s.selectedOptions.length ? s.selectedOptions[0].textContent.trim() : ''");
+                if (chosen == "Ankara")
+                {
+                    steps.Add($"il oklarla seçildi ({move} ok)");
+                    break;
+                }
+
+                await StepAsync(steps, problems, p, engine, "il seçilir", "select[name=ShippingProvinceId]", () => ChangedAsync(() => p.Keyboard.PressAsync("ArrowDown")));
+                steps.RemoveAll(s => s.StartsWith("il seçilir", StringComparison.Ordinal));
+            }
+
+            foreach ((string name, string text) in typed.Skip(1))
+            {
+                await StepAsync(steps, problems, p, engine, $"{name} yazılır", $"[name={name}]", () => p.Keyboard.TypeAsync(text));
+            }
+
+            ILocator transfer = p.Locator("#method-banktransfer");
+            if (await transfer.CountAsync() > 0 && !await transfer.IsCheckedAsync())
+            {
+                await StepAsync(steps, problems, p, engine, "havale yöntemi boşlukla seçilir", "#method-banktransfer", () => ChangedAsync(() => p.Keyboard.PressAsync("Space")));
+            }
+
+            int consents = await p.Locator(".consents input[type=checkbox]").CountAsync();
+            for (int i = 0; i < consents; i++)
+            {
+                int index = i;
+                // The box is marked so that the focus can be asked "is it on this one" by a selector; the mark is no way to it for the visitor.
+                await p.Locator(".consents input[type=checkbox]").Nth(index).EvaluateAsync("(el) => { document.querySelectorAll('[data-walk-target]').forEach((e) => e.removeAttribute('data-walk-target')); el.setAttribute('data-walk-target', ''); }");
+                const string box = "[data-walk-target]";
+                await StepAsync(steps, problems, p, engine, $"onay kutusu {index + 1} boşlukla işaretlenir", box, async () =>
+                {
+                    if (!await p.Locator(box).IsCheckedAsync())
+                    {
+                        await p.Keyboard.PressAsync("Space");
+                    }
+                });
+            }
+        }
+
+        string confirm = ".checkout__confirm button.button--primary";
+        if (problems.Count == 0)
+        {
+            await StepAsync(steps, problems, p, engine, "siparişi onayla düğmesi", confirm, async () =>
+            {
+                await p.Keyboard.PressAsync("Enter");
+                await p.WaitForURLAsync(u => u.Contains("/teyit", StringComparison.Ordinal), new PageWaitForURLOptions { Timeout = 25000 });
+            });
+        }
+
+        bool onConfirmation = new Uri(p.Url).AbsolutePath.StartsWith("/siparis", StringComparison.Ordinal) || p.Url.Contains("/teyit", StringComparison.Ordinal);
+        string title = onConfirmation && await p.Locator("#order-confirmation-title").CountAsync() > 0 ? (await p.Locator("#order-confirmation-title").InnerTextAsync()).Trim() : string.Empty;
+        await ObserveAsync(
+            "VAL-A345", path, engine, page, "sepetten sipariş onayına yalnız klavyeyle",
+            "sepetten sipariş onayına kadar her adım klavyeyle (Tab, yazı, oklar, boşluk, Enter) tamamlanır ve klavye tuzağı yoktur (WCAG 2.1.1, 2.1.2)",
+            $"{steps.Count} adım yapıldı" + (engine == "webkit" ? " (WebKit: odak öğeye verilir, eylem tuşlarla)" : string.Empty) + $"; son adres {new Uri(p.Url).AbsolutePath}; onay başlığı «{title}»" + (problems.Count > 0 ? "; sorun: " + string.Join(" / ", problems) : string.Empty),
+            problems.Count == 0 && title.StartsWith("Sipariş", StringComparison.Ordinal));
+        Assert.Empty(Failures);
+    }
+
+    // ---- VAL-A350 ----
+
+    /// <summary>The words by which a page would claim accessibility conformance: the word of accessibility, the name of the standard, the words of a statement.</summary>
+    internal const string ConformanceClaim = "(erişilebilirlik|erisilebilirlik|accessibility|wcag|a11y|uyumluluk beyan|uyumluluk bildirim|conformance)";
+
+    /// <summary>
+    /// VAL-A350: the product gives no statement of accessibility conformance (02 12.4.1): no screen of the site or the panel, in the text a person reads or in a link's name or address, claims one. Read in the browser on every screen of the
+    /// pass (<see cref="AccessibilityScanTests.AuditStops"/>), the visitor's and the administrator's.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(ScriptedEngines))]
+    public async Task TheSiteAndThePanel_GiveNoStatementOfAccessibilityConformance_VALA350(string engine)
+    {
+        AccessibilityScanTests scan = new(Host);
+        const string read = "(pattern) => { const re = new RegExp(pattern, 'i'); const hits = []; const text = (document.body.innerText || '').toLocaleLowerCase('tr'); const m = text.match(re); if (m) { hits.push('metin: ' + m[0]); } for (const a of document.querySelectorAll('a[href], [aria-label], [title]')) { const t = [a.getAttribute('href'), a.getAttribute('aria-label'), a.getAttribute('title'), a.textContent].join(' ').toLocaleLowerCase('tr'); const k = t.match(re); if (k) { hits.push('bağlantı/ad: ' + k[0]); } } return hits.slice(0, 3); }";
+        int screensRead = 0;
+        List<string> claims = [];
+        WatchedPage? last = null;
+        foreach (IGrouping<(Actor Actor, bool Prepared), ScreenInventoryTests.Stop> group in AccessibilityScanTests.ContextsOf(scan.AuditStops()))
+        {
+            await using IBrowserContext context = await AccessibilityScanTests.AuditContextAsync(Host, engine, ScriptPath.Scripted, group.Key.Actor);
+            await AccessibilityScanTests.PrepareAsync(context, group);
+            foreach (ScreenInventoryTests.Stop stop in group)
+            {
+                WatchedPage page = await NewPageAsync(context);
+                await GoAsync(page, stop.Path);
+                string[] hits = await page.Page.EvaluateAsync<string[]>(read, ConformanceClaim);
+                screensRead++;
+                if (hits.Length > 0)
+                {
+                    claims.Add($"{stop.Screen} ({stop.Path}): {string.Join(", ", hits)}");
+                }
+
+                if (last is not null)
+                {
+                    await last.Page.CloseAsync();
+                }
+
+                last = page;
+            }
+        }
+
+        Assert.True(last is not null && screensRead >= 50, $"{screensRead} screens were read; at least 50 are expected.");
+        await ObserveAsync(
+            "VAL-A350", ScriptPath.Scripted, engine, last!, "sitede ve panelde uyumluluk beyanı aranır",
+            "sitede ve panelde erişilebilirlik uyumluluk beyanı yoktur: hiçbir ekranın metninde, bağlantı adında ya da adresinde ölçüt adı, erişilebilirlik sözcüğü ya da beyan ifadesi geçmez (02 §12.4.1)",
+            $"{screensRead} ekran okundu; beyan arayan ifadeyle eşleşen {claims.Count}" + (claims.Count > 0 ? ": " + string.Join(" / ", claims.Take(4)) : string.Empty),
+            claims.Count == 0);
+        Assert.Empty(Failures);
+    }
 }

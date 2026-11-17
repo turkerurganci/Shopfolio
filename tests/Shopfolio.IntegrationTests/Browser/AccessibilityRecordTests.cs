@@ -125,6 +125,27 @@ public sealed class AccessibilityRecordTests
         Assert.Equal("uygulanmaz", AccessibilityAuditTests.ResultOf(applies: false, ["E-34"]));
     }
 
+    /// <summary>The criteria answered for all screens at once are read from the run's record, not assumed (T552 D-1732 (e)): an agreeing observation is met, a disagreeing one is unmet, none is "not measured" (and the order of the tests is not assumed).</summary>
+    [Fact]
+    public void ACriterionAnsweredForAllScreens_IsReadFromTheObservationsOfTheRun_KK3()
+    {
+        WcagCriteria.Criterion help = WcagCriteria.All.Single(c => c.Id == "3.2.6");
+        WcagCriteria.Criterion context = WcagCriteria.All.Single(c => c.Id == "3.2.2");
+        WcagCriteria.Criterion shortcut = WcagCriteria.All.Single(c => c.Id == "2.5.1");
+        static Observation Made(string row, string path, bool ok) => new(row, path, "chromium", 1280, "adım", "beklenen", "gözlenen", ok, null);
+
+        Assert.Equal(AccessibilityAuditTests.CommonState.NotMeasured, AccessibilityAuditTests.CommonResultOf(help, [], "chromium", "betikli").State);
+        Assert.Equal(AccessibilityAuditTests.CommonState.Met, AccessibilityAuditTests.CommonResultOf(help, [Made("VAL-A341", "betikli", true)], "chromium", "betikli").State);
+        Assert.Equal(AccessibilityAuditTests.CommonState.Unmet, AccessibilityAuditTests.CommonResultOf(help, [Made("VAL-A341", "betikli", true), Made("VAL-A341", "betikli", false)], "chromium", "betikli").State);
+        Assert.Equal(AccessibilityAuditTests.CommonState.NotMeasured, AccessibilityAuditTests.CommonResultOf(help, [Made("VAL-A341", "betiksiz", true)], "chromium", "betikli").State);
+        Assert.Equal(AccessibilityAuditTests.CommonState.NotMeasured, AccessibilityAuditTests.CommonResultOf(help, [Made("VAL-A341", "betikli", true)], "firefox", "betikli").State);
+        Assert.Equal(AccessibilityAuditTests.CommonState.Met, AccessibilityAuditTests.CommonResultOf(context, [Made("VAL-A784", "betikli", true)], "chromium", "betiksiz").State);
+        Assert.Equal(AccessibilityAuditTests.CommonState.Unmet, AccessibilityAuditTests.CommonResultOf(context, [Made("VAL-A784", "betikli", false)], "chromium", "betiksiz").State);
+        Assert.StartsWith("ölçülmedi", AccessibilityAuditTests.ResultOf(applies: true, [], notMeasured: true), StringComparison.Ordinal);
+        Assert.Equal(AccessibilityAuditTests.CommonState.Met, AccessibilityAuditTests.CommonResultOf(shortcut, [], "chromium", "betikli").State);
+        Assert.Empty(Sources().SelectMany(s => Violations(s.Name, s.Text)));
+    }
+
     [Fact]
     public void TheRecordOfTheCriteria_IsTheTableOfTheProtocol_InBothDirections_KK3()
     {

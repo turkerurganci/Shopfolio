@@ -24,6 +24,7 @@ internal static class WcagCriteria
     internal const string ContextChange = "bağlam değişimi (AccessibilityCriteriaTests.AChangedValue...)";
     internal const string ConsistentHelp = "tutarlı yardım (AccessibilityCriteriaTests.TheHelpLink...)";
     internal const string RedundantEntry = "tekrarlı giriş (AccessibilityCriteriaTests.WhatTheVisitorTyped...)";
+    internal const string KeyboardFlow = "klavyeyle sepetten sipariş onayına (AccessibilityCriteriaTests.TheStorefrontFlow...)";
 
     /// <summary>One criterion: its number and name, whether it applies, the reason when it does not, the rows of 12 that carry it and the evidence that gives its result.</summary>
     internal sealed record Criterion(string Id, string Name, bool Applies, string Reason, string[] Rows, string[] Evidence);
@@ -45,8 +46,8 @@ internal static class WcagCriteria
         Met("1.3.3", "Duyusal özellikler", ["VAL-A778"], FactsStep),
         Met("1.4.1", "Renk kullanımı", ["VAL-A348"], AccessibilityAuditTests.Error, ScanStep),
         NotApplicable("1.4.2", "Ses denetimi", NoMedia, ["VAL-A789"], FactsStep),
-        Met("2.1.1", "Klavye", ["VAL-A345"], AccessibilityAuditTests.Keyboard),
-        Met("2.1.2", "Klavye tuzağı yok", ["VAL-A345"], AccessibilityAuditTests.Keyboard),
+        Met("2.1.1", "Klavye", ["VAL-A345"], AccessibilityAuditTests.Keyboard, KeyboardFlow),
+        Met("2.1.2", "Klavye tuzağı yok", ["VAL-A345"], AccessibilityAuditTests.Keyboard, KeyboardFlow),
         NotApplicable("2.1.4", "Tek karakterli kısayol", "ürün tek karakterli kısayol tanımlamaz (ortak betik yalnız Escape ve ok tuşlarını işler)", ["VAL-A789"], SourceScan),
         Met("2.2.1", "Zamanlama ayarlanabilir", ["VAL-A788"], FactsStep),
         Met("2.2.2", "Durdur, duraklat, gizle", ["VAL-A788"], FactsStep),

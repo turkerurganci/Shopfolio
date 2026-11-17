@@ -611,7 +611,33 @@ public sealed partial class LegalTextPageTests : IAsyncLifetime
         return html[start..end];
     }
 
-    private static string SectionOf(string html, string id) => Region(html, $"<section class=\"legal-section\" id=\"{id}\"", "</section>");
+    // The section holds the summary of its form (04 2.3.2), a <section> of its own: the region ends at the </section> that closes the legal section, not at the first one.
+    private static string SectionOf(string html, string id)
+    {
+        string opening = $"<section class=\"legal-section\" id=\"{id}\"";
+        int start = html.IndexOf(opening, StringComparison.Ordinal);
+        Assert.True(start >= 0, $"No '{opening}' in the response.");
+        int depth = 1;
+        int position = start + opening.Length;
+        while (depth > 0)
+        {
+            int open = html.IndexOf("<section", position, StringComparison.Ordinal);
+            int close = html.IndexOf("</section>", position, StringComparison.Ordinal);
+            Assert.True(close >= 0, "The section is not closed.");
+            if (open >= 0 && open < close)
+            {
+                depth++;
+                position = open + 8;
+            }
+            else
+            {
+                depth--;
+                position = close + 10;
+            }
+        }
+
+        return html[start..(position - 10)];
+    }
 
     private static string? FieldValue(string html, string name)
     {

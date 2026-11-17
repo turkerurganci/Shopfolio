@@ -76,13 +76,16 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
     [MemberData(nameof(Ways))]
     public async Task EveryScreenOfTheInventory_HasAResultUnderEachOfTheFiveHeadings_InTheWay_KK2(string engine, ScriptPath path)
     {
-        IReadOnlyList<ScreenInventoryTests.Stop> stops = new ScreenInventoryTests(Host).Stops();
+        AccessibilityScanTests scan = new(Host);
+        IReadOnlyList<ScreenInventoryTests.Stop> stops = scan.AuditStops();
         Dictionary<string, HashSet<string>> formKeys = [];
         Dictionary<string, string> titles = [];
-        foreach (IGrouping<Actor, ScreenInventoryTests.Stop> group in stops.GroupBy(s => s.Actor))
+        foreach (IGrouping<(Actor Actor, bool Prepared), ScreenInventoryTests.Stop> group in AccessibilityScanTests.ContextsOf(stops))
         {
-            await using IBrowserContext context = await AccessibilityScanTests.AuditContextAsync(Host, engine, path, group.Key);
-            await using IBrowserContext narrow = await AccessibilityScanTests.AuditContextAsync(Host, engine, path, group.Key, ZoomedWidth);
+            await using IBrowserContext context = await AccessibilityScanTests.AuditContextAsync(Host, engine, path, group.Key.Actor);
+            await using IBrowserContext narrow = await AccessibilityScanTests.AuditContextAsync(Host, engine, path, group.Key.Actor, ZoomedWidth);
+            await AccessibilityScanTests.PrepareAsync(context, group);
+            await AccessibilityScanTests.PrepareAsync(narrow, group);
             foreach (ScreenInventoryTests.Stop stop in group)
             {
                 WatchedPage page = await NewPageAsync(context);
@@ -101,6 +104,7 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
                 // The keyboard and the focus order: the Tab key until the controls the page offers have all been reached.
                 using (JsonDocument install = JsonDocument.Parse(await page.Page.EvaluateAsync<string>(AuditScripts.Install)))
                 {
+                    string urlBefore = page.Page.Url;
                     int expected = install.RootElement.GetProperty("expected").GetInt32();
                     int positive = install.RootElement.GetProperty("positiveTabindex").GetInt32();
                     // The Tab key goes on until the focus has come round to the first control again (the browser also focuses what the tool does not list, such as a scrolling region); the cap is a trap's end.
@@ -119,9 +123,9 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
                     bool trap = s.GetProperty("trap").GetBoolean();
                     await ObserveAsync(
                         stop.Screen, path, engine, page, Step(Keyboard, stop),
-                        "Tab ile sayfanın bütün denetimlerine ulaşılır; klavye tuzağı yok (WCAG 2.1.1, 2.1.2)",
-                        $"beklenen {expected}, ulaşılan {s.GetProperty("reached").GetInt32()}, tuzak {trap}" + (missing.Count > 0 ? "; ulaşılamayan: " + string.Join(", ", missing.Take(5)) : string.Empty),
-                        missing.Count == 0 && !trap);
+                        "Tab ile sayfanın bütün denetimlerine ulaşılır; klavye tuzağı yok; odaklanmak sayfayı başka adrese götürmez (WCAG 2.1.1, 2.1.2, 3.2.1)",
+                        $"beklenen {expected}, ulaşılan {s.GetProperty("reached").GetInt32()}, tuzak {trap}, adres değişti {page.Page.Url != urlBefore}" + (missing.Count > 0 ? "; ulaşılamayan: " + string.Join(", ", missing.Take(5)) : string.Empty),
+                        missing.Count == 0 && !trap && page.Page.Url == urlBefore);
                     List<string> noIndicator = Strings(s, "noIndicator");
                     List<string> notInView = Strings(s, "notInView");
                     List<string> jumps = Strings(s, "jumps");
@@ -247,6 +251,63 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
         }
 
         Assert.True(blanks.Count == 0, "Screens with a heading that has no result: " + string.Join(", ", blanks.Take(10)));
+        List<string> gaps = WriteRecordOfCriteria(engine, wayName, stops, record);
+        Assert.True(gaps.Count == 0, "Screen x criterion cells with no result: " + string.Join(", ", gaps.Take(10)));
         Assert.Empty(Failures);
+    }
+
+    /// <summary>
+    /// The 31 criteria x result record and the screen x criterion matrix of this engine and way (T552 criterion 3, KK3; 12 12.2 (5), VAL-A776), written beside the observations as <c>accessibility-record-engine-way.md</c>. A cell is
+    /// met when every observation the criterion's evidence names for that screen was made and agreed, "uygulanmaz" for a criterion that does not apply (with the reason in the table), and "ortak" when the criterion is answered
+    /// for all screens at once by a source scan or a cross-screen observation (named in the table). A cell that is none of these is a gap and the test fails on it.
+    /// </summary>
+    private List<string> WriteRecordOfCriteria(string engine, string wayName, IReadOnlyList<ScreenInventoryTests.Stop> stops, IReadOnlyList<Observation> record)
+    {
+        List<string> screens = [.. stops.Select(s => s.Screen).Distinct()];
+        List<string> gaps = [];
+        List<string> text = [];
+        text.AddRange([$"# Erişilebilirlik tarama kaydı: {engine}, {wayName} yol", string.Empty]);
+        text.AddRange(["## 31 ölçüt ve sonucu (12 §12.2; VAL-A776)", string.Empty]);
+        text.AddRange(["| Ölçüt | Sonuç | Gerekçe ya da kanıt | Satır |", "|---|---|---|---|"]);
+        foreach (WcagCriteria.Criterion c in WcagCriteria.All)
+        {
+            text.Add($"| {c.Id} {c.Name} | {(c.Applies ? "karşılandı" : "uygulanmaz")} | {(c.Applies ? string.Empty : c.Reason + "; ")}kanıt: {string.Join(", ", c.Evidence)} | {string.Join(", ", c.Rows)} |");
+        }
+
+        text.AddRange(["", "## Ekran × ölçüt matrisi (✓ karşılandı, o uygulanmaz, ● ortak kanıt)", string.Empty]);
+        text.AddRange(["| Ekran | " + string.Join(" | ", WcagCriteria.All.Select(c => c.Id)) + " |", "|---|" + string.Concat(Enumerable.Repeat("---|", WcagCriteria.All.Count))]);
+        foreach (string screen in screens)
+        {
+            List<string> cells = [];
+            foreach (WcagCriteria.Criterion c in WcagCriteria.All)
+            {
+                if (!c.Applies)
+                {
+                    cells.Add("o");
+                    continue;
+                }
+
+                string[] own = [.. c.Evidence.Where(WcagCriteria.ScreenEvidence.Contains)];
+                if (own.Length == 0)
+                {
+                    cells.Add("●");
+                    continue;
+                }
+
+                bool met = own.All(e => record.Any(o => o.Row == screen && o.Engine == engine && o.Path == wayName && o.Ok && o.Step.StartsWith(e == WcagCriteria.FactsStep ? e : $"elle denetim, {e}", StringComparison.Ordinal))
+                    && !record.Any(o => o.Row == screen && o.Engine == engine && o.Path == wayName && !o.Ok && o.Step.StartsWith(e == WcagCriteria.FactsStep ? e : $"elle denetim, {e}", StringComparison.Ordinal)));
+                cells.Add(met ? "✓" : "✗");
+                if (!met)
+                {
+                    gaps.Add($"{screen} / {c.Id}");
+                }
+            }
+
+            text.Add($"| {screen} | {string.Join(" | ", cells)} |");
+        }
+
+        string file = System.IO.Path.Combine(Host.Record.Directory, $"accessibility-record-{engine}-{wayName}.md");
+        File.WriteAllLines(file, text);
+        return gaps;
     }
 }

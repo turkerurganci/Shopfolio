@@ -51,6 +51,38 @@ public sealed class AccessibilityScanTests(BrowserHost host) : BrowserTestBase(h
         return context;
     }
 
+    /// <summary>
+    /// The stops of the accessibility pass: the inventory walk of T551 and the states that walk does not open because they need a filled cart (the cart with an item, the payment step with a form; 04 E-12, E-13), so that the
+    /// forms of the payment step are scanned and audited too. A stop with <see cref="ScreenInventoryTests.Stop.Prepare"/> gets a context of its own (<see cref="ContextsOf"/>) so that the cart stays out of the other stops.
+    /// </summary>
+    internal IReadOnlyList<ScreenInventoryTests.Stop> AuditStops() =>
+    [
+        .. new ScreenInventoryTests(Host).Stops(),
+        new("E-12", "sepet, ürünlü", Actor.Visitor, "/sepet", Prepare: FillCartAsync),
+        new("E-13", "ödeme adımı, ürünlü sepetle", Actor.Visitor, "/odeme", Prepare: FillCartAsync),
+    ];
+
+    /// <summary>Puts the plain product in the page's cart (the buy form's own button).</summary>
+    internal async Task FillCartAsync(WatchedPage page)
+    {
+        await GoAsync(page, $"/urun/{Host.Seed.Product("plain").Slug}");
+        await NavigateAsync(page, () => page.Page.Locator("form.buy-form button[type=submit]").First.ClickAsync());
+    }
+
+    /// <summary>The stops grouped by the context they are opened in: one per actor, and one more for the stops that prepare their context.</summary>
+    internal static IEnumerable<IGrouping<(Actor Actor, bool Prepared), ScreenInventoryTests.Stop>> ContextsOf(IEnumerable<ScreenInventoryTests.Stop> stops) => stops.GroupBy(s => (s.Actor, s.Prepare is not null));
+
+    /// <summary>Puts a new context in the state the group's stops show: the first stop's preparation runs once on a page of the context.</summary>
+    internal static async Task PrepareAsync(IBrowserContext context, IGrouping<(Actor Actor, bool Prepared), ScreenInventoryTests.Stop> group)
+    {
+        if (group.Key.Prepared)
+        {
+            WatchedPage page = await NewPageAsync(context);
+            await group.First().Prepare!(page);
+            await page.Page.CloseAsync();
+        }
+    }
+
     /// <summary>One finding of the tool: the rule, the criteria it names, the impact and the element.</summary>
     internal sealed record Finding(string Rule, string Impact, string Criteria, string Target, string Html);
 
@@ -84,9 +116,10 @@ public sealed class AccessibilityScanTests(BrowserHost host) : BrowserTestBase(h
     [MemberData(nameof(Ways))]
     public async Task EveryScreenOfTheInventory_HasNoViolationOfTheLevelAScan_InTheWay_KK1(string engine, ScriptPath path)
     {
-        foreach (IGrouping<Actor, ScreenInventoryTests.Stop> group in new ScreenInventoryTests(Host).Stops().GroupBy(s => s.Actor))
+        foreach (IGrouping<(Actor Actor, bool Prepared), ScreenInventoryTests.Stop> group in ContextsOf(AuditStops()))
         {
-            await using IBrowserContext context = await AuditContextAsync(Host, engine, path, group.Key);
+            await using IBrowserContext context = await AuditContextAsync(Host, engine, path, group.Key.Actor);
+            await PrepareAsync(context, group);
             foreach (ScreenInventoryTests.Stop stop in group)
             {
                 WatchedPage page = await NewPageAsync(context);

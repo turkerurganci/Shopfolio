@@ -52,8 +52,17 @@
       },
       "AWSSDK.Core": {
         "type": "Transitive",
-        "resolved": "4.0.102.19",
-        "contentHash": "Hb6P2ui6y0U+UNUjcC4ASFFoTLzCijhMzfOCXfoFTXq/o0YWQsO1oSH1NG2GQ9dlIT693xeeih0yAcfeL1dphg=="
+        "resolved": "4.1.1",
+        "contentHash": "MGURtuvtalMXUaRKCTJv4f3XrwLTcZgrIGfthnOt1Qqol6rTtNKoF0ZusQc12+Z7V9e/UsarZ7AXhh8vMIm76A==",
+        "dependencies": {
+          "AWSSDK.Extensions.Numerics": "[4.1.0, 5.0.0)",
+          "System.IO.Hashing": "11.0.0"
+        }
+      },
+      "AWSSDK.Extensions.Numerics": {
+        "type": "Transitive",
+        "resolved": "4.1.0",
+        "contentHash": "hhoiXT1aUyVgIiQbQoqG3L1EEneqXDh2GKyH5izUlO6Rzi9GAAi8S6mlLiVwow23+EGg77zHjdmUi+ia3RSUTg=="
       },
       "Microsoft.ApplicationInsights": {
         "type": "Transitive",
@@ -207,13 +216,13 @@
       },
       "SkiaSharp.NativeAssets.macOS": {
         "type": "Transitive",
-        "resolved": "4.154.0",
-        "contentHash": "GgYL4ML3HT4CW33oXMHdp7BSRU87bPUfWBXdYgNduGlt4GAbAM/3eXcjjUdilS0H1r2R5iBhwvExCfSYGwFKlw=="
+        "resolved": "4.156.1",
+        "contentHash": "c05wS/CpRum9JKzk77bXrUsBdxIhv4QBk+sbE3nlEfoEV53Uq9VY4yxuae20lO42kE8PoLShuh6dbbvRrE4/iw=="
       },
       "SkiaSharp.NativeAssets.Win32": {
         "type": "Transitive",
-        "resolved": "4.154.0",
-        "contentHash": "GXgoY77GCXdPcveNAmy8o3gVit8sp6YtnI88h5camLPfihjulwJUajZXKhgVuZ8RhuwSTgfyt/00Dx8HRUSeAA=="
+        "resolved": "4.156.1",
+        "contentHash": "BFSUQxmxG9KI2UV7MW1Xb4XhCLSB7Rwsg9E94KelNi8L6ptGXnHIOm3yqU/y3djwg4ZNiBWhOB8XAGUVaF9LuA=="
       },
       "System.ComponentModel.Annotations": {
         "type": "Transitive",
@@ -228,6 +237,11 @@
           "Microsoft.IdentityModel.JsonWebTokens": "8.23.0",
           "Microsoft.IdentityModel.Tokens": "8.23.0"
         }
+      },
+      "System.IO.Hashing": {
+        "type": "Transitive",
+        "resolved": "11.0.0",
+        "contentHash": "U+Bv2qCYt6eONi+arSP0QIp4uTO6os6uceBsqiAwruZ+Wo2HrRhO/0tj38M9URJtS+4DhAtT3ka2TGNFYsnhyQ=="
       },
       "xunit.analyzers": {
         "type": "Transitive",
@@ -299,7 +313,7 @@
       "shopfolio.web": {
         "type": "Project",
         "dependencies": {
-          "AWSSDK.SimpleEmailV2": "[4.0.106.10, )",
+          "AWSSDK.SimpleEmailV2": "[4.1.0.1, )",
           "EFCore.NamingConventions": "[10.0.1, )",
           "HtmlSanitizer": "[11.0.26, )",
           "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": "[10.0.15, )",
@@ -307,20 +321,20 @@
           "Microsoft.IdentityModel.JsonWebTokens": "[8.23.0, )",
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "[8.23.0, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
-          "Serilog": "[4.3.1, )",
+          "Serilog": "[4.4.0, )",
           "Serilog.AspNetCore": "[10.0.0, )",
           "Serilog.Sinks.File": "[7.0.0, )",
-          "SkiaSharp": "[4.154.0, )",
-          "SkiaSharp.NativeAssets.Linux.NoDependencies": "[4.154.0, )"
+          "SkiaSharp": "[4.156.1, )",
+          "SkiaSharp.NativeAssets.Linux.NoDependencies": "[4.156.1, )"
         }
       },
       "AWSSDK.SimpleEmailV2": {
         "type": "CentralTransitive",
-        "requested": "[4.0.106.10, )",
-        "resolved": "4.0.106.10",
-        "contentHash": "bxosDNbnumhpcZ4ymb0JMpM/YpROG0Tn5G0IsX2OuM5mhkLaOLXaSOqpRtMVtLGgMYRk8vVEOBPsRPmtkFn8ow==",
+        "requested": "[4.1.0.1, )",
+        "resolved": "4.1.0.1",
+        "contentHash": "7+MEpGazqwI6cQaZB/hIEamhHl//tS1yTGeew8Yh7wJrzeWhHykwZJlY9OUDUKINMml9jd7pkP6N3JMpoPGLSQ==",
         "dependencies": {
-          "AWSSDK.Core": "[4.0.102.19, 5.0.0)"
+          "AWSSDK.Core": "[4.1.1, 5.0.0)"
         }
       },
       "EFCore.NamingConventions": {
@@ -403,9 +417,9 @@
       },
       "Serilog": {
         "type": "CentralTransitive",
-        "requested": "[4.3.1, )",
-        "resolved": "4.3.1",
-        "contentHash": "savYe7h5yRlkqBVOwP8cIRDOdqKiPmYCU4W87JH38sBmcKD5EBoXvQIw6bNEvZ/pTe1gsiye3VFCzBsoppGkXQ=="
+        "requested": "[4.4.0, )",
+        "resolved": "4.4.0",
+        "contentHash": "ZC6Le3rr4TVJJjS4KsQAesxeF1EhW9qcZmmG7eP5Y2G3+gTGkJEUXkq4+tZNPtyp05I0wWOxnIjwtxFweJsObw=="
       },
       "Serilog.AspNetCore": {
         "type": "CentralTransitive",
@@ -433,19 +447,19 @@
       },
       "SkiaSharp": {
         "type": "CentralTransitive",
-        "requested": "[4.154.0, )",
-        "resolved": "4.154.0",
-        "contentHash": "R3BuszJ3tUFmni37nZIRawXL0yx+XHyx7xi1716/0TybuEQFhnBx48Ig3rFpeVFQVytpGpJZZ+NLW9d9UPG7EA==",
+        "requested": "[4.156.1, )",
+        "resolved": "4.156.1",
+        "contentHash": "DFlbYk/Rxnqm+UM/EaynxLlucc07+fuWzT84KsyT8aCDAT1PZOPlp5eATD7eYczTgV771bnxQKSrLbNmUCaSLQ==",
         "dependencies": {
-          "SkiaSharp.NativeAssets.Win32": "4.154.0",
-          "SkiaSharp.NativeAssets.macOS": "4.154.0"
+          "SkiaSharp.NativeAssets.Win32": "4.156.1",
+          "SkiaSharp.NativeAssets.macOS": "4.156.1"
         }
       },
       "SkiaSharp.NativeAssets.Linux.NoDependencies": {
         "type": "CentralTransitive",
-        "requested": "[4.154.0, )",
-        "resolved": "4.154.0",
-        "contentHash": "U6HQ/n+wQ09WyXQB6PK1l46BIrHqTN/dImV84pti3mLxnlOdcSASPQzJwzuZmEgiCbriLtu5fP0t9cdzpFPHsw=="
+        "requested": "[4.156.1, )",
+        "resolved": "4.156.1",
+        "contentHash": "p7LcHVbwsLOmvugPySgjA/ncq/BFap1MMbRs1u119PD8ZYFZYWaFS7MIT1e6ObwJGkJ9HVV9lEvugt30IjmFOA=="
       }
     }
   }

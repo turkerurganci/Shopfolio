@@ -99,3 +99,33 @@ Geçici bozma, tek derleme + tek koşu, sonra `git checkout` ile geri alındı: 
 | KK6 gate kanıtı | ✓ | `observations.md` ve kayıt dosyaları |
 
 ⚠ Kısmi satırlar ✓ sayılmadı. Düzeltme 1 BÖLÜNDÜ (süre); kalan: WebKit klavye ölçüsü kararı ve sayfa testleri.
+
+---
+
+## Düzeltme 1 — son işçi (2026-11-17)
+
+- **CI kırmızıları (89ec8e42) ve düzeltmesi:** Unit `NullForgivingSourceScanTests` — `Product.cshtml` 28-29'daki gerekçesiz `!` kalktı (özet satırı zaten çizilen `MessageView.Text`'ten kuruluyor). Unit `CacheSourceScanTests` — `ProductForm.cshtml.cs` `VariantInputSuffixes` `FrozenDictionary` oldu (testin izinli listesi genişletilmedi). Integration `CartPageTests` 3 + `LegalTextPageTests` 2: özet eklenince satır/bölüm içinde ikinci `<li>`/`<section>` doğdu, testin `LineOf`/`SectionOf` dilimi ilk kapanış etiketinde bitiyordu; davranış (`04` 2.3.2 özet) esas alındı, dilimler iç içe sayarak güncellendi.
+- **WebKit Audit klavye başlığı:** CI run 44024980434 "8. E2E (advisory)" günlüğünde `The operation was canceled` (test sonucu yok) → seçenek (b). WebKit'te klavye gözlemi odak sırasıyla (`tabIndex >= 0` olanları) `focus()` ile geziyor ve her denetimin etkinleştirme tuşunu (bağlantı, düğme, özet: Enter; onay kutusu: Space) gerçekten basıp oluşan tıklamayı yakalayıp reddediyor (sayfadan çıkmadan). chromium/firefox Tab yolu aynen. **Değişinim:** üst bilgi sepet bağlantısına `tabindex=-1` verildi, webkit Audit iki yolda kırıldı (112 satır, chromium ile aynı sayı), geri alındı. Odaklama kaydırmadan önce sayıldığı için ilk denemede "görünüm dışı 1" çıktı; `scrollIntoView` + `preventScroll` ile düzeltildi.
+- **Test (bütün değişikliklerden sonra):** Unit TAM 8088/8088; `dotnet format` değişen `.cs` temiz. Integration sayfa testleri (CartPage, CategoriesPage, LegalTextPage, ProductFormPage, StorefrontSearchAndProduct, CheckoutPage, SalesSummaryPage, PageFormPattern) 176/176. Tarayıcı (webkit, yerel Windows): `AccessibilityAuditTests` 2/2 yeşil (iki yol); Scan + Criteria + Record 22/22. chromium/firefox: bu turda kod değişmedi (Tab yolu aynı), önceki tur sonuçları geçerli; CI doğrular.
+
+| Sınıf | chromium | firefox | webkit |
+|---|---|---|---|
+| `AccessibilityScanTests` | 2/2 (önceki tur) | 2/2 (önceki tur) | 2/2 |
+| `AccessibilityCriteriaTests` | 5/5 (önceki tur) | 5/5 (önceki tur) | 5/5 |
+| `AccessibilityRecordTests` | 15/15 (önceki tur) | 15/15 (önceki tur) | 15/15 |
+| `AccessibilityAuditTests` | 2/2 (önceki tur) | 2/2 (önceki tur) | 2/2 (odak yolu) |
+
+- **D-1729 kapandı**, D-1727 (OWNER_INPUT) dokunulmadı.
+
+### Öz denetim (KK1–KK6, baştan)
+
+| KK | Sonuç | Kanıt |
+|---|---|---|
+| KK1 tüm ekranlar, iki yol, ihlal | ✓ | Scan üç motor × iki yol yeşil (webkit bu turda, öteki ikisi önceki tur; kod değişmedi) |
+| KK2 beş başlık × ekran × iki yol × motor | ✓ | Audit: webkit odak yolu 2/2 (bu tur), chromium 2/2, firefox 2/2 (önceki tur); boş hücre denetimi testin kendisinde |
+| KK3 31 ölçüt kaydı | ✓ | webkit Record 15/15 (bu tur), chromium/firefox önceki tur; webkit klavye hücreleri artık dolu |
+| KK4 Kontrol Listesi A | BLOCKED (OWNER_INPUT) | D-1727, sahip girdisi bekliyor, dokunulmadı |
+| KK5 ihlal listesi boş | ✓ | üç motorda ihlal yok; webkit ölçü sınırı çözüldü |
+| KK6 gate kanıtı | ✓ | `observations.md`, kayıt dosyaları, değişinim satırları |
+
+⚠ Webkit'te klavye yolu Tab yerine odak gezisi (Linux CI'da Tab yolu denenmedi; E2E işi iptal edilmişti). KK4 dışında kısmi satır yok.

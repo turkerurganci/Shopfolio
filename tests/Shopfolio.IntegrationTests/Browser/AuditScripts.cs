@@ -15,7 +15,8 @@ internal static class AuditScripts
             return (r.width > 0 && r.height > 0 || e.matches('.skip-link')) && s.visibility !== 'hidden' && s.display !== 'none' && !e.closest('[hidden],[inert]') && !inClosed;
           };
           const all = [...document.querySelectorAll('a[href],button,input:not([type=hidden]),select,textarea,summary,[tabindex],[role=button]')]
-            .filter((e) => !e.disabled && e.getAttribute('tabindex') !== '-1' && visible(e));
+            // A control the page itself takes out of the tab order (a native link or button with tabindex=-1) is still a control to reach (WCAG 2.1.1): only a focus target that is no control (a region the script focuses) and a control that is hidden from every person on purpose (the trap field of the contact form, aria-hidden, 02 3.32.7) are left out.
+            .filter((e) => !e.disabled && (e.getAttribute('tabindex') !== '-1' || (e.matches('a[href],button,input,select,textarea,summary') && !e.closest('[aria-hidden="true"]'))) && visible(e));
           // A radio group is one stop (the arrow keys move inside it): the checked button, or the first when none is checked.
           const groupOf = (e) => (e.form ? [...document.forms].indexOf(e.form) : -1) + '|' + e.name;
           const checkedGroups = new Set(all.filter((e) => e.tagName === 'INPUT' && e.type === 'radio' && e.name && e.checked).map(groupOf));

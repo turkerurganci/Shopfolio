@@ -66,3 +66,27 @@ Geçici bozma, tek derleme + tek koşu, sonra `git checkout` ile geri alındı: 
 3. Duyusal tarif: "aşağıdaki IBAN'a" öğeyi adıyla anar, ihlal sayılmadı.
 4. Tarama süresi: iki yol × üç motor; CI e2e süresi ~3 kat, firefox Audit tek başına ~9,5 dk.
 5. Kontrol Listesi A: `BLOCKED (OWNER_INPUT)`.
+
+---
+
+## Düzeltme 1 (2026-11-17)
+
+**Durum: BÖLÜNDÜ (süre).** D-1728 ve değişinim tamam; D-1729 (üç motor koşuları) tamamlanmadı, devir notunda.
+
+- **D-1728 kapandı.** `AccessibilityAuditTests.ErrorState`: alan hatası olup özeti olmayan form ihlaldir; hiçbir hata göstermeyen yanıt ihlaldir; odak ilk hatalı alanda ya da özette olmalıdır (özet olmasa da). Form listesi `ValidationStateTests`'ten (ikinci liste yok); iç not ve teslimat illeri formları (`NoValidationState`) "uygulanmaz" satırı alır. İlk ölçüm (chromium, `ValidationStateTests` gözlemi) özetsiz alan hatalı formları buldu ve kaynağında düzeltildi: E-04 sepete ekleme (`Product.cshtml`), E-12 sepet adedi (`Cart.cshtml`), E-33 ürün formu (`_ProductFormBody`, `ProductFormModel.ErrorSummary`: varyant satırı bağlantıları kendi girdi kimliğine eşlendi; ilk denemede `Input_Variants_0__StockQuantity` bağlantısı sayfada olmayan kimliğe gidiyordu), E-34 kategori üç form (`Categories.cshtml`), E-47 yasal metin (`_LegalTextSection`). Alansız ret (E-34 taşıma, E-37 işlem formları): `04` §2.3.1.2 ve §2.3.3 yerinde kalıcı iletidir, §2.3.2 "hatalı alanlar" için özettir; bu formlar kapsam dışıdır, ölçü onlar için ileti sayısına bakar.
+- **Ölçü açığı bulundu (değişinim):** `tabindex=-1` bağlantı ilk denemede KIRMADI: `AuditScripts.Install` `tabindex=-1` öğeleri beklenen listesinden çıkarıyordu. Düzeltildi: yerel bağlantı/düğme/girdi `tabindex=-1` ise beklenir; yalnız denetim olmayan odak hedefleri ve kasıtlı `aria-hidden` tuzak alanı (iletişim formu, `02` 3.32.7) dışarıda. Sonra: üst bilgi sepet bağlantısına `tabindex=-1` verildi, chromium Audit klavye başlığı 112 satırda kırıldı (geri alındı). İletişim formundan özet kaldırıldı, E-10 hata başlığı iki yolda "hata özeti False, geçersiz alan 5" ile kırıldı (geri alındı); aynı koşu tuzak alanı muafiyeti eksikliğini de gösterdi, eklendi.
+- **Test (bu işçi):** chromium `AccessibilityAuditTests` iki yol yeşil (özet eklendikten sonra ve ölçü düzeltmesinden sonra), chromium `ValidationStateTests` 111/111 (özet öncesi).
+- **Koşulmadı (D-1729 açık):** Firefox ve WebKit Scan, Audit, Criteria, Record; chromium Scan, Criteria, Record ve değişen sayfaların Integration sayfa testleri (Product, Cart, Categories, LegalTexts, ProductForm). Devir notunda sırası.
+
+### Öz denetim (KK1–KK6, baştan)
+
+| KK | Sonuç | Kanıt |
+|---|---|---|
+| KK1 tüm ekranlar, iki yol | ⚠ kısmi | chromium Audit iki yol yeşil; Scan'ın üç motor × iki yol koşusu değişikliklerden sonra yapılmadı (D-1729) |
+| KK2 beş başlık | ⚠ kısmi | chromium iki yol yeşil; firefox ve webkit değişiklikten sonra koşulmadı (D-1729) |
+| KK3 31 ölçüt kaydı | ✓ | Audit sonu `accessibility-record-chromium-*.md` yazıldı, boş hücre yok |
+| KK4 | BLOCKED (OWNER_INPUT) | D-1727, dokunulmadı |
+| KK5 ihlal listesi boş | ✓ chromium | hata özeti ölçüsü bütün formlarda yeşil; diğer motorlar D-1729 |
+| KK6 gate kanıtı | ✓ | `observations.md` ve kayıt dosyaları |
+
+⚠ Kısmi satırlar ✓ sayılmadı; doğrulayıcı D-1729'u ve üç motor koşularını bu raporla birlikte yeniden ister.

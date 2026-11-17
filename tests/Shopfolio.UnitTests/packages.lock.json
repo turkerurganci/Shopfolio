@@ -313,7 +313,7 @@
           "Serilog.AspNetCore": "[10.0.0, )",
           "Serilog.Sinks.File": "[7.0.0, )",
           "SkiaSharp": "[4.154.0, )",
-          "SkiaSharp.NativeAssets.Linux.NoDependencies": "[4.154.0, )"
+          "SkiaSharp.NativeAssets.Linux.NoDependencies": "[4.156.1, )"
         }
       },
       "AWSSDK.SimpleEmailV2": {
@@ -451,9 +451,9 @@
       },
       "SkiaSharp.NativeAssets.Linux.NoDependencies": {
         "type": "CentralTransitive",
-        "requested": "[4.154.0, )",
-        "resolved": "4.154.0",
-        "contentHash": "U6HQ/n+wQ09WyXQB6PK1l46BIrHqTN/dImV84pti3mLxnlOdcSASPQzJwzuZmEgiCbriLtu5fP0t9cdzpFPHsw=="
+        "requested": "[4.156.1, )",
+        "resolved": "4.156.1",
+        "contentHash": "p7LcHVbwsLOmvugPySgjA/ncq/BFap1MMbRs1u119PD8ZYFZYWaFS7MIT1e6ObwJGkJ9HVV9lEvugt30IjmFOA=="
       }
     }
   }

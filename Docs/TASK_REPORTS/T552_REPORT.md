@@ -75,18 +75,27 @@ Geçici bozma, tek derleme + tek koşu, sonra `git checkout` ile geri alındı: 
 
 - **D-1728 kapandı.** `AccessibilityAuditTests.ErrorState`: alan hatası olup özeti olmayan form ihlaldir; hiçbir hata göstermeyen yanıt ihlaldir; odak ilk hatalı alanda ya da özette olmalıdır (özet olmasa da). Form listesi `ValidationStateTests`'ten (ikinci liste yok); iç not ve teslimat illeri formları (`NoValidationState`) "uygulanmaz" satırı alır. İlk ölçüm (chromium, `ValidationStateTests` gözlemi) özetsiz alan hatalı formları buldu ve kaynağında düzeltildi: E-04 sepete ekleme (`Product.cshtml`), E-12 sepet adedi (`Cart.cshtml`), E-33 ürün formu (`_ProductFormBody`, `ProductFormModel.ErrorSummary`: varyant satırı bağlantıları kendi girdi kimliğine eşlendi; ilk denemede `Input_Variants_0__StockQuantity` bağlantısı sayfada olmayan kimliğe gidiyordu), E-34 kategori üç form (`Categories.cshtml`), E-47 yasal metin (`_LegalTextSection`). Alansız ret (E-34 taşıma, E-37 işlem formları): `04` §2.3.1.2 ve §2.3.3 yerinde kalıcı iletidir, §2.3.2 "hatalı alanlar" için özettir; bu formlar kapsam dışıdır, ölçü onlar için ileti sayısına bakar.
 - **Ölçü açığı bulundu (değişinim):** `tabindex=-1` bağlantı ilk denemede KIRMADI: `AuditScripts.Install` `tabindex=-1` öğeleri beklenen listesinden çıkarıyordu. Düzeltildi: yerel bağlantı/düğme/girdi `tabindex=-1` ise beklenir; yalnız denetim olmayan odak hedefleri ve kasıtlı `aria-hidden` tuzak alanı (iletişim formu, `02` 3.32.7) dışarıda. Sonra: üst bilgi sepet bağlantısına `tabindex=-1` verildi, chromium Audit klavye başlığı 112 satırda kırıldı (geri alındı). İletişim formundan özet kaldırıldı, E-10 hata başlığı iki yolda "hata özeti False, geçersiz alan 5" ile kırıldı (geri alındı); aynı koşu tuzak alanı muafiyeti eksikliğini de gösterdi, eklendi.
-- **Test (bu işçi):** chromium `AccessibilityAuditTests` iki yol yeşil (özet eklendikten sonra ve ölçü düzeltmesinden sonra), chromium `ValidationStateTests` 111/111 (özet öncesi).
-- **Koşulmadı (D-1729 açık):** Firefox ve WebKit Scan, Audit, Criteria, Record; chromium Scan, Criteria, Record ve değişen sayfaların Integration sayfa testleri (Product, Cart, Categories, LegalTexts, ProductForm). Devir notunda sırası.
+- **Test (Düzeltme 1, bütün değişikliklerden sonra, motor başına ayrı çağrı, iki yol):**
+
+| Sınıf | chromium | firefox | webkit |
+|---|---|---|---|
+| `AccessibilityScanTests` | 2/2 yeşil | 2/2 yeşil | 2/2 yeşil |
+| `AccessibilityCriteriaTests` | 5/5 yeşil | 5/5 yeşil | 5/5 yeşil |
+| `AccessibilityRecordTests` | 15/15 yeşil | 15/15 yeşil | 15/15 yeşil |
+| `AccessibilityAuditTests` | 2/2 yeşil (3 dk 12 sn) | 2/2 yeşil (8 dk 4 sn, tek çağrıya sığdı) | **2/2 KIRMIZI** |
+
+- **⚠ WebKit Audit klavye başlığı kırmızı (bulgu, site ihlali değil, bu makinenin WebKit yapısı):** Windows'taki Playwright WebKit 26.4'te Tab tuşu bağlantıları atlıyor (E-01: beklenen 22, ulaşılan 3; yalnız düğme ve girdiler). `Alt+Tab` denendi, sonuç aynı (ulaşılan 3), geri alındı. Aynı sınıf chromium ve firefox'ta yeşil, yani bağlantılar klavyeyle erişilebilir; sorun WebKit'in Windows yapısında Tab'ın bağlantıya gitmemesi. Karar gerekir: WebKit için klavye ölçüsünü Linux CI'da (WebKit Linux yapısı bağlantıya Tab ile gider; doğrulanmadı) mı sınamalı, yoksa WebKit'te odak sırasını `Alt+Tab` dışında bir yolla mı (örn. `page.focus` ile sıralı) ölçmeli. D-1729 bu yüzden açık.
+- **Koşulmadı (süre):** değişen sayfaların Integration sayfa testleri (Product, Cart, Categories, LegalTexts, ProductForm sınıfları).
 
 ### Öz denetim (KK1–KK6, baştan)
 
 | KK | Sonuç | Kanıt |
 |---|---|---|
-| KK1 tüm ekranlar, iki yol | ⚠ kısmi | chromium Audit iki yol yeşil; Scan'ın üç motor × iki yol koşusu değişikliklerden sonra yapılmadı (D-1729) |
-| KK2 beş başlık | ⚠ kısmi | chromium iki yol yeşil; firefox ve webkit değişiklikten sonra koşulmadı (D-1729) |
-| KK3 31 ölçüt kaydı | ✓ | Audit sonu `accessibility-record-chromium-*.md` yazıldı, boş hücre yok |
+| KK1 tüm ekranlar, iki yol | ✓ | Scan üç motor × iki yol yeşil (tablo) |
+| KK2 beş başlık | ⚠ kısmi | chromium ve firefox iki yol yeşil; webkit klavye başlığı Windows WebKit'te Tab bağlantıyı atladığı için kırmızı (D-1729 açık) |
+| KK3 31 ölçüt kaydı | ✓ chromium, firefox | kayıt dosyaları yazıldı, boş hücre yok; webkit kaydı klavye hücreleri yüzünden boşluklu |
 | KK4 | BLOCKED (OWNER_INPUT) | D-1727, dokunulmadı |
-| KK5 ihlal listesi boş | ✓ chromium | hata özeti ölçüsü bütün formlarda yeşil; diğer motorlar D-1729 |
+| KK5 ihlal listesi boş | ⚠ kısmi | chromium ve firefox'ta boş; webkit'te yalnız ölçü sınırı (site ihlali değil) |
 | KK6 gate kanıtı | ✓ | `observations.md` ve kayıt dosyaları |
 
-⚠ Kısmi satırlar ✓ sayılmadı; doğrulayıcı D-1729'u ve üç motor koşularını bu raporla birlikte yeniden ister.
+⚠ Kısmi satırlar ✓ sayılmadı. Düzeltme 1 BÖLÜNDÜ (süre); kalan: WebKit klavye ölçüsü kararı ve sayfa testleri.

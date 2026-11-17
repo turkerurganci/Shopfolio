@@ -214,3 +214,37 @@ Geçici bozma, tek derleme + tek koşu, sonra `git checkout` ile geri alındı: 
 | KK6 | gate kanıtı | ✓ | `observations.md` "boş durum taraması" satırları (22 durak × 6 yol-motor) |
 
 ⚠ Kolay kararlar: (1) kesilen betiğin durumsuz "Failed to load resource" satırı yalnız boş durum taramasında hata sayılmıyor (betiksiz yolun doğası; 404 hâlâ hata). (2) D-1736 (a), (b) bu turda yapılmadı (süre/kapsam; zaten bloke-etmeyen K-notu), açık. Advisory CI E2E'nin son head sonucu doğrulayıcıda okunur.
+
+## Düzeltme 4 (2026-11-17)
+
+**Bulgu 1 (tur 3, ORTA, S2, `09 §19`):** `EmptyStateTests.TheScreenWithNothingToShow_..._KK2` ifade gövdeliydi (`=> RunStopAsync(...)`), gövdede `Assert` yok: `ForbiddenTestPatterns` `TestWithoutAssertion` Unit'i (8087/8088) ve CI Gate'i kırdı.
+
+**Neden:** düzeltme 3'te assert `RunStopAsync` içine kaldı; test dosyasına dokunan tur Unit TAM koşmadı (sık FAIL nedeni listesinde T552 r3 satırı).
+
+**Düzeltme:** `RunStopAsync` artık `IReadOnlyList<string>` (Failures) döner; teori `Assert.Empty(await RunStopAsync(...))` ile bitirir, `AccessibilityStatesTests` boş durum döngüsü her durak için aynı assert'i yapar. Bekçi istisnası eklenmedi, kural gevşetilmedi. Dalın değiştirdiği öteki test dosyalarında ifade gövdeli teori araması (`=> Run…Async(`, `Task … =>`): başka örnek yok (yalnız `DisposeAsync` ValueTask'ları, teori değil). **Unit TAM: 8088/8088.**
+
+**D-1740 (b) (CI E2E firefox betiksiz `NavigateAsync` 12 sn):** CI günlüğü: `waiting for navigation until "Load"`, `ValidationStateTests.cs:386`; test 2 dk 35 sn çalıştıktan sonra (hangi form olduğu günlükte yok). Yerelde firefox betiksiz Audit bu kodla ve eski kodla yeşil (yeniden üretilemedi); ağ kesme kuralı (betik istekleri iptal) ve gönderim aynı iken kırılan tek şey "load" olayı beklemesi. Düzeltme: gönderimin cevabı okunacağı için bekleme "load" (resim/betik bitişi) yerine tarayıcının cevabı devraldığı an (`Commit`) + `DOMContentLoaded`'dır (`NavigateAsync(until:)`, koşullu bekleme; `Task.Delay`/yeniden deneme yok; süre 12 sn → varsayılan 30 sn ile birlikte, tek başına süre değişikliği değil). ⚠ Kök neden CI'daki Linux firefox'ta yerelde gözlenemedi; düzeltme olay seçimini sağlamlaştırır, CI "8. E2E" son head'de doğrulayıcıda okunur.
+
+**D-1740 (a):** `EmptyStateTests.OwnErrorsOf` (saf işlev): istisna yalnız betiksiz yol + tarama kancası + sayfanın `RequestFailed` ile kesilen betik isteği sayısı (`WatchedPage.CutScripts`) kadar satırla sınırlı. Yeni test `TheCutScriptExemption_IsOnlyOnTheScriptlessWayOfTheScan_AndOnlyAsManyLinesAsScriptsWereCut_KK2` (betikli yol, kancasız, sayıdan fazla satır, durum kodlu satır, sayfa hatası).
+
+**Değişinim:** (1) `path != Scriptless` denetimi kaldırıldı → yeni test kırıldı (`Assert.Equal` 2); (2) `toDrop > 0` sayı sınırı kaldırıldı → kırıldı; ikisi geri alındı.
+
+**Testler (yerel):** build `-warnaserror` 0/0; `dotnet format --verify-no-changes --include` (4 `.cs`) çıkış 0; Unit TAM 8088/8088. Integration: `EmptyStateTests` chromium iki yol 46/46; `AccessibilityStatesTests` + `ValidationStateTests` chromium iki yol 117/117; firefox betiksiz `AccessibilityAuditTests` + `EmptyStateTests` 47/47 (Audit firefox betiksiz 590 sn'ye sığdı). Integration TAM: CI.
+
+### Öz denetim (KK1–KK6, baştan, son head)
+
+| KK | Pay | Sonuç | Kanıt |
+|---|---|---|---|
+| KK1 | ekranlar × iki yol × üç motor | ✓ | `AccessibilityScanTests` değişmedi (tur 3 doğrulayıcı: Scan 2/2) |
+| KK1 | onay pencereleri | ✓ | `ConfirmWindowTests` dokunulmadı; `AccessibilityStatesTests` pencere teorisi chromium iki yol yeşil |
+| KK1 | hata hâlleri | ✓ | `ValidationStateTests` + States chromium iki yol 117/117; gönderim beklemesi commit + DOMContentLoaded; Audit firefox betiksiz yeşil |
+| KK1 | boş durumlar × iki yol × motor | ✓ | 22 durak; `EmptyStateTests` chromium 46/46 iki yol, firefox betiksiz yeşil; tarama kancası aynı yürüyüş; Unit 8088 |
+| KK2 | beş başlık | ✓ | `AccessibilityAuditTests` firefox betiksiz yeşil (hata başlığı `ProbeAsync` yolundan) |
+| KK3 | 31 ölçüt kaydı | ✓ | `AccessibilityRecordTests` değişmedi |
+| KK4 | Kontrol Listesi A | `BLOCKED (OWNER_INPUT)` | D-1727, değişmedi |
+| KK5 | ihlal listesi boş | ✓ | tüm yerel koşularda 0 ihlal |
+| KK6 | gate kanıtı | ✓ | `observations.*` üretiliyor; yeni gözlem satırı yok |
+| — | backlog: D-1740 (a), (b) | ✓ kapandı | `DEFERRED_BACKLOG.d/T552.md`; (a) değişinimli test, (b) bekleme olayı değişti |
+| — | sık FAIL: ifade gövdeli teori / Unit TAM | ✓ | arama + Unit 8088/8088 |
+
+⚠ Kolay karar: D-1740 (b) kök nedeni yerelde yeniden üretilemedi; CI günlüğündeki "waiting for navigation until Load" kanıtıyla "load" olayı bağımlılığı kaldırıldı. D-1736 (a)–(d), D-1732 (c)(d) F5 faz kapısında açık (değişmedi).

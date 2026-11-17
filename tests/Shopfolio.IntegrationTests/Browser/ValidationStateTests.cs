@@ -383,7 +383,9 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
         ILocator button = form.Button is null
             ? target.Locator("button[type=submit]").First
             : form.Button.StartsWith("css:", StringComparison.Ordinal) ? target.Locator(form.Button[4..]).First : target.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = form.Button });
-        await NavigateAsync(page, () => button.ClickAsync(), 12000);
+        // The answer's markup is what is read (the counts below), so the wait ends when the answering document is taken over and its markup parsed, not when every picture and script of it has finished: in Firefox the "load" of
+        // the answer to a send did not come within the wait now and then (T552 CI 44135791843; D-1740 (b)), whereas the commit is the browser's own sign that the server has answered.
+        await NavigateAsync(page, () => button.ClickAsync(), 30000, WaitUntilState.Commit);
         int summary = await page.Page.Locator("[data-js=error-summary]").CountAsync();
         int invalid = await page.Page.Locator("[aria-invalid=true]").CountAsync();
         // The order screen's forms (E-37) answer in the place of the form with the error message of the form (04 2.3.1 "in place") and have no field of their own to mark; the count of those messages is the other kind of sign.

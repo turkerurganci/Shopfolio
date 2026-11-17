@@ -101,7 +101,7 @@ public sealed class AccessibilityStatesTests(BrowserHost host) : BrowserTestBase
         };
         foreach (EmptyStop stop in stops)
         {
-            await empty.RunStopAsync(engine, path, stop.Key);
+            Assert.Empty(await empty.RunStopAsync(engine, path, stop.Key));
         }
 
         // The list of empty states is the stops of EmptyStateTests (read from 04 and checked there): this is a floor against a list that shrank, not the list.

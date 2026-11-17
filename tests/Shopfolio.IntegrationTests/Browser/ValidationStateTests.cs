@@ -199,6 +199,9 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
         Assert.True(withoutForm.Count == 0, "Validation cases whose form is not in the walk's pages: " + string.Join(", ", withoutForm));
     }
 
+    /// <summary>The keys of the forms of the screen that the walk's pages do not show (a flow opens them); the audit sends them too.</summary>
+    internal static IEnumerable<string> FlowKeysOf(string screen) => AllCases.Where(c => c.FromFlow && c.Screen == screen).Select(c => c.Key);
+
     // ---- breaking a form ----
 
     private static string InvalidValueOf(string type, string name)
@@ -326,12 +329,28 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
     private async Task<string> FingerprintAsync(string? table) =>
         table is null ? string.Empty : await DataRecord.RowAsync(Host.Dsn, $"SELECT count(*) AS rows, md5(coalesce(string_agg(t::text, ',' ORDER BY t::text), '')) AS fingerprint FROM {table} t");
 
+    /// <summary>The state a broken form's answer is in (what the answer drew); <paramref name="Inspection"/> is what the caller's inspection of the answering page returned.</summary>
+    internal sealed record Probe(string Key, List<int> Posts, int Summary, int Invalid, int Messages, string Fingerprint, bool Unchanged, string Inspection, bool InspectionOk, WatchedPage Page);
+
     [Theory]
     [MemberData(nameof(Cases))]
     public async Task TheFormSentWithAValueThatIsNotAllowed_Gives422WithAnInvalidField_AndWritesNothing_KK2(string engine, ScriptPath path, string key)
     {
         FormCase form = ByKey[key];
         await using IBrowserContext context = await Host.ContextAsync(engine, path, form.Actor);
+        await ObserveProbeAsync(engine, path, form, context, null);
+    }
+
+    /// <summary>Sends the case's form with a value that is not allowed in the context and lets <paramref name="inspect"/> read the page that answers (the manual audit's error message heading, T552).</summary>
+    internal async Task<Probe> ProbeAsync(string engine, ScriptPath path, string key, Func<WatchedPage, Task<(bool Ok, string Text)>> inspect)
+    {
+        FormCase form = ByKey[key];
+        await using IBrowserContext context = await AccessibilityScanTests.AuditContextAsync(Host, engine, path, form.Actor);
+        return await ObserveProbeAsync(engine, path, form, context, inspect);
+    }
+
+    private async Task<Probe> ObserveProbeAsync(string engine, ScriptPath path, FormCase form, IBrowserContext context, Func<WatchedPage, Task<(bool Ok, string Text)>>? inspect)
+    {
         WatchedPage page = await NewPageAsync(context);
         List<int> posts = [];
         page.Page.Response += (_, r) =>
@@ -363,6 +382,12 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
         // The order screen's forms (E-37) answer in the place of the form with the error message of the form (04 2.3.1 "in place") and have no field of their own to mark; the count of those messages is the other kind of sign.
         int messages = await page.Page.Locator("main .message--error").CountAsync();
         string after = await FingerprintAsync(form.Watch ?? form.Table);
+        if (inspect is not null)
+        {
+            (bool inspectionOk, string inspection) = await inspect(page);
+            return new Probe(form.Key, posts, summary, invalid, messages, after, before == after, inspection, inspectionOk, page);
+        }
+
         string state = $"gönderim durumu {string.Join(",", posts)}; hata özeti {summary}; geçersiz alan {invalid}; hata iletisi {messages}; {form.Table ?? "tablo"} {(before == after ? "değişmedi" : "DEĞİŞTİ")}";
         if (form.NoValidationState is not null)
         {
@@ -377,7 +402,7 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
                 posts.Count > 0 && posts[0] != 422 && invalid == 0 && messages == 0,
                 after);
             Assert.Empty(Failures);
-            return;
+            return new Probe(form.Key, posts, summary, invalid, messages, after, before == after, string.Empty, true, page);
         }
 
         await ObserveAsync(
@@ -391,5 +416,6 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
             posts.Count > 0 && posts[^1] == 422 && (invalid > 0 || messages > 0) && before == after,
             after);
         Assert.Empty(Failures);
+        return new Probe(form.Key, posts, summary, invalid, messages, after, before == after, string.Empty, true, page);
     }
 }

@@ -225,7 +225,10 @@ public sealed class FormErrorSummary
                 continue;
             }
 
-            fields.Add(new FormFieldError(FieldIdOf(pair.Key), entry.Errors[0].ErrorMessage));
+            // A handler's parameter is named "input" and the framework writes the model state key with that spelling ("input.Name"), while every form spells its fields "Input.Name": without the form's own order
+            // (below) the summary's link and the autofocus would name an element id that does not exist (T552, WCAG 2.4.1/3.3.1: a link of the summary reaches its field).
+            string key = pair.Key.StartsWith("input.", StringComparison.Ordinal) ? "Input." + pair.Key["input.".Length..] : pair.Key;
+            fields.Add(new FormFieldError(FieldIdOf(key), entry.Errors[0].ErrorMessage));
         }
 
         if (formOrder is { Count: > 0 })

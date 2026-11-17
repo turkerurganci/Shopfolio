@@ -169,3 +169,48 @@ Geçici bozma, tek derleme + tek koşu, sonra `git checkout` ile geri alındı: 
 - **B1 (KK1, `VAL-A790`, `A776`, `A343`):** `12 §12.2` (1) kapsamı ekranlarla birlikte "onay pencereleri, hata hâlleri ve boş durumlar"dır; pencereler ve hata hâlleri artık taranıyor, boş durumlar taranmıyor. `EmptyStateTests`'in durumlarından yalnız yürüyüşte de olanlar (E-03 sonuçsuz arama, E-12 boş sepet) taranıyor; boş kurulum, süzgeç sonucu boş ve adressiz/siparişsiz üye durumları (E-02, E-26, E-27, E-32, E-34, E-35, E-36, E-38, E-41, E-51, E-52) hiçbir motorda ve yolda axe'ten geçmiyor. Öneri: pencerelerdeki gibi `EmptyStateTests` yürüyüşüne tarama kancası; liste ikinci kez yazılmaz.
 - **Tur 1 bulguları kapandı:** B1 (9 pencere × "Vazgeç" odağı, 53 hata hâli; üç motor × iki yol; CI 44069637871 E2E 675/675). B2 (`WaitForFocusAsync` 5 sn; autofocus silme değişinimi chromium/firefox betiksiz yolda "odak BODY" ile kırdı; bekleme sorunu gizlemiyor).
 - **Doğrulanan:** yedi değişinim (tabindex=-1 chromium + webkit, hata özeti silme, düğme adı silme, odak çerçevesi kaldırma, `lang` silme, autofocus silme, sepetin ödeme bağlantısına tabindex=-1 → `VAL-A345`) ilgili testleri kırdı; Unit 8088/8088; build `-warnaserror` temiz; format temiz; sayfa testleri 165/165; States/Criteria/Audit üç motor × iki yol yerelde yeşil; Record + Scan chromium 20/20.
+
+## Düzeltme 3 (2026-11-17)
+
+**Bulgu (tur 2 B1, `VAL-A790`, `A776`, `A343`):** `12 §12.2` (1) kapsamı "onay pencereleri, hata hâlleri ve boş durumlar"dır; boş durumlar taranmıyordu (E-02, E-26, E-27, E-32, E-34, E-35, E-36, E-38, E-41, E-51, E-52).
+
+**Neden:** tur 1'de pencere ve hata hâli payı eklenirken `EmptyStateTests` durumları sayılmadı; kapsam maddesinin sınıfları tek tek karşılaştırılmadı (sık FAIL nedeni: kabul kriteri kısmen karşılandı).
+
+**Düzeltme:**
+- `EmptyStateTests`: gövde `RunStopAsync`'e çıktı; `AtEmptyState` kancası (boş durum açıkken, çıkış bağlantısı izlenmeden önce çağrılır). Kanca doluyken bağlam taramanın okuyabildiği bağlamdır (`AuditContextAsync`; betiksiz yolda sayfa betiği ağda kesilir) ve kesilen betiğin durumsuz "Failed to load resource" satırı hata sayılmaz (`OwnErrors`; 404 gibi durumlu satır hâlâ hata).
+- `AccessibilityStatesTests.EveryEmptyStateOfTheInventory_...`: liste ikinci kez yazılmadı; `EmptyStateTests.Stops(...)` (22 durak, E-03/E-12 dahil) her motor × yolda kancayla gezilir; taban 22 ve `taranan == durak sayısı` denetlenir. Gözlem adımı "boş durum taraması: <durum>".
+- D-1732 hedefi "T552 düzeltme turu" → F5 faz kapısı; metindeki olmayan D-1734 anışı kaldırıldı; D-1736 (e) ✅ (backlog `T552.md`). D-1736 (a), (b) bu turda yapılmadı, açık.
+
+**Değişinim:** (1) `EmptyStateTests.Stops`'tan bir durak (E-52 süzgeç) silindi → `EveryEmptyStateOfTheInventory` chromium iki yolda kırıldı (taban); geri alındı. (2) `_EmptyState.cshtml` bağlantı metni `aria-hidden` içine alındı (erişilebilir ad boş) → aynı test iki yolda kırıldı, gözlem 7+ satırda `link-name (wcag2a wcag244 wcag412) .empty-state__action`; geri alındı. Yeni ihlal çıkmadı, kaynakta düzeltme gerekmedi.
+
+**12 §12.2 (1) sınıf × kaynak (satır satır):**
+
+| §12.2 (1) sayılan sınıf | Taramanın kaynağı | Sınıf/test |
+|---|---|---|
+| Vitrin ekranları | `ScreenInventoryTests.Stops()` + sepet/ödeme ürünlü | `AccessibilityScanTests` (53 ekran, 101 durak) |
+| Ödeme adımı (E-13, ürünlü) | `AccessibilityScanTests.AuditStops()` | `AccessibilityScanTests` |
+| Hesap ekranları | `ScreenInventoryTests.Stops()` (E-24…E-27) | `AccessibilityScanTests` |
+| Panel ekranları (E-48 ekran değil) | `ScreenInventoryTests.Stops()` (E-31…E-54) | `AccessibilityScanTests` |
+| Onay pencereleri | `ConfirmWindowTests` teorileri (yansıma, 9) | `AccessibilityStatesTests.EveryConfirmationWindow...` |
+| Hata hâlleri | `ValidationStateTests.ErrorStateKeys()` (53) | `AccessibilityStatesTests.EveryFormAnswerWithAnError...` |
+| Boş durumlar | `EmptyStateTests.Stops()` (22) | `AccessibilityStatesTests.EveryEmptyStateOfTheInventory...` (yeni) |
+| İki yol, üç motor | `Ways` × `BrowserHost.Engines` | hepsi |
+
+**Testler (yerel):** build `-warnaserror` 0/0; `dotnet format --verify-no-changes` (iki `.cs`) çıkış 0; Unit'e dokunulmadı (koşulmadı). Integration: `EmptyStateTests` + `AccessibilityStatesTests` chromium 51/51; yeni test `EveryEmptyState...` firefox ve webkit × iki yol 4/4. Koşulmadı (CI E2E): Audit/Criteria/Record/Scan (kod değişmedi), tam üç motor.
+
+### Öz denetim (KK1–KK6, baştan, kod commit'i `beaa64d9`; son head dönüşte)
+
+| KK | Pay | Sonuç | Kanıt |
+|---|---|---|---|
+| KK1 | ekranlar × iki yol × üç motor | ✓ | `AccessibilityScanTests` (değişmedi; tur 2 CI 606 gözlem) |
+| KK1 | onay pencereleri | ✓ | 9 pencere, `AccessibilityStatesTests` (değişmedi) |
+| KK1 | hata hâlleri | ✓ | 53 durum, `AccessibilityStatesTests` (değişmedi) |
+| KK1 | boş durumlar × iki yol × üç motor | ✓ | 22 durak; chromium 2/2, firefox+webkit 4/4; değişinim 2 kırdı |
+| KK1 | §12.2 (1) sınıf karşılaştırması | ✓ | yukarıdaki tablo; yeni sınıf eksiği yok |
+| KK2 | beş başlık | ✓ | `AccessibilityAuditTests` değişmedi; boş durum sayfaları 04'te ekran olarak yürüyüşte de var (E-03, E-12) ya da aynı bileşen |
+| KK3 | 31 ölçüt kaydı | ✓ | `AccessibilityRecordTests` değişmedi; yeni adım adı kaydı bozmaz (`ScanStep` yalnız "otomatik tarama") |
+| KK4 | Kontrol Listesi A | `BLOCKED (OWNER_INPUT)` | D-1727, değişmedi |
+| KK5 | ihlal listesi boş | ✓ | boş durumlarda 0 ihlal (kontrast dahil), üç motor |
+| KK6 | gate kanıtı | ✓ | `observations.md` "boş durum taraması" satırları (22 durak × 6 yol-motor) |
+
+⚠ Kolay kararlar: (1) kesilen betiğin durumsuz "Failed to load resource" satırı yalnız boş durum taramasında hata sayılmıyor (betiksiz yolun doğası; 404 hâlâ hata). (2) D-1736 (a), (b) bu turda yapılmadı (süre/kapsam; zaten bloke-etmeyen K-notu), açık. Advisory CI E2E'nin son head sonucu doğrulayıcıda okunur.

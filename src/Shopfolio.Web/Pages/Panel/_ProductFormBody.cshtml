@@ -36,6 +36,7 @@
     string uploadAction = Model.FormPath + "?handler=UploadImage";
 }
 <form method="post" asp-antiforgery="true" action="@(Model.FormPath)?handler=SaveProduct" upload-form="ProductGallery" class="product-form__entries" id="product-save">
+    <partial name="_FormErrorSummary" model="Model.ErrorSummary()" />
     @if (entries.Version is { } version)
     {
         @VersionFields.Version(version, "Input")

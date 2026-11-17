@@ -20,10 +20,14 @@
     <partial name="_Message" model="Model.Notice" />
 }
 <form method="post" asp-antiforgery="true" asp-page-handler="CreateCategory" class="form category-new" id="@CategoriesModel.NewCategoryFormId" data-js="submit-once">
+    @if (Model.NewCategoryMessage is not null)
+    {
+        <partial name="_FormErrorSummary" model='new FormErrorSummary([new FormFieldError("category-new-name", Model.NewCategoryMessage)])' />
+    }
     <div class="field">
         <label class="field__label" for="category-new-name">Ad</label>
         <input class="field__control" type="text" id="category-new-name" name="Input.Name" value="@Model.NewCategoryValue" maxlength="@ProductConstants.ProductNameMaxLength" aria-required="true"
-               aria-invalid="@(Model.NewCategoryMessage is null ? "false" : "true")" aria-describedby="@(Model.NewCategoryMessage is null ? null : Messages.FieldMessageId("category-new-name"))">
+               aria-invalid="@(Model.NewCategoryMessage is null ? "false" : "true")" autofocus="@(Model.NewCategoryMessage is not null)" aria-describedby="@(Model.NewCategoryMessage is null ? null : Messages.FieldMessageId("category-new-name"))">
         @if (Model.NewCategoryMessage is not null)
         {
             <partial name="_Message" model='Messages.ForField("category-new-name", Model.NewCategoryMessage)' />
@@ -60,11 +64,15 @@ else
                     @if (node.CanAddChild)
                     {
                         <form method="post" asp-antiforgery="true" asp-page-handler="CreateCategory" class="form category-tree__form" data-js="submit-once">
+                            @if (node.ChildMessage is not null)
+                            {
+                                <partial name="_FormErrorSummary" model='new FormErrorSummary([new FormFieldError("category-child-" + id, node.ChildMessage)])' />
+                            }
                             <input type="hidden" name="Input.ParentCategoryId" value="@id">
                             <div class="field">
                                 <label class="field__label" for="category-child-@id">Alt kategorinin adı</label>
                                 <input class="field__control" type="text" id="category-child-@id" name="Input.Name" value="@node.ChildValue" maxlength="@ProductConstants.ProductNameMaxLength" aria-required="true"
-                                       aria-invalid="@(node.ChildMessage is null ? "false" : "true")" aria-describedby="@(node.ChildMessage is null ? null : Messages.FieldMessageId("category-child-" + id))">
+                                       aria-invalid="@(node.ChildMessage is null ? "false" : "true")" autofocus="@(node.ChildMessage is not null)" aria-describedby="@(node.ChildMessage is null ? null : Messages.FieldMessageId("category-child-" + id))">
                                 @if (node.ChildMessage is not null)
                                 {
                                     <partial name="_Message" model='Messages.ForField("category-child-" + id, node.ChildMessage)' />
@@ -74,11 +82,15 @@ else
                         </form>
                     }
                     <form method="post" asp-antiforgery="true" asp-page-handler="RenameCategory" class="form category-tree__form" data-js="submit-once">
+                        @if (node.RenameMessage is not null)
+                        {
+                            <partial name="_FormErrorSummary" model='new FormErrorSummary([new FormFieldError("category-name-" + id, node.RenameMessage)])' />
+                        }
                         <input type="hidden" name="Input.CategoryId" value="@id">
                         <div class="field">
                             <label class="field__label" for="category-name-@id">Yeni ad</label>
                             <input class="field__control" type="text" id="category-name-@id" name="Input.Name" value="@(node.RenameValue ?? node.Name)" maxlength="@ProductConstants.ProductNameMaxLength" aria-required="true"
-                                   aria-invalid="@(node.RenameMessage is null ? "false" : "true")" aria-describedby="@(node.RenameMessage is null ? null : Messages.FieldMessageId("category-name-" + id))">
+                                   aria-invalid="@(node.RenameMessage is null ? "false" : "true")" autofocus="@(node.RenameMessage is not null)" aria-describedby="@(node.RenameMessage is null ? null : Messages.FieldMessageId("category-name-" + id))">
                             @if (node.RenameMessage is not null)
                             {
                                 <partial name="_Message" model='Messages.ForField("category-name-" + id, node.RenameMessage)' />

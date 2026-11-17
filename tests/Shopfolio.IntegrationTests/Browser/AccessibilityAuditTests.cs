@@ -37,6 +37,9 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
           const invalid = [...document.querySelectorAll('[aria-invalid="true"]')];
           const messages = [...document.querySelectorAll('main .message--error')];
           const problems = [];
+          // 04 2.3.2: a form with a wrong field has the summary at its head; a form whose refusal is at the level of the action (no field to mark) answers with the in-place message (04 2.3.1.2, 2.3.3) and has none.
+          if (invalid.length > 0 && !summary) { problems.push('the form has ' + invalid.length + ' invalid field(s) and no error summary (04 2.3.2)'); }
+          if (invalid.length === 0 && messages.length === 0) { problems.push('the answer shows no error: no invalid field and no message'); }
           if (summary) {
             if (!summary.getAttribute('role')) { problems.push('the summary has no role'); }
             const links = [...summary.querySelectorAll('a[href^="#"]')];
@@ -59,7 +62,7 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
             if (!m.querySelector('.message__symbol')) { problems.push('an error message has no symbol beside its colour'); }
           }
           const first = invalid[0]; const active = document.activeElement;
-          if (summary && first && active !== first && !(summary === active || summary.contains(active))) { problems.push('the focus is not on the first invalid field or the summary: ' + (active ? active.tagName : 'none')); }
+          if (first && active !== first && !(summary && (summary === active || summary.contains(active)))) { problems.push('the focus is not on the first invalid field or the summary: ' + (active ? active.tagName : 'none')); }
           return JSON.stringify({ problems, summary: !!summary, invalid: invalid.length, messages: messages.length });
         }
         """;
@@ -226,9 +229,20 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
             {
                 ValidationStateTests.Probe probe = await validation.ProbeAsync(engine, path, key, InspectErrorAsync);
                 bool sent = probe.Posts.Count > 0;
+                if (ValidationStateTests.NoValidationStateOf(key) is { } noState)
+                {
+                    // The form takes any value (04 says so), so no error message can come: the heading does not apply, and the form is still sent to show that nothing is refused.
+                    await ObserveAsync(
+                        screen, path, engine, probe.Page, $"elle denetim, {Error}: {key}", $"uygulanmaz: form her değeri kabul eder, hata iletisi doğmaz ({noState})",
+                        $"gönderim {string.Join(",", probe.Posts)}; geçersiz alan {probe.Invalid}; hata iletisi {probe.Messages}",
+                        sent && probe.Posts[0] != 422 && probe.Invalid == 0 && probe.Messages == 0);
+                    await probe.Page.Page.CloseAsync();
+                    continue;
+                }
+
                 await ObserveAsync(
                     screen, path, engine, probe.Page, $"elle denetim, {Error}: {key}",
-                    "hatalı alan adıyla ve hatanın metniyle, alana bağlı ve renk dışında bir işaretle gösterilir; odak ilk hatalı alanda ya da özette (WCAG 3.3.1)",
+                    "hatalı alan adıyla ve hatanın metniyle, alana bağlı ve renk dışında bir işaretle gösterilir; alan hatasında formun başında hata özeti çıkar (04 2.3.2), alansız ret yerinde iletidir (04 2.3.3); odak ilk hatalı alanda ya da özette (WCAG 3.3.1)",
                     probe.Inspection + $"; gönderim {string.Join(",", probe.Posts)}",
                     sent && probe.InspectionOk);
                 await probe.Page.Page.CloseAsync();

@@ -51,9 +51,13 @@ else
                     {
                         <form method="post" asp-antiforgery="true" action="@(FramePaths.Cart)?handler=UpdateCartItem" class="cart-line__quantity" data-js="submit-once">
                             <partial name="_ChangeNotice" />
+                            @if (refused && summary.HasContent)
+                            {
+                                <partial name="_FormErrorSummary" model="new FormErrorSummary([new FormFieldError(quantityId, summary.Fields[0].Text)])" />
+                            }
                             <input type="hidden" name="CartItemId" value="@line.ItemId" />
                             <label for="@quantityId">Adet</label>
-                            <input id="@quantityId" name="Quantity" type="number" min="1" step="1" inputmode="numeric" value="@(refused && Model.SentQuantity is not null ? Model.SentQuantity : line.Quantity.ToString(System.Globalization.CultureInfo.InvariantCulture))" aria-describedby="@Messages.FieldMessageId(quantityId)" aria-invalid="@(refused && summary.HasContent ? "true" : null)" />
+                            <input id="@quantityId" name="Quantity" type="number" min="1" step="1" inputmode="numeric" value="@(refused && Model.SentQuantity is not null ? Model.SentQuantity : line.Quantity.ToString(System.Globalization.CultureInfo.InvariantCulture))" aria-describedby="@Messages.FieldMessageId(quantityId)" aria-invalid="@(refused && summary.HasContent ? "true" : null)" autofocus="@(refused && summary.HasContent)" />
                             <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf("Güncelle")">Güncelle</button>
                             @if (refused)
                             {

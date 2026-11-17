@@ -23,6 +23,11 @@
     FormErrorSummary errors = FormErrorSummary.From(ViewData.ModelState);
     MessageView? optionError = ProductBuyArea.OptionMessageOf(errors) is { } optionText ? Messages.ForField(VariantQuery.FirstParameter, optionText) : null;
     MessageView? quantityError = ProductBuyArea.QuantityMessageOf(errors) is { } quantityText ? Messages.ForField(ProductBuyArea.QuantityFieldId, quantityText) : null;
+    // The summary of the page's buy forms (04 2.3.2): the selection and the quantity, in the order the page draws them; the focus goes to the first of them.
+    FormErrorSummary buyErrors = new([
+        .. optionError is null ? [] : new[] { new FormFieldError(VariantQuery.FirstParameter, ProductBuyArea.OptionMessageOf(errors)!) },
+        .. quantityError is null ? [] : new[] { new FormFieldError(ProductBuyArea.QuantityFieldId, ProductBuyArea.QuantityMessageOf(errors)!) },
+    ]);
     ViewData["Title"] = view.Name;
 }
 @section Head {
@@ -104,6 +109,7 @@
                     }
                 </div>
             }
+            <partial name="_FormErrorSummary" model="buyErrors" />
             @if (view.Options.Count > 0)
             {
                 <form class="variant-form" method="get" action="@view.Path" data-js="variant-form">
@@ -112,7 +118,7 @@
                     {
                         <div class="variant-form__field">
                             <label for="@field.FieldName">@field.Name</label>
-                            <select id="@field.FieldName" name="@field.FieldName" data-js="option">
+                            <select id="@field.FieldName" name="@field.FieldName" data-js="option" autofocus="@(buyErrors.AutofocusFor(field.FieldName).Length > 0)">
                                 @foreach (OptionChoice choice in field.Choices)
                                 {
                                     <option value="@choice.Order" data-label="@choice.Text" selected="@choice.IsSelected" disabled="@(!choice.IsSelectable)">@choice.Text@(choice.IsSoldOut ? " (Tükendi)" : string.Empty)</option>
@@ -137,7 +143,7 @@
                             <div class="buy-form__quantity">
                                 <label for="@ProductBuyArea.QuantityFieldId">Adet</label>
                                 <input id="@ProductBuyArea.QuantityFieldId" name="Quantity" type="text" inputmode="numeric" value="@buy.QuantityValue"
-                                       aria-invalid="@(quantityError is null ? "false" : "true")"
+                                       aria-invalid="@(quantityError is null ? "false" : "true")" autofocus="@(buyErrors.AutofocusFor(ProductBuyArea.QuantityFieldId).Length > 0)"
                                        aria-describedby="@(quantityError is null ? null : Messages.FieldMessageId(ProductBuyArea.QuantityFieldId))" />
                                 @if (quantityError is not null)
                                 {

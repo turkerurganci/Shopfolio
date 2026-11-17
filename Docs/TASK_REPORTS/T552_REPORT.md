@@ -248,3 +248,11 @@ Geçici bozma, tek derleme + tek koşu, sonra `git checkout` ile geri alındı: 
 | — | sık FAIL: ifade gövdeli teori / Unit TAM | ✓ | arama + Unit 8088/8088 |
 
 ⚠ Kolay karar: D-1740 (b) kök nedeni yerelde yeniden üretilemedi; CI günlüğündeki "waiting for navigation until Load" kanıtıyla "load" olayı bağımlılığı kaldırıldı. D-1736 (a)–(d), D-1732 (c)(d) F5 faz kapısında açık (değişmedi).
+
+## Doğrulama — tur 4 (2026-11-18): ✓ PASS
+
+- **Bulgu sayısı:** 0; K-notları D-1746'da (bloke etmez). Düzeltme gerekmez.
+- **Tur 3 Bulgu 1 kapandı:** teori `Assert.Empty(await RunStopAsync(...))`; dalın değiştirdiği test dosyalarında assert'siz ifade gövdeli teori yok (grep); `ForbiddenTestPatterns` dosyalarına dokunulmamış (bekçi istisnası yok); Unit TAM 8088/8088; CI 44159518261 "3. Unit test" ve CI Gate yeşil.
+- **D-1740 (a), (b):** (a) istisna yalnız betiksiz yol + tarama kancası + kesilen betik sayısı kadar satır; yol denetimini silme değişinimi `TheCutScriptExemption_…` testini kırdı. (b) gönderim beklemesi `Commit` + `DOMContentLoaded`, 30 sn; sayfa hiç gelmezse yine zaman aşımıyla kırılır, 422 denetimi ve sayımlar aynı. CI "8. E2E" 682/682 (firefox betiksiz dahil); altı kayıt dosyasında "ölçülmedi", "karşılanmadı", "–" ya da "✗" hücresi yok; 6618 gözlemin hiçbiri kırmızı değil.
+- **Değişinimler (doğrulayıcı):** `tabindex=-1` (chromium ve webkit Audit klavye başlığı), hata özeti silme (E-10 hata başlığı), düğme adı silme (axe `button-name`), odak çerçevesi kaldırma (odak başlığı), `lang` silme (sayfa olguları + axe `html-has-lang`), autofocus kaldırma (betiksiz hata başlığı: odak BODY), boş durum ve pencere düşürme (States taban denetimleri), istisna yol denetimi silme; hepsi kırdı, geri alındı.
+- **Yerel:** build `-warnaserror` 0/0; `dotnet format --include` (19 `.cs`) çıkış 0; Unit 8088/8088; Integration: States + Audit + Criteria üç motor × iki yol, Record + Scan chromium iki yol, sayfa sınıfları 182/182 yeşil. Integration TAM: CI.

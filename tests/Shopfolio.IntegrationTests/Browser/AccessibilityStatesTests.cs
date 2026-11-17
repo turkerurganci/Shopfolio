@@ -5,9 +5,10 @@ using Microsoft.Playwright;
 namespace Shopfolio.IntegrationTests.Browser;
 
 /// <summary>
-/// The states of the screens the level A pass scans besides the screens themselves (T552 criterion 1, KK1; 12 12.2 (1), VAL-A776, VAL-A781, VAL-A790): the confirmation windows with the window open, and the pages that
-/// answer a form sent with a value that is not allowed, in each engine and each way. Neither list is written here: the windows are the walks of <see cref="ConfirmWindowTests"/> (every theory of that class is run
-/// with a hook that reads the open window), and the forms are the cases of <see cref="ValidationStateTests"/> (the forms the audit's error message heading sends). In a window of the administrator the focus
+/// The states of the screens the level A pass scans besides the screens themselves (T552 criterion 1, KK1; 12 12.2 (1), VAL-A776, VAL-A781, VAL-A790): the confirmation windows with the window open, the pages that
+/// answer a form sent with a value that is not allowed, and the empty states, in each engine and each way. No list is written here: the windows are the walks of <see cref="ConfirmWindowTests"/> (every theory of that class is run
+/// with a hook that reads the open window), the forms are the cases of <see cref="ValidationStateTests"/> (the forms the audit's error message heading sends) and the empty states are the stops of
+/// <see cref="EmptyStateTests"/> (each run with a hook that reads the state open). In a window of the administrator the focus
 /// starts on "Vazgeç" (VAL-A781), which is read in the browser at every window.
 /// </summary>
 public sealed class AccessibilityStatesTests(BrowserHost host) : BrowserTestBase(host)
@@ -15,6 +16,7 @@ public sealed class AccessibilityStatesTests(BrowserHost host) : BrowserTestBase
     internal const string WindowScanStep = "onay penceresi taraması";
     internal const string WindowFocusStep = "onay penceresi odağı";
     internal const string ErrorScanStep = "hata hâli taraması";
+    internal const string EmptyScanStep = "boş durum taraması";
 
     /// <summary>The confirmation windows' walks: the theories of <see cref="ConfirmWindowTests"/>, found by reflection so that a window added there is scanned here with no second list.</summary>
     internal static List<MethodInfo> WindowWalks() =>
@@ -78,6 +80,33 @@ public sealed class AccessibilityStatesTests(BrowserHost host) : BrowserTestBase
 
         Assert.True(walks.Count >= 9, $"ConfirmWindowTests has {walks.Count} walks; at least 9 windows are expected.");
         Assert.True(inspected == walks.Count, $"{walks.Count} windows are walked and {inspected} were read open: a window that did not open is not scanned.");
+        Assert.Empty(Failures);
+    }
+
+    [Theory]
+    [MemberData(nameof(Ways))]
+    public async Task EveryEmptyStateOfTheInventory_HasNoViolationOfTheScan_InTheWay_KK1(string engine, ScriptPath path)
+    {
+        List<EmptyStop> stops = [.. EmptyStateTests.Stops(Host.Seed)];
+        int scanned = 0;
+        EmptyStateTests empty = new(Host)
+        {
+            AtEmptyState = async (stop, way, eng, page) =>
+            {
+                (List<AccessibilityScanTests.Finding> violations, int passed, List<string> incomplete, string version) = await AccessibilityScanTests.ScanAsync(page.Page);
+                string observed = $"{stop.Key}: axe-core {version}: {violations.Count} violations, {passed} rules passed, {incomplete.Count} incomplete" + (violations.Count > 0 ? ": " + string.Join(" / ", violations.Take(5).Select(v => $"{v.Rule} ({v.Criteria}) {v.Target}")) : string.Empty);
+                await ObserveAsync(stop.Screen, way, eng, page, $"{EmptyScanStep}: {stop.State}", "axe-core WCAG A kural kümesi: boş hâlde ihlal yok", observed, violations.Count == 0);
+                scanned++;
+            },
+        };
+        foreach (EmptyStop stop in stops)
+        {
+            await empty.RunStopAsync(engine, path, stop.Key);
+        }
+
+        // The list of empty states is the stops of EmptyStateTests (read from 04 and checked there): this is a floor against a list that shrank, not the list.
+        Assert.True(stops.Count >= 22, $"EmptyStateTests has {stops.Count} stops; at least 22 empty states are expected.");
+        Assert.True(scanned == stops.Count, $"{stops.Count} empty states are opened and {scanned} were scanned: a state that did not open is not scanned.");
         Assert.Empty(Failures);
     }
 

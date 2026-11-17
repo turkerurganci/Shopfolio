@@ -355,6 +355,14 @@ async function onFileChosen(input) {
         return;
     }
 
+    // A file over the surface's limit starts no request: the server's sentence is shown and the choice is cleared (T551 VAL-B101).
+    const max = maxBytesOf(input);
+    if (max !== null && file.size > max) {
+        showState(state, "error", input.dataset.sizeMessage ?? GENERIC_ERROR_TEXT);
+        input.value = "";
+        return;
+    }
+
     holdForm(form, 1);
     showState(state, "busy", `${file.name} yükleniyor: %0`);
     const percent = (bytes) => Math.min(100, Math.floor((bytes / file.size) * 100));
@@ -386,10 +394,78 @@ async function onFileChosen(input) {
     }
 }
 
+// ---- The size check at the choice (T551 VAL-B101; 04 2.12.8.3, 2.12.8.4; 07 8.2.2) ----
+//
+// A file input the component marks (upload-file) carries the surface's size limit in data-max-bytes and the sentence that names it in data-size-message; both are the server's, this file holds
+// neither a number nor a text of its own. A file over the limit is not sent: the sentence is shown at the field, the choice is cleared, and the form's upload button does nothing until another
+// file is chosen. A file within the limit is sent by the form as it is; while the page is being replaced the field shows that the file is being sent and the form can not be sent again.
+
+function maxBytesOf(input) {
+    const max = Number.parseInt(input.dataset.maxBytes ?? "", 10);
+    return Number.isFinite(max) ? max : null;
+}
+
+function checkSize(input) {
+    const max = maxBytesOf(input);
+    if (max === null) {
+        return;
+    }
+
+    const state = stateElementOf(input);
+    const tooBig = Array.from(input.files ?? []).some((file) => file.size > max);
+    if (tooBig) {
+        state.setAttribute("role", "alert");
+        showState(state, "error", input.dataset.sizeMessage ?? GENERIC_ERROR_TEXT);
+        input.value = "";
+        input.dataset.refused = "true";
+        return;
+    }
+
+    delete input.dataset.refused;
+    state.removeAttribute("role");
+    showState(state, "idle", "");
+}
+
 document.addEventListener("change", (event) => {
     const input = event.target;
     if (input?.dataset?.js === "digital-file-upload") {
         void onFileChosen(input);
+        return;
+    }
+
+    if (input instanceof HTMLInputElement && input.type === "file") {
+        checkSize(input);
+    }
+});
+
+// The upload button of an image input is the button that sits in the input's own block; the sentence stays, and nothing is sent, while the choice is refused.
+function refusedInputOf(form, submitter) {
+    return Array.from(form.querySelectorAll('input[type="file"][data-refused]')).find((input) => submitter && input.parentElement?.contains(submitter)) ?? null;
+}
+
+function showSending(form, submitter) {
+    for (const input of form.querySelectorAll('input[type="file"][data-max-bytes]')) {
+        const file = input.files?.[0];
+        if (file && submitter && input.parentElement?.contains(submitter) && input.dataset.js !== "digital-file-upload") {
+            showState(stateElementOf(input), "busy", `${file.name} yükleniyor (${formatSize(file.size)})`);
+            holdForm(form, 1);
+        }
+    }
+}
+
+// A page restored from the back/forward cache comes back with the sending state it was left in; the state is cleared.
+window.addEventListener("pageshow", (event) => {
+    if (!event.persisted) {
+        return;
+    }
+
+    for (const form of document.querySelectorAll("form[data-uploads]")) {
+        form.dataset.uploads = "0";
+        holdForm(form, 0);
+    }
+
+    for (const input of document.querySelectorAll('input[type="file"][data-max-bytes]')) {
+        checkSize(input);
     }
 });
 
@@ -397,5 +473,15 @@ document.addEventListener("submit", (event) => {
     const form = event.target;
     if (Number.parseInt(form?.dataset?.uploads ?? "0", 10) > 0) {
         event.preventDefault();
+        return;
+    }
+
+    if (form instanceof HTMLFormElement && refusedInputOf(form, event.submitter) !== null) {
+        event.preventDefault();
+        return;
+    }
+
+    if (form instanceof HTMLFormElement) {
+        showSending(form, event.submitter);
     }
 });

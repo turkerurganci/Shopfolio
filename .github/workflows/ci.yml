@@ -206,11 +206,37 @@ jobs:
   e2e:
     name: 8. E2E (advisory)
     needs: [build]
-    runs-on: ubuntu-latest
+    # Playwright 1.59 ubuntu 26.04 destekleme ("does not support chromium on ubuntu26.04-x64"); ubuntu-latest o surume geciyor, bu is surume sabit.
+    runs-on: ubuntu-24.04
     continue-on-error: true
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      SHOPFOLIO_TEST_DATABASE: Host=localhost;Port=5432;Username=postgres;Database=postgres
+      SHOPFOLIO_BROWSER_OUT: ${{ github.workspace }}/browser-observations
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
       - run: bash .github/ci-run.sh E2E_CMD "8. E2E"
+      # Arac ciktisi gate raporuna eklenebilir kayittir (T551; 12 12.2 (7)): gozlem tablosu, ekran goruntuleri, surumler, tohum, sunucu gunlugu.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-observations
+          path: browser-observations
+          if-no-files-found: warn
 
   # --------------------------------------------------------------------------
   # CI Gate — tek toplu kapi. Dal korumasi (varsa) bu job'u required isaretler.

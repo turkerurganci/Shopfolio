@@ -86,7 +86,10 @@ function makeEnvironment(answers) {
         return 0;
     };
 
-    const context = vm.createContext({ document, fetch, Headers, setTimeout });
+    const window = { addEventListener() {} };
+    class HTMLInputElement {}
+    class HTMLFormElement {}
+    const context = vm.createContext({ document, fetch, Headers, setTimeout, window, HTMLInputElement, HTMLFormElement });
     vm.runInContext(source, context, { filename: modulePath });
 
     function makeInput(file, hook = "digital-file-upload") {

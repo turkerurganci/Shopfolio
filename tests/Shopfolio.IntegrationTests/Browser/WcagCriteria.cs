@@ -20,7 +20,7 @@ internal static class WcagCriteria
 
     internal const string FactsStep = "sayfa olguları";
     internal const string ScanStep = "otomatik tarama";
-    internal const string SourceScan = "kaynak taraması (AccessibilitySourceScanTests)";
+    internal const string SourceScan = "kaynak taraması (AccessibilityRecordTests.TheSourceScan...)";
     internal const string ContextChange = "bağlam değişimi (AccessibilityCriteriaTests.AChangedValue...)";
     internal const string ConsistentHelp = "tutarlı yardım (AccessibilityCriteriaTests.TheHelpLink...)";
     internal const string RedundantEntry = "tekrarlı giriş (AccessibilityCriteriaTests.WhatTheVisitorTyped...)";

@@ -339,6 +339,10 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
         Assert.Empty(Failures);
     }
 
+    /// <summary>The result a criterion carries in the record: "uygulanmaz" when it does not apply, "karşılandı" when no screen failed it, otherwise "karşılanmadı" with the screens (T552 D-1732 (b)).</summary>
+    internal static string ResultOf(bool applies, IReadOnlyList<string> unmetScreens) =>
+        !applies ? "uygulanmaz" : unmetScreens.Count == 0 ? "karşılandı" : $"karşılanmadı (ekran: {string.Join(", ", unmetScreens.Take(8))}{(unmetScreens.Count > 8 ? ", …" : string.Empty)})";
+
     /// <summary>
     /// The 31 criteria x result record and the screen x criterion matrix of this engine and way (T552 criterion 3, KK3; 12 12.2 (5), VAL-A776), written beside the observations as <c>accessibility-record-engine-way.md</c>. A cell is
     /// met when every observation the criterion's evidence names for that screen was made and agreed, "uygulanmaz" for a criterion that does not apply (with the reason in the table), and "ortak" when the criterion is answered
@@ -350,16 +354,10 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
         List<string> gaps = [];
         List<string> text = [];
         text.AddRange([$"# Erişilebilirlik tarama kaydı: {engine}, {wayName} yol", string.Empty]);
-        text.AddRange(["## 31 ölçüt ve sonucu (12 §12.2; VAL-A776)", string.Empty]);
-        text.AddRange(["| Ölçüt | Sonuç | Gerekçe ya da kanıt | Satır |", "|---|---|---|---|"]);
-        foreach (WcagCriteria.Criterion c in WcagCriteria.All)
-        {
-            text.Add($"| {c.Id} {c.Name} | {(c.Applies ? "karşılandı" : "uygulanmaz")} | {(c.Applies ? string.Empty : c.Reason + "; ")}kanıt: {string.Join(", ", c.Evidence)} | {string.Join(", ", c.Rows)} |");
-        }
-
-        text.AddRange(["", "## Kontrol Listesi A Seviyesi maddeleri (12 §12.2 Ayrım; T552 kabul kriteri 4)", string.Empty, WcagCriteria.ChecklistAStatus + ": " + WcagCriteria.ChecklistAReason]);
-        text.AddRange(["", "## Ekran × ölçüt matrisi (✓ karşılandı, o uygulanmaz, ● ortak kanıt)", string.Empty]);
-        text.AddRange(["| Ekran | " + string.Join(" | ", WcagCriteria.All.Select(c => c.Id)) + " |", "|---|" + string.Concat(Enumerable.Repeat("---|", WcagCriteria.All.Count))]);
+        // The result of a criterion is read from the run (T552 D-1732 (b)): the matrix below is evaluated first, and a criterion with a screen that did not meet it is "karşılanmadı", whatever the table of the document says.
+        Dictionary<string, List<string>> unmet = WcagCriteria.All.ToDictionary(c => c.Id, _ => new List<string>(), StringComparer.Ordinal);
+        List<string> matrix = [];
+        matrix.AddRange(["| Ekran | " + string.Join(" | ", WcagCriteria.All.Select(c => c.Id)) + " |", "|---|" + string.Concat(Enumerable.Repeat("---|", WcagCriteria.All.Count))]);
         foreach (string screen in screens)
         {
             List<string> cells = [];
@@ -384,11 +382,23 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
                 if (!met)
                 {
                     gaps.Add($"{screen} / {c.Id}");
+                    unmet[c.Id].Add(screen);
                 }
             }
 
-            text.Add($"| {screen} | {string.Join(" | ", cells)} |");
+            matrix.Add($"| {screen} | {string.Join(" | ", cells)} |");
         }
+
+        text.AddRange(["## 31 ölçüt ve sonucu (12 §12.2; VAL-A776)", string.Empty]);
+        text.AddRange(["| Ölçüt | Sonuç | Gerekçe ya da kanıt | Satır |", "|---|---|---|---|"]);
+        foreach (WcagCriteria.Criterion c in WcagCriteria.All)
+        {
+            text.Add($"| {c.Id} {c.Name} | {ResultOf(c.Applies, unmet[c.Id])} | {(c.Applies ? string.Empty : c.Reason + "; ")}kanıt: {string.Join(", ", c.Evidence)} | {string.Join(", ", c.Rows)} |");
+        }
+
+        text.AddRange(["", "## Kontrol Listesi A Seviyesi maddeleri (12 §12.2 Ayrım; T552 kabul kriteri 4)", string.Empty, WcagCriteria.ChecklistAStatus + ": " + WcagCriteria.ChecklistAReason]);
+        text.AddRange(["", "## Ekran × ölçüt matrisi (✓ karşılandı, o uygulanmaz, ● ortak kanıt)", string.Empty]);
+        text.AddRange(matrix);
 
         string file = System.IO.Path.Combine(Host.Record.Directory, $"accessibility-record-{engine}-{wayName}.md");
         File.WriteAllLines(file, text);

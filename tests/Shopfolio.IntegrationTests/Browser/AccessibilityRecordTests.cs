@@ -89,6 +89,42 @@ public sealed class AccessibilityRecordTests
         return found;
     }
 
+    /// <summary>The evidence the record names as a test ("Class.MethodPrefix...") is a test that exists: a class or a method renamed or never written breaks here (T552 D-1732 (a)).</summary>
+    [Fact]
+    public void EveryTestTheRecordNamesAsEvidence_Exists_KK3()
+    {
+        Type[] types = typeof(WcagCriteria).Assembly.GetTypes();
+        List<string> missing = [];
+        int named = 0;
+        foreach (string evidence in WcagCriteria.All.SelectMany(c => c.Evidence).Distinct(StringComparer.Ordinal))
+        {
+            Match match = Regex.Match(evidence, @"\((\w+)\.(\w+)\.\.\.\)", RegexOptions.None, RegexTimeout);
+            if (!match.Success)
+            {
+                Assert.DoesNotContain("Tests", evidence, StringComparison.Ordinal);
+                continue;
+            }
+
+            named++;
+            Type? type = types.FirstOrDefault(t => t.Name == match.Groups[1].Value);
+            if (type is null || !type.GetMethods().Any(m => m.Name.StartsWith(match.Groups[2].Value, StringComparison.Ordinal) && m.GetCustomAttributes(typeof(FactAttribute), inherit: true).Length > 0))
+            {
+                missing.Add(evidence);
+            }
+        }
+
+        Assert.True(named >= 4, $"The record names {named} tests as evidence; at least 4 are expected.");
+        Assert.True(missing.Count == 0, "Evidence naming a test that does not exist: " + string.Join(" / ", missing));
+    }
+
+    [Fact]
+    public void AnUnmetCriterion_IsNotWrittenAsMet_AndAMetOneIsNot_KK3()
+    {
+        Assert.Equal("karşılandı", AccessibilityAuditTests.ResultOf(applies: true, []));
+        Assert.StartsWith("karşılanmadı (ekran: E-34, E-47", AccessibilityAuditTests.ResultOf(applies: true, ["E-34", "E-47"]), StringComparison.Ordinal);
+        Assert.Equal("uygulanmaz", AccessibilityAuditTests.ResultOf(applies: false, ["E-34"]));
+    }
+
     [Fact]
     public void TheRecordOfTheCriteria_IsTheTableOfTheProtocol_InBothDirections_KK3()
     {

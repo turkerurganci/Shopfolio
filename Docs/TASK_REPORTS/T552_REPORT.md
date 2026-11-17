@@ -129,3 +129,10 @@ Geçici bozma, tek derleme + tek koşu, sonra `git checkout` ile geri alındı: 
 | KK6 gate kanıtı | ✓ | `observations.md`, kayıt dosyaları, değişinim satırları |
 
 ⚠ Webkit'te klavye yolu Tab yerine odak gezisi (Linux CI'da Tab yolu denenmedi; E2E işi iptal edilmişti). KK4 dışında kısmi satır yok.
+
+## Doğrulama — tur 1 (2026-11-17): ✗ FAIL
+
+- **Bulgu sayısı:** 2 (ORTA, S1); K-notları D-1732'de. Düzeltme gerekli.
+- **B1 (KK1, `VAL-A776`, `A790`, `A781`, `A343`):** `12 §12.2` (1) kapsamı ekranlarla birlikte onay pencerelerini ve hata hâllerini sayar; axe taraması yalnız yürüyüşün duraklarında koşar, onay pencereleri (E-44, E-45 … `ConfirmWindowTests`) ve hatalı gönderimin cevap sayfası taranmaz; onay penceresinde odağın "Vazgeç"te başladığı tarayıcıda gözlenmez.
+- **B2 (KK2/KK5, `VAL-A791`, `A781`):** CI run 44031956010 "8. E2E" (head `c23db333`): `AccessibilityAuditTests` chromium betiksiz yolda E-34, E-47, E-50, E-53 hata başlığı kırmızı (odak BODY); yerel Windows'ta yeşil. Ölçü yarışı ya da gerçek odak sorunu; araç CI'da temiz değil.
+- **Doğrulanan:** beş değişinim ilgili testi kırdı (chromium Audit + Scan; webkit Audit tabindex=-1); Unit 8088/8088; build `-warnaserror` temiz; sayfa testleri 169/169; Record + ScreenInventory 22/22; chromium Scan/Criteria/Audit yeşil.

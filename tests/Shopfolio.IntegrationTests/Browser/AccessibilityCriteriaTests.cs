@@ -335,6 +335,9 @@ public sealed class AccessibilityCriteriaTests(BrowserHost host) : BrowserTestBa
         {
             await StepAsync(steps, problems, p, engine, "e-posta yazılır", "[name=ContactEmail]", () => p.Keyboard.TypeAsync(email));
 
+            // The fields are worked in the order of the page (the Tab key only goes forward; Firefox does not wrap from the end of the page to its start): the recipient comes before the province.
+            await StepAsync(steps, problems, p, engine, "ShippingRecipientName yazılır", "[name=ShippingRecipientName]", () => p.Keyboard.TypeAsync(typed[1].Text));
+
             // The province: the arrows move the choice one place at a time; with the script every move sends the form, and the focus is taken back by the keyboard.
             for (int move = 0; move < 100 && problems.Count == 0; move++)
             {
@@ -349,7 +352,7 @@ public sealed class AccessibilityCriteriaTests(BrowserHost host) : BrowserTestBa
                 steps.RemoveAll(s => s.StartsWith("il seçilir", StringComparison.Ordinal));
             }
 
-            foreach ((string name, string text) in typed.Skip(1))
+            foreach ((string name, string text) in typed.Skip(2))
             {
                 await StepAsync(steps, problems, p, engine, $"{name} yazılır", $"[name={name}]", () => p.Keyboard.TypeAsync(text));
             }

@@ -24,6 +24,35 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
     /// <summary>The width of a 200 percent zoom of the desktop width: the page is laid out as the browser lays it out at that zoom.</summary>
     internal const int ZoomedWidth = BrowserHost.DesktopWidth / 2;
 
+    /// <summary>
+    /// WebKit's keyboard observation: the Tab key does not take a link to its focus on every host (Playwright WebKit 26.4 on Windows), so the controls the page offers are focused one by one in the order of the document - a control
+    /// out of the tab order (tabindex="-1") is not reached, as with the Tab key - and the key that activates each is pressed (Enter, Space); the click it makes is caught and refused. Returns the controls whose activation key made no click.
+    /// </summary>
+    private static async Task<List<string>> WalkByFocusAsync(IPage page, int expected)
+    {
+        List<string> notActivated = [];
+
+        // The keyboard is the last input device, so the focus ring is drawn for a focus the script gives (:focus-visible).
+        await page.Keyboard.PressAsync("Shift");
+        for (int i = 0; i < expected; i++)
+        {
+            string key = await page.EvaluateAsync<string>(AuditScripts.FocusStep, i);
+            if (key is not ("Enter" or "Space"))
+            {
+                continue;
+            }
+
+            await page.Keyboard.PressAsync(key);
+            string missed = await page.EvaluateAsync<string>(AuditScripts.Activated, i);
+            if (missed.Length > 0)
+            {
+                notActivated.Add(missed);
+            }
+        }
+
+        return notActivated;
+    }
+
     private static string Step(string heading, ScreenInventoryTests.Stop stop) => $"elle denetim, {heading}: {stop.State}";
 
     private static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
@@ -111,12 +140,20 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
                     int expected = install.RootElement.GetProperty("expected").GetInt32();
                     int positive = install.RootElement.GetProperty("positiveTabindex").GetInt32();
                     // The Tab key goes on until the focus has come round to the first control again (the browser also focuses what the tool does not list, such as a scrolling region); the cap is a trap's end.
-                    for (int i = 0; i < Math.Max(expected * 2 + 10, 40); i++)
+                    List<string> notActivated = [];
+                    if (engine == "webkit")
                     {
-                        await page.Page.Keyboard.PressAsync("Tab");
-                        if (i >= expected && i % 3 == 0 && await page.Page.EvaluateAsync<bool>("() => window.__a11y.wrapped"))
+                        notActivated = await WalkByFocusAsync(page.Page, expected);
+                    }
+                    else
+                    {
+                        for (int i = 0; i < Math.Max(expected * 2 + 10, 40); i++)
                         {
-                            break;
+                            await page.Page.Keyboard.PressAsync("Tab");
+                            if (i >= expected && i % 3 == 0 && await page.Page.EvaluateAsync<bool>("() => window.__a11y.wrapped"))
+                            {
+                                break;
+                            }
                         }
                     }
 
@@ -127,8 +164,11 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
                     await ObserveAsync(
                         stop.Screen, path, engine, page, Step(Keyboard, stop),
                         "Tab ile sayfanın bütün denetimlerine ulaşılır; klavye tuzağı yok; odaklanmak sayfayı başka adrese götürmez (WCAG 2.1.1, 2.1.2, 3.2.1)",
-                        $"beklenen {expected}, ulaşılan {s.GetProperty("reached").GetInt32()}, tuzak {trap}, adres değişti {page.Page.Url != urlBefore}" + (missing.Count > 0 ? "; ulaşılamayan: " + string.Join(", ", missing.Take(5)) : string.Empty),
-                        missing.Count == 0 && !trap && page.Page.Url == urlBefore);
+                        $"beklenen {expected}, ulaşılan {s.GetProperty("reached").GetInt32()}, tuzak {trap}, adres değişti {page.Page.Url != urlBefore}"
+                            + (engine == "webkit" ? $", odak sırasıyla gezildi; klavye etkinleştirmesi (Enter/Space) alınmayan {notActivated.Count}" : string.Empty)
+                            + (missing.Count > 0 ? "; ulaşılamayan: " + string.Join(", ", missing.Take(5)) : string.Empty)
+                            + (notActivated.Count > 0 ? "; etkinleşmeyen: " + string.Join(", ", notActivated.Take(5)) : string.Empty),
+                        missing.Count == 0 && notActivated.Count == 0 && !trap && page.Page.Url == urlBefore);
                     List<string> noIndicator = Strings(s, "noIndicator");
                     List<string> notInView = Strings(s, "notInView");
                     List<string> jumps = Strings(s, "jumps");

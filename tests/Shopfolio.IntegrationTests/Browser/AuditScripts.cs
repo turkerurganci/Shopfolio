@@ -50,6 +50,39 @@ internal static class AuditScripts
         }
         """;
 
+    /// <summary>
+    /// The keyboard walk of WebKit, which does not take a link into its Tab order on every host (Playwright WebKit 26.4 on Windows skips the links): the walk focuses each expected control in the order of the document, as the Tab key would, and
+    /// only a control that is in the tab order (tab index 0 or more) - a control the page took out of the order with tabindex="-1" is not reached, as with the Tab key. It also puts a click catcher on the page: the key that activates a control
+    /// (Enter on a link, a button and a summary, Space on a check box) is pressed for real, the click it makes is recorded and refused (nothing is followed, sent or toggled), so that the activation is measured without leaving the page.
+    /// </summary>
+    internal const string FocusStep = """
+        (i) => {
+          const a = window.__a11y; const e = a.expected[i];
+          if (!a.catcher) {
+            a.catcher = true; a.clicked = null;
+            window.addEventListener('click', (event) => { if (event.isTrusted) { a.clicked = event.target; event.preventDefault(); event.stopImmediatePropagation(); } }, true);
+          }
+          a.clicked = null;
+          if (e.tabIndex < 0) { return 'unreachable'; }
+          e.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+          e.focus({ preventScroll: true });
+          if (document.activeElement !== e) { return 'unreachable'; }
+          if (e.matches('a[href],button,summary,input[type=submit],input[type=button],input[type=reset],input[type=image]')) { return 'Enter'; }
+          if (e.matches('input[type=checkbox]')) { return 'Space'; }
+          return 'none';
+        }
+        """;
+
+    /// <summary>After the activation key: an empty text when the focused control received the click the key makes, else the control's description.</summary>
+    internal const string Activated = """
+        (i) => {
+          const a = window.__a11y; const e = a.expected[i];
+          const hit = a.clicked && (a.clicked === e || e.contains(a.clicked));
+          a.clicked = null;
+          return hit ? '' : a.describe(e);
+        }
+        """;
+
     /// <summary>Reads the focus log after the Tab presses: the elements reached, the expected ones that were not, a trap (the same element three times in a row), the missing indicators, the upward jumps of the order.</summary>
     internal const string Summarize = """
         () => {

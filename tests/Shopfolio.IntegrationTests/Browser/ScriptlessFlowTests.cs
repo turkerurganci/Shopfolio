@@ -242,6 +242,82 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         Assert.Empty(Failures);
     }
 
+    /// <summary>
+    /// VAL-B009 (KRITIK), VAL-B010, VAL-B011 (D-1494): the transfer order's confirmation and order page show the firm's whole IBAN; both payment ways' confirmation says the order was received with
+    /// its number; the card's return lands on the order page and the page says the payment is awaited (the provider has sent no notice).
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Ways))]
+    public async Task ThePaymentScreens_ShowTheIban_TheReceivedSentenceAndTheAwaitedCard_InBothWays_VALB009_VALB010_VALB011(string engine, ScriptPath path)
+    {
+        await using IBrowserContext context = await Host.ContextAsync(engine, path);
+        WatchedPage page = await NewPageAsync(context);
+        string email = $"b009-{Unique(engine, path)}@example.com";
+        await AddToCartAsync(page, Host.Seed.Product("plain").Slug);
+        await GoAsync(page, "/odeme");
+        await FillCheckoutAsync(page, path, email, true);
+        string number = await SubmitCheckoutAsync(page);
+        string received = await TextAsync(page.Page.Locator(".order-confirmation__heading p"));
+        string confirmationIban = (await TextAsync(page.Page.Locator(".order-confirmation__iban"))).Replace("IBAN'ı kopyala", string.Empty, StringComparison.Ordinal).Replace(" ", string.Empty, StringComparison.Ordinal);
+        bool confirmationIbanWhole = Regex.IsMatch(confirmationIban, @"^TR\d{24}", RegexOptions.None, TimeSpan.FromSeconds(2));
+        await ObserveAsync(
+            "VAL-B009",
+            path,
+            engine,
+            page,
+            "havale siparişi onaylanır; teyit ekranındaki IBAN okunur",
+            "teyit ekranı kayıtlı IBAN'ı eksiksiz (TR + 24 hane) gösterir",
+            $"IBAN metni \"{confirmationIban}\"",
+            confirmationIbanWhole);
+
+        SeededOrder awaitingTransfer = Host.Seed.Order("awaiting-transfer");
+        await GoAsync(page, $"/siparis/erisim/{awaitingTransfer.AccessKey}");
+        string orderIban = (await TextAsync(page.Page.Locator("dd:has-text('TR')").First)).Replace("IBAN'ı kopyala", string.Empty, StringComparison.Ordinal).Replace(" ", string.Empty, StringComparison.Ordinal);
+        await ObserveAsync(
+            "VAL-B009",
+            path,
+            engine,
+            page,
+            "havale siparişinin sayfası açılır; IBAN okunur",
+            "sipariş sayfası kayıtlı IBAN'ı eksiksiz gösterir",
+            $"IBAN metni \"{orderIban}\"",
+            Regex.IsMatch(orderIban, @"^TR\d{24}", RegexOptions.None, TimeSpan.FromSeconds(2)));
+
+        SeededOrder cardOrder = await BrowserSeed.NewOrderAsync(Host.Dsn, $"b010-{engine}-{path}-{Unique(engine, path)}", OrderStatus.Placed, PaymentStatus.Pending, card: true);
+        await GoAsync(page, $"/siparis/erisim/{cardOrder.AccessKey}/teyit");
+        string cardTitle = await TextAsync(page.Page.Locator("#order-confirmation-title"));
+        string cardReceived = await TextAsync(page.Page.Locator(".order-confirmation__heading p"));
+        await ObserveAsync(
+            "VAL-B010",
+            path,
+            engine,
+            page,
+            "iki yolda da teyit ekranı: havale siparişinin teyidi ve kart siparişinin teyidi",
+            "iki ekranda da siparişin alındığı cümlesi ve sipariş numarası yazar",
+            $"havale: \"{received}\" / {number}; kart: \"{cardReceived}\" / {cardTitle}",
+            received == "Siparişiniz alındı." && cardReceived == "Siparişiniz alındı." && cardTitle.Contains(cardOrder.Number, StringComparison.Ordinal));
+
+        await GoAsync(page, $"/odeme/donus/{Uri.EscapeDataString(cardOrder.AccessKey)}");
+        if (path == ScriptPath.Scriptless)
+        {
+            // The hand-over page's own link does what the script does (UC-30): without a script the buyer follows it.
+            await NavigateAsync(page, () => page.Page.Locator("a[data-js=payment-return]").ClickAsync());
+        }
+
+        string landed = PathOf(page);
+        string awaited = await TextAsync(page.Page.Locator("#order-card-awaited"));
+        await ObserveAsync(
+            "VAL-B011",
+            path,
+            engine,
+            page,
+            "kart ödemesinin 3D Secure dönüşü açılır (sağlayıcı bildirimi göndermemiştir)",
+            "dönüş sipariş sayfasına iner ve sayfa kart ödemesinin beklendiğini yazar",
+            $"inilen adres {landed}; cümle \"{awaited}\"",
+            landed.StartsWith("/siparis/erisim/", StringComparison.Ordinal) && awaited.Contains("Kart ödemenizin sonucu bekleniyor", StringComparison.Ordinal));
+        Assert.Empty(Failures);
+    }
+
     /// <summary>VAL-B099: the payment step's summary - the script sends the form with the coupon button's own handler (the same handler), the scriptless path sends it by the button; a changed summary opens no order.</summary>
     [Theory]
     [MemberData(nameof(Ways))]

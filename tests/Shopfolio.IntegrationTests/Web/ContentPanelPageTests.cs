@@ -103,6 +103,33 @@ public sealed class ContentPanelPageTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task TwoAdministratorsOnTheSameContentRecord_TheSecondSaveIsWarned_AndTheFirstOnesValueStaysUntilTheOverwrite_VALA371_VALA372_D1167()
+    {
+        Guid offering = await SeedOfferingAsync("Montaj", 1);
+        int opened = await ScalarAsync<int>($"SELECT version FROM offerings WHERE id = '{offering}'");
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        string path = ContentRoutes.FormPath(PanelContentType.Offering, offering);
+
+        // Both administrators opened the form at the same version; the first one saves through the screen.
+        using HttpResponseMessage first = await PostAsync(client, path, "SaveContent", ("Input.Name", "Birinci yönetici"), ("Input.Version", opened.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        using HttpResponseMessage second = await PostAsync(client, path, "SaveContent", ("Input.Name", "İkinci yönetici"), ("Input.Version", opened.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        string html = WebUtility.HtmlDecode(await second.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.SeeOther, first.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
+        Assert.Contains(Shopfolio.Infrastructure.Forms.ConflictControls.RecordMessage, html, StringComparison.Ordinal);
+        Assert.Contains(Shopfolio.Infrastructure.Forms.ConflictControls.OverwriteLabel, html, StringComparison.Ordinal);
+        Assert.Contains("İkinci yönetici", html, StringComparison.Ordinal);
+        Assert.Equal("Birinci yönetici", await ScalarAsync<string>($"SELECT name FROM offerings WHERE id = '{offering}'"));
+
+        using HttpResponseMessage overwrite = await PostAsync(client, path, "SaveContent", ("Input.Name", "İkinci yönetici"), ("Input.Version", (opened + 1).ToString(System.Globalization.CultureInfo.InvariantCulture)));
+
+        Assert.Equal(HttpStatusCode.SeeOther, overwrite.StatusCode);
+        Assert.Equal("İkinci yönetici", await ScalarAsync<string>($"SELECT name FROM offerings WHERE id = '{offering}'"));
+    }
+
+    [Fact]
     public async Task ASave_WithoutTheRequiredName_IsRefused422_AndWritesNothing()
     {
         await using WebApplicationFactory<Program> factory = Open();

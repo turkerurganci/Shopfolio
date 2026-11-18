@@ -9,12 +9,14 @@ using Npgsql;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Pages.Components;
 using Shopfolio.Pages.Frame;
+using Shopfolio.Pages.Panel;
 
 namespace Shopfolio.IntegrationTests.Web;
 
@@ -365,6 +367,135 @@ public sealed class AdminAccountsPageTests : IAsyncLifetime
         Assert.Equal(13, list.Admins.Count);
         Assert.Single(list.Invitations);
         Assert.Equal("liste@example.com", list.Invitations[0].Email);
+    }
+
+    // ---- D-1394, D-464 (T604): the invitation's address on the page, and the removal's rows ----
+
+    private const string InvitePath = "/panel/davet";
+
+    private const string AcceptedPassword = "a-long-enough-password";
+
+    [Fact]
+    public async Task ARevokedInvitation_IsTheInvalidPageOnItsAddress_AndTheAcceptanceOpensNoAccount_D1394_D464()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient admin = ClientOf(factory);
+        using HttpClient visitor = ForgeryTokenHandler.CreateClient(factory);
+        (await PostAsync(admin, "SendAdminInvitation", ("Input.Email", "geri@example.com"))).Dispose();
+        string key = await InvitationKeyAsync(factory, "geri@example.com");
+        Guid id = await ScalarAsync<Guid>("SELECT id FROM admin_invitations WHERE email = 'geri@example.com'");
+
+        (_, string before) = await GetAsync(visitor, $"{InvitePath}/{key}");
+        (await PostAsync(admin, "RevokeAdminInvitation", ("Input.AdminInvitationId", id.ToString("D")))).Dispose();
+        await AssertInvalidAndNoAccountAsync(visitor, key, "geri@example.com");
+
+        Assert.Contains("name=\"Input.Password\"", before, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ANewInvitationToTheSameAddress_MakesTheEarlierAddressInvalid_AndOnlyTheNewOneOpensTheForm_D1394_D464()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient admin = ClientOf(factory);
+        using HttpClient visitor = ForgeryTokenHandler.CreateClient(factory);
+        (await PostAsync(admin, "SendAdminInvitation", ("Input.Email", "ayni@example.com"))).Dispose();
+        string earlier = await InvitationKeyAsync(factory, "ayni@example.com");
+        (await PostAsync(admin, "SendAdminInvitation", ("Input.Email", "ayni@example.com"))).Dispose();
+        string newest = await InvitationKeyAsync(factory, "ayni@example.com");
+
+        (_, string current) = await GetAsync(visitor, $"{InvitePath}/{newest}");
+        await AssertInvalidAndNoAccountAsync(visitor, earlier, "ayni@example.com");
+
+        Assert.NotEqual(earlier, newest);
+        Assert.Contains("name=\"Input.Password\"", current, StringComparison.Ordinal);
+        Assert.DoesNotContain(PanelAccessTexts.InvitationInvalid, current, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AnInvitationWhoseSenderWasRemoved_IsTheInvalidPageOnItsAddress_AndAnotherSendersInvitationStaysValid_D1394_D464()
+    {
+        (string senderKey, Guid sender) = await TestSessions.AdminAsync(_database.Dsn);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient asSender = ClientOf(factory, senderKey);
+        using HttpClient admin = ClientOf(factory);
+        using HttpClient visitor = ForgeryTokenHandler.CreateClient(factory);
+        (await PostAsync(asSender, "SendAdminInvitation", ("Input.Email", "gonderen@example.com"))).Dispose();
+        (await PostAsync(admin, "SendAdminInvitation", ("Input.Email", "baska@example.com"))).Dispose();
+        string ofSender = await InvitationKeyAsync(factory, "gonderen@example.com");
+        string ofOther = await InvitationKeyAsync(factory, "baska@example.com");
+
+        using HttpResponseMessage removed = await PostAsync(admin, "RemoveAdmin", ("Input.AdminId", sender.ToString("D")), ("Input.Confirmed", "true"));
+        (_, string other) = await GetAsync(visitor, $"{InvitePath}/{ofOther}");
+        await AssertInvalidAndNoAccountAsync(visitor, ofSender, "gonderen@example.com");
+
+        Assert.Equal(HttpStatusCode.SeeOther, removed.StatusCode);
+        Assert.Contains("name=\"Input.Password\"", other, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AnInvitationWhoseAddressBecameAnAdministrator_IsTheInvalidPage_AndTheAcceptanceOpensNoSecondAccount_K1085_D1394_D464()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient admin = ClientOf(factory);
+        using HttpClient visitor = ForgeryTokenHandler.CreateClient(factory);
+        (await PostAsync(admin, "SendAdminInvitation", ("Input.Email", "once@example.com"))).Dispose();
+        string key = await InvitationKeyAsync(factory, "once@example.com");
+        (_, string before) = await GetAsync(visitor, $"{InvitePath}/{key}");
+        await AddAdminIdAsync("Once", "once@example.com");
+
+        await AssertInvalidAndNoAccountAsync(visitor, key, "once@example.com", expectedAccounts: 1);
+
+        Assert.Contains("name=\"Input.Password\"", before, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Removing_DeletesTheTargetsLinksAndEndsOnlyTheTargetsInvitations_OnTheRows_D1394_KK8()
+    {
+        (string targetKey, Guid target) = await TestSessions.AdminAsync(_database.Dsn);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient asTarget = ClientOf(factory, targetKey);
+        using HttpClient admin = ClientOf(factory);
+        (await PostAsync(asTarget, "SendAdminInvitation", ("Input.Email", "hedefin@example.com"))).Dispose();
+        (await PostAsync(admin, "SendAdminInvitation", ("Input.Email", "benim@example.com"))).Dispose();
+        LinkKeys keys = factory.Services.GetRequiredService<LinkKeys>();
+        await using (AppDbContext db = NewContext())
+        {
+            db.LinkRecords.Add(LinkRecord.ForAdmin(keys, LinkType.PasswordReset, target, DateTimeOffset.UtcNow.AddMinutes(30), DateTimeOffset.UtcNow.AddMinutes(-5)));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        long linksBefore = await ScalarAsync<long>($"SELECT count(*) FROM link_records WHERE admin_id = '{target}'");
+        using HttpResponseMessage removed = await PostAsync(admin, "RemoveAdmin", ("Input.AdminId", target.ToString("D")), ("Input.Confirmed", "true"));
+
+        Assert.Equal(1L, linksBefore);
+        Assert.Equal(HttpStatusCode.SeeOther, removed.StatusCode);
+        Assert.Equal(0L, await ScalarAsync<long>($"SELECT count(*) FROM link_records WHERE admin_id = '{target}'"));
+        Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM admin_invitations WHERE email = 'hedefin@example.com' AND invalidated_at IS NOT NULL"));
+        Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM admin_invitations WHERE email = 'benim@example.com' AND invalidated_at IS NULL AND withdrawn_at IS NULL AND accepted_at IS NULL"));
+    }
+
+    private async Task<string> InvitationKeyAsync(WebApplicationFactory<Program> factory, string email)
+    {
+        Guid linkId = await ScalarAsync<Guid>($"SELECT l.id FROM link_records l JOIN admin_invitations i ON i.id = l.admin_invitation_id WHERE i.email = '{email}' AND i.invalidated_at IS NULL AND i.withdrawn_at IS NULL");
+        return factory.Services.GetRequiredService<LinkKeys>().Derive(linkId);
+    }
+
+    /// <summary>The address says the one invalid sentence without a form, and the acceptance answers the invalid page and opens no account of the invited address.</summary>
+    private async Task AssertInvalidAndNoAccountAsync(HttpClient visitor, string key, string email, long expectedAccounts = 0)
+    {
+        (HttpStatusCode status, string html) = await GetAsync(visitor, $"{InvitePath}/{key}");
+        using HttpResponseMessage accept = await visitor.PostAsync(
+            new Uri($"{InvitePath}/{key}?handler=AcceptAdminInvitation", UriKind.Relative),
+            new FormUrlEncodedContent([new("Input.Name", "Yeni"), new("Input.Password", AcceptedPassword)]),
+            Ct);
+        string acceptHtml = WebUtility.HtmlDecode(await accept.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.Contains(PanelAccessTexts.InvitationInvalid, html, StringComparison.Ordinal);
+        Assert.DoesNotContain("<form", html[html.IndexOf("<main", StringComparison.Ordinal)..], StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.OK, accept.StatusCode);
+        Assert.Contains(PanelAccessTexts.InvitationInvalid, acceptHtml, StringComparison.Ordinal);
+        Assert.Equal(expectedAccounts, await ScalarAsync<long>($"SELECT count(*) FROM admins WHERE email = '{email}'"));
     }
 
     // ---- helpers ----

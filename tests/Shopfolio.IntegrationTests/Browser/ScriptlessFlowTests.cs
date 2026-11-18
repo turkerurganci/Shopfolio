@@ -816,6 +816,55 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         Assert.Empty(Failures);
     }
 
+    /// <summary>
+    /// D-1723 (VAL-B110, KK2; 04 5.21.12, 5.28.9, 9.25.11): the link screens' other buttons are sent in the browser - the new address's verification and the Google sign-in's confirmation (E-21), the customer's revert (E-28), the administrator's new-address
+    /// verification and revert (E-54) - each opened by a valid link, its button sent, the change written and the link spent, and the link opened a second time tells its state without the button.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Ways))]
+    public async Task TheLinkScreens_SendTheirButtons_WriteTheChange_AndTheSecondOpeningHasNoButton_InBothWays_VALB110_D1723(string engine, ScriptPath path)
+    {
+        BrowserSeed.SeededLinks links = await BrowserSeed.NewLinksAsync(Host.Dsn, Host.LinkKeys);
+        await using IBrowserContext context = await Host.ContextAsync(engine, path);
+        WatchedPage page = await NewPageAsync(context);
+        const string accountRow = "SELECT (c.email LIKE 'yeni-%') AS new_address, (c.email LIKE 'onceki-%') AS previous_address, (c.google_linked_at IS NOT NULL) AS google_linked FROM customers c JOIN link_records l ON l.customer_id = c.id WHERE l.id = @i";
+        const string adminRow = "SELECT (a.email LIKE 'yonetici-yeni-%') AS new_address, (a.email LIKE 'yonetici-onceki-%') AS previous_address FROM admins a JOIN link_records l ON l.admin_id = a.id WHERE l.id = @i";
+        (string Screen, string Address, string Key, string Form, string Sql, string Effect)[] steps =
+        [
+            ("E-21 yeni e-posta adresinin doğrulaması", "/dogrulama", links.NewAddress, "form[action*='handler=VerifyEmail']", accountRow, "new_address=True"),
+            ("E-21 Google girişi teyidi", "/dogrulama", links.GoogleConfirmation, "form[action*='handler=VerifyEmail']", accountRow, "google_linked=True"),
+            ("E-28 e-posta değişikliğinin geri alınması", "/geri-al", links.EmailRevert, "form[action*='handler=RevertPendingEmailChange']", accountRow, "previous_address=True"),
+            ("E-54 yöneticinin yeni adres doğrulaması", "/panel/dogrulama", links.AdminNewAddress, "form[action*='handler=VerifyEmail']", adminRow, "new_address=True"),
+            ("E-54 yöneticinin e-posta değişikliğini geri alması", "/panel/geri-al", links.AdminEmailRevert, "form[action*='handler=RevertPendingEmailChange']", adminRow, "previous_address=True"),
+        ];
+
+        foreach ((string screen, string address, string key, string form, string sql, string effect) in steps)
+        {
+            Guid linkId = await BrowserSeed.LinkIdOfAsync(Host.Dsn, Host.LinkKeys, key);
+            await GoAsync(page, $"{address}/{key}");
+            bool step = await page.Page.Locator(form).CountAsync() == 1;
+            await NavigateAsync(page, () => page.Page.Locator($"{form} button[type=submit]").ClickAsync());
+            string sent = await TextAsync(page.Page.Locator("main"));
+            string linkRow = await DataRecord.RowAsync(Host.Dsn, "SELECT link_type, (used_at IS NOT NULL) AS used FROM link_records WHERE id = @i", ("i", linkId));
+            string changed = await DataRecord.RowAsync(Host.Dsn, sql, ("i", linkId));
+            await GoAsync(page, $"{address}/{key}");
+            bool buttonOnSecondOpening = await page.Page.Locator(form).CountAsync() > 0;
+            string second = await TextAsync(page.Page.Locator("main"));
+            await ObserveAsync(
+                "VAL-B110",
+                path,
+                engine,
+                page,
+                $"{screen}: geçerli bağlantı açılır, düğme gönderilir, bağlantı yeniden açılır",
+                "adım (düğme) açılır; gönderimden sonra değişiklik yazılır, bağlantı kullanılmış olur ve sayfa sonucu söyler; yeniden açılışta düğme yoktur ve sayfa bağlantının durumunu söyler",
+                $"adım {step}; gönderimden sonra sonuç \"{sent[..Math.Min(sent.Length, 100)]}\"; yeniden açılışta düğme {(buttonOnSecondOpening ? "VAR" : "yok")}, metin \"{second[..Math.Min(second.Length, 100)]}\"",
+                step && sent.Length > 0 && linkRow.Contains("used=True", StringComparison.Ordinal) && changed.Contains(effect, StringComparison.Ordinal) && !buttonOnSecondOpening && second.Length > 0,
+                $"{linkRow}; {changed}");
+        }
+
+        Assert.Empty(Failures);
+    }
+
     // ---- the panel's forms ----
 
     /// <summary>VAL-B111: the panel's forms are saved with the script off - the product, the category, the content, the order's internal note and a setting - each by its own handler, and the saved value is read back.</summary>

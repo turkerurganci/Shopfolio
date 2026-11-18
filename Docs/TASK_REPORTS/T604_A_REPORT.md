@@ -1,6 +1,6 @@
 # T604 (A) — F5 kapısından kalan test aracı kalemleri
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor (dilim A1 bitti; A2…A4 payları sonraki dilimlerde) | **Tarih:** 2026-11-18
+**Faz:** F5 | **Durum:** ⏳ Devam ediyor (dilimler A1 ve A2 bitti; A3…A7 payları sonraki dilimlerde) | **Tarih:** 2026-11-18
 
 ---
 
@@ -36,6 +36,25 @@ Bu devam:
 - Integration: **TAM: CI**. Koşulan sınıflar: `ProductFormPageTests`, `ContentPanelPageTests`, `PaymentWindowTests`, `ConcurrentOrderScreenTests` (tek çağrı 92/92); önceki dilimden OrderOperationScreenTests, CustomerOperationsTests, DataExportPageTests, SalesSummaryPageTests, SchedulerScanTests, CardRefundJobTests, PaymentNotificationTests (184/184). Tarayıcı: `VALB009` ve `VALB107` chromium, firefox, webkit (motor başına ayrı çağrı).
 - Unit TAM: 8088/8088. `dotnet format` değişen `.cs` dosyalarında temiz.
 
+## Dilim A2 — kimlik, oturum, davet testleri
+
+Yalnız test ve belge dosyaları değişti; `src` değişikliği yok (değişinim denemeleri için geçici bozuldu, `git checkout -- src` ile geri alındı). Kalemler: D-464, D-572, D-801, D-1289, D-1301, D-1374, D-1389, D-1394, D-1405, D-1723.
+
+### Yapılan işler (A2)
+
+- D-1394 ve D-464 (`AdminAccountsPageTests`): davet sayfasında (`/panel/davet/{anahtar}`) dört geçersizleşme anı — geri çekilmiş, aynı adrese yenisiyle geçersizleşmiş, göndereni kaldırılmış, adresi yönetici olmuş (K-1085); her birinde sayfa geçersiz cümlesini formsuz söyler, kabul POST'u 200 geçersiz sayfa verir ve hesap açmaz. KK8 satır denetimi: kaldırılan yöneticinin bağlantı satırları silinir, yalnız onun daveti geçersizleşir, başkasının daveti açık kalır.
+- D-572, D-801, D-1405 (`CustomerSignInPageTests`, `RegistrationPageTests`): L-1 429'da `Retry-After` yok; tanınan tarayıcı e-posta ekseni engelliyken girer, işaretsiz tarayıcı engelli kalır; deneme satırları pencere dışına alınınca doğru şifre 303 alır ve `customers` tablosunda kilit/engel sütunu yoktur; kayıtta aynı pencere dolma sınaması; gerçek misafir sepetiyle `/giris` birleşmesi (çerez silinir, eklenen satır adı bir kez söylenir); `/kayit` Google yüzü (tanımsızken düğme yok ve 422, tanımlı ve kapı açıkken düğme ve 303 → Google, kapı kapalıyken düğme yok) ve `SocialLoginEmailUnverified` cümlesi.
+- D-1289 (`PanelAccessPagesTests`): yaygın şifre sıfırlamada ve davet kabulünde 422 (bağlantı tüketilmez); sıfırlama tanınan tarayıcı çerezini yazar ve oturum açmaz; L-1'de engellenen deneme giriş kaydına da yazılır, hesap kilitlenmez, pencere dolunca girer; yönetici çıkışı vitrin oturumuna ve çerezine dokunmaz (K-899); `VAL-A306` (müşteri şifresi panele girmez, vitrin oturumu paneli açmaz) ve `VAL-A308` (müşteri adresine giden davet ayrı yönetici hesabı açar, müşteri satırı değişmez).
+- D-1301 (`PanelHomeAndVerificationPagesTests`): iki eşzamanlı tüketim — iki basış hesap satır kilidinde birlikte bekletilip sırayla bırakılır; yeni adres doğrulaması ve geri alma için ikişer test; bir 303, bir geçersiz sayfa, tek tüketim, tek iz satırı.
+- D-1723 (`Browser/ScriptlessFlowTests.TheLinkScreens_SendTheirButtons_…_VALB110_D1723`): E-21 yeni e-posta ve Google teyidi, E-28 geri alma, E-54 doğrulama ve geri alma düğmeleri gönderilir; yeniden açılışta düğme yok. chromium, firefox, webkit ayrı çağrılarla, her biri betikli ve betiksiz: 2/2 yeşil (üç çağrı). `BrowserSeed.LinkIdOfAsync` eklendi.
+- D-1374, D-1389: `src` gerektirdiği için T604 U'ya daraltıldı (karar önerisi satırda; ⚠ aşağıda).
+
+### Notlar (A2)
+
+- Integration: **TAM: CI**. Koşulan sınıflar: `AdminAccountsPageTests`, `CustomerSignInPageTests`, `RegistrationPageTests`, `PanelAccessPagesTests`, `PanelHomeAndVerificationPagesTests` (iki çağrıda 90/90 ve 50/50); tarayıcı `…_VALB110_D1723` üç motorda 2/2.
+- Unit TAM: 8088/8088. `dotnet format` değişen yedi `.cs` dosyasında temiz.
+- Docker: Postgres 18 `track_commit_timestamp=on`, konteyner `shopfolio-t604a-pg`, port 56604 (iş bitince silindi).
+
 ## Para ve güvenlik kalemleri (KK2)
 
 Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "değişiklikten önce kırmızı" yerine her testin **ayırt ediciliği** değişinimle gösterilir (src geçici bozuldu, test kırıldı, geri alındı; `git checkout src`) ve var olan testler değişmeden geçer. Çıkış yolu ve geri alma: test dosyalarının PR'ı geri alınır.
@@ -52,6 +71,18 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 | D-1368 | `...UnderTheMembersRoot_...` | önceki dilim: ilk koşuda beklenen 303 gerçek davranışla (GET 302, POST 303) uyuşmadı |
 | D-1284 | `...TheItemlessIbanFields_...` | önceki dilim: CHECK kısıtına takıldı, tohum düzeltildi |
 | D-981 `C080`, `C002`, D-1424, D-1494 | ilgili testler | değişinim yapılmadı (⚠ aşağıda) |
+| A2: D-801/D-572 (L-1 429 `Retry-After` yok) | `CustomerSignInPageTests.TheLimit429OfTheSignIn_HasNoRetryAfter_…` | `FormResults.AttemptLimitExceeded` 429'a `Retry-After` yazar → KIRMIZI (kayıt için `PastTheLimitL3_…NoRetryAfter` da) |
+| A2: D-572/D-1405 pencere dolunca engel kalkar | `…TheBlock_LiftsWhenTheAttemptsLeaveTheWindow_…`, `RegistrationPageTests.TheBlockOfTheRegistration_…`, `PanelAccessPagesTests.TheBlockedAttempt_…` | `AttemptCounter.IsExceededAsync` pencereyi yok sayar → üçü KIRMIZI |
+| A2: D-1405 tanınan tarayıcı | `ARecognizedBrowser_SignsIn_WhileTheEmailAxisIsBlocked_…` | `PasswordRegime` işareti hiç sunmaz → KIRMIZI |
+| A2: D-1405 misafir sepeti birleşmesi | `ASignIn_WithARealGuestCart_MergesItIntoTheMembersCart_…` | `GuestCartMerge` birleştirmeyi atlar → KIRMIZI |
+| A2: D-1405 `/kayit` Google yüzü | `TheRegistrationPage_HasNoGoogleButtonWhileGoogleIsUndefined_…` | `GoogleOpen` Google tanımını yok sayar → KIRMIZI |
+| A2: D-1394/D-464 davet sayfası | `AdminAccountsPageTests.…_D1394_D464` dört test, `Removing_Deletes…_KK8` | `AdminAccounts` davet okuması bayrakları ve adres çakışmasını yok sayar, bağlantı sonlandırma ve geçersizleştirme etkisiz → altısı KIRMIZI |
+| A2: D-1289 yaygın şifre | `ACommonPassword_Is422_…` | `PasswordPolicy` yaygın listeyi atlar → KIRMIZI |
+| A2: D-1289 tanınan tarayıcı çerezi | `TheSetting_WritesTheKnownBrowserMarkCookie_…` | `Reset` çerezi yazmaz → KIRMIZI |
+| A2: D-1289 K-899 çıkış | `TheAdministratorsSignOut_EndsOnlyThePanelSession_…` | çıkış vitrin çerezini de siler → KIRMIZI |
+| A2: D-1301 eşzamanlı tüketim | `TwoVerificationPressesAtOnce_…`, `TwoRevertPressesAtOnce_…` | hesap kilidi atlanır ve `TryConsumeAsync` kullanılmışlık koşulunu bırakır → iki test (ve KK8 iki var olan test) KIRMIZI |
+| A2: D-1723 | `…_VALB110_D1723` | `TryConsumeAsync` kullanıldı işaretini yazmaz → iki yol KIRMIZI (chromium) |
+| A2: D-1289 `VAL-A306`, `VAL-A308` | ilgili testler | değişinim yapılmadı (⚠ aşağıda) |
 
 ## Öz denetim tablosu (bitiş kapısı 2)
 
@@ -75,6 +106,21 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 | Kısmen karşılanan kabul (~) | ⚠ | A1 dilimi bütün T604 değildir; kabul 1'in kalan payı A2…A4 ve U parçasında, PR bu dilimin PR'ıdır |
 | 06 default/FK, kural sayısı, 09 karar kaydı | ✓ | Şema, kural sayısı ve 09 metni değişmedi; karar kaydı yok (D-1599 kararı U'da) |
 | Gerçek saate bağlı test yok | ✓ | Yeni testler test saati ve sürümle çalışır; bekleme yok |
+| **A2** Kabul 1: A2 kalemleri kapanır ya da gerekçeyle daraltılır | ✓ | Kapandı: D-464, D-572, D-801, D-1289, D-1301, D-1394, D-1405, D-1723. Daraltıldı → T604 U: D-1374, D-1389 (satırlarda gerekçe). `grep -nE "T604" Docs/DEFERRED_BACKLOG.md` ile on kalem de tarandı |
+| A2 D-464, D-1394 | ✓ | `AdminAccountsPageTests` beş yeni test (dört geçersizleşme anı sayfada, KK8 satırı); değişinimle altısı kırmızı |
+| A2 D-572, D-801, D-1405 | ✓ | `CustomerSignInPageTests` sekiz yeni test, `RegistrationPageTests` bir; üç parçanın (1) `/kayit` yüzü, (2) 429/tanınan tarayıcı/pencere, (3) misafir sepeti hepsi testli |
+| A2 D-1289 | ✓ | `PanelAccessPagesTests` altı yeni test: dört davranış + `VAL-A306` + `VAL-A308` |
+| A2 D-1301 | ✓ | `PanelHomeAndVerificationPagesTests` iki yeni test, kilit altında deterministik eşzamanlılık |
+| A2 D-1723 | ✓ | `…_VALB110_D1723` üç motor × iki yol yeşil; gözlem kaydında e-posta maskeli (`***@***`), anahtar yok; kayıt satırı yalnız boolean sütunlar |
+| A2 D-1374, D-1389 | ~ | U'ya daraltıldı: `src` gerektiriyor (⚠ aşağıda); karar kaydı K-1625 U'da |
+| A2 KK2 (para/güvenlik) | ✓ | Yukarıdaki KK2 tablosuna A2 satırları eklendi; çıkış yolu ve geri alma aynı: test dosyalarının PR'ı geri alınır |
+| A2 KK3 (D-1723) | ✓ | chromium, firefox, webkit ayrı çağrılar, betikli ve betiksiz |
+| A2 `sik-fail-nedenleri` (1) bekçi/tarama istisnası | ✓ | Tarama ya da bekçi değişmedi |
+| A2 `sik-fail-nedenleri` (2) çağrı biçimi | ✓ | Yeni tarama yok |
+| A2 `sik-fail-nedenleri` (3) 06 default/FK | ✓ | Şema değişmedi |
+| A2 `sik-fail-nedenleri` (4) aynı sayıyı anan yerler | ✓ | Kural, sayaç ve şablon değişmedi; backlog sayacına dokunulmadı |
+| A2 `sik-fail-nedenleri` (5) belge kuralı / karar kaydı | ✓ | 05/07/11/09 metni değişmedi; yeni karar yok (D-1374/D-1389 kararları U'da, kayıtla) |
+| A2 12 satırı durumları | ⚠ | `VAL-A351`, `VAL-C075`, `VAL-A306`, `VAL-A308` BEKLEMEDE bırakıldı: kanıt testleri var, PASS yazımı ve uygulama kaydı payı faz kapısı/`12` sahibinde |
 
 ## ⚠ Maddeler
 
@@ -84,6 +130,13 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 - D-981 C080/C002, D-1424 testleri var olan davranışın ilk testleridir; değişinimle kırmızı gösterilmedi.
 - Üye kökü oturumsuz yönlendirme: backlog "302" diyordu; gerçekte GET 302, POST 303; testler gerçeği sabitler.
 - C077 "yönetici önce ödendi" çiftinde müşterinin eski tam-iptal formu `OperationClosed` ile reddedilir (ödenmiş siparişin iptali kalem iptalidir); `02 §3.31.2`'nin "ya uygulanır ya reddedilir ve sebebi söylenir" cümlesine uyar.
+
+- A2 D-1374: karar (kurala uygun seçenek): belge yönü korunur (`04` 6.3.12.2, K-811 gerekçesi), UC-157 doğrulanmamış kaydı da siler; `AccountDeletions.DeleteByAdministratorAsync` ve T533 sayfası değişir → T604 U, karar kaydı K-1625 U'da.
+- A2 D-1389: karar: izin düşürme tek panel ara katmanına alınır (D-1454 ile aynı iş), kayıt kapatılmaz → T604 U.
+- A2 `VAL-A351`, `VAL-C075`, `VAL-A306`, `VAL-A308` 12 satırları BEKLEMEDE bırakıldı (PASS yazımı ve uygulama kaydı payı faz kapısında); kanıt testleri backlog satırlarında.
+- A2 D-1289 `VAL-A306`/`VAL-A308` testleri ve K-899 testi var olan davranışın ilk testleridir; `VAL-A306`/`VAL-A308` için değişinim yapılmadı (ikisi seed ve ret durumlarını doğrudan sınar), K-899 ve öteki testler değişinimle kırmızı gösterildi.
+- A2 `/kayit` testleri `CustomerSignInPageTests` içinde (Google taklidi ve `Open(google, gateOpen)` orada); backlog "`CustomerSignInPageTests` ve `RegistrationPageTests`" dediği için yeri iki dosyaya bölündü.
+- A2 D-1301 testleri bekletmeyi `pg_stat_activity` ile bekler (var olan KK8 deseni); gerçek saate bağlı bekleme yok.
 
 ## Commit & PR
 

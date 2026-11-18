@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -15,9 +16,13 @@ using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.IntegrationTests.Model;
 using Shopfolio.IntegrationTests.Pages;
+using Shopfolio.Modules.Catalog;
+using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Notifications.Contracts;
+using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.Pages.Components;
 using Shopfolio.Pages.Frame;
@@ -224,6 +229,239 @@ public sealed class CustomerSignInPageTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.SeeOther, another.StatusCode);
         await using AppDbContext db = NewContext();
         Assert.Equal(1, await db.Customers.CountAsync(c => c.Email == "ali@example.com", Ct));
+    }
+
+    // ---- D-1405, D-572, D-801 (T604): the 429 without Retry-After, the recognized browser, the window, the guest cart, the registration's Google face ----
+
+    private const string FramePage = "/sss/ornek-cerceve";
+
+    [Fact]
+    public async Task TheLimit429OfTheSignIn_HasNoRetryAfter_AndTheNeutralSentenceOnly_D1405_D801_KK4()
+    {
+        await using WebApplicationFactory<Program> factory = Open(google: null, gateOpen: false);
+        await SeedCustomerAsync("ali@example.com", verified: true);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (HttpResponseMessage limited, int sent) = await BlockTheEmailAxisAsync(client, "ali@example.com");
+        string html = await BodyOf(limited);
+        using (limited)
+        {
+            Assert.Equal(HttpStatusCode.TooManyRequests, limited.StatusCode);
+            Assert.True(sent > ProductConstants.SignInAttemptsPerEmail, "The limit is exceeded by the attempt past the threshold, not before it.");
+            Assert.False(limited.Headers.Contains("Retry-After"));
+            Assert.Null(limited.Headers.RetryAfter);
+            Assert.Contains(NeutralMessages.LimitExceeded, html, StringComparison.Ordinal);
+            Assert.DoesNotContain(SignInTexts.InvalidCredentials, html, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public async Task ARecognizedBrowser_SignsIn_WhileTheEmailAxisIsBlocked_AndABrowserWithoutTheMarkStaysBlocked_D1405_D801_KK4()
+    {
+        await using WebApplicationFactory<Program> factory = Open(google: null, gateOpen: false);
+        await SeedCustomerAsync("ali@example.com", verified: true);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        // The first sign-in writes the account's recognized-browser mark; the wrong attempts that follow carry no mark and fill the e-mail axis.
+        string mark;
+        using (HttpResponseMessage first = await PostSignInAsync(client, "ali@example.com", Entered))
+        {
+            Assert.Equal(HttpStatusCode.SeeOther, first.StatusCode);
+            mark = ValueOf(Assert.Single(SetCookies(first), c => c.StartsWith(CookieNames.KnownDevice + "=", StringComparison.Ordinal)));
+        }
+
+        (HttpResponseMessage limited, _) = await BlockTheEmailAxisAsync(client, "ali@example.com");
+        limited.Dispose();
+
+        using HttpResponseMessage withoutMark = await PostSignInAsync(client, "ali@example.com", Entered);
+        using HttpResponseMessage recognized = await PostSignInWithCookiesAsync(client, "ali@example.com", Entered, mark);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, withoutMark.StatusCode);
+        Assert.Equal(HttpStatusCode.SeeOther, recognized.StatusCode);
+        Assert.Contains(SetCookies(recognized), c => c.StartsWith(CookieNames.Session + "=", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task TheBlock_LiftsWhenTheAttemptsLeaveTheWindow_TheRightPasswordSignsIn_AndTheAccountRowHasNoLockField_D572_D1405_KK4()
+    {
+        await using WebApplicationFactory<Program> factory = Open(google: null, gateOpen: false);
+        await SeedCustomerAsync("ali@example.com", verified: true);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (HttpResponseMessage limited, _) = await BlockTheEmailAxisAsync(client, "ali@example.com");
+        limited.Dispose();
+        using HttpResponseMessage stillBlocked = await PostSignInAsync(client, "ali@example.com", Entered);
+        await using (AppDbContext db = NewContext())
+        {
+            await db.Database.ExecuteSqlRawAsync("UPDATE attempt_records SET created_at = created_at - interval '2 hours'", Ct);
+        }
+
+        using HttpResponseMessage after = await PostSignInAsync(client, "ali@example.com", Entered);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, stillBlocked.StatusCode);
+        Assert.Equal(HttpStatusCode.SeeOther, after.StatusCode);
+        Assert.Contains(SetCookies(after), c => c.StartsWith(CookieNames.Session + "=", StringComparison.Ordinal));
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(
+            0,
+            await reader.Database.SqlQueryRaw<int>("SELECT count(*)::int AS \"Value\" FROM information_schema.columns WHERE table_name = 'customers' AND (column_name ILIKE '%lock%' OR column_name ILIKE '%block%')").SingleAsync(Ct));
+    }
+
+    [Fact]
+    public async Task ASignIn_WithARealGuestCart_MergesItIntoTheMembersCart_TellsWhatTheGuestDidNotSeeOnce_AndDeletesTheCookie_D1405_T515_KK3()
+    {
+        await using WebApplicationFactory<Program> factory = Open(google: null, gateOpen: false);
+        Guid ali = await SeedCustomerAsync("ali@example.com", verified: true);
+        List<Variant> variants = await SeedVariantsAsync("Sandalye", "Masa");
+        string guestKey = $"guest-{Guid.NewGuid():N}";
+        Guid memberCart = await SeedCartAsync(ali, null, variants[0].Id);
+        await SeedCartAsync(null, guestKey, variants[1].Id);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        using HttpResponseMessage signedIn = await PostSignInWithCookiesAsync(client, "ali@example.com", Entered, $"{CookieNames.Cart}={guestKey}");
+        string session = ValueOf(SessionCookie(signedIn));
+        JsonElement first = await FrameOfAsync(client, FramePage, session);
+        JsonElement second = await FrameOfAsync(client, FramePage, session);
+
+        Assert.Equal(HttpStatusCode.SeeOther, signedIn.StatusCode);
+        string deleted = Assert.Single(SetCookies(signedIn), c => c.StartsWith(CookieNames.Cart + "=", StringComparison.Ordinal));
+        Assert.Contains("expires=Thu, 01 Jan 1970", deleted, StringComparison.OrdinalIgnoreCase);
+        await using AppDbContext db = NewContext();
+        Assert.Equal(2, await db.CartItems.CountAsync(i => i.CartId == memberCart, Ct));
+        Assert.Equal(["Sandalye"], first.GetProperty("MergeAddedProductNames").EnumerateArray().Select(n => n.GetString()!).ToArray());
+        Assert.Equal(2, first.GetProperty("Cart").GetProperty("ItemCount").GetInt32());
+        Assert.Empty(second.GetProperty("MergeAddedProductNames").EnumerateArray());
+        Assert.Equal(2, second.GetProperty("Cart").GetProperty("ItemCount").GetInt32());
+    }
+
+    [Fact]
+    public async Task TheRegistrationPage_HasNoGoogleButtonWhileGoogleIsUndefined_StartSocialLoginIs422_AndNoFlowCookie_D1405_T515_KK6()
+    {
+        await using WebApplicationFactory<Program> factory = Open(google: null, gateOpen: true);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (_, string html, _) = await GetAsync(factory, FramePaths.Register);
+        using HttpResponseMessage response = await PostAsync(client, FramePaths.Register, "StartSocialLogin", []);
+
+        Assert.DoesNotContain("id=\"google-sign-in\"", html, StringComparison.Ordinal);
+        Assert.DoesNotContain(SignInTexts.GoogleLabel, html, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.DoesNotContain(SetCookies(response), c => c.StartsWith(CookieNames.ExternalLogin + "=", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task TheRegistrationPage_WhenGoogleIsDefinedAndTheGateIsOpen_HasTheButton_StartSocialLoginIs303ToGoogleWithTheProofKeyAndTheFlowCookie_D1405_T515_KK6()
+    {
+        await using WebApplicationFactory<Program> factory = Open(google: new StubGateway(), gateOpen: true);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (_, string html, _) = await GetAsync(factory, FramePaths.Register);
+        using HttpResponseMessage response = await PostAsync(client, FramePaths.Register, "StartSocialLogin", []);
+
+        Assert.Contains("id=\"google-sign-in\"", html, StringComparison.Ordinal);
+        Assert.Contains(SignInTexts.GoogleLabel, html, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
+        Uri location = new(response.Headers.Location!.OriginalString);
+        Assert.StartsWith("https://accounts.google.com/o/oauth2/v2/auth?", location.AbsoluteUri, StringComparison.Ordinal);
+        Dictionary<string, StringValues> query = QueryHelpers.ParseQuery(location.Query);
+        Assert.Equal("S256", query["code_challenge_method"].ToString());
+        Assert.False(string.IsNullOrEmpty(query["code_challenge"]));
+        Assert.Contains(SetCookies(response), c => c.StartsWith(CookieNames.ExternalLogin + "=", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task TheRegistrationPage_WhileTheGateIsClosed_HasNoGoogleButtonEvenWhenGoogleIsDefined_AndStartSocialLoginIs422_D1405_T515_KK6()
+    {
+        await using WebApplicationFactory<Program> factory = Open(google: new StubGateway(), gateOpen: false);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (_, string html, _) = await GetAsync(factory, FramePaths.Register);
+        using HttpResponseMessage response = await PostAsync(client, FramePaths.Register, "StartSocialLogin", []);
+
+        Assert.DoesNotContain("id=\"google-sign-in\"", html, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.DoesNotContain(SetCookies(response), c => c.StartsWith(CookieNames.ExternalLogin + "=", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task TheUnverifiedGoogleCode_OnTheRegistrationAddress_TellsTheLastingSentenceOfTheUnverifiedAddress_D1405_T515_KK8()
+    {
+        await using WebApplicationFactory<Program> factory = Open(google: new StubGateway(), gateOpen: true);
+
+        (HttpStatusCode status, string html, _) = await GetAsync(factory, $"{FramePaths.Register}?{NoticeParameter.ParameterName}={NoticeCode.SocialLoginEmailUnverified}");
+
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.Contains(SignInTexts.SocialLoginEmailUnverified, html, StringComparison.Ordinal);
+    }
+
+    // The wrong attempts without a mark until the answer is the limit's 429; the last answer and the number sent are returned.
+    private static async Task<(HttpResponseMessage Limited, int Sent)> BlockTheEmailAxisAsync(HttpClient client, string email)
+    {
+        HttpResponseMessage attempt = await PostSignInAsync(client, email, Entered + "x");
+        int sent = 1;
+        while (attempt.StatusCode != HttpStatusCode.TooManyRequests && sent <= ProductConstants.SignInAttemptsPerEmail + 1)
+        {
+            attempt.Dispose();
+            attempt = await PostSignInAsync(client, email, Entered + "x");
+            sent++;
+        }
+
+        return (attempt, sent);
+    }
+
+    private static async Task<HttpResponseMessage> PostSignInWithCookiesAsync(HttpClient client, string email, string password, params string[] cookies)
+    {
+        using HttpRequestMessage request = new(HttpMethod.Post, $"{FramePaths.SignIn}?handler=SignIn");
+        request.Headers.TryAddWithoutValidation("X-Forwarded-Proto", "https");
+        request.Headers.TryAddWithoutValidation("Cookie", string.Join("; ", cookies));
+        request.Content = new FormUrlEncodedContent([new("Input.Email", email), new("Input.Password", password)]);
+        return await client.SendAsync(request, Ct);
+    }
+
+    private static async Task<JsonElement> FrameOfAsync(HttpClient client, string path, string cookie)
+    {
+        using HttpRequestMessage request = new(HttpMethod.Get, path);
+        request.Headers.TryAddWithoutValidation("X-Forwarded-Proto", "https");
+        request.Headers.Add("Cookie", cookie);
+        using HttpResponseMessage response = await client.SendAsync(request, Ct);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        return JsonDocument.Parse((await response.Content.ReadAsStringAsync(Ct)).Trim()).RootElement.Clone();
+    }
+
+    private async Task<List<Variant>> SeedVariantsAsync(params string[] productNames)
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        List<Variant> variants = [];
+        await using AppDbContext db = NewContext();
+        foreach (string name in productNames)
+        {
+            Product product = Product.Create(name, $"urun-{Guid.NewGuid():N}", ProductType.Physical, 20m, now).WithSeededOrigin();
+            product.PublishStatus = PublishStatus.Published;
+            Variant variant = Variant.Create(product.Id, $"SKU-{Guid.NewGuid():N}"[..20], 100m, now);
+            variant.PublishStatus = PublishStatus.Published;
+            variant.StockQuantity = 10;
+            db.Products.Add(product);
+            db.Variants.Add(variant);
+            variants.Add(variant);
+        }
+
+        await db.SaveChangesAsync(Ct);
+        return variants;
+    }
+
+    private async Task<Guid> SeedCartAsync(Guid? customerId, string? guestKey, params Guid[] variantIds)
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        Cart cart = customerId is Guid id ? Cart.ForCustomer(id, now) : Cart.ForGuest(SecretKey.Hash(guestKey!), now);
+        await using AppDbContext db = NewContext();
+        db.Carts.Add(cart);
+        foreach (Guid variantId in variantIds)
+        {
+            db.CartItems.Add(CartItem.Create(cart.Id, variantId, 1, 100m, now));
+        }
+
+        await db.SaveChangesAsync(Ct);
+        return cart.Id;
     }
 
     // ---- KK5: the unverified account ----

@@ -344,6 +344,86 @@ public sealed class PanelHomeAndVerificationPagesTests : IAsyncLifetime
         Assert.Null(await db.LinkRecords.Where(l => l.AdminId == adminId && l.LinkType == LinkType.NewEmailVerification).Select(l => l.UsedAt).SingleAsync(Ct));
     }
 
+    // ---- D-1301 (T604): two presses of one link at the same time consume it once ----
+
+    [Fact]
+    public async Task TwoVerificationPressesAtOnce_ConsumeTheLinkOnce_ChangeTheAddressOnce_AndAnswerNoError_D1301_T521_KK7()
+    {
+        (string oldEmail, Guid adminId) = await SeedAdminAsync();
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient first = ForgeryTokenHandler.CreateClient(factory);
+        using HttpClient second = ForgeryTokenHandler.CreateClient(factory);
+        string newEmail = "new-" + oldEmail;
+        string key = await SeedVerificationAsync(factory.Services.GetRequiredService<LinkKeys>(), adminId, newEmail, null, DateTimeOffset.UtcNow.AddHours(1));
+
+        HttpResponseMessage[] answers = await PressTwiceUnderTheLockAsync(first, second, $"{VerifyPath}/{key}?handler=VerifyEmail", adminId);
+        HttpStatusCode[] statuses = [.. answers.Select(a => a.StatusCode).Order()];
+        string loserHtml = WebUtility.HtmlDecode(await answers.Single(a => a.StatusCode == HttpStatusCode.OK).Content.ReadAsStringAsync(Ct));
+        foreach (HttpResponseMessage answer in answers)
+        {
+            answer.Dispose();
+        }
+
+        Assert.Equal([HttpStatusCode.OK, HttpStatusCode.SeeOther], statuses);
+        Assert.Contains(PanelAccessTexts.VerifyEmailInvalid, loserHtml, StringComparison.Ordinal);
+        await using AppDbContext db = NewContext();
+        Assert.Equal(newEmail, await db.Admins.Where(a => a.Id == adminId).Select(a => a.NormalizedEmail).SingleAsync(Ct));
+        Assert.Equal(1, await db.LinkRecords.CountAsync(l => l.AdminId == adminId && l.LinkType == LinkType.NewEmailVerification && l.UsedAt != null, Ct));
+        Assert.Equal(1, await db.LinkRecords.CountAsync(l => l.AdminId == adminId && l.LinkType == LinkType.EmailChangeRevert, Ct));
+        Assert.Equal(1, await db.AuditLogs.CountAsync(a => a.Operation == "ChangeAdminEmail" && a.AdminId == adminId, Ct));
+        Assert.Equal(1, await db.DispatchRecords.CountAsync(d => d.DispatchType == DispatchType.EmailChangeNotice, Ct));
+    }
+
+    [Fact]
+    public async Task TwoRevertPressesAtOnce_ConsumeTheLinkOnce_ReturnTheAddressOnce_AndAnswerNoError_D1301_T521_KK9()
+    {
+        (string currentEmail, Guid adminId) = await SeedAdminAsync();
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient first = ForgeryTokenHandler.CreateClient(factory);
+        using HttpClient second = ForgeryTokenHandler.CreateClient(factory);
+        string previous = "previous-" + currentEmail;
+        string key = await SeedRevertAsync(factory.Services.GetRequiredService<LinkKeys>(), adminId, previous, null);
+
+        HttpResponseMessage[] answers = await PressTwiceUnderTheLockAsync(first, second, $"{RevertPath}/{key}?handler=RevertPendingEmailChange", adminId);
+        HttpStatusCode[] statuses = [.. answers.Select(a => a.StatusCode).Order()];
+        string loserHtml = WebUtility.HtmlDecode(await answers.Single(a => a.StatusCode == HttpStatusCode.OK).Content.ReadAsStringAsync(Ct));
+        foreach (HttpResponseMessage answer in answers)
+        {
+            answer.Dispose();
+        }
+
+        Assert.Equal([HttpStatusCode.OK, HttpStatusCode.SeeOther], statuses);
+        Assert.Contains(PanelAccessTexts.RevertInvalid, loserHtml, StringComparison.Ordinal);
+        await using AppDbContext db = NewContext();
+        Assert.Equal(previous, await db.Admins.Where(a => a.Id == adminId).Select(a => a.NormalizedEmail).SingleAsync(Ct));
+        Assert.Equal(1, await db.LinkRecords.CountAsync(l => l.AdminId == adminId && l.LinkType == LinkType.EmailChangeRevert && l.UsedAt != null, Ct));
+        Assert.Equal(1, await db.AuditLogs.CountAsync(a => a.Operation == "ChangeAdminEmail" && a.AdminId == adminId, Ct));
+        Assert.Equal(1, await db.DispatchRecords.CountAsync(d => d.DispatchType == DispatchType.PasswordResetLink, Ct));
+        Assert.Equal(1, await db.LinkRecords.CountAsync(l => l.AdminId == adminId && l.LinkType == LinkType.PasswordReset, Ct));
+    }
+
+    // Holds the administrator's row lock, sends the same press from two browsers, waits until both requests wait for the lock (both have read the link as valid), then releases it: the two presses run one after the other.
+    private async Task<HttpResponseMessage[]> PressTwiceUnderTheLockAsync(HttpClient first, HttpClient second, string path, Guid adminId)
+    {
+        await using AppDbContext holder = NewContext();
+        await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await holder.Database.BeginTransactionAsync(Ct);
+        await holder.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM admins WHERE id = {adminId} FOR UPDATE", Ct);
+
+        Task<HttpResponseMessage> one = SendPostAsync(first, path, [], []);
+        Task<HttpResponseMessage> two = SendPostAsync(second, path, [], []);
+        await using AppDbContext probe = NewContext();
+        int waiting = 0;
+        for (int i = 0; i < 400 && waiting < 2; i++)
+        {
+            await Task.Delay(50, Ct);
+            waiting = await probe.Database.SqlQuery<int>($"SELECT count(*)::int AS \"Value\" FROM pg_stat_activity WHERE wait_event_type = 'Lock' AND query ILIKE '%FOR UPDATE%' AND datname = current_database()").SingleAsync(Ct);
+        }
+
+        Assert.True(waiting >= 2, "The two requests never both waited for the account lock.");
+        await transaction.CommitAsync(Ct);
+        return await Task.WhenAll(one, two);
+    }
+
     // ---- KK6, KK9, KK10: the revert landing ----
 
     [Fact]

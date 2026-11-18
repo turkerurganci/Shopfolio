@@ -333,6 +333,14 @@ internal static class BrowserSeed
         return new SeededLinks(keys.Derive(registration.Id), keys.Derive(newAddress.Id), keys.Derive(confirmation.Id), keys.Derive(reset.Id), keys.Derive(revert.Id), keys.Derive(adminReset.Id), keys.Derive(adminNewAddress.Id), keys.Derive(adminRevert.Id));
     }
 
+    /// <summary>The identifier of the unused link record whose address key is <paramref name="key"/> (the key is derived from the identifier, so the record is found by deriving each unused one).</summary>
+    public static async Task<Guid> LinkIdOfAsync(string dsn, LinkKeys keys, string key)
+    {
+        await using AppDbContext db = NewContext(dsn);
+        List<Guid> unused = await db.LinkRecords.AsNoTracking().Where(l => l.UsedAt == null).Select(l => l.Id).ToListAsync(CancellationToken.None);
+        return unused.Single(id => keys.Derive(id) == key);
+    }
+
     private static async Task AddItemsAndStateAsync(string dsn, Guid orderId, OrderStatus shipping, PaymentStatus payment, bool card)
     {
         await using AppDbContext db = NewContext(dsn);

@@ -104,7 +104,7 @@
 - **Commit:** doğrulanan ağaç `038a972f` (dal ucu `f42d8a56` + `origin/main`)
 - **PR:** #541
 - **CI:** run 43026186737 success (head `f42d8a56`)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `d2bc2d33` (#541) — CI 43038134121 success, Publish 43038133909 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

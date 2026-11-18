@@ -82,7 +82,7 @@ Backlog payı: D-81, D-556, D-558, D-577, D-619, D-1070 ✅ (yerinde kapatıldı
 - **Commit:** `4b193057` (+ main birleşimi `9bcd0e3d`)
 - **PR:** #560
 - **CI:** yönetici izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `73e36672` (#560) — CI 43276977628 success, Publish 43276977661 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

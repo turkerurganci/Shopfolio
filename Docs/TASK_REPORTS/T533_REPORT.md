@@ -84,7 +84,7 @@ Yapım raporu uyuşmazlıkları (bloke etmez, bu PR'da düzeltildi): okuyucu yö
 
 - **Branch:** `task/T533-uye-kaydi`
 - **PR:** #556
-- **Post-merge run'lar:** *(validator doldurur)*; son ana dal koşuları: 43151185860, 43151185866 (`bc915800`, success)
+- **Post-merge run'lar:** squash `059a8e62` (#556) — CI 43195110272 success, Publish 43195110409 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

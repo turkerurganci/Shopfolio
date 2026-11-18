@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-16 — F5 (Kullanıcı arayüzü) faz kapısı tur 1 ✗ FAIL (kod sağlam: Unit 8087, Integration 4579, Release 0 uyarı; faz ölçütü olan A seviyesi tarama ve betiksiz yol gözlemi için araç yok); plan düzeltmesi (`chore: F5 plan düzeltmesi`): F5 `T501`–`T552` (52), yeni T551 (tarayıcı aracı ve betiksiz yol gözlemi) ve T552 (A seviyesi erişilebilirlik taraması), K-1620; kapı tur 2 bu iki task'tan sonra.
+**Son güncelleme:** 2026-11-18 — F5 (Kullanıcı arayüzü) faz kapısı tur 2 ✓ PASS (`chore: F5 gate check PASS`; rapor `CHECKPOINT_REPORTS/GATE_CHECK_F5.md`; squash ve `phase/F5-pass` etiketi merge'de yardımcıda): 52/52 task ✓; Release `-warnaserror` 0 uyarı, format temiz; Unit 8088, Integration 4607, betik 4 dosya, tarayıcı testleri üç motorda (chromium, firefox, webkit) yeşil; 19 göç, ikinci uygulama no-op; paket denetimi 7/7. `12 §6.2` F5: A seviyesi tarama (T552) ve betiksiz yol gözlemi (T551) ✓; DV-5 (`VAL-E005`) ve Kontrol Listesi A payı (`VAL-A340`, `A776`) BEKLİYOR (OWNER_INPUT — D-1466, D-1727). `11 §7.1` 891 F5 satırı×task dolu, `GATE_DOLU` += F5. Backlog: F5 kapısına bırakılmış ≈195 kalem yeniden doğrulandı — 58 ✅, ≈135 → yeni F6 task'ı T604 (K-1621), 4 → T601, 2 OWNER_INPUT; aktif 311. F6 `T601`–`T604`, `T601b` (5). Öğrenim PF-278…PF-280.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -35,8 +35,8 @@
 | F2 | Çekirdek servisler | `T201`–`T233` (33) | ✓ PASS | `phase/F2-pass` | [GATE_CHECK_F2](CHECKPOINT_REPORTS/GATE_CHECK_F2.md) |
 | F3 | İş mantığı | `T301`–`T390` (90) | ✓ PASS | `phase/F3-pass` | [GATE_CHECK_F3](CHECKPOINT_REPORTS/GATE_CHECK_F3.md) |
 | F4 | Entegrasyonlar | `T401`–`T412` (12) | ✓ (E ölçütü OWNER_INPUT — T410) | `phase/F4-pass` | [GATE_CHECK_F4](CHECKPOINT_REPORTS/GATE_CHECK_F4.md) |
-| F5 | Kullanıcı arayüzü | `T501`–`T552` (52) | ⬚ | — | |
-| F6 | Uçtan uca doğrulama | `T601`–`T603`, `T601b` (4) | ⬚ | — | |
+| F5 | Kullanıcı arayüzü | `T501`–`T552` (52) | ✓ (DV-5 ve Kontrol Listesi A payı OWNER_INPUT — D-1466, D-1727) | `phase/F5-pass` | [GATE_CHECK_F5](CHECKPOINT_REPORTS/GATE_CHECK_F5.md) |
+| F6 | Uçtan uca doğrulama | `T601`–`T604`, `T601b` (5) | ⬚ | — | |
 
 ---
 
@@ -258,57 +258,57 @@
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
 | T501 | Yerli üretim logosu varlığı ve gösterimi | ✓ | ✓ PASS (tur 1) | `e7e5d3e1` | #535 |
-| T502 | Vitrin: ana sayfa ve kategori sayfası (E-01, E-02) | ✓ | ✓ PASS (tur 2) | `038a972f` | #541 |
-| T503 | Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04) | ✓ | ✓ PASS (tur 3) | `2f131820` | #542 |
-| T504 | Hata sayfaları: bulunamayan adres ve beklenmeyen hata (E-06, 500) | ✓ | ✓ PASS (tur 1) | `e59bfa5f` | #540 |
-| T505 | İçerik liste ve içerik sayfaları (E-07, E-08) | ✓ | ✓ PASS (tur 4) | `687ec955` | #543 |
-| T506 | Sık sorulan sorular ve iletişim sayfası ve formu (E-09, E-10) | ✓ | ✓ PASS (tur 2) | `fd92dbcd` | #551 |
-| T507 | Yasal metin sayfaları ve panelde yönetimi (E-11, E-47) | ✓ | ✓ PASS (tur 1) | `7eadf545` | #547 |
-| T508 | Sepet (E-12) | ✓ | ✓ PASS (tur 1) | `6a8e61a0` | #544 |
+| T502 | Vitrin: ana sayfa ve kategori sayfası (E-01, E-02) | ✓ | ✓ PASS (tur 2) | `d2bc2d33` | #541 |
+| T503 | Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04) | ✓ | ✓ PASS (tur 3) | `5ed330f5` | #542 |
+| T504 | Hata sayfaları: bulunamayan adres ve beklenmeyen hata (E-06, 500) | ✓ | ✓ PASS (tur 1) | `6fd90f28` | #540 |
+| T505 | İçerik liste ve içerik sayfaları (E-07, E-08) | ✓ | ✓ PASS (tur 4) | `3f4b8b1b` | #543 |
+| T506 | Sık sorulan sorular ve iletişim sayfası ve formu (E-09, E-10) | ✓ | ✓ PASS (tur 2) | `bc915800` | #551 |
+| T507 | Yasal metin sayfaları ve panelde yönetimi (E-11, E-47) | ✓ | ✓ PASS (tur 1) | `30832ba6` | #547 |
+| T508 | Sepet (E-12) | ✓ | ✓ PASS (tur 1) | `25f1f1ee` | #544 |
 | T509 | Ödeme adımı (E-13) | ✓ | ✓ PASS (tur 4) | `edf4eb2a` | #559 |
 | T510 | Sipariş teyit ve bekleme ekranı, ödeme sağlayıcısına geçiş ve dönüş (E-14) | ✓ | ✓ PASS (tur 1) | `ce300c0e` | #569 |
-| T511 | Sipariş takibi girişi, sipariş sayfası ve indirme bağlantısı (E-15, E-16) | ✓ | ✓ PASS (tur 1) | `20c8bbcc` | #545 |
-| T512 | İptal ve gecikme feshi ekranı, geri ödeme IBAN girişi (E-17, E-16 IBAN formu) | ✓ | ✓ PASS (tur 2) | `f76de0e3` | #553 |
-| T513 | Cayma beyanı ve ayıp talebi ekranları (E-18, E-19) | ✓ | ✓ PASS (tur 2) | — | #558 |
-| T514 | Kayıt ve doğrulama bağlantısının inişi (E-20, E-21) | ✓ | ✓ PASS (tur 3) | `34a477dc` | #548 |
-| T515 | Müşteri girişi ve Google ile giriş (E-22) | ✓ | ✓ PASS (tur 1) | `0cc6a93a` | #560 |
-| T516 | Şifre sıfırlama ve yeniden doğrulama (E-23, E-24) | ✓ | ✓ PASS (tur 1) | `29a613e0` | #564 |
+| T511 | Sipariş takibi girişi, sipariş sayfası ve indirme bağlantısı (E-15, E-16) | ✓ | ✓ PASS (tur 1) | `a9270c02` | #545 |
+| T512 | İptal ve gecikme feshi ekranı, geri ödeme IBAN girişi (E-17, E-16 IBAN formu) | ✓ | ✓ PASS (tur 2) | `64002df5` | #553 |
+| T513 | Cayma beyanı ve ayıp talebi ekranları (E-18, E-19) | ✓ | ✓ PASS (tur 2) | `9474668f` | #558 |
+| T514 | Kayıt ve doğrulama bağlantısının inişi (E-20, E-21) | ✓ | ✓ PASS (tur 3) | `368d978d` | #548 |
+| T515 | Müşteri girişi ve Google ile giriş (E-22) | ✓ | ✓ PASS (tur 1) | `73e36672` | #560 |
+| T516 | Şifre sıfırlama ve yeniden doğrulama (E-23, E-24) | ✓ | ✓ PASS (tur 1) | `9b2a9db8` | #564 |
 | T517 | Hesap — profil ve güvenlik (E-25) | ✓ | ✓ PASS (tur 2) | `3fe7d829` | #567 |
 | T518 | Adres defteri ve sipariş geçmişi (E-26, E-27) | ✓ | ✓ PASS (tur 1) | `49ba60f0` | #566 |
-| T519 | E-posta değişikliğini geri alma ve müşteri çıkışı (E-28) | ✓ | ✓ PASS (tur 2) | `07338c0f` | #571 |
-| T520 | Panel girişi, şifre sıfırlama, davet kabulü ve yönetici çıkışı (E-29, E-30) | ✓ | ✓ PASS (tur 1) | `fd6c275e` | #549 |
-| T521 | Panel ana sayfası ve yönetici hesabının doğrulama ekranları (E-31, E-54) | ✓ | ✓ PASS (tur 3) | `3cec5c9c` | #554 |
-| T522 | Yönetici hesapları ve işlem izi (E-49, E-52) | ✓ | ✓ PASS (tur 1) | `794aed66` | #557 |
-| T523 | Yöneticinin kendi hesabı (E-50) | ✓ | ✓ PASS (tur 2) | `71a256a8` | #561 |
-| T524 | Satış özeti ve dışa aktarma (E-51, E-53) | ✓ | ✓ PASS (tur 1) | `c5add538` | #562 |
-| T525 | Ürün listesi ve ürün formu, görsel yükleme (E-32, E-33) | ✓ | ✓ PASS (tur 2) | `6b4f246c` | #570 |
-| T526 | Kategori ağacı ve kuponlar (E-34, E-35) | ✓ | ✓ PASS (tur 1) | `901e0cdc` | #563 |
+| T519 | E-posta değişikliğini geri alma ve müşteri çıkışı (E-28) | ✓ | ✓ PASS (tur 2) | `2a093c3d` | #571 |
+| T520 | Panel girişi, şifre sıfırlama, davet kabulü ve yönetici çıkışı (E-29, E-30) | ✓ | ✓ PASS (tur 1) | `9f5b8ac8` | #549 |
+| T521 | Panel ana sayfası ve yönetici hesabının doğrulama ekranları (E-31, E-54) | ✓ | ✓ PASS (tur 3) | `a56a1735` | #554 |
+| T522 | Yönetici hesapları ve işlem izi (E-49, E-52) | ✓ | ✓ PASS (tur 1) | `4b37cf0c` | #557 |
+| T523 | Yöneticinin kendi hesabı (E-50) | ✓ | ✓ PASS (tur 2) | `857c52f3` | #561 |
+| T524 | Satış özeti ve dışa aktarma (E-51, E-53) | ✓ | ✓ PASS (tur 1) | `9cf8d1f7` | #562 |
+| T525 | Ürün listesi ve ürün formu, görsel yükleme (E-32, E-33) | ✓ | ✓ PASS (tur 2) | `0289add9` | #570 |
+| T526 | Kategori ağacı ve kuponlar (E-34, E-35) | ✓ | ✓ PASS (tur 1) | `7fc11ffa` | #563 |
 | T527 | Sipariş listesi, sipariş ayrıntısı ve durum geçişleri (E-36, E-37) | ✓ | ✓ PASS (tur 5) | `d847e947` | #565 |
-| T528 | Sipariş ayrıntısı: firma iptali, bildirim kaydı, kalem çıkarma, iade malı ve ayıp talebi (E-37) | ✓ | ✓ PASS (tur 2) | `bac948f2` | #578 |
-| T529 | Sipariş ayrıntısı: geri ödeme işlemleri (E-37) | ✓ | ✓ PASS (tur 6) | `ef57ddbe` | #575 |
-| T530 | Sipariş ayrıntısı: adres, kargo, teslim tarihi, durum geçişi ve e-posta düzeltmeleri (E-37) | ✓ | ✓ PASS (tur 2) | `02146b34` | #573 |
-| T531 | Sipariş ayrıntısı: hizmet kalemi, indirme hakkı, iç not ve e-posta yeniden gönderim (E-37) | ✓ | ✓ PASS (tur 1) | `00bef140` | #572 |
-| T532 | Talepler ve iletişim talebi ayrıntısı (E-38, E-39) | ✓ | ✓ PASS (tur 1) | `d202a668` | #552 |
-| T533 | Üye kaydı görünümü (E-40) | ✓ | ✓ PASS (tur 1) | `d1a1729a` | #556 |
-| T534 | Kurumsal içerik ve marka yönetimi (E-41, E-43) | ✓ | ✓ PASS (tur 1) | `0c928897` | #574 |
-| T535 | Ana sayfa ve menü, firma kimliği ve satış (E-42, E-44) | ✓ | ✓ PASS (tur 2) | `5e42c12b` | #555 |
+| T528 | Sipariş ayrıntısı: firma iptali, bildirim kaydı, kalem çıkarma, iade malı ve ayıp talebi (E-37) | ✓ | ✓ PASS (tur 2) | `8f27391e` | #578 |
+| T529 | Sipariş ayrıntısı: geri ödeme işlemleri (E-37) | ✓ | ✓ PASS (tur 6) | `99427473` | #575 |
+| T530 | Sipariş ayrıntısı: adres, kargo, teslim tarihi, durum geçişi ve e-posta düzeltmeleri (E-37) | ✓ | ✓ PASS (tur 2) | `866dc688` | #573 |
+| T531 | Sipariş ayrıntısı: hizmet kalemi, indirme hakkı, iç not ve e-posta yeniden gönderim (E-37) | ✓ | ✓ PASS (tur 1) | `6e6d4a41` | #572 |
+| T532 | Talepler ve iletişim talebi ayrıntısı (E-38, E-39) | ✓ | ✓ PASS (tur 1) | `29562ee9` | #552 |
+| T533 | Üye kaydı görünümü (E-40) | ✓ | ✓ PASS (tur 1) | `059a8e62` | #556 |
+| T534 | Kurumsal içerik ve marka yönetimi (E-41, E-43) | ✓ | ✓ PASS (tur 1) | `c0860e81` | #574 |
+| T535 | Ana sayfa ve menü, firma kimliği ve satış (E-42, E-44) | ✓ | ✓ PASS (tur 2) | `f62d956f` | #555 |
 | T536 | Ödeme yöntemleri, kargo, süreler ve varsayılanlar (E-45, E-46) | ✓ | ✓ PASS (tur 2) | `8a51cdcc` | #568 |
-| T537 | Vitrin çerçevesinin modeli: marka, menü, duyuru şeridi, hesap alanı, sepet sayısı | ✓ | ✓ PASS (tur 1) | `b69ac697` | #532 |
-| T538 | Uç ve model eşitlik denetimleri: uç envanteri, form girdi ve sorgu modelleri, makine ucu gövdeleri | ✓ | ✓ PASS (tur 2) | `67275a71` | #579 |
-| T539 | Betiksiz yol: JavaScript kapalıyken temel akışlar ve betikli iyileştirme | ✓ | ✓ PASS (tur 2) | `7fa109f9` | #576 |
+| T537 | Vitrin çerçevesinin modeli: marka, menü, duyuru şeridi, hesap alanı, sepet sayısı | ✓ | ✓ PASS (tur 1) | `dca82c42` | #532 |
+| T538 | Uç ve model eşitlik denetimleri: uç envanteri, form girdi ve sorgu modelleri, makine ucu gövdeleri | ✓ | ✓ PASS (tur 2) | `5acd773e` | #579 |
+| T539 | Betiksiz yol: JavaScript kapalıyken temel akışlar ve betikli iyileştirme | ✓ | ✓ PASS (tur 2) | `f2d190fd` | #576 |
 | T540 | Tasarım tabanı, vitrin ve panel çerçevesi, yönetici şeridi ve Taslak bandı (OB-01, OB-02, OB-09) | ✓ | ✓ PASS (tur 2) | `06057bf9` | #534 |
 | T541 | Mesaj, onay, boş ve hata hâlleri ve satış kapalı hâli (OB-03, OB-04, OB-07, OB-08) | ✓ | ✓ PASS (tur 1) | `8ac3b828` | #537 |
 | T542 | Rozet ve işaretler, sayaç ve süre göstergeleri, eşzamanlı düzenleme uyarısı (OB-05, OB-06, OB-10) | ✓ | ✓ PASS (tur 1) | `db7984ac` | #536 |
-| T543 | Form alanı ve düzeni, adres formu, IBAN alanı, sebep seçimi ve ortak alan kuralları (OB-12…OB-15) | ✓ | ✓ PASS (tur 1) | `01411663` | #539 |
-| T544 | Tarih alanı, kupon alanı, onay kutuları, görsel ve dosya yükleme arayüzü (OB-16…OB-19) | ✓ | ✓ PASS (tur 2) | `5a5ec864` | #546 |
+| T543 | Form alanı ve düzeni, adres formu, IBAN alanı, sebep seçimi ve ortak alan kuralları (OB-12…OB-15) | ✓ | ✓ PASS (tur 1) | `157e7ec3` | #539 |
+| T544 | Tarih alanı, kupon alanı, onay kutuları, görsel ve dosya yükleme arayüzü (OB-16…OB-19) | ✓ | ✓ PASS (tur 2) | `856f5441` | #546 |
 | T545 | Liste ve tablo, ürün kartı (OB-20, OB-11) | ✓ | ✓ PASS (tur 2) | `f40f3a9d` | #538 |
-| T546 | Gezinme ve geçiş eşitlik denetimleri: iskeletler, geçişler, dışarıdan girişler, dönüşler | ✓ | ✓ PASS (tur 5) | `51fda2fe` | #580 |
-| T547 | Durum × rol matrisi ve form envanteri eşitlik denetimleri | ✓ | ✓ PASS (tur 5) | `b54de6a4` | #581 |
-| T548 | Parçalı yükleme betiği: başlatma–parça–durum akışı, 409/404/400/413 yanıtları, ağ hatasında üç kez sürdürme | ✓ | ✓ PASS (tur 1) | `233a5813` | #577 |
-| T549 | Vitrin: arşivlenmiş ürün sayfası (E-05) | ✓ | ✓ PASS (tur 1) | `7973b482` | #550 |
-| T550 | F4 kapanış düzeltmeleri: null-forgiving temizliği ve sır bekçisi önek soyma | ✓ | ✓ PASS (tur 1) | `bf77ceaf` | #533 |
-| T551 | Tarayıcı aracı ve betiksiz yol gözlemi | ✓ | ✓ PASS (tur 5) | `d7331fdc` | #583 |
-| T552 | A seviyesi erişilebilirlik taraması ve ihlal düzeltmesi | ✓ | ✓ PASS (tur 4) | `eca6a88f` | #584 |
+| T546 | Gezinme ve geçiş eşitlik denetimleri: iskeletler, geçişler, dışarıdan girişler, dönüşler | ✓ | ✓ PASS (tur 5) | `dad8056c` | #580 |
+| T547 | Durum × rol matrisi ve form envanteri eşitlik denetimleri | ✓ | ✓ PASS (tur 5) | `160aac5b` | #581 |
+| T548 | Parçalı yükleme betiği: başlatma–parça–durum akışı, 409/404/400/413 yanıtları, ağ hatasında üç kez sürdürme | ✓ | ✓ PASS (tur 1) | `281c914b` | #577 |
+| T549 | Vitrin: arşivlenmiş ürün sayfası (E-05) | ✓ | ✓ PASS (tur 1) | `33a9d21a` | #550 |
+| T550 | F4 kapanış düzeltmeleri: null-forgiving temizliği ve sır bekçisi önek soyma | ✓ | ✓ PASS (tur 1) | `de34daf4` | #533 |
+| T551 | Tarayıcı aracı ve betiksiz yol gözlemi | ✓ | ✓ PASS (tur 5) | `bb2cfbb6` | #583 |
+| T552 | A seviyesi erişilebilirlik taraması ve ihlal düzeltmesi | ✓ | ✓ PASS (tur 4) | `fe61dcb4` | #584 |
 
 ---
 
@@ -320,6 +320,7 @@
 | T601b | Yük senaryosu ve kargo takip kalıplarının gerçek numarayla denemesi | ⬚ | — | — | — |
 | T602 | Güncelleme komutu: referanstan başlayıp sırayla, geride kalmış kurulumun ara sürümlerden geçişi, geri alma ve yedekten dönüş koşulu | ⬚ | — | — | — |
 | T603 | Gerçek sunucuya ilk iniş: ilk sürüm etiketi, açık imajlar, gerçek alan adı ve bulut deposu | ⬚ | — | — | — |
+| T604 | F5 kapısından kalan kod kalemleri: ürün kodu düzeltmeleri, test aracı ve test gücü | ⬚ | — | — | — |
 
 ---
 

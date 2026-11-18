@@ -88,3 +88,5 @@
 **K-notları:** K1 → D-1546 (`FOR KEY SHARE` istisnasının `09 §10.2` m.4–m.6 ve tarama iletisinde yazılı olmaması); K2 → D-1547 (geçici sınamayla doğrulanan davranışların kalıcı testi yok; Unit'te bir kez görülen kararsız test).
 
 **Yapım raporu karşılaştırması:** sonuçlar uyumlu. Öz denetim kanıtı iki maddede yalnız koda dayanıyor: KK2'nin 303'ü ("kod `OnGetAsync`") ve KK10'un silinmiş görseli ("kodda") — doğrulayıcı ikisini geçici sınamayla kanıtladı, kalıcı test D-1547. KK6'nın "açık formun 409'u" öz denetimde dolaylı (sürüm testi) — doğrulayıcı doğrudan sınadı. ⚠ kararlar: D-1537 (`07 §5.2.2` alan adı eşitlemesi, yapısal değişiklik değil, karar satırı backlog'da) ve `09 §10.2` m.5 eki D-720'nin gereği olarak kabul edildi; D-1535, D-1536, D-1538, D-1539 bloke etmeyen, F5 kapısında; D-442'nin ileri atılması gerekçeli (logo mutlak adresi T534 kriterlerinde yok, VAL-A159 BEKLEMEDE).
+
+- **Post-merge run'lar:** squash `c0860e81` (#574) — CI 43581890558 success, Publish 43581890422 success (F5 gate'te dolduruldu)

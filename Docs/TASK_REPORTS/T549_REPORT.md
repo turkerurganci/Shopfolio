@@ -83,7 +83,7 @@
 - **Commit:** `7973b482`
 - **PR:** #550
 - **CI:** `43114110038` success (doğrulama anında)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `33a9d21a` (#550) — CI 43128171584 success, Publish 43128171608 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

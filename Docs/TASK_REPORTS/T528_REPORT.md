@@ -1,6 +1,6 @@
 # T528 — Sipariş ayrıntısı: firma iptali, bildirim kaydı, kalem çıkarma, iade malı ve ayıp talebi (E-37)
 
-**Faz:** F5 | **Durum:** Düzeltme 1 (1b–1e dahil) tamam — doğrulama tur 2 bekliyor | **Tarih:** 2026-11-15
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-15
 
 ---
 
@@ -84,6 +84,7 @@ Yok.
 ## Commit & PR
 
 Dal `task/T528-firma-iptali-iade-mali`; PR #578 (base `main`).
+- **Post-merge run'lar:** squash `8f27391e` (#578) — CI 43666144436 success, Publish 43666144462 success (F5 gate'te dolduruldu)
 
 ## Notlar — ⚠ kararlar
 

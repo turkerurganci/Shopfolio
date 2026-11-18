@@ -1,6 +1,8 @@
 # T524 — Satış özeti ve dışa aktarma (E-51, E-53)
 
-**Faz:** F5 | **Durum:** ✓ PASS (doğrulama tur 1) | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-12
+
+**PR:** #562
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -76,3 +78,5 @@
 - D-1377: iade adresi kaydı işlem izine yazılmıyor (kapsam dışı; kural denetimi gerekli).
 - D-1378: vitrin çerçevesi hata katmanının 500 yeniden çiziminde kurulmuyor.
 - D-1379: CSV'nin Excel'de açılış denemesi (elle, F5 kapısı).
+
+- **Post-merge run'lar:** squash `9cf8d1f7` (#562) — CI 43313032090 success, Publish 43313031981 success (F5 gate'te dolduruldu)

@@ -1,6 +1,6 @@
 # T503 — Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04)
 
-**Faz:** F5 | **Durum:** düzeltme 2 yapıldı — tur 3 doğrulaması bekliyor (tur 2: ✗ FAIL) | **Tarih:** 2026-11-11
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-11
 
 ---
 
@@ -162,3 +162,5 @@ Koşular: build `-warnaserror` temiz; format ×3 temiz; Unit 7190/7190; betik te
 **K-notları:** K1 `ProductPageReader.ReadOptionsAsync` seçenek başına `OptionValues` sorgusu (en çok iki; `09 §20` m.4'ün sözü) → D-1275 · K2 D-1200 yapıldı ama kapanmadı, D-1218 (2)/D-353 ele alınmadı, matris satırlarının kalanı → D-1276.
 
 **Yapım raporu karşılaştırması:** 1 uyuşmazlık — düzeltme 2 öz denetimi `09 §25` Performans satırında "döngüde sorgu yok" diyor; `ReadOptionsAsync` seçenek başına sorgu atıyor (K1). Öz denetim tablosu var, her satırda kanıt adı var; kabul kriterleri sonuçları uyumlu.
+
+- **Post-merge run'lar:** squash `5ed330f5` (#542) — CI 43101562500 success, Publish 43101562426 success (F5 gate'te dolduruldu)

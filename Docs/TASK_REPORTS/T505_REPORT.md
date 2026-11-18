@@ -149,7 +149,7 @@ Tur 2 FAIL'i (B2) kapatıldı: "Paylaş" `</article>` ve "İlgili ürünler" bö
 - **Commit:** PR'ın head'i (yardımcı dönüşte bildirir) — T505: İçerik liste ve içerik sayfaları (E-07, E-08)
 - **PR:** #543
 - **CI:** yapım işçisi izlemez; yardımcı yürütür
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `3f4b8b1b` (#543) — CI 43125378982 success, Publish 43125378261 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

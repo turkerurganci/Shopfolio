@@ -86,6 +86,7 @@ Test adlarındaki KK ekleri yapım sırasındaki numaradır; plandaki KK1…KK10
 
 - **Branch:** `task/T520-panel-giris-sifre-davet`
 - **PR:** #549
+- **Post-merge run'lar:** squash `9f5b8ac8` (#549) — CI 43110304288 success, Publish 43110306088 success (F5 gate'te dolduruldu)
 
 ## ⚠ Maddeler
 

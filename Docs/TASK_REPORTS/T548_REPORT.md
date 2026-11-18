@@ -87,7 +87,7 @@
 - **Commit:** `65d9c542` — yapım
 - **PR:** #577
 - **CI:** run 43597048307 (uç `233a5813`) — Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate ✓
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `281c914b` (#577) — CI 43601265789 success, Publish 43601265735 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

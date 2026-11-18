@@ -1,6 +1,6 @@
 # T521 — Panel ana sayfası ve yönetici hesabının doğrulama ekranları (E-31, E-54)
 
-**Faz:** F5 | **Durum:** Yapım tamam, doğrulama bekliyor | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-12
 
 ---
 
@@ -82,6 +82,7 @@
 
 - **Branch:** `task/T521-panel-ana-sayfa`
 - **PR:** PR açıklamasında
+- **Post-merge run'lar:** squash `a56a1735` (#554) — CI 43218847509 success, Publish 43218847561 success (F5 gate'te dolduruldu)
 
 ## ⚠ Maddeler
 

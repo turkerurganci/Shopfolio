@@ -118,7 +118,7 @@
 - **Branch:** `task/T544-tarih-kupon-onay-yukleme`
 - **PR:** #546
 - **CI:** yardımcı denetler
-- **Post-merge run'lar:** *(merge sonrası yardımcı/sonraki kayıt PR'ı doldurur; doğrulama commit'i merge'ten önce yazılır)*
+- **Post-merge run'lar:** squash `856f5441` (#546) — CI 43133570508 success, Publish 43133570577 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

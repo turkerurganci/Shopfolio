@@ -2,6 +2,8 @@
 
 **Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 3 PASS) | **Tarih:** 2026-11-11
 
+**PR:** #548
+
 ---
 
 ## Yapılan İşler
@@ -125,3 +127,5 @@ Kriter 6'nın `/giris` yarısı: `/giris` sayfası T515'in inişidir (T515 k5 "y
 
 - `/giris` tarafındaki `ResendVerificationLink` T515'e bırakıldı (D-1249).
 - Model adları `07 §5.1.5`'e uyarlandı; üye modülünün `RegisterInput` kaydıyla çakışma, sayfada `MembershipRegisterInput` takma adıyla çözüldü.
+
+- **Post-merge run'lar:** squash `368d978d` (#548) — CI 43139415898 success, Publish 43139415960 success (F5 gate'te dolduruldu)

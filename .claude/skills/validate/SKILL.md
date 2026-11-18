@@ -71,6 +71,8 @@ Task/doğrulama commit'leri `.claude/memory/MEMORY.md` "Güncel Durum" bloğuna 
 
    **2a. Task'ın `12` satırlarını oku (`12` okuma tablosu, K-1511 (1)):** `Docs/12_VALIDATION_PROTOCOL.md` bütün okunmaz (100 KB üstü; `INSTRUCTIONS §9` (7)). Task'ın kaynak birimleri (`11 §7.1`; KP-n) için `grep -nE 'KP-n([^0-9]|$)' Docs/12_VALIDATION_PROTOCOL.md` komutu satırları getirir; task'ın `02 §5.x` ve `03 §1.x` kaynakları (durum makinesi, geçiş tabloları) için de aynı grep koşulur (`grep -nE '02 §5\.4|§5\.5' …`) — geçiş tablosu satırları (`12 §12.3`) KP'siz olduğu için yalnız bu grep'le task'a düşer (F4 kapısı, D-981); her satır kimliğiyle (`VAL-…`) bir kabul kriterine eşlenir, eşlenmeyen satır adım 5'te ayrıca doğrulanır. Satırın `Ön koşul`, `Beklenen sonuç`, `Kanıt türü` ve `Kanıt ortamı` hücreleri doğrulamanın ölçüsüdür (`12 §7`)
 
+   **Tarayıcı gözlemi kanıtı (PF-278):** `Kanıt türü` Tarayıcı gözlemi olan satır, araç yoksa doğrulamada faz kapısına ertelenmez; aracı kuran task bağımlılık olur ve satır aracı kuran task'ın doğrulamasına bağlanır. Kapıda araç yoksa faz ölçütü karşılanamaz (F5 kapısı, tur 1).
+
 3. **Remote'u güncelle** — `git fetch origin`. Fetch yapılmazsa eski dal state'i incelenir.
 
 4. **Dal kodunu incele** — hangi dosyalar değişmiş/oluşturulmuş, değişiklikler dokümanlarla uyumlu mu.

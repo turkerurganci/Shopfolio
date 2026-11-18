@@ -1,6 +1,6 @@
 # T506 — Sık sorulan sorular ve iletişim sayfası ve formu (E-09, E-10)
 
-**Faz:** F5 | **Durum:** ✓ Doğrulama tur 2 PASS (merge yardımcıda; main çakışması önce çözülür) | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-12
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -97,7 +97,7 @@
 - **Commit:** `50b7486e` (yapım ucu; birleştirme `e07bdf75`)
 - **PR:** #551
 - **CI:** dal ucu `fd92dbcd`'de run yok (PR çakışmalı); önceki uç `12ab2810` run 43122758392 yeşil — çakışma çözümünden sonra yardımcı denetler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `bc915800` (#551) — CI 43151185866 success, Publish 43151185860 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

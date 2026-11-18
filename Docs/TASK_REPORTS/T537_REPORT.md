@@ -89,7 +89,7 @@
 - **Commit:** `3b1ba2ad` — T537: Vitrin çerçevesinin modeli (PR head son commit)
 - **PR:** #532
 - **CI:** run 42941958445 (dal ucu `b69ac697`) — 6/7 iş yeşil, Paketleme ilk kurulum adımında altyapı hatası; kayıt commit'inin koşusu merge kapısıdır
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `dca82c42` (#532) — CI 42945971300 success, Publish 42945971198 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

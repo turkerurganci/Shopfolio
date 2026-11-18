@@ -1,6 +1,8 @@
 # T517 — Hesap — profil ve güvenlik (E-25)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-13
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-13
+
+**PR:** #567
 
 > Taslağı yapım chat'i doldurdu; doğrulama chat'i finalize eder.
 

@@ -2,6 +2,8 @@
 
 **Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 ✓ PASS) | **Tarih:** 2026-11-12
 
+**PR:** #553
+
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
 
@@ -129,7 +131,7 @@
 - **Branch:** `task/T512-iptal-fesih-iban`
 - **Commit:** PR başlığına ve dal geçmişine bakınız
 - **PR:** PR açıklamasında
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası)*
+- **Post-merge run'lar:** squash `64002df5` (#553) — CI 43200154794 success, Publish 43200154761 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

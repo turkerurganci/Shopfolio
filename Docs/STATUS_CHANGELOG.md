@@ -9,6 +9,987 @@
 
 ---
 
+## 2026-11-16 — F5 (Kullanıcı arayüzü) faz kapısı tur 1 ✗ FAIL; plan düzeltmesi (`chore: F5 plan düzeltmesi`)
+
+F5 (Kullanıcı arayüzü) faz kapısı tur 1 ✗ FAIL (kod sağlam: Unit 8087, Integration 4579, Release 0 uyarı; faz ölçütü olan A seviyesi tarama ve betiksiz yol gözlemi için araç yok); plan düzeltmesi (`chore: F5 plan düzeltmesi`): F5 `T501`–`T552` (52), yeni T551 (tarayıcı aracı ve betiksiz yol gözlemi) ve T552 (A seviyesi erişilebilirlik taraması), K-1620; kapı tur 2 bu iki task'tan sonra.
+
+## 2026-11-18 — T552 doğrulama tur 4 — ✓ PASS
+
+- **Kapanan (tur 3):** Bulgu 1 (assert'siz teori): teori `Assert.Empty(await RunStopAsync(...))`, bekçi istisnası yok, Unit 8088/8088, CI 44159518261 Unit ve CI Gate yeşil. D-1740 (a), (b) kapalı; CI "8. E2E" 682/682, altı kayıt dosyası boşluksuz.
+- **Doğrulanan:** dokuz değişinim ilgili testleri kırdı (webkit `tabindex=-1` ve betiksiz autofocus dahil). Matris `Durum`: 25 PASS, 2 BEKLEMEDE (`VAL-A340`, `VAL-A776`: Kontrol Listesi A payı `OWNER_INPUT`, D-1727). K-notları D-1746.
+
+## 2026-11-17 — T552 doğrulama tur 3 — ✗ FAIL
+
+- **Bulgu:** Unit kırık: `ForbiddenTestPatternScanTests.TestProjects_Sources_HaveNoForbiddenPatterns` (`TestWithoutAssertion`) — düzeltme 3'te `EmptyStateTests.TheScreenWithNothingToShow_…` teorisi `=> RunStopAsync(...)` gövdesine çevrildi, gövdede assert kalmadı. Yerelde Unit 8087/8088, CI 44135791843 "3. Unit test" kırmızı, CI Gate kırmızı. Yapım turunda Unit koşulmamıştı.
+- **Kapanan (tur 2):** Bulgu 1 (boş durumlar `EmptyStateTests.Stops`'tan, 22 durak, üç motor × iki yol yerelde yeşil, 0 ihlal; durak silme ve boş düğme değişinimleri kırdı). Tur 1 bulguları kapalı kaldı. Yedi değişinim ilgili testleri kırdı (webkit `tabindex=-1` dahil). Matris `Durum`: 25 PASS, 2 BEKLEMEDE (`VAL-A340`, `VAL-A776`: Kontrol Listesi A payı `OWNER_INPUT`, D-1727). K-notları D-1740.
+- **Not:** üçüncü iterasyon; `12 §8.5` iterasyon sınırı aşıldı, eskalasyon.
+
+## 2026-11-17 — T552 düzeltme 3 — boş durumlarda axe taraması
+
+- **Yapılan:** `AccessibilityStatesTests.EveryEmptyStateOfTheInventory` `EmptyStateTests.Stops` kaynağından (22 durak, kancayla, ikinci liste yok) her motor × iki yolda axe koşar; taban 22; iki değişinim kırdı (durak silme, bağlantı adı silme → `link-name`). Yeni ihlal çıkmadı. D-1732 hedefi F5 faz kapısı, D-1736 (e) ✅.
+- **Açık:** D-1736 (a)–(d), Kontrol Listesi A (D-1727).
+
+## 2026-11-17 — T552 doğrulama tur 2 — ✗ FAIL
+
+- **Bulgu:** axe taraması boş durumlarda koşmuyor (`12 §12.2` (1) kapsamı "onay pencereleri, hata hâlleri ve boş durumlar"); `EmptyStateTests` durumlarının çoğu (boş kurulum, süzgeç sonucu boş, adressiz/siparişsiz üye; E-02, E-26, E-27, E-32, E-34, E-35, E-36, E-38, E-41, E-51, E-52) hiçbir motorda, hiçbir yolda taranmıyor (`VAL-A790`, `A776`, `A343`).
+- **Kapanan (tur 1):** Bulgu 1 (pencere ve hata hâli taraması, "Vazgeç" odağı: 9 pencere, 53 hata hâli, üç motor × iki yol) ve Bulgu 2 (odak beklemesi yarışı giderir; autofocus silme değişinimi 5 sn sonra kırar). Yedi değişinim ilgili testleri kırdı (webkit dahil). CI 44069637871 yeşil (E2E 675/675). Matris `Durum`: 23 PASS, 3 FAIL, 1 BEKLEMEDE. K-notları D-1736.
+
+## 2026-11-17 — T552 doğrulama tur 1 — ✗ FAIL
+
+- **Bulgular:** (1) axe taraması ve elle denetim onay pencerelerini ve hata hâllerini kapsamıyor (`12 §12.2` (1); `VAL-A776`, `A790`, `A781`, `A343`); (2) CI "8. E2E" (run 44031956010, head `c23db333`) `AccessibilityAuditTests` chromium betiksiz yolda E-34, E-47, E-50, E-53 hata başlığında kırmızı (odak BODY; `VAL-A791`, `A781`).
+- **Doğrulanan:** beş değişinim (tabindex=-1, hata özeti silme, düğme adı silme, odak çerçevesi kaldırma, `lang` silme) ilgili testleri kırdı; webkit odak yolu tabindex=-1'i yakaladı. Matris `Durum`: 19 PASS, 5 FAIL, 3 BEKLEMEDE. K-notları D-1732'de.
+
+## 2026-11-17 — T552 düzeltme 1 (son işçi) — CI kırmızıları, WebKit klavye ölçüsü, D-1729 kapandı
+
+- **Yapılan:** `Product.cshtml` gerekçesiz `!` kalktı; `VariantInputSuffixes` `FrozenDictionary`; sepet/yasal metin sayfa testleri özet listesini aşar; WebKit klavye gözlemi odak sırasıyla gezip Enter/Space etkinleştirmesini ölçer (`tabindex=-1` değişinimi kırar).
+- **Açık:** Kontrol Listesi A (D-1727, OWNER_INPUT).
+
+## 2026-11-17 — T552 düzeltme 1 (BÖLÜNDÜ, süre) — D-1728 kapandı, D-1729 açık
+
+- **Yapılan:** her alan hatalı formda hata özeti zorunlu ölçü (`AccessibilityAuditTests`); özetsiz formlara özet (ürün ekleme, sepet adedi, ürün formu, kategori, yasal metin); klavye ölçüsü `tabindex=-1` yerel denetimleri de bekler (değişinimle sınandı).
+- **Açık:** Firefox ve WebKit koşuları (D-1729), devir notunda.
+
+## 2026-11-17 — T552 yapım tamamlandı — PR açıldı (doğrulama bekliyor)
+
+- **Yapılan:** axe-core WCAG 2.2 A taraması (`AccessibilityScanTests`, T551'in durakları + ürünlü sepet ve ödeme × iki yol × üç motor), beş başlıklı elle denetim kaydı (`AccessibilityAuditTests`), 31 ölçüt kaydı ve ekran × ölçüt matrisi (`WcagCriteria`, `AccessibilityRecordTests`), 3.2.2 / 3.2.6 / 3.3.7 ölçüt testleri (`AccessibilityCriteriaTests`).
+- **Bulunan ve kaynağında düzeltilen ihlaller:** özet bağlantı kimliği (`input.X` → `Input.X`, `FormErrorSummary`); panel yan menüsü kaydırma (`admin.css`); değer değişince kendiliğinden gönderilen dört formda önceden bildirim (`_ChangeNotice`, `ChangeNotice.Text`).
+- **Kütüphane:** `Deque.AxeCore.Playwright` 4.14.0 (`09` §3.3 satırı; geçişli bağımlılıklar satırda).
+- **Açık:** Kontrol Listesi A payı `BLOCKED (OWNER_INPUT)` (D-1727); WebKit Audit klavye ölçüsü Windows WebKit'te Tab bağlantıyı atladığı için kırmızı (D-1729); D-1728 kapandı, Düzeltme 1b'de Scan/Criteria/Record üç motorda, Audit chromium ve firefox'ta yeşil.
+
+## 2026-11-17 — T552 düzeltme 2 (kısmi, BÖLÜNDÜ süre)
+
+- **Yapılan:** hata başlığı odak ölçüsü koşullu bekler (CI chromium betiksiz BODY: ölçü yarışı); `AccessibilityStatesTests` ile onay pencereleri (pencere açıkken axe + Vazgeç odağı) ve hata hâlleri axe taraması; ölçüt sonucu koşudan üretilir; kanıt sınıf adı düzeltildi ve denetlenir.
+- **Açık:** değişinimler, Firefox/WebKit koşuları, D-1732 (e), (f) (devir notunda).
+
+## 2026-11-17 — T552 düzeltme 2 devam (2b, BÖLÜNDÜ süre)
+
+- **Yapılan:** iki değişinim kırmızı (onay penceresi Vazgeç odağı, hata alanı odağı); D-1732 (e) ● hücreleri koşunun gözleminden, (f) `VAL-A345` klavyeyle sepetten sipariş onayına ve `VAL-A350` uyumluluk beyanı yok gözlemleri (ikisi değişinimle kırılır). Chromium yeşil.
+- **Açık:** firefox ve webkit koşuları, D-1732 (c) ve (d).
+
+## 2026-11-17 — T552 düzeltme 2 devam (2c, BÖLÜNDÜ süre)
+
+- **Yapılan:** `VAL-A345` firefox'ta betiksiz kırmızıydı (alıcı alanı il seçiminden sonra geriye Tab ile aranıyordu; Firefox sayfa sonundan başa dönmez); yürüyüş sayfa sırasına çevrildi (e-posta, alıcı, il, ilçe, açık adres, telefon). `VAL-A345` üç motor iki yol, `VAL-A350` üç motor, `AccessibilityStatesTests` firefox betikli ve webkit iki yol yeşil.
+- **Açık:** firefox `AccessibilityStatesTests` betiksiz; Audit, Criteria (kalanı), Record firefox/webkit; Scan firefox/webkit CI "8. E2E"ye kalır; D-1732 (c), (d).
+
+## 2026-11-17 — T552 düzeltme 4
+
+- **Yapılan:** `EmptyStateTests` teorisi assert'li gövdeye çevrildi (Unit 8088/8088, `TestWithoutAssertion`); D-1740 (a) kesilen betik istisnası betiksiz yol + kesilen istek sayısıyla sınırlandı (değişinimli test), (b) gönderim gezintisi commit + DOMContentLoaded bekler.
+- **Açık:** CI "8. E2E" son head sonucu doğrulayıcıda; D-1736, D-1732 F5 faz kapısında.
+
+## 2026-11-17 — T551 doğrulama tur 5 — ✓ PASS (PR #583, head `d7331fdc`)
+
+- **Sonuç:** KK1–KK6 ✓; 17 satırın 17'si PASS (`VAL-B110` FAIL → PASS); bulgu yok.
+- **Önceki turların bulguları:** tur 4 Bulgu 1 kapandı — bağlantı arkasındaki altı ekranın (E-21 üç tür, E-23, E-28, E-29, E-30, E-54 iki tür) geçerli hâli yürüyüşte, E-23 ve E-29 yeni şifre formları `ValidationStateTests`'te, B110 kayıt doğrulaması ve iki şifre sıfırlaması form gönderimleriyle biter; tur 3 (boş hâl, `04`'ten elle türetilen 15 ekranın hepsi durakta), tur 2 (B105) ve tur 1 bulguları kapalı.
+- **Testler:** Unit 7420 + 667 (Consistency); betik testleri 4/4; Browser chromium, firefox, webkit 211/211 (motor başına ayrı); beş değişinimin beşi yakalandı (B096 iki yol, B101, B105, B106, B107 betiksiz); CI run `43989323601` yeşil, "8. E2E (advisory)" 627/627, 14 dk 43 sn.
+- **Yeni backlog:** D-1725 (`DEFERRED_BACKLOG.d/T551.md`).
+
+## 2026-11-17 — T551 doğrulama tur 4 — ✗ FAIL (PR #583, head `7d744666`)
+
+- **Bulgu (1, ORTA S1, KK2 + `VAL-B110`):** şifre sıfırlamanın yeni şifre adımı hiçbir testte açılmıyor — E-23 (`/sifre-sifirlama/{anahtar}`, `reset-set-form`, `04` 7.1.13.2) ve E-29 (`/panel/sifre-sifirlama/{anahtar}`, `04` 7.2.1.5) geçerli bağlantıyla gezilmiyor, iki formun hata hâli yok (form listesi yürüyüşün sayfalarından türetildiği için geçerli bağlantı arkasındaki formlar listeye girmiyor; E-30 için geçerli davet anahtarı var, sıfırlama için yok); B110'un şifre sıfırlama akışı yalnız istek adımında bitiyor, kayıt akışı E-21 geçerli doğrulama bağlantısına gitmiyor (D-1714 (a) bulguya yükseldi).
+- **Önceki turların bulguları:** tur 3 Bulgu 1 (boş hâl) kapandı — liste `04`'ten türetiliyor (15 ekran; elle `grep` ile aynı), E-02, E-07, E-27, E-34 gözleniyor; tur 2 Bulgu 1 (B105) ve tur 1 bulguları 1–5 kapalı.
+- **Satırlar:** 17 satırın 16'sı PASS; `VAL-B110` PASS → FAIL.
+- **Testler:** Unit 7420 + 667 (Consistency); betik testleri 4/4; Browser chromium, firefox, webkit 207/207 (motor başına ayrı); altı değişinimin altısı yakalandı (B096, B105, B108, E-27 boş hâl, E-34 boş hâl çıkışı, E-40 onay penceresi); CI run `43975904593` yeşil, "8. E2E (advisory)" 615/615, 13 dk 19 sn.
+- **Yeni backlog:** D-1721 (`DEFERRED_BACKLOG.d/T551.md`).
+
+## 2026-11-17 — T551 doğrulama tur 3 — ✗ FAIL (PR #583, head `b2c588c0`)
+
+- **Bulgu (1, ORTA S1, KK2):** `04` ekran envanterinin dört ekranının boş hâli gezilmiyor — E-02 boş kategori (`04` 5.2.9), E-07 yayında kaydı olmayan içerik listesi (5.7.8), E-27 siparişi olmayan üyenin sipariş geçmişi (5.27.10), E-34 kategorisi olmayan kategori ağacı (6.3.6.3, 9.6.10); dördü de uygulamada var (`_EmptyState`). Tohumlu yürüyüş bu ekranları dolu açar, tohumsuz ikinci kurulum yalnız E-32, E-35, E-36, E-38, E-52'yi gezer (`12 §12.2` (1) "boş durumlar").
+- **Önceki turların bulguları:** tur 2 Bulgu 1 (B105) kapandı — `common.js:214` durdurması etkisizleştirilince `…VALB105(chromium, Scripted)` kırıldı; tur 1 bulguları 1, 3, 4, 5 kapandı; 2'nin onay penceresi, hata hâli ve panel boş hâli payı kapandı, müşteri tarafı ve kategori ağacının boş hâli açık (yukarıdaki bulgu).
+- **Satırlar:** `VAL-B096`…`B112` 17 satırın 17'si PASS (B105 FAIL → PASS).
+- **Testler:** Unit 7420 + 667 (Consistency); betik testleri 4/4; Browser chromium, firefox, webkit 172/172 (motor başına ayrı); dalın dokunduğu Integration sınıfları 51/51 (TAM: CI); sekiz değişinimin yedisi yakalandı (B096, B101, B103, B104, B105, B106, B107); yakalanmayan `Checkout.cshtml.cs:429` yalnız ödeme sayfasının yeniden gösterimindedir, siparişin yazım yolu değildir (yazım `AddressBooks.cs:185`; `PlaceOrderInput.cs:147` değişinimi B107'yi iki yolda kırdı); CI run `43960425365` hepsi success, "8. E2E (advisory)" 512/512, 13 dk 43 sn.
+- **Yeni backlog:** D-1717 (`DEFERRED_BACKLOG.d/T551.md`).
+
+## 2026-11-17 — T551 doğrulama tur 2 — ✗ FAIL (PR #583, head `d72ac1cd`)
+
+- **Bulgu (1, ORTA S1):** `VAL-B105` betikli yolda "ikinci `submit` durdurulur" gözlemi ayırt edici değil — `common.js` `bindSubmitOnce` durdurması etkisizleştirilince test yine geçiyor (iki `requestSubmit` aynı görevde; tarayıcı tek gezinmeye indiriyor).
+- **Tur 1 bulguları:** 1 (E2E CI), 2 (KK2 ekranlar ve hâller), 3 (B101 boy denetimi), 5 (maske) kapandı; 4'ün B099, B100, B102, B110 payı kapandı, B105 payı kısmen.
+- **Satırlar:** `VAL-B096`…`B104`, B106…B112 PASS; B105 FAIL.
+- **Testler:** Unit 8087/8087; Browser chromium, firefox, webkit 172/172 (motor başına ayrı); yedi değişinimin altısı yakalandı (B105 yakalanmadı); CI run `43945619413` hepsi success, "8. E2E (advisory)" 512/512, 16 dk 5 sn; Integration TAM: CI.
+- **Yeni backlog:** D-1713, D-1714 (`DEFERRED_BACKLOG.d/T551.md`).
+
+## 2026-11-17 — T551 düzeltme 3 (aynı dal, PR #583)
+
+- **VAL-B105:** betikli yolda ikinci gönderimin durdurulması `submit` olayının `defaultPrevented` değeriyle ölçülür (ödeme adımı, iletişim formu); `common.js:213` etkisizleştirilince test kırılır. B112 durum seçicisi dijital dosya alanına daraltıldı.
+- **Testler:** `ScriptlessFlowTests` 24/24 × 3 motor; Browser tam 172/172 × 3 motor; Integration TAM: CI.
+
+## 2026-11-17 — T551 düzeltme 4 (aynı dal, PR #583)
+
+- **KK2 boş hâller (tur 3 Bulgu 1):** boş hâli olan ekranların listesi `04`'ten test içinde türetilir (`EmptyStateInventory`: 3.3.12, 3.4.26, her ekranın "Boş / yükleniyor / hata durumları" maddesi, 6.2.x/6.3.x "Boş hâl satırı" satırları); 15 ekran, her birinin durağı var (E-02, E-03, E-07, E-09, E-12, E-26, E-27, E-32, E-34, E-35, E-36, E-38, E-41, E-51, E-52); durağı olmayan ekran testi kırar. Her durak boş hâl cümlesini ve çıkış bağlantısını ölçer ve çıkışı tıklayıp izler; süzgeç sonucu boş hâlleri de gözlenir.
+- **D-1717 kapandı:** E-26 ve E-27 boş hâli adresi ve siparişi olmayan ayrı müşteriyle (`Actor.BareCustomer`) açılır.
+- **Testler:** `EmptyStateTests` 45/45 (chromium); `Browser=true` tam chromium 207/207, firefox 207/207, webkit 207/207; Integration TAM: CI.
+
+## 2026-11-17 — T551 düzeltme 5 (aynı dal, PR #583)
+
+- **KK2 bağlantı arkasındaki ekranlar (tur 4 Bulgu 1):** yürüyüşe geçerli bağlantılı duraklar girdi: E-21 (kayıt, yeni e-posta, Google teyidi), E-23 yeni şifre adımı, E-28 geri alma, E-29 panel yeni şifre adımı (ve geçersiz bağlantısı), E-54 doğrulama ve geri alma; her durak kendi formunun ya da düğmesinin varlığını da ölçer (`Stop.Marker`). Tohum her tür için geçerli anahtar kurar (`BrowserSeed.NewLinksAsync`). E-23 ve E-29 yeni şifre formları `ValidationStateTests` vakası oldu (iki yol × üç motor; hata hâlinde hesap ve bağlantı satırları değişmez).
+- **VAL-B110:** şifre sıfırlama yeni şifre gönderimi ve yeni şifreyle girişle (müşteri ve panel), kayıt e-posta doğrulama düğmesi ve girişle tamamlanır. Gözlem maskesi bağlantı anahtarı adreslerini (`/dogrulama/`, `/sifre-sifirlama/`, `/geri-al/`) da gizler.
+- **D-1721 ve D-1714 (a) kapandı:** `VAL-B111` iç not gözlemi `internal_notes` satırını yazar.
+- **Testler:** `Browser=true` tam chromium 211/211, firefox 211/211, webkit 211/211; Integration TAM: CI.
+
+## 2026-11-16 — T551 doğrulama tur 1 — ✗ FAIL (PR #583, head `0f3f98fc`)
+
+- **Bulgular (5, S1):** KK5 — `E2E_CMD` `dotnet tool restore` çağırmıyor, E2E işinde 108 test fikstürde düştü, araç CI'da hiç koşmadı · KK2 — E-05, yönetici onay pencereleri, form hata ve panel boş hâlleri, iki sipariş durumu eksik · `VAL-B101` betikli yolda boy denetimi yok (D-1700) · B099, B100, B102, B105, B110 kısmi gözlem · gözlem kaydının `Observed` sütunu maskesiz.
+- **Satırlar:** `VAL-B096`, B097, B098, B103, B104, B106–B109, B111, B112 PASS; B099, B100, B101, B102, B105, B110 FAIL.
+- **Testler:** Unit 8087/8087; Browser chromium, firefox, webkit 36/36 (motor başına ayrı); beş değişinimin beşi yakalandı; Integration TAM: CI.
+- **Yeni backlog:** D-1709, D-1710 (`DEFERRED_BACKLOG.d/T551.md`).
+
+## 2026-11-16 — T551 yapım bitti, PR açıldı (dal `task/T551-tarayici-betiksiz-yol`)
+
+- **Tarayıcı aracı:** Playwright ile Chromium, Firefox ve WebKit'te ekran envanteri ve `VAL-B096`…`VAL-B112` satırları betikli ve betiksiz yolda gözlenir; gözlem kaydı (tablo, ekran görüntüleri, sürümler, tohum) CI'da `browser-observations` olarak yüklenir. Üç motorda `Browser=true` 36/36.
+- **Gerçek bulgular:** `hidden` düğme ve alan CSS ile ezilip görünüyordu (`components.css`); ürün formu kategori satırı `null` öğede 500 veriyordu.
+- **CI (D-41):** `E2E_CMD` bağlandı; Integration adımı tarayıcı testlerini dışlar.
+- **Testler:** Unit 8087/8087; Integration `ProductFormPageTests` 37/37, TAM: CI.
+- **Yeni backlog:** D-1700…D-1705 (`DEFERRED_BACKLOG.d/T551.md`).
+
+## 2026-11-16 — T551 düzeltme 2 (aynı dal, PR #583) — tamamlandı (5. işçi)
+
+- **Biten:** `E2E_CMD` başına `dotnet tool restore &&` (bulgu 1) · gözlem kaydının `Observed` sütunu maskeden geçer, erişim anahtarı ve `pendingRegistration` jetonu maskelenir (bulgu 5) · ürün formu betiği görsel ve dijital dosya boyunu seçimde denetler, ilerleme gösterir; D-1700 ✅ (bulgu 3).
+- **Devam (4. işçi, KISMEN):** VAL-B099 yöntem değişimi iki açık ödeme yöntemiyle gerçek seçimle gözlenir (kart hattı yalnız o gözlem için açılır) · form doğrulama hâlleri sayfalardan türetilen form listesine bağlandı (`ValidationStateTests`: 52 form, eksik form ya da sayfadan çıkmış form testi kırar); 16 form henüz kırmızı (devir notu `devir-duzeltme-2c.md`) · davet bağlantısı ve yeniden doğrulama jetonu gözlem kaydında maskelenir.
+- **Devam (5. işçi):** KK2 (a) 52 form ve E-12/E-13 akış vakaları yeşil (107 vaka/motor): görünmeyen ve salt okunur alanlar atlanır, kapalı açılır bölüm açılır, E-37 formlarının "yerinde hata iletisi" işareti kabul edilir; iç not ve teslimat illeri formları "doğrulama hâli yok" diye gözlenir (D-1712) · KK2 (b) panel listelerinin boş hâli (E-32, E-35, E-36, E-38, E-52) tohumsuz ikinci bağlamda (`EmptyStateTests`) · Browser üç motorda yeşil, Unit 8087/8087.
+
+## 2026-11-16 — T551 düzeltme 1 (aynı dal, PR #583)
+
+- **Bekleme kuralı:** tarayıcı testlerindeki her `Task.Delay` kalktı; gezinme `NavigateAsync` (eylemden önce kurulan gezinme beklemesi), metin `Assertions.Expect(...).ToHaveTextAsync` ile beklenir. `09 §19.2` madde 6 değişmedi; kuralı koruyan tarama yok: D-1704 güncellendi.
+- **CI:** `e2e` işi `ubuntu-24.04` (Playwright 1.59 ubuntu 26.04 desteklemiyor; `ubuntu-latest` o sürüme geçti).
+- **Testler:** Browser üç motorda 36/36; Integration TAM: CI.
+
+## 2026-11-16 — T547 doğrulama tur 5: ✓ PASS
+
+F1 kapandı: kural hücresinin tamamı okunuyor; F1'in 4 kod + 4 belge deneyi ve 14 rastgele satırdaki 18 gerçek `src` deneyi testi kırdı, her biri yalnız kendi satırını ya da yerini raporladı; tanınmayan kural metni `RuleClauseUnknown` verdi. Boş kalan 7 yer satır metniyle tutarlı. KK1–KK5, KK7, KK8 belge/kod deneyleriyle yeniden kırıldı. Consistency 667/667, Unit 8087/8087, Integration ilgili sınıflar 74/74 (TAM: CI). D-1673 ertelenebilir belge belirsizliği (sütunlar `text`, 500 riski yok). Dal CI'ındaki Unit kırmızısı T547 dışı zamana bağlı kararsız test (D-1676). Yeni K: D-1676, D-1677. STATUS satırı ✓.
+
+## 2026-11-16 — T547 düzeltme 5 (doğrulama tur 4 bulgusu F1)
+
+Form satırının kural hücresinin **tamamı** okunur (`FormFieldRuleClauses`): hücre cümlelere bölünür, her cümle tablonun anahtarı olmak zorundadır (bilinmeyen kural metni `RuleClauseUnknown`, hücrede olmayan tablo cümlesi `RuleClauseNotInDocument`); düz yazı kural cümlesi bir `C:` türüne eşlenir; `02 §`, `03 §`, `K-` ve `OB-` atıfları kural türü olarak okunur ve yer başına kendi kod parçasıyla kanıtlanır (`FormFieldRuleEvidence`, 162 anahtar). 24 "yok" beyanı satır metniyle yeniden kuruldu: 17 yer kendi parçasını aldı (7.2.3.3, 7.2.3.5 `AdminId`, 7.2.4.5 `AltText`, 7.2.10.4 iki `IsFromContactEmail`, 7.2.13.2 iki yer, 7.2.16.3 `LongText`/`Text` …), 7 yerin boş girişi gerekçeli (hücre o yere kural adlandırmıyor). Kimliksiz kural hücreli 60 satırın her birinde gerçek `src` deneyi kırdı (162/162 anahtar), belge deneyleri 8/8 kırdı; "hayır" kalan satır yok. Tek `src` değişikliği: `04 7.2.4.13`'ün K-1020 satırı ("birim değişirse var olan net miktarlar yeni birimle okunur") kodda yoktu, `ProductFormModel.MeasurementUnitChangeText` eklendi. Belge hücresi değişmedi. Yeni backlog: D-1673 (adres adı ve menü adı "Kısa metin" etiketli ama tavansız).
+
+## 2026-11-16 — T547 doğrulama tur 4: ✗ FAIL
+
+E1 kapandı (raporun 7 deneyi ve 10 rastgele (yer, tür) deneyi gerçek `src`'de kırdı, her biri yalnız kendi yerini raporladı). Yeni bulgu (F1, S1 ORTA, KK6): "yok" beyanlı 24 yerin en az 10'unda satır o yer için bir kural adlandırıyor ve kod onu uyguluyor (7.2.3.3 kapalı değerler, 7.2.3.5 yöneticinin kapalı listesi, 7.2.4.5 alternatif metin üretimi, 7.2.10.4 "işaretsizse kayıt IBAN'sız", 7.2.13.2 kalem ve açık kapanış, 7.2.16.3 kapalı biçim seti); kural kodda kaldırılınca ya da belgede silinince test sessiz. Kök: kural yalnız 7.3.2.x, P-, Z-, satır, 8.2.3, K-1013 kimlikleriyle karşılaştırılıyor; `02 §` bölümüyle ya da K-kararıyla verilen kural (165 satırın 60'ı) iki yönde de karşılaştırılmıyor. K1 → D-1671. Eskalasyon sürer.
+
+## 2026-11-16 — T547 düzeltme 4 (doğrulama tur 3 bulgusu E1)
+
+Çok yerli form satırlarında nitelik taşımayan 67 yerin denetimi artık yer başına kendi satırıyla kanıtlanır (`FormFieldPlaceEnforcement`; yeri olmayan giriş `PlaceEnforcementMissing`, kodundan ayrılan parça `PlaceLineNotInCode:<satır>|<yer>`, tür bazında birleşim yalnız satırın "bu tür kodda var" sorusunda). 43 yerin 61 (yer, tür) çifti kendi parçasıyla (87 deney) ve raporun 7 deneyi gerçek `src`'de testi kırdı (her biri yalnız kendi yerini raporladı); 24 yer "yok" beyanlı ve girişi silinince kırar. Üç satır başka forma ortak parça yüzünden ayırt edici olmaktan çıkınca (7.1.5.2, 7.1.5.3, 7.2.12.1) 7.2.14.1 ve 7.2.8.3 kendi parçalarına çekildi. `src`, belge kuralı ve D-1656/D-1657/D-1661/D-1666 değişmedi; `04` yalnız sürüm satırı. Unit 8075/8075 (Consistency 655), Integration koşulmadı (`src` yok) — TAM: CI.
+
+## 2026-11-16 — T547 doğrulama tur 3: ✗ FAIL
+
+C2 kapandı (kategori adı P-27 ile tavanlı; aşırı uzun ad 422 + alan mesajı) ve C1'in nitelik yüzü kapandı (`PlaceMarksDiffer`). Yeni bulgu (E1, S1 ORTA, KK6): çok yerli form satırında kuralı işleyici kodunda duran yerin denetimi kalkınca test sessiz — kurumsal içerik başlığının P-27 tavanı (referans, genel sayfa), şube adının P-27'si, çalışma saatlerinin ve referans kısa açıklamasının P-28'i, cayma bildirimi IBAN denetimi, teslim kaydında sıra sorusu zorunluluğu (7.2.16.1, 7.2.16.2, 7.2.10.4, 7.2.8.2). İkinci iterasyonun düzeltmesi de FAIL: eskalasyon. K1 → D-1666 (`07 §6.2.2` `TextTooLong` kategori uçlarını saymıyor).
+
+## 2026-11-16 — chore: F5 plan düzeltmesi — T551 betiksiz yol tarayıcı gözlemi, T552 erişilebilirlik taraması
+
+F5 kapısı tur 1 FAIL (rapor `CHECKPOINT_REPORTS/GATE_CHECK_F5.md` tur 2'de yazılır): kod sağlam (Unit 8087, Integration 4579, Release 0 uyarı), ama `12 §6.2` F5 ölçütü olan A seviyesi tarama ve betiksiz yol gözlemi için repoda araç yoktu; 27 `[erişilebilirlik]` ve 17 betiksiz yol satırı BEKLEMEDE. Yönetici yardımcısı sahip yerine karar verdi (K-1620): F5'e iki yeni task.
+
+- **T551:** Tarayıcı aracı ve betiksiz yol gözlemi (Playwright, üç motor, iki bağlam, tohumlu veri, `VAL-B096`…`B112`).
+- **T552:** A seviyesi erişilebilirlik taraması ve ihlal düzeltmesi (axe-core, elle denetim kaydı, 31 ölçüt, Kontrol Listesi eşlemesi); bağımlılık T551.
+- **Belgeler:** `11` v0.66 (§3 `T501`–`T552` (52), T551 ve T552 blokları, yürütme sırası, §6.2 F5, aday tablosu, §7.1, §7.2); `12` Kaynak sütununa task atfı (27 + 17 satır, `Durum` değişmedi); K-1620; `IMPLEMENTATION_STATUS.md` F5 satırı ve iki `⬚` satır.
+- **Betik:** `scripts/doc-scans/11_geri_yon.py` T551'in gerekçeli alt bölüm kaydı.
+
+## 2026-11-15 — T547 düzeltme 3 (doğrulama tur 2 bulguları C1, C2)
+
+İki yerli form satırlarında (31 satır, 75 özellik yeri) nitelikler artık yer başına denetlenir (C1, KK6): `FormFieldPlaceMarks` her yerin kural niteliklerini sabitler, `PlaceMarksDiffer` bir yerin kaybettiği ya da kazandığı niteliği o yerin adıyla raporlar; birleşim denetimi durur. Gerçek `src` deneyleri: raporun iki deneyi (`CreateCategoryInput.Name` `[FieldRequired]`, `SaveProductDiscountRow.EndDate` `[InvalidDate]`) ve 7.2.16.8 dahil sekiz nitelik taşıyan yerin hepsi kırdı. Kategori adının karakter tavanı P-27 olarak geri geldi (C2): kaynak `09` 9.4 madde 3; 6000 karakterlik ad 422 + alan mesajı verir, 500 vermez (`CategoriesPageTests`). `02` P-27 kapsamı kategori adıyla genişledi; `04` 7.2.5.1, 9.6.8, 7.3.2.14; `06 §4.9`; `07` 9.6.2–9.6.3 hizalandı; K-1619 baştan yazıldı. K1 (D-1661), D-1656, D-1657 dokunulmadı.
+
+## 2026-11-15 — T547 doğrulama tur 2: ✗ FAIL
+
+Tur 1'in B1–B5'i kapandı (B1'in dört deneyi ve dokuz ek gerçek `src` deneyi testi kırdı; panel sayfa testi iki yönlü). İki yeni bulgu: (C1, S1 ORTA) birden çok özellik yerini taşıyan form satırında nitelikler birleşimle okunuyor — kategori ekleme formunun adından `[FieldRequired]`, indirimin bitiş tarihinden `[InvalidDate]` kaldırılınca test sessiz (7.2.5.1, 7.2.4.18; KK6). (C2, S2 ORTA) kategori adı tavanının koddan kaldırılması uzun adla kategori eklemeyi 500'e düşürüyor (main'de 422); `09` 9.4 madde 3 adres kırpılmadığı için ad tavanını varsayıyor, K-1619 bunu görmemiş — belge kararı gerekir. İkinci iterasyon FAIL: eskalasyon. K-notu D-1661 (müşteri sayfa testinde hiç açılmayan işlem raporlanmıyor).
+
+## 2026-11-15 — T547 düzeltme 2 (doğrulama tur 1 bulguları B1–B5)
+
+Form alan denetiminin kanıtı tek parça koda bağlandı: `@@@` ve 12 satırlık pencere kalktı, her parça dosyasında tam bir kez bulunur ve her satırın başka formun kullanmadığı kendi parçası vardır; sınır satırlarında formun kendi çağrısı (giriş, sıfırlama, yeniden doğrulama, e-posta değişikliği, bağlantıyı yeniden isteme). Doğrulayıcının dört gerçek `src` deneyi (e-posta değişikliği L-9, `ArriveAsync` adet denetimi, kategori adı tavanı, firma kimliği zorunlu listesi) artık testi kırar. 7.2.5.1: kategori adı tavanının belgede kaynağı yok; `04` hücresi eski sözcüğüne döndü, koddaki tavan kaldırıldı (K-1619). 7.2.4.13 ondalık ölçeği K-1013'e işaret eder; 7.3.2 "Kullanıldığı" 7.2.6 ile tamamlandı. Panel sayfa testinde 27 işlemin hepsi iki yönlü; iki yeni tohum (`Returns`, `Aged`); hiç açılmayan işlem testi kırar.
+
+## 2026-11-15 — T547 doğrulama tur 1: ✗ FAIL
+
+Form alan denetiminin kanıtı sekiz satırda ayırt edici değil (B1, S1 ORTA): gerçek `src`'de altı değişiklik test kırmadı — e-posta değişikliğinin L-9 sınırı (`EmailChangeRules`) değişti, kanıt kayıt doğrulama bağlantısının satırını gösteriyor (7.1.15.2, 7.1.15.4, 7.2.24.2, 7.2.24.4); iade malı teslim almanın adet denetimi kalktı (7.2.12.2; `@@@` parçası "mal dönmedi" işleyicisinin aynı metninden bulunuyor); kategori adının tavanı P-27'ye döndü (7.2.5.1; 12 satırlık pencere ad değiştirme girdisinin niteliğini buluyor); firma kimliğinde il, telefon ve e-posta zorunlu listeden çıktı (7.2.19.3–7.2.19.5). `04 §7.2.5.1` kategori adına `02`'de olmayan bir tavan (P-28) ekledi, K-1619 "kural eklenmedi" diyor (B2, S1 ORTA); 7.2.4.13 net miktarın ölçeğini 8.2.3'e gösteriyor, 8.2.3 ölçeği tutmuyor (B3, DÜŞÜK); 7.3.2.10, 7.3.2.14, 7.3.2.16'nın "Kullanıldığı" sütunu yeni atıflarla güncellenmedi (B4, DÜŞÜK); KK2 sayfa testinde 13 işlem yalnız tek yönde denetleniyor, iki yön eklenince test geçiyor (B5, S1 ORTA). İki bloke etmeyen not backlog'a: D-1656, D-1657. CI yeşil (`43744508189`).
+
+## 2026-11-15 — T547 (Durum × rol matrisi ve form envanteri eşitlik denetimleri) düzeltme 1
+
+Yönetici bulgusu (KK6): form alan denetimi yalnız nitelik → satır yönündeydi; eşitlik iki yönlü yapıldı. Satırın adlandırdığı her kural, sınır ve zorunluluk için alanın kodunda karşılığı aranır (nitelik yansımayla, nitelik olmayan alanda işleyici, modül ya da görünümün işlem satırı: `FormFieldEnforcementTable`); kodun taşıdığı ve satırın adlamadığı kural kırar; zorunluluk iki yönde denetlenir; eşleme tabloları açıktır (tür, kural, nitelik, parametre, sınır) ve tabloda olmayan tür ya da kimlik sessizce atlanmaz, `RuleKindUnmapped` verir. Gerçek `src` deneyi: 182 işlem satırı silindi → 127/127 satır, 75 nitelik silindi → 40/40 satır, `InvalidEmail` → `InvalidPhone` → raporlandı. `04 §7.2.5.1` ve `§7.2.6.2` kural hücreleri kimlik aldı (K-1619; anlam değişmedi, yeni kural yok; `04` v0.55 kalır). Birim (Consistency) 622 → 634, diğer 7420 geçti; Integration bu düzeltmede dokunulmadı, TAM: CI.
+
+## 2026-11-15 — T547 (Durum × rol matrisi ve form envanteri eşitlik denetimleri) yapım, devam 2
+
+Kalan işler kapandı. `04 §7`'nin 10 kural hücresi sayı sözcüğü yerine kimlik gösterir (K-1618; anlam değişmedi, yeni kural yok; `04` v0.55 kalır). Form envanteri 7.1 ve 7.2'nin bütün formlarını taşır; alan satırı kanıtı gerçek `src` dosyasında denendi: 21 çapa satırının hepsi (çapanın kelime sınırlı yeniden adı) ve 194 özellik yerinin hepsi (özellik `internal` yapıldı, yansıma bulamayınca) `FieldNotInCode` verdi; deney bir zayıflık buldu ve giderildi — çapa `Contains` ile aranıyordu, `MinPriceText` gibi daha uzun bir ad `MinPrice` çapasını yeniden adlanmış alanda bile "bulunmuş" gösteriyordu; çapa artık yalnız tam tanımlayıcı olarak sayılır (`FormFieldCheck.Holds`, yeni test). KK2 sayfa testi (Integration, `StateRolePageTests`) üçe katlandı: her (sevkiyat, ödeme) çifti kayıtsız, kayıtlı (IBAN, ayıp talebi ve iade, ulaşmayan e-posta, dijital kalem, kart iadesi) ve açık IBAN istekli tohumlanır; müşteri sayfasının IBAN formu ve indirme düğmesi, panelin tutar tabanlı iade, IBAN isteme, ayıp talebi, e-posta yeniden gönderme ve indirme hakkı formları da `IOrderOperations` ile birebir (aralık dışında düğme hiç yok). Bu genişleme D-1648'e ileri atılmadı. Unit TAM 7420 + Consistency 622 yeşil; Integration: yalnız `StateRolePageTests` (2/2), TAM: CI.
+
+## 2026-11-15 — T546 doğrulama tur 5: ✓ PASS
+
+Tam yeniden doğrulama (dal ucu `51fda2fe`): yedi kabul kriteri ve KK'lerin hepsi ✓. Gerçek dosyada 29 hedef değişimi (`§3.1`–`§3.7` her bölümden, listeden gelen satırlar ve dört bağlı muafiyet dahil) denetimi kırdı. K1: sonucu belirsiz işlemin `OutcomeScreen()` hedefi denetime bağlı değil — kanıt D-1636'ya eklendi (F5 kapısı). Yerel Unit 7.978/7.978, ilgili Integration sınıfları 86/86, format temiz; CI Integration ve Paketleme koşuyordu.
+
+## 2026-11-15 — T546 düzeltme 5: eşitlik denetimi bütün satırlarda hedefe bağlı, değişkenle muaf yerler değerini veren satıra bağlı (tur 4 B1, D-1641)
+
+Tur 4'ün B1'i ("Düzenlemeye dön" 3.7.4 hedefi denetimde bağlı değildi) ve K1'i (D-1641: çerçeve üreticileri ile değişkenle muaf tutulan ekran içi yönlendirmeler) kapandı. 3.7.4'e iki `SetDraftPreview` çağrısının hedefli metni ve içerik türünün panel parçası kanıt oldu; üretici kuralı `§3.3`/`§3.4` ile sınırlı olmaktan çıkıp `§3.1`, `§3.2`, `§3.5`, `§3.6`, `§3.7`'nin bütün satırlarına yayıldı (çerçeve kurucuları, menü okuyucusu, panel çerçevesi, oturum bekçisi); muafiyetler değişkenin değerini veren satıra bağlandı (`BoundTo`); 3.5.1–3.5.3 sayfa kanıtı önekten tam yola çevrildi (öneki siparişin öteki ekranları da karşılıyordu). 68 satırın her biri gerçek `src` dosyasında hedef değiştirilerek sınandı (68/68 kırıldı; sayfa yolları ve derlenmiş `ReturnPath` mantığı için üç derlemeli deney), düzeltme 4'ün 71 satırı yeniden koşuldu (71/71), 12 muafiyet bağı 12/12. Consistency 481 → 558; Consistency dışı Unit 7420; kaynak koda dokunulmadı; Integration TAM: CI. D-1641 ✅. Rapor: `T546_REPORT.md` "Düzeltme 5 öz denetimi" (satır tablosu).
+
+## 2026-11-15 — T546 doğrulama tur 4: ✗ FAIL (eskalasyon)
+
+Tur 3'ün B1'i (3.3/3.4'te liste kuran satırların hedefi) kapandı: gerçek dosyada 13 hedef değişimi denetimi kırdı. Yeni B1 (S1, ORTA): kabul kriteri 5'in adıyla saydığı "Düzenlemeye dön" (3.7.4) hedefe bağlı değil — ürün ve içerik taslağının `SetDraftPreview` hedefi başka panel ekranına çevrildiğinde ya da içerik taslak bandı kaldırıldığında `NavigationConsistencyTests` geçer, gerçek sayfanın bağlantısını sınayan başka test de yok. Bir bloke etmeyen not backlog'a: D-1641 (çerçeve üreticileri ve değişkenle muaf tutulan ekran içi yönlendirmeler denetimde hedefe bağlı değil, Integration yakalıyor). CI run `43714267785` Integration dışında yeşil, Integration koşuyordu.
+
+## 2026-11-15 — T546 düzeltme 4: modelin kurduğu listeden gelen bağlantıda hedef kanıtlanıyor, her satır gerçek dosyada sınandı (tur 3 B1)
+
+Bağlantısı modelden, listeden ya da yardımcıdan gelen 46 satırın (3.3.32, 3.4.2, 3.4.3, 3.4.4, 3.4.15, 3.4.22 dahil) hedefini veren kod satırı üretici kanıtı olarak envantere yazıldı; metin kanıtı sayılı (aynı satırdan iki tane varsa birini değiştirmek geçmez), aynı dosyada tekrarlanan 29 bağlantı/yönlendirme yerinin sayısı sabit (`SiteCountDiffers`), ve modelden gelen adresli satırın hedef metni olması yapısal kural. `04 §3.3` ve `§3.4`'ün 71 satırının her biri için gerçek `src` dosyasında hedef değiştirilerek (betikle uygula–test–geri al) denetimin kırıldığı görüldü: 71/71; tur 3'ün üç deneyi de kırar. Sentetik karşılığı kayıtlı (`TheTargetOfEveryRow_ChangedInTheCode_IsReported` 71, `ModelFedAddress_ChangedAtItsProducer_IsReportedOnItsRow` 12, yapısal kural 1). Kaynak koda dokunulmadı. Consistency 397 → 481; Consistency dışı Unit 7420; Integration: `src` değişmedi, TAM: CI. Bilinen sınır: model listesine eklenen yeni hedef (D-1626); K1 (D-1636) dokunulmadı. Rapor: `T546_REPORT.md` "Düzeltme 4 öz denetimi" (satır tablosu).
+
+## 2026-11-15 — T546 doğrulama tur 3: ✗ FAIL (eskalasyon)
+
+Tur 2'nin B1'i (3.4.26, boş liste çıkışı) kapandı. Yeni B1 (S1, ORTA): bağlantısı modelin kurduğu listeden gelen satırlarda (3.3.32, 3.4.2, 3.4.3, 3.4.4, 3.4.15, 3.4.22) denetim yalnız görünümdeki ortak ifadeyi kanıt sayar; listedeki hedef değişince ya da silinince test kırılmaz (panel kurulum listesinde iade adresi E-46 → E-43, hesap gezinmesinden Adres defteri silindi: 84/84 geçti). Bir bloke etmeyen not backlog'a: D-1636 (`UnexpectedErrorSetup` muafiyetinin gerekçesi). CI run `43708482759` Integration dışında yeşil, Integration koşuyordu.
+
+## 2026-11-15 — T546 düzeltme 3: panel boş liste çıkışı satır oldu, paylaşılan boş hâl bileşeni kanıt sayılmıyor (B1, K-1617 ek madde 4)
+
+E-36, E-38 ve E-52'nin boş liste satırındaki "Ana sayfaya dön" → E-31 çıkışı kodda kaldı ve `04 §3.4`'e 3.4.26 satırı oldu (§9.8.13, §9.10.12, §9.23.11 ve §2.7.1.2'ye çıkış cümlesi). Denetimde `_EmptyRow` ve `_EmptyState` bağlantıları hiçbir satırın kanıtı değil; çıkışı bileşene veren her çağrı (`EmptyStates.WithExit`, `WithFirstRecordButton`, `new EmptyState`) taranır ve ya 3.3.12 / 3.4.10 / 3.4.26'nın kanıtıdır ya listede kalan çıkış muafiyetidir. Bir ekranın çıkış hedefi değişince ya da tabloda olmayan çıkış eklenince denetim kırılır (sentetik ve gerçek dosyada deneme). Kaynak koda dokunulmadı.
+
+## 2026-11-15 — T546 doğrulama tur 2: ✗ FAIL (eskalasyon)
+
+Tur 1'in B1'i (3.3.44 / E-19) kapandı. Yeni B1 (S1, ORTA): panelin boş liste satırının "Ana sayfaya dön" çıkışı (E-36, E-38, E-52 → E-31) kodda var, `04 §3.4`'te satırı yok; denetim paylaşılan `_EmptyRow` bağlantısını müşteri satırı 3.3.12'nin kanıtı saydığı için yakalamıyor. İkinci iterasyonun FAIL'i: eskalasyon. İki bloke etmeyen not backlog'a: D-1631 (3.3.13'ün "Ürün Yayında" koşulu), D-1632 (ekranların giriş/çıkış paragrafları yeni satırları anmıyor). CI yeşil (`43703091010`).
+
+## 2026-11-15 — T546 düzeltme 2: ayıp talebi ekranında aydınlatma bağlantısı (B1, K-1617 ek madde)
+
+Ayıp talebi ekranı (E-19) aydınlatma metni bağlantısını çizer (`02 §3.33.5`, `04` 5.19.3 (4)); `04` 3.3.44 "Nereden" sütununa E-19 eklendi (v0.55), kanıt envanterde ve kırılma testlerinde (bağlantı silinince, belgeden E-19 düşünce). Yeni satırların hepsi kaynak paragraflarıyla yeniden karşılaştırıldı, başka fark çıkmadı. D-1626 (form `action`/`formaction`, `WriteSeeOther`) yirmiden fazla yerde ayrı karar gerektirdiği için F5 kapısında kalır; D-1627 dokunulmadı.
+
+## 2026-11-15 — T546 doğrulama tur 1: ✗ FAIL
+
+`04` 3.3.44 (aydınlatma bağlantısı) E-19'u atlıyor; `02 §3.33.5`, `04` 5.19.3 ve 6.2.19.1 ayıp talebi ekranında bağlantıyı sayar, kod çizmez (B1, S1 ORTA). İki bloke etmeyen not backlog'a: D-1626 (taramanın görmediği form hedefleri ve `WriteSeeOther`), D-1627 (`LinkKeySourceScanTests` yük altında zaman aşımı). CI yeşil (`43695678189`).
+
+## 2026-11-15 — T546 düzeltme 1: gezinme denetiminde bilinen fark ve muafiyet kalmadı (K-1617)
+
+Ekran tanımlarının yazdığı yedi bağlantı grubu `04 §3.3` ve `§3.4`'e satır oldu (3.3.40–3.3.45, 3.4.24, 3.4.25) ve denetimin kanıtıdır; `Spec` muafiyetleri ve `OpenGap` kanıtı kalktı, kalan muafiyetler yalnız ekranda kalan işlemlerdir. `§3.3.13`: sepet satırında ürün adı `/urun/{slug}` bağlantısı oldu (`CartVariantFact.ProductSlug`, `CartLine.ProductSlug`; D-1189'un bağlantı payı, görsel ve seçenek değerleri D-1189'da). Kırılma örnekleri: tabloya kodda olmayan satır eklemek, koda tabloda olmayan bağlantı eklemek, yeni satırların silinmesi ve bağlantılarının kalkması, eksik hücreli satır. `04` v0.55 (PR #580).
+
+## 2026-11-15 — T546 yapım: gezinme ve geçiş eşitlik denetimleri
+
+`UnitTests/Consistency/` altında `04 §3.1`–§3.7'nin 125 tablo satırı ve §3.6'nın beş paragrafı koddaki bağlantı, yönlendirme ve sayfa yollarıyla iki yönlü karşılaştırılır (kaynak ve hedef ekran, kanıt); `src/Shopfolio.Web`'deki her bağlantı ve yönlendirme bir satırın kanıtı ya da kapalı bir muafiyettir, tabloda olmayan geçiş `UndocumentedTransition` ile kırılır; panel menüsü `§3.2` tablosuyla giriş giriş eşitlenir; dönüş kuralları (`ReturnPath`, iki kapı, ödeme adımının girişi) sınanır. Kırıldığı değiştirilmiş belge ve kaynak kopyalarıyla gösterilir. Kodda değişiklik yok. Açık fark: `§3.3.13` (D-1189) (PR #580).
+
+## 2026-11-15 — T538 doğrulama tur 2: ✓ PASS (PR #579)
+
+TAM yeniden doğrulama (head `67275a71`; main `8f27391e` dalda, fetch sonrası ilerlemedi). Tur 1'in iki bulgusu kapandı: iki adlı model satırında her ad koddaki sınıfla karşılaştırılıyor ve model başına bir uçta bağlanıyor; kapalı değerli dört uçta (UC-60, UC-63, UC-104, UC-108) yinelenen parametre eskisi gibi değer sayılmıyor. Yedi kriter ve yedi KK ✓; doğrulayıcının `07` üzerinde üç geçici kırılma denemesi denetimi kırdı. Build 0 uyarı, Consistency 313, Unit 7420, ilgili Integration sınıfları 177 + 120 yeşil (TAM: CI). İki bloke etmeyen not: serbest metinli `returnUrl` / `acceptedInvitation` yinelenince ilk değer okunuyor (D-1616), `OrderDetail.Refunds.cs` iki yorumu eski model adlarını anıyor (D-1617).
+
+## 2026-11-15 — T538 düzeltme 2 (doğrulama tur 1 FAIL; K-1616 ek madde): iki adlı satır istisnası kalktı, yinelenen parametre eskisi gibi (PR #579)
+
+Eşitlik denetimi `07 §5.2` satırındaki her adın kodda sınıf olmasını ister ve her adın satırın bir ucunda bağlandığını model başına sınar; `MarkReshippedInput` ve `RejectReturnInput` `07`'den çıktı (UC-125 `MarkShippedInput`, UC-140 reddi `ReceiveReturnInput` bağlar; `07` v0.44). UC-60, UC-63, UC-104 ve UC-108 iki kez gönderilen sorgu parametresini tek yardımcıdan (`QueryValues.SentOnce`) eskisi gibi değer saymaz; istek testleri eklendi. Consistency 313, Unit 7420, ilgili Integration sınıfları 252 yeşil.
+
+## 2026-11-15 — T538 doğrulama tur 1: ✗ FAIL (PR #579, head `ba579a9b`)
+
+Kriter 1 ✗: `07 §5.2.2`'nin iki model adı — `MarkReshippedInput` (UC-125) ve `RejectReturnInput` (UC-140) — kodda yok (iki uç `MarkShippedInput` ve `ReceiveReturnInput`'u bağlar); denetim iki adlı satırda koddaki adı bulunca ötekini sormuyor, satıra uydurma ikinci ad eklemek de denetimi kırmıyor (`07`'de dayanağı olmayan istisna; K-1616 "fark bırakmaz"). Bulgu 2 (DÜŞÜK): UC-60, UC-63, UC-108'de iki kez gönderilen parametre artık ilk değeriyle okunuyor (eskiden değer sayılmıyordu; K-1616 "davranış değişmez"). K1 → D-1614. Unit 310 + 7420, ilgili Integration sınıfları 247, format ve betik testleri yeşil.
+
+## 2026-11-15 — T538 düzeltme 1 (yönetici kararı, K-1616): eşitlik farkları kapandı (PR #579)
+
+İlk teslimde `KnownModelDifferences` listesine ertelenen farkların hepsi kapatıldı: `07 §5.2` koda hizalandı (geri ödeme işlemlerinin iki ortak modeli, ödeme formunun dört kutusu, görsel dosyasının model alanı olmaması, ekran içi alan adları, adres ve ulaşma tarihi düzeltmesi, marka ve içerik kaldırma işaretleri), `07 §5.3.2`'ye `CategoryQuery` ve `GoogleReturnQuery` satırları girdi ve `RegisterQuery`, `SignInQuery`, `ReauthenticateQuery`, `AccountQuery`, `AdminAccountQuery`, `AdminSignInQuery`, `GoogleReturnQuery` kodda kuruldu (sekiz sayfa bağlar; sorgu dizesi adları ve davranış aynı). `KnownModelDifferences` kaldırıldı. `07` v0.43. D-1606–D-1609, D-1333, D-1527, D-1538, D-1551 ve D-1552 ✅; D-1205 (tekilleştirme) açık. Unit 310 (Consistency) + 7420, ilgili Integration sınıfları 260 yeşil.
+
+## 2026-11-15 — T538 yapım: uç ve model eşitlik denetimleri (PR #579)
+
+`UnitTests/Consistency/` altında `07 §5.2`, `§5.3.2`, `§5.4.2` model tabloları ve `§3.2` uç envanteri için eşitlik denetimleri (ad, alan, uç bağlama, varlık bağlamama); kırıldığı yanlış metin ve örnek modellerle gösterilir. Kodda `SignOutInput` eklendi, `ContentQuery` ve `CouponQuery` adları `07`'ye hizalandı. Açık farklar `KnownModelDifferences`'ta satır satır ve backlog kalemiyle (D-1606–D-1609 yeni). Unit 312 (Consistency) + 7420, ilgili Integration sınıfları 81 yeşil.
+
+## 2026-11-15 — T528 doğrulama tur 2: ✓ PASS (PR #578)
+
+Head `bac948f2`, main `99427473` (ilerlemedi). Tam yeniden doğrulama: on kabul kriteri ✓, KK1–KK10, `09 §25` ve güvenlik taraması temiz; tur 1'in beş bulgusu kapandı (kanuni faiz uyarısı formda ve kayıt satırında, ayıp malının sınırı talebin ayıplı adedi, fesih formunda IBAN, K-798 uyarı metinleri, çok kalemli cayma kaydı). CI run `43662141149` yeşil; yerel restore, build, format, Unit 7715/7715, betik 4/4, Integration ilgili sınıflar 163 + 92 + 136 (TAM: CI). `12`: `VAL-A081`, `A218`, `A228`, `A235`, `A236`, `B134` PASS. Bir K-notu D-1604'e (cayma formunda K-604 açıklaması).
+
+## 2026-11-15 — T528 düzeltme 1b–1e tamam (PR #578)
+
+Öz denetimde bulunan eksikler kapandı: firma iptalinde U1/U6a formda sebep seçimiyle, pencere uyarıları yinelemez; bildirim kayıtlarında IBAN alanı seçenekle açılır, U6a her kayıt formunun başında; cayma kaydının uyarıları retlerde formda kalır (`VAL-B159`); süre aşımından sonraki iptalin ve gecikme feshinin kalem kaydı satırında kanuni faiz uyarısı (`VAL-A228`, D-819'un T368 payı). `12` T528 tarayıcı satırları (B130–B137, B140–B146, B153, B154, B156, B159–B161) sunucu HTML'i testleriyle; B138/B139 T527/T542 payı. Unit 7715/7715; Integration T528 sayfa testleri 9/9 — TAM: CI.
+
+## 2026-11-15 — T528 düzeltme 1 tamam (PR #578)
+
+Beş bulgu kapandı: firma iptali ve fesih kaydı formunda kanuni faiz uyarısı (`LegalInterestDueItemsAsync`), fesih formu kalemleri açık adetleriyle listeler; ayıp malının teslim alma sınırı talebin ayıplı adedi (K-808), geri ödemeden önce; fesih formunda IBAN alanı ve ret sonrası değerler; K-798 uyarı metinleri (U3a/U3b sırası, U3c, U6a) birebir; cayma kaydı birden çok kalem. Backlog: D-819 yeniden açılıp kapandı, D-1591 kapandı, D-1598 (2) kapandı — (1) F5; D-880/D-892/D-911 gerekçeleri düzeltildi. Unit 7715/7715; Integration 251/251 + 67/67 — TAM: CI.
+
+## 2026-11-15 — T528 doğrulama tur 1: ✗ FAIL (PR #578)
+
+Head `4b6a2e63`, main `99427473` (ilerlemedi); CI ve yerel sınama yeşil. Beş S1 bulgusu: kanuni faiz uyarısı panelde yok (KK1, `VAL-A228`, KRİTİK); ayıp talebinin malı dönme kaydı olmadan teslim alınamıyor, sınır ayıplı adet yerine dönülen adet (KK7, K-808, `VAL-A218`, KRİTİK); fesih kaydı formunda IBAN alanı yok (D-1590); cayma kaydında K-798 uyarı metinleri yok (`VAL-A235`, `A236`, `A081`); cayma kaydı tek kalemle sınırlı (UC-130). K-notları D-1598, D-1599. `12`: 15 satır PASS, 5 FAIL.
+
+## 2026-11-15 — T528 yapım tamam: sipariş ayrıntısında firma iptali, bildirim kaydı, kalem çıkarma, iade malı ve ayıp talebi (E-37) (PR #578)
+
+Panel kalem adımları (`PanelItemSteps`; UC-129, UC-130, UC-138, UC-140…UC-142, UC-144, UC-145) kilit → sürüm (409) → işlem kuralı (422) → geçiş birimi sırasıyla, POST'lar `[GatedOperation]`. Fesih malı ve ayıpta dönülen mal da teslim alma adımından geçer (`AddTakenBackReceiptAsync`, `ReceiveTakenBackAsync`; D-656, D-911). Backlog: D-308, D-656, D-774, D-776, D-819, D-854, D-902, D-911, D-1302 kapandı; D-568, D-880, D-892, D-1195, D-1197, D-1259, D-1281 F5 kapısına; D-1591 açıldı. Unit 7715/7715; Integration `ItemRecordsTests`, `OrderCorrectionTests`, `LateDeliveryAndFirmCancellationTests`, `CustomerOperationsTests`, `OrderDetailPageTests` 270/270 — TAM: CI.
+
+## 2026-11-14 — T548 doğrulama tur 1: ✓ PASS
+
+Bağımsız doğrulama (uç `233a5813`, `origin/main` `f2d190fd` ile güncel). KK1–KK10 ✓; bulgu yok. Build `-warnaserror` 0/0, `dotnet format` (değişen `.cs`) temiz, Unit 7708/7708, Node betik testi 14/14 (yedi değişinim denemesinin yedisi de yakalandı), betik testleri 4/4, Integration (ProductFormPage, UploadEndpoints, ForgeryProtection, SessionAccess) 120/120 — TAM: CI; CI run 43597048307 yeşil. K-notu: D-1578 (durum isteğinin 500'ü yeniden denenir; dosya seçimi temizlenince eski ilerleme metni kalır) → `DEFERRED_BACKLOG.d/T548.md`.
+
+## 2026-11-14 — T548 yapım: ⏳ PR açıldı
+
+Parçalı yükleme betiği (UC-83; `09 §16.2` madde 6): `data-js="digital-file-upload"` kancasındaki dosya girdisi seçilince betik başlatır (`POST /panel/yukleme`), parçaları `Blob.slice` ve `Content-Range` ile gönderir (`POST /panel/yukleme/{id}`), 409'da `receivedBytes`'tan sürer, 404'te aynı dosyayla bir kez baştan başlar, 400/413/500'de durur, 422'de iki mesajı ayırır, yönlendirmede (`redirect: "manual"`) durur ve ağ hatasında durum isteğinin baytından 1, 2, 4 sn arayla en çok üç kez sürer. Yükleme sürerken kayıt düğmeleri `aria-disabled` alır ve gönderim durur; tamamlanınca kimlik hedef gizli alana, ad ve boy `data-js="file-state"` satırına yazılır. Dinleyici `document` üzerindedir; betikle eklenen varyant satırının girdisi de bağlanır (D-1559 kapandı). D-1567 kapandı (yinelenen kimlik). Modül adı belgede `product-form.js` diye düzeltildi (D-1568 kapandı); `fetch(` yasağına yalnız bu modül için tek çağrılık istisna `FrameSourceScanTests`te. D-1399 kapandı. Yeni: D-1573, D-1574 → `DEFERRED_BACKLOG.d/T548.md`.
+
+## 2026-11-14 — T539 doğrulama tur 2: ✓ PASS
+
+Tam yeniden doğrulama (uç `7fa109f9`, `origin/main` ile güncel). Bulgu yok; tur 1'in B1'i kapandı (her boyutun kendi değer şablonu, yeni boyut satırının kendi "Değer ekle" düğmesi). Build `-warnaserror` 0/0, `dotnet format` (değişen `.cs`) temiz, Unit 7680/7680, betik testleri 4/4, Integration ilgili sınıflar 251/251 — TAM: CI (dal CI run 43587370232 yeşil). K-notları: D-1567 (ürün formunda yinelenen `product-variants` kimliği), D-1568 (T548 yükleme modülünün yolu ve ağ taraması istisnası) → `DEFERRED_BACKLOG.d/T539.md`.
+
+## 2026-11-14 — T539 düzeltme 1: B1 kapatıldı, doğrulama bekliyor
+
+B1 (KK6): sunucu her olası seçenek boyutu için ayrı değer şablonu yazar, betikle eklenen yeni boyut satırı kendi "Değer ekle" düğmesini taşır; `product-form.js` eklenen satırın düğmesini bağlar. D-1554 kapandı. K1: `NewProduct.cshtml` modül yüklemesine açıklama yorumu. Yeni testler: şablon ve düğme işaretlemesi, ikinci boyuta ikinci değerle kayıt. Build `-warnaserror` 0/0, `dotnet format` temiz, Unit 7680/7680, Integration ilgili sınıflar 95/95 — TAM: CI.
+
+## 2026-11-14 — T539 doğrulama tur 1: ✗ FAIL
+
+Bir bulgu. B1 (S1, DÜŞÜK; KK6): betikle eklenen seçenek boyutunun kendi değer şablonu ve "Değer ekle" düğmesi yok (`09 §16.2` madde 4 "her boyutun kendi şablonu", `07 §8.2.2` betikli yolda değer yerinde eklenir); D-1554 kabul edilmiş risk değil. Dal `origin/main` (T530 #573) ile birleştirildi, çakışma yok. Build `-warnaserror` 0/0, `dotnet format` (değişen `.cs`) temiz, Unit 7680/7680, betik testleri 4/4, Integration ilgili sınıflar 249/249 — TAM: CI (dal CI'ında Integration koşuyordu). `12`: VAL-B096…B112 tarayıcı satırları BEKLEMEDE (değişmedi, T601). K3 → D-1559 (T548).
+
+## 2026-11-14 — T539 yapım tamamlandı: doğrulama bekliyor
+
+- Betiksiz yol çok ekranlı denetlendi, eksikler dar düzeltildi: ara gönderim `requestSubmit(submitter)` ile (satış özeti dönemi; yeni `pages/storefront/cart.js` ve `checkout.js`), tek kullanımlık düğme `aria-busy` ile (ürün sayfasının sepete ekle düğmesi artık `disabled` yapmıyor; ödeme adımının sipariş düğmesi gerçekten kilitliyor), "Tümünü seç / Seçimi kaldır" betikle (`pages/panel/shipping-and-defaults.js`), ürün formunda `<template data-js="row-template">` ve `__index__` ile satır ekleme (`pages/panel/product-form.js`, `_ProductVariantEntry.cshtml`), "teslimat adresimle aynı" katlanması.
+- Yeni kaynak taraması `NoScriptPathSourceScanTests` (betikte düz `submit()`, `disabled`, uygulama parçası yok; sayfa modülü yolu sayfa yolunu izler; manifest ve service worker yok); `FrameSourceScanTests` betik taramasını alt klasörlere de uygular.
+- Backlog: D-1443 kapandı; yeni D-1554 (yeni seçenek satırının tek değer şablonu), D-1555 (tarayıcı davranışı sınaması, T601) → `DEFERRED_BACKLOG.d/T539.md`.
+- Sınama: build `-warnaserror` 0/0, `dotnet format` (değişen `.cs`) temiz, Unit TAM 7374/7374, Integration ilgili sınıflar 170/170 + 2 sınıf — TAM: CI.
+
+## 2026-11-14 — T536 doğrulama tur 2: ✓ PASS
+
+Tam yeniden doğrulama (head `c39d6399`, main `3fe7d829` birleşik): kabul kriterleri 1–10 ve KK1–KK10 ✓, tur 1 bulgusu kapandı — girilmiş iade adresinin geçersiz değişikliği onay işaretsiz ilk gönderimde 422 ve alan mesajı alır, geçerli değişiklik onay hâlidir; denetim yazıcının tek evinde (`CompanySettingsWriter.CheckReturnAddressAsync`). D-1480 kalıcı testle kapandı, D-1479 F5 kapısında (sahip kararı). Build 0 uyarı, Unit 7557/7557, hedefli Integration 263 + 245 yeşil, CI run 43555636021 yeşil. `12` Durum hücreleri değişmedi.
+
+## 2026-11-14 — T536 düzeltme 2: iade adresi değişikliğinin ilk gönderiminde alan denetimi
+
+B1 kapandı: girilmiş iade adresinin değişikliği onay hâlinden önce yazıcının aynı denetiminden geçer (`ISettingsModule.CheckReturnAddressAsync` → `CompanySettingsWriter.CheckReturnAddressAsync`; kayıt da aynı yöntemi kilit altında çağırır). Boş zorunlu alan, liste dışı il ve bozuk telefon onaysız ilk gönderimde 422 + alan mesajı alır; onay hâli yalnız geçerli değişiklikte gelir. D-1480 kalıcı testle kapandı (`…_A752`). Unit 7557/7557; Integration PaymentAndShippingPagesTests + CompanyIdentityTests + FirmSettingsTests 101/101, TAM: CI.
+
+## 2026-11-14 — T536 doğrulama tur 1: ✗ FAIL
+
+Bir bulgu (S1, ORTA): girilmiş iade adresinin geçersiz değişikliği (boş zorunlu alan, liste dışı il, bozuk telefon) onay işaretsiz ilk gönderimde 422 yerine 200 onay hâli alıyor; `07 §2.2.4` ilk gönderimin alanları doğrulamasını, UC-172 bu hâllerde 422'yi ister — 422 yalnız onaylı gönderimde geliyor (doğrulayıcının geçici sınaması, üç hâlde de 200). Öteki dokuz kriter ✓; CI yeşil (run 43546205079), Unit 7557/7557, hedefli Integration 342/342. 12 `Durum`: `VAL-D032`, A290, D033, A539, A750, A751, A752 (geçici sınamayla; kalıcı test D-1480), A753, A754, A755, A756, A869 PASS. K1 → D-1479, K2 → D-1480, K3 (D-681, D-220 kapanış cümleleri) bu PR'da düzeltildi.
+
+## 2026-11-14 — T536 düzeltme 1: CI Integration kırmızısı
+
+`FirmSettingsTests.SaveShippingFee_…` sınıfın öteki testlerinin bıraktığı metin sürümlerine dayanıyordu: tek başına ya da önce koşunca iki metnin ilk sürümü şablonun ilk kullanımı (sistem olayı, iz yok; `02 §3.33.3`) sayıldı, iz satırı 0 geldi. Kod belgeye uygun; düzenek uygulama açılışının bıraktığı yayımlanmış iki sürümü kurar (`InitializeAsync` → `SynchronizeGeneratedLegalTextsAsync`). main `49ba60f0` birleştirildi.
+
+## 2026-11-14 — T536 yapım: ödeme yöntemleri, kargo, süreler ve varsayılanlar (E-45, E-46)
+
+Panelin ödeme yöntemleri (`/panel/odeme-yontemleri`: kart satırı kurulumdan, havale anahtarı, dörderli IBAN, dört hâl) ve kargo, süreler ve varsayılanlar (`/panel/kargo-sureler-ve-varsayilanlar`: beş bölüm ayrı sürümle) ekranları yazıldı. Havalenin açılması ve ilk IBAN onaysız; dolu IBAN'ın değişmesi, boşaltılması ve havalenin kapatılması ödemesi beklenen havale siparişi sayısıyla onay hâlidir (D-833). İade adresi değişikliğinin onayı yalnız "iade malı bekleniyor" işaretli kalemleri sayar. Ücret, il, kargoya verme süresi ve iade adresi gerçekten değişince iki üretilen metnin sürümü artar ve sürüm iz satırı ayarın iz satırıyla aynı işlemde yazılır (D-681, D-220, D-493 sürüm payı); iade adresi ize yazılır (D-165 (a), D-256, D-1377); iz yazarı yöneticiyi `SessionSchemes.AccountId` ile okur (D-176). Yeni backlog: D-1443 (betikli "Tümünü seç" → T539), D-1444 (ana sayfa sayacı işaretten geniş → F5 kapısı). Unit 7546/7546; Integration PaymentAndShippingPagesTests 44/44 ve ilgili Model/Web sınıfları yeşil, TAM: CI. Rapor: `Docs/TASK_REPORTS/T536_REPORT.md`.
+
+## 2026-11-14 — T534 doğrulama tur 1: ✓ PASS
+
+- On kabul kriteri ✓ (kanıt: hedefli Integration 400/400, doğrulayıcının geçici sınamaları 5/5, PR #574 CI run 43577902722 yeşil); güvenlik temiz.
+- `12`: VAL-A146, C032, C033, C034, A151, C035, A161 → PASS; A147–A150, A157–A160, C036, A162 BEKLEMEDE (vitrin, tarayıcı ya da e-posta payı).
+- K-notları D-1546 (`FOR KEY SHARE` kural metni), D-1547 (kalıcı testi olmayan davranışlar) → `DEFERRED_BACKLOG.d/T534.md`.
+
+## 2026-11-14 — T534 yapım tamamlandı: doğrulama bekliyor
+
+- E-41 kurumsal içerik listesi ve formu (UC-96, UC-158…UC-161) ile E-43 marka ekranı (UC-98, UC-163): modül yüzeyi `ICorporateContentModule`'e yedi yöntem (`PanelContentEditing`), sayfalar `Pages/Panel/{ContentList,ContentForm,NewContent,Brand}`; yedi `PanelContent*` sonuç/ad enum'u ayrı dosyalarda, `NotStored` listesinde.
+- Backlog: D-673 (silme kaydı işlemin sahibinde), D-720 (ürün bağı `FOR KEY SHARE`; `09 §10.2` m.5 ve `ConcurrencySourceScan` buna göre), D-1177 (kurumsal içerik listesi sayfalanmaz) kapandı; D-442 F5 kapısına ileri atıldı; yeni D-1535…D-1539 (`DEFERRED_BACKLOG.d/T534.md`).
+- Sapma: `SaveContentInput.RelatedProducts` → `LinkedProducts` (`SalesModelShape` yasağı; `07 §5.2.2` eşitlendi, D-1537).
+- Sınama: build `-warnaserror` 0/0, `dotnet format` (değişen `.cs`) temiz, Unit TAM 7643/7643, Integration hedefli sınıflar — TAM: CI.
+
+## 2026-11-14 — T531 doğrulama tur 1: ✓ PASS
+
+- Head `16daa313` + `origin/main` `0289add9` birleştirmesi (`00bef140`; yalnız STATUS tablo satırları çakıştı, iki taraf korundu). Dokuz kabul kriteri, KK1–KK9, `09 §25` ve güvenlik taraması ✓; PR CI (run 43571702679) bütün işler yeşil.
+- Yerel: build `-warnaserror` 0/0, format temiz, Unit 7632/7632, betik 4/4, Integration hedefli 5 sınıf 147/147 — TAM: CI.
+- `12`: `VAL-A201`, `VAL-A241`, `VAL-C048` PASS; `VAL-D028` (D-884), `VAL-A255` ve öteki paylaşılan satırlar BEKLEMEDE.
+- K-notları: K1 → D-1542 (`DEFERRED_BACKLOG.d/T531.md`, kopya kapı); D-614'e T531 payı, D-1384 (2) kapandı.
+
+## 2026-11-14 — T531 yapım: sipariş ayrıntısında hizmet kalemi, indirme hakkı, iç not ve e-posta yeniden gönderim (E-37)
+
+Beş panel işleyicisi (`CompleteServiceItem`, `ResetDownloadCount`, `SaveInternalNote`, `ResendNotification`, `ResendAllNotifications`; UC-139, UC-143, UC-152–UC-154) `[GatedOperation]` ile `OperationRunner` içinde modülün yeni `IPanelOrderUpkeep` yüzünü çağırır: kilit → sürüm (409) → karar tablosu (422) → yazıcı. Hizmet işareti kalemin satırında ve sipariş düzeyinde adım kalmamışken birincil düğmenin dördüncü kolu (D-1491); iz satırı `CompleteService` (D-646). İç not tekil dizin yeniden denemesiyle koşar; 409 güncel notla, imhada 422. Ulaşmayan e-postalar listesi düğmeleri ve sürümü taşır; "hepsi" tek işlemde, hepsi ya da hiç. Backlog: D-509, D-645, D-646, D-967, D-1385, D-1491 kapandı; D-884'ün T531 payı kapandı. Unit 7582/7582; Integration ilgili sınıflar 228/228 (TAM: CI).
+
+## 2026-11-14 — T530 doğrulama tur 2: ✓ PASS (PR #573)
+
+Dal ucu `02146b34` (origin/main `6e6d4a41` dalda birleşik; main ilerlemedi). On kabul kriteri, KK1–KK10, `09 §25` ve güvenlik taraması ✓; tur 1'in B1–B3 bulguları ve K2–K4 notları kapandı. PR CI (run 43577917177) bütün işler yeşil. Yerel: build `-warnaserror` 0/0, format ×3 temiz, Unit 7348/7348 + Consistency 295/295, betik 4/4, Integration parçalı `OrderDetailPageTests` 50/50 + dört çekirdek sınıf 146/146 (TAM: CI). `12`: `VAL-A240`, `D026`, `D027`, `A245` PASS (tur 1'in `C055`, `C056`, `C059`, `A246`'sıyla); `VAL-A239`, `A244` (D-1525), `D028`, `A254`, `A255` (T528 payı) BEKLEMEDE. K-notları: alana bağlı olmayan değer reddi → D-1550; UC-149 alan adı `ArrivalRecordId` ↔ `07` `ReturnId` → D-1551; D-1544'e doğrulayıcı notu (T530'un Guid/bool/sürüm girişleri de 500).
+
+## 2026-11-14 — T530 düzeltme 1: ⏳ doğrulama bekliyor (PR #573)
+
+Tur 1 bulguları kapatıldı. B1: reddedilen adres alanı `aria-invalid` ve kendi mesajıyla, formun başında özet (`04` 2.3.1.1, 2.3.2). B2: düzeltmelerin ret ve engel mesajı gönderilen formun içinde, form çizilmiyorsa "Düzeltmeler"in başında; ortak "Sıradaki adım" mesajı kullanılmaz; ulaşma tarihi, geçiş seçimi ve sebep korunur (`04` 2.3.3, 2.7.3.1). B3: adres formları `07 UC-146` adlarıyla (`Input.Shipping…`/`Input.Billing…`) ayrı kimlikte; iki geçişte durum düzeltmesi tek form + seçim. K2 kart `OutcomePending` sayfa testi, K3 K-608 kalıcı testi ve VAL-A240/D026/D027 sayfa gözlemi, K4 tanımsız adres türü 422 kendi metniyle, sürümsüz istek 409. Main `6e6d4a41` (T531) birleşik. Build 0 uyarı, format temiz, Unit 7643/7643, Integration sınıflar 154/154 (TAM: CI). Yeni ⚠: D-1544.
+
+## 2026-11-14 — T530 doğrulama tur 1: ✗ FAIL (PR #573)
+
+Dal ucu `13c7393a` (origin/main `0289add9` birleşik; main ilerlemedi). Derleme `-warnaserror` 0 uyarı, format ×3 temiz, Unit 7345/7345 + Consistency 295/295, betik 4/4, Integration parçalı `OrderDetailPageTests` 38/38 + `OrderCorrectionTests`, `PaymentWindowTests`, `StatusCorrectionTests`, `OrderOperationsTests` 146/146 (TAM: CI); dal CI'ı (run 43571321510) yeşil. Kriter 1, 3–10 karşılandı; kriter 2 kısmi. **B1:** reddedilen adres düzeltmesi 422 ve "Adresin işaretli alanlarını düzeltin." der ama hiçbir alan işaretlenmez, alan mesajı çizilmez (form `Bind` edilmiyor; `04` 7.2.14.1 "Alan mesajı", 2.3.1.1, 2.3.2). **B2:** düzeltmelerin ret ve engel mesajı "Düzeltmeler" bölümünde değil sayfanın üstündeki ortak yerde (`RefusedCorrection` yazılıyor, okunmuyor); ulaşma tarihi formu gönderilen tarihi korumuyor (`04` 2.3.3, 2.7.3.1, 9.9.41). **B3:** teslimat ve fatura adres formları aynı `id`'leri taşıyor (`Input_RecipientName` …), fatura formunun etiketleri teslimat alanlarına bağlı (`04` 2.3.1.1). `12`: `VAL-C055`, `C056`, `C059`, `A246` PASS; `VAL-A239`, `A244` BEKLEMEDE (D-894 okuması → D-1525). Düzeltme bekliyor.
+
+## 2026-11-14 — T530 yapım: ⏳ PR açıldı (PR #573)
+
+Sipariş ayrıntısının "Düzeltmeler" grubu (E-37; `07 UC-146`…`UC-151`): adres (teslimat + telefon, fatura), kargo bilgisi, teslim tarihi, iade ulaşma tarihi, durum geçişi ve misafir siparişinin e-postası panel uçlarıyla. Yazımlar T375/T386/T319 birimlerinindir; yeni `IPanelOrderCorrections` cephesi ret sebebini ekrana adlandırır, durum düzeltmesinin iz satırını (`CorrectTransition`) yazar (D-884 m5). Düzeltilebilir geçişin seçimi `CorrectableTransitions`'ta tek kural (işlem kararı ve form). Unit 7590/7590; Integration `OrderDetailPageTests` 38/38, `OrderCorrectionTests` + `OrderOperationsTests` 68/68, `PaymentWindowTests` + `StatusCorrectionTests` 78/78 (TAM: CI). Backlog: D-852, D-883 kapandı; D-884 m5 kapandı (kalan T528); yeni ⚠ D-1525…D-1527.
+
+## 2026-11-14 — T529 doğrulama tur 6: ✓ PASS (PR #575)
+
+Üçüncü eskalasyon sonrası TAM doğrulama (head `ef57ddbe`; main `281c914b` dalda, fetch sonrası ilerlemedi). Tur 5 bulgusu kapandı: kalem adımında alanda duran, en son girilen IBAN ödeniyor; ekran (satır, pencere, "işle", "gerçekleşmedi") ve ömür aynı evi okuyor; düzeltme 5'in 14 satırlık birleşim tablosu belgeyle (`02 §7.4.5`, Z-35, K-690, D-907) ve kodla uyumlu, eksik gerçek akış birleşimi bulunmadı. Önceki turların bütün bulguları testleriyle yeşil. KK1–KK10 ✓, `09 §25` ve güvenlik temiz. Build 0 uyarı, biçim çıkış 0, Unit 7715/7715, betik 4 dosya, Integration ilgili sınıflar 96 + 171 + 180 + 184 yeşil; TAM: CI (`43610828550` success). Bir K-notu ileri atıldı: D-1588 (düzeltme işleminde `PayeeBook`'un isteği izlenmeyen satırdan okuması, F5 kapısı). `12` dokuz satır PASS kalır.
+
+## 2026-11-14 — T529 düzeltme 5: kalem adımında alanda duran, en son girilen IBAN ödenir; önceki istek IBAN'ı ömürden düşer (PR #575)
+
+main `281c914b` dalda (doğrulayıcının `1a6e2e94`), fetch sonrası main ilerlemedi. Tek ev (`PayeeBook.Decide`) içinde adım içi seçim dosyadaki en eskiden en son girilene döndü (`02 §7.4.5` "alanda duran IBAN"; K-690 firma iptali/çıkarma ve "gerçekleşmedi" alanı yeniden açar); IBAN'ın ömrü (`RefundIbanUses.IsInUse`, `SubjectsOf`) aynı kararı izler: kalemin istek IBAN'ı yalnız alanda dururken — kalemin açık isteği yokken ve en son girilen oyken — kalemin kayıtlarını tutar. Kalem adımının 14 gerçek akış birleşimi ödenecek ve silinecek IBAN'la raporda (`Docs/TASK_REPORTS/T529_REPORT.md` "Düzeltme 5"). Üç yeni Integration testi (firma + müşteri iptali + "gerçekleşmedi" + Z; iki firma iptali + Y; yeniden girilen IBAN'a ikinci "gerçekleşmedi"), düzeltmesiz kodda üçü de kırmızı. Build 0 uyarı, Unit 7715/7715, Integration ilgili sınıflar 283/283 + 186/186; TAM: CI.
+
+## 2026-11-14 — T529 doğrulama tur 5: ✗ FAIL (PR #575)
+
+İkinci eskalasyon sonrası TAM doğrulama (head `cab50084`; main `281c914b` dalda, ilerlemedi). Tur 4 bulgusu kapandı (iki yeni test yeşil; tek kayıt isteğinde yeniden girilen IBAN ödeniyor). Bir yeni S1 bulgusu (ORTA, KK1): işçinin ⚠ (a)'sı gerçek akışta oluşuyor — kalemde birden çok karşılanmış istek IBAN'ı dosyadayken kalem adımı dosyadaki en eskisini seçiyor. Firma iptali (K-690 isteği → X) + müşteri iptali (A) + müşteri iptalinde "havale gerçekleşmedi" + kaleme Z: müşteri iptalinin satırı, penceresi ve gönderimi X; Z kullanılmadan siliniyor. Build 0 uyarı, Unit 7715/7715, Integration 264/264 + 364/364 (TAM: CI); CI `43605815530` Integration koşuyor, öteki işler yeşil. `12` hücreleri değişmedi.
+
+## 2026-11-14 — T529 düzeltme 4: kaleme yeniden girilen IBAN kalemin kayıtlarının IBAN'ından önce (PR #575)
+
+main `281c914b` dalda (doğrulayıcının `1268c56e`), fetch sonrası main ilerlemedi. Tek ev (`PayeeBook.Decide`) içinde kalem adımı ikiye ayrıldı: önce kalemin (karşılanmış) isteğinin IBAN'ı, sonra kalemin kayıtlarının — bekleme kararıyla aynı sıra (`02 §7.4.5`, D-907). Satır, pencere, gönderim ve IBAN'ın ömrü aynı evi okuduğundan birlikte düzeldi. İki yeni Integration testi (gerçek iptal + "gerçekleşmedi" + kaleme yeni IBAN; IBAN'sız kayıt ve tutar bazlı geri ödeme), düzeltmesiz kodda ikisi de kırmızı. Unit 7715/7715, ilgili Integration sınıfları 280/280 (TAM: CI).
+
+## 2026-11-14 — T529 doğrulama tur 4: ✗ FAIL (PR #575)
+
+Eskalasyon sonrası TAM doğrulama. Tur 3'ün iki bulgusu kapandı; ödenecek IBAN gerçekten tek evde (`PayeeBook`); CI yeşil (`43600743613`). Bir yeni S1 bulgusu (ORTA, KK1): kalem adımı kalemin isteğinin IBAN'ını kalemin öteki kayıtlarının IBAN'larıyla birlikte tartıp dosyadaki ilkini seçiyor — aynı kalemin iki iptalinde birincide "havale gerçekleşmedi" sonrası müşterinin girdiği yeni IBAN yerine ikinci iptalin IBAN'ı satırda, pencerede ve gönderimde kullanılıyor, yeni IBAN kullanılmadan siliniyor (`02 §7.4.5`, D-907 "kayıt, istek, yoksa dosya").
+
+## 2026-11-14 — T529 düzeltme 3b: "havale gerçekleşmedi" ve dosya adımı da tek evden; aynı kalemin iki iptali gerçek akışta 500 vermez (PR #575)
+
+main `f2d190fd` dalda, birleştirme gerekmedi. (1) İki iptal kalemin bütün adedini kapatınca "işle" 500 veriyordu — ürün hatası (düzenek değil): tutar okuması iptalleri izlenen kayıt olarak yüklüyor, IBAN silinince EF iptalin IBAN bağını boşaltıyor, kalem yüklenmediğinden sürüm bekçisi iptalin siparişini bulamıyordu (D-95). IBAN silen iki yol (ömür, "gerçekleşmedi") önce siparişin kalemlerini kilit altında yükler; test iptalleri gerçek geçişle (`CancelItemAsync`, S4) kurar, iki gönderimi de sınar. (2) `ReportTransferFailedAsync` silinecek IBAN'ı tek evden (`PayeeBook`) alır: yalnız o satırın geri ödemesinin ödendiği IBAN gider. (3) Dosya adımı başka geri ödemenin kendi isteğiyle gelmiş IBAN'ını dışlar. İki yeni test; Unit 7687/7687, ilgili Integration sınıfları 214/214 (TAM: CI).
+
+## 2026-11-14 — T529 düzeltme 3: ödenecek IBAN tek evde — ekran ve IBAN'ın ömrü aynı kural (PR #575)
+
+Kök neden (tur 2 ve 3 aynı tür): ekran ile IBAN'ın ömrü ödenecek IBAN'ı ayrı hesaplıyordu. Tek ev `ResolveRefundPayeesAsync` (kayıt → kendi isteği → kalemin isteği → dosya; açık istek bekler, bekleyen geri ödeme hiçbir IBAN'ın alıcısı değil); satır, pencere, "işle", "gerçekleşmedi" ve ömür onu okur. Kalemde "gerçekleşmedi"den sonra satır "IBAN bekleniyor" (POST 422); bekleyen geri ödeme varken öteki IBAN son geri ödemesiyle silinir; aynı kalemin iki iptali kendi IBAN'larını anar. Üç yeni çok IBAN'lı test.
+
+## 2026-11-14 — T529 doğrulama tur 3: ✗ FAIL (PR #575) — eskalasyon
+
+Tur 2'nin iki bulgusu ve D-1563 kapandı; CI yeşil (`43590699726`). İki yeni S1 bulgusu (ORTA): (1) KK6 — "Havale gerçekleşmedi"den sonra kalemin satırı "IBAN bekleniyor"a dönmüyor: kalemin açık isteğinde `Lines.IbanOf` dosyadaki başka IBAN'a düşüyor, satır onu gösterip "Geri ödemeyi işle"yi çiziyor (yalnız geri ödemenin kendi açık isteği bekletiliyor). (2) KK2 — ekranın IBAN kuralı IBAN'ın ömrüyle aynı değil: kendi isteği açık bekleyen geri ödeme ömür kuralında dosyadaki her IBAN'ın alıcısı sayıldığından öteki IBAN son geri ödemesinden sonra silinmiyor (K-356); kaydın IBAN önceliği de ayrışıyor.
+
+## 2026-11-14 — T529 düzeltme 2: kalemsiz doğmuş havale geri ödemesi işlenir, IBAN tek kuraldan, kart siparişinde "havale gerçekleşmedi" (PR #575)
+
+main zaten dalda (`866dc688`). (1) KK1: `PanelRefundSteps.ProcessRefundAsync` öğe kimliğini doğmuş geri ödemeden alır; havaleye dönmüş geç ödeme (`PaymentRecordId`) ve kalemsiz tutar bazlı (`RefundId`) geri ödeme 200/303, 500 yok. (2) KK1/KK6, D-907: dosyadaki IBAN alanı onu getiren isteğin `RefundId`'sini taşır; satır, pencere, `ShownIban`, "işle" ve "gerçekleşmedi" geri ödemenin kendi IBAN'ını anar, kendi isteği açıksa IBAN bekler; "gerçekleşmedi" satırın IBAN'ı yoksa 422. (3) D-1563 ✅: `ReportTransferRefundFailed` siparişin yolunu sormaz; kart siparişinde havaleye dönmüş geri ödemenin "havale gerçekleşmedi"si açık, kalemsiz `TransferFailed` isteği (`VAL-A912`). Üç yeni Integration testi; Unit 7661/7661, ilgili Integration sınıfları yeşil (TAM: CI).
+
+## 2026-11-14 — T529 doğrulama tur 2: ✗ FAIL (PR #575) — eskalasyon
+
+Tur 1'in üç bulgusu kapandı (KK6 / D-912, KK9 pencere U4, UC-133 üç ondalık 422) ve K1–K3 kapandı; CI yeşil (`43585484901`). İki yeni S1 bulgusu: (1) KK1 / `04` 9.9.21 — kalemsiz doğmuş havale geri ödemesinde (kartta gerçekleşmeyip havale yoluna dönmüş geç gelen ödeme geri ödemesi; aynı biçimde kalemsiz tutar bazlı) ekran "Geri ödemeyi işle"yi çiziyor, POST 500 (`PanelRefundSteps.ProcessRefundAsync` satır 80, `NullReferenceException`): geri ödeme panelden işlenemiyor. (2) KK1 / KK6 / `02 §7.4.5` — `Lines.IbanOf`'un geri ödemenin kendi IBAN'ı basamağı hiç eşleşmiyor (`ListRefundIbanFieldsAsync` IBAN alanlarında `RefundId` taşımaz); siparişte birden çok IBAN varken geç ödeme satırı ve onay penceresi başka kalemin IBAN'ını gösteriyor, "Havale gerçekleşmedi" POST'u ise geri ödemenin kendi IBAN'ını siliyor. K1 → D-1563 (kart siparişinde havaleye dönmüş geri ödemenin "Havale gerçekleşmedi"si kapalı; `VAL-A912`). `12`: `VAL-A230`, `VAL-B147` → PASS. İkinci iterasyon FAIL: eskalasyon (`12 §8.5`).
+
+## 2026-11-14 — T529 düzeltme 1: "havale gerçekleşmedi" dosyadaki IBAN'ı siler, pencere U4'ü yinelemez, üç ondalık 422 (PR #575)
+
+main birleştirildi (T531 #572; `OrderingModule.cs` iki kayıt, `OperationHandlerMarkTests` iki tarafın işleyicileri). (1) KK6 / D-912 ✅: `ReportTransferFailedAsync` kaydın/isteğin IBAN'ı yoksa siparişin dosyadaki IBAN'ını — ekranın gösterdiğini — siler (D-907); ekran ve POST aynı kararı verir. (2) UC-135 onay penceresi K-798 uyarısını yinelemez; uyarı satırda kalır (`12 §12.13` K-1514 (3)). (3) UC-133 iki ondalıktan fazlası 422 `InvalidAmount`. K-notları: tutar bazlı form yalnız `ProcessRefund` açıkken; UC-133'te siparişin olmayan kalemi kendi metniyle 422 `InvalidListValue`; kalemin geri ödeme satırı ve adımları kalem satırında (`04` 9.9.6 (4), 9.9.21), kalemsiz satır bölümde; `RefundId` 8. bağın `07` boşluğu D-1552 (F5 kapısı).
+
+## 2026-11-14 — T529 doğrulama tur 1: ✗ FAIL (PR #575)
+
+Üç S1 bulgusu: (1) KK6 / D-912 — doğmuş ayıp çözümü havale geri ödemesi siparişin dosyadaki IBAN'ına gidiyorken ekran "Havale gerçekleşmedi" düğmesini çiziyor, POST 422 dönüyor ve IBAN silinmiyor (F3 kapısının T529'a bağladığı kalem F5'e atılmıştı; kural D-907'de yazılı); (2) UC-135 onay penceresi U4'ü yineliyor (`12 §12.13` K-1514 (3), `VAL-B147`); (3) UC-133'te üç ondalıklı tutar 422 yerine 500 (`07 §2.9.4`). `12` satırları: `VAL-A211`, `A212`, `A215`, `A216`, `A221`, `A222`, `A224` PASS; `VAL-A230`, `B147` FAIL. Testler: Unit 7636/7636, Integration ilgili sınıflar 312/312 (TAM: CI; dal main'le çakışık olduğundan CI koşmadı).
+
+## 2026-11-14 — T529 yapıldı: Sipariş ayrıntısı: geri ödeme işlemleri (E-37) (PR #575)
+
+E-37'ye "Geri ödemeler" bölümü ve yedi geri ödeme adımı (UC-131…UC-137) eklendi: `IPanelRefundSteps` (kilit → sürüm → katalog kapısı, `[GatedOperation]` + `OperationRunner`), tutarlar `FirmRefundAmounts` tek kural evinden (kupon payı, kargo kuralı, K-1105 "mal dönmedi" düşümü), havalede işlemle gönderim + Ö3–Ö5 + B-8 + IBAN silme, kartta geri ödeme + iş satırı + iz + sürüm tek işlemde. Tutar bazlı geri ödeme kalemin açık "mal dönmedi" kapanışını seçer (`NotReturnedClosureId`, 07 girdi tablosu) ve sonraki teslim almanın geri ödemesinden düşülür. Backlog: D-657, D-660, D-874, D-878 (havale payı), D-898, D-1084 kapandı; D-906 kalan payı, D-912 ve D-1382 F5 kapısına; D-981 T529 payı yazıldı. Testler: Unit 7636/7636 (Consistency dahil), Integration ilgili sınıflar (`OrderDetailPageTests` 40/40, `PanelHomeTests`, `StatusCorrectionTests`, `CardRefundJobTests`, `OrderListPageTests`, `ItemRecordsTests`; TAM: CI).
+
+## 2026-11-14 — T527 doğrulama tur 5: ✓ PASS (PR #565)
+
+TAM yeniden doğrulama (eskalasyon sonrası): dal ucu `b031628f` (origin/main `8a51cdcc` birleşik). Derleme `-warnaserror` ve format ×3 temiz, Unit 7579/7579, betik 4/4, Integration parçalı 142/142 + 318/318 (TAM: CI), dal CI (run 43562282856) yeşil. Tur 4 B1 kapandı: `MarkDelivered` katalog satırı açık fiziksel kalem ister; ekran, birincil düğme ve POST kapısı yazıcıyla tek kural; fiziksel kalemleri kapanmış Kargoya verildi siparişinde teslim formu yok, doğrudan POST 422. Kriter 1–10, KK1–KK10 karşılandı; bulgu 0, K-notu 0. `12` değişmedi (BEKLEMEDE `VAL-C045` T528, `VAL-C048` T531). D-1504 (`03 §1.11.17` metin hizalaması, sahip) açık.
+
+## 2026-11-14 — T527 düzeltme 3 (PR #565)
+
+Tur 4 B1 kapandı (yönetici kararı): teslim işareti GET ve POST'ta tek kural. `OrderOperationCatalog`'un `MarkDelivered` satırı `ShipOrder`/`ResendOrder` gibi açık fiziksel kalem ister (geçiş biriminin S6 koşulu); fiziksel kalemleri kapanmış Kargoya verildi siparişinde teslim formu yok, yol "Teslim edilemedi" + kapatma, doğrudan POST 422. Düzeltme 2'nin ölü formu ve `OffersDeliveryMarkAsOperation` kalktı; `OrderOperationsView.HasOpenPhysicalItem` main sürümüne döndü. Testler: sayfa testi (form yokluğu + POST 422) ölü formu iddia eden testin yerine, Unit katalog testi. Yeni: D-1504 (`03 §1.11.17` aralık metni). main `8a51cdcc` birleşik; Unit 7579/7579; Integration ilgili sınıflar 129/129 (TAM: CI)
+
+## 2026-11-14 — T527 doğrulama tur 4: ✗ FAIL (PR #565)
+
+TAM yeniden doğrulama: dal ucu `bff9d9f7` (origin/main `3fe7d829` birleşik). Derleme `-warnaserror` ve format ×3 temiz, Unit 7568/7568, betik 4/4, Integration parçalı 142/142 + 318/318 (TAM: CI), dal CI (run 43555966596) yeşil. Kriter 1, 2, 4–10 karşılandı; tur 3 B1'in birincil düğme payı kapandı, D-1491 gerekçesi geçerli. **B1 (ORTA, S1; kriter 3):** fiziksel kalemlerin hepsi caymayla ya da fesihle kapanmış Kargoya verildi siparişinde ekran "Sipariş işlemleri"nde "Teslim edildi olarak işaretle" formunu çizer, geçiş birimi açık fiziksel kalem olmadan S6'yı reddettiği için her gönderim 422'dir (`04` 9.9.5 "açık olmayan işlem gösterilmez"). Önerilen: `MarkDelivered` katalog satırı `HasOpenPhysicalItem` ister, işlemlerdeki form kalkar. Kayıt commit'inden önce origin/main `ce300c0e` (T510) birleştirildi; yalnız `DEFERRED_BACKLOG.md` D-981 satırı çakıştı, iki taraf korundu. `12` değişmedi.
+
+## 2026-11-14 — T527 düzeltme 2 (PR #565)
+
+Tur 3 B1 kapandı: panel sipariş ekranında Kargoya verildi'nin birincil düğmesi "Teslim edildi olarak işaretle" yalnız açık fiziksel kalem varken çizilir; fiziksel kalemlerin hepsi cayma beyanıyla ya da gecikme feshiyle kapanmışsa birincil düğme yok, teslim işareti "Sipariş işlemleri"nde ikincil düğmedir (`04` 9.9.5, 6.3.9.5). Karar `03 §1.11`'in aynı olgusundan (`OrderOperationFacts.HasOpenPhysicalItem`, `OrderOperationsView` ile taşınır); sayfada kopya yok. İki yeni sayfa testi (hâl ve ters test). Yeni: D-1491 (hizmet kaleminin birincil kolu T531'de). Unit 7568/7568; Integration ilgili sınıflar 23/23 + 19/19 (TAM: CI)
+
+## 2026-11-14 — T527 doğrulama tur 3: ✗ FAIL (PR #565)
+
+TAM yeniden doğrulama (main ile üç birleştirmeden sonra): dal ucu `a0691a55` (origin/main `49ba60f0` birleşik). Derleme `-warnaserror` ve format ×3 temiz, Unit 7568/7568, betik 4/4, Integration parçalı 140/140 + 318/318 (TAM: CI), dal CI (run 43545779410) yeşil. Birleştirme çözümleri iki tarafın üyelerini, enum kayıtlarını ve test satırlarını koruyor; T513'ün müşteri sayfası davranışı aynı. Kriter 1, 2, 4–10 karşılandı. **B1 (ORTA, S1; kriter 3):** Kargoya verildi'de fiziksel kalemlerin hepsi cayma ya da gecikme feshiyle kapanmışsa `04` 9.9.5 ve 6.3.9.5 birincil düğme olmamasını ister; `OrderDetailModel.PrimaryOf` bu hâlde "Teslim edildi olarak işaretle"yi birincil çizer (doğrulayıcının geçici sınaması). `12` satırları değişmedi.
+
+## 2026-11-14 — T525 doğrulama tur 2: ✓ PASS
+
+- TAM yeniden doğrulama (head `6b4f246c`): on kabul kriteri, KK1–KK10, `09 §25` ve güvenlik taraması ✓; tur 1'in B1, B2, K1, K2'si kapandı. PR CI (run 43565244691) bütün işler yeşil.
+- B2 ters sınaması: ürün kilidi düz `FOR UPDATE`'e çevrilince eşanlı test `40P01` ile kırmızı, `FOR NO KEY UPDATE` ile yeşil.
+- `12`: 20 satır PASS (A165–A168, A170–A176, A179, A180, A190, A192, A193, A202, A465, A466, A723); vitrin/sepet/sipariş/tarayıcı payı kanıtlanmayan satırlar BEKLEMEDE. Yeni backlog kalemi yok.
+
+## 2026-11-14 — T525 düzeltme 1: doğrulama bekliyor
+
+- B1: `ProductFormPageTests` uygulamayı testin kendi geçici dosya deposuyla açar (`FileStoreDirectories` ezilir, test sonunda silinir); yükleme testleri üretim dizinine yazmaz.
+- B2: ürün satırı kilidi `FOR NO KEY UPDATE` (sipariş kaleminin `FOR KEY SHARE`'iyle çakışmaz); `09 §10.2` m.5–m.6, K-1615 (2), `ConcurrencySourceScan` (`ProductLocks.cs`'te yalnız `NO KEY` biçimi); eşanlı test `TheFormsSave_AndAnOrderConfirmationOnTheSameVariant_BothComplete_WithoutADeadlock_KK4` (eski kipte `40P01` ile kırmızı).
+- K1: kategori bağının reddi kategori alanında 422 (`ACategoryDeletedAfterTheCheck_…_KK5`). K2: D-488 form davranışıyla kapandı (`SaveProduct_APriceRiseUnderADiscount_…_D488`).
+- Sınama: build `-warnaserror` 0/0, format üç proje temiz, Unit 7609/7609, Integration hedefli 13 sınıf 363/363 — TAM: CI.
+
+## 2026-11-14 — T525 doğrulama tur 1: ✗ FAIL
+
+- PR CI'ında 4. Integration test kırmızı: üç `UploadImage_…_KK10` testi Linux'ta 500 (dosya deposu varsayılan `/var/lib/shopfolio/images` dizinine yazıyor; test dizini ezmiyor).
+- Ürün satırı kilidi düz `FOR UPDATE`: sipariş onayının `order_items` yabancı anahtar kilidiyle ölü kilit (Postgres'te yeniden üretildi); `FOR NO KEY UPDATE` ya da eşdeğeri gerekli.
+- K-notları bu PR'da kapanacak: kategori bağı sonucunun atılması, D-488 kaydının form davranışıyla güncellenmesi. Ayrıntı `Docs/TASK_REPORTS/T525_REPORT.md` "Doğrulama".
+
+## 2026-11-14 — T525 PR açıldı (devam 14)
+
+- `origin/main` (3fe7d829, T517) birleştirildi; birleşik ağaçta Unit Architecture + Consistency 2065/2065, ProductSavesTests 24/24, ProductFormPageTests 33/33.
+- Öz denetimde eksik bulunan U7 ölçü birimi hatırlatması (`04` 9.5.6; K-798 (7); VAL-A170) forma eklendi.
+- Rapor `Docs/TASK_REPORTS/T525_REPORT.md` (öz denetim tablosu), STATUS satırı.
+
+## 2026-11-14 — T525 yapım bitti (dal `task/T525-urun-listesi-formu`)
+
+- **E-32 ürün listesi ve E-33 ürün formu** (`Pages/Panel/Products`, `Pages/Panel/ProductForm`): sayfalı liste, form (tip, fiyat etiketi, varyant/seçenek, kategori, indirim, dijital dosya kancası, ifa/kargo süresi, cayma istisnası), görsel yükleme (galeri ve varyant görseli), yayın geçişleri ve silme; modül yüzü `Catalog/ProductSaves.cs`, `ProductTransitions`, `ProductRemoval`.
+- **İz (D-164, K-1615):** P-6/P-9/P-44'ten değişen eski/yeni değerle `UpdateSettings` + konu `Product` iz satırına yazılır (yeni ürün doğumunda yazılmaz); `09 §9.2` m.3 tablosu ve m.4 cümlesi (v0.35).
+- **Ürün satırı kilidi (D-401, D-362, D-381):** `Catalog/ProductLocks.cs` (düz FOR UPDATE, `LockKind.Product`, işlem başında) ürün kaydı, yayın geçişi, silme/dosya kaldırma ve stok yazımında; `09 §10.2` m.5–m.6.
+- **Kalemin dosya bağı (D-527):** `IOrderingModule.AdvanceItemFilesAsync` + `Catalog/OrderItemFiles.cs`; bağlama, kaldırma ve silmede kalemin son dosyası ilerler.
+- **Çitler (D-279, D-496, D-246):** P-9/P-44 `FirmSettingFences.Check` ile; sayfa ret testleri (`ProductFormPageTests` `…_D496`, `…_D246`).
+- **Backlog:** hedefi T525 olan 18 kalem yerinde kapandı; D-488 sahip yerine kararla F5 kapısına, D-283 yeniden F5 kapısına ileri; yeni kalemler `DEFERRED_BACKLOG.d/T525.md` (D-1396–D-1400).
+- **Testler:** Unit 7599/7599; Integration sınıfları ProductFormPageTests 33, ProductListPageTests + StockAndCapacityTests 37, ProductSavesTests 24, ProductTransitionsTests, ConcurrencyTests, DigitalDeliveryTests, ProductPublishGateTests (yeşil); TAM: CI. `dotnet format` temiz.
+
+## 2026-11-14 — T519 doğrulama tur 2: ✓ PASS
+
+Tam yeniden doğrulama (on kabul kriteri, KK1–KK10, `09 §25`, güvenlik taraması). Tur 1 bulguları kapandı: B1 — `LinkRecords.TryConsumeAsync` tüketimle aynı güncellemede `PreviousEmail`'i boşaltır, imha kaydına satır yazılmaz, reddedilen kullanımda (422, ömrü dolmuş) adres kalır; yönetici geri alması aynı yoldan geçer ve davranışı değişmedi (kullanılmış bağlantı yine `Used`). B2 — `[OutcomeUncertain("UC-76")]`, hedef sayfanın kendi adresi. D-1509 kapalı (yarış kolu ve VAL-C029 doğrudan sınanıyor). `12`: VAL-A809 PASS, VAL-C029 PASS. main `d847e947` (T527) çakışmasız birleşti. Yerel: build `-warnaserror` temiz, format temiz, Unit TAM 7587, betik 4/4, Integration ilgili sınıflar yeşil; TAM: CI.
+
+## 2026-11-14 — T519 düzeltme 1: doğrulama bekliyor
+
+B1: `LinkRecords.TryConsumeAsync` tüketimle aynı güncellemede `PreviousEmail`'i boşaltır (`06 §4.42`; VAL-A809); müşteri ve yönetici geri almasının ikisi aynı tüketim yolundan geçtiği için birlikte düzeldi. B2: geri alma işleyicisi `[OutcomeUncertain("UC-76")]` taşır, UC-76 `NotMarkedYet`'ten çıktı (D-137 payı D-1512). K2: KK8 yarış kolu (eşzamanlı iki POST; hesap kilidini beklerken tüketilen bağlantı) ve VAL-C029 (ömrü dolmuş bağlantıya POST) doğrudan sınandı, D-1509 kapandı. Yerel: build `-warnaserror` temiz, format temiz, Unit TAM 7575, Integration ilgili sınıflar 256 yeşil, TAM: CI.
+
+## 2026-11-14 — T519 doğrulama tur 1: ✗ FAIL
+
+İki bulgu. B1 (S1, KRİTİK): geri alma bağlantıyı tüketirken `LinkRecord.PreviousEmail`'i aynı işlemde boşaltmıyor (`06 §4.42`: "Bağlantı kullanılınca aynı işlemde boşaltılır"; `07` UC-76 yan etkileri `06 §4.42`'ye bağlanır); `12` VAL-A809 FAIL. B2 (S1, ORTA): UC-76 işleyicisi `[OutcomeUncertain("UC-76")]` taşımıyor, `NotMarkedYet`'ten silinmedi (`07` UC-76 ve §6.4.2, `09 §8.1` madde 4; D-137). `12`: VAL-C028 PASS, VAL-A809 FAIL. Dal CI'ı (run 43560620905) yeşil; yerel Unit TAM 7575, ilgili Integration sınıfları 229 yeşil. Yeni K-notları D-1508, D-1509.
+
+## 2026-11-14 — T519 yapıldı: E-posta değişikliğini geri alma ve müşteri çıkışı (E-28)
+
+`/geri-al/{key}` (UC-75, UC-76: açılış yalnız okur; geçerli bağlantıda tek cümle ve tek düğme; kullanılmış bağlantı sonuç koduyla sonuçları, kodsuz geri almanın yapıldığını söyler; dolmuş, yenilenmiş, başka türün ya da yöneticinin bağlantısı geçersiz hâldir ve tüketilmez; eski adres başka doğrulanmış hesabın olduysa 422 ve tüketim geri döner; tekrar gönderim 200) ve `/cikis` (UC-77: oturum satırı ve çerez silinir, sepet hesapta kalır, 303 oturum istemeyen sayfaya ya da ana sayfaya) yazıldı. `IMembershipModule.ReadEmailRestoreLinkAsync` ve `RestorePreviousEmailAsync` eklendi: geri alma hesabın satırını kilitler, adresi tutan doğrulanmamış bekleyen kaydı siler ve imha kaydına yazar, adresi ve Google bağını geri alır, bütün oturumları ve tanınan tarayıcı işaretlerini siler, şifre varsa geçersiz kılıp eski adrese sıfırlama bağlantısı yollar; değişiklik süresince istenmiş bütün sıfırlama, Google teyit ve yeni adres bağlantıları geçersizleşir. D-554 (bilinçli kalma kararı) ve D-578 (`PostgresException` yakalaması ve yarış testi) kapandı. Test örneği `KeyedLinkSample` gerçek sayfayla çakıştığı için kaldırıldı. Integration ilgili sınıflar yeşil, Unit TAM yeşil; Integration TAM: CI.
+
+## 2026-11-14 — T518 doğrulama tur 1: ✓ PASS
+
+Kriter 1–10 ve KK1–KK10 kanıtla karşılandı; dal head `00854fd6` main `edf4eb2a`'yı içerir (main ilerlemedi). Derleme `-warnaserror` temiz, biçim üç projede temiz, Unit TAM 7557/7557, betik testleri yeşil, Integration ilgili sınıflar `AccountAddressAndOrderHistoryPageTests` 17/17 ve `SessionAccessTests` 27/27, TAM: CI (run 43505372903 bütün işler yeşil). `12`: `VAL-A101`, `VAL-A635` → PASS. Yeni D-1471 (paylı ve tarayıcı `12` satırları BEKLEMEDE), D-1472 ("Hesabım" bağlantısı T517'ye kadar 404).
+
+## 2026-11-14 — T517 doğrulama tur 2: ✓ PASS
+
+Tam yeniden doğrulama (head `d682fc7a`): kabul kriterleri 1–10 ve KK1–KK10 ✓, tur 1 bulgusu kapandı — değersiz ya da tutmayan değerli şifre, e-posta ve silme gönderimi biçim, dolu adres, zayıf şifre ve onay denetiminden önce 303 → yeniden doğrulama; L-9 satırı değersiz yazılmıyor; GET, ad ve bağlantı yenileme etkilenmiyor. CI #567 yeşil. D-1453 kapandı (T518 birleşik). `12` `Durum` hücreleri tur 1'deki gibi.
+
+## 2026-11-14 — T517 düzeltme 1: değersiz gönderim önce 303
+
+Doğrulama tur 1 bulgusu (S1): şifre, e-posta ve silme gönderimlerinde yeniden doğrulama değerinin tutup tutmadığı artık biçim, dolu adres, zayıf şifre ve onay denetimlerinden önce okunur; tutmuyorsa her durumda 303 → yeniden doğrulama (`ProfileModel.OnPageHandlerExecutionAsync`, `EmailChanges.RequestAsync`); L-9 satırı değersiz yazılmaz, tüketim en sonda kalır. main (T518) birleştirildi.
+
+## 2026-11-14 — T510 doğrulama tur 1: ✓ PASS
+
+Bağımsız doğrulama (head `dee5e68a`, main `3fe7d829` birleşik — çakışmasız): kabul kriterleri 1–10 ve KK1–KK10 ✓ (KK10 kayıt payı; DV-5 gözlemi OWNER_INPUT, D-1466). Yerel: derleme `-warnaserror` 0 uyarı, `dotnet format` temiz, Unit 7567/7567, betik testleri 4/4, Integration sınıf bazlı (CheckoutPageTests, SecurityHeadersTests, MainFlowTests, PaymentNotificationTests, PaymentStartTests, CartTests, CartPageTests, ConcurrencyTests, StatusEndpointTests, PaymentWindowTests, AccountProfilePageTests) yeşil; TAM: CI #569 yeşil. Doğrulayıcı sondası (silindi): üyede sepet işareti, B-7 gönderim kaydı, sepetsiz misafirde işaret yok, oturumlu dönüş aynı sayfa. `12`: `VAL-A583`, `A666`, `A667`, `A683`, `A684`, `A685`, `A970`, `E048`, `E049`, `E050`, `E070`, `E071`, `E089`, `E094` → PASS; sandbox ve tarayıcı satırları BEKLEMEDE (D-1494). Yeni K-notları D-1493, D-1494.
+
+## 2026-11-14 — T510 yapım tamamlandı (devam 2): D-840 ana akış adımı, `12` satır eşlemesi, rapor ve PR (dal `task/T510-siparis-teyit-donus`)
+
+`MainFlowTests` 6. adımı bildirimden önce ödeme sayfasının başlatmasını `IPaymentStart.StartAsync` ile sahte ağ geçidi üzerinden çağırır; sipariş kıpırdamaz (D-840 ✅). `VAL-E089` (ikinci jeton reddinde ayırma, sepet işareti, kart ve hata dizisi), `VAL-E094` (kart iki dakika kullanılamaz, dizinin ilk hatası), `VAL-E049` (tanınmayan olay türü) ve `VAL-E050` (`UnexpectedError` kaydı, sipariş Bekliyor) sayfa/uç testlerine eklendi; `VAL-A970` T404'ün `StatusEndpointTests` testiyle eşlendi. D-1080 ve D-981 satırlarına T510 payı notu; STATUS T509 Commit hücresi `edf4eb2a`. Rapor `Docs/TASK_REPORTS/T510_REPORT.md`. Unit TAM 7567/7567; Integration ilgili sınıflar yeşil, TAM: CI.
+
+## 2026-11-14 — T510 yapım (devam 1): main birleştirmesi, KK5 kök neden düzeltmesi, DV-5 bekliyor kaydı (dal `task/T510-siparis-teyit-donus`)
+
+origin/main `49ba60f0` (T518) birleştirildi; `storefront.css` çakışmasında iki blok korundu (önce main, sonra dal). KK5 kırmızısının kök nedeni: erişilemeyen sağlayıcı iptali siparişi ve stok kalemlerini kilitledikten sonra sepetin kilidini istiyordu; kilit sırası (`05 §7.3.5`: sepet başta) `LockSequence` ile reddediliyor, POST 500 veriyordu. `Carts.LockCartAsync` + `MarkPaymentUnavailableLockedAsync` ile sepet kilidi iptalin ilk kilidi oldu; KK5 testi sistemin iptalinin iki kaydını (O2, S3) sınar. Sonuç kodu enum'ları (`PaymentStartDecision`, `UnopenedPaymentCancellation`) kendi dosyalarında ve saklanmayanlar listesinde. `08 §4.1` DV-5 ve `INTEGRATION_RUNBOOKS/PAYTR.md` §6.1: OWNER_INPUT bekliyor kaydı (PayTR test mağazası yok); yeni D-1466, D-1467. Unit TAM 7567/7567; Integration ilgili sınıflar 160/160.
+
+## 2026-11-13 — T527 doğrulama tur 2: ✓ PASS (PR #565)
+
+Dal ucu `0bb81d79` doğrulandı (origin/main `9474668f` birleştirmesi `OrderPageModels.cs` ve `DEFERRED_BACKLOG.md`'de çakıştı, geri alındı; merge öncesi çakışma çözümü ve dal CI'ı gerekir). Derleme `-warnaserror` ve format ×3 temiz, Unit 7522/7522, betik 4/4, Integration parçalı 98/98 + 250/250 (TAM: CI). Tur 1 bulguları kapandı: B1 (onaysız gönderimde de sürüm önce, 409; mutasyonla teyit), B2 (altı POST `[GatedOperation]` + `OperationRunner`, karar kilit altında GET'in kural örneği), K1 (D-1435 ✅), K2 (D-1436 ✅); D-1450 gerekçesi yerinde. Kriter 1–10 ve KK1–KK10 ✓; `12` satırları değişmedi (C045 T528, C048 T531 BEKLEMEDE). Yeni K-notu D-1464 (teslim tarihi ret metni K-799'dan ayrık).
+
+## 2026-11-13 — T527 düzeltme 1 (PR #565)
+
+Tur 1 bulguları kapandı: panel sipariş ekranının altı adımı `[GatedOperation]` + `OperationRunner` ile açılır, `PanelOrderSteps` kilit altında önce sürümü (409), sonra GET'in kullandığı `03 §1.11` kararını (422) sorar — onaysız ilk gönderim dahil (B1, B2; D-610, D-614 T527 payı). Geçersiz kargo değeri K-799 metni ve `ShipmentInfoMissing` ile 422; son ödeme günü liste ve ayrıntıda tek işlevden (D-1436 ✅). Dört kalıcı test (D-1435 ✅). Yeni: D-1450 (müşteri sayfasının son günü). Unit 7522/7522; Integration ilgili sınıflar 27/27 + 152/152 (TAM: CI).
+
+## 2026-11-13 — T527 doğrulama tur 1: ✗ FAIL (PR #565)
+
+Dal ucu `fb6666fd` origin/main `9cf8d1f7` ile çakışmasız birleştirildi; birleşik ağaçta derleme `-warnaserror` ve format ×3 temiz, Unit 7502/7502, betik testleri 4/4, Integration parçalı 91/91 + 213/213 (TAM: CI); dal CI'ı (run 43306419285) yeşil. Kriter 1–8 ve 10 karşılandı; doğrulayıcının geçici sınamaları dört süzgecin liste düzeyini, `MarkPaid`'in iptal ve kart siparişinde 422'sini, araç beyanını (`VAL-C041`) ve fesih ya da caymayla kapanmış kalemin yeniden gönderilmemesini (`VAL-C046`) doğruladı; komut sayısı testleri döngüye konan sorguyla kırmızıya döndü. İki bulgu (ORTA, S1): (B1) onay hâlinin ilk gönderimi açıklığı sürümden önce sorar — başka yöneticinin işaretlediği siparişe eski sürümle gelen ilk "Ödendi" 409 yerine 422 döner (`07 §9.9` ortak kural, `09 §8.3` m.4; KK9 kısmi); (B2) altı panel işlem POST'u `[GatedOperation]` taşımıyor, `OperationRunner` yerine `ITransactionRunner` açıyor ve onaylı yazım `03 §1.11` kararını (`OrderOperationCatalog`) kilit altında sormuyor — GET'in kararı ile POST'un geçiş birimi koşulları iki ayrı kopya (`09 §8.3` m.1–3, `09 §25`; D-610, D-614). `12`: A207, A208, C039–C044, C046, C047 PASS; C045, C048 BEKLEMEDE (T528, T531). Yeni D-1435 (kalıcı test eksikleri), D-1436 (kargo geçersiz değer mesajı, son ödeme günü gösterimi). Düzeltme bekliyor.
+
+## 2026-11-13 — T526 doğrulama tur 1: ✓ PASS
+
+Bağımsız doğrulama (`901e0cdc`, PR #563): on kabul kriteri ve KK1–KK10 kanıtlı ✓; `09 §25` ve güvenlik taraması temiz. Dal CI'ı yeşil (run 43303039201). Yerelde build `-warnaserror` 0 uyarı, format üç projede temiz, Unit 7476/7476, betik testleri 4/4, Integration CouponTests + CouponsPageTests + CategoriesPageTests 58/58 ve CategoryTreeAndListsTests + ConcurrencyTests + PageFormPatternTests 90/90 — TAM: CI. `12` Durum PASS: VAL-A184, A185, A196, A197, A198, A520, A521, A522, A523, A524, A726, A727. Bulgu yok; K1: D-1407'ye `06 §4.13`'ün koşullu güncelleme cümlesi eklendi. Durum ✓.
+
+## 2026-11-13 — T523 doğrulama tur 2: ✓ PASS (PR #561)
+
+Dal ucu `81198536` origin/main `9cf8d1f7` ile birleşik (`71a256a8`; çakışma yalnız STATUS tablosunda, iki satır da kaldı). Derleme `-warnaserror` 0/0, format üç proje temiz, Unit 7497/7497, betik testleri 4/4, Integration parçalı 221/221 (sekiz sınıf; TAM: CI); dal CI'ı (run 43300502173) yeşil. Kabul kriterleri 1–9 ✓; tur 1 bulguları kapandı: B1 istekte `ChangeAdminEmail` iz satırı, B2 K-819 alan mesajı, B3 ad bölümü cümlesi. `12` satırları değişmedi (5 PASS, 4 BEKLEMEDE). Backlog: D-1422 ✅, D-1421 hedefi F5 kapısı.
+
+## 2026-11-13 — T518 yapım: adres defteri ve sipariş geçmişi (E-26, E-27) (dal `task/T518-adres-siparis-gecmisi`)
+
+`GET /hesap/adresler` üyenin adres girdilerini kart olarak verir (boşsa boş hâl satırı); `addressBookId` düzenleme, `create=true` ekleme formunu ekranın içinde açar; `CreateAddressBook`, `UpdateAddressBook`, `DeleteAddressBook` modül yöntemlerini işlem sınırında çağırır, alan reddi 422, yabancı ya da yok girdi 404, geçmiş siparişin adresine dokunmaz. `GET /hesap/siparisler` modülün yeni `ListMemberOrdersAsync` okumasıyla hesaptaki siparişleri en yeni önce, 25'lik sayfada verir (hesaba düşmüş misafir siparişi, müşteri ya da firma iptali ve ödemesi alınıp iptal edilen dahil, hiç ödenmemiş kendiliğinden iptal hariç); her satır üye köküne bağlanır. İki sayfa da kapalı ekran ve `[NoStore]`. Integration `AccountAddressAndOrderHistoryPageTests` 17/17, Unit yeşil, TAM Integration: CI. Backlog: D-437 ve D-693'ün T518 payları kapandı. Test derlemesindeki örnek sayfa `/hesap/ornek`e taşındı.
+
+## 2026-11-13 — T517 yapıldı: Hesap — profil ve güvenlik (E-25)
+
+`/hesap` (UC-63 ila UC-68: beş bölüm, işlemin formu yalnız oturumun iznine ve değerin özetine uyunca açık, ad, şifre, e-posta, bağlantıyı yeniden isteme, hesabı sil; geri alma bağlantısı açıkken e-posta değiştirme ve silme sebep ve bitiş tarihiyle kapalı) ve `/hesap/silindi` (UC-69: bir kez görünen sonuç hâli) yazıldı. `IMembershipModule.RequestEmailChangeAsync` yeniden doğrulama değerini en sonda tüketir (D-429 kapandı); `ReadPendingEmailChangeAsync` ve `ISessionService.HoldsReauthenticationAsync` eklendi. Hesap silme son adımı GET'te yalnız gösterilir, silme POST'tadır. Integration ilgili sınıflar yeşil (`AccountProfilePageTests` 21, `Model.MembershipTests` 136, `SessionAccessTests`, `StorefrontFrameTests` dahil 84), Unit TAM yeşil, biçim temiz, TAM: CI. Kapanan: D-428, D-429, D-555; payı kapanan: D-254, D-606, D-693, D-700, D-801, D-806. Yeni D-1452–D-1456 (metin sözleri, T518'e kadar 404 iç gezinme, izin düşmesinin genel sayfa düzeyi, paylı `12` satırları, tarayıcı gözlemi).
+
+## 2026-11-13 — T516 doğrulama tur 1: ✓ PASS
+
+Kriter 1–10 ve KK1–KK10 kanıtla karşılandı; main (`9cf8d1f7`) dala çakışmasız birleşti, birleşik ağaçta derleme `-warnaserror` temiz, biçim temiz, Unit TAM 7511/7511, betik testleri yeşil, Integration ilgili sınıflar 67/67 (`CustomerPasswordResetAndReauthenticationPageTests`, `CustomerSignInPageTests`), TAM: CI. `12`: `VAL-A097`, `VAL-A574`, `VAL-E076` → PASS. Yeni D-1433 (paylı `12` satırları BEKLEMEDE, F5 kapısı), D-1434 (Google düğmesinin "tanımlı" koşulu ve testi).
+
+## 2026-11-13 — T513 doğrulama tur 2: ✓ PASS (head `af9deb99` + main `9cf8d1f7`, PR #558)
+
+Tam yeniden doğrulama: 10 kabul kriteri ✓, KK1–KK10 ve `09 §25` evet, güvenlik temiz; tur 1'in B1–B4 bulguları ve K2 testleriyle kapandı. CI run 43295039843 yeşil. `12`: VAL-A577, VAL-A688 FAIL → PASS; VAL-A581, VAL-C011, VAL-C020 → PASS. İki K-notu backlog'a: D-1439 (karma seçimde son adımın sonuç cümlesi), D-1440 (çok kalemli beyanın yazım sırası ve K-1107; K-1076 ekran testi).
+
+## 2026-11-13 — T509 doğrulama tur 4: ✓ PASS (PR #559)
+
+Tam yeniden doğrulama. Dal ucu `a46fcd0f` origin/main `9474668f` ile birleştirildi (çakışma yok, `10f11d13`); birleşik ağaçta derleme `-warnaserror` ve format temiz, Unit 7538/7538, betik testleri 4/4, Integration parçalı 64/64 + 227/227; dal CI'ı (run 43489405862) yeşil. Tur 3 bulguları kapandı: Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi onay bölümünde açık, sabit yükseklikte kaydırılan kutuda (`04` 5.13.9 (c)–(d), 5.13.32; K-756, K-832); misafirin e-posta satırı onay özetinde (5.13.9 (b), (h)). `12`: `VAL-A841`, `VAL-A842` FAIL → BEKLEMEDE (uç yanıtı yarısı karşılandı, tarayıcı gözlemi yarısı bekliyor). Backlog kayıtları (D-801 🟡 T509 payı, D-805 ve D-807 ✅) main ile tutarlı.
+
+## 2026-11-13 — T509 düzeltme 3: tur 3 FAIL bulguları kapatıldı
+
+Doğrulama tur 3 ✗ FAIL bulguları (B5, B6) düzeltildi (yönetici kararı: bir düzeltme turu + tam yeniden doğrulama r4): onay bölümünde Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi'nin tam metni artık `<details>` arkasında değil, her biri sayfada açık, sabit yükseklikte kaydırılan bir kutuda (`04` 5.13.9 (c)–(d), 5.13.32; K-756; `VAL-A841`, `A842`); misafirin e-posta satırı ve "Düzelt" bağlantısı onay özetine taşındı, onay kutuları ile düğme arasında durmuyor (`04` 5.13.9 (b), (h), 2.12.7.2). Yeni test `CheckoutPageTests.TheConfirmation_ShowsBothLegalTextsOpenInAScrollingBox_AndTheEmailLineInTheSummary_T509_KK1`. origin/main `9b2a9db8` birleştirildi (backlog çakışması: main satırları + T509'un D-801/D-805/D-807 kapanışları). Derleme `-warnaserror` ve format temiz, Unit 7521/7521, Integration parçalı 79/79; TAM: CI.
+
+## 2026-11-13 — T509 doğrulama tur 3: ✗ FAIL (PR #559)
+
+Dal ucu `d1fc40f3` origin/main `9cf8d1f7` ile birleştirildi (çakışma yok); birleşik ağaçta derleme `-warnaserror` ve format temiz, Unit 7503/7503, betik testleri 4/4, Integration parçalı 63/63 + 29/29; dal CI'ı (run 43304858862) yeşil. Tur 2 bulgularının üçü kapandı: özet eşiğe kalan tutarı kargo ücretinin altında yazar, eşikte tek "Kargo ücretsiz", dijital sepette kargo satırı yok (`VAL-A044` PASS); L-8 doluyken havale listede seçilemez, nötr mesajlı, kart açık, kart da erişilemezse sepete dönüş (D-853; üye ekseni doğrulayıcının geçici sınamasıyla da görüldü, `VAL-A357` PASS). Yeni bulgu (önceki turlarda gözden kaçtı): onay bölümünde Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi'nin tam metni kapalı `<details>` içinde, açık durmuyor (`04` 5.13.9 (c)–(d), 5.13.32; K-756; `VAL-A841`, `A842` FAIL); misafirin "Siparişiniz şu adrese gönderilecek" satırı onay özetinde değil, kutularla düğme arasında (`04` 5.13.9 (b), 2.12.7.2). Eskalasyon (`12 §8.5`).
+
+## 2026-11-12 — T549 doğrulama tur 1: ✓ PASS
+
+Kriter 1–8 ve KK1–KK8 kanıtlandı; birleşik ağaçta (`origin/main` `9f5b8ac8`, T520 #549; çakışmasız) derleme `-warnaserror` 0 uyarı, format temiz, Unit 7215/7215, betik testleri 4/4 ve tam Integration (ad alanı parçaları) yeşil; dal CI'ı (`43114110038`) yeşil. `12` VAL-A021 ve VAL-A023 → PASS. K1: D-1207 satırı `DEFERRED_BACKLOG.d/T503.md`'de yerinde kapatıldı. K2: `Model` ad alanında bir kez görülen kararsız test → D-1311. D-357'nin F5 kapısına çevrilmesi gerekçeli ve kurala uygun.
+
+## 2026-11-12 — T549 (Vitrin: arşivlenmiş ürün sayfası, E-05) yapım
+
+E-05'in gövdesi T503'te vardı (ad, ana görsel, "Bu ürün artık satılmıyor", fiyatsız ve formsuz, noindex); T549 eksiği kapattı: dönüş bağlantıları (ana sayfa ve ana sayfanın birinci seviye kategorileri, `04` 5.5.3 madde 4) ve arşiv sayfasında `product.js` yüklenmez. Sekiz kabul kriteri ve KK1–KK8 yeni sınamalarla kilitli: 8 Integration (`StorefrontSearchAndProductTests.ArchivedPage.cs`) + 3 Unit (`ArchivedProductPageTests`). D-1207 kapandı, D-357 hedefi F5 kapısına çevrildi.
+
+## 2026-11-12 — T544 doğrulama tur 2: ✓ PASS
+
+Kriter 1–10 ve KK1–KK10 karşılandı; tur 1 bulguları (yükleme alan mesajı, kupon kodunun isteğe bağlılığı) giderilmiş. Birleşik ağaç (`origin/main` `9f5b8ac8`): build `-warnaserror` temiz, format temiz, Unit 7341, Integration TAM 3830 (postgres:18, `track_commit_timestamp=on`), betik testleri yeşil; CI run 43120557695 yeşil. İki K-notu D-1319'a yazıldı. `12` satırları (`VAL-A340`…`VAL-A350`, KP-71) F5 kapısının A seviyesi taramasına kalır; `Durum` değişmedi.
+
+## 2026-11-12 — T535 doğrulama tur 2: ✓ PASS (PR #555)
+
+Dal ucu `5e42c12b` origin/main `a56a1735` ile çakışmasız birleştirilip doğrulandı. Derleme `-warnaserror` ve format temiz, Unit 7425/7425, betik testleri 4/4, Integration TAM 4020/4020, CI yeşil (run 43204870533). Kriter 1–10 karşılanıyor; tur 1'in iki bulgusu (K-813 alan mesajı, menü adı sırası) kapandı. Bulgu yok; bir bloke etmeyen not D-1387'ye (ortak mesaj kataloğunun parametreli `FieldRequired` dalı) aktarıldı. `12` Durum hücreleri değişmedi.
+
+## 2026-11-12 — T535 düzeltme 1b: alan hatası ortak kalıpta, iki ekranda ham kod yok (PR #555)
+
+Boş menü adının K-813 mesajı ortak alan hatası kalıbıyla (`FieldRequired` + varsayılan ad) veriliyor; süzgeç ret satırını yazıyor. Ana sayfa ve menü ile firma kimliği ekranlarında işleyicinin verdiği kodlar sayfada ham görünüyordu (görünümler işleyicide kuruluyordu); görünümler çizimde kuruluyor, girdi sınıflarına alan etiketleri eklendi. Tur 2 doğrulaması bekliyor.
+
+## 2026-11-12 — T535 düzeltme 1: ana sayfa ve menü ekranı K-813 metinleri ve menü sırası (PR #555)
+
+Boş menü adının alan mesajı K-813'ün "Menü adı boş olamaz; varsayılan ad: {ad}." metnini taşıyor; görünmeme sebepleri "Menüde görünmüyor — …" biçiminde. Menü adı alanları seçili düzenin menü sırasıyla çiziliyor, "menüde göster" işaretli genel sayfalar İletişim'den önce salt okunur listeleniyor. Tur 2 doğrulaması bekliyor.
+
+## 2026-11-12 — T535 doğrulama tur 1: ✗ FAIL (PR #555)
+
+Dal ucu `3a637e5c` (origin/main `29562ee9` ile güncel) doğrulandı. Derleme `-warnaserror` ve format temiz, Unit 7402/7402, betik testleri 4/4, değişen sınıfların Integration testleri 440/440, CI yeşil (run 43165022158). Kriter 1, 2, 4–10 karşılanıyor. İki DÜŞÜK S1 bulgu: boş menü adının alan mesajı K-813'ün "Menü adı boş olamaz; varsayılan ad: {ad}." metnini taşımıyor (kriter 3); menü adı alanları seçili düzenin menü sırasıyla değil sabit sırayla, genel sayfalar İletişim'den sonra çiziliyor (`04` 9.14.4). `12` Durum: VAL-A287, VAL-A747 PASS. K1 → D-1363.
+
+## 2026-11-12 — T535: ana sayfa ve menü, firma kimliği ve satış (E-42, E-44) yapımı bitti, PR açıldı
+
+`/panel/ana-sayfa-ve-menu` (`SaveHomepage`: düzen, altı menü adı, WhatsApp numarası, altı platformun bağlantısı; boş bağlantı satırı siler; değişen her değer eski ve yeni adresle ize girer) ve `/panel/firma-kimligi-ve-satis` (satış hâli ve kapı koşulları, `SaveCompany`, `SuspendSales`, `ResumeSales`) yazıldı. Modül yüzünde `ICorporateContentModule.SaveSocialLinksAsync`, kimlik kaydının `UpdateCompany` izi ve ayarın doğurduğu yasal metin sürümlerinin `PublishLegalText` izi eklendi; D-501 kapandı, D-165, D-199, D-220, D-502 T535 payı kapandı. Yeni kalemler D-1328…D-1332 (iz hedef türü, tarama yanlış pozitifi, tip değişimi betiği, yeniden açma iletisi, WhatsApp kuralı iki yerde). Main birleştirmesi (T506, T514) `ICorporateContentModule` çakışmasıyla geldi, iki tarafın yöntemleri korundu. Birim ve Integration sonuçları `Docs/TASK_REPORTS/T535_REPORT.md`'de.
+
+## 2026-11-12 — T533 doğrulama tur 1: ✓ PASS (PR #556)
+
+Dal ucunda (`d1a1729a`, origin/main `29562ee9` ile birleşik; main ilerlemedi) derleme `-warnaserror` 0 uyarı, format temiz, Unit 7402/7402, betik testleri 4/4, Integration (dokunulan sınıflar: `MemberRecordPageTests` + doğrulayıcının geçici A109/A110 kanıtı 16/16, `ListComponentPageTests`, `RequestsPageTests`, `MembershipAccountDeletionTests` 43/43) yeşil; dal CI'ı (run 43183892942) yeşil. Kabul kriterleri 1–9 ✓. `12`: VAL-A107, VAL-A108, VAL-A109, VAL-A110, VAL-D024, VAL-C031 → PASS (KP-77'nin kalan sahibi T533). K1 → D-1373 (dar sınıf kartında toplam), K2 → D-1374 (doğrulanmamış kaydın silinmesi `04` 6.3.12.2 ↔ `07 UC-157`).
+
+## 2026-11-12 — T533 yapım bitti, PR açıldı (dal `task/T533-uye-kaydi`)
+
+- **Üye kaydı görünümü (E-40):** `GET /panel/uyeler` aramasız yalnız arama alanını verir; e-posta araması müşteri hesaplarında tam eşleşir (harf ayrımsız, yönetici aranmaz); üç sonuç hâli (hesap yok, doğrulanmamış kayıt, doğrulanmış hesap). Doğrulanmış hesapta giriş yolları, adres defteri ve hesaba bağlı siparişler (en yeni önce, sayfalı, satır UC-92'ye gider). `DeleteCustomer` (UC-157): onaysızda onay hâli (`IrreversibleConfirmations.AccountDeletion()`), onaylıda 303 → `/panel/uyeler` ve kalıcı "silindi" mesajı; geri alma bağlantısı açıkken düğme yok ve 422; hesap yoksa 404; sonuçsuz onay 303 → aramanın adresi.
+- **Sipariş okuyucusu:** `IOrderingModule.GetCustomerOrdersAsync` (`CustomerOrderReader`): sıralama `Order` varlığında, sayfa `Order` üzerinde, sonra satıra eşleme.
+- **Mimari kurallar:** `DeleteCustomerInput.SearchEmail/Confirmed` `[SpecAssignedName]` (07 alan adları); `admin.css` kesme noktası 1024px (`FrameSourceScanTests` KK1).
+- **Backlog:** D-533 ve D-605 ✅ kapandı; D-607, D-608, D-652, D-664 (doküman düzeltmeleri, karar kaydı gerektirir) hedefi F5 kapısına ileri atıldı.
+- **Testler:** `MemberRecordPageTests` 14/14; Unit tam yeşil (mimari kurallar düzeltmesi sonrası).
+
+## 2026-11-12 — T532 doğrulama tur 1: ✓ PASS (PR #552)
+
+Birleşik ağaçta (uç `d202a668` + origin/main `368d978d`, birleştirme çakışmasız) derleme `-warnaserror` ve format temiz, Unit 7388/7388, betik testleri 4/4, Integration TAM 3894 (Web 888, Model 1410, Ordering 645, kalan 951) yeşil; dal CI'ı (run 43145034022) yeşil. Kabul kriterleri 1–10 ✓. `12`: VAL-A256, VAL-C063, VAL-C064, VAL-A556 → PASS; VAL-A735 BEKLEMEDE (K1 → D-1338: "Panele dön → listeye" cümlesi `04` 6.3.11.3 ile çelişir), VAL-A736 (ürün yarısı başka ekranın) ve VAL-B048 (`[tarayıcı]`) BEKLEMEDE.
+
+## 2026-11-12 — T532 yapım: talepler listesi ve iletişim talebi ayrıntısı (dal `task/T532-talepler`)
+
+`GET /panel/talepler` iletişim ve ayıp taleplerini tek listede verir (tür ve durum süzgeçleri çok değerli, arama yok, açılış tarihine göre en yeni önce, yeniden açılan ayıp talebi son açılışıyla; saklama süresi dolan iletişim talebi yok; ulaşmamış ayıp bildirimi işaretli). `GET /panel/talepler/{iç anahtar}` ayrıntıyı, `CloseContactRequest` ve `ReopenContactRequest` işleyicileri kapatmayı ve yeniden açmayı verir (süre durmaz, ikinci gönderim 303, imha edilmiş ya da olmayan talep üç işleyicide 404). `Talep kapatıldı` ve `Talep yeniden açıldı` bildirim metinleri `NoticeTexts`'e yazıldı (D-1232 kapandı). Önceki iki işçi bağlam ve süre sınırında bölündü; bu tur ayıp talebi satırı, iki tür birlikte, sayfa sınırı ve komut sayısı sayfa testlerini yazdı, kayıtları ve raporu tamamladı. Backlog: D-1302…D-1306.
+
+## 2026-11-12 — T527 yapıldı: Sipariş listesi, sipariş ayrıntısı ve durum geçişleri (E-36, E-37)
+
+`/panel/siparisler` (arama, iki durum süzgeci, bekleyen iş süzgeci — ana sayfa sayaçlarının tek kural evi `PendingWorkOrders` —, en yeni önce ve süreli süzgeçte kalanı en az olan önce sıra, işaret sütunu, Z-8 ve geri ödeme süresi) ve `/panel/siparisler/{iç anahtar}` (bölümler, işaretler, kalem süreleri ve bekleyen geri ödeme sunucudan, adres ve e-posta geçmişi, iç not, ayıp talepleri, ulaşmayan e-postalar; birincil düğme hattın sıradaki adımı) yazıldı. Altı durum adımı (UC-123…UC-128) `IPanelOrderSteps` üzerinden sürüm, onay hâli, işlem izi ve `07 §6.2` kodlu ret kaydıyla. Komut sayısı testleri (liste, ayrıntı) ve KK5'in Ö1 etkilerini sayfadan sınayan test eklendi; Unit TAM'daki kırmızılar (giriş modeli adları, enum kilidi, iki taramanın dar istisnası) düzeltildi. Unit TAM ve Integration ilgili sınıflar yeşil (`OrderDetailPageTests`, `OrderListPageTests`); Integration TAM: CI. Backlog: D-648 kapandı; D-308, D-614, D-645, D-875, D-1306 T527 payı kapandı; D-646, D-774, D-776, D-854, D-874, D-898, D-906, D-981, D-1348, D-1365, D-1373 yeniden hedeflendi; yeni D-1382–D-1386. Doğrulama bekliyor.
+
+## 2026-11-12 — T526 yapım: kategori ağacı ve kuponlar (E-34, E-35)
+
+Panelin kategori ağacı (`/panel/kategoriler`: üç seviye, aynı seviyede alfabetik, sayılar ve menü satırı, ekle / yeniden adlandır / taşı / sil) ve kuponları (`/panel/kuponlar`: en yeni önce sayfalı liste, dört hâl, form, kaydetme) yazıldı. Kupon değişikliği satır kilidiyle (`CouponLocks`) eşzamanlı ayırmadan sonra hak tabanını ölçer; sürüm 409'u alan kurallarından önce gelir; iz yazılmaz. D-333 kapandı. Yeni kalemler D-1407 (kupon kilidi `09 §10.2` listelerinde), D-1408 (iki mesaj K-799'da yok). Unit TAM 7476 (1 kararsız regex zaman aşımı, sınıf tek başına 27/27), Integration CouponTests + CouponsPageTests + CategoriesPageTests 58/58 — TAM: CI. Durum ⏳, doğrulama bekliyor.
+
+## 2026-11-12 — T524 doğrulama tur 1: ✓ PASS (head `c5add538`, PR #562)
+
+Kriter 1–10 ve KK1–KK10 ✓; bulgu 0. Yerel: derleme `-warnaserror` 0 uyarı, format temiz, Unit 7493/7493, betik testleri 4/4, Integration ilgili sınıflar 374/374 + doğrulayıcının 3 geçici sınaması yeşil; Integration TAM: CI (dal CI `43282828056` yeşil). `12` satırları VAL-A266…A283 ve D030 → PASS (D029 zaten PASS); matris betiği hata 0. K-notları: K1 D-1377 hedefi → T536; K2 → D-1423; K3 → D-1424.
+
+## 2026-11-12 — T524 yapım: satış özeti ve dışa aktarma (dal `task/T524-satis-ozeti`)
+
+`GET /panel/satis-ozeti` parametresizken son 30 günü, hazır dönemleri, "Ölçüm penceresi"ni (yalnız satış bir kez açıldıysa) ve özel aralığı Türkiye günüyle verir; değerler istek anında `SalesSummaryService`'in hesabıdır, sayfa yalnız biçimler; sıfır paydada "Değerlendirilemez". `GET /panel/disa-aktarma` üç bölüm ve sorumluluk satırı; üç işleyici `IDataExport`'u çağırır, 422'de dosya ve iz yok, 500'de bölüm içi mesaj ve iz yok. `CsvFileResult` akışla çalışır (D-849 ✅); gerçek Kestrel testi bayt bayt, `Content-Length` ve dosya silinmesini sınar (D-850 Kestrel ✅, Excel → D-1379). `PanelFrameFilter` hata katmanının 500 yeniden çiziminde çerçeveyi kurar. Unit 7456/7456; Integration ilgili sınıflar (372) yeşil, TAM: CI; format temiz. Yeni backlog: D-1377, D-1378, D-1379.
+
+## 2026-11-12 — T523 düzeltme 1 (PR #561)
+
+B1: `ChangeEmail` isteği `AdminEmailChanges.RequestAsync`'te `AdminAccounts` alanına `ChangeAdminEmail` iz satırı yazar (istenen adres değer olarak; doğrulama ve geri alma kendi satırını yazmayı sürdürür); KK7 testi iz satırını ve firma e-postasını sınar. B2: alınmış e-posta alan mesajı K-819 metni ("Bu e-posta adresi başka bir yönetici hesabında kayıtlı."). B3: ad bölümünde `04` 9.21.3 cümlesi. K2: `UC-188` yorumları `UC-181`. Unit TAM 7472/7472, `MyAccountPageTests` 14/14, derleme `-warnaserror` ve format temiz; Integration TAM: CI.
+
+## 2026-11-12 — T523 doğrulama tur 1: ✗ FAIL (PR #561)
+
+Dal ucu `199c1e51`'de (origin/main `73e36672` birleşik) derleme `-warnaserror` ve format temiz, Unit 7472/7472, betik testleri 4/4, Integration parçalı 222/222 (sekiz sınıf; TAM: CI); dal CI'ı (run 43281683423) yeşil. Kabul kriterleri 1–6 ve 9 ✓; kriter 7 ✗: `ChangeEmail` işlem izine satır yazmaz (`07` 9.21.3 yan etkiler, KK7 "iz"; geçici sınamada istekten sonra yöneticinin iz satırı 0) — iz yalnız yeni adres doğrulanınca yazılır (B1, ORTA, S1); kriter 8 ✗: başka yöneticinin adresinde alan mesajı K-820'nin E-49 metni ("Bu adres zaten bir yönetici hesabına ait."), `04` 7.2.24.2 / `07` 9.21.3 / K-819 "Bu e-posta adresi başka bir yönetici hesabında kayıtlı." ister (B2, ORTA, S1); ad bölümünde `04` 9.21.3'ün açıklama cümlesi yok (B3, DÜŞÜK, S1). `12`: VAL-A303, C073, C074, D035, A309 → PASS. Yeni backlog: D-1421 (hedefi T523 olan D-553, D-593, D-1301, D-1375 anılmadı), D-1422 (`UC-188` yorumları).
+
+## 2026-11-12 — T523 yapım: yöneticinin kendi hesabı (dal `task/T523-yonetici-kendi-hesabi`)
+
+`GET /panel/hesabim` üç bölümü verir (ad, e-posta, şifre); işlemin formu yalnız oturumun izni o işlem içinse ve değerin özeti oturum kaydındakiyle aynıysa açılır. İşleyiciler `ChangeName` (303; boş ad 422), `ChangePassword` (değer tek koşullu güncellemeyle tüketilir, öteki oturumlar silinir, işlem izi yok), `ChangeEmail` (bekleyen değişiklik, `NewEmailVerification` bağlantısı, işlem izi; açık geri alma bağlantısında 422), `ResendEmailChangeLink` (yeni bağlantı, öncekiler `SupersededAt`, ömür uzamaz; L-9 yalnız yerine geçen istekte). Ortak e-posta değişikliği kuralı `Infrastructure/Security/EmailChangeRules` altında toplandı, yönetici ve müşteri akışı onu çağırır (D-617 kapandı). Başka yöneticinin adresi 422 mesajı K-820 tek metne bağlı. Yerel: Unit TAM yeşil, ilgili Integration sınıfları yeşil (`Model.MembershipTests` 136, `Administration.PanelHomeTests` 25, `Web.MyAccountPageTests` 14, `Web.CustomerSignInPageTests` 33, `Web.SessionAccessTests` 27); Integration TAM: CI. Yeni backlog: D-1389.
+
+## 2026-11-12 — T522 doğrulama tur 1: ✓ PASS (head `794aed66`, PR #557)
+
+Kriter 1–10 ve KK1–KK10 ✓; `origin/main` `f62d956f` (T535 #555) birleşik ağaçta çakışmasız. Yerel: derleme `-warnaserror` 0 uyarı, format temiz, Unit 7431/7431, betik testleri 4/4, Integration TAM (ad alanı ve sınıf parçaları) yeşil; birleştirmeden sonra derleme, format, Unit ve sekiz ilgili Integration sınıfı (253) yeşil. Dal CI'ı yeşil (`43225742264`). `12` satırları PASS: `VAL-A301`, C068, C069, C070, C071, C072, D037, A310, A311, D042, A507, A542, A543, A555, A728. Bulgu 0; K-notu 2 (D-1394, D-1395).
+
+## 2026-11-12 — T522 yapım: yönetici hesapları ve işlem izi (dal `task/T522-yonetici-hesaplari`)
+
+`GET /panel/yonetici-hesaplari` yöneticileri Türkçe alfabetik sırayla, geçerli davetleri en yeni önce (gönderen, son gün, "e-posta ulaşmadı" işareti) verir; `SendAdminInvitation`, `RevokeAdminInvitation` ve `RemoveAdmin` işleyicileri (onaysızda onay hâli 200, onaylıda 303; kendi satırı ve son yönetici 422; olmayan satır 404). `GET /panel/islem-izi` satırları en yeni önce, sayfada 25 verir; tarih ve yönetici süzgeci birlikte uygulanır, ters ya da ileri aralıkta alan mesajı çıkar ve süzgeç uygulanmaz (200). Okuma tarafı `IAdminAccountList` ve `INotificationsModule.FindAdminInvitationsWithUndeliveredMarkAsync` (toplu, N+1 yok); alan ve işlem adları `AuditTexts`'te. Önceki iki işçi bağlam sınırında bölündü; bu tur testler derlendi ve geçti (Integration: 17 yönetici hesapları + 5 işlem izi, Unit: 6). Integration TAM, `dotnet format` ve rapor bir sonraki işçiye kaldı.
+
+## 2026-11-12 — T521 doğrulama tur 3: ✓ PASS (PR #554)
+
+Dal ucu `3cec5c9c`, origin/main `64002df5` (T533, T512) ile birleşik ağaçta doğrulandı; birleştirme çakışmasız. Derleme `-warnaserror` 0/0, format üç proje temiz, Unit 7411/7411 (birleşik ağaçta 7425/7425), betik 4/4, Integration TAM 3945/3945 (birleşik ağaçta T521 sınıfları 80/80), CI yeşil (run 43191483868). On kabul kriteri ve KK1–KK10 ✓; tur 2'nin B1'i (yeni adres doğrulamasında kilit altında okuma, tüketim yazımdan önce) ve B2'si kapalı. `12` satırları değişmedi (`VAL-A258`, A264 BEKLEMEDE — D-1348). Yeni K-notu: D-1375 (geri almada kilit altında erişilemez dalın tüketimi geri almadan dönmesi). Status ✓.
+
+## 2026-11-12 — T521 düzeltme 2: yeni adres doğrulamasında tüketim yazımdan önce, kilit altında okuma; kart iadesi uyarısı
+
+Tur 2 FAIL'in iki bulgusu kapatıldı. `VerifyNewEmailAsync` önce hesabın satır kilidini alır, bağlantıyı ve bekleyen değişikliği kilit altında yeniden okur, bağlantıyı koşullu güncellemeyle e-posta yazımından ÖNCE tüketir; tüketim tutmazsa hiçbir şey yazılmaz (200), benzersizlik ihlalinde işlem geri alınır (422, tüketim de döner). Yarış testleri: bağlantı ya da bekleyen değişiklik kilit beklenirken değişir. "Kart iadesinin sonucu bekleniyor" uyarısı iadenin sağlayıcıda gerçekleşmiş olabileceğini ve önce sağlayıcının panelinde bakılacağını söyler (D-1299 ✅).
+
+## 2026-11-12 — T521 doğrulama tur 2: ✗ FAIL (PR #554)
+
+Dal ucu `8c9a0754` (origin/main `29562ee9` ata). Derleme `-warnaserror` ve format temiz, Unit 7411/7411, betik 4/4, Integration TAM 3930 (Model'de yükte bir kez kırmızı test, tek başına yeşil — D-1366), CI yeşil (run 43162590489). Tur 1 bulguları kapanmış, `VAL-A261` PASS. İki yeni S1 bulgu: (ORTA) yeni adresin doğrulamasında e-posta bağlantı tüketiminden önce güncelleniyor, bağlantı arada yenisiyle değiştirilirse değişiklik bildirimsiz, izsiz ve geri alma bağlantısız kesinleşiyor (kriter 8); (DÜŞÜK) kart iadesi sonucu bekleniyor uyarısı sağlayıcının panelinde bakılmasını söylemiyor (`04` 9.3.3; kriter 1). K-notları D-1365, D-1366.
+
+## 2026-11-12 — T521 düzeltme 1: satır içeriği, kanal uyarısı, geri alma inişi, aydınlatma alt satırı
+
+Tur 1 FAIL'in dört bulgusu ve K3 kapatıldı. "Müşteriden beklenenler" satırı sipariş numarası, kalemin adı (kalemsiz geç gelen ödemenin geri ödemesinde "geç gelen ödemenin geri ödemesi"), isteğin sebebi ve tarihi ile kalan süreyi taşır; süresiz satırlar istek tarihiyle sıralı (kalem adı T532'nin `FindItemLabelsAsync` okuyucusundan; D-1297 ✅). Kanal uyarısı geçiş taşımaz; geri alma inişinin geçersiz, uygulanmadı ve geri alındı hâllerinde sonraki adım bağlantısı (oturum açıksa Hesabım, değilse panel girişi); geri almada çerez yalnız geri alınan hesabın kendi oturumuysa silinir; aydınlatma maddesinin altına kapalı girişler satırı. origin/main `29562ee9` birleştirildi (`AdministrationModule.cs` kayıt satırı: iki satır da kaldı; `12` Durum: T532'nin üç PASS'ı main'den, A257 daldan). Build `-warnaserror`, format, Unit 7116 + 295 temiz; Integration: iki T521 sınıfı 42/42, TAM koşu doğrulayıcıya bırakıldı.
+
+## 2026-11-12 — T521 doğrulama tur 1: ✗ FAIL (PR #554)
+
+Dal ucu `cafe1466`, origin/main `bc915800` ile birleşik ağaçta doğrulandı (çakışmasız). Derleme `-warnaserror` ve format temiz, Unit 7092/7092 + Consistency 295/295, betik testleri 4/4, Integration TAM ad alanı parçalarıyla 3909/3909, CI yeşil (run 43150388572). KK2, KK4–KK10 karşılanıyor; undo bekçisine istisna eklenmemiş. Bir ORTA S1 bulgu: "Müşteriden beklenenler" satırı kalemin adını (ya da "geç gelen ödemenin geri ödemesi"ni), isteğin sebebini ve tarihini taşımıyor, her satır sabit "IBAN bekleniyor" yazıyor; süresiz satırlar istek tarihine değil sipariş numarasına göre sıralanıyor (`04` 9.3.6; D-1297 kapsam içi işi ertelemiş) — `VAL-A261` FAIL. Üç DÜŞÜK S1: kanal uyarısı geçiş taşıyor (`04` 9.3.3, 3.4.3), geri alma inişinin geçersiz ve uygulanmadı hâllerinde sonraki adım bağlantısı yok (`04` 9.25.2, 3.4.23), aydınlatma maddesinin alt satırı yok (`04` 9.3.4; K-850). `12` Durum: A257, A259, A260, A262, A263, A316, D043 PASS; A261 FAIL; A258, A264 BEKLEMEDE (E-36 yok). Yeni backlog D-1347 (kontrol listesi belgeleri ayrışıyor), D-1348 (A258/A264 sahipsiz). Birleştirme notu: origin/main `29562ee9` (T532) ile `AdministrationModule.cs` kayıt satırında kod çakışması — birleştirme geri alındı.
+
+## 2026-11-12 — T521 yapım: panel ana sayfası ve yönetici hesabının doğrulama ekranları
+
+`/panel` ana sayfası (uyarılar, kurulum listesi, altı sayaç, "IBAN bekleniyor" ilk on satır) ve E-54 ekranları (`/panel/dogrulama/{anahtar}`, `/panel/geri-al/{anahtar}`, `/panel/yeniden-dogrulama`) yazıldı; ana sayfanın kendi okuyucuları (`IPanelHomeDetails`, `ListAwaitingIbanLinesAsync`, `CountCardRefundProblemsAsync`) eklendi. Üç mimari tarama bu turda yeni tüketici yöntemi ve alan işaretiyle uyduruldu. D-968 ve D-975 kapandı; yeni kalemler D-1297…D-1301. Unit 7230 civarı (yeni 6), ilgili Integration sınıfları 15 + 25 yeşil; tam Integration sonucu PR açıklamasında.
+
+## 2026-11-12 — T520 doğrulama tur 1: ✓ PASS
+
+Kriter 1–10 ve KK1–KK10 kanıtlandı; birleşik ağaçta (`origin/main` `5ed330f5`, T503 #542; çakışmasız) yerel derleme, format, Unit (295 + 6866), betik testleri ve tam Integration (ad alanı parçaları, 3793 test) yeşil; dal CI'ı doğrulama anında kuyrukta. Doğrulayıcının geçici sınamaları (depoya girmedi) yaygın şifrede 422, sıfırlamada tanınan tarayıcı çerezi, L-1'de engellenen denemenin giriş kaydı, K-1085 hâlinde davet sayfası ve çıkışta vitrin oturumunun kalması üzerinde yeşil. `12`: KP-62 satırları değişmedi (BEKLEMEDE). Backlog: yeni kalemler D-1288 (D-464 T520 payı metninin düzeltmesi), D-1289 (sayfa düzeyi test boşlukları). STATUS satırı ✓.
+
+## 2026-11-12 — T516 yapıldı: Şifre sıfırlama ve yeniden doğrulama (E-23, E-24)
+
+`/sifre-sifirlama` (UC-56 ila UC-59: nötr istek, L-2 kaydı, beş bağlantı durumu, tek koşullu tüketim, oturumların silinmesi) ve `/hesap/yeniden-dogrulama` (UC-60 ila UC-62: üç işlem, iki alan koşulu, tek izin, L-1 sayımı, Google yolu `auth_time` ile) yazıldı; `GoogleReturn` yeniden doğrulama dönüşünü işler (D-1351 kapandı). Integration ilgili sınıflar yeşil (`CustomerPasswordResetAndReauthenticationPageTests` 34), TAM: CI. Yeni D-1416–D-1418 (`04` 5.23 ve 5.24 cümleleri sahibe, 320 genişlik gözlemi F5 kapısına).
+
+## 2026-11-12 — T515 doğrulama tur 1: ✓ PASS (head `0cc6a93a`, PR #560)
+
+Kriter 1–9 ve KK1–KK9 kanıtla karşılandı; dal main `4b37cf0c` ile birleşik (main ilerlemedi). Derleme `-warnaserror` temiz, format temiz (üç proje), Unit TAM 7468/7468 (ilk koşuda 1 kararsız kırmızı, yeniden koşuda yeşil), betik testleri 4/4, Integration parçalı 338 + 107 yeşil (TAM: CI); dal CI run 43262785018 success (Integration dahil). Doğrulayıcının geçici sınaması (depoya girmedi) `/kayit` Google yüzünü, L-1'de tanınan tarayıcıyı, `Retry-After` yokluğunu ve süre dolunca girişi yeşil gösterdi. Bulgu yok. `12`'de task'ın satırları PASS: `VAL-B021`, `VAL-A091`…`VAL-A096`; `VAL-A351`, `VAL-C075` (D-801) BEKLEMEDE kalır. K-notları: K1 → D-1405 (sayfa testleri), K2 → D-1406 (pay satırları), K3 → D-1349'a eklendi (`VAL-A607` cümlesi).
+
+## 2026-11-12 — T515 yapıldı: Müşteri girişi ve Google ile giriş (E-22)
+
+`/giris` (e-posta ve şifre, "beni hatırla", Google düğmesi, şifremi unuttum ve kayıt bağlantıları, doğrulanmamış hesapta yeniden gönderim) ve `/giris/google` (UC-50, UC-51; akış çerezi bir kez kullanılır, üç sonuç, iki kodlu 303, yazmadan dönen üç dönüş) yazıldı. Google dönüşünde sıra hesap, oturum, misafir siparişleri (05 §7.3.5; ilk sayfa testi 500 verince düzeltildi). Unit TAM 7462; Integration ilgili sınıflar yeşil (`CustomerSignInPageTests` 33, `SessionAccessTests` + `CartTests` 56, tarama sınıfları 84); Integration TAM doğrulayıcıda koşulacak. Backlog: D-81, D-556, D-558, D-577, D-619, D-1070, D-1249, D-1277 kapandı; yeni D-1349–D-1353. Doğrulama bekliyor.
+
+## 2026-11-12 — T514 doğrulama tur 3: ✓ PASS (PR #548)
+
+Birleşik ağaçta (uç `34a477dc` + origin/main `33a9d21a`, birleştirme çakışmasız) derleme `-warnaserror` ve format temiz, Unit 295 + 6937, betik testleri 4/4, Integration 3844 (Web 848, Model 1410 — 2 göç testi yükte zaman aşımı, tek başına yeşil —, Ordering 645, kalan 941); main birleştirmesinden sonra Web parçası yeniden koşuldu (856/856); dal CI'ı (run 43121210650) yeşil. Kabul kriterleri 1–10 ✓; tur 2'nin S1'i kapandı. `12`: VAL-A090, VAL-A678 → PASS. K-notları: D-1317 (bağlantı redleri uygulama kaydına yazılmıyor, sistemik), D-1318 (K-779 (1) ↔ K-904 metin çelişkisi, sahip); `/giris` yüzü D-1249, D-1277.
+
+## 2026-11-12 — T514 düzeltme 2 yapıldı (PR #548)
+
+Tur 2 bulgusu (S1) kapatıldı: kayıt ve doğrulama ekranlarının bütün metinleri "siz" hitabıyla yazıldı (`04 §8.2.9`); gönderim sonrası ve yeniden gönderim cümleleri K-779 (1) ve (2)'den, Google teyit cümlesi `04` 5.21.14'ten birebir alındı; yeniden gönderim metni sabit cümleden tarihli yönteme döndü (tarih ilk gönderimin ömrü). Tarama başka "sen" metni bulmadı. ⚠ K-779 (1) "bağlantıyı açtığınızda kullanıma açılır" der, K-904 doğrulamanın açılışla değil düğmeyle olduğunu söyler; cümle K-779'dan olduğu gibi uygulandı, belge değişmedi. K3 (VAL-A678 doğrulanmış kayıt değeri, VAL-A090 uygulama kaydı) eklenmedi, satırlar BEKLEMEDE. Doğrulama tur 3 bekliyor.
+
+## 2026-11-12 — T514 doğrulama tur 2: ✗ FAIL (PR #548)
+
+Birleşik ağaçta (origin/main `5ed330f5`, T503; birleştirme çakışmasız) derleme `-warnaserror` ve format temiz, Unit 7224/7224, betik testleri 4/4, Integration TAM ad alanı parçalarıyla 3822/3822 (Web 826, Model 1410, Ordering 645, kalan 941); dal CI'ı yeşil. Tur 1'in iki bulgusu kapanmış. Yeni bulgu (S1, DÜŞÜK): kayıt ve doğrulama ekranlarının metinleri "sen" hitabıyla yazılmış; `04 §8.2.9` formlar ve hesap ekranları için "siz" der, K-779 gönderim sonrası ve yeniden gönderim metnini sabitler (`07 §4.20.3` "K-779'un ikinci metni"), `04` 5.21.14 Google teyidinin cümlesini tırnakla verir — üçü de karşılanmadı. `12`: `VAL-A493`, A502, A564, A677, A920 → PASS. İkinci iterasyonun FAIL'i: eskalasyon (`12 §8.5`).
+
+## 2026-11-12 — T514 düzeltme 1 yapıldı (PR #548)
+
+Tur 1 bulguları kapatıldı: tekil dizin adı `RegisterInput`tan ayrı `RegistrationIndexes` sınıfına taşındı (T341 sınaması yeşil, gevşetilmedi); çözülmeyen ya da bekleyen olmayan değerde 303 değersiz `/kayit` verir, belgede olmayan `NoLongerPending` cümlesi kaldırıldı (`07 §4.20.1`, §4.20.3). K3 için VAL-A677 ve VAL-A920 uç testleri eklendi. Unit 7173/7173; Integration TAM ad alanı parçalarıyla yeşil (Model parçasında bağlantı kopması kaynaklı geçici kırmızı, tek başına yeniden koşuda yeşil). Doğrulama tur 2 bekliyor.
+
+## 2026-11-12 — T513 düzeltme 1: tur 1 FAIL bulguları kapatıldı
+
+Doğrulama tur 1 ✗ FAIL (4 bulgu, 2 K-notu) düzeltildi: E-18'in kargo ücreti satırları modülün kararıdır — GET'teki koşullu cümle yalnız seçim ücreti geri getirebilecekken (ücretli kargo, S5 var, ret / "mal dönmedi" yok), son adımdaki "Kargo ücreti de geri ödenir." yalnız seçim önceki beyanlarla birlikte kargoya verilen bütün adetleri kapatınca çıkar (B1; `IAfterSalesModule.WithdrawalFeeUnitsAsync`, `ShippingFeeRefunds.OnWithdrawalPreview`; D-1340 kapandı). Ekran bütün kalemleri tek okumayla yükler, komut sayısı kalem sayısına bağlı değil (B2; `IOrderOperations.ReadWithdrawalScreensAsync`, komut sayacı testi). Satırlar kalemin sipariş adedini sınırla birlikte söyler, E-17 dahil (B3; D-1367 kapandı); E-19'un adet alanı seçili ya da tek alanlı kalemin satırında açılır, birden çok alanlı satırda seçim yokken liste altında kalır (⚠, D-1412). Onaysız gönderimde aşan ya da eski açık adet 303 `QuantityExceedsOpen` (B4). K2'nin iki testi eklendi; K1 (D-1401) F5'te. Integration: AfterSalesScreenTests 17/17 ve OrderOperationScreenTests 12/12 koşuldu, TAM: CI.
+
+## 2026-11-12 — T513 doğrulama tur 1: ✗ FAIL (head `926f70ff`, PR #558)
+
+Dört bulgu. B1 (S1, ORTA, para): E-18'in kargo ücreti satırı seçime ve siparişe göre hesaplanmıyor, her fiziksel kalemde sabit koşullu cümle — ücretsiz kargolu siparişte de geri ödeme vaat ediyor (`04` 5.18.6; `07 UC-42`; kriter 1; yapımın D-1340'ı kabul edilmiş risk değil). B2 (S1, DÜŞÜK): E-18 GET'i ve her POST yeniden yüklemesi açık kalem başına siparişi baştan okuyor (`ReadWithdrawalScreenAsync` döngüde; `09 §20` m.4, komut sayısı testi yok). B3 (S1, DÜŞÜK): E-18/E-19 adet satırı üst sınırı kalemin adediyle söylemiyor, E-19'un adet alanı kalemin satırında değil (`04` 2.12.1.8; D-1367 hedefi T513). B4 (S1, DÜŞÜK): onaysız `SubmitWithdrawal` açık adedi aşan ya da eskimiş adette 303 yerine 200 son adım veriyor (`07 UC-43`; kriter 4). `12`: VAL-A072, VAL-A686 PASS; VAL-A577, VAL-A688 FAIL. Yeni K-notu D-1401; D-1340 hedefi T513'e döndü.
+
+## 2026-11-12 — T513 (Cayma beyanı ve ayıp talebi ekranları, E-18, E-19) yapım
+
+E-18 (`{kök}/cayma`) ve E-19 (`{kök}/ayip-talebi`) üye ve erişim anahtarı köklerinde kuruldu; `SubmitWithdrawal`, `SubmitDefectClaim`, `ReopenDefectClaim` `[GatedOperation]` ile modülün yazıcılarını çağırır. Kök çözümü sipariş sayfasıyla ortak (`OrderRoots`); sipariş sayfası dönüş sebebini işlemlerin yerinde söyler. Cayma ekranı geri ödeme süresi, başlangıcı ve ödeme yolunu modülden okur. On kabul kriteri 11 Integration (`AfterSalesScreenTests`) ve 12 Unit (`OrderScreenTextsTests`) testiyle kilitli. D-776'nın T513 payı kapandı; yeni kalem D-1340 (kargo ücreti satırı hesapsız).
+
+Kalem kaydı ayrıntısı (D-1195 T513 payı: cayma kaydında donmuş iade adresi, ayıp talebi kaydında rozet; ret sebebi T528'e) ve D-1196 (cayma ve ayıp talebi düğmeleri ekranlarını açar) kapandı. `origin/main` (T512, T521, T533) birleştirildi: `OrderRoots` ve dönüş sebebi metni (`OrderScreenTexts.ReasonOf`, E-17 dahil) tek evde.
+
+## 2026-11-12 — T512 doğrulama tur 2: ✓ PASS (PR #553)
+
+Dal ucu `f76de0e3`'te (origin/main `29562ee9` ile birleşik ağaç dalın kendisi) derleme `-warnaserror` ve format temiz, Unit 7416/7416, betik testleri 4/4, Integration TAM 3947 (Ordering 669, Web+Files+Pages 1029, kalan 2249) yeşil; dal CI'ı (run 43181168517) yeşil. Kabul kriterleri 1–10 ✓, `09 §25` ve güvenlik taraması temiz, bulgu yok. `12`: VAL-C003, VAL-A068, VAL-C006, VAL-C007, VAL-C009 → PASS; VAL-C004, C005, C008, C010, C014, C019, A067, A069, A070 BEKLEMEDE (kanıtın bir yarısı başka task'ın: düğme, hizmet kalemi, panel, iş kaydı). K-notları: D-1367 (sınır satırında kalemin adedi yok, `04` 2.12.1.8; T513), D-1368 (üye kökünde işlem ekranları ve UC-35 kalıcı testi yok, VAL-A693; F5 kapısı).
+
+## 2026-11-12 — T512 düzeltme 1: tur 1 FAIL bulguları kapatıldı
+
+Doğrulama tur 1 ✗ FAIL (3 bulgu, 1 K-notu) düzeltildi: son adım sipariş iptalinde ve fesihte bütün kalemleri, kalem iptalinde yalnız seçilenleri adıyla ve adetle yazar (B1; `ConfirmView.Items`, `_ConfirmForm`); IBAN alanları IBAN sayısından bağımsız sabit sayıda sorguyla okunur (B2); kapalı alana IBAN gönderiminin ret kodu `RefundIbanNotRequested` (B3); onaysız kalem iptalinde açık adedi aşan ya da eski açık adetli seçim son adımı göstermez, 303 kök `QuantityExceedsOpen` (K1). Öz denetimde VAL-A881 için adet alanının yalnız seçilen kalemin satırında açılması stile yazıldı (`04` 2.12.1.8). main `29562ee9` birleştirildi; Unit 7416/7416, Integration TAM 3947/3947 (stil değişikliğinden önce), derleme ve format temiz. Yeni backlog kalemi yok.
+
+## 2026-11-12 — T512 yapım: iptal ve gecikme feshi ekranı, geri ödeme IBAN girişi
+
+Müşterinin iptal (`…/iptal`: Bekliyor'da sipariş iptali, ödenmişte kalem iptali) ve gecikme feshi (`…/gecikme-feshi`) ekranları iki kökte (üye ve erişim anahtarı), `CancelOrder`, `CancelOrderItems`, `SubmitLateDeliveryTermination` ve sipariş sayfasının IBAN formu (`SaveRefundIban`, UC-35) yazıldı; işlemler `[GatedOperation]` ile modülün tek kural evinden (`ICustomerOperations` → `IOrderTransitions`) işler, geri ödeme ve kargo ücreti kapsamı `ShippingFeeRefunds`'tan gelir, sayfa tutar hesaplamaz. Gecikme feshi havalede IBAN'ı istekle alır (D-873). İşaretsiz işlem POST'unu yakalayan mimari test eklendi (`OperationHandlerMarkTests`; D-153), işlem taraması `RunAsync` çağrısını ister (D-154 (a)), havale bloğuna "IBAN'ı kopyala" eklendi (D-1258), kalemsiz IBAN alanı süzgeci tek sorguya indi. D-153, D-154, D-155, D-792, D-803, D-873, D-1194, D-1258 kapandı; D-819 ve D-1196'nın T512 payı karşılandı; D-1197 ve D-1259 T528'e; yeni kalemler D-1281…D-1285 (`DEFERRED_BACKLOG.d/T512.md`).
+
+## 2026-11-12 — T509 düzeltme 2: tur 2 FAIL bulguları kapatıldı
+
+Doğrulama tur 2 ✗ FAIL bulguları (B2, B3, B4) düzeltildi: ödeme özeti eşiğe kalan tutarı kargo ücretinin hemen altında modülün metniyle yazar, eşikte kargo satırı tek başına "Kargo ücretsiz" der (`04` 5.13.10; `VAL-A044`; D-627 T509 payı ✅); fiziksel kalem yoksa kargo satırı çizilmez (`04` 5.13.26); L-8 doluyken havale listede kalır, seçilemez, yanında nötr mesaj, kart açık; kart da erişilemezse sepete dönüş (`04` 5.13.8, 5.13.21; `07 4.13.1`; D-853 ✅). Liste ve onay L-8'i tek kuraldan sorar (`OrderPlacementLimits.ClosesBankTransferAsync`). Testler `CheckoutPageTests.TheSummary_TellsTheRemainingAmountToFreeShippingUnderTheFee_SaysFreeShippingOnce_AndADigitalCartHasNoShippingLine_VAL_A044`, `AFullOpenUnpaidCeiling_KeepsTheTransferListedUnselectable_TheCardOpen_AndWithTheCardUnavailableLeavesNoMethod_T509_KK1`. Derleme `-warnaserror` ve format temiz, Unit 7478/7478, Integration ilgili sınıflar 49/49 + 43/43 (`CheckoutPageTests` 20/20); Integration TAM CI'da. Yeni backlog kalemi yok.
+
+## 2026-11-12 — T509 doğrulama tur 2: ✗ FAIL (PR #559)
+
+Dal ucu `dee44196`'da (origin/main `73e36672` birleşik) derleme `-warnaserror` ve format temiz, Unit 7478/7478, betik testleri 4/4, Integration parçalı 216/216 + 58/58; dal CI'ı (run 43281914736) yeşil. Tur 1 bulgusu kapandı: iki dakikalık kart listede kalır, seçilemez, sebebi yanında (`VAL-E061` PASS). Kriter 1 yine kısmi: ödeme özeti firmanın eşiğine kalan tutarı yazmıyor (`04` 5.13.10; `VAL-A044` FAIL; D-627 T509 payı açık kalmış), yalnız dijital sepette "Kargo ücretsiz" satırı çiziliyor (`04` 5.13.26), L-8 doluyken havale seçilebilir geliyor (`04` 5.13.8; D-853). İkinci iterasyon FAIL: eskalasyon (`12 §8.5`).
+
+## 2026-11-12 — T509 düzeltme 1: tur 1 FAIL bulgusu kapatıldı
+
+Doğrulama tur 1 ✗ FAIL (B1, ORTA, VAL-E061) düzeltildi: sağlayıcıya iki dakika erişilemeyen kart ödeme adımında listede kalır, radyosu seçilemez (`disabled`), yanında "şu an kullanılamıyor" yazar; havale varsa seçili gelir, yalnız kart varsa "kullanılabilecek yöntem yok" mesajı ve sepete dönüş durur; kart seçili onay 422 `PaymentMethodUnavailable`, sipariş ve bildirim yok (`04` 5.13.8, 5.13.21; `07 4.13.1`; D-1077 ve D-1080'in T509 payı artık sayfada karşılanıyor). Test `CheckoutPageTests.TheCardUnavailableNow_StaysInTheListUnselectableWithItsReason_AndItsConfirmationIsRefusedWith422_VAL_E061`. Derleme `-warnaserror` ve format temiz, Unit 7440/7441 (kalan 1 yükte regex zaman aşımı, sınıf yeniden 38/38), `CheckoutPageTests` 18/18; Integration TAM CI'da. Yeni backlog kalemi yok.
+
+## 2026-11-12 — T509 doğrulama tur 1: ✗ FAIL (PR #559)
+
+Dal ucu `42e1e6a7`'de (origin/main `4b37cf0c` birleşik) derleme `-warnaserror` ve format temiz, Unit 7441/7441, betik testleri 4/4, Integration parçalı 215/215 + 57/57; dal CI'ı (run 43262776784) yeşil. Kabul kriterleri 2–10 ✓, kriter 1 kısmen: sağlayıcıya iki dakika erişilemeyen kart ödeme adımında listeden çıkıyor; `04` 5.13.8 / `07 4.13.1` listede kalmasını, seçilemez olmasını ve yanında "şu an kullanılamıyor" yazmasını ister (B1, ORTA, S1; D-1077 "T509 payı kapandı" iddiası yanlış). `12`: VAL-E061 → FAIL; VAL-A650, A651, A652, A654–A659, A661–A664, A819, A820, A474, A475, A480, A482, A448, B005, A041 → PASS; öteki satırlar BEKLEMEDE. K-notu yok, yeni backlog kalemi yok.
+
+## 2026-11-12 — T509 yapım: ödeme adımı (dal `task/T509-odeme-adimi`)
+
+`GET /odeme` tek sayfa, tek form; beş işleyici (`ApplyCoupon`, `RemoveCoupon`, `Recalculate`, `Leave`, `PlaceOrder`). Her gösterimde yeni onay anahtarı, özet parmak izi, iki metnin sürümü; misafir e-postası özette, düzeltme bağlantısıyla. Çerez yalnız `05 §6.7.9` alanlarını, yalnız ayrılışta yazar; sipariş oluşunca silinir. Onay tek işlemde (tekil dizin yeniden denemesi `PlaceOrderRequest.RetryOnUniqueIndexes`); 422/429/404/303 eşlemeleri `07 UC-27`'ye göre, belirsiz sonuç hata katmanında (`[OutcomeUncertain("UC-27")]`), adressiz istek nötr 429. Cayma özetinin fiziksel cümleleri yalnız fiziksel kalemde (D-743); hesabı silinen oturumun siparişi misafir yolunda (D-385). Backlog: D-385, D-563, D-626, D-729, D-743, D-785, D-805, D-807 kapandı; D-254, D-437, D-801, D-1077, D-1225 T509 payı kapandı; D-435, D-650, D-769, D-853, D-1189, D-1190, D-1245, D-1246 → F5 gate, D-1127 → T510; yeni D-1333, D-1334.
+
+## 2026-11-12 — T506 doğrulama tur 2: ✓ PASS (PR #551)
+
+Dal ucu `fd92dbcd`. Derleme `-warnaserror` ve format temiz, Unit 7226/7226, betik testleri 4/4, Integration TAM ad alanı parçalarıyla 3834/3834. KK1–KK10 karşılanıyor; tur 1 B1 kapandı (kapalı kapı POST'u 422 ve tek `DataCollectionClosed` ret satırı). `12` Durum: VAL-A123 PASS, VAL-A487 PASS. Birleştirme notu: origin/main `33a9d21a` ile `CorporateContentModule.cs` kurucusunda kod çakışması (dalın `ContentReaders` ↔ main'in `StorefrontContentPages`); birleştirme geri alındı, PR çakışmalı olduğu için uçta CI yok — çakışma çözülüp CI yeşil olmadan merge edilmez.
+
+## 2026-11-12 — T506 düzeltme 1 (PR #551)
+
+Tur 1 B1 kapatıldı: kapalı kapıda `SendContactRequest` 422'si `DataCollectionClosed` ret satırını yazıyor; üç ret türünü sınayan Integration testi eklendi. Rapordaki `?code=` yazımı `?notice=` olarak düzeltildi. Build, format, Unit 7226 ve Integration Web 838 yeşil; tur 2 doğrulaması bekliyor.
+
+## 2026-11-12 — T506 doğrulama tur 1: ✗ FAIL (PR #551)
+
+Dal ucu `a53c6c33` origin/main `9f5b8ac8`'i içeriyor (birleştirme gerekmedi). Derleme `-warnaserror` ve format temiz, Unit 7226/7226, betik testleri 4/4, Integration TAM ad alanı parçalarıyla 3833/3833, CI yeşil (run 43115380835). KK1–KK10'un davranışı karşılanıyor. Bir ORTA S1 bulgu: veri toplayan girişlerin kapısı kapalıyken `POST ?handler=SendContactRequest` 422 kapalı sayfayı döner ama `DataCollectionClosed` ret satırını yazmaz (`RejectionLog` çağrılmıyor; `09 §8.2` m.3, K-1198; `09 §25` "red uygulama kaydında mı") — `VAL-A123` (KRİTİK, kanıt "Uç yanıtı + Uygulama kaydı") FAIL. `12` Durum: A123 FAIL; A452, A558, A580, A634 PASS. Yeni backlog D-1313 (D-1227 kapsamı, D-1228 satır listesi).
+
+## 2026-11-12 — T505 doğrulama tur 4: ✓ PASS (head `df5a8864`, PR #543)
+
+Tur 3'ten sonraki iki kod birleştirmesi (`storefront.css`, `SessionAccessTests.cs`) ve `origin/main` `9f5b8ac8` (T520 #549) birleşik ağaçta yeniden doğrulandı (çakışma yok). Kriter 1–8 ve KK1–KK8 ✓; bulgu 0, yeni K-notu yok. Unit 7215, Integration TAM 3827, CI run 43113395347 yeşil. `VAL-A115`…`A119` tarayıcı gözlemi beklediği için `BEKLEMEDE`.
+
+## 2026-11-11 — T550 (F4 kapanış düzeltmeleri: null-forgiving temizliği ve sır bekçisi önek soyma) doğrulama tur 1 ✓ PASS
+
+Dal ucu `bf77ceaf`, PR #533. Birleştirme notu: `origin/main` `dca82c42`'ye (T537) ilerledi; birleştirme metin olarak temiz ama birleşik ağaçta null-forgiving taraması kırmızı (T537'nin `Carts.cs`'e eklediği iki gerekçesiz `VariantId!.Value`); birleştirme geri alındı, merge öncesi dal güncellenip iki satır düzeltilmeli. Kriter 1–6 ve KK1–KK6, `09 §25` ve güvenlik taraması ✓. Bağımsız envanter: `src` altında gerekçesiz `!` 0 (main'de aynı desen 199 satır); tarama mutasyonla kırmızı gösterildi; para yolunda kaldırışlar `[NotNullWhen]` ya da `?? throw`, sessiz varsayılan yok. Bekçi sondası: D-1036'nın iki biçimi ve satır ortası türevleri eski 0 ↔ yeni 1, yer tutucu ve yorum satırı geçer. Yerel: Unit 6628/6628, kanca 223/223, betik testleri 4/4, Integration Ordering 637, Payment 59, Concurrency 30, Catalog 82, CorporateContent 185, Administration 69, Jobs 85, Commands 70; CI run 42942279998 yeşil. K1 (D-1120 envanterine `package-build.sh:259, 263, 266, 268` eklendi) bu PR'da kapandı; K2 → D-1130 (bekçinin kendi test dosyası bekçiye takılır).
+
+- **Birleştirme düzeltmesi:** `origin/main` (T537) birleştirildi; `Carts.cs`'in merge bildirimi okumasındaki iki `VariantId!.Value` satırına yalnız `// non-null:` gerekçe yorumu eklendi (üstteki sorgu `VariantId != null` ile süzüyor).
+
+## 2026-11-11 — T550 yapım bitti, PR açıldı (dal `task/T550-f4-kapanis-duzeltmeleri`)
+
+- **Null-forgiving (D-778 ✅; K-1614):** `src` altında `!` taşıyan 199 satırın (102'si Ordering) her biri ya kaldırıldı (desen eşlemesi, `[NotNullWhen]` deneme yöntemleri, beklenmeyen `null`'da `?? throw`) ya aynı satırda `// non-null: <gerekçe>` yorumu aldı. Mimari test `NullForgivingSourceScanTests` gerekçesiz kullanımı sayar (0); sözcük çözücü yorum ve metni ayırır, literal ardındaki ve boşluklu `!`'ı da yakalar. Biçim `09 §3.1` madde 5'e yazıldı (v0.34).
+- **Sır bekçisi (D-1036 ✅):** `scripts/git-hooks/pre-commit` satırdaki her `-e`/`--env` önekini ayrı aday olarak denetler; `test-pre-commit.sh` 223/223. Paket betiğinin taraması önek soymaz, `_FILE` istisnası eşleşme başına.
+- **Testler:** Unit 6628/6628; Integration Ordering 637, Payment 59, Concurrency 30 (değişmeden geçti).
+- **Yeni backlog:** D-1120 (bekçinin kabuk genişlemesi yanlış pozitifi; `DEFERRED_BACKLOG.d/T550.md`).
+
+## 2026-11-11 — T545 doğrulama tur 2: ✓ PASS
+
+Kriter 1–10 ve KK1–KK10 karşılandı: indirimli kartın ana fiyatı artık indirimli fiyat, referans üstü çizili yanında, tarihler fiyat satırının altında. Derleme `-warnaserror` temiz, birim 6857/6857, betik testleri 4/4, Integration `ListComponentPageTests` 26/26 ve Web 649/649. Head `3b867682` için CI koşmadı (PR main ile `components.css`/`admin.css`'te çakışmalı); merge öncesi çakışma çözülüp CI yeşili teyit edilir. İki K-notu forward edildi: D-1177 (kurumsal içerik listesinin sayfa boyu → T534), D-1178 (vitrin kartının fiyat beslemesi ve boş hâlin kategori bağlantıları → T502).
+
+## 2026-11-11 — T545 düzeltme 1: indirimli kartın ana fiyatı
+
+İndirimli ürün kartı artık ana fiyat olarak indirimli fiyatı (`DiscountLine.DiscountedPrice`), yanında üstü çizili referans fiyatı gösteriyor; indirimsiz üründe tek fiyat. Birim ve Integration örnekleri okuyucunun gerçek biçimiyle (LowestPrice 100, indirimli 80, referans 100) kuruldu, indirimsiz örnek eklendi. Yeniden doğrulama bekliyor.
+
+## 2026-11-11 — T545 doğrulama tur 1: ✗ FAIL
+
+İndirimli ürün kartı ana fiyat olarak indirimsiz liste fiyatını (`LowestPrice`) gösteriyor, indirimli fiyat (`DiscountedPriceText`) çizilmiyor (KK3; `04` 2.11.2). Öteki dokuz kriter, derleme, birim (6855), dalın entegrasyon sınıfları ve CI yeşil. Dal merge edilmez; düzeltme turu gerekir.
+
+## 2026-11-11 — T545 yapım: liste ve tablo, ürün kartı (dal `task/T545-liste-tablo-urun-karti`)
+
+Ürün kartı ve içerik kartı (tek bağlantı; sepet, stok, form yok), 2/3/4 sütunlu ızgara, numaralı sayfa gezinmesi (24/25 kayıt tablosu, birinci sayfa parametresiz), boş hâl satırı, yalnız sayılı listelerde arama alanı ve panel tablosu (geniş tablo, orta sınıfta ikincil sütunlar satırın altında, dar sınıfta kart; toplu işlem yok) eklendi; ortak görünümler `Pages/Shared/`, modeller `Pages/Lists/`. Önceki işçi bağlam sınırında bölündü; bu tur Integration örnek sayfalarını adres kurallarına uydurdu (`/odeme/liste-*`), örnek sayfanın `page` parametresini bağladı, `PreviousPath`'i adres taramasının yasak adından ayırdı (`PrevPagePath`) ve `[InlineData]` içindeki CSS'i test taramasını şaşırtmayacak biçimde `MemberData`'ya taşıdı. Backlog: D-1155, D-1156.
+
+## 2026-11-11 — T544 düzeltme 1: tur 1 bulguları giderildi
+
+Görsel ve dosya yükleme bileşenleri reddedilen dosyanın (ve silinmiş yüklemenin) sebebini alanın altında alan mesajı olarak çizer; galeri dosya girişinin kimliği hata özetinin bağlantısıyla eşleşir (`04` 2.12.8.3, 2.12.8.7, 2.3.2). Kupon kodu alanı "isteğe bağlı" çizilir (`04` 7.1.5.7). Yeni Unit ve Integration testleri eklendi; doğrulama tur 2 bekliyor.
+
+## 2026-11-11 — T544 doğrulama tur 1: ✗ FAIL
+
+Kriter 10 kısmi: görsel ve dosya yükleme bileşenleri (`_GalleryUpload`, `_SingleUpload`) reddedilen dosyanın sebebini alanın altında alan mesajı olarak çizmiyor; `UploadChecks.AddRefusal` yalnız model durumuna yazıyor ve galerinin dosya girişinin kimliği (`gallery-files`) hata özetinin bağlantısıyla (`Input_Gallery_Files`) eşleşmiyor (`04` 2.12.8.3, 2.3.2). Ayrıca kupon kodu alanı "zorunlu" etiketiyle çiziliyor, `04` 7.1.5.7 isteğe bağlı der. CI yeşil (run 43072832924), Unit 7265 ve `ControlComponentTests` 9 yerel yeşil. Dal merge edilmez; düzeltme turu gerekir.
+
+## 2026-11-11 — T544 yapım: tarih alanı, kupon alanı, onay kutuları, görsel ve dosya yükleme arayüzü (dal `task/T544-tarih-kupon-onay-yukleme`)
+
+Olay tarihi (ileri tarih ve alt sınır reddi, sıra sorusu alan olarak), tarih aralığı (ileri tarih serbest/yasak iki politika, uçlar T378 k7 `TurkeyTime` üzerinden), kupon alanı (kapalı satır, açık alan, uygulanmış hâl, limitle kapanan alan; iki ayrı ret mesajı; kod büyük-küçük harf ayrımsız), onay kutuları (iki sabit, sepete göre dijital ve hizmet kutusu; hiçbiri işaretli gelmez; metin sürümü ve özet farkında işaret kalkar; KVKK, yaş, pazarlama kutusu yok) ve görsel/dosya yükleme arayüzü (galeri sırası ve ana görsel, boş alternatif metni sistem üretir, sınır aşımı alan mesajı, ilerleme ve kapalı kayıt düğmesi, tek dosyalı alanlar, müşteri yüklemesi yok) bileşenleri örnek sayfayla sınandı. İki işçi bağlam/süre sınırında bölündü, üçüncü bitirdi. Unit 7265 ve Integration TAM (ad alanı parçaları) yeşil, `dotnet format` üç proje temiz. Yeni backlog: D-1222–D-1226.
+
+## 2026-11-11 — T543 doğrulama tur 1: ✓ PASS
+
+Kriter 1–10 ve KK1–KK10 karşılandı; `origin/main` (`f40f3a9d`, T545) çakışmasız birleştirilip birleşik ağaçta doğrulandı. Derleme `-warnaserror` temiz, format temiz, Unit 7096/7096, betik testleri 4/4, Integration tam koşu (Web 706, Model 1407, Ordering 637, kalan 931) 0 kırmızı. `12` satırları (KP-12, KP-71) tarayıcı/uç kanıtı ister → BEKLEMEDE. Bulgu 0; K-notu 2 (K1 → D-1214; K2 yük kaynaklı geçici kırmızı, yeniden koşu temiz). Head `01411663`.
+
+## 2026-11-11 — T543 yapım: form alanı ve düzeni, adres formu, IBAN alanı, sebep seçimi ve ortak alan kuralları (dal `task/T543-form-alani-adres-iban`)
+
+Alan parçası (`_Field`: görünür etiket, zorunluluk metni, alanın altında etikete `aria-describedby` ile bağlı mesaj, kapalı liste `<select>`), bölümlü form (`_FormSection`: her bölüm kendi `<form>` ve düğmesi, işleyici form etiketinde), adres formu (alıcı, il, ilçe, açık adres; teslimatta telefon; posta kodu ve T.C. kimlik no yok; teslimat varyantında kapalı il yerinde reddedilir), IBAN alanı (yalnız havale hattı ve iki istisna; istisnada isteğe bağlı; işlenince salt okunur) ve sebep seçimi (sebepsiz firma iptali onayı açılmaz; "diğer" açıklamayı zorunlu yapar) bileşenleri örnek sayfayla sınandı. Önceki işçinin bölünen işi devam turunda bitirildi: dört kırmızı birim testi (sütun taraması, `required` taraması, istisna türü) düzeltildi; `FormComponentTests` (18 test) eklendi. Yeni backlog: D-1179–D-1183; D-1148 kapandı. Unit 7016 ve Integration Web 680 yeşil.
+
+## 2026-11-11 — T542 doğrulama tur 1: PASS
+
+Kriter 1–9 ve KK1–KK9 ✓ (head `926a2e12`; birleştirme gerekmedi). Dal CI'ı yeşil (run 42970856849); yerelde derleme 0 uyarı, format temiz, Unit 6809/6809, betik testleri 4/4, Integration Web ad alanı 636/636. Bulgu 0; K1 (KP-76 satırlarının kapanış sahibi) D-1167'ye forward, K2 (D-1150 kanıt yolu) bu PR'da düzeltildi. `12` task satırları `BEKLEMEDE` kaldı (ekran düzeyinde kanıt bekliyor).
+
+## 2026-11-11 — T542 yapım tamamlandı, PR açıldı (dal `task/T542-rozet-sayac-eszamanli-uyari`)
+
+Ortak bileşen kütüphanesi: altı rozet ailesi ve siparişin iki ayrı rozeti, on kalem kaydı adı, yedi panel işareti (liste/ayrıntı yeri), "e-posta ulaşmadı" bloğu (davet satırında yeniden gönder yok), altı bekleyen iş sayacı (sıfır yazılır, her biri süzülmüş listeye gider), "IBAN bekleniyor" satır listesi, süre göstergesi (gün, son gün tarihi, iş günü birimi, aşım metni, canlı geri sayım yok), eşik mesajı ve bölümlü ekranda yalnız kaydedilen bölümde çıkan birleşme denetimi. Test: Unit `StatusComponentTests`, `IndicatorComponentTests` (tam Unit 6809); Integration `StorefrontFrameTests` parçası `ComponentMarkupTests` (örnek sayfalarla, 13 test; tam Integration 3454). Yeni backlog: D-1150–D-1154 (çağıran ekranlar, üç metin/dizilim ⚠, tarayıcı gözlemi).
+
+## 2026-11-11 — T541 doğrulama tur 1 yeniden koşu: ✓ PASS (kod head'i `8e7e4782`, PR #537)
+
+Önceki doğrulayıcı kayıt commit'ini (`a08349f5`) bırakıp rapor yazamadan durdu; tur 1 bağımsız olarak baştan koşuldu. Kriter 1–10 ve KK1–KK10 yeniden kanıtla karşılandı: Unit 6848/6848, betik testleri 4/4, Integration Web 643, Logging 30, SignedEndpoints 11, Security 34, Jobs 85 yeşil; derleme `-warnaserror` ve format temiz; dal CI run 42975292161 success. Bulgu yok. D-1173 ve D-1174 korundu, D-1174'e iki gözlem eklendi ("Yeniden dene" adresinde işleyici sorgusu; E-44 koşul satırlarının okunuşu). Önceki kaydın yeniden hedeflemeleri (K3) doğru bulundu. `12` satırları BEKLEMEDE. Birleştirme notu: `origin/main` (`db7984ac`) `components.css`'te kod çakışması verdi; birleştirme geri alındı.
+
+## 2026-11-11 — T541 doğrulama tur 1: ✓ PASS (head `8e7e4782`, PR #537)
+
+Kriter 1–10 ve KK1–KK10 kanıtla karşılandı; Unit 6848/6848, betik testleri 4/4, Integration Web 643, Logging 30, SignedEndpoints 11, Security 34 yeşil; derleme `-warnaserror` ve format temiz. Bulgu yok. K-notları: D-1173 (onay bileşeni `Confirmed` işaretini kendisi yazmıyor), D-1174 (işlem düzeyi çerçeveli yedek sayfada "Yeniden dene"; geçici kapatma uyarı cümlesi); K3: T541'e ve T542'ye hedeflenip alınmayan D-138, D-141, D-1134, D-1143, D-1145–D-1147 F5 gate'e yeniden hedeflendi. `12`'de task'ın KP-38 ve KP-69 satırları BEKLEMEDE kaldı (uçtan uca satış kapısı ve tarayıcı kanıtı bu task'ta yok). Birleştirme notu: `origin/main` (`db7984ac`, T542) `components.css`'te kod çakışması verdi; birleştirme geri alındı.
+
+## 2026-11-11 — T541 yapım: mesaj, onay, boş ve hata hâlleri ve satış kapalı hâli (dal `task/T541-mesaj-onay-bos-hata-halleri`)
+
+Mesaj (dört anlam, dört yer, simge + metin), form hata özeti (sayı, form sırasına göre ilk alana odak, korunan değerler), onay (yönetici penceresi, müşteri adımı, betiksiz yol, ikinci basış engeli), boş hâl satırı, yükleniyor, çerçeveli 500 sayfası (D-135 kısmen) ve satış kapalı hâli (vitrin, panelde dört yer, veri kapısı) bileşenleri ve örnek sayfalarla sınandı. Devam turunda `<partial>` etiketinin dört ortak görünümde ham yazıldığı (tag helper bildirimi eksik) ve ilk hatalı alanın alfabetik seçildiği bulundu ve giderildi. Yeni backlog: D-1145–D-1148; D-135 kısmen ✅, D-1138 ✅, D-138 ve D-141 yeniden hedef. Rapor: `Docs/TASK_REPORTS/T541_REPORT.md`.
+
+## 2026-11-11 — T540 doğrulama tur 2: PASS
+
+Kriter 1–9 ve KK1–KK9 ✓ (head `0fddab5e`): B1 ("Ürünler" düğmesi, tıklama/Enter/Space ve Esc, hover yok, betiksiz yolda ağaç açık) ve B2 (panelde geniş sınıfta `.panel-content` sınırlı ve ortada) giderildi. CI yeşil (run 42960747674); yerelde derleme 0 uyarı, format temiz, Unit 6777, betik testleri 4/4, Integration TAM 3598 (Web 623, Model 1407 — ilk koşuda yeşil, öteki 1568) yeşil. `12`: tarayıcı gözlemi isteyen satırlar BEKLEMEDE kaldı; VAL-A671 PASS (uç yanıtı ve veri kaydı kanıtı). Yeni backlog: D-1143 (geniş sınıfta ETBİS bandı kimlik bloğunun altında, `04` 2.2.5 "yanında" der).
+
+## 2026-11-11 — T540 düzeltme 1: B1 ve B2 giderildi (dal `task/T540-tasarim-tabani-cerceve`)
+
+B1: vitrin menüsünde "Ürünler" gerçek bir düğme (`aria-expanded`, `aria-controls`); tıklama, Enter ve Space kategori ağacını açıp kapatır, Esc kapatıp odağı düğmeye döndürür, hover açılışı kaldırıldı, dar sınıfta da aynı düğme ağacı katlar (D-1137 ve D-1139 ✅); betiksiz yolda ağaç açık. B2: `.panel-content` geniş sınıfta `--content-max-width` ile sınırlı ve ortada. K4: `.pending-mark` tek dosyada. `12`: VAL-B062 FAIL'den BEKLEMEDE'ye (tarayıcı gözlemi bekliyor). Yeni testler: kaynak taraması (düğme, Esc/tıklama, iki çerçevede genişlik sınırı) ve entegrasyon (düğme ve `aria` durumu).
+
+## 2026-11-11 — T540 doğrulama tur 1: FAIL
+
+Kriter 3, 5–9 ✓; kriter 4 ✗ ve kriter 2 ~ Kısmi (B1, S1 ORTA): orta ve geniş sınıfta vitrin menüsünün kategori ağacı yalnız `:hover`/`:focus-within` ile açılıyor, "Ürünler" başlığı odaklanamayan bir `span` ve gizli bağlantılar sekme sırasında değil — kategoriler klavyeyle (ve dokunmatik orta/geniş ekranda) menüden açılamıyor. Kriter 1 ~ Kısmi (B2, S1 DÜŞÜK): panelde geniş sınıfta içerik sınırlı genişlikte durmuyor (VAL-B062 FAIL). CI yeşil (run 42955145005); yerelde derleme, format, Unit 6764, Integration TAM 3597 yeşil. `12`: yapımın PASS'a çektiği VAL-A125, A127, A128, A129, A133 tarayıcı gözlemi yapılmadığı için BEKLEMEDE'ye döndü (K3). Yeni backlog: D-1139 (dar sınıfta ağaç katlanmıyor), D-1140 (kararsız Model testi).
+
+## 2026-11-11 — T540 yapım: tasarım tabanı, vitrin ve panel çerçevesi, yönetici şeridi ve Taslak bandı (dal `task/T540-tasarim-tabani-cerceve`)
+
+Dört stil dosyası (`base`, `components`, `storefront`, `admin`; üç genişlik sınıfı tek tanımdan), `common.js`, vitrin düzeni (`_StorefrontLayout`: yönetici şeridi ya da Taslak bandı, duyuru şeridi, üst bölüm ve menü, içerik, eksiksiz altbilgi; ödeme adımında sade üst bölüm), panel düzeni (`_PanelLayout`: üst satır ve sekiz girişli menü, bekleyen iş işareti) ve çerçevesiz düzen (`_PanelBareLayout`) eklendi. `PanelFrame` modeli, kurucusu ve sayfa süzgeci (`PanelFrameFilter`) kuruldu. Statik dosyalar `Context.StaticAsset(...)` ile `/statik` altında parmak izli adresten bağlanır (D-116 kapandı; `09 §16.1` hizalandı). Önceki iki işçi bağlam sınırında bölündü; bu tur Unit mimari taramalarını yeşile döndürdü (önbelleksiz durağan adres çözücü, `wa.me/<rakam>` sohbet bağlantısının paylaşım taramasından ayrılması, çıkış formunda `?handler=SignOut` ve `asp-antiforgery`, arama motoru kapatması `SearchEngineData.Head` kalıbından, birleşme kutusunun kancası `merge-notice`), KK2 metin kesme denetimi ve rapor/kayıtlar yazıldı. Backlog: D-116, D-1125, D-1126, D-1128, D-1132 kapandı; D-222 ve D-730 payı kapandı; D-135 ve D-138 hedefi T541; yeni D-1134…D-1138.
+
+## 2026-11-11 — T537 doğrulama tur 1: ✓ PASS (dal ucu `b69ac697`, PR #532)
+
+Bağımsız doğrulama: kabul kriterleri 1–9 ve KK1–KK9 ✓ (kod okundu; `StorefrontFrameTests` 11 test, `StorefrontFrameModelTests`); yerelde `-warnaserror` derleme temiz, format üç projede temiz, Unit 6607/6607, betik testleri 4/4, Integration dokunulan altı sınıf 193/193 (PostgreSQL 18, `track_commit_timestamp=on`). Dal CI'ında Lint, Build, Unit, Integration, Contract, Migration yeşil; Paketleme veritabanı imajının ilk kurulum adımında (`database system is shutting down`) düştü — dal bu yola dokunmaz, kayıt commit'inin yeni koşusu merge öncesi yeşil görülmeli. Bulgu 0; K-notu 2: K1 D-1127 hedefindeki ekran kimliği düzeltildi (E-16 → T509, E-13), K2 D-1132 (birleşme mesajının çizimi T540). `12` satırları (`VAL-A125`…`VAL-A135`, `VAL-A671`) tarayıcı gözlemi ve çizim istediği için `BEKLEMEDE` kaldı. Durum `✓`.
+
+## 2026-11-11 — T537 yapım: vitrin çerçevesinin modeli (dal `task/T537-vitrin-cercevesi`)
+
+`StorefrontFrame` görünüm modeli ve kurucusu eklendi (`Pages/Frame`): sayfa filtresi çerçeveyi sayfa yanıtının isteğine koyar, sayfa modeli eklemez; marka ve menü (logo, ad, alan adı geri düşüşü), duyuru şeridi (taslak yalnız yönetici tarayıcısında), üç hesap hâli (yönetici oturumu üye sayılmaz), sepet kalem sayısı, sosyal bağlantılar ve WhatsApp numarası, altbilgi (kimlik seti, ETBİS, genel sayfalar, yayındaki yasal metinler, platform imzası), satış ve veri toplama kapıları (her istekte okunur, saklanmaz), yönetici şeridi, bir kez söylenen birleşme mesajı; ödeme adımında (`/odeme`) menü, arama ve duyuru yok. Modüllere beş okuma ucu eklendi (sosyal bağlantılar, WhatsApp numarası, üye adı, sepet sayacı, birleşme mesajı). Göç yok. Unit 6598 + 9, Integration tam (3586) yeşil, format temiz. Backlog: D-1125–D-1128 (parça); D-116, D-138, D-529, D-678 hedefleri yerinde güncellendi. Rapor: `Docs/TASK_REPORTS/T537_REPORT.md`. Durum `⏳`; doğrulama bekliyor.
+
+## 2026-11-11 — T520 yapım: panel girişi, şifre sıfırlama, davet kabulü ve çıkış
+
+`/panel/giris`, `/panel/sifre-sifirlama[/{anahtar}]`, `/panel/davet/{anahtar}` ve yönetici çıkışı (`SignOut`) yazıldı; test örnek sayfaları kaldırıldı, sayfalar gerçek `Pages/Panel` altında. Şifre alanı T514 ile aynı `Concealed` türü. Girdi alan adları 07 §5.1.2 tablosuna uyduruldu (`IsLongLived`, `SpecAssignedName`). D-595 kapandı; D-464 ve D-806'nın T520 payı karşılandı; yeni kalem D-1260. Unit 7159, ilgili Integration sınıfları (315 test) yeşil.
+
+## 2026-11-11 — T514 doğrulama tur 1: ✗ FAIL (PR #548)
+
+Birleşik ağaçta (origin/main `30832ba6`, T507; yalnız `DEFERRED_BACKLOG.md` kayıt çakışması, `a74fac3e` ile çözüldü) derleme `-warnaserror` ve format temiz, Unit 7173/7173, betik testleri 4/4; Integration TAM ad alanı parçalarıyla 3796 testten 1 kırmızı: `MembershipTests.TheFormAndTheAccount_HaveNoMarketingConsentField` — dalın üye modülünün `RegisterInput` kaydına eklediği statik `RetryOnUniqueIndexes` özelliği formun "yalnız üç değer" sınamasını kırıyor (S2). Ayrıca `07 §4.20.1`, §4.20.3 sapması: çözülmeyen ya da bekleyen olmayan değerde 303 değeri taşıyor ve form belgede olmayan bir cümleyle geliyor (S1). Kriter 1–10'un kanıtı yerinde; kriter 6'nın `/giris` yüzü T515'in sayfasına bağlı (D-1249). `12`: VAL-B020, A492, A559, A676, A679 → PASS.
+
+## 2026-11-11 — T514: kayıt ve doğrulama bağlantısı (E-20, E-21) yapımı bitti, PR açıldı
+
+`GET /kayit` formu, `Register` ve `ResendVerificationLink` (`/kayit`) uçları, `GET /dogrulama/{anahtar}` altı hâli ve `VerifyEmail` yazıldı; şifre alanı için `FieldKind.Concealed`, bekleyen kaydı okuyan `ReadPendingRegistrationAsync` eklendi. D-252 kapandı; `/giris` tarafındaki yeniden gönderim D-1249 ile T515'e bağlandı. Tam Integration bütçe nedeniyle koşulmadı; doğrulayıcı birleşik ağaçta koşar.
+
+## 2026-11-11 — T511 doğrulama tur 1: ✓ PASS (head `20c8bbcc`, PR #545)
+
+Kriter 1–10 ve KK1–KK10 kanıtla karşılandı; birleşik ağaçta (origin/main `25f1f1ee`, T508; yalnız `DEFERRED_BACKLOG.md` kayıt çakışması, `20c8bbcc` ile çözüldü) derleme `-warnaserror` temiz, format temiz, Unit 7150/7150, betik testleri 4/4, Integration TAM ad alanı parçalarıyla yeşil (Model 1407, Web 755, Ordering 645, öteki ad alanları 941; tek bir parça koşusunda 4 kırmızı yeniden iki koşuda yeşil — yük kararsızlığı); dal CI run 43069617924 success. Bulgu yok. `12`'de task'ın satırları PASS: `VAL-B015`, `VAL-B016`, `VAL-B018`, `VAL-A054`, `VAL-A056`, `VAL-A061`, `VAL-A063`…`VAL-A065`, `VAL-A488`, `VAL-A489`, `VAL-A491`, `VAL-A605`, `VAL-A609`, `VAL-A636`, `VAL-A977`; tarayıcı gözlemi isteyen satırlar (`VAL-A058`, `VAL-A391`, `VAL-A981` dahil) BEKLEMEDE. K-notları: D-1258 (E-16'da IBAN'ı kopyalama düğmesi yok, `04` 5.16.14), D-1259 (indirme düğmesinin GET açıklığı işlem satırından okunmuyor).
+
+## 2026-11-11 — T511 yapım devamı: main birleştirmeleri, rapor ve PR
+
+main T504, T543 ve T502 birleştirildi (rebase yok). T504 sonrası her yanıtta yeni nonce olduğundan "aynı 404" karşılaştırmaları `<main>` içerik bölgesine geçti (`OrderPageTests`, `SessionAccessTests`, `NotFoundPageTests`); enum dosyaları ayrıldı, indirme reddinde yeniden okuma 404'e düşerse 404. Unit 7139/7139; ilgili Integration sınıfları birleşik ağaçta yeşil. Rapor `Docs/TASK_REPORTS/T511_REPORT.md` yazıldı, PR açıldı.
+
+## 2026-11-11 — T511 yapım: sipariş takibi, sipariş sayfası ve indirme
+
+Sipariş takibi girişi (`/siparis-takibi`, `FindOrder`, L-5 iki eksen), sipariş sayfasının iki kökü (üye ve erişim anahtarı) ve `DownloadDigitalFile` (bir saatlik imzalı bağlantı, hak tek koşullu güncellemeyle düşer) yazıldı. Vitrin/panel çerçeve süzgeci sırası 100 → -150 (T508 ile ortak; doğrulama 422'si çerçeveli çizilir). D-122, D-218, D-508, D-565, D-566, D-668 kapandı; D-693, D-780, D-801'in T511 payı karşılandı; yeni kalemler D-1194…D-1197 (`DEFERRED_BACKLOG.d/T511.md`).
+
+## 2026-11-11 — T508 doğrulama tur 1: ✓ PASS (head `6a8e61a0`, PR #544)
+
+Kriter 1–10 ve KK1–KK10 kanıtla karşılandı; birleşik ağaçta (origin/main `d2bc2d33`, T502; çakışmasız) derleme `-warnaserror` temiz, Unit 7139/7139, betik testleri 4/4, Integration TAM ad alanı parçalarıyla yeşil (Web 755, Ordering 638, Model 1407, öteki ad alanları 931); format temiz; dal CI run 43033057523 success. Bulgu yok. `12`'de task'ın satırları PASS: `VAL-A029`, `VAL-A638`…`VAL-A644`, `VAL-A668`. K-notları: D-1245 (sepette teslimat il kısıtı satırı yok, `04` 5.12.3 (3)), D-1246 (satır tutarı ve ödenecek toplam görünümde çarpma/toplamayla kuruluyor; modülün görünümü taşımalı). Yapım raporu "`12`'de VAL satırı yok" diyordu; satırlar `07 §4.12` ve KP-9 aramasıyla bulundu (uyuşmazlık rapora yazıldı).
+
+## 2026-11-11 — T508: sepet (E-12) yapımı bitti, PR açıldı
+
+`GET /sepet` kalemleri, tutarın dökümünü, kargo ve asgari tutar mesajlarını ve ödeme adımı geçişini modülün hesabıyla çizer; `UpdateCartItem` (mutlak adet, 303/422/404) ve `RemoveCartItem` (303/404) uçları yazıldı; bir kez söylenen mesajlar içerik başında. Vitrin ve panel çerçeve süzgecinin sırası 100 → -150 (422/400 yeniden gösterimi çerçeveyle çizilir; T511 aynı değer). Dijital varyantın ekleme yolu 1 dışı adedi ve ikinci eklemeyi reddeder (D-637). Sepet kapalı ekran başlığını `RecordPages.ClosedScreen` ile kurar (D-693 sepet payı). Sepetin stok/sınır reddi ret satırını `07`'nin koduyla yazar (`CartRefusalCodes`, D-638). Backlog: D-302, D-559, D-620, D-637, D-638 kapandı; D-198, D-507, D-627, D-693 T508 payı kapandı; D-650 gerekçeyle T509'a ileri atıldı; yeni D-1189–D-1191. Rapor `Docs/TASK_REPORTS/T508_REPORT.md`.
+
+## 2026-11-11 — T507 doğrulama tur 1: ✓ PASS
+
+Kriter 1–10 ve KK1–KK10 kanıtlandı; CI run 43078021979 yeşil; yerel derleme, format, Unit, betik ve ilgili Integration sınıfları yeşil. `12`: VAL-A300, VAL-D034 PASS; VAL-A299 (tarayıcı gözlemi) BEKLEMEDE. Backlog: D-219, D-269, D-730 ✅ kapandı; D-222'nin T507 payı hedeften çıktı. STATUS satırı ✓.
+
+## 2026-11-11 — T507 yapım: yasal metin sayfaları ve panelde yönetimi (E-11, E-47)
+
+Aydınlatma metni, çerez politikası ve işlem rehberi sayfaları ile `GET /panel/yasal-metinler` paneli (dört satır, düzenlenen iki metnin bölümü, üretilen iki metnin güncel hâli, taslak kaydet, önizleme, yayına al) eklendi. `NoticeTexts` kısa ömürlü bildirim metinlerini tek yerde toplar. Derleme temiz, `dotnet format` temiz, Unit tam, Integration tam (ad alanı parçalarıyla). PR açıldı, doğrulama bekliyor.
+
+## 2026-11-11 — T506 yapım: Sık sorulan sorular ve iletişim sayfası ve formu (dal `task/T506-sss-iletisim`)
+
+`GET /sss` (yayındaki sorular elle sırayla tek listede, boş hâl satırı, taslak etiketi ve ilk yanıtta yapılandırılmış veri) ve `GET /iletisim` (kimlik bloğu, form, şubeler harita bağlantısıyla; üyede ad ve e-posta ön dolu; kapı kapalıyken kapalı hâl) ile `POST ?handler=SendContactRequest` (Açık talep, 303 → kodlu `/iletisim`, 422, 429/L-4, `Website` tuzağı, tekrar gönderim) yazıldı. Kimlik bloğu altbilgi ile iletişim sayfasında ortak partial'dır. Sabit `ContactPageContent.HasContactForm` alanı kaldırıldı; form açıklığı `GetContactFormAsync` sonucundan okunur (D-812). D-811, D-812, D-824 kapandı; yeni backlog D-1227 (alan uzunluk sınırı belgede yok), D-1228 (tarayıcı kanıtı). Unit 7172 ve Integration yeşil; ayrıntı raporda.
+
+## 2026-11-11 — T505 doğrulama tur 3: ✓ PASS (head `e70eac37`, PR #543)
+
+Kriter 1–8 ve KK1–KK8 ✓; B2 kapandı ("Paylaş" "İlgili ürünler"in altında). Unit 7142, Integration TAM 3741, CI run 43078205427 yeşil. `origin/main` (T511 #545) birleştirildi; backlog çakışması satır satır çözüldü. K1 D-1273'e forward edildi. `VAL-A115`…`A119` tarayıcı gözlemi beklediği için `BEKLEMEDE`.
+
+## 2026-11-11 — T505 düzeltme 2: "Paylaş" "İlgili ürünler"in altına taşındı (dal `task/T505-icerik-sayfalari`)
+
+Doğrulama tur 2 bulgusu B2: `_ContentRecordBody.cshtml` artık `04` 5.8.3 sırasıyla çizer: ad, görseller, metin, "Bize ulaşın" (yalnız hizmette), "İlgili ürünler" (bağlı yayında ürün varsa), en sonda "Paylaş"; dar sınıfta aynı tek sütun. Yeni test `ARecordPage_DrawsItsRegionsInTheDocumentsOrder_NameGalleryTextContactRelatedProductsShare_T505_KK4` hizmet ve referans sayfasında bölge sırasını `<main>` içinde sınar. D-1256 ve D-1257 ileri atıldı, dokunulmadı.
+
+## 2026-11-11 — T505 doğrulama tur 2: ✗ FAIL (head `e9e7f73f`, PR #543)
+
+B1 kapandı. Yeni bulgu B2 (S1, DÜŞÜK; kriter 4 / KK4): içerik sayfası "Paylaş" düğmesini "İlgili ürünler"in üstünde çiziyor; `04` 5.8.3'ün yukarıdan aşağıya sırası türe özgü bölgeyi (hizmet ve referansta "İlgili ürünler" dahil) "Paylaş"tan önce koyar. Öteki kriterler ve KK'ler ✓; Unit 7142, Integration TAM 3740 geçti. İkinci iterasyonun FAIL'i: eskalasyon. `origin/main` (T508 #544) birleştirildi; backlog çakışması satır satır çözüldü. K-notları D-1256, D-1257'ye forward edildi.
+
+## 2026-11-11 — T505 düzeltme 1: kısa metin içerik sayfasından kalktı (dal `task/T505-icerik-sayfalari`)
+
+Doğrulama tur 1 bulgusu B1: içerik sayfası kaydın kısa metnini başlığın altında çiziyordu; `04` 5.8.3/5.8.4 hiyerarşisinde bu bölge yok. Paragraf, `ContentRecordPageModel.Summary` ve `.content-page__summary` stili kaldırıldı; kısa metin yalnız listedeki kartta, ana sayfa bloğunda ve arama motoru açıklamasında kalır. KK4 testi kısa metnin `<main>`'de olmadığını ve `description` meta'sında olduğunu sınar. Dal main ile (T502, T543) birleştirildi.
+
+## 2026-11-11 — T505 yapım: içerik liste ve içerik sayfaları (E-07, E-08) (dal `task/T505-icerik-sayfalari`)
+
+`/hizmetler` ve `/referanslar` tipin yayındaki kayıtlarını firmanın sırasıyla, 24'lük sayfalarla ve firmanın verdiği tip adıyla listeler; yayında kaydı olmayan tipin adresi boş hâl satırıdır ve menü öğesi görünmez. `/hakkimizda` sabit adreste, `/hizmet/{slug}`, `/referans/{slug}` ve `/sayfa/{slug}` kendi kaydıyla açılır: ad, galeri, metin, türe özgü bölge, hizmette "Bize ulaşın" bağlantısı, "Paylaş" ve yalnız yayındaki bağlı ürünleri gösteren "İlgili ürünler" (hiçbiri yayında değilse başlık da yok). Taslak kayıt panel oturumuyla "Taslak" bandı ve noindex ile açılır; ziyaretçiye, olmayan ve başka tipin adresine aynı 404. Modül katmanına `StorefrontContentPages`, `ICorporateContentModule.GetContentListAsync/GetContentPageAsync` ve `ICatalogModule.ListPublishedProductCardsAsync` eklendi. Önceki işçi iki kez bağlam ve süre sınırında bölündü; bu tur main (T504) birleştirildi, kayıt ve PR tamamlandı. Backlog: D-1209…D-1213 yeni; D-671, D-672, D-690 kapandı; D-315, D-502, D-674, D-676, D-677, D-691, D-692 ileri atıldı.
+
+## 2026-11-11 — T504 doğrulama tur 1: ✓ PASS
+
+Kriter 1–8 ve KK1–KK8 karşılandı: gövdesiz 404 vitrinin tam çerçevesinde E-06 (başlık, ana sayfaya ve yayında ürün varken ürünlere dönüş), dört kaynağın yanıtı aynı, noindex/no-store/çerezsiz, sayaç ve hata satırı yok; 500 çerçeveleri, POST 500, sonucu belirsiz 303 ve makine ucunun gövdesiz 500'ü sınandı. Derleme `-warnaserror` temiz, biçim temiz, Unit 6734/6734 + Consistency 295/295, betik testleri 4/4, Integration TAM 3677/3677 (yerel Postgres zaman aşımıyla düşen 5 Web sınıfı yeniden koşuda 29/29). CI run 43000656410 (head `e59bfa5f`) yeşil. `12` KP-7 satırları (VAL-A021…A024, D001) ürün sayfasınındır (T503, T549), BEKLEMEDE kaldı. İki K-notu: D-1216 (E-06 çizimi düşerse kayıt ve sayaç yok → forward), D-1184 metni T502 KK8'e düzeltildi.
+
+## 2026-11-11 — T504 yapım: hata sayfaları, bulunamayan adres (E-06) ve 500 çerçeveleri (dal `task/T504-hata-sayfalari`)
+
+Gövdesiz 404 artık vitrinin tam çerçevesinde E-06 sayfasıdır (`NotFoundAnswer`; noindex, no-store, çerezsiz, durum ucunun sayacına ve hata satırına girmez); makine uçları, `/statik` altındaki eksik dosya ve gövdeli 404 gövdesiz/olduğu gibi kalır. İndirme ucu tarayıcıda sayfa açtığı için `NotFoundPageMetadata` ile işaretlendi (D-217 kapandı); 500 gövdesiz kalır. Panelin 404'ü vitrin çerçevesinde E-06 + yönetici şeridi. 500 çerçeveleri (vitrin, panel, çerçevesiz panel girişi) ve POST 500/303 davranışı T212 mekanizmasıyla sınandı. Önceki işçi bağlam sınırında bölündü; bu tur gövdesiz-404 varsayan testleri güncelledi (`DownloadEndpointTests`, `DigitalDeliveryTests`, `SessionAccessTests`, `SearchEngineDataTests`), çerçevesiz hata örneğinin rotasını açık sayfa şablonuyla çakışmayacak biçimde düzeltti, main'i (T545) birleştirdi. D-690 hedefi T505'e indi.
+
+## 2026-11-11 — T503 doğrulama tur 3: ✓ PASS
+
+Bağımsız doğrulama tur 3 (birleşik ağaç: dal `f1a840ce` + `origin/main` `30832ba6`, T511 #545 ve T507 #547; birleştirme `2f131820`, yalnız `DEFERRED_BACKLOG.md` kayıt çakışması). Kabul kriterleri 1–9 ve KK1–KK9 ✓; `09 §25` evet/uygulanamaz. Koşular: build `-warnaserror` temiz, format ×3 temiz, Unit 7209/7209, betik testleri 4/4, Integration TAM 3795/3795 (Web 799, Model 1410, Ordering 645, öteki 941), `restore --locked-mode` 0. `12`: VAL-A006, VAL-A007, VAL-A013 → PASS (A004, A005, A009, A011, A019, A022 PASS kalır). K-notları D-1275 (seçenek değerleri seçenek başına sorgu) ve D-1276 (T503'e hedeflenmiş kalan kalemler ve matris satırları) → `DEFERRED_BACKLOG.d/T503.md`.
+
+## 2026-11-11 — T503 düzeltme 2: ret satırı, alan kalıbı, döngüde sorgu, kararlı tohum
+
+Tur 2 bulguları kapatıldı: adlı 422 redleri `CartRefusalCodes` koduyla ret satırı yazar; adet ve seçim hataları `AddFieldError` + mesaj kataloğu ile, süzgeç satırı oluşur; arama ve ürün sayfasında kart ve varyant okumaları toplu (komut sayısı sınamalı, D-1204 kapandı); tohum varyantlara artan `CreatedAt`. D-507 kapandı. Unit 7190/7190, Integration Web 779/779; öteki ad alanları ve öz denetim devir notunda.
+
+## 2026-11-11 — T503 doğrulama tur 2: ✗ FAIL (eskalasyon)
+
+Tur 1 bulguları kapandı (VAL-A009, VAL-A011 → PASS); kabul kriterlerinin davranışı karşılanıyor. Dört ORTA S1 bulgu: (1) `AddCartItem` 422 redleri ret satırı yazmıyor, `CartRefusalCodes` eşlemesi çağrılmıyor (`09 §8.2` m.3, `07 §6.2.3`); (2) adet ve seçim doğrulaması alan kalıbının dışında (`09 §3.4`); (3) arama kartı görseli ve ürün sayfası varyant döngüsünde sorgu (`09 §20` m.4; birleşik ağaçta `ProductListItem.MainImageId` hazır); (4) varsayılan varyant testleri aynı `CreatedAt`'li tohumda kararsız (Web koşusunda KK5 testi bir kez kırmızı). `origin/main` (T508 #544) birleştirildi; Unit 7190/7190, Integration tam (yük kaynaklı zaman aşımları tekrarda yeşil).
+
+## 2026-11-11 — T503 düzeltme 1: betikli yolda seçilebilirlik ve değişken satırlar
+
+`product.js` her seçim değişiminde iki boyutun seçilebilirliğini ve "(Tükendi)" işaretini sunucu kuralıyla (`VariantSelection.Fields`) sayfa verisinden yeniden hesaplıyor (`soldOut` bayrağı eklendi, stok adedi yok); `Product.cshtml` birim fiyat, indirim ve tarih öğelerini her zaman çizip boşken gizliyor, betik seçilen varyantınkini gösteriyor. Üç yeni Integration sınaması, KK7 testi sepet sayısını sınıyor; kriter 9 kanıtı gerçek betik adlarına bağlandı. Yeni kalem D-1247 (betiği çalıştıran test yok). Doğrulama tur 2 bekliyor.
+
+## 2026-11-11 — T503 doğrulama tur 1: ✗ FAIL
+
+Sunucu yolu (kriter 1–4, 6–9) kanıtla karşılandı; kriter 5 betikli yolda karşılanmadı: (1) `product.js` bir boyut değişince öteki boyutun seçilebilirlik ve "Tükendi" işaretlerini yenilemiyor — açılmış ve satın alınabilir kombinasyon betikli sayfada seçilemez kalabiliyor (VAL-A009, VAL-A011 FAIL); (2) birim fiyat satırının öğesi yalnız ilk gösterilen varyantta birim fiyat varsa çiziliyor, betik seçilen varyantın birim fiyatını gösteremiyor (`04` 5.4.4). Yerel: build `-warnaserror` temiz, format temiz, Unit 7162/7162, betik testleri 4/4, Integration 3713/3713 (tam), dal CI yeşil. `12`: VAL-A004, A005, A019, A022 PASS; VAL-A009, A011 FAIL. K-notları D-1243, D-1244'e.
+
+## 2026-11-11 — T503 yapım: arama sonuçları, ürün sayfası ve sepete ekleme
+
+`/arama` ve `/urun/{slug}` gerçek sayfaları ile `AddCartItem` işleyicisi yazıldı: varyant seçimi, fiyat bloğu, tipe göre teslimat, Tükendi, önizleme ve arşiv sayfası, 303 ve sekiz ret yolu. Derleme `-warnaserror` temiz, birim 7080 (hepsi geçti), Integration Web 720/720 ve Catalog 82/82, `origin/main` birleştirildi (T504 sonrası), backlog kayıtları yerinde güncellendi. Test örnek sayfaları `/sss/` altına taşındı. Doğrulama bekliyor.
+
+## 2026-11-11 — T502 doğrulama tur 2: ✓ PASS
+
+Bulgu yok; tur 1'in B1 ve B2'si kapandı. Dal `origin/main` (T543 #539) ile birleştirildi, çakışma yok. Unit 7128/7128, Integration tam 3708/3708, dal CI'ı run 43026186737 yeşil. `12`: VAL-A002 PASS (değişmedi), VAL-A001 ve VAL-A003 BEKLEMEDE. K1: D-1184 (T504) KK8 sınamasıyla ✅ kapandı.
+
+## 2026-11-11 — T502 düzeltme 1
+
+B1: kök adres `/` kapalı ilk bölüm listesinde sayılır (`AddressRules.IsClosedFirstSegment("")` ana sayfa; liste ve `07 §2.1.2` eşitliği değişmedi). B2: `.home-intro--band` orta sınıftan iki sütun. D-1202 ve D-1219 kapandı (KK3 sıra sınaması); D-1218 T503/T505 hedefinde kalır. Unit 7046/7046, Integration tam 3687/3687.
+
+## 2026-11-11 — T502 doğrulama tur 1: ✗ FAIL
+
+İki bulgu. B1 (S2, ORTA): yeni `/` sayfası `PageFormPatternTests.EveryMappedEndpoint_StartsWithAFirstSegmentOfTheClosedList`'i kırıyor (`AddressRules` kapalı listesinde ana sayfanın boş ilk bölümü yok; `07 §2.1.2` ana sayfayı listede sayar); dal CI'ı Integration adımında kırmızı (run 43006706756). B2 (S1, DÜŞÜK): mağaza öncelikli düzende kurumsal bloğun dar hâli tanıtım ile görseli yan yana tek bant göstermiyor, her genişlikte alt alta diziyor (`04` 5.1.4). `12`: VAL-A002 PASS. Yeni K-notları D-1218, D-1219.
+
+## 2026-11-11 — T502 yapım (devam işçisi): ana sayfa ve kategori sayfası
+
+`GET /` dört blokla (kurumsal blok, Hizmetlerimiz, Referanslarımız, ürün vitrini) firmanın düzeninde, `GET /kategori/{slug}` alt dallı tek liste, süzgeç formu, sayfalama, boş hâller ve 404 ile çizilir. Orta sınıf eksik satır kuralı stilde (tarayıcı sınaması `12`'de, D-1199). Yeni sınıflar: Unit `StorefrontHomeAndCategoryModelTests`, Integration `StorefrontHomeAndCategoryTests` (12); etkilenen Integration sınıfları 137/137, tam Unit koşusu yeşil. Kapanan backlog: D-330, D-331, D-332, D-477, D-691 (kategori ve ana sayfa), D-1156, D-1178 (2); yeni D-1199–D-1203. Doğrulama bekliyor.
+
+## 2026-11-11 — T501 doğrulama tur 1: ✓ PASS (head `131fe46b`, PR #535)
+
+Kriter 1–7 ve KK1–KK7 ✓; `09 §25` ve güvenlik taraması temiz. Gömülü dosyanın SHA-256'sı Bakanlığın bugünkü dosya adresinden indirilenle aynı (`5316c500…55b6`). Yerel: `-warnaserror` derleme 0/0, format üç projede temiz, Unit 6831/6831, Integration `Web` ad alanı 629/629, betik testleri 4/4; dal CI run 42968341155 yeşil. `12`: VAL-E035 PASS (DV-34 dış sistem kaydı); VAL-A015, A016, B034 BEKLEMEDE (ürün sayfası ve tarayıcı kanıtı T503'te). Bloke-etmeyen notlar: D-1165 (`08 §4.3` madde 3 eski aşama notu), D-1166 (`/statik` öneki elle yazılı); VAL-E035'in `Durum`'u bu PR'da kapatıldı.
+
+## 2026-11-11 — T501: yerli üretim logosu varlığı ve gösterimi (dal `task/T501-yerli-uretim-logosu`)
+
+Bakanlığın renkli logosu (JPG 900x387, SHA-256 `5316c500…55b6`) kodla gömülü kaynak olarak geldi; `/statik/yerli-uretim-logosu.{hash}.jpg` adresinden sunulur. Tek bileşen `_OriginLabel` ve tek karar yeri `DomesticProductionLogo.Shows` (yalnız ürün tipi ve ülke kodu: fiziksel + "TR"); `OriginLabel.Of` ülke adını logolu da yazar, hizmette ve boş üretim yerinde satır yoktur. Ayar, panel alanı ve gizleme yolu yok; kaynak taraması ve gizleme taraması test edildi. DV-34 satırına kaynak, tarih, dosya özeti ve kullanım koşulu notu yazıldı. ⚠: dosya JPG ve oranı kılavuzdan farklı (D-1160); açık lisans metni yok (D-1161); D-1136 (`/gorsel` ucu) F5 gate'e ileri atıldı. Ürün sayfası çağrısı T503'te (D-344 notu).
+
 ## 2026-11-11 — F4 (Entegrasyonlar) faz kapısı ✓ PASS (`chore: F4 gate check PASS`, dal `chore/F4-gate`)
 
 2026-11-11 — F4 gate check ✓ PASS (tur 1, bağlam sınırında iki kez bölünüp üç parçada bitti). 11/12 task ✓, T410 `⛔ BLOCKED (OWNER_INPUT)` (yardımcı kararı: bütün kriterleri referans kurulumun gerçek gözlemine bağlı); 12 merge (11 task + 1 chore, D-1074). Release `-warnaserror` 0 uyarı, `dotnet format` üç proje temiz, Unit 6598/6598, Integration 3575/3575 (Ordering 637, Web 600, Model 1407, kalan 931), betik testleri 4/4; F4'te yeni göç yok, 19 göç boş veritabanına, ikinci uygulama no-op; paket denetimi 7/7. `12 §6.2` F4 ölçütü E: çevrimdışı payı ✓ (`VAL-E045`–`E047` imza satırları PASS); gerçek gözlem payı (üç servisin sandbox kanıtı, DV-1/2/9 ve 20 sandbox E satırı) BEKLİYOR (OWNER_INPUT) — PayTR test mağazası + yazılı 3D/Non3D teyidi, AWS SES üretim hesabı, doğrulanmış Google uygulaması; faz satırı `✓ (E ölçütü OWNER_INPUT — T410)`. `11 §7.1` 63 F4 satırı dolu, `GATE_DOLU` += F4. Backlog: 10 kalem ✅ (D-1059, D-1072, D-1030, D-1053, D-1016, D-1087, D-980, D-919, D-961, D-982), 10 yeniden hedef (D-981 en geç F5 gate; D-778, D-1036 → yeni F5 task T550; D-442, D-697, D-1022, D-614, D-656, D-657, D-660); `12`'de `VAL-C089`, `C093`, `C102`, `E056` PASS. Karar kaydı K-1607…K-1613; `08` v0.24, `09` v0.33, `11` v0.65. Öğrenim PF-243…PF-247 (validate 2a kaynak grep'i, gate-check 19 commit hücreleri). Parçalar toplandı (12 + 12); "Aktif kalem" yeniden sayıldı: 279. Ayrıntı `GATE_CHECK_F4.md`.

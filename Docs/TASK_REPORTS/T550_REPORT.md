@@ -91,7 +91,7 @@
 - **Commit:** `5a9572af` (sır bekçisi), `001debe2` (Ordering + tarama), `39c269af` (kalan satırlar, tarama biçimleri, 09/K-1614), `fce20fb6` (kayıtlar)
 - **PR:** #533
 - **CI:** run 42942279998 (`bf77ceaf`) — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E (advisory), CI Gate `success`
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `de34daf4` (#533) — CI 42951686087 success, Publish 42951686078 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

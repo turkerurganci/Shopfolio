@@ -21,6 +21,8 @@ user-invocable: true
 4. **Ana dal CI yeşil mi?** Son 3 run + HEAD commit'in tüm workflow'ları.
 5. **Ortam bilgisi kaydedilir** — çalıştırma ortamının sürümleri (runtime, container motoru, paket yöneticisi). Gate raporu tekrar edilebilir olmalı.
 
+5a. **Faz ölçütünün aracı var mı (PF-279):** Fazın `11 §6.2` ve `12 §6.2` ölçütleri bir araç gerektiriyorsa (tarayıcı gözlemi, erişilebilirlik taraması vb.) aracı kuran task faz planında ve tracker'da ✓ olmalıdır; yoksa kapıda araç kurulmaz — kapı FAIL verir ve aracı kuran task faza eklenir (F5 kapısı, tur 1).
+
 ---
 
 ## Adım 1 — Regresyon testi

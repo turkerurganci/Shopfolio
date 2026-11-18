@@ -1,6 +1,6 @@
 # T546 — Gezinme ve geçiş eşitlik denetimleri: iskeletler, geçişler, dışarıdan girişler, dönüşler
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-15
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-15
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -384,7 +384,7 @@ Tur 1 kaydı:
 - **Düzeltme 2:** `T546-fix2` dalından aynı dala itildi (doğrulama tur 1 B1; Unit Consistency 383/383, Unit diğer 7420/7420, `AfterSalesScreenTests` 17/17; Integration TAM: CI)
 - **Düzeltme 1:** `T546-fix1` dalından aynı dala itildi (düzeltme commit'i dal ucudur; K-1617)
 - **CI:** dal CI'ını yönetici izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `dad8056c` (#580) — CI 43724328459 success, Publish 43724328382 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

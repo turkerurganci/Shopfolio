@@ -1,6 +1,6 @@
 # T525 — Ürün listesi ve ürün formu, görsel yükleme (E-32, E-33)
 
-**Faz:** F5 | **Durum:** ✓ Düzeltme 1 tamamlandı (doğrulama tur 2 bekliyor) | **Tarih:** 2026-11-14
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-14
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -223,7 +223,7 @@ Dal `origin/main` (8a51cdcc) ile güncel; birleştirme gerekmedi.
 - **Branch:** `task/T525-urun-listesi-formu`
 - **PR:** PR açıklamasında
 - **CI:** *(PR CI'ı)*
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `0289add9` (#570) — CI 43570435574 success, Publish 43570435627 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

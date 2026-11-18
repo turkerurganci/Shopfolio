@@ -1,6 +1,6 @@
 # T529 — Sipariş ayrıntısı: geri ödeme işlemleri (E-37)
 
-**Faz:** F5 | **Durum:** ⏳ Doğrulama tur 5 ✗ FAIL — düzeltme 5 (üçüncü eskalasyon) yapıldı, TAM doğrulama bekliyor | **Tarih:** 2026-11-14
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-14
 
 ---
 
@@ -112,7 +112,7 @@
 - **Commit:** "T529: Sipariş ayrıntısı: geri ödeme işlemleri (E-37)" (dalın son commit'i; öncekiler WIP)
 - **PR:** #575
 - **CI:** yönetici izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `99427473` (#575) — CI 43618088489 success, Publish 43618088406 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

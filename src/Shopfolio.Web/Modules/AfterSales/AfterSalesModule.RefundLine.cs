@@ -23,6 +23,32 @@ internal sealed partial class AfterSalesModule
 
     public DateOnly RefundLastDay(DateTimeOffset startedAt) => AfterSalesPeriodRules.RefundLastDay(TurkeyTime.DateOf(startedAt));
 
+    public async Task<IReadOnlyDictionary<Guid, DateTimeOffset>> RefundPeriodStartsAsync(IReadOnlyCollection<Guid> recordIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(recordIds);
+        Guid[] ids = [.. recordIds.Distinct()];
+        Dictionary<Guid, DateTimeOffset> starts = [];
+        if (ids.Length == 0)
+        {
+            return starts;
+        }
+
+        List<(Guid Id, DateTimeOffset At)> moments =
+        [
+            .. (await _db.Cancellations.AsNoTracking().Where(c => ids.Contains(c.Id)).Select(c => new { c.Id, c.CreatedAt }).ToListAsync(ct)).Select(c => (c.Id, c.CreatedAt)),
+            .. (await _db.ItemRemovals.AsNoTracking().Where(r => ids.Contains(r.Id)).Select(r => new { r.Id, r.CreatedAt }).ToListAsync(ct)).Select(r => (r.Id, r.CreatedAt)),
+            .. (await _db.LateDeliveryTerminations.AsNoTracking().Where(t => ids.Contains(t.Id)).Select(t => new { t.Id, t.CreatedAt }).ToListAsync(ct)).Select(t => (t.Id, t.CreatedAt)),
+            .. (await _db.Withdrawals.AsNoTracking().Where(w => ids.Contains(w.Id)).Select(w => new { w.Id, w.CreatedAt }).ToListAsync(ct)).Select(w => (w.Id, w.CreatedAt)),
+            .. (await _db.Returns.AsNoTracking().Where(r => ids.Contains(r.Id)).Select(r => new { r.Id, r.CreatedAt }).ToListAsync(ct)).Select(r => (r.Id, r.CreatedAt)),
+        ];
+        foreach ((Guid id, DateTimeOffset at) in moments)
+        {
+            starts[id] = at;
+        }
+
+        return starts;
+    }
+
     public bool CancellationRefundsShippingFee(IReadOnlyDictionary<Guid, int> openPhysicalUnits, IReadOnlyDictionary<Guid, int> selectedUnits) =>
         ShippingFeeRefunds.OnCancellationPreview(openPhysicalUnits, selectedUnits);
 

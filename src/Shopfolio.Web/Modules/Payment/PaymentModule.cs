@@ -247,7 +247,7 @@ internal sealed partial class PaymentModule : IPaymentModule
             .Where(r => r.OrderId == orderId && r.SentAt == null && r.VoidedAt == null)
             .OrderBy(r => r.CreatedAt).ThenBy(r => r.Id)
             .ToListAsync(ct);
-        return [.. pending.Select(r => new PendingRefund(r.Id, r.OrderItemId, r.Quantity, r.Amount, r.PaymentMethod, r.CreatedAt, HasRefundPeriodOf(r)))];
+        return [.. pending.Select(r => new PendingRefund(r.Id, r.OrderItemId, r.Quantity, r.Amount, r.PaymentMethod, r.CreatedAt, HasRefundPeriodOf(r), r.ReturnId ?? r.CancellationId ?? r.ItemRemovalId ?? r.LateDeliveryTerminationId ?? r.WithdrawalId))];
     }
 
     // The refunds the refund period (Z-16, Z-17) counts for: a cancellation's, a removal's, a late delivery termination's and a withdrawal's (02 4.2; 03 8.3.3.2). A defect claim's, an amount
@@ -289,7 +289,7 @@ internal sealed partial class PaymentModule : IPaymentModule
         return await _db.Refunds.AsNoTracking()
             .Where(r => ids.Contains(r.OrderId) && r.SentAt == null && r.VoidedAt == null)
             .Where(HasRefundPeriod)
-            .Select(r => new PendingRefundStart(r.OrderId, r.CreatedAt))
+            .Select(r => new PendingRefundStart(r.OrderId, r.CreatedAt, r.ReturnId ?? r.CancellationId ?? r.ItemRemovalId ?? r.LateDeliveryTerminationId ?? r.WithdrawalId))
             .ToListAsync(ct);
     }
 

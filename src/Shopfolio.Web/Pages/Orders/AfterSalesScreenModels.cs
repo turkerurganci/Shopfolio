@@ -225,7 +225,10 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
     public IReadOnlyList<string> RefundTexts { get; private set; } = [];
 
     /// <summary>The IBAN field of the transfer line when the order has no IBAN on file (04 5.18.6, 2.12.3); null otherwise.</summary>
-    public IbanFieldView? IbanField { get; private set; }
+    /// <remarks>The field's 422 message is bound when the page is drawn, after the validation filter turned the handler's code into the catalog text (D-1702).</remarks>
+    public IbanFieldView? IbanField => _ibanField is null ? null : _ibanField with { Field = Fields.Bind(_ibanField.Field, FormErrorSummary.From(ModelState)) };
+
+    private IbanFieldView? _ibanField;
 
     /// <summary>The last step of the script-free path (07 2.2.4); null on the first view.</summary>
     public ConfirmView? Confirm { get; private set; }
@@ -329,9 +332,10 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
         if (!input.Confirmed)
         {
             ChosenItems = [.. lines.Select(l => (Rows.First(r => r.OrderItemId == l.ItemId).Name, l.Quantity))];
-            bool fromArrival = lines.Any(l => Rows.First(r => r.OrderItemId == l.ItemId).RefundFromGoodsArrival);
+            // A mixed choice names each start with its units (K-1622; D-1439): the refund of a unit runs from the goods' arrival or from the declaration, as its row says.
+            int fromArrival = lines.Where(l => Rows.First(r => r.OrderItemId == l.ItemId).RefundFromGoodsArrival).Sum(l => l.Quantity);
             RefundsShippingFee = _operations.WithdrawalRefundsShippingFee(_screens, lines.ToDictionary(l => l.ItemId, l => l.Quantity));
-            string sentence = OrderScreenTexts.WithdrawalSentence(lines.Sum(l => l.Quantity), _paymentMethod, fromArrival, _refundPeriodDays);
+            string sentence = OrderScreenTexts.WithdrawalSentence(lines.Sum(l => l.Quantity) - fromArrival, fromArrival, _paymentMethod, _refundPeriodDays);
             List<KeyValuePair<string, string>> fields = [.. Sent.Where(f => f.Key != nameof(SubmitWithdrawalInput.Confirmed))];
             fields.Add(new(nameof(SubmitWithdrawalInput.Confirmed), "true"));
             Confirm = Confirmations.ForCustomer(OrderScreenTexts.WithdrawalName, sentence, OrderScreenTexts.WithdrawalConfirmLabel, ScreenPath, Handler, RootPath, fields);
@@ -357,7 +361,7 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
                     }
                 }
 
-                foreach ((Guid itemId, int quantity, int _) in lines)
+                foreach ((Guid itemId, int quantity, int _) in InWriteOrder(lines, l => l.ItemId))
                 {
                     WithdrawalResult result = await _transitions.DeclareWithdrawalAsync(new DeclareWithdrawalRequest(orderId, itemId, quantity, true, iban), stepCt);
                     if (result.IsRejected)
@@ -370,6 +374,13 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
             },
             ct);
     }
+
+    /// <summary>
+    /// The order the declarations of one request are written in (K-1107 (1), 06 4.33; D-1440): each record takes its own moment and the shipping fee's trigger is met by the one
+    /// written last, so the lines go in descending uuid order - the record of the smallest item id is the last and carries the fee, as the customer's cancellation writes its lines.
+    /// </summary>
+    internal static IEnumerable<T> InWriteOrder<T>(IEnumerable<T> lines, Func<T, Guid> itemOf) =>
+        lines.OrderByDescending(l => itemOf(l).ToString("N"), StringComparer.Ordinal);
 
     protected override async Task<IActionResult?> LoadScreenAsync(Guid orderId, CancellationToken ct)
     {
@@ -416,14 +427,9 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
             }
         }
 
-        IbanField = _asksIban
+        _ibanField = _asksIban
             ? IbanFields.Create(IbanFieldPlace.Declaration, first.PaymentMethod, IbanOpening.Standard, nameof(SubmitWithdrawalInput.Iban), SentValue(nameof(SubmitWithdrawalInput.Iban)))
             : null;
-        if (IbanField is not null)
-        {
-            IbanField = IbanField with { Field = Fields.Bind(IbanField.Field, FormErrorSummary.From(ModelState)) };
-        }
-
         return null;
     }
 }

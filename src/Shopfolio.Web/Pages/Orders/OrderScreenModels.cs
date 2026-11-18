@@ -66,7 +66,10 @@ public abstract class CustomerOperationPageModel : PageModel
     public ConfirmView? Confirm { get; protected set; }
 
     /// <summary>The IBAN field of a paid transfer order (04 5.17.5, 7.1.8): empty when it arrives; null on the card line and on the order's cancellation.</summary>
-    public IbanFieldView? IbanField { get; private set; }
+    /// <remarks>The field's 422 message is bound when the page is drawn, after the validation filter turned the handler's code into the catalog text (D-1702).</remarks>
+    public IbanFieldView? IbanField => _ibanField is null ? null : _ibanField with { Field = Fields.Bind(_ibanField.Field, FormErrorSummary.From(ModelState)) };
+
+    private IbanFieldView? _ibanField;
 
     /// <summary>The values of the form as sent, keyed by the field's name, so the 422 page and the last step show them again.</summary>
     public IDictionary<string, string> Sent { get; } = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -127,14 +130,9 @@ public abstract class CustomerOperationPageModel : PageModel
         }
 
         Screen = screen;
-        IbanField = screen.AsksIban
+        _ibanField = screen.AsksIban
             ? IbanFields.Create(IbanFieldPlace.Declaration, screen.PaymentMethod, IbanOpening.Standard, IbanFieldName, Sent.TryGetValue(IbanFieldName, out string? iban) ? iban : null)
             : null;
-        if (IbanField is not null)
-        {
-            IbanField = IbanField with { Field = Fields.Bind(IbanField.Field, FormErrorSummary.From(ModelState)) };
-        }
-
         return null;
     }
 

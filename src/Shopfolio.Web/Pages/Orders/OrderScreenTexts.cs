@@ -91,6 +91,17 @@ public static class OrderScreenTexts
             CultureInfo.InvariantCulture,
             $"Seçtiğiniz {DisplayFormat.Number(units)} ürün için cayma beyanınız kaydedilecek; geri ödeme {FromWhen(fromGoodsArrival)} itibaren {DisplayFormat.Number(days)} gün içinde {WayOf(way)} yapılacak.");
 
+    /// <summary>
+    /// K-785 on a mixed choice (K-1622; D-1439): when some chosen units' refund starts from the declaration and others' from the goods' arrival (04 5.18.6; 02 7.4.1), the sentence
+    /// names each start with its units - the two numbers add up to the units chosen (K-795). A choice of one start is the one-start sentence above.
+    /// </summary>
+    public static string WithdrawalSentence(int fromDeclarationUnits, int fromArrivalUnits, PaymentMethod way, int days) =>
+        fromDeclarationUnits == 0 || fromArrivalUnits == 0
+            ? WithdrawalSentence(fromDeclarationUnits + fromArrivalUnits, way, fromArrivalUnits > 0, days)
+            : string.Create(
+                CultureInfo.InvariantCulture,
+                $"Seçtiğiniz {DisplayFormat.Number(fromDeclarationUnits + fromArrivalUnits)} ürün için cayma beyanınız kaydedilecek; geri ödeme {DisplayFormat.Number(fromDeclarationUnits)} ürün için {FromWhen(false)}, {DisplayFormat.Number(fromArrivalUnits)} ürün için {FromWhen(true)} itibaren {DisplayFormat.Number(days)} gün içinde {WayOf(way)} yapılacak.");
+
     /// <summary>04 5.18.4, 2.12.1.8; K-795: the line says the item's units open to the operation - the upper limit - with the item's units.</summary>
     public static string OpenUnits(int quantity, int open) =>
         string.Create(CultureInfo.InvariantCulture, $"Siparişteki adet: {DisplayFormat.Number(quantity)} · işleme açık adet: {DisplayFormat.Number(open)}");

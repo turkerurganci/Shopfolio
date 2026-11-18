@@ -301,6 +301,13 @@ public interface IAfterSalesModule
     /// </summary>
     DateOnly RefundLastDay(DateTimeOffset startedAt);
 
+    /// <summary>
+    /// The moment each of <paramref name="recordIds"/> starts its refund's period (D-1382; 02 7.1, 7.2.3; 03 2): a cancellation's, a removal's, a late delivery termination's and a withdrawal's own
+    /// moment, a withdrawal receipt's moment for a withdrawal after delivery - the records' moments, as an owed record's line reads them (<see cref="OwedRefundRecord.RecordedAt"/>), so a refund the
+    /// firm's step bore later still runs from its record. An id that is none of these is left out. A plain read.
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, DateTimeOffset>> RefundPeriodStartsAsync(IReadOnlyCollection<Guid> recordIds, CancellationToken ct);
+
     /// <summary>True when an IBAN request on the refund was fulfilled: the customer chose the transfer path, so the card refund is not retried (02 7.2.8; K-569).</summary>
     Task<bool> IsRefundIbanEnteredForRefundAsync(Guid refundId, CancellationToken ct);
 

@@ -35,6 +35,19 @@ public sealed class ItemRecordRulesTests
         Assert.Equal(0, ItemQuantities.AwaitingReceipt(2, 2, 1, 0));
     }
 
+    [Theory]
+    [InlineData(4, 1, 1, 1)]
+    [InlineData(2, 2, 1, 0)]
+    [InlineData(3, 0, 0, 0)]
+    public void TheItemsAndTheDeclarationsAwaitedUnits_AreTheOneContractsFormula_D568(int withdrawn, int received, int rejected, int notReturned)
+    {
+        int formula = ReturnUnits.AwaitingReceipt(withdrawn, received, rejected, notReturned);
+
+        Assert.Equal(formula, ItemQuantities.AwaitingReceipt(withdrawn, received, rejected, notReturned));
+        Assert.Equal(formula, new ItemUnitFacts(withdrawn, withdrawn, received, rejected, notReturned).AwaitingReceipt);
+        Assert.True(formula >= 0);
+    }
+
     // ---- KK5: only the conditional exemptions ----
 
     [Theory]

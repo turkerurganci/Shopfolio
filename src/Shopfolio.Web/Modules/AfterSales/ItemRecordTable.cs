@@ -81,7 +81,7 @@ internal static class ItemQuantities
 
     /// <summary>
     /// The units of one withdrawal declaration still on their way back (03 1.7.3.5; K-794): the declared units minus those received, rejected or closed as not come
-    /// back (a reopened closure no longer counts).
+    /// back (a reopened closure no longer counts). The formula is the Contracts' one (<see cref="Contracts.ReturnUnits.AwaitingReceipt"/>; D-568).
     /// </summary>
-    public static int AwaitingReceipt(int declared, int received, int rejected, int notReturned) => Math.Max(0, declared - received - rejected - notReturned);
+    public static int AwaitingReceipt(int declared, int received, int rejected, int notReturned) => Contracts.ReturnUnits.AwaitingReceipt(declared, received, rejected, notReturned);
 }

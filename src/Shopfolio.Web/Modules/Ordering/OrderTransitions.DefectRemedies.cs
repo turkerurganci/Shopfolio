@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Notifications.Contracts;
@@ -88,7 +90,10 @@ internal sealed partial class OrderTransitions
 
         // The amount-based refund pays back while paid money that is not refunded is left (03 1.11.31): the refunds already started count, so two never pass the total;
         // and the item's refunds never pass the item's paid amount (D-893).
-        decimal left = Math.Min(order!.Total - await _payment.CommittedRefundTotalAsync(order.Id, ct), await ItemRefundLeftAsync(order, item!, ct)); // non-null: LockItemAsync returns the order and the item when it returns no refusal
+        // The order's cap counts the refunds its records owe but have not born yet too, as UC-133's does (D-906; K-1078).
+        Guid[] orderItemIds = await _db.OrderItems.AsNoTracking().Where(i => i.OrderId == order!.Id).Select(i => i.Id).ToArrayAsync(ct); // non-null: LockItemAsync returns the order and the item when it returns no refusal
+        decimal orderOwed = (await OwedRecordAmountsAsync(order!, orderItemIds, ct)).OrderTotal; // non-null: as above
+        decimal left = Math.Min(order!.Total - await _payment.CommittedRefundTotalAsync(order.Id, ct) - orderOwed, await ItemRefundLeftAsync(order, item!, ct)); // non-null: LockItemAsync returns the order and the item when it returns no refusal
         if (request.Amount > left)
         {
             return ItemRefused(TransitionRefusal.InvalidInput);
@@ -104,7 +109,34 @@ internal sealed partial class OrderTransitions
     private async Task<decimal> ItemRefundLeftAsync(Order order, OrderItem item, CancellationToken ct)
     {
         decimal paid = ((item.DiscountedUnitPrice ?? item.UnitPrice) * item.Quantity) - item.CouponShare;
-        return Math.Max(0m, paid - await _payment.CommittedItemRefundTotalAsync(item.Id, order.ShippingFee, ct));
+        decimal owed = (await OwedRecordAmountsAsync(order, [item.Id], ct)).ItemTotal;
+        return Math.Max(0m, paid - await _payment.CommittedItemRefundTotalAsync(item.Id, order.ShippingFee, ct) - owed);
+    }
+
+    /// <summary>
+    /// The refunds the records of <paramref name="itemIds"/> owe but have not born yet (D-906; T529): on the transfer a record's refund line is born with the firm's panel step, so until then
+    /// the caps count the amount the firm would process (<see cref="FirmRefundAmounts"/>) - the item's cap without the shipping fee one of them carries (as the born refunds are counted), the
+    /// order's cap with it.
+    /// </summary>
+    private async Task<(decimal ItemTotal, decimal OrderTotal)> OwedRecordAmountsAsync(Order order, Guid[] itemIds, CancellationToken ct)
+    {
+        IReadOnlyList<OwedRefundRecord> owed = await _afterSales.ListOwedRefundRecordsAsync(itemIds, ct);
+        if (owed.Count == 0)
+        {
+            return (0m, 0m);
+        }
+
+        IReadOnlyList<PanelRefundFacts> refunds = await _payment.ListPanelRefundsAsync(order.Id, ct);
+        decimal itemTotal = 0m;
+        decimal orderTotal = 0m;
+        foreach (OwedRefundRecord record in owed)
+        {
+            (decimal amount, bool fee) = await FirmRefundAmounts.OfAsync(_db, _afterSales, order, record, refunds, ct);
+            itemTotal += amount - (fee ? order.ShippingFee : 0m);
+            orderTotal += amount;
+        }
+
+        return (itemTotal, orderTotal);
     }
 
     /// <summary>The money was taken and not all paid back (02 5.5): Ödendi or Kısmen geri ödendi.</summary>

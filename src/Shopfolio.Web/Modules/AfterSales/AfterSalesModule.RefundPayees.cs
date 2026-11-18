@@ -40,11 +40,14 @@ internal sealed partial class AfterSalesModule
         Guid[] fileIds = [.. file.Select(f => f.Id)];
 
         // The subjects' refunds' and items' requests, and every request on a refund that brought an IBAN on the file: that IBAN is its refund's own (the file step leaves it).
-        List<PayeeRequest> requests = await _db.RefundIbanRequests.AsNoTracking()
-            .Where(r => (r.RefundId != null && refundIds.Contains(r.RefundId.Value)) || (r.OrderItemId != null && itemIds.Contains(r.OrderItemId.Value))
-                || (r.RefundId != null && r.RefundIbanId != null && fileIds.Contains(r.RefundIbanId.Value)))
-            .Select(r => new PayeeRequest(r.OrderItemId, r.RefundId, r.RefundIbanId, r.FulfilledAt == null && r.ClosedAt == null))
-            .ToListAsync(ct);
+        // Read tracked, as RefundIbanUses reads the item's open request (D-1588): a request the caller closed in this transaction without saving yet (the correction of the firm's
+        // wrong cancellation, S3/S4/S9 - CloseCancellationIbanRequestsAsync, then DeleteUnusedIbansAsync) is closed here too, so the item's born refunds are not "waiting" on it.
+        List<PayeeRequest> requests = [.. (await LocalAsync(
+                _db.RefundIbanRequests,
+                r => (r.RefundId != null && refundIds.Contains(r.RefundId.Value)) || (r.OrderItemId != null && itemIds.Contains(r.OrderItemId.Value))
+                    || (r.RefundId != null && r.RefundIbanId != null && fileIds.Contains(r.RefundIbanId.Value)),
+                ct))
+            .Select(r => new PayeeRequest(r.OrderItemId, r.RefundId, r.RefundIbanId, r.FulfilledAt == null && r.ClosedAt == null))];
         List<PayeeRecord> records =
         [
             .. await _db.Cancellations.AsNoTracking().Where(c => c.RefundIbanId != null && (recordIds.Contains(c.Id) || itemIds.Contains(c.OrderItemId)))

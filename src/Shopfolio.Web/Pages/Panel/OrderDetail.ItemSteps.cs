@@ -519,7 +519,9 @@ public sealed partial class OrderDetailModel
             new("Input.Confirmed", "true"),
         ];
 
-        // 03 1.6.1.5: the card line's removal; the amount is the record's and is written with it (D-1598: the window does not repeat it yet).
+        // 03 1.6.1.5: the card line's removal. The window names the units and the item and says the money goes back to the card; the amount is the record's, worked out when it is written
+        // (02 7.1.7; K-788), and the window does not repeat it - 04 9.9.25 and 03 1.6.1.5 ask no amount here, as the firm's cancellation window says none (K-797: an amount said is the
+        // system's; 04 2.4.3 lists the confirmations that carry a number, and the removal is not one of them) (D-1598).
         IrreversibleConfirmation texts = new(
             IrreversibleAction.CardRefundingRemoval,
             null,

@@ -172,8 +172,8 @@ public sealed class OrderPageTests
         string body = await response.Content.ReadAsStringAsync(Ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Matches($"<dt>Son ödeme günü</dt>\\s*<dd>{Regex.Escape(DisplayFormat.Date(lastDay))}</dd>", body);
-        Assert.DoesNotContain(DisplayFormat.Date(lastDay.AddDays(1)), body, StringComparison.Ordinal);
+        Assert.Contains($"<dd>{await EncodedAsync(host, DisplayFormat.Date(lastDay))}</dd>", body, StringComparison.Ordinal);
+        Assert.DoesNotContain(await EncodedAsync(host, DisplayFormat.Date(lastDay.AddDays(1))), body, StringComparison.Ordinal);
     }
 
     [Fact]

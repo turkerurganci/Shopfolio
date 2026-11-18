@@ -26,7 +26,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
 
     private readonly AppDbContext _db;
     private readonly OrderOperations _operations;
-    private readonly OrderLocks _locks;
+    private readonly PanelOrderGate _gate;
     private readonly IOrderTransitions _transitions;
     private readonly IOrderCorrections _corrections;
     private readonly IAfterSalesModule _afterSales;
@@ -38,7 +38,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
     {
         _db = db;
         _operations = operations;
-        _locks = locks;
+        _gate = new PanelOrderGate(db, locks, operations);
         _transitions = transitions;
         _corrections = corrections;
         _afterSales = afterSales;
@@ -570,25 +570,13 @@ internal sealed class PanelItemSteps : IPanelItemSteps
     }
 
     /// <summary>
-    /// The re-check of 09 8.3 item 3 in its order: the order's row lock, the version the screen showed (<see cref="ShownVersion.Matches"/>; a change is the conflict and the rule is not asked),
+    /// The re-check of 09 8.3 item 3 in its order, through the one gate (<see cref="PanelOrderGate"/>; D-1542): the order's row lock, the version the screen showed (<see cref="ShownVersion.Matches"/>; a change is the conflict and the rule is not asked),
     /// then the facts the operation's rule reads, after the lock.
     /// </summary>
     private async Task<(PanelItemStepResult? Refused, OrderOperationFacts? Facts)> LockAsync(Guid orderId, int expectedVersion, CancellationToken ct)
     {
-        await _locks.LockAsync([orderId], ct);
-        Order? order = await _db.Orders.AsNoTracking().SingleOrDefaultAsync(o => o.Id == orderId, ct);
-        if (order is null)
-        {
-            return (new PanelItemStepResult(TransitionRefusal.OrderNotFound), null);
-        }
-
-        if (!ShownVersion.Matches(order, expectedVersion))
-        {
-            return (new PanelItemStepResult(TransitionRefusal.VersionConflict), null);
-        }
-
-        OrderOperationFacts? facts = await _operations.ReadFactsAsync(orderId, ct);
-        return facts is null ? (new PanelItemStepResult(TransitionRefusal.OrderNotFound), null) : (null, facts);
+        (TransitionRefusal? refusal, OrderOperationFacts? facts) = await _gate.LockAsync(orderId, expectedVersion, ct);
+        return refusal is { } refused ? (new PanelItemStepResult(refused), null) : (null, facts);
     }
 
     // A quantity over the units open to the operation is the field's refusal (K-1188 (4)); any other closed verdict is "not open".

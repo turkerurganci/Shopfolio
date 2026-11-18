@@ -63,7 +63,11 @@ public sealed record CartLine(
     bool IsSoldOut,
     bool EntersOrder,
     CartQuantityProblem QuantityProblem = CartQuantityProblem.None,
-    int? OrderLimit = null);
+    int? OrderLimit = null)
+{
+    /// <summary>The line's amount: unit price times quantity, not rounded (02 3.8.3). The one home of the product the page writes and the subtotal sums (D-1246).</summary>
+    public decimal LineAmount => UnitPrice * Quantity;
+}
 
 /// <summary>
 /// The cart as the cart page shows it (T346). <see cref="RemovedProductNames"/> are the items taken off the showcase since the last view, told once and deleted by the call that gave them;
@@ -81,6 +85,9 @@ public sealed record CartView(
     ShippingAssessment Shipping,
     bool ShowsPaymentUnavailableNotice = false)
 {
+    /// <summary>The total to pay (04 5.12; 02 3.16.7, 3.18): the orderable subtotal and the shipping fee, worked out here so the page computes no amount (D-1246).</summary>
+    public decimal PayableTotal => OrderableSubtotal + Shipping.Fee;
+
     /// <summary>True when the payment step may open: at least one line enters the order.</summary>
     public bool CanOpenPayment => PaymentBlock == CartPaymentBlock.None;
 

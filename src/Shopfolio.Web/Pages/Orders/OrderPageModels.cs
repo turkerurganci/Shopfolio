@@ -108,7 +108,7 @@ public abstract class OrderPageModel : PageModel
     public bool ShowsTransferDetails => Operations.IsOpen(OrderOperation.ViewTransferDetails) && Summary.TransferIban is not null;
 
     /// <summary>The last payment day of a transfer, as the module worked it out (a postponed day after an outage included; 04 5.16.4; D-668).</summary>
-    public string? TransferEndsOnText => Summary.TransferPaymentEndsAt is { } end ? DisplayFormat.Date(end) : null;
+    public string? TransferEndsOnText => Summary.TransferLastPaymentDay is { } day ? DisplayFormat.Date(day) : null;
 
     public string? TransferIbanText => Summary.TransferIban is { } iban ? DisplayFormat.Iban(iban) : null;
 
@@ -132,8 +132,26 @@ public abstract class OrderPageModel : PageModel
 
     public string? RefusalText { get; private set; }
 
-    /// <summary>The download button of an item, or null when the item has none (not digital, or the payment is not confirmed; 02 3.12.1).</summary>
-    public OrderDownloadButton? DownloadOf(Guid orderItemId) => Summary.Downloads.FirstOrDefault(d => d.OrderItemId == orderItemId);
+    /// <summary>
+    /// The download button of an item, or null when the item has none (not digital, the payment is not confirmed - 02 3.12.1 - or a record closed the item; K-1624 (1)).
+    /// The button is open when the operation's row is (<c>DownloadDigitalFile</c>; 03 1.11.14) - the same decision the POST's gate asks (09 §25; D-1259); a closed row whose
+    /// right is not used up is a closed item and draws nothing, a used-up right draws its notice.
+    /// </summary>
+    public OrderDownloadButton? DownloadOf(Guid orderItemId)
+    {
+        OrderDownloadButton? button = Summary.Downloads.FirstOrDefault(d => d.OrderItemId == orderItemId);
+        if (button is null)
+        {
+            return null;
+        }
+
+        if (Operations.IsOpen(OrderOperation.DownloadDigitalFile, orderItemId))
+        {
+            return button with { IsAvailable = true };
+        }
+
+        return button.IsAvailable ? null : button;
+    }
 
     /// <summary>The delivery date the firm wrote with the item's delivery mark (04 5.16.5), or null when there is none; the mark's own moment stands in the records.</summary>
     public static string? DeliveryDateText(OrderPageItem item)

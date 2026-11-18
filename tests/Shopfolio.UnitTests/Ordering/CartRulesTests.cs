@@ -152,4 +152,22 @@ public sealed class CartRulesTests
         Assert.Equal([open], view.OrderingLines);
         Assert.True(view.CanOpenPayment);
     }
+
+    [Fact]
+    public void TheLineAmountAndThePayableTotal_AreTheModulesValues_TheSubtotalSumsTheSameLineAmounts_D1246()
+    {
+        ShippingFeeSection terms = new(49.90m, null, null, 1);
+        CartLine first = Line(3, 12.345m);
+        CartLine second = Line(2, 100m);
+        CartLine sold = Line(1, 999m, soldOut: true);
+        CartLine[] lines = [first, second, sold];
+        ShippingAssessment shipping = CartRules.AssessShipping(lines, terms);
+        CartView view = new(Guid.NewGuid(), lines, [], [], BlockOf(lines, terms), CartRules.OrderableSubtotal(lines), shipping);
+
+        // The line's amount is not rounded (02 3.8.3); the subtotal is the sum of the entering lines' amounts; the total adds the fee - the page writes these and computes nothing.
+        Assert.Equal(37.035m, first.LineAmount);
+        Assert.Equal(first.LineAmount + second.LineAmount, view.OrderableSubtotal);
+        Assert.Equal(237.035m + 49.90m, view.PayableTotal);
+        Assert.Equal(view.OrderableSubtotal + shipping.Fee, view.PayableTotal);
+    }
 }

@@ -54,7 +54,7 @@ internal static class CartRules
     public static decimal OrderableSubtotal(IReadOnlyCollection<CartLine> lines)
     {
         ArgumentNullException.ThrowIfNull(lines);
-        return lines.Where(l => l.EntersOrder).Sum(l => l.UnitPrice * l.Quantity);
+        return lines.Where(l => l.EntersOrder).Sum(l => l.LineAmount);
     }
 
     /// <summary>

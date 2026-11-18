@@ -96,6 +96,8 @@ internal sealed class OrderAccess
         DateTimeOffset? transferEndsAt = order.PaymentMethod == PaymentMethod.BankTransfer && order.PaymentStatus == PaymentStatus.Pending && order.OrderStatus == OrderStatus.Placed
             ? order.PaymentWindowEndsAt
             : null;
-        return new OrderPageSummary(order.Id, order.OrderNumber, order.OrderStatus, order.PaymentStatus, shipping, downloads, iban, transferEndsAt);
+        return new OrderPageSummary(
+            order.Id, order.OrderNumber, order.OrderStatus, order.PaymentStatus, shipping, downloads, iban, transferEndsAt,
+            transferEndsAt is { } end ? PaymentWindowRules.LastPaymentDay(end) : null);
     }
 }

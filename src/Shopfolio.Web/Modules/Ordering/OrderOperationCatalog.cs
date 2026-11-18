@@ -65,7 +65,8 @@ internal static class OrderOperationCatalog
         Customer(OrderOperation.EnterRefundIban, OperationScope.Order, i => Open(i.Order.HasOpenIbanRequest)),
         Customer(OrderOperation.CorrectRefundIban, OperationScope.Order, i => Open(i.Order.HasRefundIban)),
         Customer(OrderOperation.ViewTransferDetails, OperationScope.Order, i => Open(i.Order.PaymentMethod == PaymentMethod.BankTransfer && i.Order.HasTransferDetails && i.Order.OrderStatus == OrderStatus.Placed && i.Order.PaymentStatus == PaymentStatus.Pending)),
-        Customer(OrderOperation.DownloadDigitalFile, OperationScope.Item, i => Open(i.Item is { ProductType: ProductType.Digital, DownloadsLeft: > 0 } && DownloadRules.IsPaymentConfirmed(i.Order.PaymentStatus))),
+        // 03 1.11.14 with K-1624 (1): an item a record closed (no open unit - a rescinded defect claim, a removal) has no download left (D-1197).
+        Customer(OrderOperation.DownloadDigitalFile, OperationScope.Item, i => Open(i.Item is { ProductType: ProductType.Digital, DownloadsLeft: > 0, OpenQuantity: > 0 } && DownloadRules.IsPaymentConfirmed(i.Order.PaymentStatus))),
 
         // ---- Administrator - the panel (03 1.11.15-1.11.41) ----
         Firm(OrderOperation.MarkTransferPaid, OperationScope.Order, i => Open(i.Order.PaymentMethod == PaymentMethod.BankTransfer && i.Order.OrderStatus == OrderStatus.Placed && i.Order.PaymentStatus == PaymentStatus.Pending)),

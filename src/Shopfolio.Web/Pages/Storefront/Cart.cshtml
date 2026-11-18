@@ -70,7 +70,7 @@ else
                     }
                     @if (line.EntersOrder)
                     {
-                        <p class="cart-line__total">@DisplayFormat.Amount(line.UnitPrice * line.Quantity)</p>
+                        <p class="cart-line__total">@DisplayFormat.Amount(line.LineAmount)</p>
                     }
                     @if (line.PriceChanged)
                     {
@@ -101,7 +101,7 @@ else
                     <dd id="cart-shipping">@DisplayFormat.Amount(view.Shipping.Fee)</dd>
                 }
                 <dt>Ödenecek toplam</dt>
-                <dd id="cart-total">@DisplayFormat.Amount(view.OrderableSubtotal + view.Shipping.Fee)</dd>
+                <dd id="cart-total">@DisplayFormat.Amount(view.PayableTotal)</dd>
             </dl>
             @if (freeShipping is not null)
             {

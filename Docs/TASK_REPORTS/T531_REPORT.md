@@ -111,7 +111,7 @@
 - **Commit:** `1439a146` — T531: Sipariş ayrıntısı: hizmet kalemi, indirme hakkı, iç not ve e-posta yeniden gönderim (E-37)
 - **PR:** #572
 - **CI:** *(yardımcı izler)*
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `6e6d4a41` (#572) — CI 43575320271 success, Publish 43575320382 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

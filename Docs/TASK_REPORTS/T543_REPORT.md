@@ -82,7 +82,7 @@
 - **Commit:** `01411663` (yapım ucu); doğrulama kaydı bu dalda
 - **PR:** #539
 - **CI:** dal run 42999862098 — doğrulama bakışında Lint, Build, Unit, Contract, Migration, Paketleme, E2E yeşil; Integration koşuyordu (merge öncesi yardımcı denetler)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `157e7ec3` (#539) — CI 43026292839 success, Publish 43026292752 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

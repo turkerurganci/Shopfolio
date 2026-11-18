@@ -2,6 +2,8 @@
 
 **Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-11
 
+**PR:** #547
+
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
 ---
@@ -81,6 +83,7 @@
 
 - **Branch:** `task/T507-yasal-metinler`
 - **PR:** başlık "T507: Yasal metin sayfaları ve panelde yönetimi (E-11, E-47)"
+- **Post-merge run'lar:** squash `30832ba6` (#547) — CI 43090427579 success, Publish 43090427576 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

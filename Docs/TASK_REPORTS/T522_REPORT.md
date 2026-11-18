@@ -1,6 +1,8 @@
 # T522 — Yönetici hesapları ve işlem izi (E-49, E-52)
 
-**Faz:** F5 | **Durum:** ✓ PASS (doğrulama tur 1) | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-12
+
+**PR:** #557
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -76,3 +78,5 @@
 
 - D-1358: satırdaki "Yeni davet gönder" betiksiz yolda doğrudan gönderir (uyarı `title`'da); onay istemeyen işlem olduğundan kural karşılanır.
 - D-1359: işlem izi alan/işlem adları katalog yerine `AuditTexts`'te.
+
+- **Post-merge run'lar:** squash `4b37cf0c` (#557) — CI 43243831320 success, Publish 43243831324 success (F5 gate'te dolduruldu)

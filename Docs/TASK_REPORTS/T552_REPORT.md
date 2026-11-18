@@ -1,6 +1,8 @@
 # T552 — A seviyesi erişilebilirlik taraması ve ihlal düzeltmesi
 
-**Faz:** F5 | **Durum:** Yapım tamamlandı, doğrulama bekliyor | **Tarih:** 2026-11-17
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-17
+
+**PR:** #584
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -256,3 +258,5 @@ Geçici bozma, tek derleme + tek koşu, sonra `git checkout` ile geri alındı: 
 - **D-1740 (a), (b):** (a) istisna yalnız betiksiz yol + tarama kancası + kesilen betik sayısı kadar satır; yol denetimini silme değişinimi `TheCutScriptExemption_…` testini kırdı. (b) gönderim beklemesi `Commit` + `DOMContentLoaded`, 30 sn; sayfa hiç gelmezse yine zaman aşımıyla kırılır, 422 denetimi ve sayımlar aynı. CI "8. E2E" 682/682 (firefox betiksiz dahil); altı kayıt dosyasında "ölçülmedi", "karşılanmadı", "–" ya da "✗" hücresi yok; 6618 gözlemin hiçbiri kırmızı değil.
 - **Değişinimler (doğrulayıcı):** `tabindex=-1` (chromium ve webkit Audit klavye başlığı), hata özeti silme (E-10 hata başlığı), düğme adı silme (axe `button-name`), odak çerçevesi kaldırma (odak başlığı), `lang` silme (sayfa olguları + axe `html-has-lang`), autofocus kaldırma (betiksiz hata başlığı: odak BODY), boş durum ve pencere düşürme (States taban denetimleri), istisna yol denetimi silme; hepsi kırdı, geri alındı.
 - **Yerel:** build `-warnaserror` 0/0; `dotnet format --include` (19 `.cs`) çıkış 0; Unit 8088/8088; Integration: States + Audit + Criteria üç motor × iki yol, Record + Scan chromium iki yol, sayfa sınıfları 182/182 yeşil. Integration TAM: CI.
+
+- **Post-merge run'lar:** squash `fe61dcb4` (#584) — CI 44184030257 success, Publish 44184030175 success (F5 gate'te dolduruldu)

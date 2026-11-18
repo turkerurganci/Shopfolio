@@ -108,7 +108,7 @@
 - **Commit:** `e947183b` — kod ve testler; düzeltme 1 `92f5219f` + main birleştirmesi `1ce5cf11`
 - **PR:** #573
 - **CI:** run 43577917177 (head `02146b34`) yeşil; post-merge yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `866dc688` (#573) — CI 43583547946 success, Publish 43583547933 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

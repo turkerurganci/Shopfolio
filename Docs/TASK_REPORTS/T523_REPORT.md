@@ -1,6 +1,8 @@
 # T523 — Yöneticinin kendi hesabı (E-50)
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-12
+
+**PR:** #561
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -100,6 +102,7 @@
 - **Branch:** `task/T523-yonetici-kendi-hesabi`
 - **PR:** bkz. dönüş
 - **CI:** yoklanmadı (yönetici izler)
+- **Post-merge run'lar:** squash `857c52f3` (#561) — CI 43486261245 success, Publish 43486261206 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

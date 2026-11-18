@@ -1,5 +1,7 @@
 # T513 — Cayma beyanı ve ayıp talebi ekranları (E-18, E-19)
 
+**Faz:** F5 | **Durum:** ✓ Tamamlandı
+
 ## Yapılan İşler
 
 - E-18 (`{kök}/cayma`) ve E-19 (`{kök}/ayip-talebi`) sayfaları üye ve erişim anahtarı kökleri için kuruldu; üç POST işleyicisi (`SubmitWithdrawal`, `SubmitDefectClaim`, `ReopenDefectClaim`) `[GatedOperation]` taşır ve modülün yazıcılarını çağırır, kuralı yeniden yazmaz (D-153, D-776).
@@ -124,6 +126,7 @@ Yok.
 ## Commit & PR
 
 Dal `task/T513-cayma-ayip`; PR #558 (base `main`).
+- **Post-merge run'lar:** squash `9474668f` (#558) — CI 43490194370 success, Publish 43490194418 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

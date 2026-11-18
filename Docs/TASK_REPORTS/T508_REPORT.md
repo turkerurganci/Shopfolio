@@ -84,6 +84,7 @@
 - **Branch:** `task/T508-sepet`
 - **PR:** #544
 - **CI:** yapım işçisi izlemez; yardımcı yürütür
+- **Post-merge run'lar:** squash `25f1f1ee` (#544) — CI 43046780990 success, Publish 43046780915 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

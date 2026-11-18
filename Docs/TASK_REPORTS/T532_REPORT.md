@@ -98,7 +98,7 @@
 - **Commit:** son baş SHA PR açıklamasında
 - **PR:** #552
 - **CI:** dal run 43145034022 (`d202a668`) — 9 adım + CI Gate yeşil (doğrulayıcı)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `29562ee9` (#552) — CI 43153986199 success, Publish 43153986204 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

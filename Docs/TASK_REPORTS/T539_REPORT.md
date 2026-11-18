@@ -95,7 +95,7 @@
 - **Commit:** dal `task/T539-betiksiz-yol` (PR #576 geçmişi)
 - **PR:** #576
 - **CI:** yardımcı yürütür
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `f2d190fd` (#576) — CI 43591343534 success, Publish 43591343438 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

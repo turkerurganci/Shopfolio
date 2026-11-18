@@ -105,7 +105,7 @@ Yerelde koşulmayan ad alanları (Model, Database, Catalog, Commands, Concurrenc
 - **Commit:** PR başlığına ve dal geçmişine bakınız
 - **PR:** #545
 - **CI:** dal run 43069617924 (head `20c8bbcc`) success — Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E (advisory); Guard atlandı
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası)*
+- **Post-merge run'lar:** squash `a9270c02` (#545) — CI 43082450104 success, Publish 43082449757 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

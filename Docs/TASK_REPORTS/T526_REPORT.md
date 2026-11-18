@@ -2,6 +2,8 @@
 
 **Faz:** F5 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-12
 
+**PR:** #563
+
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
 
@@ -114,7 +116,7 @@
 - **Branch:** `task/T526-kategori-kupon`
 - **PR:** PR açıklamasında
 - **CI:** dal run 43303039201 ✓ (Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate) — head `901e0cdc`
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `7fc11ffa` (#563) — CI 43499837714 success, Publish 43499837943 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

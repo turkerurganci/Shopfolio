@@ -1,6 +1,6 @@
 # T551 — Tarayıcı aracı ve betiksiz yol gözlemi
 
-**Faz:** F5 | **Durum:** Doğrulama tur 1 — ✗ FAIL, düzeltme bekliyor | **Tarih:** 2026-11-16
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-16
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -70,6 +70,7 @@
 
 - **Branch:** `task/T551-tarayici-betiksiz-yol`
 - **PR:** *(PR açılınca)*
+- **Post-merge run'lar:** squash `bb2cfbb6` (#583) — CI 43997599218 success, Publish 43997599546 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

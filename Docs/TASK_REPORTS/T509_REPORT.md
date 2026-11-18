@@ -1,6 +1,6 @@
 # T509 — Ödeme adımı (E-13)
 
-**Faz:** F5 | **Durum:** ⏳ Doğrulama bekliyor | **Tarih:** 2026-11-12
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-12
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -156,6 +156,7 @@
 - **Commit:** son baş SHA PR açıklamasında
 - **PR:** #559
 - **CI:** tur 1: run 43262776784 yeşil · tur 4: run 43489405862 (`a46fcd0f`) yeşil
+- **Post-merge run'lar:** squash `edf4eb2a` (#559) — CI 43502869355 success, Publish 43502869408 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

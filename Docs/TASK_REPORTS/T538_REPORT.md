@@ -91,7 +91,7 @@ Turların tam sonucu raporun sonundaki "Doğrulama Sonucu — T538 … — tur 1
 - **Commit:** `cccb597b` — T538: Uç ve model eşitlik denetimleri: form girdi, sorgu, makine ucu gövdeleri ve uç bağlama (devam); düzeltme 2 `5f436d41`, doğrulanan head `67275a71`
 - **PR:** #579
 - **CI:** yardımcı yürütür
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `5acd773e` (#579) — CI 43691824223 success, Publish 43691824226 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

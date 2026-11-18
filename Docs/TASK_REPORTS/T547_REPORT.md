@@ -1,6 +1,8 @@
 # T547 — Durum × rol matrisi ve form envanteri eşitlik denetimleri
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-15
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-15
+
+**PR:** #581
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -429,7 +431,7 @@ Yapım raporuyla uyuşmazlık: düzeltme 4 bölümü 24 yeri "satırın adlandı
 - **Commit:** son baş SHA PR'da
 - **PR:** #NN (açılışta)
 - **CI:** —
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `160aac5b` (#581) — CI 43779716326 success, Publish 43779716328 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

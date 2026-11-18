@@ -1,6 +1,6 @@
 # T519 — E-posta değişikliğini geri alma ve müşteri çıkışı (E-28)
 
-**Faz:** F5 | **Durum:** ✗ FAIL (doğrulama tur 1); düzeltme 1 yapıldı, doğrulama bekliyor | **Tarih:** 2026-11-14
+**Faz:** F5 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-14
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -148,7 +148,7 @@ VAL-C028 → PASS; VAL-A809 → FAIL; VAL-C029, VAL-C116, VAL-A565, VAL-A608, VA
 - **PR:** #571
 - **Commit:** `6334354a` — T519: E-posta değişikliğini geri alma ve müşteri çıkışı (E-28)
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `2a093c3d` (#571) — CI 43568483263 success, Publish 43568483257 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

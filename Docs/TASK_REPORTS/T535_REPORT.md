@@ -100,6 +100,7 @@
 - **Branch:** `task/T535-ana-sayfa-firma`
 - **PR:** STATUS satırında
 - **CI:** merge öncesi doğrulayıcı/yardımcı izler
+- **Post-merge run'lar:** squash `f62d956f` (#555) — CI 43231067122 success, Publish 43231067090 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

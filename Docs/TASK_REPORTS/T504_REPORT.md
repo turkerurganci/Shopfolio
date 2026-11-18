@@ -96,7 +96,7 @@ Yerel sınama (validator): derleme `-warnaserror` 0/0; `dotnet format` üç proj
 - **Commit:** PR başlığına ve dal geçmişine bakınız (kod: `bdfba2d3`, devam: `51d4ffa5`, birleştirme `0f94d56b`)
 - **PR:** #540
 - **CI:** yeşil — run 43000656410 (head `e59bfa5f`, doğrulama tur 1)
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası)*
+- **Post-merge run'lar:** squash `6fd90f28` (#540) — CI 43011159636 success, Publish 43011159643 success (F5 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

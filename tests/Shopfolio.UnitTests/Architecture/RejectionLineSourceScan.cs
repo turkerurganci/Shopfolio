@@ -89,13 +89,21 @@ internal static partial class RejectionLineSourceScan
                         .Select(l => (ScopeProperty, l.Line)));
                 }
 
+                if (site.Kind is LogCallKind.Log or LogCallKind.Scope)
+                {
+                    // new { Code = x }: the member names of an anonymous object are the property names (D-1005 form 3).
+                    findings.AddRange(source.AnonymousMembers(site).Where(m => IsCodeOrFieldsName(m.Name)).Select(m => (ScopeProperty, m.Line)));
+                }
+
                 if (site.Kind is LogCallKind.Log or LogCallKind.Scope or LogCallKind.Audit)
                 {
                     // The value of the ErrorCode type as an argument: the line carries the code under whatever property name the template gives it.
+                    // A variable declared with the type, or taken from an expression that names it, counts too (D-1005 form 2).
+                    HashSet<string> codeNames = ErrorCodeNames(source.Code);
                     foreach ((int Start, int End) argument in site.Arguments)
                     {
                         string code = source.ArgumentCode(argument);
-                        if (ErrorCodeValue().IsMatch(code))
+                        if (ErrorCodeValue().IsMatch(code) || NamesAVariable(code, codeNames) || NameWithCode().IsMatch(code))
                         {
                             findings.Add((ErrorCodeArgument, source.LineOf(argument.Start + (code.Length - code.TrimStart().Length))));
                         }
@@ -139,6 +147,29 @@ internal static partial class RejectionLineSourceScan
         }
     }
 
+    // ErrorCode code (parameter, field, local) and var code = <expression that names ErrorCode or its property>: the variables that hold an error code.
+    private static HashSet<string> ErrorCodeNames(string code)
+    {
+        HashSet<string> names = new(StringComparer.Ordinal);
+        foreach (Match match in DeclaredErrorCode().Matches(code))
+        {
+            names.Add(match.Groups["n"].Value);
+        }
+
+        foreach (Match match in VarDeclaration().Matches(code))
+        {
+            if (ErrorCodeValue().IsMatch(match.Groups["init"].Value) || NameWithCode().IsMatch(match.Groups["init"].Value))
+            {
+                names.Add(match.Groups["n"].Value);
+            }
+        }
+
+        return names;
+    }
+
+    private static bool NamesAVariable(string argument, HashSet<string> names) =>
+        names.Any(name => Regex.IsMatch(argument, @"(?<![\w.])" + Regex.Escape(name) + @"\b", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
+
     private static bool IsMarkup(string path) => MarkupExtensions.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase);
 
     private static string Normalize(string path) => path.Replace('\\', '/');
@@ -157,6 +188,17 @@ internal static partial class RejectionLineSourceScan
     // ErrorCode.X, ErrorCode.X.ToString(), nameof(ErrorCode.X), (ErrorCode)n, a variable cast: the type name as a word.
     [GeneratedRegex(@"\bErrorCode\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex ErrorCodeValue();
+
+    // ErrorCode code, ErrorCode? code: a declaration with the type (the next word is the variable).
+    [GeneratedRegex(@"\bErrorCode\??\s+(?<n>[A-Za-z_]\w*)\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex DeclaredErrorCode();
+
+    [GeneratedRegex(@"\bvar\s+(?<n>[A-Za-z_]\w*)\s*=(?!=)(?<init>[^;]*)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex VarDeclaration();
+
+    // errorCode, refusal.RejectionCode, _lastErrorCode: a name that contains the words, in any case (the same rule as IsCodeOrFieldsName).
+    [GeneratedRegex(@"ErrorCode|RejectionCode", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex NameWithCode();
 
     [GeneratedRegex(@"\.\s*(?:Log\w*|Verbose|Debug|Information|Warning|Error|Fatal)\s*\(|\bBeginScope\b|\bForContext\b|\bPushProperty\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex LogWordOnLine();

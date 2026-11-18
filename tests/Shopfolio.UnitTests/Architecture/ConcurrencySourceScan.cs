@@ -18,7 +18,7 @@ internal static partial class ConcurrencySourceScan
 {
     public const string RowLockText = "takes an advisory or row lock outside AdvisoryLocks.cs and OrderLocks.cs (09 10.2 items 5, 6)";
 
-    public const string ShareLockText = "takes a shared row lock outside OrderLocks.cs (09 10.2 item 6, 10.9 item 2)";
+    public const string ShareLockText = "takes a shared row lock outside OrderLocks.cs, or a plain FOR SHARE in ProductLocks.cs, which may take FOR KEY SHARE only (09 10.2 items 5 and 6, 10.9 item 2)";
 
     public const string CounterWrite = "writes a counter outside its one writer: StockCounters.cs, or DownloadCounters.cs for the download counter (09 10.2 item 4)";
 

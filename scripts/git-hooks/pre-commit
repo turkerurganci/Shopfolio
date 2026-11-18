@@ -25,6 +25,12 @@
 #                        still checked.
 #                        Known limit: `Token = AKIAEXAMPLEKEY123` (bare
 #                        identifier) passes in source code.
+#                     3. In shell scripts (.sh; D-1120) a line is not a
+#                        candidate when its right side is ENTIRELY one expansion
+#                        that reads the value from elsewhere ($(cat <path>),
+#                        $NAME, ${NAME}), or when the key ends in _FILE and the
+#                        value is an absolute path. Text around the expansion,
+#                        $(echo <value>) and relative paths are still checked.
 #
 # Deliberately generic: no domain- or vendor-specific patterns. Project
 # specifics go in scripts/git-hooks/hooks.config, not here.
@@ -95,7 +101,7 @@ KEY_RE="$DEFAULT_SECRET_KEYS"
 # is_secret_assignment <candidate>: 0 when the candidate assigns a real value to
 # a secret key name, 1 otherwise. Reads $path and $is_code of the file in hand.
 is_secret_assignment() {
-  local body="$1" lhs value v_loose v_strict v_noq ID CHAIN EFARG MULTI
+  local body="$1" lhs value v_loose v_strict v_noq v_sh ID CHAIN EFARG MULTI SH_NAME SH_PATH SH_EXPANSION
   # The key name must sit on the LEFT of the first = or : — that is what an
   # assignment looks like (API_KEY=..., "token": ..., password: ...). Prose
   # that merely mentions the word after a label ("Sorun: ... token ...")
@@ -147,6 +153,22 @@ is_secret_assignment() {
         ;;
     esac
   fi
+  # Fourth narrow carve-out, shell scripts only (.sh; D-1120): the right side is ENTIRELY one expansion that reads the value from elsewhere -- $(cat <path>),
+  # $NAME or ${NAME} (the path is letters, digits and . _ / - plus $NAME / ${NAME} parts, in one pair of double quotes or none) -- so the line holds no
+  # value; or the key ends in _FILE and the value is an absolute path (the path of a secret file, not the secret). Anything else on the right keeps the
+  # normal rule: $(echo <value>), a concatenation, text around the expansion, a command with arguments, a relative path.
+  case "$path" in
+    *.sh)
+      SH_NAME='[A-Za-z_][A-Za-z0-9_]*'
+      SH_PATH='([A-Za-z0-9_./-]|\$'"$SH_NAME"'|\$\{'"$SH_NAME"'\})+'
+      SH_EXPANSION='^(\$'"$SH_NAME"'|\$\{'"$SH_NAME"'\}|\$\(cat[[:space:]]+("'"$SH_PATH"'"|'"$SH_PATH"')\))$'
+      v_sh="$(echo "$value" | sed -E 's/[[:space:]\\]+$//; s/^"//; s/"$//')"
+      echo "$v_sh" | grep -qE "$SH_EXPANSION" && return 1
+      if echo "$lhs" | grep -qE '_FILE["'"'"']?[[:space:]]*$' && echo "$v_sh" | grep -qE '^/[A-Za-z0-9_./-]+$'; then
+        return 1
+      fi
+      ;;
+  esac
   # In source code a multi-part right side never counts as a placeholder.
   if [ "${MULTI:-0}" = "0" ]; then
     echo "$value" | grep -qiE "$PLACEHOLDER" && return 1

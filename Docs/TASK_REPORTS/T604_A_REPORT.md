@@ -1,6 +1,6 @@
 # T604 (A) — F5 kapısından kalan test aracı kalemleri
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor (dilimler A1 ve A2 bitti; A3…A7 payları sonraki dilimlerde) | **Tarih:** 2026-11-18
+**Faz:** F5 | **Durum:** ⏳ Devam ediyor (dilimler A1, A2 ve A3 bitti; A7'de D-1547 sürüyor; A4…A6 payları sonraki dilimlerde) | **Tarih:** 2026-11-18
 
 ---
 
@@ -55,6 +55,30 @@ Yalnız test ve belge dosyaları değişti; `src` değişikliği yok (değişini
 - Unit TAM: 8088/8088. `dotnet format` değişen yedi `.cs` dosyasında temiz.
 - Docker: Postgres 18 `track_commit_timestamp=on`, konteyner `shopfolio-t604a-pg`, port 56604 (iş bitince silindi).
 
+## Dilim A3 — sır, kayıt maskeleme
+
+Kalemler: D-1005, D-1020, D-1120, D-1130. Yalnız test, betik ve belge dosyası değişti (`src` değişikliği yok).
+
+### Yapılan işler (A3)
+
+- D-1005 ve D-1020 (`LogSourceText`, `LogTemplateSourceScan`, `RejectionLineSourceScan`): dört tür-gerektiren biçim metin taramasına girdi — `…Exception`/`…Ex` adlı alan ve `var` ile istisna ifadesinden alınan değişken; `ErrorCode` türlü değişken (bildirimli, `var` ile `ErrorCode` anan ifadeden, adı `ErrorCode`/`RejectionCode` içeren); anonim nesne üye adları (`BeginScope(new { Email = x })`, `new { order.Phone }`, iç içe, `Log` çağrısına verilen anonim nesne); değişkende tutulan şablon (`var t = "{Event} {Email}"`, `string T => …`). D-1020: şablon sabit adla ya da değişkenle verilince ilk istisna-dışı bağımsız değişken şablon sayılır; şablon yerindeki istisna ve `.Message`/`.ToString()` bulgu. Örnek dosyalar `ViolationSamples/Logging/ExceptionArgumentsUntyped.cs`, `AnonymousScopes.cs`, `ErrorCodeVariables.cs`; yeni testler `LogTemplateSourceScanTests` (üç sabit-satır testi + dört veri kümesi), `RejectionLineSourceScanTests` (bir sabit-satır testi + üç veri kümesi). Gerçek `src/` taraması temiz kaldı.
+- D-1130: `test-pre-commit.sh` içindeki `-e`/`--env` örnekleri parçalardan kurulur; tek başına denetimde bekçi dosyada yedi satırda takılıyordu, şimdi sıfır.
+- D-1120: bekçiye dördüncü dar istisna (yalnız `.sh`, tam sağ taraf `$(cat <yol>)`/`$AD`/`${AD}` ya da `_FILE` + mutlak yol); `README.md` istisnayı yazar. Sekiz satırdan yedisi bekçiden geçer; `storage-setup.sh:66` (`AWS_ACCESS_KEY_ID=t09admin` değeri) ile `package-build.sh:167,172` takılır kalır, D-1770 (`storage-setup.sh:66` bu dalda düzenlenemedi: satır `$ADMIN_CREDENTIAL` seçeneği yüzünden main'deki eski bekçiyi takar; bekçi atlanmaz).
+- Yeni backlog: D-1768 (`09 §18.2` madde 2a yan cümlesi + K-1626; belge sözü tarama koduna yetişir), D-1769 (tür çözümlemesiz kalan son artık), D-1770 (`package-build.sh:167,172`).
+
+### Notlar (A3)
+
+- Unit: `Shopfolio.UnitTests.Architecture` ad alanı 1861/1861. Unit TAM ve Integration: bkz. A7 notları (süre sınırında bölündü; TAM Unit ve format devam işçisinde yeniden koşulur).
+- `test-pre-commit.sh` 240/240 (eski bekçiyle 232/240: sekiz yeni `check 0` kırmızı).
+
+## Dilim A7 — belge ve yorum (kısmi)
+
+Kalemler: D-1546, D-1547, D-1617.
+
+- D-1546: `ConcurrencySourceScan.ShareLockText` iletisi `ProductLocks.cs`'in yalnız `FOR KEY SHARE` alabildiğini söyler; iletiyi `ConcurrencySourceScanTests.ShareLockText_…_D1546` sınar. Belge payı F5 kapısında kapanmıştı.
+- D-1617: iki yorum `src/…/OrderDetail.Refunds.cs` içinde; A parçası `src` değiştirmez, U parçası aynı dosyayı değiştiriyor → T604 U'ya daraltıldı (satırda gerekçe).
+- D-1547: **sürüyor** (devir notu: `helper-state/shopfolio/impl/T604/devir-A3.md`).
+
 ## Para ve güvenlik kalemleri (KK2)
 
 Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "değişiklikten önce kırmızı" yerine her testin **ayırt ediciliği** değişinimle gösterilir (src geçici bozuldu, test kırıldı, geri alındı; `git checkout src`) ve var olan testler değişmeden geçer. Çıkış yolu ve geri alma: test dosyalarının PR'ı geri alınır.
@@ -83,6 +107,10 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 | A2: D-1301 eşzamanlı tüketim | `TwoVerificationPressesAtOnce_…`, `TwoRevertPressesAtOnce_…` | hesap kilidi atlanır ve `TryConsumeAsync` kullanılmışlık koşulunu bırakır → iki test (ve KK8 iki var olan test) KIRMIZI |
 | A2: D-1723 | `…_VALB110_D1723` | `TryConsumeAsync` kullanıldı işaretini yazmaz → iki yol KIRMIZI (chromium) |
 | A2: D-1289 `VAL-A306`, `VAL-A308` | ilgili testler | değişinim yapılmadı (⚠ aşağıda) |
+| A3: D-1005 (istisna, `ErrorCode`, anonim üye, değişkende şablon) | `LogTemplateSourceScanTests` ve `RejectionLineSourceScanTests` yeni 27 örnek/sabit-satır testi | tarama değişikliği geri alındı (`git checkout` üç tarama dosyası) → 27 test KIRMIZI (yalnız yeni olumlu örnekler; olumsuz örnekler yeşil kaldı), değişiklik geri uygulandı → 153/153 YEŞİL; çıkış yolu: tarama dosyalarının önceki hâli, geri alma: PR geri alınır |
+| A3: D-1020 (sabit adlı şablon, şablon yerinde istisna) | `…_OnTheUntypedExceptionSample_…`, `ScanTemplates_AnExceptionNotTypedInTheFile_IsReported` | aynı geri alma → KIRMIZI; var olan `ExceptionArguments` örnek testi (5 satır) değişmeden geçer |
+| A3: D-1120 (`.sh` dar istisna) | `test-pre-commit.sh` `check 0` sekiz örnek (g10–g17), `check 1` dokuz karşı örnek (g1–g9) | eski bekçiyle sekiz `check 0` KIRMIZI (232/240); istisnanın sağ-taraf bağı (`$` çapası) kaldırılınca `sh expansion: cat + text` KIRMIZI (239/240); yeni bekçi 240/240 |
+| A3: D-1130 (bekçinin kendi test dosyası) | her anahtar sözcüklü satırın tek başına bekçiden geçişi (geçici betik) | eski dosya: yedi satır takıldı (65, 67, 72, 73, 74, 75, 78) → yeni dosya: sıfır |
 
 ## Öz denetim tablosu (bitiş kapısı 2)
 
@@ -120,6 +148,19 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 | A2 `sik-fail-nedenleri` (3) 06 default/FK | ✓ | Şema değişmedi |
 | A2 `sik-fail-nedenleri` (4) aynı sayıyı anan yerler | ✓ | Kural, sayaç ve şablon değişmedi; backlog sayacına dokunulmadı |
 | A2 `sik-fail-nedenleri` (5) belge kuralı / karar kaydı | ✓ | 05/07/11/09 metni değişmedi; yeni karar yok (D-1374/D-1389 kararları U'da, kayıtla) |
+| **A3** Kabul 1: A3 kalemleri kapanır ya da gerekçeyle daraltılır | ✓ | Kapandı: D-1005, D-1020, D-1120, D-1130 (`✅ Çözüldü → T604`, kanıt satırda). Yeni: D-1768 (belge yan cümlesi), D-1769 (tür çözümlemesiz son artık), D-1770 (`package-build.sh:167,172`). `grep -nE "T604" Docs/DEFERRED_BACKLOG.md Docs/DEFERRED_BACKLOG.d/*.md` ile yedi kalem tarandı |
+| A3 D-1005 dört biçim | ✓ | `ExceptionArgumentsUntyped.cs` (satır 14–19), `AnonymousScopes.cs` (8, 9, 10, 12, 16), `ErrorCodeVariables.cs` (10, 11, 13, 14) ve satır içi örnekler |
+| A3 D-1020 | ✓ | `ScanTemplates_AnExceptionNotTypedInTheFile_IsReported` (sekiz örnek: sabit adlı şablon, `var` şablon, `ex.Message` şablon yerinde, `ex.ToString()`, diğer-dosya üyesi, `var` istisna ifadesinden, `…Ex`), olumsuz dokuz örnek |
+| A3 D-1120 | ✓ | `test-pre-commit.sh` g1–g17; sekiz satırdan yedisi bekçiden geçer; tek tek denetim: `host-up.sh` 0 (önce 1), `storage-setup.sh` 1 (önce 3; satır 66), `package-build.sh` 2 (önce 7; 167, 172) — kalan üç satır D-1770 |
+| A3 D-1130 | ✓ | `test-pre-commit.sh` 240/240; tek satır denetimi sıfır takılma |
+| A3 `sik-fail-nedenleri` (1) istisna geniş | ✓ | İstisna yalnız `.sh`, tam sağ taraf, karşı örnek dokuz; `nameof`/`typeof` ve `ExceptionCount` gibi adlar bulgu değil (olumsuz örnek) |
+| A3 `sik-fail-nedenleri` (2) çağrı biçimi kaçırma | ✓ | Adlı bağımsız değişken (`exception:`, `message:`), sabit adlı şablon, `var` şablon, iç içe anonim nesne, `Log` ve `Scope` çağrısı örnekli |
+| A3 `sik-fail-nedenleri` (3) 06 default/FK | ✓ | Şema değişmedi |
+| A3 `sik-fail-nedenleri` (4) aynı sayıyı anan yerler | ✓ | `git-hooks/README.md` dördüncü istisnayı ve `pre-commit` başlık yorumu üçüncü satırı yazar; sayaçlara dokunulmadı |
+| A3 `sik-fail-nedenleri` (5) belge kuralı / karar kaydı | ⚠ | `09 §18.2` madde 2a'nın yan cümlesi ve K-1626 D-1768'e bırakıldı (belge değişmedi; tarama kodu sözü genişletiyor) |
+| **A7** D-1546 | ✓ | `ShareLockText` iletisi + `ShareLockText_NamesTheProductLocksExceptionAndTheOneFormItMayTake_D1546` |
+| A7 D-1617 | ~ | T604 U'ya daraltıldı (`src` yorumu; satırda gerekçe) |
+| A7 D-1547 | ⚠ | Henüz yazılmadı: devam işçisi (`devir-A3.md`) |
 | A2 12 satırı durumları | ⚠ | `VAL-A351`, `VAL-C075`, `VAL-A306`, `VAL-A308` BEKLEMEDE bırakıldı: kanıt testleri var, PASS yazımı ve uygulama kaydı payı faz kapısı/`12` sahibinde |
 
 ## ⚠ Maddeler

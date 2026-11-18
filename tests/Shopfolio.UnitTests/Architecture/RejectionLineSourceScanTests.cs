@@ -106,6 +106,53 @@ public sealed class RejectionLineSourceScanTests
 
     // --- T411 criterion 5 (KK5): the same widening as the template scan ---
 
+    // --- T604 A3 (D-1005 forms 2 and 3): the forms a string scan cannot type ---
+
+    [Fact]
+    public void OnTheErrorCodeVariablesSample_AVariableThatHoldsACodeAndAnAnonymousCodeMemberAreReported_AndTheNeutralOnesAreNot()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = RejectionLineSourceScan.Scan("src/Shopfolio.Web/Infrastructure/Forms/Sample.cs", Sample("ErrorCodeVariables.cs"));
+
+        Assert.Equal(
+            [
+                (RejectionLineSourceScan.ErrorCodeArgument, 10),
+                (RejectionLineSourceScan.ErrorCodeArgument, 11),
+                (RejectionLineSourceScan.ErrorCodeArgument, 13),
+                (RejectionLineSourceScan.ScopeProperty, 14),
+            ],
+            findings);
+    }
+
+    [Theory]
+    [InlineData("ErrorCode refusal = Find(); _logger.LogWarning(\"{Event} {Reason}\", e, refusal);")]
+    [InlineData("ErrorCode? refusal = Find(); _logger.LogWarning(\"{Event} {Reason}\", e, refusal);")]
+    [InlineData("var code = result.ErrorCode; _logger.LogWarning(\"{Event} {Reason}\", e, code);")]
+    [InlineData("var code = (ErrorCode)n; _logger.LogWarning(\"{Event} {Reason}\", e, code.ToString());")]
+    [InlineData("_logger.LogWarning(\"{Event} {Reason}\", e, rejectionCode);")]
+    public void Scan_AVariableThatHoldsAnErrorCode_HandedToALogCall_IsReported(string source)
+    {
+        Assert.Equal([(RejectionLineSourceScan.ErrorCodeArgument, 1)], RejectionLineSourceScan.Scan("src/Shopfolio.Web/Infrastructure/Forms/Sample.cs", source));
+    }
+
+    [Theory]
+    [InlineData("var s = _logger.BeginScope(new { Code = c });")]
+    [InlineData("var s = _logger.BeginScope(new { Id = 1, result.Fields });")]
+    [InlineData("_logger.LogInformation(\"{Event} {@Data}\", e, new { Fields = c });")]
+    public void Scan_AnAnonymousObjectWithACodeOrFieldsMember_IsReported(string source)
+    {
+        Assert.Equal([(RejectionLineSourceScan.ScopeProperty, 1)], RejectionLineSourceScan.Scan("src/Shopfolio.Web/Infrastructure/Forms/Sample.cs", source));
+    }
+
+    [Theory]
+    [InlineData("var count = items.Count; _logger.LogWarning(\"{Event} {Reason}\", e, count);")]
+    [InlineData("int code = 5; _logger.LogWarning(\"{Event} {Reason}\", e, other);")]
+    [InlineData("var s = _logger.BeginScope(new { OrderId = id });")]
+    [InlineData("var holder = new { Code = c };")]
+    public void Scan_ANeutralVariableOrAnAnonymousObjectOutsideALogCall_IsNotReported(string source)
+    {
+        Assert.Empty(RejectionLineSourceScan.Scan("src/Shopfolio.Web/Infrastructure/Forms/Sample.cs", source));
+    }
+
     [Fact]
     public void OnTheWiderFormsSample_EachFormIsReported_AndTheNearNamesTheHoleAndTheCommentAreNot()
     {

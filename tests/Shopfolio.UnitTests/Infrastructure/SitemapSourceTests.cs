@@ -216,11 +216,11 @@ public sealed class SitemapSourceTests
 
         public Task<IReadOnlyDictionary<Guid, VariantImage>> GetProductVariantImagesAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
 
-        public Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct) => throw new NotSupportedException();
+        public Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<OrderItemSource>> ListOrderItemSourcesAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct) => throw new NotSupportedException();
 
-        public Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, CancellationToken ct) => throw new NotSupportedException();
+        public Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<CartQuantityVerdict> JudgeCartAddAsync(CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, CancellationToken ct) => throw new NotSupportedException();
     }

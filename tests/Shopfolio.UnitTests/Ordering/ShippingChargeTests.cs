@@ -99,6 +99,25 @@ public sealed class ShippingChargeTests
         Assert.Equal(0m, ShippingCharge.Assess(noThreshold with { ShippingFee = 0m }, 10m, hasPhysicalItem: true).Fee);
     }
 
+    [Fact]
+    public void AFeeOfZero_WithAThresholdSet_ShowsNoThresholdMessage_EveryOrderIsFreeAlready_K1624_D650()
+    {
+        ShippingFeeSection freeFee = AllSet with { ShippingFee = 0m, MinimumOrderAmount = null };
+
+        // Under the threshold and at it: the fee is zero and no line says "Ücretsiz kargoya N TL kaldı" or "Kargo ücretsiz" (02 3.19.5 with K-1624 (2)).
+        foreach (decimal basis in new[] { 10m, freeFee.FreeShippingThreshold!.Value, freeFee.FreeShippingThreshold.Value + 1m })
+        {
+            ShippingAssessment assessment = ShippingCharge.Assess(freeFee, basis, hasPhysicalItem: true);
+            Assert.Equal(0m, assessment.Fee);
+            Assert.Null(assessment.RemainingToFreeShipping);
+            Assert.Null(assessment.FreeShippingMessage);
+            Assert.False(assessment.IsFreeByThreshold);
+        }
+
+        // With a fee the threshold still speaks.
+        Assert.NotNull(ShippingCharge.Assess(AllSet, 10m, hasPhysicalItem: true).FreeShippingMessage);
+    }
+
     // ---- KK5: mixed rates are split in proportion, the left-over kuruş on the largest part ----
 
     [Fact]

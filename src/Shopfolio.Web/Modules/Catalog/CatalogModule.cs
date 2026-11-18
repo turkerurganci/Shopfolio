@@ -198,14 +198,14 @@ internal sealed class CatalogModule : ICatalogModule
     public Task<IReadOnlyDictionary<Guid, VariantImage>> GetProductVariantImagesAsync(Guid productId, CancellationToken ct)
         => _gallery.GetProductVariantImagesAsync(productId, ct);
 
-    public Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct)
-        => _cartVariants.ListAsync(variantIds, ct);
+    public Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct)
+        => _cartVariants.ListAsync(variantIds, ownReservedUnits, ct);
 
     public Task<IReadOnlyList<OrderItemSource>> ListOrderItemSourcesAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct)
         => _orderItemSources.ListAsync(variantIds, ct);
 
-    public Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, CancellationToken ct)
-        => _cartQuantities.JudgeAsync(lines, ct);
+    public Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct)
+        => _cartQuantities.JudgeAsync(lines, ownReservedUnits, ct);
 
     public Task<CartQuantityVerdict> JudgeCartAddAsync(CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, CancellationToken ct)
         => _cartQuantities.JudgeAddAsync(candidate, others, ct);

@@ -383,7 +383,8 @@ public interface ICatalogModule
     /// The live facts a cart item reads of its variant (T346; 02 3.16.5-3.16.7): the product's name, the price that applies now, whether the variant and its product are Published and
     /// whether the variant is sold out. A variant that does not exist is not in the answer. A plain read; it writes nothing.
     /// </summary>
-    Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct);
+    /// <param name="ownReservedUnits">The units the reader's own earlier unpaid orders reserve, by variant (02 3.17.7; D-769): they are sellable to it - the reserved units less these; null when none.</param>
+    Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct);
 
     /// <summary>
     /// What an order item freezes of each variant at the moment the order is born (T355; 02 3.23.1, 3.23.4): the values that produce the paid amount, the product's description and the
@@ -396,7 +397,8 @@ public interface ICatalogModule
     /// <see cref="CartQuantityProblem.NoStock"/>; the lines of a product that together pass its "bir siparişte en fazla" limit are <see cref="CartQuantityProblem.OverOrderLimit"/>, a line over the stock
     /// not counting into the total. Neither the stock nor the reserved units are given. A variant that does not exist is not in the answer. A plain read; it writes nothing.
     /// </summary>
-    Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, CancellationToken ct);
+    /// <param name="ownReservedUnits">As on <see cref="ListCartVariantFactsAsync"/>: the reader's own reservations count as sellable (02 3.17.7; D-769).</param>
+    Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct);
 
     /// <summary>
     /// The verdict on an add to a cart (T347; 02 3.16.8, 3.16.9): <paramref name="candidate"/> is the variant with the quantity its line would hold after the add, <paramref name="others"/> the cart's

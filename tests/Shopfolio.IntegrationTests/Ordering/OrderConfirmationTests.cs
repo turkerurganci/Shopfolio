@@ -509,6 +509,27 @@ public sealed partial class OrderConfirmationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ThePaymentStepsSummary_AfterTheSameCartsUnpaidOrder_CountsItsReservationAsSellable_AndAnotherCartsNot_D769()
+    {
+        Guid variantId = await SeedVariantAsync("Lamba", 1000m, stock: 2);
+        CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());
+        await SeedCartAsync(owner, (variantId, 2));
+        OrderSummaryInput input = Input(owner, PaymentMethod.Card, null);
+        Assert.False((await ConfirmAsync(input, (await SummarizeAsync(input))!)).IsRejected);
+
+        // The whole stock is the earlier unpaid order's reservation: the same cart's summary - taken after that order - still has the line and opens the step (02 3.17.7).
+        ConfirmationSummary? after = await SummarizeAsync(input);
+        Assert.NotNull(after);
+        Assert.Equal(2, Assert.Single(after.Lines).Quantity);
+        Assert.False((await ConfirmAsync(input, after)).IsRejected);
+
+        // Another customer's cart is stopped by that reservation: its summary has no orderable line.
+        CartOwner other = CartOwner.ForMember(await SeedCustomerAsync());
+        await SeedCartAsync(other, (variantId, 1));
+        Assert.Null(await SummarizeAsync(Input(other, PaymentMethod.Card, null)));
+    }
+
+    [Fact]
     public async Task TheMergedGuestCartsOrder_IsNotCancelledByTheAccountCartsConfirmation_KK7()
     {
         Guid variantId = await SeedVariantAsync("Lamba", 1000m, stock: 5);

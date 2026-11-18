@@ -92,7 +92,7 @@ internal sealed partial class OrderTransitions
         // and the item's refunds never pass the item's paid amount (D-893).
         // The order's cap counts the refunds its records owe but have not born yet too, as UC-133's does (D-906; K-1078).
         Guid[] orderItemIds = await _db.OrderItems.AsNoTracking().Where(i => i.OrderId == order!.Id).Select(i => i.Id).ToArrayAsync(ct); // non-null: LockItemAsync returns the order and the item when it returns no refusal
-        decimal orderOwed = (await OwedRecordAmountsAsync(order!, orderItemIds, ct)).OrderTotal; // non-null: as above
+        decimal orderOwed = (await OwedRecordAmountsAsync(order!, orderItemIds, ct)).OrderTotal; // non-null: LockItemAsync returns the order and the item when it returns no refusal
         decimal left = Math.Min(order!.Total - await _payment.CommittedRefundTotalAsync(order.Id, ct) - orderOwed, await ItemRefundLeftAsync(order, item!, ct)); // non-null: LockItemAsync returns the order and the item when it returns no refusal
         if (request.Amount > left)
         {

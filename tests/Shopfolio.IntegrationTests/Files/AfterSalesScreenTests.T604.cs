@@ -48,17 +48,20 @@ public sealed partial class AfterSalesScreenTests
         await using FileEndpointsHost host = new(_database.Dsn);
         (Guid orderId, string key, Guid[] items) = await SeedOrderAsync(host, 2, 1);
         await ChargeAndShipAsync(host, orderId, 0m);
-        DateOnly today = TurkeyTime.DateOf(host.Time.GetUtcNow());
+        // The customer's declaration counts its delivery day as before it (02 7.4.1): the item was delivered yesterday, so its refund starts from the goods' arrival.
+        DateOnly yesterday = TurkeyTime.DateOf(host.Time.GetUtcNow()).AddDays(-1);
         await using (AppDbContext db = host.NewContext())
         {
-            await db.Database.ExecuteSqlAsync($"UPDATE order_items SET delivery_date = {today}, delivery_marked_at = {host.Time.GetUtcNow()} WHERE id = {items[0]}", Ct);
+            await db.Database.ExecuteSqlAsync($"UPDATE order_items SET delivery_date = {yesterday}, delivery_marked_at = {host.Time.GetUtcNow().AddDays(-1)} WHERE id = {items[0]}", Ct);
         }
 
         using HttpResponseMessage step = await PostAsync(host, Withdrawal(key), "SubmitWithdrawal", [.. Row(0, items[0], "2", 2), .. Row(1, items[1], "1", 1), new("Iban", ValidIban)]);
 
         Assert.Equal(HttpStatusCode.OK, step.StatusCode);
         string html = WebUtility.HtmlDecode(await step.Content.ReadAsStringAsync(Ct));
-        Assert.Contains(OrderScreenTexts.WithdrawalSentence(1, 2, Modules.Payment.Contracts.PaymentMethod.BankTransfer, AfterSalesPeriodRules.RefundPeriodDays), html, StringComparison.Ordinal);
+        int from = html.IndexOf("Seçtiğiniz ", StringComparison.Ordinal);
+        string sentence = from < 0 ? html : html[from..(html.IndexOf("yapılacak.", from, StringComparison.Ordinal) + "yapılacak.".Length)];
+        Assert.Equal(OrderScreenTexts.WithdrawalSentence(1, 2, Modules.Payment.Contracts.PaymentMethod.BankTransfer, AfterSalesPeriodRules.RefundPeriodDays), sentence);
     }
 
     // ---- D-1440: the declarations' write order (K-1107) and the fee line once a unit stayed with the customer (K-1076) ----

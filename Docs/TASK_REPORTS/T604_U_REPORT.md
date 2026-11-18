@@ -104,3 +104,117 @@ Bu dilimde dış varsayım yok (ödeme sağlayıcısına çağrı eklenmedi; tut
 - ⚠ K-1622 numarası U parçasına ayrıldı; A parçası K-1623 kullanır.
 - ⚠ D-1439 kırmızısı dolaylıydı (önceki tur test teslim gününü bugün kuruyordu); bu turda düzeltilmiş test eski sayfa satırıyla bir kez koşuldu, kırmızı yukarıda.
 - STATUS T604 tablo satırına dokunulmadı (iki PR; yönetici günceller).
+
+---
+
+## Dilim UE2 — panel sipariş yazıcıları, sipariş ve ödeme özeti (para ve güvenlik)
+
+### Yapılan İşler
+
+UE2'nin 12 kalemi: 10'u kapandı, 2'si (D-610, D-892) gerekçeyle sonraki U dilimine kaldı (hedef T604).
+
+| Kalem | Değişiklik | Durum |
+|---|---|---|
+| D-1450 | Son ödeme günü tek kural evinde: `Contracts/PaymentWindowDay.LastOf`; `PaymentWindowRules.LastPaymentDay`, `OrderPageSummary.TransferLastPaymentDay`, `ConfirmationScreenFacts.LastPaymentDay` ve `CustomerNoticeTemplates.LastPaymentDay` (bildirimin özel kopyası bu turda kaldırıldı) ona bağlı. Sipariş sayfası da onay ekranı da pencere bitişinin tarihini yazıyordu (+1 gün). | ✅ |
+| D-1246 | `CartLine.LineAmount`, `CartView.PayableTotal` modülde; `CartRules.OrderableSubtotal` satır tutarlarını toplar; `Cart.cshtml` hesap yapmaz. | ✅ |
+| D-1197 | Karar K-1624 (1): `DownloadDigitalFile` satırı `OpenQuantity > 0` ister — kayıtla kapanmış kalem indirilemez. | ✅ |
+| D-1259 | `OrderPageModel.DownloadOf` düğmenin açıklığını işlem satırından okur (`Operations.IsOpen(DownloadDigitalFile, item)`): GET ve POST aynı karar. | ✅ |
+| D-1542 | `Ordering/PanelOrderGate.cs` (`LockAsync`, `CheckAsync`); `PanelOrderSteps`, `PanelOrderUpkeep`, `PanelItemSteps`'teki üç kopya kalktı. | ✅ |
+| D-1544 | `OrderDetailModel.OnPageHandlerExecutionAsync`: süzgecin 422'sinde sipariş yüklenir, sipariş yoksa 404 — bağlanamayan değer 500 değil. | ✅ |
+| D-1401 | Karar K-1624 (3): cayma ve ayıp ekranlarının süzgeç kancası alan 422'sinden önce gönderilen kalemin sahipliğini sorar (yabancı → 404; `07 §2.3.3`). | ✅ |
+| D-769 | `Carts.OwnReservedUnitsAsync` (aynı sepetin Alındı + Bekliyor siparişlerinin ayırması, tek gruplu sorgu) → `ICatalogModule.ListCartVariantFactsAsync`/`JudgeCartQuantitiesAsync` `ownReservedUnits`, `StockRules.ReservedAgainst`. Sepete ekleme ve adet yolu `null` geçer → D-1759. | ✅ |
+| D-650 | Karar K-1624 (2): kargo ücreti 0 TL iken eşik mesajı yok (`ShippingCharge.Assess`); `02 §3.19.5`, `03` 2.3.2, `04` 2.6.5 ve 5.12.6. | ✅ |
+| D-1525 | Karar K-1624 (4) — yönetici kararının ilk yolu: var olan testleri değiştirmeden spec'e uyan yol vardı. `07 UC-146`/`UC-151` ve `04` 7.2.14 isteğe teyit alanı koymaz; panel formu K-798 hatırlatmasıyla açılır ve gönderilmesi yöneticinin beyanıdır (`PanelOrderCorrections.FormAddressConfirmation`, `FormIdentityConfirmation`, T530). Yazıcının teyit parametresi modülün savunmasıdır (`02 §8.3.6`, §8.3.7; beyansız çağrı `ConfirmationRequired`) ve `OrderCorrectionTests` KK4, KK7 değişmedi. Kod değişmedi; `12 VAL-A239`, `VAL-A244` beklenen sonucu bu okumayla yazıldı. "Spec gereği değişen test" yok. | ✅ |
+| D-610 | Müşteri iptal, cayma, ayıp talebi ve iade yazıcılarının kendi koşul denetimlerinin `IOrderOperations.CheckAsync` kararına indirilmesi dört para yazıcısını ve onların sınamalarını birlikte değiştirir; dilimin süre bütçesine sığmadı, yarım bırakmak aynı dalda iki kural evi bırakırdı. | ⚪ sonraki U dilimi |
+| D-892 | Önceki işçinin "kod yok" kapanışı geri alındı: `RescindDefectClaimAsync`/`ReduceDefectClaimPriceAsync` hiçbir panel ucundan çağrılmıyor (çözüm geri ödemesi sınamalarda tohumlanıyor); F5 kapısı notu bağlama ve iz satırını birlikte istiyor. `07`'de ayrı uç yok (T528, K-808) — bağlanacak yol D-610 ile aynı dilimde. | ⚪ sonraki U dilimi |
+
+### Etkilenen Modüller / Dosyalar
+
+- Ordering: `Contracts/PaymentWindowDay.cs`, `PaymentWindowRules.cs`, `Contracts/OrderAccessContracts.cs`, `Contracts/ConfirmationScreenContracts.cs`, `Contracts/CartContracts.cs`, `CartRules.cs`, `Carts.cs`, `Contracts/ShippingCharge.cs`, `OrderOperationCatalog.cs`, `PanelOrderGate.cs` (yeni), `PanelOrderSteps.cs`, `PanelOrderUpkeep.cs`, `PanelItemSteps.cs`
+- Catalog: `Contracts/ICatalogModule.cs`, `CatalogModule.cs`, `CartVariantReader.cs`, `CartQuantityReader.cs`, `StockRules.cs`
+- Notifications: `CustomerNoticeTemplates.cs`
+- Sayfalar: `Pages/Orders/OrderPageModels.cs`, `ConfirmationScreenModels.cs`, `AfterSalesScreenModels.cs`; `Pages/Panel/OrderDetail.cshtml.cs`; `Pages/Storefront/Cart.cshtml`
+- Belgeler: `02` v0.117, `03` v0.50, `04` v0.57, `12` v0.37; `PRODUCT_DISCOVERY_STATUS.md` (K-1624, belge tablosu); `DEFERRED_BACKLOG.md` (12 satır yerinde); `DEFERRED_BACKLOG.d/T604-U.md` (D-1758, D-1759); `STATUS_CHANGELOG.d/T604-U.md`
+
+### Para ve güvenlik kalemleri (KK2)
+
+Kırmızı: yeni test, ilgili satır geçici geri alınarak (eski kod) bu turda koşuldu; sonra satır geri kondu ve yeşil koşuldu.
+
+| Kalem | Test | Kırmızı (eski kod) | Yeşil |
+|---|---|---|---|
+| D-1450 | `OrderPageTests.TheTransfersLastPaymentDay_IsTheModulesDay_TheOneBeforeTheWindowsEnd_AsOnTheNoticesAndThePanel_D1450`; `CheckoutPageTests.TheTransferScreen_NamesTheLastPaymentDay_TheDayBeforeTheWindowsEnd_NotTheEndsOwnDate_D1450` (yeni, `CheckoutPageTests.T604.cs`) | "Not found: `<dd>20 Kasım 2026</dd>`"; onay ekranı "Not found: `<dd>10 Ocak 2030</dd>`" | ✓ |
+| D-1246 | Unit `CartRulesTests.TheLineAmountAndThePayableTotal_AreTheModulesValues_TheSubtotalSumsTheSameLineAmounts_D1246` | eski kodda `LineAmount`/`PayableTotal` yok — derleme kırmızısı; davranış değişmedi (aynı çarpım modüle taşındı) | ✓ |
+| D-1197 | `OrderPageTests.AClosedPaidDigitalItem_HasNoDownloadButton_AndItsPostIsRefused_SpendingNothing_K1624_D1197_D1259` | eski katalog satırıyla: "Sub-string found: handler=DownloadDigitalFile" | ✓ |
+| D-1259 | aynı test, yalnız `DownloadDigitalFile` satırı yeni, `DownloadOf` eski çizimle (ayrı koşu) | "Sub-string found: handler=DownloadDigitalFile" | ✓ |
+| D-1542 | `OrderDetailPageTests` (bütün sınıf) | taşıma; davranış değişmedi — eski testler değişmeden 165/165 (`OrderCorrectionTests` ile) | ✓ |
+| D-1544 | `OrderDetailPageTests.AFormValueThatDoesNotBind_Is422WithTheOrdersScreen_NotA500_AndAKeyThatIsNoOrder_Is404_D1544` | `[500, 500, 500, 500]` geldi, `[422, 422, 422, 404]` beklendi | ✓ |
+| D-1401 | `AfterSalesScreenTests.AForeignItem_WithABrokenFieldRule_Is404_NotTheFields422_OnBothScreens_AndTheOwnItemKeepsIts422_K1624_D1401` | `[422, 422, 422, 422]` geldi, `[404, 422, 404, 422]` beklendi | ✓ |
+| D-769 | `OrderConfirmationTests.ThePaymentStepsSummary_AfterTheSameCartsUnpaidOrder_CountsItsReservationAsSellable_AndAnotherCartsNot_D769` | `ownReservedUnits = null` ile: "Assert.NotNull() Failure: Value is null" (özet boş) | ✓ |
+| D-650 | Unit `ShippingChargeTests.AFeeOfZero_WithAThresholdSet_ShowsNoThresholdMessage_EveryOrderIsFreeAlready_K1624_D650` | eski koşulla: beklenen null, gelen 490 | ✓ |
+| D-1525 | `OrderCorrectionTests.AnAddressRequestThatTheFirmDidNotConfirm_ChangesNothing_..._KK4`, `TheEmailCorrection_NeedsTheNameThePhoneTheItemsAndTheAmount_..._KK7`; `OrderDetailPageTests.CorrectAddress_..._KK1`, `CorrectOrderEmail_..._KK9_KK10` | kod değişmedi (belge hizası) — kırmızı koşusu uygulanmaz; testler değişmeden yeşil | ✓ |
+
+- **Var olan testler:** değiştirilmedi. Tek dokunuş `UnitTests/Infrastructure/SitemapSourceTests.cs` sahte `ICatalogModule`'ün iki imzası (D-769'un yeni parametresi; davranış yok) ⚠.
+- **Çıkış yolu ve geri alma:** şema ve göç yok; her kalem kendi küçük değişikliğidir, geri alma ilgili commit'in `git revert`'üdür (b997aab8 D-1450/D-1246/D-1197/D-1259/D-1542, c349f312 D-1401/D-1544, 69b4b7de D-769/D-650, ab10e430 ve 14062918 testler, 6b83b4dd onay ekranı testi ve bildirim şablonu). D-769'un okuması yalnız okur (kilitsiz, aynı sepetin ödenmemiş siparişleri); onayda önceki sipariş kancada iptal edildiği için ayırma iki kez sayılmaz. D-1544/D-1401 kancaları yalnız süzgecin kendi 422'sinde çalışır, işleyici yolu değişmez.
+- **Güvenlik taraması:** yeni dış bağımlılık, sır, yetki ya da girdi yolu yok. D-1401 sahiplik sızıntısını kapatır (yabancı kalem artık alan hatasıyla "var" demez); D-1544 hata yolu sipariş anahtarı olmayan kökte 404 verir (varlık sızmaz).
+
+### Kabul Kriterleri Kontrolü (UE2 payı)
+
+| Madde | Durum | Kanıt |
+|---|---|---|
+| KK1 — UE2'nin 12 kalemi kapalı ya da gerekçeli | ✓ | 10 ✅ (yukarıdaki tablo, her biri kalemin "Yapılacak" cümlesiyle denetlendi); D-610, D-892 gerekçeyle sonraki U dilimine, hedef T604 — satırlarında not |
+| KK2 — para ve güvenlik kalemleri ayrı başlıkta; kırmızı–yeşil; eski testler aynı | ✓ | "Para ve güvenlik kalemleri (KK2)" |
+| KK3 — tarayıcı kalemleri | — | A parçası; UE2'de yok |
+| KK4 — D-1678 | — | A parçası; UE2'de yok |
+| KK5 — kapanan satır `✅ Çözüldü → T604`; sayaç | ✓ | `DEFERRED_BACKLOG.md` 10 satır ✅, 2 satır not; yeni kalemler parça dosyasında (D-1758, D-1759); sayaca dokunulmadı (talimat) |
+| `09 §25` ilgili satırlar | ✓ | tek işlev: son ödeme günü `PaymentWindowDay`, satır tutarı `CartLine.LineAmount`, indirme düğmesi işlem satırı, panel kapısı `PanelOrderGate`; `[GatedOperation]` + `OperationRunner` yolu değişmedi; döngüde sorgu yok (`OwnReservedUnitsAsync` tek gruplu sorgu); modül sınırı: Notifications yalnız `Ordering.Contracts`'a başvurur; tutar çarpımı yeni değil, `CartRules`'tan `CartLine`'a taşındı ⚠ |
+| Güvenlik taraması | ✓ | yukarıda |
+
+### Öz denetim (bitiş kapısı 2)
+
+Önceki işçinin yaptıkları dahil 12 kalem diff'te yeniden denetlendi; `sik-fail-nedenleri.md` okundu.
+
+| Denetim | Sonuç |
+|---|---|
+| D-1450 "sayfa son günü modülün tek işlevinden taşır, testle" | ✓ — sipariş sayfası ve onay ekranı; bildirimin kopyası da bağlandı (önceki işçi yalnız öneriyordu) |
+| D-1246 "satır tutarı ve toplam modülde, görünüm yalnız biçimler, testle" | ✓ |
+| D-1197 "karar kaydıyla açık adet > 0 ve test" | ✓ — K-1624 (1) |
+| D-1259 "düğme işlem görünümünden, kapalı kalemde düğme yok sınanır" | ✓ |
+| D-1542 "tek yardımcı, davranış testleri değişmeden yeşil" | ✓ — 165/165 |
+| D-1544 "bağlama hatasında sipariş yüklenir, istek testiyle 422" | ✓ — doğrulayıcının saydığı dört giriş (`MarkDelivered` sürüm, `CorrectCarrier` sürüm ve bool, `CorrectTransition` Guid) |
+| D-1401 "422'den önce sahiplik ya da sıra kararla; test iki hâli" | ✓ — K-1624 (3); yabancı ve kendi kalem, iki ekran |
+| D-769 "özet aynı sepetin ayırmasını hesaba katar; test önceki sipariş varken onaylar" | ✓ — başka sepetin hâli de sınandı; ekleme yolu D-1759 |
+| D-650 "karar kaydıyla §3.19.5 ve kod" | ✓ — K-1624 (2), `02`/`03`/`04` aynı cümle |
+| D-1525 "teyit formda ya da parametre kalkar; `12` hizası" | ✓ — K-1624 (4): üçüncü yol (alan yok, parametre savunma olarak kalır) gerekçeli; `12` iki satır |
+| D-610, D-892 | ⚪ gerekçeli — sonraki U dilimi; D-892'nin önceki "kod yok" kapanışı F5 notunu karşılamıyordu (sık FAIL "kapandı denip karşılanmadı"), geri alındı |
+| Sık FAIL (1) bekçi/tarama istisnası geniş | uygulanmaz — tarama değişmedi |
+| (2) tarama çağrı biçimi | uygulanmaz |
+| (3) 06 varsayılan / FK dizini | uygulanmaz — şema değişmedi |
+| (4) aynı kuralı anan öteki yerler | ✓ — eşik kuralı `02`/`03`/`04`'ün dört yerinde; teyit `12`'nin iki satırında; son ödeme günü dört okuyucuda tek işlev; belge sürümleri `PRODUCT_DISCOVERY_STATUS` tablosunda |
+| (5) belge kuralını değiştiren metin karar kaydısız | ✓ — K-1624 dört madde |
+| "Kabul kriteri kısmen" | ✓ — ~ yok; iki kalem gerekçeli olarak açık, kapandı denmedi |
+| Unit TAM bu turda | ✓ — 8094/8094 |
+| `dotnet format` değişen `.cs` | ✓ — 53 dosya (`--include`), değişiklik yok |
+| Branch izolasyonu | ✓ — commit başlıkları yalnız T604; A parçasının test sınıflarına dokunulmadı |
+
+### Test Sonuçları
+
+- **Unit:** TAM 8094/8094 ✓.
+- **Integration:** koşulan sınıflar — `CheckoutPageTests`, `OrderPageTests`, `OrderConfirmationTests`, `AfterSalesScreenTests` (94/94); `OrderDetailPageTests`, `OrderCorrectionTests` (165/165). **TAM: CI.**
+- **E2E:** CI'ın E2E işi.
+
+### Commit & PR
+
+- Commit'ler: b997aab8, c349f312, 69b4b7de, ab10e430, 14062918, 6b83b4dd ve bu satırın commit'i
+- PR: #595
+
+### Dış Varsayımlar
+
+Bu dilimde dış varsayım yok.
+
+### Notlar
+
+- ⚠ K-1624 numarası U parçasına (UE2) ayrıldı; A parçası K-1623 kullanır.
+- ⚠ D-1525 kod değişikliği olmadan kapandı: F5 kapısı notu iki yolu da "kod değişikliği" sayıyordu; yönetici kararının ilk yolu (var olan testler değişmeden spec'e uyan yol) seçildi — yol T530'dan beri kodda, eksik olan karar ve `12` hizasıydı.
+- ⚠ D-892 önceki işçinin devir notunda "kapanış gerekçesiyle ✅" diye işaretliydi; bu turda kapatılmadı (yukarıda).
+- ⚠ D-1259'un kırmızısı D-1197'den ayrı koşuldu (katalog satırı yeni, düğme çizimi eski).
+- STATUS T604 tablo satırına dokunulmadı.

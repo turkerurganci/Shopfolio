@@ -1,0 +1,5 @@
+# deps-F5 backlog kalemleri
+
+| Önc. | ID | Açıklama | Tip | Hedef | Kanıt / kaynak |
+|---|---|---|---|---|---|
+| ⚪ | D-1744 | **Dependabot güncellemeleri F5 (2026-11-17): tek chore PR'da alındı — `actions/upload-artifact` v4→v7 (#585), `AWSSDK.SimpleEmailV2` 4.0.106.10→4.1.0.1 (#586), `Serilog` 4.3.1→4.4.0 (#588), `SkiaSharp` ve `SkiaSharp.NativeAssets.Linux.NoDependencies` 4.154.0→4.156.1 (#589, #590; ikisi aynı sürüm).** Karşılanan Dependabot PR'ları (yardımcı kapatır): #585, #586, #588, #589, #590. **Alınmayan: #587 `Microsoft.Playwright` 1.59.0→1.64.1** — Dependabot CI'ında E2E 16 hata verdi ve açık T552 PR'ı Playwright testlerini değiştiriyor; aynı dosyalarda çakışma ve nedeni karışık hata riski. Dependabot PR'larının Lint kırmızısı NU1004'tür (test projesi kilitleri güncellenmemişti); kilitler `dotnet restore --force-evaluate` ile üç projede yeniden üretildi. | Bağımlılık | F5 faz kapısı sonrası ayrı chore (#587) | PR #585, #586, #587, #588, #589, #590; `Docs/09_CODING_GUIDELINES.md` Kütüphaneler tablosu |

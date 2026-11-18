@@ -231,7 +231,7 @@ jobs:
           global-json-file: global.json
       - run: bash .github/ci-run.sh E2E_CMD "8. E2E"
       # Arac ciktisi gate raporuna eklenebilir kayittir (T551; 12 12.2 (7)): gozlem tablosu, ekran goruntuleri, surumler, tohum, sunucu gunlugu.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: browser-observations

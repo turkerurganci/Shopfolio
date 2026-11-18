@@ -173,6 +173,29 @@ public sealed partial class AfterSalesScreenTests
         Assert.Equal((expected, (DateOnly?)expected), (lastDay!.Value, detailDay));
     }
 
+    // ---- D-1401: a foreign item is 404 before the field rule's 422, on the validation filter's path too ----
+
+    [Fact]
+    public async Task AForeignItem_WithABrokenFieldRule_Is404_NotTheFields422_OnBothScreens_AndTheOwnItemKeepsIts422_K1624_D1401()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (_, string key, Guid itemId, _) = await SeedAsync(host, "Shipped", 2);
+        (_, _, Guid foreignItem, _) = await SeedAsync(host, "Shipped", 1);
+
+        // E-19: the description is empty ([FieldRequired]); E-18: the IBAN is malformed ([InvalidIban]). The filter answers both before the handler.
+        using HttpResponseMessage claimForeign = await PostAsync(host, ClaimScreen(key), "SubmitDefectClaim", [new("OrderItemId", foreignItem.ToString()), new("Description", "  ")]);
+        using HttpResponseMessage claimOwn = await PostAsync(host, ClaimScreen(key), "SubmitDefectClaim", [new("OrderItemId", itemId.ToString()), new("Quantity", "1"), new("Description", "  ")]);
+        using HttpResponseMessage withdrawalForeign = await PostAsync(host, Withdrawal(key), "SubmitWithdrawal", [.. Row(0, foreignItem, "1", 1), new("Iban", "TR00"), new("Confirmed", "true")]);
+        using HttpResponseMessage withdrawalOwn = await PostAsync(host, Withdrawal(key), "SubmitWithdrawal", [.. Row(0, itemId, "1", 2), new("Iban", "TR00"), new("Confirmed", "true")]);
+
+        Assert.Equal(
+            [HttpStatusCode.NotFound, HttpStatusCode.UnprocessableEntity, HttpStatusCode.NotFound, HttpStatusCode.UnprocessableEntity],
+            new[] { claimForeign.StatusCode, claimOwn.StatusCode, withdrawalForeign.StatusCode, withdrawalOwn.StatusCode });
+        await using AppDbContext db = host.NewContext();
+        Assert.Equal(0, await db.DefectClaims.CountAsync(c => c.OrderItemId == itemId || c.OrderItemId == foreignItem, Ct));
+        Assert.Equal(0, await WithdrawalCountAsync(host, itemId) + await WithdrawalCountAsync(host, foreignItem));
+    }
+
     private static async Task<Admin> SeedAdminAsync(AppDbContext db, DateTimeOffset now)
     {
         Admin admin = Admin.Create("Firma Yöneticisi", $"yonetici-{Guid.NewGuid():N}@example.com", "digest-placeholder", now);

@@ -19,7 +19,7 @@ internal static class PaymentWindowRules
     /// Z-8's last payment day as the panel shows it (04 9.8, 9.9.5; D-1436): the window ends at the 00:00 after its last day (<see cref="TurkeyTime.EndOfPeriod"/>), so the day is the one that holds the
     /// instant just before the end - the day the customer's notices (B-2, B-3) name. The list and the order's screen read it here.
     /// </summary>
-    public static DateOnly LastPaymentDay(DateTimeOffset paymentWindowEndsAt) => TurkeyTime.DateOf(paymentWindowEndsAt.AddTicks(-1));
+    public static DateOnly LastPaymentDay(DateTimeOffset paymentWindowEndsAt) => PaymentWindowDay.LastOf(paymentWindowEndsAt);
 
     /// <summary>An order that waits for its payment: received, payment pending, by the given method.</summary>
     public static Expression<Func<Order, bool>> Awaiting(PaymentMethod method) =>

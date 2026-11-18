@@ -62,7 +62,6 @@ internal sealed class OrderConfirmationScreens : IOrderConfirmationScreen
             order.Total,
             order.PaymentMethod == PaymentMethod.BankTransfer ? order.BankTransferIban : null,
             order.PaymentWindowEndsAt,
-            PaymentWindowRules.LastPaymentDay(order.PaymentWindowEndsAt),
             order.ContactEmail,
             order.CompanyEmail,
             order.BillingRecipientName,

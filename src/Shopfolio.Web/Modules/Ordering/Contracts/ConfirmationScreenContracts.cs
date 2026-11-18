@@ -16,14 +16,17 @@ public sealed record ConfirmationScreenFacts(
     decimal Total,
     string? TransferIban,
     DateTimeOffset PaymentWindowEndsAt,
-    DateOnly LastPaymentDay,
     string? ContactEmail,
     string CompanyEmail,
     string? BillingRecipientName,
     string? BillingAddressLine,
     string? ShippingPhone,
     string CompanyPhone,
-    string? OrderAccessKey);
+    string? OrderAccessKey)
+{
+    /// <summary>The last payment day of <see cref="PaymentWindowEndsAt"/> (Z-8): the one rule of <see cref="PaymentWindowDay"/>, the day the notices and the panel name (D-1450).</summary>
+    public DateOnly LastPaymentDay => PaymentWindowDay.LastOf(PaymentWindowEndsAt);
+}
 
 /// <summary>The cancellation's answer as the transaction runner takes it: everything but <see cref="UnopenedPaymentCancellation.Cancelled"/> is rolled back.</summary>
 public sealed record UnopenedPaymentCancellationResult(UnopenedPaymentCancellation Outcome) : Infrastructure.IOperationResult

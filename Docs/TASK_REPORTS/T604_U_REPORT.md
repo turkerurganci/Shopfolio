@@ -90,8 +90,8 @@ Her kalem para kalemidir (iade, geri ödeme, IBAN). Kırmızı: düzeltilmiş te
 
 ### Commit & PR
 
-- Commit'ler: 87b9a992, 3dc9dd68, 903f7b0b ve belge commit'i
-- PR: taslak, açıklamada no (gövde "Dilim UE1 tamam; sonraki dilimler aynı dalda")
+- Commit'ler: 87b9a992, 3dc9dd68, 903f7b0b, a3b75ba2 ve bu satırın commit'i
+- PR: #595 (taslak; gövde "Dilim UE1 tamam; sonraki dilimler aynı dalda")
 
 ### Dış Varsayımlar
 

@@ -268,9 +268,17 @@ public sealed partial class OrderDetailModel
         PanelItemStepResult result = await RunItemStepAsync(
             (steps, token) => steps.RemoveItemAsync(new RemoveItemRequest(id, itemId, admin, input.Version, quantity, input.Confirmed), token),
             ct);
-        return result.Refusal == TransitionRefusal.ConfirmationRequired
-            ? await AskAsync(id, () => RemovalConfirm(id, input, itemId, quantity), ct)
-            : await AnswerItemStepAsync(id, result, ErrorCode.OperationNotAvailable, ct);
+        if (result.Refusal != TransitionRefusal.ConfirmationRequired)
+        {
+            return await AnswerItemStepAsync(id, result, ErrorCode.OperationNotAvailable, ct);
+        }
+
+        // K-797: the window says the amount the system works out (02 7.1.7, 7.2.9) - the removal writer's rule, read after the unconfirmed step (D-1598). No amount: the units
+        // stopped being open between the two reads, and the step answers as closed.
+        decimal? amount = await HttpContext.RequestServices.GetRequiredService<IPanelItemSteps>().RemovalRefundAsync(id, itemId, quantity, ct);
+        return amount is { } refund
+            ? await AskAsync(id, () => RemovalConfirm(id, input, itemId, quantity, refund), ct)
+            : await AnswerItemStepAsync(id, PanelItemStepResult.NotOpen, ErrorCode.OperationNotAvailable, ct);
     }
 
     /// <summary>UC-140: the receipt of returned goods; every receipt its own record, no refund starts; 303.</summary>
@@ -509,7 +517,7 @@ public sealed partial class OrderDetailModel
             fields);
     }
 
-    private ConfirmView RemovalConfirm(Guid id, RemoveOrderItemInput input, Guid itemId, int quantity)
+    private static ConfirmView RemovalConfirm(Guid id, RemoveOrderItemInput input, Guid itemId, int quantity, decimal amount)
     {
         List<KeyValuePair<string, string>> fields =
         [
@@ -519,14 +527,10 @@ public sealed partial class OrderDetailModel
             new("Input.Confirmed", "true"),
         ];
 
-        // 03 1.6.1.5: the card line's removal. The window names the units and the item and says the money goes back to the card; the amount is the record's, worked out when it is written
-        // (02 7.1.7; K-788), and the window does not repeat it - 04 9.9.25 and 03 1.6.1.5 ask no amount here, as the firm's cancellation window says none (K-797: an amount said is the
-        // system's; 04 2.4.3 lists the confirmations that carry a number, and the removal is not one of them) (D-1598).
-        IrreversibleConfirmation texts = new(
-            IrreversibleAction.CardRefundingRemoval,
-            null,
-            DisplayFormat.Number(quantity) + " adet " + ItemNameOf(itemId) + " siparişten çıkarılacak ve tutarı müşterinin kartına geri ödenecek.");
-        return Confirmations.ForIrreversible(texts, RemoveItemLabel, RemoveItemLabel, PathOf(id), "RemoveOrderItem", PathOf(id), fields);
+        // 03 1.6.1.5: the card line's removal - K-797's sentence "{n} ürün siparişten çıkarılacak ve {tutar} müşterinin kartına geri ödenecek.", the amount the system works out
+        // for the record (02 7.1.7, 7.2.9; D-1598).
+        return Confirmations.ForIrreversible(
+            IrreversibleConfirmations.CardRefundingRemoval(quantity, amount), RemoveItemLabel, RemoveItemLabel, PathOf(id), "RemoveOrderItem", PathOf(id), fields);
     }
 
     private ConfirmView RejectionConfirm(Guid id, ReceiveReturnInput input, int? quantity)

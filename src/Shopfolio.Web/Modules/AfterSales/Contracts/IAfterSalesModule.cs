@@ -440,6 +440,12 @@ public interface IAfterSalesModule
     /// </summary>
     Task<ItemRecordWriteResult> AddItemRemovalAsync(ItemRemovalEntry entry, CancellationToken ct);
 
+    /// <summary>
+    /// The product amount less the coupon share a removal of <paramref name="quantity"/> units would pay back now (02 7.1.7; K-797 "{tutar}"; D-1598): the removal writer's own
+    /// amount rule, read without a lock for the card line's confirmation window and writing nothing. The shipping fee is apart. Null: the units are not open to the operation.
+    /// </summary>
+    Task<decimal?> ItemRemovalAmountAsync(ItemRecordSubject subject, int quantity, ItemFrozenAmounts frozen, CancellationToken ct);
+
     /// <summary>The receipts and rejections of returned goods on the given items, with their arrival dates (02 10.4.5; K-1474, K-712). A plain read.</summary>
     Task<IReadOnlyList<ArrivalRecordDate>> ArrivalRecordDatesAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
 

@@ -146,7 +146,7 @@ internal sealed partial class OrderTransitions
         await _counters.ReturnAsync(order, units, ct);
     }
 
-    private static ItemFrozenAmounts FrozenOf(OrderItem item) => new(item.DiscountedUnitPrice ?? item.UnitPrice, item.CouponShare, item.VatAmount);
+    internal static ItemFrozenAmounts FrozenOf(OrderItem item) => new(item.DiscountedUnitPrice ?? item.UnitPrice, item.CouponShare, item.VatAmount);
 
     /// <summary>The units an item record gives back to a counter: a physical item's stock or a service item's capacity; a digital item has no counter (02 7.2.6).</summary>
     private static IReadOnlyList<VariantQuantity> UnitsOf(OrderItem item, int quantity) =>

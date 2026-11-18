@@ -128,12 +128,22 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
                 await same.CheckAsync();
             }
 
-            if (decoy && path == ScriptPath.Scriptless)
+            if (decoy)
             {
-                // Without the script the billing fields stay on the page; what they hold is not read while the box is ticked (07 4.13.6).
-                await p.Locator("[name=BillingRecipientName]").FillAsync("Baska Kisi");
-                await p.Locator("[name=BillingDistrict]").FillAsync("Baska Ilce");
-                await p.Locator("[name=BillingAddressLine]").FillAsync("Baska Cadde 9");
+                // What the billing fields hold is not read while the box is ticked (07 4.13.6). Without the script they stay on the page and are typed into;
+                // with it the form is hidden, so the values are set on the hidden fields directly and are submitted with the form (D-1725: both ways measure the same).
+                foreach ((string field, string value) in new[] { ("BillingRecipientName", "Baska Kisi"), ("BillingDistrict", "Baska Ilce"), ("BillingAddressLine", "Baska Cadde 9") })
+                {
+                    ILocator target = p.Locator($"[name={field}]");
+                    if (path == ScriptPath.Scriptless)
+                    {
+                        await target.FillAsync(value);
+                    }
+                    else
+                    {
+                        await target.EvaluateAsync("(element, text) => { element.value = text; }", value);
+                    }
+                }
             }
         }
         else
@@ -200,7 +210,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
                 path,
                 engine,
                 page,
-                sameAsShipping ? "kutu işaretli, fatura alanları" + (path == ScriptPath.Scriptless ? " (başka bir kişinin değerleriyle dolu) " : " ") + "sipariş onaylanır" : "kutu kaldırılır, fatura alanları doldurulur, sipariş onaylanır",
+                sameAsShipping ? "kutu işaretli, fatura alanları (başka bir kişinin değerleriyle dolu) sipariş onaylanır" : "kutu kaldırılır, fatura alanları doldurulur, sipariş onaylanır",
                 sameAsShipping ? "fatura adresi teslimat adresinin dört alanıdır; gönderilen fatura alanları siparişe girmez; betikli yolda form kutuyla gizlenir" : "fatura formu açılır; girilen değerler (Fatura Sahibi, Keçiören) siparişe yazılır",
                 $"fatura formu görünür: {billingShown}; sipariş {number}",
                 ok,

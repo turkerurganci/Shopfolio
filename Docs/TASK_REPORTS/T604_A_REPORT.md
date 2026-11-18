@@ -70,4 +70,4 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 
 ## Commit & PR
 
-PR: (açılınca yazılır)
+PR: #594

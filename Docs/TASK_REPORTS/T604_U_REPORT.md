@@ -313,14 +313,14 @@ Kırmızı koşusunun özeti: 16 Integration testinden 15'i kırmızı (16.'sı 
 | (4) aynı kuralı anan öteki yerler | ✓ — sahtecilik cümlesi `04`'te tek yerde, kodda katalogda; `04` sürümü belge tablosunda; L-9 sırası iki yazıcıda aynı |
 | (5) belge kuralını değiştiren metin karar kaydısız | ✓ — K-1627 beş madde; `04` 2.7.3.1 cümlesi K-1627'yi anar |
 | "Kabul kriteri kısmen" | ✓ — ~ yok; D-1374 açık, kapandı denmedi |
-| Unit TAM bu turda | ✓ — 8096/8096 (+ yeni istisna kümesi testi tek başına yeşil) |
+| Unit TAM bu turda | ✓ — 8097/8097 (kayıtlardan ve yeni istisna kümesi testinden sonra) |
 | `dotnet format` değişen `.cs` | ✓ — 100 dosya (`--include`) + iki yeni dosya, değişiklik yok |
 | Branch izolasyonu | ✓ — commit başlıkları yalnız T604; A parçasının test sınıflarına dokunulmadı |
 | PR #594 testlerine etki | ✓ — A2 testleri red satırını ölçmez, davranış aynı; çakışma beklenmez |
 
 ### Test Sonuçları
 
-- **Unit:** TAM 8096/8096 ✓; yeni `ReauthenticationFormPageTests` 1/1.
+- **Unit:** TAM 8097/8097 ✓ (kayıtlardan sonra; yeni `ReauthenticationFormPageTests` dahil).
 - **Integration:** koşulan sınıflar — `EmailRevertPageTests`, `RegistrationPageTests`, `PanelAccessPagesTests`, `PanelHomeAndVerificationPagesTests`, `CustomerPasswordResetAndReauthenticationPageTests`, `MyAccountPageTests`, `AccountProfilePageTests`, `CartPageTests` (197/197); `CheckoutPageTests`, `ForgeryProtectionTests`, `MembershipTests` (hesap silme ve yönetici hesapları dahil), `MembershipGoogleTests` (265/265; `ScriptlessFlowTests` adlı sınıf yok). **TAM: CI.**
 - **E2E:** CI'ın E2E işi.
 

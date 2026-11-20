@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -19,7 +20,16 @@ internal sealed class MigrationBundle : IDisposable
 {
     private const string _cacheDirectoryName = "shopfolio-bundle-cache";
 
-    private static readonly TimeSpan _buildTimeout = TimeSpan.FromMinutes(5);
+    /// <summary>
+    /// Name of the environment variable that raises (or lowers) the build time limit, in whole seconds (D-1678): a slow machine can
+    /// give the build more time without touching the code.
+    /// </summary>
+    public const string BuildTimeoutEnvironmentVariableName = "SHOPFOLIO_TEST_BUNDLE_BUILD_TIMEOUT_SECONDS";
+
+    /// <summary>
+    /// The build time limit when the variable is not set (or not a positive whole number of seconds).
+    /// </summary>
+    public static readonly TimeSpan DefaultBuildTimeout = TimeSpan.FromMinutes(5);
 
     // A cache entry not used for this long belongs to an old build; another run on the same machine may still use a newer one.
     private static readonly TimeSpan _staleAfter = TimeSpan.FromDays(1);
@@ -167,6 +177,16 @@ internal sealed class MigrationBundle : IDisposable
         }
     }
 
+    /// <summary>
+    /// Returns the configured build time limit: a positive whole number of seconds; anything else (not set, empty, text, zero,
+    /// negative, fraction) gives <see cref="DefaultBuildTimeout"/>, so a typo never removes the limit.
+    /// </summary>
+    internal static TimeSpan ResolveBuildTimeout(string? configured)
+    {
+        bool parsed = int.TryParse(configured, NumberStyles.None, CultureInfo.InvariantCulture, out int seconds);
+        return parsed && seconds > 0 ? TimeSpan.FromSeconds(seconds) : DefaultBuildTimeout;
+    }
+
     private static async Task RunAsync(string fileName, string[] arguments, string workingDirectory, IReadOnlyDictionary<string, string>? environment, CancellationToken ct)
     {
         ProcessStartInfo startInfo = new(fileName)
@@ -194,7 +214,7 @@ internal sealed class MigrationBundle : IDisposable
         process.BeginErrorReadLine();
 
         using CancellationTokenSource timeoutSource = new();
-        timeoutSource.CancelAfter(_buildTimeout);
+        timeoutSource.CancelAfter(ResolveBuildTimeout(Environment.GetEnvironmentVariable(BuildTimeoutEnvironmentVariableName)));
         try
         {
             await process.WaitForExitAsync(timeoutSource.Token).WaitAsync(ct);

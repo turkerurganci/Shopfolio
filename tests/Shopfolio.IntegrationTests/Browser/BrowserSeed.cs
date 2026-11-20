@@ -27,6 +27,9 @@ public sealed record SeededProduct(string Label, Guid ProductId, string Slug, IR
 /// <summary>What the tool seeds (T551 criterion 2): the customer, the administrator, the catalog and the orders; <see cref="ForRecord"/> is the part the record keeps (no secret).</summary>
 public sealed class BrowserSeedData
 {
+    /// <summary>The brand name the seed sets (D-1710): a storefront title ends with it, so the walk's title measure tells a screen's own title from the host name.</summary>
+    public string BrandName { get; init; } = string.Empty;
+
     public string CustomerKey { get; init; } = string.Empty;
 
     public Guid CustomerId { get; init; }
@@ -83,6 +86,9 @@ public sealed class BrowserSeedData
 /// </summary>
 internal static class BrowserSeed
 {
+    /// <summary>The brand name of the seed (D-1710).</summary>
+    internal const string BrandName = "Örnek Mağaza";
+
     private static readonly DateTimeOffset Now = DateTimeOffset.UtcNow;
 
     /// <summary>The state pairs of the orders: (label, shipping, payment, card). One order of each is enough for the screens' hâls; the full matrix is T547's.</summary>
@@ -221,11 +227,26 @@ internal static class BrowserSeed
             db.Companies.Add(company);
         }
 
+        // The brand (06 4.54): the one row carries the brand name, so a storefront title is "<screen> - <brand>" and not the bare host name (D-1710); the walk looks for this name in the title.
+        Branding? branding = await db.Brandings.FirstOrDefaultAsync(CancellationToken.None);
+        bool newBranding = branding is null;
+        branding ??= Branding.Create(Now);
+        branding.BrandName = BrandName;
+        if (newBranding)
+        {
+            db.Brandings.Add(branding);
+        }
+        else
+        {
+            branding.BumpVersion();
+        }
+
         await db.Database.ExecuteSqlAsync($"INSERT INTO legal_text_versions (id, created_at, legal_text_type, version_number, published_at, text, hosting_location, version) VALUES ({EntityIds.New()}, now(), 'CookiePolicy', 1, now(), '<p>Çerez politikası yayında.</p>', NULL, 1)", CancellationToken.None);
         await db.SaveChangesAsync(CancellationToken.None);
 
         return new BrowserSeedData
         {
+            BrandName = BrandName,
             CustomerKey = customerKey,
             CustomerId = customerId,
             AdminKey = adminKey,

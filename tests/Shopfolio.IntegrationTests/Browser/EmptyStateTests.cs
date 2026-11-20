@@ -308,22 +308,38 @@ public sealed class EmptyStateTests(BrowserHost host) : BrowserTestBase(host)
     /// The exemption is that and nothing wider (D-1740 (a)): only on the scriptless way, only with the scan hook set, and no more lines than the script requests that failed at the network.
     /// </summary>
     private List<string> OwnErrors(WatchedPage page, ScriptPath path) =>
-        OwnErrorsOf(page.Errors, page.CutScripts, path, AtEmptyState is not null);
+        OwnErrorsOf(page.Errors, page.ErrorUrls, page.CutScriptUrls, path, AtEmptyState is not null);
 
     /// <summary>The page's error lines without the lines of the cut script requests: at most <paramref name="cutScripts"/> lines of a failed load with no status, and only when the scan walks the states on the scriptless way.</summary>
-    internal static List<string> OwnErrorsOf(IReadOnlyList<string> errors, int cutScripts, ScriptPath path, bool scanIsWalking)
+    internal static List<string> OwnErrorsOf(IReadOnlyList<string> errors, IReadOnlyList<string> errorUrls, IReadOnlyList<string> cutScriptUrls, ScriptPath path, bool scanIsWalking)
     {
         if (!scanIsWalking || path != ScriptPath.Scriptless)
         {
             return [.. errors];
         }
 
-        int toDrop = cutScripts;
+        // By the address (D-1746 c): a line is the cut of a script when the console says it is about the address of a script request that failed at the network (each request explains one line). Only a line the engine gives no
+        // address for falls back to the count, so another resource's status-less failure does not hide behind a cut script, and a cut script that gave no line does not free a line of another resource.
+        List<string> pending = [.. cutScriptUrls];
         List<string> own = [];
-        foreach (string error in errors)
+        for (int i = 0; i < errors.Count; i++)
         {
-            bool cut = toDrop > 0 && error.StartsWith("console: Failed to load resource", StringComparison.Ordinal) && !error.Contains("status of", StringComparison.Ordinal);
-            toDrop -= cut ? 1 : 0;
+            string error = errors[i];
+            string url = i < errorUrls.Count ? errorUrls[i] : string.Empty;
+            bool cut = false;
+            if (pending.Count > 0 && error.StartsWith("console: Failed to load resource", StringComparison.Ordinal) && !error.Contains("status of", StringComparison.Ordinal))
+            {
+                if (url.Length > 0)
+                {
+                    cut = pending.Remove(url);
+                }
+                else
+                {
+                    pending.RemoveAt(0);
+                    cut = true;
+                }
+            }
+
             if (!cut)
             {
                 own.Add(error);
@@ -338,16 +354,46 @@ public sealed class EmptyStateTests(BrowserHost host) : BrowserTestBase(host)
     {
         string[] twoCuts = ["console: Failed to load resource: net::ERR_FAILED", "console: Failed to load resource: net::ERR_FAILED"];
 
+        // No address: the engine gave none for the lines, so the count decides (the earlier rule).
+        string[] none = ["", ""];
+        string[] cutUrls = ["https://h/js/a.js", "https://h/js/b.js"];
         // The exemption: both lines are the cut of two scripts.
-        Assert.Empty(OwnErrorsOf(twoCuts, 2, ScriptPath.Scriptless, true));
+        Assert.Empty(OwnErrorsOf(twoCuts, none, cutUrls, ScriptPath.Scriptless, true));
         // Not on the scripted way (a failed script there is a fault), not without the scan walking the states.
-        Assert.Equal(2, OwnErrorsOf(twoCuts, 2, ScriptPath.Scripted, true).Count);
-        Assert.Equal(2, OwnErrorsOf(twoCuts, 2, ScriptPath.Scriptless, false).Count);
+        Assert.Equal(2, OwnErrorsOf(twoCuts, none, cutUrls, ScriptPath.Scripted, true).Count);
+        Assert.Equal(2, OwnErrorsOf(twoCuts, none, cutUrls, ScriptPath.Scriptless, false).Count);
         // Not for another resource: a third line has no cut script behind it, a status line is a fault, a page error is a fault.
-        Assert.Single(OwnErrorsOf([.. twoCuts, "console: Failed to load resource: net::ERR_FAILED"], 2, ScriptPath.Scriptless, true));
-        Assert.Single(OwnErrorsOf(["console: Failed to load resource: the server responded with a status of 404 ()"], 1, ScriptPath.Scriptless, true));
-        Assert.Single(OwnErrorsOf(["page: boom"], 1, ScriptPath.Scriptless, true));
-        Assert.Single(OwnErrorsOf(twoCuts, 1, ScriptPath.Scriptless, true));
+        Assert.Single(OwnErrorsOf([.. twoCuts, "console: Failed to load resource: net::ERR_FAILED"], [.. none, ""], cutUrls, ScriptPath.Scriptless, true));
+        Assert.Single(OwnErrorsOf(["console: Failed to load resource: the server responded with a status of 404 ()"], [""], cutUrls[..1], ScriptPath.Scriptless, true));
+        Assert.Single(OwnErrorsOf(["page: boom"], [""], cutUrls[..1], ScriptPath.Scriptless, true));
+        Assert.Single(OwnErrorsOf(twoCuts, none, cutUrls[..1], ScriptPath.Scriptless, true));
+    }
+
+    /// <summary>The exemption goes by the address when the engine gives one (D-1746 c): a status-less failure of another resource stays a fault even while a cut script's line is pending, and a cut script's own line goes.</summary>
+    [Fact]
+    public void TheCutScriptExemption_GoesByTheAddress_WhenTheEngineGivesOne_KK2()
+    {
+        string[] lines = ["console: Failed to load resource: net::ERR_FAILED", "console: Failed to load resource: net::ERR_FAILED"];
+        string[] cut = ["https://h/js/a.js"];
+
+        // The first line is about the cut script, the second about a stylesheet: only the first goes, though one script was cut and two lines have no status.
+        List<string> own = OwnErrorsOf(lines, ["https://h/js/a.js", "https://h/css/site.css"], cut, ScriptPath.Scriptless, true);
+        Assert.Single(own);
+        // The same two lines in the other order: still the stylesheet's line stays (the order does not decide).
+        Assert.Single(OwnErrorsOf(lines, ["https://h/css/site.css", "https://h/js/a.js"], cut, ScriptPath.Scriptless, true));
+        // A line about an address no request cut is a fault even when the count would have allowed it.
+        Assert.Equal(2, OwnErrorsOf(lines, ["https://h/js/other.js", "https://h/css/site.css"], cut, ScriptPath.Scriptless, true).Count);
+    }
+
+    [Theory]
+    [InlineData("https://h/js/a.js:12:5", "https://h/js/a.js")]
+    [InlineData("https://h/js/a.js:0:0", "https://h/js/a.js")]
+    [InlineData("https://h/js/a.js", "https://h/js/a.js")]
+    [InlineData("", "")]
+    [InlineData(null, "")]
+    public void UrlOfLocation_DropsTheLineAndTheColumn_KK2(string? location, string expected)
+    {
+        Assert.Equal(expected, WatchedPage.UrlOfLocation(location));
     }
 
     /// <summary>The way out leads to the address the document names; the first of a group leads to a record form under it.</summary>

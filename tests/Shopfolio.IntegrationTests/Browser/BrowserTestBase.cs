@@ -50,10 +50,21 @@ public abstract class BrowserTestBase
             if (message.Type == "error")
             {
                 watched.Errors.Add("console: " + message.Text);
+                watched.ErrorUrls.Add(WatchedPage.UrlOfLocation(message.Location));
             }
         };
-        page.PageError += (_, message) => watched.Errors.Add("page: " + message);
-        page.RequestFailed += (_, request) => watched.CutScripts += request.ResourceType == "script" ? 1 : 0;
+        page.PageError += (_, message) =>
+        {
+            watched.Errors.Add("page: " + message);
+            watched.ErrorUrls.Add(string.Empty);
+        };
+        page.RequestFailed += (_, request) =>
+        {
+            if (request.ResourceType == "script")
+            {
+                watched.CutScriptUrls.Add(request.Url);
+            }
+        };
         return watched;
     }
 
@@ -78,6 +89,19 @@ public abstract class BrowserTestBase
         }
     }
 #pragma warning restore CS0612
+
+    /// <summary>
+    /// Waits until every style sheet the page links has been loaded and applied (D-1746 a). A wait for the document alone (<see cref="WaitUntilState.Commit"/>, then DOMContentLoaded) can end before the
+    /// style sheets have arrived, and a reading that depends on the page's own style (the contrast of a scan, the visibility of a control) would read the unstyled page; this wait names what is needed
+    /// instead of a length of time.
+    /// </summary>
+    protected static async Task WaitForStylesAsync(WatchedPage page, int timeout = 30000)
+    {
+        await page.Page.WaitForFunctionAsync(StylesLoaded, null, new PageWaitForFunctionOptions { Timeout = timeout });
+    }
+
+    /// <summary>True when every linked style sheet has a loaded sheet (a link that failed to load never gets one, so the wait ends at its time limit and the test fails on the stylesheet, as it should).</summary>
+    internal const string StylesLoaded = "() => [...document.querySelectorAll('link[rel~=stylesheet]')].every((l) => l.sheet !== null)";
 
     /// <summary>Records one observation of a row and keeps the page's screenshot beside the record.</summary>
     protected async Task ObserveAsync(string row, ScriptPath path, string engine, WatchedPage page, string step, string expected, string observed, bool ok, string? data = null)
@@ -187,5 +211,24 @@ public sealed class WatchedPage(IPage page)
     public List<string> Errors { get; } = [];
 
     /// <summary>How many script requests the page made that failed at the network (the accessibility pass cuts them on the scriptless way, AccessibilityScanTests.AuditContextAsync).</summary>
-    public int CutScripts { get; set; }
+    public int CutScripts => CutScriptUrls.Count;
+
+    /// <summary>The addresses of the script requests that failed at the network, one per request (D-1746 c: the cut-script exemption matches the console line by the address, not by the count alone).</summary>
+    public List<string> CutScriptUrls { get; } = [];
+
+    /// <summary>The address each line of <see cref="Errors"/> came from (the console message's location), at the same index; empty when the engine gave none or the line is a page error.</summary>
+    public List<string> ErrorUrls { get; } = [];
+
+    /// <summary>The address part of a console message's location ("address:line:column"; the line and column are dropped).</summary>
+    internal static string UrlOfLocation(string? location)
+    {
+        if (string.IsNullOrWhiteSpace(location))
+        {
+            return string.Empty;
+        }
+
+        string[] parts = location.Split(':');
+        int drop = parts.Length >= 3 && parts[^1].All(char.IsAsciiDigit) && parts[^2].All(char.IsAsciiDigit) ? 2 : 0;
+        return string.Join(':', parts.Take(parts.Length - drop));
+    }
 }

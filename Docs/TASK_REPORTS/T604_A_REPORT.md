@@ -1,6 +1,6 @@
 # T604 (A) — F5 kapısından kalan test aracı kalemleri
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor (dilimler A1, A2, A3, A7 bitti; A5 bitti (D-1329 T604 U'ya daraltıldı)) | **Tarih:** 2026-11-18
+**Faz:** F5 | **Durum:** ⏳ Devam ediyor (dilimler A1, A2, A3, A7 bitti; A5 bitti (D-1329 T604 U'ya daraltıldı); A4 kısmen: 4 kalem kapandı, 3 daraldı, 5 kalem açık) | **Tarih:** 2026-11-18
 
 ---
 
@@ -102,6 +102,23 @@ Kalemler: D-146, D-1226, D-1285, D-1329 (daraltıldı), D-1614, D-1626, D-1627, 
 - Integration (yalnız ilgili sınıflar): `ContentPanelPageTests` + `PanelContentEditingTests` 43/43, `StateRolePageTests` 2/2. **TAM: CI.** Bu devam: Integration sınıfı koşulmadı (yalnız test araçları ve belge; `src` değişmedi). **TAM: CI.**
 - `dotnet format Shopfolio.slnx --no-restore --include <dalın 56 .cs dosyası>`: iki biçim düzeltmesi uygulandı (boşluk), yeniden koşuda değişiklik yok.
 - Ayırt edicilik (D-1547): `ContentForm` Hakkımızda silme koşulu ve `Brand` görsel kodu geçici bozuldu → iki test KIRMIZI; `ProductConstants` tavanı bozulması modeli değiştirdiği için geçersiz deney (başlatma hatası), geri alındı. A5 taramaları için kırmızı örnekler `ViolationSamples` ve Theory satırlarıdır (taramanın eski hâli yeni sabitleri taşımadığından derlenmez).
+
+## Dilim A4 — tarayıcı aracı (KISMEN; BÖLÜNDÜ, süre)
+
+Kalemler: D-1228, D-1418, D-1433, D-1455, D-1456, D-1678, D-1704, D-1709, D-1710, D-1732, D-1736, D-1746. `src` değişmedi.
+
+- D-1678 kapandı: `MigrationBundle.ResolveBuildTimeout`, `SHOPFOLIO_TEST_BUNDLE_BUILD_TIMEOUT_SECONDS` (pozitif tam sayı saniye; geçersizde 5 dk); `MigrationBundleTests` (varsayılan, 9 geçersiz değer, 3 geçerli değer).
+- D-1704 kapandı: `BrowserWaitScan` + `BrowserWaitScanTests` (Unit; 21 test): `Browser` klasöründe istisnasız `Task.Delay`/`Delay(`/`Thread.Sleep`/`Sleep(`/`WaitForTimeout`/`setTimeout`/`setInterval`; yorum ve dizge muaf. Ayırt edicilik: `BrowserTestBase.cs`'e geçici `Task.Delay(10)` konuldu, tarama `BrowserTestBase.cs:85` ile kırmızı oldu, geri alındı.
+- D-1710 kapandı: `BrowserSeed` marka adı kurar (`Örnek Mağaza`); yürüyüş başlığın "<ad> - <marka>"/"<ad> – <marka>" (vitrin) ya da "… - Shopfolio Panel" (panel) ile bitmesini ölçer (`TitleMeasure`, 16 test). Ölçü FAQ (`/sss`) ve iletişim (`/iletisim`) başlıklarının markasız olduğunu buldu: `src` hatası → D-1788 (T604 U); iki yönlü bilinen liste `TitleMeasure.KnownWithoutBrand`.
+- D-1746 kapandı: (a) `ProbeAsync` okumadan önce `WaitForStylesAsync` (bağlı stil dosyalarının `sheet`i), (b) `AuditScripts.Names` boyutsuz adsız denetimi sayar (aria-hidden, inert, hidden, display none, kapalı details dışarıda; `AuditScriptsTests` 4 sınıf × motor), (c) kesilen betik istisnası adresle eşler, adres yoksa sayıya düşer (`OwnErrorsOf`, `WatchedPage.UrlOfLocation`).
+- D-1736: (a) `ScanStep` ekran × ölçüt hücresine girdi (kırmızı tarama = ✗, taranmamış = "–"); (b) `ObservationRecord.AddCompletenessCheck` + `BrowserHost.DisposeAsync`: kayıt koşu sonunda tüm koşudan yeniden yazılır, "–" kalan hücre koşuyu kırar (Audit tek başına artık eksik kayıtla geçmez); (c) WebKit notu kayıtta (`EngineNotes`). Açık: (d) Firefox ileti metni, Firefox sınıf süresi (590 sn) ölçümü.
+- D-1732: (c) kayıt notu, (d) `Facts.skip` sonuca bağlandı (atlanacak `nav` bölgesi olan sayfada blokları atla bağlantısı; kopuk sayfa düzeni E-29/E-30/E-54'te gezinme yok); `sameNameElsewhere` kayıtta bilgi (D-1789, bağlam ölçüsü yok).
+- D-1709: araç kısmı: `ExecutableOverrides` + `SHOPFOLIO_BROWSER_EXECUTABLES` (`motor=yol|motor=yol`), kayıt motor sürümünü yazar. `12` §4.17 karar cümlesi ve K-1630 AÇIK.
+- Yapılmadı (sonraki A4 işçisi): D-1228, D-1418, D-1456 (320 genişlik gözlemleri), D-1433, D-1455 (paylı `12` satırları), D-1709 belge kararı.
+
+**Koşular.** Unit: `BrowserWaitScanTests` 21/21 (tam Unit koşulmadı: **TAM: CI**). Integration (ilgili sınıflar): `TitleMeasureTests`, `ExecutableOverridesTests`, `AuditScriptsTests`, `MigrationBundleTests` (çözümleme testleri), kesilen betik testleri geçti; chromium betikli: `AccessibilityAuditTests` + `AccessibilityScanTests` + `AccessibilityCriteriaTests` + `AccessibilityRecordTests` + `ScreenInventoryTests` tek çağrıda 27/27 (8 dk 45 sn). Firefox, webkit ve betiksiz yol: **TAM: CI E2E**. Integration TAM: CI. `dotnet format` değişen dosyalarda değişiklik üretmedi.
+
+**⚠ A4.** (1) Aynı adlı bağlantı okuması sonuca bağlanmadı (D-1789). (2) Ölçüt kaydı koşu sonunda kırar: CI E2E'nin Audit, Scan, Criteria sınıflarını tek çağrıda koşması şart (D-1736 b kabulü). (3) Ayırt edicilik: D-1704 değişinimle gösterildi; D-1710 `localhost` başlığı `TitleMeasure` testleriyle kırmızı; D-1746 (b) `AuditScriptsTests` ile.
 
 ## Para ve güvenlik kalemleri (KK2)
 

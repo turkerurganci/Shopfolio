@@ -235,12 +235,19 @@ public sealed class BrowserHost : IAsyncLifetime
         }
 
 
+        // The records that depend on the whole run are written from it now and checked for completeness (D-1736 b).
+        IReadOnlyList<string> incomplete = Record?.IncompleteRecords() ?? [];
         Record?.Flush();
         if (_databaseName.Length > 0)
         {
             using Npgsql.NpgsqlConnection pooled = new(Dsn);
             Npgsql.NpgsqlConnection.ClearPool(pooled);
             await _template.DropDatabaseAsync(_databaseName, CancellationToken.None);
+        }
+
+        if (incomplete.Count > 0)
+        {
+            throw new InvalidOperationException("The criteria record of the run is incomplete - run the scan, the criteria and the audit classes in one call: " + string.Join(" | ", incomplete));
         }
     }
 
@@ -277,7 +284,9 @@ public sealed class BrowserHost : IAsyncLifetime
             "webkit" => _playwright!.Webkit,
             _ => throw new ArgumentOutOfRangeException(nameof(engine), engine, "Unknown engine."),
         };
-        IBrowser browser = await type.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
+        // The second version of an engine (D-1709; 12 4.17 "son iki büyük sürüm"): the run uses the engine Playwright brings unless SHOPFOLIO_BROWSER_EXECUTABLES names another build of it.
+        string? executable = ExecutableOverrides.PathOf(Environment.GetEnvironmentVariable(ExecutableOverrides.VariableName), engine);
+        IBrowser browser = await type.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true, ExecutablePath = executable });
         _browsers[engine] = browser;
         Record?.SetEngineVersion(engine, browser.Version);
         return browser;
@@ -415,6 +424,43 @@ public sealed class ObservationRecord
         {
             _versions[engine] = version;
         }
+    }
+
+    private readonly Dictionary<string, Func<IReadOnlyList<Observation>, string?>> _completeness = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Registers a check that runs once when the run ends, over the whole run's observations (D-1736 b): it returns <see langword="null"/> when the record it belongs to is complete, otherwise what is missing. A record that
+    /// depends on observations of other test classes (the criteria record of the accessibility pass) cannot know at its own test whether those ran, since the order of the classes is not assumed. A check of the same name replaces the earlier one.
+    /// </summary>
+    public void AddCompletenessCheck(string name, Func<IReadOnlyList<Observation>, string?> check)
+    {
+        lock (_lock)
+        {
+            _completeness[name] = check;
+        }
+    }
+
+    /// <summary>Runs the registered checks over the observations of the whole run; the messages of the records that are incomplete (none when all are complete).</summary>
+    public IReadOnlyList<string> IncompleteRecords()
+    {
+        KeyValuePair<string, Func<IReadOnlyList<Observation>, string?>>[] checks;
+        IReadOnlyList<Observation> all;
+        lock (_lock)
+        {
+            checks = [.. _completeness];
+            all = [.. _observations];
+        }
+
+        List<string> incomplete = [];
+        foreach ((string name, Func<IReadOnlyList<Observation>, string?> check) in checks)
+        {
+            if (check(all) is { } message)
+            {
+                incomplete.Add($"{name}: {message}");
+            }
+        }
+
+        return incomplete;
     }
 
     public void Add(Observation observation)

@@ -220,11 +220,13 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
                     List<string> meaningless = Strings(n, "meaningless");
                     List<string> labelNotInName = Strings(n, "labelNotInName");
                     List<string> images = Strings(n, "images");
+                    // Links that bear the same name and lead to different places: shown in the observation (D-1732 d); WCAG 2.4.4 lets the context tell them apart, which this reading cannot judge yet, so it does not decide the result (D-1789).
+                    List<string> sameName = Strings(n, "sameNameElsewhere");
                     await ObserveAsync(
                         stop.Screen, path, engine, page, Step(Name, stop),
                         "her denetimin ve görselin erişilebilir adı vardır ve bir şey söyler; görünür etiket adın içindedir (WCAG 1.1.1, 2.4.4, 2.5.3, 4.1.2)",
-                        $"denetim {n.GetProperty("controls").GetInt32()}; adsız {empty.Count}; anlamsız ad {meaningless.Count}; etiketi adda olmayan {labelNotInName.Count}; alt metni olmayan görsel {images.Count}"
-                            + (empty.Count + meaningless.Count + labelNotInName.Count + images.Count > 0 ? ": " + string.Join(" / ", empty.Concat(meaningless).Concat(labelNotInName).Concat(images).Take(4)) : string.Empty),
+                        $"denetim {n.GetProperty("controls").GetInt32()}; adsız {empty.Count}; anlamsız ad {meaningless.Count}; etiketi adda olmayan {labelNotInName.Count}; alt metni olmayan görsel {images.Count}; aynı adlı, başka adrese giden bağlantı {sameName.Count} (bilgi, sonucu belirlemez; D-1789)"
+                            + (empty.Count + meaningless.Count + labelNotInName.Count + images.Count + sameName.Count > 0 ? ": " + string.Join(" / ", empty.Concat(meaningless).Concat(labelNotInName).Concat(images).Concat(sameName).Take(4)) : string.Empty),
                         empty.Count + meaningless.Count + labelNotInName.Count + images.Count == 0);
                 }
 
@@ -234,7 +236,7 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
                     JsonElement f = facts.RootElement;
                     string title = f.GetProperty("title").GetString() ?? string.Empty;
                     List<string> sensory = Strings(f, "sensory");
-                    bool ok = f.GetProperty("lang").GetString() == "tr" && title.Length > 0 && f.GetProperty("media").GetInt32() == 0 && f.GetProperty("refresh").GetInt32() == 0 && f.GetProperty("infinite").GetInt32() == 0 && sensory.Count == 0 && !f.GetProperty("skipped").GetBoolean();
+                    bool ok = f.GetProperty("lang").GetString() == "tr" && title.Length > 0 && f.GetProperty("media").GetInt32() == 0 && f.GetProperty("refresh").GetInt32() == 0 && f.GetProperty("infinite").GetInt32() == 0 && sensory.Count == 0 && !f.GetProperty("skipped").GetBoolean() && (f.GetProperty("main").GetInt32() == 0 || f.GetProperty("nav").GetInt32() == 0 || f.GetProperty("skip").GetInt32() > 0);
                     // A stop that answers 404 or sends the visitor on (the empty cart's checkout, a re-verification with nothing to confirm) shows another screen's page: that page has its own stop, so its title is not compared here.
                     bool ownPage = stop.Status == 200 && where == new Uri(Host.BaseUrl + stop.Path).AbsolutePath;
                     if (ownPage && titles.TryGetValue(title, out string? other) && other != stop.Screen && title.Length > 0)
@@ -251,7 +253,7 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
                     await ObserveAsync(
                         stop.Screen, path, engine, page, $"sayfa olguları: {stop.State}",
                         "dil tr; ayırt edici başlık; ses, görüntü, kendiliğinden yenileme ve sonsuz hareket yok; yönergede duyusal tarif yok; başlık sırası atlamasız (WCAG 3.1.1, 2.4.2, 1.2.x, 2.2.1, 2.2.2, 1.3.3, 1.3.1)",
-                        $"dil {f.GetProperty("lang").GetString()}; başlık «{title}»; ortam {f.GetProperty("media").GetInt32()}; yenileme {f.GetProperty("refresh").GetInt32()}; sonsuz hareket {f.GetProperty("infinite").GetInt32()}; duyusal tarif {sensory.Count}; başlık atlaması {f.GetProperty("skipped").GetBoolean()}" + (sensory.Count > 0 ? ": " + string.Join(" / ", sensory.Take(3)) : string.Empty),
+                        $"dil {f.GetProperty("lang").GetString()}; başlık «{title}»; ortam {f.GetProperty("media").GetInt32()}; yenileme {f.GetProperty("refresh").GetInt32()}; sonsuz hareket {f.GetProperty("infinite").GetInt32()}; duyusal tarif {sensory.Count}; başlık atlaması {f.GetProperty("skipped").GetBoolean()}; ana bölge {f.GetProperty("main").GetInt32()}, gezinme bölgesi {f.GetProperty("nav").GetInt32()}, blokları atla bağlantısı {f.GetProperty("skip").GetInt32()} (atlanacak gezinme bölgesi olan sayfada en az biri, WCAG 2.4.1)" + (sensory.Count > 0 ? ": " + string.Join(" / ", sensory.Take(3)) : string.Empty),
                         ok);
                 }
 
@@ -334,9 +336,21 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
         }
 
         Assert.True(blanks.Count == 0, "Screens with a heading that has no result: " + string.Join(", ", blanks.Take(10)));
-        List<string> gaps = WriteRecordOfCriteria(engine, wayName, stops, record);
+        List<string> screenList = [.. stops.Select(s => s.Screen).Distinct()];
+        string directory = Host.Record.Directory;
+        (List<string> gaps, _) = WriteRecordOfCriteria(directory, engine, wayName, screenList, record);
         Assert.True(gaps.Count == 0, "Screen x criterion cells with no result: " + string.Join(", ", gaps.Take(10)));
         Assert.Empty(Failures);
+
+        // The record is complete only when the run has made the observations of the other classes too (the scan, the cross-screen tests), and the order of the classes is not assumed: so the record is written once more when the
+        // run ends (BrowserHost.DisposeAsync), from the whole run, and a cell that is still "not measured" then fails the run (D-1736 b). An Audit class run alone no longer ends with a record that passes with six criteria "ölçülmedi".
+        Host.Record.AddCompletenessCheck(
+            $"{engine}/{wayName}",
+            all =>
+            {
+                (_, List<string> notMeasured) = WriteRecordOfCriteria(directory, engine, wayName, screenList, all);
+                return notMeasured.Count == 0 ? null : $"{notMeasured.Count} not measured, e.g. " + string.Join(" / ", notMeasured.Take(6));
+            });
     }
 
     /// <summary>The result a criterion carries in the record: "uygulanmaz" when it does not apply, "karşılandı" when no screen failed it, otherwise "karşılanmadı" with the screens (T552 D-1732 (b)).</summary>
@@ -400,9 +414,10 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
     /// met when every observation the criterion's evidence names for that screen was made and agreed, "uygulanmaz" for a criterion that does not apply (with the reason in the table), and "ortak" when the criterion is answered
     /// for all screens at once by a source scan or a cross-screen observation (named in the table). A cell that is none of these is a gap and the test fails on it.
     /// </summary>
-    private List<string> WriteRecordOfCriteria(string engine, string wayName, IReadOnlyList<ScreenInventoryTests.Stop> stops, IReadOnlyList<Observation> record)
+    internal static (List<string> Gaps, List<string> NotMeasured) WriteRecordOfCriteria(string directory, string engine, string wayName, IReadOnlyList<string> screens, IReadOnlyList<Observation> record)
     {
-        List<string> screens = [.. stops.Select(s => s.Screen).Distinct()];
+        List<string> notMeasured = [];
+        HashSet<string> scanMissing = new(StringComparer.Ordinal);
         List<string> gaps = [];
         List<string> text = [];
         text.AddRange([$"# Erişilebilirlik tarama kaydı: {engine}, {wayName} yol", string.Empty]);
@@ -414,6 +429,8 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
             unmet[answered.Key].Add("ortak");
             gaps.Add($"ortak / {answered.Key}: {answered.Value.Detail}");
         }
+
+        notMeasured.AddRange(common.Where(a => a.Value.State == CommonState.NotMeasured).Select(a => $"ortak / {a.Key}: {a.Value.Detail}"));
 
         List<string> matrix = [];
         matrix.AddRange(["| Ekran | " + string.Join(" | ", WcagCriteria.All.Select(c => c.Id)) + " |", "|---|" + string.Concat(Enumerable.Repeat("---|", WcagCriteria.All.Count))]);
@@ -436,9 +453,30 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
                     continue;
                 }
 
-                bool met = own.All(e => record.Any(o => o.Row == screen && o.Engine == engine && o.Path == wayName && o.Ok && o.Step.StartsWith(e == WcagCriteria.FactsStep ? e : $"elle denetim, {e}", StringComparison.Ordinal))
-                    && !record.Any(o => o.Row == screen && o.Engine == engine && o.Path == wayName && !o.Ok && o.Step.StartsWith(e == WcagCriteria.FactsStep ? e : $"elle denetim, {e}", StringComparison.Ordinal)));
-                cells.Add(met ? "✓" : "✗");
+                // The manual audit's headings and the page facts are the audit's own observations; the automatic scan is the scan test's (its step starts with "otomatik tarama"): a red scan of the screen makes the cell red, and a screen
+                // the run has not scanned yet is "not measured" (D-1736 a), not a pass.
+                static string Prefix(string e) => e is WcagCriteria.FactsStep or WcagCriteria.ScanStep ? e : $"elle denetim, {e}";
+                string[] audited = [.. own.Where(e => e != WcagCriteria.ScanStep)];
+                bool met = audited.All(e => record.Any(o => o.Row == screen && o.Engine == engine && o.Path == wayName && o.Ok && o.Step.StartsWith(Prefix(e), StringComparison.Ordinal))
+                    && !record.Any(o => o.Row == screen && o.Engine == engine && o.Path == wayName && !o.Ok && o.Step.StartsWith(Prefix(e), StringComparison.Ordinal)));
+                string cell = met ? "✓" : "✗";
+                if (met && own.Contains(WcagCriteria.ScanStep))
+                {
+                    List<Observation> scans = [.. record.Where(o => o.Row == screen && o.Engine == engine && o.Path == wayName && o.Step.StartsWith(WcagCriteria.ScanStep, StringComparison.Ordinal))];
+                    if (scans.Count == 0)
+                    {
+                        cell = "–";
+                        scanMissing.Add(c.Id);
+                        notMeasured.Add($"{screen} / {c.Id}: {WcagCriteria.ScanStep}");
+                    }
+                    else if (scans.Any(o => !o.Ok))
+                    {
+                        cell = "✗";
+                        met = false;
+                    }
+                }
+
+                cells.Add(cell);
                 if (!met)
                 {
                     gaps.Add($"{screen} / {c.Id}");
@@ -453,15 +491,30 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
         text.AddRange(["| Ölçüt | Sonuç | Gerekçe ya da kanıt | Satır |", "|---|---|---|---|"]);
         foreach (WcagCriteria.Criterion c in WcagCriteria.All)
         {
-            text.Add($"| {c.Id} {c.Name} | {ResultOf(c.Applies, unmet[c.Id], common.TryGetValue(c.Id, out (CommonState State, string Detail) answer) && answer.State == CommonState.NotMeasured)} | {(c.Applies ? string.Empty : c.Reason + "; ")}kanıt: {string.Join(", ", c.Evidence)} | {string.Join(", ", c.Rows)} |");
+            text.Add($"| {c.Id} {c.Name} | {ResultOf(c.Applies, unmet[c.Id], (common.TryGetValue(c.Id, out (CommonState State, string Detail) answer) && answer.State == CommonState.NotMeasured) || scanMissing.Contains(c.Id))} | {(c.Applies ? string.Empty : c.Reason + "; ")}kanıt: {string.Join(", ", c.Evidence)} | {string.Join(", ", c.Rows)} |");
         }
 
         text.AddRange(["", "## Kontrol Listesi A Seviyesi maddeleri (12 §12.2 Ayrım; T552 kabul kriteri 4)", string.Empty, WcagCriteria.ChecklistAStatus + ": " + WcagCriteria.ChecklistAReason]);
         text.AddRange(["", "## Ekran × ölçüt matrisi (✓ karşılandı, o uygulanmaz, ● ortak kanıt koşuda ölçüldü ve uydu, – bu koşuda ölçülmedi, ✗ uymadı)", string.Empty]);
         text.AddRange(matrix);
+        text.AddRange(["", "## Notlar", string.Empty]);
+        text.AddRange(EngineNotes(engine));
 
-        string file = System.IO.Path.Combine(Host.Record.Directory, $"accessibility-record-{engine}-{wayName}.md");
+        string file = System.IO.Path.Combine(directory, $"accessibility-record-{engine}-{wayName}.md");
         File.WriteAllLines(file, text);
-        return gaps;
+        return (gaps, notMeasured);
     }
+
+    /// <summary>
+    /// What the record says about the engine it was taken in (D-1732 c, D-1736 c): WebKit's keyboard observations give the focus to each control by script, in the order of the document, and do not press the Tab key, so what only the real
+    /// Tab order shows (a jump upward, a return to an earlier control, a control left out of the order by <c>tabindex</c>) is measured in Chromium and Firefox only; and the keyboard flow row (VAL-A345) reaches a control with
+    /// <c>tabindex="-1"</c> there, so in WebKit that row does not tell a changed <c>tabindex</c> apart (the keyboard heading of this audit does).
+    /// </summary>
+    internal static IReadOnlyList<string> EngineNotes(string engine) =>
+        engine == "webkit"
+            ? [
+                "- WebKit: odak sırası ve klavye başlıkları kontrolleri belge sırasıyla `focus()` ile gezer (Tab tuşu bağlantıyı her konakta odağa almaz); gerçek Tab sırasının sıçrama ve geri dönüş ölçüsü yalnız Chromium ve Firefox kaydındadır.",
+                "- WebKit: `VAL-A345` yürüyüşü `Locator.FocusAsync` ile odak verir, `tabindex=-1` öğeye de ulaşır; bu satır `tabindex` değişimini ayırt etmez (klavye başlığı ayırt eder).",
+            ]
+            : ["- Tab tuşuyla gezilen motor: odak sırası, sıçrama ve geri dönüş ölçüsü gerçek Tab sırasındandır."];
 }

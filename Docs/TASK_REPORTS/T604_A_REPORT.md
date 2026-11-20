@@ -234,4 +234,4 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 
 ## Commit & PR
 
-PR: #594 — head 16b20c44 (devam; A5 kısmi)
+PR: #594 — A5 tamam; kod head 3c68b724 (rapor satırı sonraki commit)

@@ -1,6 +1,6 @@
 # T604 (U) — F5 kapısından kalan ürün kodu kalemleri
 
-**Faz:** F6 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-18
+**Faz:** F6 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-20
 
 T604 iki parça ve iki PR'da yürür (11 T604 KK1): **U** ürün kodu (bu rapor, dal `task/T604-urun-kodu`), **A** test aracı (dal `task/T604-test-araci`, PR #594). U parçası dilimlerle aynı dalda ilerler; her dilim bu dosyaya kendi başlığıyla ekler.
 
@@ -217,4 +217,127 @@ Bu dilimde dış varsayım yok.
 - ⚠ D-1525 kod değişikliği olmadan kapandı: F5 kapısı notu iki yolu da "kod değişikliği" sayıyordu; yönetici kararının ilk yolu (var olan testler değişmeden spec'e uyan yol) seçildi — yol T530'dan beri kodda, eksik olan karar ve `12` hizasıydı.
 - ⚠ D-892 önceki işçinin devir notunda "kapanış gerekçesiyle ✅" diye işaretliydi; bu turda kapatılmadı (yukarıda).
 - ⚠ D-1259'un kırmızısı D-1197'den ayrı koşuldu (katalog satırı yeni, düğme çizimi eski).
+- STATUS T604 tablo satırına dokunulmadı.
+
+---
+
+## Dilim UE3 — kimlik, oturum, yeniden doğrulama izni, sahtecilik reddi (güvenlik)
+
+İki işçide yapıldı (ilki süre bütçesiyle bölündü, devir notu `devir-UE3.md`); bu bölümün tabloları iki işçinin bütün işini kapsar.
+
+### Yapılan İşler
+
+| Kalem | Değişiklik |
+|---|---|
+| D-1317, D-1508 | `FormResults.Refused(page, code)` (422 + red satırı) ve `FormResults.LinkNoLongerValid(page)` (200 + `LinkNoLongerValid` satırı) tek yerde satır yazar; Verification, EmailRevert, PasswordReset (müşteri), panel Reset/Invite/Verify/Revert bunları kullanır; Register ve SignIn bekleyen kaydın 303'ünde `PendingRegistrationUnresolved` satırı yazar |
+| D-1375 | `AdminEmailChanges.RestorePreviousEmailAsync` `changed != 1` → istisna (doğrulamayla aynı; tüketim işlemle geri alınır) |
+| D-1473 | `AdminEmailChanges.RequestAsync` kilitten sonra önce izni okur (`HoldsReauthenticationAsync`), yoksa ReauthenticationRequired; tüketim sonda (müşteri sırası) |
+| D-1474 | `EmailChanges.ResendAsync` ve `AdminEmailChanges.ResendAsync`: önce bekleyen değişiklik, sonra L-9 (VAL-A441) |
+| D-1454, D-1389 | `Infrastructure/Security/ReauthenticationPermissionFilter.cs` (yeni, sıra -120, `ForgerySetup`'ta kayıt) + `[ReauthenticationFormPage]` (Profile, Reauthentication, MyAccount, Reauth; test sunucusunun jeton sayfası); `SessionAuthenticationHandler` izin varsa yalnız `MarkHeld` (kimliğe talep eklenmez, `09 §15.1` m.2); işaretli sayfa kümesi kapalı liste testiyle sabit |
+| D-608 | `AccountDeletions.RemoveAsync` yalnız `Customer` imha satırı; sayım sorguları ve `AccountOrderRelease.Carts` kalktı |
+| D-141 | `FieldMessageCatalog.ActionMessages` (alana bağlı olmayan kodların cümlesi); `ForgeryProtectionFilter.Message` katalogdan; `04` 2.7.3.1 (v0.58) |
+| D-1190 | Sepet: 400'de sepet okunur, mesaj gönderilen satırda (`RefusedItemId`, `Cart.cshtml`); ödeme adımı: `OnPageHandlerExecutionAsync` 400'de adımı gönderilen değerlerle okur (`ShowAsync(checksGate:false)`) |
+| D-1374 | yapılmadı — UE4'e (K-1627 (5)) |
+| Kayıtlar | K-1627 (beş madde); `04` v0.58; `DEFERRED_BACKLOG.md` 11 satır yerinde; D-1773 parça dosyasında |
+
+### Etkilenen Modüller / Dosyalar
+
+- `src/Shopfolio.Web/Infrastructure/` — `Forms/FormResults.cs`, `Security/ForgeryProtectionFilter.cs`, `Security/ForgerySetup.cs`, `Security/ReauthenticationPermissionFilter.cs` (yeni), `Security/SessionAuthenticationHandler.cs`, `Validation/FieldMessageCatalog.cs`
+- `src/Shopfolio.Web/Modules/` — `Administration/AdminEmailChanges.cs`, `Membership/AccountDeletions.cs`, `Membership/EmailChanges.cs`, `Ordering/Contracts/AccountOrderRelease.cs`, `Ordering/OrderingModule.cs`
+- `src/Shopfolio.Web/Pages/` — Account (Profile, Reauthentication), Panel (Invite, MyAccount, Reauth, Reset, Revert, Verify), Storefront (Cart, Checkout, EmailRevert, PasswordReset, Register, SignIn, Verification)
+- Testler: `*PageTests.T604.cs` (9 Web sınıfı), `Web/RejectionLines.cs`, `UnitTests/Validation/FieldMessageCatalogTests.T604.cs`, `UnitTests/Infrastructure/ReauthenticationFormPageTests.cs`
+- Belgeler: `04` 2.7.3.1 ve sürüm, `PRODUCT_DISCOVERY_STATUS.md` (K-1627, belge tablosu), `DEFERRED_BACKLOG.md`, `DEFERRED_BACKLOG.d/T604-U.md`, `STATUS_CHANGELOG.d/T604-U.md`
+
+### Para ve güvenlik kalemleri (KK2)
+
+Kırmızı: kalemlerin `src` değişiklikleri aynı derlemede geçici geri alındı (her kalem kendi satırında, birbirine dokunmayan yerlerde; yama `t604u-kk2-red.patch`), yeni testler koşuldu; sonra `git checkout -- src` ile geri kondu ve sınıfların tamamı yeşil koşuldu (aşağıda "Test Sonuçları"). Her kırmızının nedeni kendi kaleminin iddiasıdır.
+
+| Kalem | Test | Kırmızı (geçici bozma) | Yeşil |
+|---|---|---|---|
+| D-1317 | `RegistrationPageTests.TheLinkPagesRefusals_..._D1317`, `PanelAccessPagesTests.TheResetAndTheInvitation_..._D1317`, `PanelHomeAndVerificationPagesTests.ThePanelLinkPagesRefusals_..._D1317`, `CustomerPasswordResetAndReauthenticationPageTests.ALinkSpentBetweenThePageAndTheButton_..._D1317` | `Refused`/`LinkNoLongerValid` satır yazmadan: dördü kırmızı | ✓ |
+| D-1508 | `EmailRevertPageTests.TheRevertsRefusals_..._D1508` | aynı bozma: kırmızı | ✓ |
+| D-1473 | `MyAccountPageTests.ATakenAddress_WithoutTheValue_Is303_..._D1473` | izin okuması devre dışı: kırmızı (422 alınmış adres) | ✓ |
+| D-1474 | `AccountProfilePageTests.TheLinkAskedForAgain_..._VALA441_D1474`, `MyAccountPageTests.AskingTheLinkAgain_..._D1474` | L-9 bekleyen değişiklik aranmadan önce sayıldı: ikisi kırmızı | ✓ |
+| D-1454 | `CustomerPasswordResetAndReauthenticationPageTests.AnotherPageRequest_DropsThePermission_..._D1454` (3 sayfa: `/`, `/sepet`, `/hesap/adresler`) | süzgeç kaydı kaldırıldı: üçü kırmızı; karşı yön `WithNoOtherPageRequest_..._D1454` yeşil kaldı (beklenen) | ✓ |
+| D-1454 (istisna kümesi) | Unit `ReauthenticationFormPageTests.ThePagesLeftToTheirOwnRule_..._D1454` | `CartModel`'e işaret eklendi: "Collections differ" | ✓ |
+| D-1389 | `PanelHomeAndVerificationPagesTests.APanelPageRequest_DropsTheHeldPermission_..._D1389_D1454` | süzgeç kaydı kaldırıldı: kırmızı | ✓ |
+| D-608 | `MembershipTests.DeleteOwn_RemovesTheAccountAndWhatHangsOnIt_..._KK1` (spec gereği değişti, aşağıda) | oturum sayım satırı geri eklendi: kırmızı | ✓ |
+| D-141 | Unit `FieldMessageCatalogTests.TheForgeryRefusalsSentence_..._D141` | `Message` kendi kopyası (farklı cümle): "Strings differ" | ✓ |
+| D-1190 | `CartPageTests.TheForgeryRefusal_..._D1190`, `CheckoutPageTests.TheForgeryRefusal_..._D1190` (yeni, `CheckoutPageTests.Forgery.T604.cs`) | iki 400 dalı devre dışı: ikisi kırmızı | ✓ |
+| D-1375 | — | ⚠ dal satır kilidi altında erişilemez; kırmızı kurulamaz. Davranış: istisna işlemi geri alır (doğrulama dalıyla aynı). Yarış testi A parçasında (D-1301 `TwoRevertPressesAtOnce…`, PR #594) | — |
+
+Kırmızı koşusunun özeti: 16 Integration testinden 15'i kırmızı (16.'sı beklenen karşı yön), Unit D-141 testinden biri kırmızı (öteki kümenin biçim testi), istisna kümesi testi kırmızı.
+
+**Spec gereği değişen test**
+
+| Test | Eski beklenti | Yeni beklenti | Gerekçe | Belge yeri |
+|---|---|---|---|---|
+| `Model/MembershipAccountDeletionTests.cs` `DeleteOwn_RemovesTheAccountAndWhatHangsOnIt_AndTheDisposalRecordCountsThem_KK1` | imha kaydında Customer 1 + Session 2 + RecognizedBrowserMark 2 + Cart 1 + PendingEmailChange 1 + LinkRecord ≥ 1 | yalnız `{ Customer: 1 }` | Eski test belgede olmayan imha türlerini sabitliyordu; hesaba bağlı satırlar Customer satırının parçasıdır ve kendi satırını yazmaz (D-608) | `06 §5.5.3`, `06 §4.64`, `05 §7.4.2`; `02` Z-31, Z-32 |
+
+- **Var olan öteki testler:** değişmedi; 8 Web test sınıfına yalnız `partial`, test jetonu sayfasına (`Pages/ForgeryTokenSample.cs`) işaret eklendi.
+- **Çıkış yolu ve geri alma:** şema ve göç yok; geri alma commit'lerin `git revert`'üdür (899c3e27, d7b8ee2a ve bu turun commit'leri). İzin süzgeci tek satırla (`ForgerySetup` kaydı) devreden çıkar; o durumda eski iki noktalı düşürme (hesap GET'i, yeniden doğrulama ekranı) yerinde kalır.
+- **Güvenlik taraması:** yeni dış bağımlılık, sır, girdi yolu yok. D-1473 alınmış adres sorgusunu yeniden doğrulamanın arkasına alır (yönetici hesabının varlığı sızmaz); D-1454 izni bütün sayfa isteklerinde düşürür; istisna kümesi kapalı liste testiyle sabittir (sık FAIL (1)); D-1375 harcanmış bağlantının adres dönmeden işlenmesini kapatır.
+
+### Kabul Kriterleri Kontrolü (UE3 payı)
+
+| Madde | Durum | Kanıt |
+|---|---|---|
+| KK1 — UE3'ün 11 kalemi kapalı ya da gerekçeli | ✓ | 10 ✅ (her biri kalemin "Yapılacak" cümlesiyle denetlendi, aşağıda); D-1374 gerekçeyle UE4'e, hedef T604 — satırında not, K-1627 (5) |
+| KK2 — para ve güvenlik kalemleri ayrı başlıkta; kırmızı–yeşil; eski testler aynı | ✓ | "Para ve güvenlik kalemleri (KK2)"; tek değişen eski test spec gereği, tabloda; D-1375 kırmızısı kurulamaz ⚠ |
+| KK3 — tarayıcı kalemleri | — | A parçası; UE3'te yok |
+| KK4 — D-1678 | — | A parçası; UE3'te yok |
+| KK5 — kapanan satır `✅ Çözüldü → T604`; sayaç | ✓ | `DEFERRED_BACKLOG.md` 10 satır ✅, 1 satır not; yeni kalem parça dosyasında (D-1773); sayaca dokunulmadı (talimat) |
+| `09 §25` ilgili satırlar | ✓ | tek işlev: red satırı `FormResults`'ta tek yerde, işlem düzeyi cümle katalogda, izin düşürme tek süzgeçte; modül sınırı: süzgeç `SessionStore`'u işlem içinde çağırır (`ITransactionRunner`); döngüde sorgu yok |
+| Güvenlik taraması | ✓ | yukarıda |
+
+### Öz denetim (bitiş kapısı 2)
+
+Önceki işçinin yaptıkları dahil 11 kalem ve `11` T604 kabul kriterleri ile kontrol listesi diff'te yeniden denetlendi; `sik-fail-nedenleri.md` okundu.
+
+| Denetim | Sonuç |
+|---|---|
+| D-141 "cümle katalogda, süzgeç kopya tutmaz, `04` ile aynı" | ✓ — `FieldMessageCatalogTests` iki test; `04` 2.7.3.1 cümlesi testte okunur |
+| D-608 "Customer dışı satırlar için tür ya da tek satır" | ✓ — tek satır yolu (belgedeki türler), test spec gereği değişti |
+| D-1190 "400'de sepet içeriği; ödeme formu aynı karar" | ✓ — sepet ve ödeme adımı, iki test; öteki sayfalar D-1773 |
+| D-1317 "bağlantı ve bekleyen kayıt redleri kayda yazılır" | ✓ — dört sınıfta test, iki yardımcı |
+| D-1508 "geri alma sayfasının iki reddi satır yazar" | ✓ |
+| D-1375 "dal red sayılır ya da istisna" | ✓ — istisna; kırmızı kurulamaz ⚠ |
+| D-1389 "izin panelde de düşer" | ✓ — panel düşer, vitrin isteği panel iznine dokunmaz |
+| D-1454 "tek katman ve iki yönlü test" | ✓ — üç sayfa + karşı yön; istisna kümesi kapalı liste (bu turda eklendi) |
+| D-1473 "değer önce okunur, tüketim sonda; değersiz dolu adres 303" | ✓ |
+| D-1474 "bekleyen yoksa satır yok, varsa L-9" | ✓ — müşteri ve yönetici |
+| D-1374 | ⚪ gerekçeli — UE4 (süre, ürün kararı ve `02`/`07` metni ister; yönetici kararı) |
+| Sık FAIL (1) bekçi/tarama istisnası geniş | ✓ — `[ReauthenticationFormPage]` kümesi kapalı liste testiyle sabit, `Inherited = false` sınanır |
+| (2) tarama çağrı biçimi | uygulanmaz — tarama değişmedi; gezinme taraması (`NavigationConsistencyTests`) için SeeOther çağrıları yerinde bırakıldı |
+| (3) 06 varsayılan / FK dizini | uygulanmaz — şema değişmedi |
+| (4) aynı kuralı anan öteki yerler | ✓ — sahtecilik cümlesi `04`'te tek yerde, kodda katalogda; `04` sürümü belge tablosunda; L-9 sırası iki yazıcıda aynı |
+| (5) belge kuralını değiştiren metin karar kaydısız | ✓ — K-1627 beş madde; `04` 2.7.3.1 cümlesi K-1627'yi anar |
+| "Kabul kriteri kısmen" | ✓ — ~ yok; D-1374 açık, kapandı denmedi |
+| Unit TAM bu turda | ✓ — 8096/8096 (+ yeni istisna kümesi testi tek başına yeşil) |
+| `dotnet format` değişen `.cs` | ✓ — 100 dosya (`--include`) + iki yeni dosya, değişiklik yok |
+| Branch izolasyonu | ✓ — commit başlıkları yalnız T604; A parçasının test sınıflarına dokunulmadı |
+| PR #594 testlerine etki | ✓ — A2 testleri red satırını ölçmez, davranış aynı; çakışma beklenmez |
+
+### Test Sonuçları
+
+- **Unit:** TAM 8096/8096 ✓; yeni `ReauthenticationFormPageTests` 1/1.
+- **Integration:** koşulan sınıflar — `EmailRevertPageTests`, `RegistrationPageTests`, `PanelAccessPagesTests`, `PanelHomeAndVerificationPagesTests`, `CustomerPasswordResetAndReauthenticationPageTests`, `MyAccountPageTests`, `AccountProfilePageTests`, `CartPageTests` (197/197); `CheckoutPageTests`, `ForgeryProtectionTests`, `MembershipTests` (hesap silme ve yönetici hesapları dahil), `MembershipGoogleTests` (265/265; `ScriptlessFlowTests` adlı sınıf yok). **TAM: CI.**
+- **E2E:** CI'ın E2E işi.
+
+### Commit & PR
+
+- Commit'ler: 899c3e27, d7b8ee2a ve bu turun commit'leri
+- PR: #595
+
+### Dış Varsayımlar
+
+Bu dilimde dış varsayım yok.
+
+### Notlar
+
+- ⚠ K-1627 numarası U parçasına (UE3) ayrıldı; A parçası K-1626 ve K-1628 kullanır.
+- ⚠ D-1375'in kırmızısı kurulamaz (dal kilit altında erişilemez); kapanış davranış ve kod okumasıyla.
+- ⚠ D-608 eski bir testin beklentisini değiştirdi (spec gereği, tablo yukarıda).
+- ⚠ D-1374 UE4'e bırakıldı (yönetici kararı).
+- ⚠ Kırmızı koşusu kalemleri tek derlemede birlikte bozdu (süre); bozmalar birbirine dokunmayan satırlardadır ve her testin kırmızısı kendi kaleminin iddiasıdır.
 - STATUS T604 tablo satırına dokunulmadı.

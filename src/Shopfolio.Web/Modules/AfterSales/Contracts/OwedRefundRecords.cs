@@ -8,7 +8,10 @@ namespace Shopfolio.Modules.AfterSales.Contracts;
 /// </summary>
 public sealed record OwedRefundRecord(RefundType Type, Guid RecordId, Guid OrderItemId, int Quantity, DateTimeOffset RecordedAt)
 {
-    /// <summary>The receipt of a withdrawal after delivery; the <see cref="RecordId"/> is then the receipt's withdrawal (06 4.33: the withdrawal's refund carries both).</summary>
+    /// <summary>
+    /// The receipt of a withdrawal after delivery; the <see cref="RecordId"/> is then the receipt's withdrawal (06 4.33: the withdrawal's refund carries both). On a defect claim's goods
+    /// receipt (<see cref="RefundType.DefectClaimRescission"/>; K-1629 (3)) the <see cref="RecordId"/> is the receipt's claim and the rescission's refund carries both.
+    /// </summary>
     public Guid? ReturnId { get; init; }
 
     /// <summary>The key the order screen's form carries (07 UC-131: the record that causes the refund): the receipt for a receipt, the record itself otherwise.</summary>

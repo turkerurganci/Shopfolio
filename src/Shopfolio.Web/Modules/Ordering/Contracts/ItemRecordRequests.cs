@@ -26,13 +26,14 @@ public sealed record ReopenDefectClaimRequest(Guid OrderId, Guid OrderItemId, Ac
 /// The firm's rescission on an open defect claim (02 7.5.3; 03 2.9.4, 8.4.10): the units taken back - at most the claim's defective units not rescinded yet - with the
 /// screen's version. The refund is started with the amounts of 02 7.1.7; on the bank transfer line without an IBAN the customer is asked for one (B-14).
 /// </summary>
-public sealed record RescindDefectClaimRequest(Guid OrderId, Guid OrderItemId, TransitionAdmin Admin, int ExpectedVersion, int Quantity);
-
-/// <summary>
-/// The firm's price reduction on an open defect claim (02 7.5.3, 5.5; 03 8.3.3.7; K-228, K-539): the amount paid back - at most the order's paid money not refunded yet -
-/// with the screen's version. The item is not returned; on the bank transfer line without an IBAN the customer is asked for one (B-14).
-/// </summary>
-public sealed record ReduceDefectClaimPriceRequest(Guid OrderId, Guid OrderItemId, TransitionAdmin Admin, int ExpectedVersion, decimal Amount);
+public sealed record RescindDefectClaimRequest(Guid OrderId, Guid OrderItemId, TransitionAdmin Admin, int ExpectedVersion, int Quantity)
+{
+    /// <summary>
+    /// The claim's goods receipt the rescission pays (K-808; K-1629 (3)): UC-131 passes it, the refund carries it (06 4.33 <c>ReturnId</c>) and the receipt owes no refund after it;
+    /// the item's cap does not count the receipt's own owed amount.
+    /// </summary>
+    public Guid? ReturnId { get; init; }
+}
 
 /// <summary>
 /// The rejection of returned goods at the receipt step (03 1.7.1.7; 02 7.4.9; K-656): the withdrawal declaration, the units and their arrival date, with the screen's

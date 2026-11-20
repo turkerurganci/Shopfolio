@@ -48,10 +48,10 @@ public interface IAfterSalesModule
     Task<DefectRemedyCheck> CheckDefectClaimRescissionAsync(DefectClaimRescissionEntry entry, CancellationToken ct);
 
     /// <summary>
-    /// The check of the firm's price reduction on a defect claim (02 7.5.3; 03 8.3.3.7; K-228, K-539): the item's claim is open. The item is not returned and no unit
-    /// leaves the open quantity; the amount's ceiling is the payment's. Requires the caller's transaction and order row lock.
+    /// The amounts a rescission of <see cref="DefectClaimRescissionEntry.Quantity"/> units would carry now (K-1629 (3)): the split of <see cref="CheckDefectClaimRescissionAsync"/>
+    /// without its checks and without the lock - the order screen's line of a claim's goods receipt reads it, and the check returns the same split under the lock.
     /// </summary>
-    Task<DefectRemedyCheck> CheckDefectClaimPriceReductionAsync(ItemRecordSubject subject, CancellationToken ct);
+    Task<RefundAmount> DefectClaimRescissionAmountAsync(DefectClaimRescissionEntry entry, CancellationToken ct);
 
     /// <summary>
     /// The IBAN request of a defect remedy's refund on the bank transfer line (02 7.5.3, 7.4.5; 03 8.3.3.6; K-686): when the order has no IBAN on file and the item has no

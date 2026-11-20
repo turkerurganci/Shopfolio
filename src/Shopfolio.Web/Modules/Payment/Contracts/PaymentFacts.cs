@@ -114,4 +114,8 @@ public sealed record DefectRemedyRefundStart(
     DefectRescissionShares? Rescission);
 
 /// <summary>What a defect claim's rescission sets aside on its refund (06 4.33 <c>DefectClaimId</c>, <c>Quantity</c>, <c>CouponShare</c>, <c>VatAmount</c>).</summary>
-public sealed record DefectRescissionShares(Guid DefectClaimId, int Quantity, decimal CouponShare, decimal VatAmount);
+public sealed record DefectRescissionShares(Guid DefectClaimId, int Quantity, decimal CouponShare, decimal VatAmount)
+{
+    /// <summary>The claim's goods receipt the rescission pays (06 4.33 <c>ReturnId</c>; K-1629 (3)); null when the rescission is written without one.</summary>
+    public Guid? ReturnId { get; init; }
+}

@@ -122,7 +122,8 @@ internal sealed partial class PaymentModule : IPaymentModule
 
     public async Task<CardRefundSending?> WriteCardRefundSendingAsync(Guid orderId, Guid refundId, DateTimeOffset jobCreatedAt, CancellationToken ct)
     {
-        Refund? refund = await _db.Refunds.SingleOrDefaultAsync(r => r.Id == refundId, ct);
+        // FindAsync reads the tracked rows first: the refund a step started in this unit (UC-131 on a claim's goods receipt; K-1629 (3)) is marked sent before it is saved.
+        Refund? refund = await _db.Refunds.FindAsync([refundId], ct);
 
         // The refund as it is now, under the order's lock (MK-40; D-518, D-908): a voided refund, one turned to the transfer or one already sent gets no request.
         if (refund is null || refund.OrderId != orderId || refund.PaymentMethod != PaymentMethod.Card || refund.SentAt is not null || refund.VoidedAt is not null)
@@ -167,7 +168,8 @@ internal sealed partial class PaymentModule : IPaymentModule
 
     public async Task<RefundFacts?> MarkTransferRefundSentAsync(Guid orderId, Guid refundId, CancellationToken ct)
     {
-        Refund? refund = await _db.Refunds.SingleOrDefaultAsync(r => r.Id == refundId, ct);
+        // FindAsync reads the tracked rows first: the refund a step started in this unit (UC-131 on a claim's goods receipt; K-1629 (3)) is marked sent before it is saved.
+        Refund? refund = await _db.Refunds.FindAsync([refundId], ct);
         if (refund is null || refund.OrderId != orderId || refund.PaymentMethod != PaymentMethod.BankTransfer || refund.SentAt is not null || refund.VoidedAt is not null)
         {
             return null;
@@ -194,6 +196,7 @@ internal sealed partial class PaymentModule : IPaymentModule
             refund.Quantity = rescission.Quantity;
             refund.CouponShare = rescission.CouponShare;
             refund.VatAmount = rescission.VatAmount;
+            refund.ReturnId = rescission.ReturnId;
         }
 
         _db.Refunds.Add(refund);
@@ -619,7 +622,8 @@ internal sealed partial class PaymentModule : IPaymentModule
 
     public async Task<CardRefundLine?> ReadRefundLineAsync(Guid orderId, Guid refundId, CancellationToken ct)
     {
-        Refund? refund = await _db.Refunds.SingleOrDefaultAsync(r => r.Id == refundId, ct);
+        // FindAsync reads the tracked rows first: the refund a step started in this unit (UC-131 on a claim's goods receipt; K-1629 (3)) is marked sent before it is saved.
+        Refund? refund = await _db.Refunds.FindAsync([refundId], ct);
         if (refund is null || refund.OrderId != orderId)
         {
             return null;

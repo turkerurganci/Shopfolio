@@ -11,28 +11,35 @@ using Shopfolio.Modules.Payment.Contracts;
 namespace Shopfolio.IntegrationTests.Ordering;
 
 /// <summary>
-/// T604's money items on the item records (D-906, D-1588): the defect claim's price reduction counts the transfer refunds an item's records owe but have not born yet, and the
+/// T604's money items on the item records (D-906, D-1588): the defect claim's rescission counts the transfer refunds an item's records owe but have not born yet, and the
 /// payee read sees the IBAN request the caller closed in its own transaction as closed.
 /// </summary>
 public sealed partial class ItemRecordsTests
 {
     // ---- D-906: the caps count the refunds owed but not born yet ----
 
+    // The price reduction's own writer went with K-1629 (3) (UC-133 is the price reduction; its order cap counts the owed records - OrderDetailPageTests.Refunds
+    // ProcessAmountBasedRefund_AnEmptyZeroOrExceedingAmount_Is422_AndWritesNothing_KK7): the item's cap of the rescission counts them too.
     [Fact]
-    public async Task PriceReduction_OnTheTransfer_CountsTheItemsRecordWhoseRefundIsNotBornYet_D906()
+    public async Task Rescission_OnTheTransfer_CountsTheItemsRecordWhoseRefundIsNotBornYet_D906()
     {
+        const decimal reduction = 100m;
         (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.BankTransfer, returned: true);
         OrderTransitionResult cancelled = await RunAsync((u, t) => u.CancelItemByFirmAsync(
             new CancelItemByFirmRequest(order.Id, item.Id, 1, AdminCaller, 2, true, CancellationReason.UndeliveredBuyerCaused, null, false), t));
         Assert.False(cancelled.IsRejected);
+        await SeedPriceReductionAsync(order, item, reduction);
 
         // On the transfer the cancellation's refund line is born with the firm's panel step (T370): no refund row yet, the record owes it.
-        Assert.Equal(0, await CountAsync(c => c.Refunds.Where(r => r.OrderItemId == item.Id)));
+        Assert.Equal(1, await CountAsync(c => c.Refunds.Where(r => r.OrderItemId == item.Id)));
         ItemAmounts owed = ItemShares.SetAside(new ItemFrozenAmounts(100m, 20m, 16.67m), 3, 1, false, 0m, 0m);
-        decimal left = PaidTotal - (owed.ProductAmount - owed.CouponShare);
+        decimal left = PaidTotal - reduction - (owed.ProductAmount - owed.CouponShare);
 
-        Assert.Equal(TransitionRefusal.InvalidInput, (await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 3, left + 0.01m), t))).Refusal);
-        Assert.Null((await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 3, left), t))).Refusal);
+        ItemRecordResult rescinded = await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 3, ClaimUnits), t));
+
+        // 02 7.1.7 pays the two units more than what is left once the reduction and the cancellation's owed refund are deducted: the rescission pays what is left.
+        Assert.Null(rescinded.Refusal);
+        Assert.Equal(left, (await RefundAsync(rescinded.RecordId!.Value)).Amount);
     }
 
     // ---- D-1588: the payee read sees the request closed in the same transaction ----

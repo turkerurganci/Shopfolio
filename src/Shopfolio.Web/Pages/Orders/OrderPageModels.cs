@@ -41,6 +41,9 @@ public abstract class OrderPageModel : PageModel
     /// <summary>The 422 message when the item's file is not there (07 4.16.3): no right was spent.</summary>
     public const string NoFileText = "Bu ürünün dosyası şu anda indirilemiyor; indirme hakkınızdan düşülmedi. Daha sonra yeniden deneyin ya da iletişim formundan bize yazın.";
 
+    /// <summary>The 422 message when a record closed the item (07 4.16.3; K-1629; K-1624 (1)): a cancellation, a withdrawal or a removal closed the item, its file is no longer the customer's.</summary>
+    public const string ItemClosedText = "Bu kalem iptal, cayma ya da siparişten çıkarmayla kapandığı için dosyası artık indirilemez.";
+
     /// <summary>The words of the card order whose result has not come yet (04 5.16.4; 03 2.5.1.2): the page does not refresh itself, the customer opens it again.</summary>
     public const string CardAwaitedText = "Kart ödemenizin sonucu bekleniyor. Sonuç gelince bu sayfa güncellenir; sayfayı daha sonra yeniden açarak durumu görebilirsiniz.";
 
@@ -257,6 +260,7 @@ public abstract class OrderPageModel : PageModel
         {
             DownloadRefusal.AllowanceUsed => AllowanceUsedText,
             DownloadRefusal.NoFile => NoFileText,
+            DownloadRefusal.ItemClosed => ItemClosedText,
             _ => PaymentNotConfirmedText,
         };
         HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.DownloadNotAvailable);

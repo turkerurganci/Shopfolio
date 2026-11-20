@@ -404,5 +404,7 @@ public interface ICatalogModule
     /// The verdict on an add to a cart (T347; 02 3.16.8, 3.16.9): <paramref name="candidate"/> is the variant with the quantity its line would hold after the add, <paramref name="others"/> the cart's
     /// other lines. The firm's limit is judged first over all the product's variants and, when the quantity breaks both, is the only one told; then the stock. A plain read; it writes nothing.
     /// </summary>
-    Task<CartQuantityVerdict> JudgeCartAddAsync(CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, CancellationToken ct);
+    /// <param name="ownReservedUnits">As on <see cref="ListCartVariantFactsAsync"/>: the cart's own reservations count as sellable to the add and the quantity change too (02 3.17.7; D-1759).</param>
+    Task<CartQuantityVerdict> JudgeCartAddAsync(
+        CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct);
 }

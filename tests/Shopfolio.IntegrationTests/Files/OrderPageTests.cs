@@ -202,6 +202,27 @@ public sealed class OrderPageTests
         Assert.Equal(0, await DownloadCountAsync(host, itemId));
     }
 
+    [Fact]
+    public async Task AClosedPaidDigitalItemsStalePost_SaysTheItemClosed_NotThatTheRightIsUsedUp_K1629_D1758()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (_, _, string key, Guid itemId) = await SeedAsync(host, PaymentStatus.Paid);
+        await using (AppDbContext db = host.NewContext())
+        {
+            DateTimeOffset now = host.Time.GetUtcNow();
+            db.Withdrawals.Add(Modules.AfterSales.Withdrawal.ByBuyer(itemId, 1, DateOnly.FromDateTime(now.UtcDateTime), null, new(10m, 0m, 1.67m), null, now));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        // The page opened before the record closed the item posts its button: 422 with the fourth reason in the button's place (07 4.16.3; K-1629) - the right is not used up.
+        using HttpResponseMessage refused = await DownloadAsync(host, key, itemId);
+        string body = await refused.Content.ReadAsStringAsync(Ct);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, refused.StatusCode);
+        Assert.Contains(await EncodedAsync(host, OrderPageModel.ItemClosedText), body, StringComparison.Ordinal);
+        Assert.DoesNotContain(await EncodedAsync(host, OrderPageModel.AllowanceUsedText), body, StringComparison.Ordinal);
+        Assert.Equal(0, await DownloadCountAsync(host, itemId));
+    }
+
     // --- KK8: the awaited card result is said, the page never refreshes itself ---
 
     [Fact]

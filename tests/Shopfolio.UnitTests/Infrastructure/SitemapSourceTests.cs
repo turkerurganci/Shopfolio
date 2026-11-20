@@ -222,7 +222,7 @@ public sealed class SitemapSourceTests
 
         public Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct) => throw new NotSupportedException();
 
-        public Task<CartQuantityVerdict> JudgeCartAddAsync(CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, CancellationToken ct) => throw new NotSupportedException();
+        public Task<CartQuantityVerdict> JudgeCartAddAsync(CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct) => throw new NotSupportedException();
     }
 
     private sealed class FakeContent(IReadOnlyList<string> paths) : ICorporateContentModule

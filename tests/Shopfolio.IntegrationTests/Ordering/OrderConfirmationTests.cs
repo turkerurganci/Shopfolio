@@ -530,6 +530,38 @@ public sealed partial class OrderConfirmationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task TheAddAndTheQuantityChange_AfterTheSameCartsUnpaidOrder_CountItsReservationAsSellable_AndAnotherCartsNot_D1759()
+    {
+        Guid variantId = await SeedVariantAsync("Lamba", 1000m, stock: 2);
+        CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());
+        Guid cartId = await SeedCartAsync(owner, (variantId, 1));
+        OrderSummaryInput input = Input(owner, PaymentMethod.Card, null);
+        Assert.False((await ConfirmAsync(input, (await SummarizeAsync(input))!)).IsRejected);
+        Guid lineId;
+        await using (AppDbContext reader = NewContext())
+        {
+            lineId = (await reader.CartItems.SingleAsync(i => i.CartId == cartId, Ct)).Id;
+        }
+
+        static IOrderingModule Ordering(IServiceProvider sp) => sp.GetRequiredService<IOrderingModule>();
+
+        // The earlier unpaid order reserves one unit of two; to its own cart both are sellable (02 3.17.7): the quantity change to two passes - to others one is left.
+        Assert.Equal(CartItemUpdateOutcome.Updated, (await RunAsync(sp => Ordering(sp).UpdateCartItemAsync(owner, lineId, 2, Ct))).Outcome);
+
+        // The stock still bounds the line: a third unit is refused.
+        Assert.Equal(CartAddOutcome.NoStock, (await RunAsync(sp => Ordering(sp).AddToCartAsync(owner, variantId, 1, Ct))).Outcome);
+
+        // Back to one, the add of one more passes the same way.
+        Assert.Equal(CartItemUpdateOutcome.Updated, (await RunAsync(sp => Ordering(sp).UpdateCartItemAsync(owner, lineId, 1, Ct))).Outcome);
+        Assert.Equal(CartAddOutcome.Added, (await RunAsync(sp => Ordering(sp).AddToCartAsync(owner, variantId, 1, Ct))).Outcome);
+
+        // Another customer's cart is stopped by the reservation: one unit left to it.
+        CartOwner other = CartOwner.ForMember(await SeedCustomerAsync());
+        Assert.Equal(CartAddOutcome.Added, (await RunAsync(sp => Ordering(sp).AddToCartAsync(other, variantId, 1, Ct))).Outcome);
+        Assert.Equal(CartAddOutcome.NoStock, (await RunAsync(sp => Ordering(sp).AddToCartAsync(other, variantId, 1, Ct))).Outcome);
+    }
+
+    [Fact]
     public async Task TheMergedGuestCartsOrder_IsNotCancelledByTheAccountCartsConfirmation_KK7()
     {
         Guid variantId = await SeedVariantAsync("Lamba", 1000m, stock: 5);

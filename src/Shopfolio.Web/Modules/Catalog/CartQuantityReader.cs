@@ -29,13 +29,15 @@ internal sealed class CartQuantityReader
 
     /// <summary>
     /// The verdict on an add (02 3.16.8, 3.16.9): <paramref name="candidate"/> is the variant with the quantity the line would hold after the add, <paramref name="others"/> the cart's other
-    /// lines. A variant that does not exist gets <see cref="CartQuantityProblem.None"/>: the caller has already answered that it is not there.
+    /// lines. A variant that does not exist gets <see cref="CartQuantityProblem.None"/>: the caller has already answered that it is not there. The cart's own reservations count as sellable,
+    /// as on the read (02 3.17.7; D-1759).
     /// </summary>
-    public async Task<CartQuantityVerdict> JudgeAddAsync(CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, CancellationToken ct)
+    public async Task<CartQuantityVerdict> JudgeAddAsync(
+        CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(candidate);
         ArgumentNullException.ThrowIfNull(others);
-        IReadOnlyList<QuantityInput> inputs = await LoadAsync([candidate, .. others.Where(o => o.VariantId != candidate.VariantId)], null, ct);
+        IReadOnlyList<QuantityInput> inputs = await LoadAsync([candidate, .. others.Where(o => o.VariantId != candidate.VariantId)], ownReservedUnits, ct);
         QuantityInput? found = inputs.FirstOrDefault(i => i.VariantId == candidate.VariantId);
         if (found is null)
         {

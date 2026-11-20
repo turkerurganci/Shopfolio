@@ -83,10 +83,11 @@ internal sealed class OrderPageReader : IOrderPage
         return new DownloadOperationResult(GatedOperationResult.Decided(new OperationVerdict(OperationDecision.Closed, OperationAvailability.Closed)), null, refusal);
     }
 
-    // The reason of a closed download, from the same facts the rule read: an unconfirmed payment first (the button is not there at all), then the used-up right (04 5.16.13).
+    // The reason of a closed download, from the same facts the rule read: an unconfirmed payment first (the button is not there at all), then an item a record closed - its right
+    // may be left, but no unit is open (K-1629; K-1624 (1); D-1758) -, then the used-up right (04 5.16.13).
     private static DownloadRefusal ClosedReason(OperationInput? input) =>
-        input is not { } read || !DownloadRules.IsPaymentConfirmed(read.Order.PaymentStatus)
-            ? DownloadRefusal.PaymentNotConfirmed
+        input is not { } read || !DownloadRules.IsPaymentConfirmed(read.Order.PaymentStatus) ? DownloadRefusal.PaymentNotConfirmed
+            : read.Item is { OpenQuantity: <= 0 } ? DownloadRefusal.ItemClosed
             : DownloadRefusal.AllowanceUsed;
 
     public async Task<OrderPageDetail?> ReadAsync(Guid orderId, CancellationToken ct)

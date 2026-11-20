@@ -207,8 +207,9 @@ internal sealed class CatalogModule : ICatalogModule
     public Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct)
         => _cartQuantities.JudgeAsync(lines, ownReservedUnits, ct);
 
-    public Task<CartQuantityVerdict> JudgeCartAddAsync(CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, CancellationToken ct)
-        => _cartQuantities.JudgeAddAsync(candidate, others, ct);
+    public Task<CartQuantityVerdict> JudgeCartAddAsync(
+        CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct)
+        => _cartQuantities.JudgeAddAsync(candidate, others, ownReservedUnits, ct);
 
     public Task<DigitalFileLocation?> FindDownloadFileAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct)
         => _fileReader.FindAsync(variantId, lastKnownFileId, ct);

@@ -6,6 +6,7 @@ internal static class FileEndpoints
     public static IEndpointRouteBuilder MapFileEndpoints(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapDownloadEndpoint();
+        endpoints.MapImageEndpoint();
         endpoints.MapUploadEndpoints();
         return endpoints;
     }

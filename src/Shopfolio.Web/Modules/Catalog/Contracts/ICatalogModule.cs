@@ -83,6 +83,12 @@ public interface ICatalogModule
     Task<bool> ImageExistsAsync(Guid imageId, CancellationToken ct);
 
     /// <summary>
+    /// The file the image address <c>/gorsel/{image id}</c> serves (05 7.7.1; D-1136, D-1711): the image row's source copy and its media type; null when no row has the id. A plain read;
+    /// it writes nothing. A row is one upload and never changes its content, so the address is as stable as a fingerprint: a changed image is a new row with a new address.
+    /// </summary>
+    Task<ServedImage?> FindServedImageAsync(Guid imageId, CancellationToken ct);
+
+    /// <summary>
     /// The page addresses the site map takes from this module (05 3.7.3; 02 3.30.5, 3.30.6): <c>/urun/{slug}</c> of every published product and
     /// <c>/kategori/{slug}</c> of every category. An archived product and a draft are not listed. A plain read; the site map's cache is Settings'.
     /// </summary>

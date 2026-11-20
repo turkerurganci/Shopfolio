@@ -37,6 +37,18 @@ internal sealed class ImageUploads
     /// <summary>Whether an uploaded image row exists (a plain read): another module that links an image (the brand's logo and site icon) asks before it writes the link.</summary>
     public Task<bool> ExistsAsync(Guid imageId, CancellationToken ct) => _db.Images.AnyAsync(i => i.Id == imageId, ct);
 
+    /// <summary>The source copy an image address serves and its P-22 media type (05 7.7.1; D-1136); null when no row has the id. A plain read.</summary>
+    public async Task<ServedImage?> FindServedAsync(Guid imageId, CancellationToken ct)
+    {
+        Image? row = await _db.Images.AsNoTracking().SingleOrDefaultAsync(i => i.Id == imageId, ct);
+        return row is null ? null : new ServedImage(row.StorageKey, MediaTypeOf(row.ImageFormat));
+    }
+
+    /// <summary>The media type of a stored format: P-22's list is in the format's order (ProductConstants.ImageMediaTypes).</summary>
+    internal static string MediaTypeOf(ImageFormat format) => Enum.IsDefined(format)
+        ? ProductConstants.ImageMediaTypes[(int)format]
+        : throw new ArgumentOutOfRangeException(nameof(format), format, "A format of P-22.");
+
     public async Task<ImageUploadResult> UploadAsync(byte[] content, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(content);

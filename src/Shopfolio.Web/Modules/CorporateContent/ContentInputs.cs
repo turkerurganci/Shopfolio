@@ -23,6 +23,9 @@ internal sealed record FaqItemInput(string? Question, string? Answer);
 /// </summary>
 internal sealed record BranchInput(string? Name, Guid? ProvinceId, string? District, string? AddressLine, string? Phone, string? WorkingHours, string? MapUrl);
 
+/// <summary>The branch's one image and the firm's text, saved with the branch's fields in one write (D-1539); a null image takes the image and its text away.</summary>
+internal sealed record BranchImageInput(Guid? ImageId, string? AltText);
+
 /// <summary>The values of the general page form (02 3.27.9): title, text and the top menu mark. The layout is fixed: there is no block, section or layout field.</summary>
 internal sealed record CustomPageInput(string? Title, string? Text, bool IsShownInMenu);
 

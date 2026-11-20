@@ -118,6 +118,8 @@ public sealed class SitemapSourceTests
 
         public Task<bool> ImageExistsAsync(Guid imageId, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<ServedImage?> FindServedImageAsync(Guid imageId, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<DigitalFileLocation?> FindDownloadFileAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<UploadStartResult> StartUploadAsync(string? fileName, long sizeBytes, CancellationToken ct) => throw new NotSupportedException();

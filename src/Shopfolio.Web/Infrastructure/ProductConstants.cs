@@ -138,6 +138,12 @@ internal static class ProductConstants
     /// <summary>P-22 — the image formats the product accepts.</summary>
     public const string ImageFormats = "JPEG, PNG, WebP";
 
+    /// <summary>
+    /// P-22's media types (D-1319), one per format of <see cref="ImageFormats"/> in its order - the order of the stored <c>ImageFormat</c> too: the <c>accept</c> of an image input
+    /// (a hint to the browser; the server reads the bytes, 05 6.6.1) and the type an image is served with (05 7.7.1). P-22's machine form, not a parameter of its own.
+    /// </summary>
+    public static readonly IReadOnlyList<string> ImageMediaTypes = ["image/jpeg", "image/png", "image/webp"];
+
     /// <summary>P-24 — images of one product, the product's and its variants' together.</summary>
     public const int ImagesPerProductMax = 20;
 

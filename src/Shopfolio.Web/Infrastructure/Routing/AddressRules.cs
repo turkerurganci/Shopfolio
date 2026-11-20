@@ -49,6 +49,9 @@ internal static partial class AddressRules
     /// <summary>The path the static files are served under (07 2.1.2, 3.1.6): <c>/statik/css/base.css</c>.</summary>
     public const string StaticArea = "/statik";
 
+    /// <summary>The path the images are served under (07 2.1.2, 3.1.6; 05 7.7.1): <c>/gorsel/{image id}</c> (D-1136).</summary>
+    public const string ImageArea = "/gorsel";
+
     /// <summary>The order root (07 2.1.3); its two roots are in <see cref="OrderRoutes"/>.</summary>
     public const string OrderArea = "siparis";
 

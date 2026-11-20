@@ -37,8 +37,14 @@ internal sealed record BreadcrumbItem(string Name, string Path);
 /// <summary>One question of the FAQ page and its answer, as the record holds it (the answer may be formatted text).</summary>
 internal sealed record FaqEntry(string Question, string AnswerHtml);
 
-/// <summary>A JSON-LD block ready to be written: the schema.org type it describes and its JSON text (HTML-safe: no <c>&lt;</c>, <c>&gt;</c> or <c>&amp;</c> can be in it).</summary>
-internal sealed record JsonLdBlock(string Type, string Json);
+/// <summary>
+/// A JSON-LD block ready to be written: the schema.org type it describes and its JSON tree. Its text (<see cref="Json"/>) is made only by
+/// <see cref="Security.StructuredData.Serialize"/> - HTML-safe: no <c>&lt;</c>, <c>&gt;</c> or <c>&amp;</c> can be in it (09 15.3 item 1; D-357).
+/// </summary>
+internal sealed record JsonLdBlock(string Type, System.Text.Json.Nodes.JsonObject Root)
+{
+    public string Json => Security.StructuredData.Serialize(Root);
+}
 
 /// <summary>
 /// Everything a page tells the search engines in its head (05 3.7.2): the title, the description, the page's own address, the main image and the logo the

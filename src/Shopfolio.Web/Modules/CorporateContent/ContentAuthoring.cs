@@ -188,7 +188,13 @@ internal sealed class ContentAuthoring
     }
 
     /// <summary>A new branch (02 3.27.7): a draft with the name alone saved; the province must be on the closed list. A branch has no page address.</summary>
-    public async Task<AuthoringResult> CreateBranchAsync(BranchInput input, CancellationToken ct)
+    public Task<AuthoringResult> CreateBranchAsync(BranchInput input, CancellationToken ct) => CreateBranchAsync(input, null, ct);
+
+    /// <summary>
+    /// A new branch with its image (D-1539): the fields and the image are one write. The image's existence is the caller's check (<see cref="ContentGallery.BranchImageAcceptedAsync"/>);
+    /// a null <paramref name="image"/> leaves the branch without one.
+    /// </summary>
+    public async Task<AuthoringResult> CreateBranchAsync(BranchInput input, BranchImageInput? image, CancellationToken ct)
     {
         List<FieldRejection> rejections = await CheckBranchAsync(input, ct);
         if (rejections.Count > 0)
@@ -198,16 +204,22 @@ internal sealed class ContentAuthoring
 
         int order = (await _db.Branches.MaxAsync(b => (int?)b.SortOrder, ct) ?? 0) + 1;
         Branch branch = Branch.Create(ContentInputRules.Text(input.Name)!, order, _time.GetUtcNow()); // non-null: CheckBranchAsync refuses an empty name, refused above
-        ApplyBranch(branch, input);
+        ApplyBranch(branch, input, image);
         _db.Branches.Add(branch);
         return AuthoringResult.Of(AuthoringOutcome.Created, branch.Id, branch.Version);
     }
 
-    /// <summary>The edit of a branch against the version the form carried.</summary>
-    public async Task<AuthoringResult> SaveBranchAsync(Guid id, BranchInput input, int formVersion, CancellationToken ct)
+    /// <summary>The edit of a branch against the version the form carried; the image is left as it is.</summary>
+    public Task<AuthoringResult> SaveBranchAsync(Guid id, BranchInput input, int formVersion, CancellationToken ct) => SaveBranchAsync(id, input, null, formVersion, ct);
+
+    /// <summary>
+    /// The edit of a branch and its image in one write against the version the form carried (D-1539: the version goes up once). A null <paramref name="image"/> leaves the image
+    /// as it is; its existence is the caller's check (<see cref="ContentGallery.BranchImageAcceptedAsync"/>).
+    /// </summary>
+    public async Task<AuthoringResult> SaveBranchAsync(Guid id, BranchInput input, BranchImageInput? image, int formVersion, CancellationToken ct)
     {
         Branch? branch = await _db.Branches.SingleOrDefaultAsync(b => b.Id == id, ct);
-        return await EditAsync(branch, formVersion, await CheckBranchAsync(input, ct), b => ApplyBranch(b, input), ct);
+        return await EditAsync(branch, formVersion, await CheckBranchAsync(input, ct), b => ApplyBranch(b, input, image), ct);
     }
 
     /// <summary>A new general page (02 3.27.9): a draft with its address made from the title; there is no limit on how many.</summary>
@@ -337,8 +349,13 @@ internal sealed class ContentAuthoring
         item.SetAnswer(input.Answer);
     }
 
-    private static void ApplyBranch(Branch branch, BranchInput input)
+    private static void ApplyBranch(Branch branch, BranchInput input, BranchImageInput? image)
     {
+        if (image is not null)
+        {
+            ContentGallery.ApplyBranchImage(branch, image);
+        }
+
         branch.Name = ContentInputRules.Text(input.Name)!; // non-null: called only after CheckBranchAsync found nothing, and it refuses an empty name
         branch.ProvinceId = StoredProvince(input);
         branch.District = ContentInputRules.Text(input.District);

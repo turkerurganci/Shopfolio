@@ -341,3 +341,66 @@ Bu dilimde dış varsayım yok.
 - ⚠ D-1374 UE4'e bırakıldı (yönetici kararı).
 - ⚠ Kırmızı koşusu kalemleri tek derlemede birlikte bozdu (süre); bozmalar birbirine dokunmayan satırlardadır ve her testin kırmızısı kendi kaleminin iddiasıdır.
 - STATUS T604 tablo satırına dokunulmadı.
+
+## Dilim UE2b — panel ayıp başvurusu yazıcıları, UE2 artıkları (para ve güvenlik)
+
+**BÖLÜNDÜ (süre).** Beş kalemin üçü kapandı (D-1617, D-1758, D-1759); D-892 ve D-610 sonraki U dilimine (hedef T604 kalır, satırlarında okuma ve yapılacak; devir notu `devir-UE2b.md`).
+
+### Yapılan İşler
+
+| Kalem | Değişiklik |
+|---|---|
+| D-1617 | `Pages/Panel/OrderDetail.Refunds.cs` iki özet yorumu yalnız bağlanan modeli anar (`ProcessRefundInput`, `RetryCardRefundInput`); kalkan üç model adı kodda geçmez |
+| D-1758 | Karar K-1629 (1): `DownloadRefusal.ItemClosed`; `OrderPageReader.ClosedReason` sırası ödeme onaysız → kalem kapanmış (`OpenQuantity <= 0`) → hak dolmuş; `OrderPageModel.ItemClosedText`; `07` 4.16.3 ve §6.2 `DownloadNotAvailable` (v0.46), `04` 5.16.13 (v0.59) |
+| D-1759 | Karar K-1629 (2): `Carts.AddAsync` (kilitten önce ve kilit altında yeniden) ve `UpdateItemAsync` sepetin kendi ayırmasını (`OwnReservedUnitsAsync`) geçer; `ICatalogModule.JudgeCartAddAsync` / `CartQuantityReader.JudgeAddAsync` yeni `ownReservedUnits` parametresi; form alan kanıt tablosunun 7.1.4.1 satırı yeni çağrı satırına hizalandı (`FormFieldRuleEvidence.cs`) |
+| D-892 | yapılmadı — okuma satırında: UC-140 talebin malını teslim alır ve izi yazar, bedel indirimi UC-133'tür; eksik olan teslim almadan sonraki geri ödemenin hatta düşmesidir (`ListOwedRefundRecordsAsync` talebin teslim almasını borçlu saymaz; `RescindDefectClaimAsync` çağrılmaz) |
+| D-610 | yapılmadı — süre |
+| Kayıtlar | K-1629 (iki madde); `04` v0.59, `07` v0.46; `DEFERRED_BACKLOG.md` D-1617 ✅, D-892 ve D-610 not; `DEFERRED_BACKLOG.d/T604-U.md` D-1758, D-1759 ✅; `STATUS_CHANGELOG.d/T604-U.md` |
+
+### Para ve güvenlik kalemleri (KK2)
+
+Kırmızı: `src` geçici bozuldu (yedekten geri kondu), yeni testler koşuldu.
+
+| Kalem | Test | Kırmızı (geçici bozma) | Yeşil |
+|---|---|---|---|
+| D-1758 | `Files/OrderPageTests.AClosedPaidDigitalItemsStalePost_SaysTheItemClosed_NotThatTheRightIsUsedUp_K1629_D1758` | `ClosedReason` kapanmış kalem dalı devre dışı: "Assert.Contains() Failure: Sub-string not found" (metin hakkın dolduğunu söyler) | ✓ |
+| D-1759 (adet yolu) | `Ordering/OrderConfirmationTests.TheAddAndTheQuantityChange_AfterTheSameCartsUnpaidOrder_CountItsReservationAsSellable_AndAnotherCartsNot_D1759` | `UpdateItemAsync` ve `AddAsync` `null` geçti: "Expected: Updated, Actual: NoStock" | ✓ |
+| D-1759 (ekleme yolu) | aynı test | yalnız `AddAsync` `null` geçti: "Expected: Added, Actual: NoStock" | ✓ |
+
+- **Var olan testler:** değişmedi; yalnız form alan kanıt tablosunun (`FormFieldRuleEvidence.cs`) 7.1.4.1 satırı kodun yeni çağrı satırını alıntılar (tablo kod satırını birebir anar). Sahte `ICatalogModule` (`SitemapSourceTests.cs`) yalnız imza.
+- **Çıkış yolu ve geri alma:** şema ve göç yok; geri alma bu dilimin commit'lerinin `git revert`'üdür. Eski ayırma davranışı `own` yerine `null` geçerek döner.
+- **Güvenlik taraması:** yeni dış bağımlılık, sır, girdi yolu yok. D-1759 başka sepetin ayırmasını satılabilir saymaz (testin son iki satırı); stok sınırı aynen kalır.
+
+### Kabul Kriterleri Kontrolü (UE2b payı)
+
+| Madde | Durum | Kanıt |
+|---|---|---|
+| KK1 — dilimin 5 kalemi kapalı ya da gerekçeli | ✓ | 3 ✅; D-892, D-610 gerekçeyle sonraki U dilimine, hedef T604 — satırlarında not |
+| KK2 — para ve güvenlik kalemleri kırmızı–yeşil; eski testler aynı | ✓ | yukarıdaki tablo; tek değişen eski dosya kanıt tablosunun alıntı satırı |
+| KK5 — kapanan satır `✅ Çözüldü → T604`; sayaç | ✓ | D-1617 yerinde; D-1758, D-1759 parça dosyasında; sayaca dokunulmadı |
+| `09 §25` tek işlev | ✓ | sepetin kendi ayırması tek okuyucudan (`OwnReservedUnitsAsync`) ve tek kuraldan (`StockRules.ReservedAgainst`); indirme sebebi tek yerde (`ClosedReason`) |
+
+### Öz denetim
+
+| Denetim | Sonuç |
+|---|---|
+| D-1617 "yorumlar bağlanan modeli anar" | ✓ — `grep` üç eski adı `src`'de bulmaz |
+| D-1758 "dördüncü sebep karar kaydıyla `07 §4.16.3` ve `04` 5.16.13'e yazılır, okuyucu onu verir, test bayat POST'un metnini sınar" | ✓ — K-1629 (1), iki belge, `ClosedReason`, test |
+| D-1759 "`02 §3.17.7` ve `03` 2.3.1 okunur; kapsıyorsa ekleme ve adet yolu da sepetin kendi ayırmasını geçer ve test eder" | ✓ — K-1629 (2) okuması, iki yol, iki yönlü test (kendi sepet ve başka sepet) |
+| D-892, D-610 | ⚪ gerekçeli — süre; D-892 satırında yapılacak tasarım |
+| Sık FAIL (1) istisna geniş · (2) tarama çağrı biçimi | uygulanmaz — tarama değişmedi |
+| (3) 06 varsayılan / FK | uygulanmaz — şema değişmedi |
+| (4) aynı kuralı anan öteki yerler | ✓ — `07` §6.2 `DownloadNotAvailable` satırı ve 4.16.3 birlikte; `04` 5.16.13; belge tablosu sürümleri; enum özeti "four 422 reasons" |
+| (5) belge kuralı karar kaydısız | ✓ — K-1629 |
+| `dotnet format` değişen `.cs` | ✓ — 12 dosya (`--include`), değişiklik yok |
+
+### Test Sonuçları
+
+- **Unit:** TAM koşusu 8097: 8094 ✓, 3 ✗ (form alan kanıt tablosunun 7.1.4.1 alıntı satırı; düzeltildi) → üç sınıf (`FormFieldRuleClausesTests`, `FormInventoryConsistencyTests`, `FormFieldEnforcementTests`) 61/61 ✓.
+- **Integration:** koşulan sınıflar — `Ordering.OrderConfirmationTests`, `Files.OrderPageTests`, `Ordering.CartQuantityTests`, `Ordering.CartTests`, `Ordering.MainFlowTests`: 89/89 ✓. TAM: CI.
+
+### Notlar
+
+- ⚠ K-1629 (2) okuması: `02 §3.17.7`'nin "müşteri kendi ayırdığı stoğa takılmaz" cümlesi ekleme ve adet yolunu da kapsar sayıldı (belge metni değişmedi).
+- ⚠ D-1758 metni (`ItemClosedText`) yeni bir müşteri cümlesidir; `04` 5.16.13'e birebir yazıldı.
+- ⚠ D-892 bu dilimde kod almadı: borçlu kayıt kuralı (AfterSales), UC-131 başlatma yolu, panel sayacı ve geri ödeme satırı birlikte değişir; para işidir, süreye sığmadı.

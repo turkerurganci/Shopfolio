@@ -29,10 +29,11 @@ internal static partial class NavigationSites
 {
     private static readonly string[] SkippedFolders = ["bin", "obj", "Migrations"];
 
-    /// <summary>The definitions of the redirect helpers are not call sites.</summary>
+    /// <summary>The query that names a handler of the screen a form is posted from (a form that carries it stays on its screen).</summary>
     private const string HandlerMarker = "?handler=";
 
-    private const string RedirectDefinitions ="Infrastructure/Forms/FormResults.cs";
+    /// <summary>The definitions of the redirect helpers are not call sites.</summary>
+    private const string RedirectDefinitions = "Infrastructure/Forms/FormResults.cs";
 
     /// <summary>The constructors of the empty-state view are the definition of the way out, not a screen's own call.</summary>
     private const string EmptyExitDefinitions = "Pages/Components/StateModels.cs";

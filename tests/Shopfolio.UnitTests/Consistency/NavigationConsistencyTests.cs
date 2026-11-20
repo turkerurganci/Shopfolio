@@ -371,13 +371,21 @@ public sealed class NavigationConsistencyTests
     }
 
     [Theory]
-    [InlineData("Pages/Storefront/Checkout.cshtml.cs", "FramePaths.OrderTracking : FramePaths.AccountOrders;", "FramePaths.Cart : FramePaths.Cart;")]
-    [InlineData("Pages/Account/Profile.cshtml.cs", "public string OutcomeScreen() => FramePaths.Account;", "public string OutcomeScreen() => FramePaths.Cart;")]
-    [InlineData("Pages/Panel/Members.cshtml.cs", "public string OutcomeScreen() => _outcomeAddress;", "public string OutcomeScreen() => PanelFramePaths.Orders;")]
-    [InlineData("Pages/Panel/ContentForm.cshtml.cs", "public string OutcomeScreen() => _outcomeScreen;", "public string OutcomeScreen() => FramePaths.Cart;")]
-    public void OutcomeScreen_ChangedToAnotherScreen_IsReported(string file, string from, string to)
+    [InlineData("Pages/Account/Profile.cshtml.cs", "FramePaths.Account", "FramePaths.Cart")]
+    [InlineData("Pages/Panel/Members.cshtml.cs", "_outcomeAddress", "PanelFramePaths.Orders")]
+    [InlineData("Pages/Panel/ContentForm.cshtml.cs", "_outcomeScreen", "FramePaths.Cart")]
+    public void OutcomeScreen_ChangedToAnotherScreen_IsReported(string file, string body, string other)
     {
-        IReadOnlyList<string> problems = Problems(sources: Changed(file, from, to));
+        IReadOnlyList<string> problems = Problems(sources: Changed(file, "public string OutcomeScreen() => " + body + ";", "public string OutcomeScreen() => " + other + ";"));
+
+        Assert.Contains(problems, p => p.StartsWith("OutcomeScreenMissing", StringComparison.Ordinal));
+        Assert.Contains(problems, p => p.StartsWith("OutcomeScreenUndocumented", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void OutcomeScreen_OfTheConfirmation_ChangedToAnotherScreen_IsReported()
+    {
+        IReadOnlyList<string> problems = Problems(sources: Changed("Pages/Storefront/Checkout.cshtml.cs", "FramePaths.OrderTracking : FramePaths.AccountOrders;", "FramePaths.Cart : FramePaths.Cart;"));
 
         Assert.Contains(problems, p => p.StartsWith("OutcomeScreenMissing", StringComparison.Ordinal));
         Assert.Contains(problems, p => p.StartsWith("OutcomeScreenUndocumented", StringComparison.Ordinal));

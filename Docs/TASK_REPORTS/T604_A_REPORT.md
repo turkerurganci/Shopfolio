@@ -98,9 +98,9 @@ Kalemler: D-146, D-1226, D-1285, D-1329 (daraltıldı), D-1614, D-1626, D-1627, 
 
 ### Notlar (A5)
 
-- Unit TAM 8187 test: 8186 geçti, 1 kırmızı (`ForbiddenTestPatternScanTests`: `NoticeParameterSourceScanTests` `InlineData` dizgelerinde `) =>`); düzeltildi, o sınıf ve komşu sınıflar yeniden koşuldu, yeşil. Tam koşu düzeltmeden sonra yinelenmedi.
-- Integration (yalnız ilgili sınıflar): `ContentPanelPageTests` + `PanelContentEditingTests` 43/43, `StateRolePageTests` 2/2. **TAM: CI.**
-- `dotnet format --verify-no-changes` değişen `.cs` dosyalarında temiz.
+- Unit TAM (devam işçisi, düzeltmelerden sonra): Consistency dışı 7518/7518 geçti, `Consistency=true` (Lint adımı) 696/696 geçti; betik testleri (`run-script-tests.sh`) 4 dosya geçti. İlk koşuda `ForbiddenTestPatternScan` `InlineData` dizgesindeki `) =>` yüzünden kırmızıydı (yeni `OutcomeScreen_…` Theory); dizgeler gövdeye indirildi, yeşil.
+- Integration (yalnız ilgili sınıflar): `ContentPanelPageTests` + `PanelContentEditingTests` 43/43, `StateRolePageTests` 2/2. **TAM: CI.** Bu devam: Integration sınıfı koşulmadı (yalnız test araçları ve belge; `src` değişmedi). **TAM: CI.**
+- `dotnet format Shopfolio.slnx --no-restore --include <dalın 56 .cs dosyası>`: iki biçim düzeltmesi uygulandı (boşluk), yeniden koşuda değişiklik yok.
 - Ayırt edicilik (D-1547): `ContentForm` Hakkımızda silme koşulu ve `Brand` görsel kodu geçici bozuldu → iki test KIRMIZI; `ProductConstants` tavanı bozulması modeli değiştirdiği için geçersiz deney (başlatma hatası), geri alındı. A5 taramaları için kırmızı örnekler `ViolationSamples` ve Theory satırlarıdır (taramanın eski hâli yeni sabitleri taşımadığından derlenmez).
 
 ## Para ve güvenlik kalemleri (KK2)
@@ -199,7 +199,7 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 | A5 D-1657 | ✓ | `PanelScreenThatStopsReadingTheSalesGate_IsReported_D1657`, `AKnownPanelGateGap_ThatThePageHasClosed_IsReportedAsStale_D1657`; D-1778 |
 | A5 D-1661 | ✓ | `TheCustomersPage_OffersExactlyTheOpenOperations_InEveryPairOfTheRows_KK2` (2/2); D-1779 |
 | A5 D-1626 | ✓ | `NavigationConsistencyTests`: `FormActionChanged_ToAnotherScreen_IsReported`, `ButtonFormAction_…`, `FormPageTagHelper_…`, `HandlerOfAnotherScreen_ByALiteralPath_…`, `…_ThroughALocal_…`, `ResponseRedirect_WrittenStraightOnTheResponse_…` (adres ikinci bağımsız değişken), `FormsPostingToTheirOwnHandler_AreNoSite_…`; `AnExemptSite_WhoseAddressIsAVariable_…` yeni `FormAction` muafiyetlerinin bağlarını da ister; kalan iki yazım D-1780 |
-| A5 D-1636 | ✓ | `OutcomeScreens_OfTheCode_AreTheOnesTheInventoryPins`, `OutcomeScreen_ChangedToAnotherScreen_IsReported` ×4, `OutcomeScreen_OfANewOperation_WithoutAPin_…`, `TheLineThatGivesAnOutcomeScreenItsValue_Changed_…` ×3; muafiyet gerekçesi `04` 2.7.3.3 |
+| A5 D-1636 | ✓ | `OutcomeScreens_OfTheCode_AreTheOnesTheInventoryPins`, `OutcomeScreen_ChangedToAnotherScreen_IsReported` ×3 + `…OfTheConfirmation_…`, `OutcomeScreen_OfANewOperation_WithoutAPin_…`, `TheLineThatGivesAnOutcomeScreenItsValue_Changed_…` ×3; muafiyet gerekçesi `04` 2.7.3.3 |
 | A5 D-1656 | ✓ | `FormFieldEnforcementTests.EveryCodeCheck_OfAField_IsHeldByALineOfTheTable` (gerçek kod), `CodeCheck_AddedWithoutALineOfTheTable_…` (nameof, dizge, sabit, kod önde: dört yazım), `…_ChangedToAnotherCode_OrAnotherField_…`, `LineOfTheTable_Removed_…`, `CodeCheckExemption_ThatIsNotInTheCode_OrIsHeldByALine_…`; satır → kod yönü mevcut `EnforcementNotInCode` |
 | A5 D-1671 | ✓ | `FormFieldPlaceEnforcementTests.DateRead_ChangedToAConstant_ReportsThePlaceThatReadsIt` ×3, `ArrivalDateRead_OfTheReceivedReturn_…`, `LinesOfTheDateRows_HoldTheConditionThatReadsTheField` |
 | A5 `04` 2.7.3.3 / karar kaydı | ✓ | Belge kuralı değişmedi (D-1636 yalnız muafiyet gerekçesini belgedeki 2.7.3.3 metnine bağladı); `09` metni değişmedi → karar kaydı gerekmedi |

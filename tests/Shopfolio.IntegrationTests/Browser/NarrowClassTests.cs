@@ -16,6 +16,9 @@ public sealed class NarrowClassTests(BrowserHost host) : BrowserTestBase(host)
 
     private const int WideFrom = 1024;
 
+    /// <summary>The order history row's five cells in the order of the boxes read: number, day, items, total, status.</summary>
+    private static readonly int[] Cells = [4, 5, 6, 7, 8];
+
     /// <summary>The account screen's navigation does not stand at the left of the sections in the wide class (04 5.25.18; D-1790, src: T604 U); false once the page is fixed, and the observation then asks for the constant's removal.</summary>
     private const bool KnownNavigationNotAtTheLeft = true;
 
@@ -348,5 +351,139 @@ public sealed class NarrowClassTests(BrowserHost host) : BrowserTestBase(host)
             "ekranın ana bölümünün denetimlerine klavyeyle belge sırasıyla, tek tek ulaşılır ve odaktaki denetim görünür alandadır (WCAG 2.1.1, 2.4.3)",
             $"denetim {expected.Count} ({(byTab ? "Tab tuşu" : "belge sırasıyla odak")}); ulaşılan sıra {string.Join(",", reached)}; görünür alanın dışında {outOfView.Count}" + (outOfView.Count > 0 ? ": " + string.Join(" / ", outOfView.Take(4)) : string.Empty),
             expected.Count >= 6 && inOrder && outOfView.Count == 0);
+    }
+
+    /// <summary>
+    /// The inner navigation of the screens that use the account layout (E-26, E-27; 04 5.26.10 "iç gezinme 5.25.18'in düzeninde"): the narrow and medium classes a row of tabs at the head, before the content; the wide class a vertical list at the left
+    /// of the content. Returns the failed reading and its text for the observation.
+    /// </summary>
+    private static (bool Ok, string Text) NavigationOf(int width, Box nav, List<Box> links, Box content)
+    {
+        bool wide = width >= WideFrom;
+        bool tabs = links.Count >= 2 && links.All(l => l.Whole && l.X >= 0 && l.Right <= width + 1) && Math.Abs(links[1].Y - links[0].Y) <= 4 && links[1].X > links[0].X && nav.Bottom <= content.Y + 1;
+        bool list = links.Count >= 2 && links.All(l => l.Whole) && SameLeft(links) && links.Skip(1).Zip(links).All(pair => pair.First.Y >= pair.Second.Bottom - 1) && nav.Right <= content.X + 1;
+        return (wide ? list : tabs, $"gezinme x {nav.X:0}-{nav.Right:0} y {nav.Y:0}-{nav.Bottom:0}; içerik x {content.X:0} y {content.Y:0}; bağlantı {links.Count}; {(wide ? $"solda dikey liste {list}" : $"başta yatay sekme {tabs}")}");
+    }
+
+    /// <summary>
+    /// The address book (E-26; VAL-B040; D-1471) in each class: the entries are cards, two columns in the wide class and one under the other in the narrow class (04 5.26.10), the inner navigation is the account layout's,
+    /// and each card is whole with its edit link and delete button. The medium class is not named in the row; the observation reads its layout and asks only that the cards are whole and nothing scrolls sideways.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Ways))]
+    public async Task TheAddressBook_LaysOutItsCardsInTheClassOfEachWidth_VALB040_D1471(string engine, ScriptPath path)
+    {
+        string[] names = [.. Host.Seed.ListedAddressNames];
+        foreach (int width in Classes)
+        {
+            await using IBrowserContext context = await AccessibilityScanTests.AuditContextAsync(Host, engine, path, Actor.ListedCustomer, width);
+            WatchedPage page = await OpenAsync(context, "/hesap/adresler");
+            List<List<Box>> boxes = await BoxesAsync(page.Page, ".account-nav", ".account-nav__link", ".account-layout__content", ".address-card", ".address-card__name", ".address-card__actions a, .address-card__actions button");
+            (int over, int past, int clipped) = await ReflowAsync(page.Page);
+            List<Box> cards = boxes[3];
+            string label = Class(width);
+            bool wide = width >= WideFrom;
+            string cardText = string.Join(" | ", cards.Select(c => $"x {c.X:0}-{c.Right:0} y {c.Y:0}-{c.Bottom:0}"));
+            bool sameCount = cards.Count == names.Length && boxes[4].Select(n => n.Text).SequenceEqual(names);
+            bool whole = cards.Count > 0 && cards.All(c => c.Whole && c.X >= 0 && c.Right <= width + 1);
+            bool twoColumns = cards.Count >= 3 && Math.Abs(cards[1].Y - cards[0].Y) <= 4 && cards[1].X > cards[0].Right - 1 && Math.Abs(cards[2].X - cards[0].X) <= 1 && cards[2].Y >= cards[0].Bottom - 1;
+            bool oneColumn = cards.Count >= 2 && SameLeft(cards) && cards.Skip(1).Zip(cards).All(pair => pair.First.Y >= pair.Second.Bottom - 1);
+            bool medium = width is >= 768 and < WideFrom;
+            bool layout = wide ? twoColumns : medium || oneColumn;
+            await ObserveAsync(
+                "VAL-B040", path, engine, page, $"{label} sınıf ({width}): adres defteri kartları",
+                wide ? "kayıtlar iki sütunlu kart ızgarasıdır (ilk iki kart yan yana, üçüncüsü altta ilkiyle aynı hizada); kartlar tam görünür; yatay kaydırma yok" : medium ? "kartlar tam görünür; yatay kaydırma yok (belge orta sınıf için yerleşim söylemez; okunan yerleşim kaydedilir)" : "kayıtlar alt alta durur (aynı hizada, üst üste binmeden); kartlar tam görünür; yatay kaydırma yok",
+                $"kart {cards.Count} (adlar eşit {sameCount}); {cardText}; iki sütun {twoColumns}; alt alta {oneColumn}; yatay taşma {over}, sağı aşan {past}, kırpılan {clipped}",
+                sameCount && whole && layout && over <= 0 && past == 0 && clipped == 0);
+
+            // The inner navigation of the account layout (04 5.26.10 → 5.25.18).
+            (bool navOk, string navText) = NavigationOf(width, boxes[0][0], boxes[1], boxes[2][0]);
+            await ObserveAsync(
+                "VAL-B040", path, engine, page, $"{label} sınıf ({width}): iç gezinme",
+                wide ? "iç gezinme içeriğin solunda dikey listedir (5.25.18'in düzeni)" : "iç gezinme içerikten önce, ekranın başında yatay sekmelerdir (5.25.18'in düzeni)",
+                navText,
+                navOk);
+
+            // Each card keeps its edit link and delete button whole (04 5.26.3).
+            await ObserveAsync(
+                "VAL-B040", path, engine, page, $"{label} sınıf ({width}): kartların düzenle ve sil denetimleri",
+                "her kartın Düzenle bağlantısı ve Sil düğmesi tam görünür",
+                $"denetim {boxes[5].Count} (kart başına iki: {cards.Count * 2}); tam {boxes[5].Count(c => c.Whole)}",
+                boxes[5].Count == cards.Count * 2 && boxes[5].All(c => c.Whole));
+            await page.Page.CloseAsync();
+        }
+
+        Assert.Empty(Failures);
+    }
+
+    /// <summary>
+    /// The order history (E-27; VAL-B041; D-1471) in each class: a table in the wide class; a card per order in the narrow class - the number and the two badges on top, the day, the first item and the total under; the two
+    /// badges are two boxes in every class and never one; the list is not scrolled sideways in any class (04 5.27.11).
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Ways))]
+    public async Task TheOrderHistory_LaysOutItsRowsInTheClassOfEachWidth_VALB041_D1471(string engine, ScriptPath path)
+    {
+        string[] firstItems = [.. Host.Seed.ListedOrderFirstItems];
+        foreach (int width in Classes)
+        {
+            await using IBrowserContext context = await AccessibilityScanTests.AuditContextAsync(Host, engine, path, Actor.ListedCustomer, width);
+            WatchedPage page = await OpenAsync(context, "/hesap/siparisler");
+            List<List<Box>> boxes = await BoxesAsync(page.Page, ".account-nav", ".account-nav__link", ".account-layout__content", ".order-history__row", ".order-history__number", ".order-history__date", ".order-history__items", ".order-history__total", ".order-history__status", ".order-history__row .badge", ".order-history__head");
+            (int over, int past, int clipped) = await ReflowAsync(page.Page);
+            List<Box> rows = boxes[3];
+            string label = Class(width);
+            bool wide = width >= WideFrom;
+            int n = rows.Count;
+            bool counts = n == firstItems.Length && Cells.All(i => boxes[i].Count == n) && boxes[9].Count == n * 2;
+            bool whole = n > 0 && rows.All(r => r.Visible && r.X >= 0 && r.Right <= width + 1) && Cells.All(i => boxes[i].All(b => b.Whole));
+            bool firstItemsShown = n == firstItems.Length && Enumerable.Range(0, n).All(i => boxes[6][i].Text.StartsWith(firstItems[i], StringComparison.Ordinal));
+            bool rowsStacked = n >= 2 && rows.Skip(1).Zip(rows).All(pair => pair.First.Y >= pair.Second.Bottom - 1);
+
+            // The row's own layout: the wide class is a table row (the five cells on one line, in the same columns in every row and the header shown); the others are cards (number and status above, the day, the item and the total under).
+            bool tableRow = Enumerable.Range(0, n).All(i => Cells.Select(k => boxes[k][i]).Zip(Cells.Select(k => boxes[k][i]).Skip(1)).All(pair => Math.Abs(pair.First.Y - pair.Second.Y) <= 4 && pair.Second.X >= pair.First.Right - 1));
+            bool sameColumns = n >= 2 && Cells.All(k => boxes[k].Select(b => b.X).Distinct().All(x => Math.Abs(x - boxes[k][0].X) <= 1));
+            bool header = boxes[10].Count == 1 && boxes[10][0].Whole;
+            bool cardRow = Enumerable.Range(0, n).All(i =>
+            {
+                Box number = boxes[4][i];
+                Box status = boxes[8][i];
+                Box day = boxes[5][i];
+                Box item = boxes[6][i];
+                Box total = boxes[7][i];
+                return number.Bottom <= day.Y + 1 && status.Bottom <= day.Y + 1 && day.Bottom <= item.Y + 1 && item.Bottom <= total.Y + 1 && number.X >= rows[i].X - 1 && total.Right <= rows[i].Right + 1;
+            });
+            bool noHeader = boxes[10].Count == 0 || !boxes[10][0].Visible;
+            bool layout = wide ? tableRow && sameColumns && header && rowsStacked : cardRow && noHeader && rowsStacked;
+            await ObserveAsync(
+                "VAL-B041", path, engine, page, $"{label} sınıf ({width}): sipariş geçmişi satırları",
+                wide ? "satırlar tablodur (beş hücre aynı satırda, sütunlar her satırda aynı hizada, başlık satırı görünür); yatay kaydırma yok" : "her sipariş bir karttır: numara ve durum rozetleri üstte, tarih, ilk kalem ve toplam altta, alt alta; başlık satırı yok; yatay kaydırma yok",
+                $"satır {n} (sayılar ve rozet {boxes[9].Count} eşit {counts}); tam {whole}; ilk kalemler görünür {firstItemsShown}; tablo satırı {tableRow}; aynı sütunlar {sameColumns}; kart satırı {cardRow}; başlık görünür {header}; ilk satır x {rows.FirstOrDefault()?.X:0}-{rows.FirstOrDefault()?.Right:0} y {rows.FirstOrDefault()?.Y:0}-{rows.FirstOrDefault()?.Bottom:0}; yatay taşma {over}, sağı aşan {past}, kırpılan {clipped}",
+                counts && whole && firstItemsShown && layout && over <= 0 && past == 0 && clipped == 0);
+
+            // The two badges of every row are two boxes (the two axes are never one badge; 04 2.5.1): side by side or under each other, never the same place, each with its own text.
+            bool twoBadges = n > 0 && Enumerable.Range(0, n).All(i =>
+            {
+                Box one = boxes[9][i * 2];
+                Box two = boxes[9][(i * 2) + 1];
+                bool apart = two.X >= one.Right - 1 || two.Y >= one.Bottom - 1;
+                return apart && one.Whole && two.Whole && one.Text.Length > 0 && two.Text.Length > 0 && one.Text != two.Text;
+            });
+            await ObserveAsync(
+                "VAL-B041", path, engine, page, $"{label} sınıf ({width}): iki rozet",
+                "her satırda iki ayrı rozet (gönderi ve ödeme) vardır; tek rozete inmez, ayrı kutulardır ve metinleri tamdır",
+                $"rozet {boxes[9].Count} ({n} satır); metinler {string.Join(" / ", boxes[9].Take(6).Select(b => b.Text))}; ayrı kutu {twoBadges}",
+                twoBadges);
+
+            (bool navOk, string navText) = NavigationOf(width, boxes[0][0], boxes[1], boxes[2][0]);
+            await ObserveAsync(
+                "VAL-B041", path, engine, page, $"{label} sınıf ({width}): iç gezinme",
+                wide ? "iç gezinme içeriğin solunda dikey listedir" : "iç gezinme içerikten önce, ekranın başında yatay sekmelerdir",
+                navText,
+                navOk);
+            await page.Page.CloseAsync();
+        }
+
+        Assert.Empty(Failures);
     }
 }

@@ -318,6 +318,16 @@ public sealed class BrowserHost : IAsyncLifetime
             cookies.Add(Secure(CookieNames.Session, Seed.BareCustomerKey));
         }
 
+        if (actor == Actor.ListedCustomer)
+        {
+            cookies.Add(Secure(CookieNames.Session, Seed.ListedCustomerKey));
+        }
+
+        if (actor == Actor.SecondAdmin)
+        {
+            cookies.Add(Secure(CookieNames.AdminSession, Seed.SecondAdminKey));
+        }
+
         if (actor == Actor.Admin)
         {
             cookies.Add(Secure(CookieNames.AdminSession, Seed.AdminKey));
@@ -389,6 +399,12 @@ public enum Actor
 
     /// <summary>A member with no address and no order (<see cref="BrowserSeedData.BareCustomerKey"/>): the actor of the empty states of the member's screens.</summary>
     BareCustomer,
+
+    /// <summary>A member with three address book entries and three orders (<see cref="BrowserSeedData.ListedCustomerKey"/>): the actor of the screens' lists at each width (VAL-B040, VAL-B041).</summary>
+    ListedCustomer,
+
+    /// <summary>A second administrator (<see cref="BrowserSeedData.SecondAdminKey"/>): the other session of two administrators editing one record (VAL-A371).</summary>
+    SecondAdmin,
     Admin,
 }
 

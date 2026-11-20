@@ -23,7 +23,12 @@ internal static class FormFieldPlaceEnforcement
     private const string Inputs = "Modules/CorporateContent/ContentInputs.cs";
     private const string Gate = "Modules/CorporateContent/ContentRecords.cs";
 
-    private const string UploadRefusal = "Image|" + ProductForm + "#RefuseUpload(input.ImageTarget, ErrorCode.InvalidImage, UploadRefusalText(result))";
+    // The pieces of the date checks that read the value: the condition that reads the date and the refusal it gives (D-1671). A piece that is only the refusal passes when the read is changed to a constant, so
+    // the condition (the date is read from the field's own input) is part of the line.
+    private const string MarkDeliveredRead = "if (!DateOnly.TryParseExact(input.DeliveryDate, \"yyyy-MM-dd\", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date)) { return await RefuseAsync(id, DeliveryDateMissingText, string.IsNullOrWhiteSpace(input.DeliveryDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate";
+    private const string CorrectDeliveryRead = "if (!DateOnly.TryParseExact(input.DeliveryDate, \"yyyy-MM-dd\", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date)) { return await RefuseCorrectionAsync( id, DeliveryDateFormId, DeliveryDateMissingText, string.IsNullOrWhiteSpace(input.DeliveryDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate";
+    private const string CorrectArrivalRead = "if (!DateOnly.TryParseExact(input.ArrivalDate, \"yyyy-MM-dd\", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date)) { return await RefuseCorrectionAsync( id, form, ArrivalDateMissingText, string.IsNullOrWhiteSpace(input.ArrivalDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate";
+    private const string UploadRefusal ="Image|" + ProductForm + "#RefuseUpload(input.ImageTarget, ErrorCode.InvalidImage, UploadRefusalText(result))";
     private const string DigitalFileImage = "Image|Pages/Components/UploadComponentModels.cs#sizeBytes > UploadLimits.MaxBytes(UploadSurface.DigitalFile) ? new UploadRefusal(FieldCodes.InvalidImage";
     private const string DigitalFileSize = "P-26|Infrastructure/Files/DigitalFileDelivery.cs#sizeBytes > ProductConstants.DigitalFileMaxBytes";
     private const string Carrier = "Required|" + Shipment + "#(carrier is null) == (other is null)";
@@ -69,12 +74,12 @@ internal static class FormFieldPlaceEnforcement
         // 7.2.7 - 7.2.14 the order detail's operations: the shipment's carrier and name, the dates, the delivery order question, the notice, the corrections.
         ["7.2.7.1|Panel.MarkShippedInput.Carrier"] = [ShipmentWiring, Carrier],
         ["7.2.7.1|Panel.MarkShippedInput.OtherCarrierName"] = [ShipmentWiring, Carrier],
-        ["7.2.8.1|Panel.MarkDeliveredInput.DeliveryDate"] = [$"Required|{Detail}#string.IsNullOrWhiteSpace(input.DeliveryDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate", $"Date|{Detail}#string.IsNullOrWhiteSpace(input.DeliveryDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate"],
-        ["7.2.8.1|Panel.CorrectDeliveryDateInput.DeliveryDate"] = [$"Required|{Corrections}#string.IsNullOrWhiteSpace(input.DeliveryDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate", $"Date|{Corrections}#string.IsNullOrWhiteSpace(input.DeliveryDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate"],
+        ["7.2.8.1|Panel.MarkDeliveredInput.DeliveryDate"] = ["Required|" + Detail + "#" + MarkDeliveredRead, "Date|" + Detail + "#" + MarkDeliveredRead],
+        ["7.2.8.1|Panel.CorrectDeliveryDateInput.DeliveryDate"] = ["Required|" + Corrections + "#" + CorrectDeliveryRead, "Date|" + Corrections + "#" + CorrectDeliveryRead],
         ["7.2.8.2|Panel.MarkDeliveredInput.IsDeliveredBeforeDeclaration"] = ["Required|Modules/Ordering/PanelOrderSteps.cs#if (sameDay.Count > 0 && deliveredBeforeDeclaration is null) { return new PanelStepResult(TransitionRefusal.InvalidInput) { AsksDeliveryOrder = true,"],
         ["7.2.8.2|Panel.CorrectDeliveryDateInput.IsDeliveredBeforeDeclaration"] = ["Required|Modules/Ordering/OrderCorrections.Interventions.cs#if (sameDay.Count > 0 && request.IsDeliveredBeforeDeclaration is null) { return new OrderCorrectionResult(TransitionRefusal.InvalidInput, [], null) { AsksDeliveryOrder = true };"],
         ["7.2.8.3|Panel.ReceiveReturnInput.ArrivalDate"] = [$"Required|{Item}#if (!TryReadDate(input.ArrivalDate, out DateOnly arrival)) {{ return await RefuseAsync(id, ArrivalDateMissingText, string.IsNullOrWhiteSpace(input.ArrivalDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate, ct);"],
-        ["7.2.8.3|Panel.CorrectArrivalDateInput.ArrivalDate"] = [$"Required|{Corrections}#string.IsNullOrWhiteSpace(input.ArrivalDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate"],
+        ["7.2.8.3|Panel.CorrectArrivalDateInput.ArrivalDate"] = ["Required|" + Corrections + "#" + CorrectArrivalRead],
         ["7.2.10.1|Panel.RecordWithdrawalInput.DeclarationDate"] = [NoticeDate],
         ["7.2.10.1|Panel.RecordLateDeliveryTerminationInput.DeclarationDate"] = [TerminationDate],
         ["7.2.10.2|Panel.RecordWithdrawalInput.Items"] = [$"Required|{Steps}#if (items.Count == 0 || items.Any(i => i.OrderItemId == Guid.Empty)) {{ return PanelItemStepResult.Refused(PanelItemObstacle.ItemNotSelected);"],

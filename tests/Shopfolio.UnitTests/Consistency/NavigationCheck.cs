@@ -54,10 +54,12 @@ internal static class NavigationCheck
                     case NavigationEvidenceKind.Link:
                     case NavigationEvidenceKind.Redirect:
                     case NavigationEvidenceKind.EmptyExit:
+                    case NavigationEvidenceKind.FormAction:
                         NavigationSiteKind kind = evidence.Kind switch
                         {
                             NavigationEvidenceKind.Link => NavigationSiteKind.Link,
                             NavigationEvidenceKind.Redirect => NavigationSiteKind.Redirect,
+                            NavigationEvidenceKind.FormAction => NavigationSiteKind.FormAction,
                             _ => NavigationSiteKind.EmptyExit,
                         };
                         claimed.Add((evidence.File, kind, evidence.Text));
@@ -130,6 +132,8 @@ internal static class NavigationCheck
             }
         }
 
+        problems.AddRange(OutcomeScreenProblems(sources));
+
         foreach ((string file, NavigationSiteKind kind, string key) in scannedSet.Order())
         {
             if (!claimed.Contains((file, kind, key)) && !exempt.Contains((file, kind, key)))
@@ -141,7 +145,41 @@ internal static class NavigationCheck
         return problems;
     }
 
-    /// <summary>The problem of a text evidence - the text is not in its file or stands another number of times - or null.</summary>
+    /// <summary>
+    /// The screens an uncertain outcome goes to (04 2.7.3.3; D-1636): every <c>OutcomeScreen()</c> body of the code is pinned in the inventory and every pinned one is in the code - a new implementer, a changed
+    /// target or a deleted method each break it - and the lines that give the body its value are pinned as text.
+    /// </summary>
+    private static IEnumerable<string> OutcomeScreenProblems(IReadOnlyDictionary<string, string> sources)
+    {
+        List<(string File, string Body)> found = [.. NavigationSites.OutcomeScreens(sources)];
+        foreach (NavigationOutcomeScreen pinned in NavigationInventory.OutcomeScreens)
+        {
+            if (!found.Contains((pinned.File, pinned.Body)))
+            {
+                yield return $"OutcomeScreenMissing: {pinned.File} has no 'OutcomeScreen() => {pinned.Body}'.";
+            }
+
+            foreach (NavigationEvidence bound in pinned.BoundTo)
+            {
+                if (TextProblem(sources, bound) is { } boundProblem)
+                {
+                    yield return $"EvidenceMissing:OutcomeScreen({pinned.File}): {boundProblem}";
+                }
+            }
+        }
+
+        foreach ((string file, string body) in found.Where(f => !NavigationInventory.OutcomeScreens.Any(p => p.File == f.File && p.Body == f.Body)))
+        {
+            yield return $"OutcomeScreenUndocumented: {file} names 'OutcomeScreen() => {body}', which the inventory does not pin (04 2.7.3.3).";
+        }
+
+        if (found.Count != NavigationInventory.OutcomeScreens.Count)
+        {
+            yield return $"OutcomeScreenCountDiffers: the code has {found.Count} OutcomeScreen() bodies, the inventory {NavigationInventory.OutcomeScreens.Count}.";
+        }
+    }
+
+    /// <summary>The problem of a text evidence -the text is not in its file or stands another number of times - or null.</summary>
     private static string? TextProblem(IReadOnlyDictionary<string, string> sources, NavigationEvidence evidence)
     {
         if (!sources.TryGetValue(evidence.File, out string? text) || !text.Contains(evidence.Text, StringComparison.Ordinal))

@@ -99,6 +99,10 @@ check 1 "sh plain assignment echo"   "scripts/g6.sh"       'DB_PASSWORD=$(echo a
 check 1 "yaml cat expansion"         "app/g7.yaml"         'password: $(cat /run/secrets/db_pw)'
 check 1 "env cat expansion"          "app/g8.env"          'DB_PASSWORD=$(cat /run/secrets/db_pw)'
 check 1 "cs shell-looking value"     "src/g9.cs"           'var Password = "$(cat /run/secrets/db_pw)";'
+# Each accepted form has its real-secret counterpart next to it (D-1120): the variable with text after it, the braced variable with text after it, the absolute path under a key that is not _FILE.
+check 1 "sh variable + text"         "scripts/g18.sh"      '  -e "'"$K_AWS"'=$ADMIN_CREDENTIAL:'"$V_LIVE"'" \'
+check 1 "sh braced variable + text"  "scripts/g19.sh"      '  -e "'"$K_AWS"'=${ADMIN_CREDENTIAL}'"$V_LIVE"'" \'
+check 1 "sh absolute path, not _FILE" "scripts/g20.sh"     '  -e '"$K_API"'=/'"$V_LIVE"' \'
 check 1 "cs $@ prefix"               "src/v3.cs"           'var Password = $@"abc12345xyz";'
 check 1 "cs @$ prefix"               "src/v4.cs"           'var Password = @$"abc12345xyz";'
 check 1 "cs raw literal"             "src/v5.cs"           'var Password = """abc12345xyz""";'

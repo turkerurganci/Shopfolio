@@ -12,6 +12,9 @@ internal enum NavigationEvidenceKind
     /// <summary>The way out of an empty list: the file and the expression of the address a call gives the shared empty-state component (<c>EmptyStates.WithExit</c>, <c>new EmptyState</c>); the component's own link is no evidence.</summary>
     EmptyExit,
 
+    /// <summary>The target of a form: the file and the expression of its <c>action</c>, <c>formaction</c> or <c>asp-page</c> (D-1626).</summary>
+    FormAction,
+
     /// <summary>A text the file holds (a form's action, a constant of the frame).</summary>
     Text,
 
@@ -31,6 +34,9 @@ internal sealed record NavigationExemption(NavigationSiteKind Kind, string File,
     /// <summary>The lines of the code that give the exempt address its target; an exempt address that is a variable must have them (T546 correction 5).</summary>
     public IReadOnlyList<NavigationEvidence> Binds => BoundTo ?? [];
 }
+
+/// <summary>One <c>OutcomeScreen()</c> of the code: the screen an operation whose outcome is uncertain sends the user to (04 2.7.3.3), as the method's file and body (whitespace collapsed), with the lines that give the body its value.</summary>
+internal sealed record NavigationOutcomeScreen(string File, string Body, string Reason, IReadOnlyList<NavigationEvidence> BoundTo);
 
 /// <summary>
 /// The code side of the navigation map (T546; 04 3; 09 21.4 item 1): each row of the tables is claimed by the places of the code that carry it - the link of a view, the redirect of a handler, the route of a page
@@ -60,7 +66,7 @@ internal static class NavigationInventory
         // 04 3.1: the storefront's frame.
         Row("3.1.1", "~Duyuru şeridi", "~Firmanın girdiği adres", L("Shared/_StorefrontLayout.cshtml", "@announcement.LinkUrl")),
         Row("3.1.2", "~Üst bölüm — logo", "E-01", L(Header, "/")),
-        Row("3.1.3", "~Üst bölüm — arama", "E-03", X(Header, "action=\"@search.Path\"")),
+        Row("3.1.3", "~Üst bölüm — arama", "E-03", X(Header, "action=\"@search.Path\""), F(Header, "@search.Path")),
         Row("3.1.4", "~Üst bölüm — hesap alanı (oturum yok)", "E-22", L(Header, "@Model.Account.SignInPath")),
         Row("3.1.5", "~Üst bölüm — hesap alanı (oturum yok)", "E-15", L(Header, "@Model.Account.OrderTrackingPath")),
         Row("3.1.6", "~Üst bölüm — hesap alanı (üye)", "E-25", L(Header, "@Model.Account.AccountPath")),
@@ -819,8 +825,45 @@ internal static class NavigationInventory
         X("Frame/FramedErrorPageRenderer.cs", "storefront ? \"/\" : PanelFramePaths.Home,"),
     ];
 
+    /// <summary>The lines that give the screens of the uncertain outcomes their values (D-1636): the content form's and the member search's fields.</summary>
+    private static readonly NavigationEvidence[] OutcomeScreenFields =
+    [
+        X("Panel/ContentForm.cshtml.cs", "_outcomeScreen = PanelFramePaths.CorporateContent;", 2),
+        X("Panel/Members.cshtml.cs", "private string _outcomeAddress = PanelFramePaths.Members;"),
+        X("Panel/Members.cshtml.cs", "_outcomeAddress = ListAddress.Of(PanelFramePaths.Members, new CustomerQuery { Search = searched }, PageNumber.First);"),
+        X("!Infrastructure/Errors/UnexpectedErrorLayer.cs", "string? chosen = mark?.Target?.OutcomeScreen();"),
+        X("!Infrastructure/Errors/UnexpectedErrorLayer.cs", "string own = context.Request.Path.ToUriComponent();"),
+    ];
+
+    /// <summary>
+    /// The screens an uncertain outcome goes to (04 2.7.3.3; D-1636): the recovery is no row of the map - it is the error-recovery way the document names for the operations that carry an
+    /// <c>OutcomeScreen()</c> - so each method is pinned here, one by one, instead of being passed over by the exemption of the redirect that follows it.
+    /// </summary>
+    public static IReadOnlyList<NavigationOutcomeScreen> OutcomeScreens { get; } =
+    [
+        new(Path("Account/Profile.cshtml.cs"), "FramePaths.Account", "the deletion of the account shows the account or, deleted, the sign-in (04 2.7.3.3, 5.25.17)", []),
+        new(Path("Panel/ContentForm.cshtml.cs"), "_outcomeScreen", "the content form returns to the list that shows what happened (04 2.7.3.3, 9.16.13)", [OutcomeScreenFields[0]]),
+        new(Path("Panel/Members.cshtml.cs"), "_outcomeAddress", "the member search returns to the search of the e-mail the form carried (04 2.7.3.3, 9.12.14)", [OutcomeScreenFields[1], OutcomeScreenFields[2]]),
+        new(Path("Storefront/Checkout.cshtml.cs"), "StorefrontFrameBuilder.CartOwnerOf(HttpContext)?.CustomerId is null ? FramePaths.OrderTracking : FramePaths.AccountOrders", "the order confirmation goes to the member's orders or the guest's order tracking (04 2.7.3.3, 5.13.31)", []),
+    ];
+
     private static readonly Dictionary<(string File, NavigationSiteKind Kind, string Key), NavigationEvidence[]> Bindings = new()
     {
+        [(Path("!Infrastructure/Errors/UnexpectedErrorSetup.cs"), NavigationSiteKind.Redirect, "resolution.Target ?? \"/\"")] = OutcomeScreenFields,
+        [(Path("!Infrastructure/Errors/UnexpectedErrorLayer.cs"), NavigationSiteKind.Redirect, "resolution.Target ?? \"/\"")] = OutcomeScreenFields,
+        [(Path("Category.cshtml"), NavigationSiteKind.FormAction, "@filter.ActionPath")] = CategoryListAddress,
+        [(Path("Panel/AuditTrail.cshtml"), NavigationSiteKind.FormAction, "@Model.ListRoot")] = [X("Panel/AuditTrail.cshtml.cs", "public string ListRoot => PanelFramePaths.OperationTrail;")],
+        [(Path("Panel/Orders.cshtml"), NavigationSiteKind.FormAction, "@Model.ListRoot")] = [X("Panel/Orders.cshtml.cs", "public string ListRoot => PanelFramePaths.Orders;")],
+        [(Path("Panel/Requests.cshtml"), NavigationSiteKind.FormAction, "@Model.ListRoot")] = [X("Panel/Requests.cshtml.cs", "public string ListRoot => PanelFramePaths.Requests;")],
+        [(Path("Panel/Products.cshtml"), NavigationSiteKind.FormAction, "@Model.ListRoot")] = [X("Panel/Products.cshtml.cs", "public string ListRoot => PanelFramePaths.Products;")],
+        [(Path("Shared/_ListSearch.cshtml"), NavigationSiteKind.FormAction, "@Model.ListRoot")] =
+        [
+            X("Panel/Members.cshtml.cs", "new(ListKind.PanelMembers, PanelFramePaths.Members, SearchLabel, null)"),
+            X("Search.cshtml.cs", "new(ListKind.StorefrontProducts, Frame.FramePaths.Search, SearchPage.SearchLabel, query.Search)"),
+        ],
+        [(Path("Shared/_ProductFilter.cshtml"), NavigationSiteKind.FormAction, "@Model.ActionPath")] = [X("Search.cshtml.cs", "new ProductFilterForm(Frame.FramePaths.Search, query.Search, ", 2)],
+        [(Path("Product.cshtml"), NavigationSiteKind.FormAction, "@view.Path")] = [X("Product.cshtml.cs", "string path = ProductViews.PathOf(slug);"), X("Storefront/ProductView.cs", "public static string PathOf(string slug) => ProductCards.ProductPath(slug);")],
+        [(Path("Panel/_ProductVariantEntry.cshtml"), NavigationSiteKind.FormAction, "@Model.UploadAction")] = [X("Panel/_ProductFormBody.cshtml", "string uploadAction = Model.FormPath + \"?handler=UploadImage\";"), X("Panel/_ProductFormBody.cshtml", "isNew, false, uploadAction)"), X("Panel/_ProductFormBody.cshtml", "true, true, uploadAction)")],
         [(Path("Shared/_Pager.cshtml"), NavigationSiteKind.Link, "@Model.PrevPagePath")] = PagerAddress,
         [(Path("Shared/_Pager.cshtml"), NavigationSiteKind.Link, "@item.Path")] = PagerAddress,
         [(Path("Shared/_Pager.cshtml"), NavigationSiteKind.Link, "@Model.NextPath")] = PagerAddress,
@@ -866,7 +909,20 @@ internal static class NavigationInventory
         Stay("Storefront/PasswordReset.cshtml", "@FramePaths.PasswordReset", "E-23's own steps"),
         Stay("Shared/_UnexpectedError.cshtml", "@Model.HomePath", "the error state's exits are no screen transition (04 2.7.3.2)"),
         Stay("Shared/_UnexpectedError.cshtml", "@Model.RetryPath", "the error state's exits are no screen transition (04 2.7.3.2)"),
-        Stay("!Infrastructure/Errors/UnexpectedErrorSetup.cs", "resolution.Target ?? \"/\"", "the recovery of an unexpected error returns to the screen it came from (04 2.7.3)", NavigationSiteKind.Redirect),
+        Stay("!Infrastructure/Errors/UnexpectedErrorSetup.cs", "resolution.Target ?? \"/\"", "the recovery of an uncertain outcome goes to the result screen of its operation (04 2.7.3.3: the error-recovery way, no row of the map); each OutcomeScreen() is pinned in OutcomeScreens", NavigationSiteKind.Redirect),
+        Stay("!Infrastructure/Errors/UnexpectedErrorLayer.cs", "resolution.Target ?? \"/\"", "the same recovery written straight on the response (04 2.7.3.3); each OutcomeScreen() is pinned in OutcomeScreens", NavigationSiteKind.Redirect),
+
+        // The forms that leave their screen's own handler (D-1626): the GET filter and search forms of the lists are the list's own address, the upload buttons post to the screen's own handler.
+        Stay("Category.cshtml", "@filter.ActionPath", "the filter form is the category list's own (04 2.13.2)", NavigationSiteKind.FormAction),
+        Stay("Panel/AuditTrail.cshtml", "@Model.ListRoot", "the filter form is the list's own (04 2.13.2)", NavigationSiteKind.FormAction),
+        Stay("Panel/Orders.cshtml", "@Model.ListRoot", "the filter form is the list's own (04 2.13.2)", NavigationSiteKind.FormAction),
+        Stay("Panel/Requests.cshtml", "@Model.ListRoot", "the filter form is the list's own (04 2.13.2)", NavigationSiteKind.FormAction),
+        Stay("Panel/Products.cshtml", "@Model.ListRoot", "the search form is the list's own (04 2.13.2)", NavigationSiteKind.FormAction),
+        Stay("Panel/SalesSummary.cshtml", "@PanelFramePaths.SalesSummary", "the period form is E-51's own screen (a GET form of the same address)", NavigationSiteKind.FormAction),
+        Stay("Shared/_ListSearch.cshtml", "@Model.ListRoot", "the search form is the list's own (04 2.13.2)", NavigationSiteKind.FormAction),
+        Stay("Shared/_ProductFilter.cshtml", "@Model.ActionPath", "the filter form is the search result's own (04 2.13.2)", NavigationSiteKind.FormAction),
+        Stay("Product.cshtml", "@view.Path", "the option form is the product page's own (a GET form of the same address)", NavigationSiteKind.FormAction),
+        Stay("Panel/_ProductVariantEntry.cshtml", "@Model.UploadAction", "the upload button posts to the product form's own upload handler", NavigationSiteKind.FormAction),
 
         // The shared empty-state components draw the way out their callers give; each call is a site of its own (EmptyExit): the ones that go to another screen are rows (3.3.12, 3.4.10, 3.4.26), the
         // ones below stay on their list - removing the filter or the search, or opening the first record on the screen's own form (04 2.7.1.2, 2.13.2).
@@ -919,6 +975,8 @@ internal static class NavigationInventory
     private static NavigationEvidence R(string file, string key) => new(NavigationEvidenceKind.Redirect, Path(file), key);
 
     private static NavigationEvidence E(string file, string key) => new(NavigationEvidenceKind.EmptyExit, Path(file), key);
+
+    private static NavigationEvidence F(string file, string key) => new(NavigationEvidenceKind.FormAction, Path(file), key);
 
     private static NavigationEvidence X(string file, string text, int occurrences = 1) => new(NavigationEvidenceKind.Text, Path(file), text, occurrences);
 

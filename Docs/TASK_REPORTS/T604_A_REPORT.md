@@ -1,6 +1,6 @@
 # T604 (A) — F5 kapısından kalan test aracı kalemleri
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor (dilimler A1, A2, A3, A7 bitti; A5 kısmi (D-146, D-1226, D-1285, D-1329, D-1614, D-1627, D-1657, D-1661 bitti; D-1626, D-1636, D-1656, D-1671 sürüyor)) | **Tarih:** 2026-11-18
+**Faz:** F5 | **Durum:** ⏳ Devam ediyor (dilimler A1, A2, A3, A7 bitti; A5 bitti (D-1329 T604 U'ya daraltıldı)) | **Tarih:** 2026-11-18
 
 ---
 
@@ -79,9 +79,9 @@ Kalemler: D-1546, D-1547, D-1617.
 - D-1617: iki yorum `src/…/OrderDetail.Refunds.cs` içinde; A parçası `src` değiştirmez, U parçası aynı dosyayı değiştiriyor → T604 U'ya daraltıldı (satırda gerekçe).
 - D-1547: yedi davranışın hepsi kalıcı testte (`ContentPanelPageTests` 12 yeni test, `PanelContentEditingTests.ABranchImage_…_D1547`); önceki işçinin derlenmemiş WIP işi derlendi, `InitializeAsync` `images CASCADE` markalama satırını da siliyordu (`brandings` kayıtsız kaldı, açılış düştü) — `UPDATE brandings` + `DELETE FROM images` ile düzeltildi. Ayırt edicilik: Hakkımızda silme kuralı ve marka görsel metni bozulunca iki test KIRMIZI. D-1768: `09` v0.37 §18.2 madde 2 (a) yan cümlesi + K-1626 (`PRODUCT_DISCOVERY_STATUS.md`).
 
-## Dilim A5 — kaynak taraması ve mimari testler (kısmi)
+## Dilim A5 — kaynak taraması ve mimari testler
 
-Kalemler: D-146, D-1226, D-1285, D-1329, D-1614, D-1627, D-1657, D-1661 bitti; D-1626, D-1636, D-1656, D-1671 sürüyor (süre bütçesiyle bölündü; devir notu `helper-state/shopfolio/impl/T604/devir-A3b.md`). `src` değişmedi.
+Kalemler: D-146, D-1226, D-1285, D-1329 (daraltıldı), D-1614, D-1626, D-1627, D-1636, D-1656, D-1657, D-1661, D-1671. `src` değişmedi.
 
 - D-146: `NoticeParameterSourceScan` üç tırnaksız okuma yolunu bulur (işleyici parametresi `notice`, `SupportsGet`/`FromQuery` ile bağlı `Notice` özelliği, yazıcı dışında `NoticeParameter.ParameterName` ile değer okuma; `ContainsKey` varlık sorusu muaf — `Product.cshtml.cs` gerçek kullanımı). Örnek `ViolationSamples/Notices/NoticeUnquotedReads.cs`.
 - D-1226: `ControlSourceScanTests.TypedLimits` `min`/`max` sayı niteliklerini de bulur; yalnız `min="1"` ve `<progress max="100">` tam biçimiyle muaf. Gezinme (2) maddesi koşullu ileri nottur (başka olay tarihi yok).
@@ -91,6 +91,10 @@ Kalemler: D-146, D-1226, D-1285, D-1329, D-1614, D-1627, D-1657, D-1661 bitti; D
 - D-1627: `LinkKeySourceScan.MethodHeader` atomik gruplarla geri izlemesiz; uzun metin testi.
 - D-1657: `StateRoleCheck.Gates` ters yön (`GateReadMissing`); E-45 ve E-46 sayfaları kapıyı okumuyor → bilinen boşluk `PanelGateReadGaps` (iki yönlü) ve yeni D-1778 (`src`, T604 U).
 - D-1661: müşteri durum x rol testi işlem başına "hiç açılmadı" sayar; bilinen üç işlem `NeverOpenForTheCustomer` listesinde (iki yönlü): `CancelDigitalItem` (D-1197) ve yeni D-1779 (tohum eksiği: `WithdrawDigitalItem`, `ReopenDefectClaimByCustomer`).
+- D-1626: `NavigationSites` form hedeflerini (`<form action>`, `formaction`, `asp-page`) ve `FormResults.WriteSeeOther`'ın adresini (ikinci bağımsız değişken) site sayar (yeni `FormAction` site ve kanıt türü). Kendi işleyicisine gidenler (`?handler=`, ya da aynı dosyadaki yerelin tanımı taşıyorsa) site değil; düz yol öneki (`/baska?handler=`) site kalır. Listelerin GET formları ve yükleme düğmeleri muafiyette (adres bağlarıyla); başlık araması 3.1.3'ün `F` kanıtı. Kalan iki yazım (C# dizgesindeki `<a href>`, `wwwroot/js` `location.assign`) kalemin "Yapılacak" maddesinde yoktu → D-1780.
+- D-1636: muafiyet gerekçesi `04` 2.7.3.3'e dayandı (hata kurtarma yolu, harita dışı) ve `NavigationInventory.OutcomeScreens` her `OutcomeScreen()` gövdesini (4) sabitler; kod ile envanter iki yönlü eşleşir, hedefi veren alan satırları metin kanıtı ve `BoundTo` ile iki yönlendirmeye bağlıdır.
+- D-1656: `FormFieldCodeCalls` alan adı ile hata kodunu aynı ifadede taşıyan çağrıları kaynaktan tarar; tabloda tutulmayan çağrı `CodeCheckNotInTable`. Başlangıçta 38 çağrı tabloda yoktu: 16 çağrı için 17 satır `CodeCheckLines`'a eklendi, 22 çağrı `FormFieldCodeInventory`'de gerekçeli muaf (komut satırı yöneticisi 6, modülün retini gösteren sayfa 8, isteğe bağlı satırın koşullu zorunluluğu 4, sözcükle kapalı liste 2, okuyucu 1, `04` 7.2.21.5'in 7.3.2.9 adı geçmeyen yüzde satırı 1).
+- D-1671: işlem satırı parçaları tarihi okuyan koşulu da tutar (7.2.8.1 iki yer, 7.2.8.3 düzeltme yolu, 7.2.12.1); okuma sabit tarihe bağlanınca yer raporlanır.
 
 ### Notlar (A5)
 
@@ -129,7 +133,11 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 | A2: D-1289 `VAL-A306`, `VAL-A308` | ilgili testler | değişinim yapılmadı (⚠ aşağıda) |
 | A3: D-1005 (istisna, `ErrorCode`, anonim üye, değişkende şablon) | `LogTemplateSourceScanTests` ve `RejectionLineSourceScanTests` yeni 27 örnek/sabit-satır testi | tarama değişikliği geri alındı (`git checkout` üç tarama dosyası) → 27 test KIRMIZI (yalnız yeni olumlu örnekler; olumsuz örnekler yeşil kaldı), değişiklik geri uygulandı → 153/153 YEŞİL; çıkış yolu: tarama dosyalarının önceki hâli, geri alma: PR geri alınır |
 | A3: D-1020 (sabit adlı şablon, şablon yerinde istisna) | `…_OnTheUntypedExceptionSample_…`, `ScanTemplates_AnExceptionNotTypedInTheFile_IsReported` | aynı geri alma → KIRMIZI; var olan `ExceptionArguments` örnek testi (5 satır) değişmeden geçer |
-| A3: D-1120 (`.sh` dar istisna) | `test-pre-commit.sh` `check 0` sekiz örnek (g10–g17), `check 1` dokuz karşı örnek (g1–g9) | eski bekçiyle sekiz `check 0` KIRMIZI (232/240); istisnanın sağ-taraf bağı (`$` çapası) kaldırılınca `sh expansion: cat + text` KIRMIZI (239/240); yeni bekçi 240/240 |
+| A3: D-1120 (`.sh` dar istisna) | `test-pre-commit.sh` `check 0` sekiz örnek (g10–g17), `check 1` on iki karşı örnek (g1–g9, g18–g20; her kabul biçiminin yanında gerçek sır biçimi: `$(cat "$D/x")` ↔ `$(cat "$D/x")` + metin (g2), `$AD` ↔ `$AD:` + değer (g18), `${AD}` ↔ `${AD}` + değer (g19), `_FILE` + mutlak yol ↔ `_FILE` olmayan anahtar + mutlak yol (g20) ve göreli yol/dizge (g4, g5), `$(cat x)` ↔ `$(echo değer)` (g1, g6), `.sh` dışı dosyada aynı açılım (g7–g9)) | eski bekçiyle sekiz `check 0` KIRMIZI (232/240); istisnanın sağ-taraf bağı (`$` çapası) kaldırılınca `sh expansion: cat + text` KIRMIZI (239/240); yeni bekçi 240/240 |
+| A5: D-1626 | gerçek dosyada: `Orders.cshtml` `action` başka yola, `Brand.cshtml` `formaction` başka yola, `Profile.cshtml` `?handler=` önüne düz yol, `UnexpectedErrorLayer` `WriteSeeOther` adresi değişti | her biri `UndocumentedTransition` (kopya kaynakla; dosyalar değişmedi) |
+| A5: D-1636 | `Checkout`, `Profile`, `Members`, `ContentForm` `OutcomeScreen()` hedefi değişti; yeni `OutcomeScreen()`; `_outcomeScreen`/`_outcomeAddress`/`own` satırı değişti | `OutcomeScreenMissing` + `OutcomeScreenUndocumented`, `OutcomeScreenCountDiffers`, `EvidenceMissing:Exemption`/`:OutcomeScreen` (T546 doğrulamasının elle deneyi: eskiden hepsi geçiyordu) |
+| A5: D-1656 | `FirmSettings`'e tabloda olmayan alan+kod, `ProductSaves`'e dizge alanlı kod, kupon bitiş tarihi kodu değişti, tablo satırı çıkarıldı | `CodeCheckNotInTable` her birinde; muafiyet ölü/tabloda tutulu → `DeadExemption`/`ExemptAndHeld` |
+| A5: D-1671 | üç tarih okuması (`MarkDelivered`, iki düzeltme) ve alınan iadenin okuması sabit tarihe bağlandı | yalnız kendi yeri raporlandı (üç kırılma Theory'si tam bir yer bekler; iade okuması yer + 7.2.12.1) |
 | A3: D-1130 (bekçinin kendi test dosyası) | her anahtar sözcüklü satırın tek başına bekçiden geçişi (geçici betik) | eski dosya: yedi satır takıldı (65, 67, 72, 73, 74, 75, 78) → yeni dosya: sıfır |
 
 ## Öz denetim tablosu (bitiş kapısı 2)
@@ -190,7 +198,11 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 | A5 D-1627 | ✓ | `Scan_OfALongTextOfOpenParenthesesAndWhereWords_FinishesWithoutATimeout_D1627`; sınıf 16/16 + yeni |
 | A5 D-1657 | ✓ | `PanelScreenThatStopsReadingTheSalesGate_IsReported_D1657`, `AKnownPanelGateGap_ThatThePageHasClosed_IsReportedAsStale_D1657`; D-1778 |
 | A5 D-1661 | ✓ | `TheCustomersPage_OffersExactlyTheOpenOperations_InEveryPairOfTheRows_KK2` (2/2); D-1779 |
-| A5 D-1626, D-1636, D-1656, D-1671 | ⚠ | Yapılmadı (süre bütçesi); devir notunda; satırlar ⚪ hedef T604 |
+| A5 D-1626 | ✓ | `NavigationConsistencyTests`: `FormActionChanged_ToAnotherScreen_IsReported`, `ButtonFormAction_…`, `FormPageTagHelper_…`, `HandlerOfAnotherScreen_ByALiteralPath_…`, `…_ThroughALocal_…`, `ResponseRedirect_WrittenStraightOnTheResponse_…` (adres ikinci bağımsız değişken), `FormsPostingToTheirOwnHandler_AreNoSite_…`; `AnExemptSite_WhoseAddressIsAVariable_…` yeni `FormAction` muafiyetlerinin bağlarını da ister; kalan iki yazım D-1780 |
+| A5 D-1636 | ✓ | `OutcomeScreens_OfTheCode_AreTheOnesTheInventoryPins`, `OutcomeScreen_ChangedToAnotherScreen_IsReported` ×4, `OutcomeScreen_OfANewOperation_WithoutAPin_…`, `TheLineThatGivesAnOutcomeScreenItsValue_Changed_…` ×3; muafiyet gerekçesi `04` 2.7.3.3 |
+| A5 D-1656 | ✓ | `FormFieldEnforcementTests.EveryCodeCheck_OfAField_IsHeldByALineOfTheTable` (gerçek kod), `CodeCheck_AddedWithoutALineOfTheTable_…` (nameof, dizge, sabit, kod önde: dört yazım), `…_ChangedToAnotherCode_OrAnotherField_…`, `LineOfTheTable_Removed_…`, `CodeCheckExemption_ThatIsNotInTheCode_OrIsHeldByALine_…`; satır → kod yönü mevcut `EnforcementNotInCode` |
+| A5 D-1671 | ✓ | `FormFieldPlaceEnforcementTests.DateRead_ChangedToAConstant_ReportsThePlaceThatReadsIt` ×3, `ArrivalDateRead_OfTheReceivedReturn_…`, `LinesOfTheDateRows_HoldTheConditionThatReadsTheField` |
+| A5 `04` 2.7.3.3 / karar kaydı | ✓ | Belge kuralı değişmedi (D-1636 yalnız muafiyet gerekçesini belgedeki 2.7.3.3 metnine bağladı); `09` metni değişmedi → karar kaydı gerekmedi |
 | A5 `sik-fail-nedenleri` (1)(2) istisna geniş / çağrı biçimi | ✓ | Muafiyetler tam biçimli ve karşı örnekli (`min="1"`, `progress max="100"`, `ContainsKey`, 11 kayıtlı okuma listesi ad+sayı ile); yeni tarama biçimleri 3–8'er örnek |
 | A5 (4) aynı sayıyı anan yerler | ✓ | `09` §8.3 görünüm cümlesi zaten "türleri ile üyeleri" der (kod söze yetişti); başka belge sayısı değişmedi |
 | A5 (9) eşitlik denetimi iki yönlü | ✓ | D-1614 listesi ve `PanelGateReadGaps`, `NeverOpenForTheCustomer` ikisi de iki yönlü kırılır; ters yön testleri var |
@@ -216,7 +228,9 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 - A5 D-1329: tarama konumsal ("küme zincirin kökü"), tür çözümlemesi değil; metin taramasında tür bilgisi olmadığından bu seçildi. Geçici çözümün sadeleşmesi `src` → T604 U.
 - A3 D-1768: karar kaydı yeri `PRODUCT_DISCOVERY_STATUS.md` karar tablosu (K-1626) + `09` altbilgisi; U işçisi K-1625'i aynı tabloya ekleyecekse birleştirmede aynı satır bölgesinde çakışma çıkabilir.
 - Önceki işçinin `ContentPanelPageTests.InitializeAsync` değişikliği `images CASCADE` ile `brandings` satırını siliyordu (29/43 kırmızı); düzeltildi.
-- Süre bütçesi nedeniyle A5'in D-1626, D-1636, D-1656, D-1671 kalemleri yapılmadı (BÖLÜNDÜ).
+- A5 D-1626/D-1636: gezinme taraması `<form action>` hedeflerini görür; `?handler=` ile kendi işleyicisine gidenler site değildir (düz yol öneki site kalır). Sınır: `@(FramePaths.Account)?handler=X` gibi bir ifadenin gerçekten kendi ekranı olduğu metinle doğrulanamaz (yalnız düz yol öneki ayrılır); kalan iki yazım D-1780.
+- A5 D-1656: karşılanmayan 22 çağrı gerekçeli muafiyette (⚠ listesi): isteğe bağlı satırın koşullu zorunluluğu (7.2.4.13, 7.2.4.6) ve sözcükle kapalı liste (7.2.4.12, 7.2.4.17) satırlara eklenemedi çünkü `04` hücreleri `RuleKindUnmapped`/`RuleMissesAttribute` karşılaştırmasını kırar; bu `04` hücresini düzeltmek ayrı bir belge işidir (karar yardımcıya, kurala uygun seçenek: muafiyet).
+- A5 kontrol: `NavigationConsistencyTests` 261/261, `FormField*` sınıfları 117/117.
 
 ## Commit & PR
 

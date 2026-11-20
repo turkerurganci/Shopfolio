@@ -116,7 +116,7 @@ internal static class FormFieldEnforcementTable
         ["7.1.2.2"] = ["Quantity|Pages/Product.cshtml.cs#catalog. ModelState.AddFieldError(nameof(AddCartItemInput.Quantity), FieldCodes.InvalidQuantity", "P-9|Pages/Components/CartRefusalCodes.cs#CartAddOutcome.OverOrderLimit => ErrorCode.MaxQuantityPerOrderExceeded"],
         ["7.2.3.4"] = ["Required|Pages/Panel/Members.cshtml.cs#Record = new MemberRecordView { State = MemberSearchState.NotSearched }"],
         ["7.2.4.15"] = [$"Required|Modules/Catalog/PublishGate.cs#unmet.Add(PublishCondition.FulfilmentPeriod)", $"P-44|{Saves}#command.FulfilmentPeriod is int fulfilmentPeriod && !FirmSettingFences.Check(\"P-44\", fulfilmentPeriod)"],
-        ["7.2.12.1"] = [$"Required|{Item}#string.IsNullOrWhiteSpace(input.ArrivalDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate"],
+        ["7.2.12.1"] = [$"Required|{Item}#if (!TryReadDate(input.ArrivalDate, out DateOnly arrival)) {{ return await RefuseAsync(id, ArrivalDateMissingText, string.IsNullOrWhiteSpace(input.ArrivalDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate"],
         ["7.2.12.2"] = ["Required|Pages/Panel/OrderDetail.ItemSteps.cs#ErrorCode.InvalidDate, ct); } int? quantity = null; if (!string.IsNullOrWhiteSpace(input.Quantity)) { if (!TryReadQuantity(input.Quantity, out int read)) { return await RefuseAsync(id, QuantityInvalidText, ErrorCode.InvalidQuantity, ct);"],
         ["7.2.12.3"] = ["Required|Pages/Panel/OrderDetail.ItemSteps.cs#if (result.Refusal == TransitionRefusal.ConfirmationRequired) { return await AskAsync(id, () => RejectionConfirm(id, input, quantity), ct);"],
         ["7.2.16.4"] = [$"Required|{Gate}#ContentRecordKind.Announcement => [ContentGateField.Text]", $"P-30|{Inputs}#Ceiling(rejections, nameof(AnnouncementInput.Text), Text(input.Text), ContentRules.AnnouncementTextMaxLength)"],
@@ -134,8 +134,40 @@ internal static class FormFieldEnforcementTable
         ["7.2.25.2"] = ["Required|Pages/Panel/DataExport.cshtml.cs#DateFields.CheckRange(input.StartDate, input.EndDate, Today, DateRangePolicy.NoFuture, startRequired: true, endRequired: true)", "DateRange|Pages/Panel/DataExport.cshtml.cs#DateFields.CheckRange(input.StartDate, input.EndDate, Today, DateRangePolicy.NoFuture, startRequired: true, endRequired: true)"],
     };
 
-    /// <summary>The row lines: the table above and the row lines of <see cref="FormFieldRuleEvidence"/> (the code of the plain-word rules and the references of the rule cell), united row by row.</summary>
-    internal static IReadOnlyDictionary<string, string[]> RowLines { get; } = FormFieldRuleEvidence.United(OwnRowLines, places: false);
+    /// <summary>
+    /// The checks the code makes with a field and its error code in one expression and that the lines above did not hold (D-1656; <see cref="FormFieldCodeCalls"/> finds them in the sources): each is the check of
+    /// the row's field in the module or the page that makes it, so a change of the check reports the row. A check that is no check of a row of <c>04 7</c> is in <see cref="FormFieldCodeInventory"/> with the reason.
+    /// </summary>
+    private static IReadOnlyDictionary<string, string[]> CodeCheckLines { get; } = new Dictionary<string, string[]>(StringComparer.Ordinal)
+    {
+        ["7.1.4.1"] = ["Quantity|Pages/Storefront/Cart.cshtml.cs#ModelState.AddFieldError(nameof(UpdateCartItemInput.Quantity), FieldCodes.InvalidQuantity, DisplayFormat.Number(1))"],
+        ["7.1.7.1"] = ["Iban|Pages/Orders/OrderPageModels.cs#ModelState.AddFieldError(nameof(SaveRefundIbanInput.Iban), FieldCodes.InvalidIban)"],
+        ["7.1.8.3"] = ["Iban|Pages/Orders/OrderScreenModels.cs#ModelState.AddFieldError(IbanFieldName, string.IsNullOrWhiteSpace(Sent.TryGetValue(IbanFieldName, out string? sentIban) ? sentIban : null) ? FieldCodes.FieldRequired : FieldCodes.InvalidIban"],
+        ["7.1.11.2"] = ["Required|Modules/Membership/MembershipModule.cs#fields.Add(new MembershipFieldError(nameof(RegisterInput.Email), ErrorCode.FieldRequired))", "Email|Modules/Membership/MembershipModule.cs#fields.Add(new MembershipFieldError(nameof(RegisterInput.Email), ErrorCode.InvalidEmail))"],
+        ["7.1.16.2"] = ["Required|Modules/Membership/AddressFieldRules.cs#errors.Add(new MembershipFieldError(prefix + nameof(AddressBookInput.ProvinceId), ErrorCode.FieldRequired))", "Province|Modules/Membership/AddressFieldRules.cs#errors.Add(new MembershipFieldError(prefix + nameof(AddressBookInput.ProvinceId), ErrorCode.InvalidProvince))"],
+        ["7.2.4.18"] = ["DateRange|Modules/Catalog/ProductSaves.cs#\"EndBeforeStart\" => new ProductSaveFieldError(\"Discount.EndDate\", ErrorCode.InvalidDateRange)"],
+        ["7.2.6.3"] = ["Percentage|Modules/Catalog/CouponRules.cs#problems.Add(new CouponProblem(nameof(CouponDefinition.Value), ErrorCode.InvalidPercentage))", "Required|Pages/Panel/Coupons.cshtml.cs#yield return FieldError.Result(FieldCodes.FieldRequired, nameof(Amount))"],
+        ["7.2.6.4"] = ["Amount|Modules/Catalog/CouponRules.cs#if (definition.MinimumBasketAmount is { } minimum && !AmountField.Allows(minimum)) { problems.Add(new CouponProblem(nameof(CouponDefinition.MinimumBasketAmount), ErrorCode.InvalidAmount)); }", "Amount|Modules/Catalog/CouponRules.cs#if (minimum is { } floor && !AmountField.Allows(floor)) { problems.Add(new CouponProblem(nameof(CouponDefinition.MinimumBasketAmount), ErrorCode.InvalidAmount)); }"],
+        ["7.2.6.5"] = ["DateRange|Modules/Catalog/CouponRules.cs#if (definition.EndDate < definition.StartDate) { problems.Add(new CouponProblem(nameof(CouponDefinition.EndDate), ErrorCode.InvalidDateRange)); }"],
+        ["7.2.21.5"] = ["Required|Modules/Settings/FirmSettings.cs#nameof(ProductDefaultsInput.DefaultVatRate), FieldCodes.FieldRequired"],
+        ["7.2.21.6"] = ["Province|Modules/Settings/CompanySettingsWriter.cs#rejections.Add(new FieldRejection(nameof(ReturnAddressInput.ProvinceId), FieldCodes.InvalidProvince))"],
+        ["7.2.22.1"] = ["Required|Modules/Settings/LegalTexts.cs#nameof(LegalTextVersion.Text), FieldCodes.FilledFieldCleared"],
+        ["7.2.22.2"] = ["Required|Modules/Settings/LegalTexts.cs#nameof(LegalTextVersion.HostingLocation), FieldCodes.FilledFieldCleared"],
+    };
+
+    /// <summary>The row lines: the table above, the code checks and the row lines of <see cref="FormFieldRuleEvidence"/> (the code of the plain-word rules and the references of the rule cell), united row by row.</summary>
+    internal static IReadOnlyDictionary<string, string[]> RowLines { get; } = FormFieldRuleEvidence.United(WithCodeChecks(OwnRowLines, CodeCheckLines), places: false);
+
+    private static Dictionary<string, string[]> WithCodeChecks(IReadOnlyDictionary<string, string[]> own, IReadOnlyDictionary<string, string[]> checks)
+    {
+        Dictionary<string, string[]> united = new(own, StringComparer.Ordinal);
+        foreach ((string row, string[] lines) in checks)
+        {
+            united[row] = united.TryGetValue(row, out string[]? held) ? [.. held, .. lines] : lines;
+        }
+
+        return united;
+    }
 
     /// <summary>
     /// The lines of every row as the row's own table and <see cref="FormFieldPlaceEnforcement"/> give them: a row with one place has its lines in <see cref="RowLines"/>; a row with several property places has the

@@ -60,8 +60,7 @@ public sealed partial class StateRolePageTests
     private static readonly Dictionary<OrderOperation, string> NeverOpenForTheCustomer = new()
     {
         [OrderOperation.CancelDigitalItem] = "the catalogue closes the customer's cancellation of a digital item (D-1197)",
-        [OrderOperation.WithdrawDigitalItem] = "no pair of the 6.2.16 rows seeds a digital item the customer can still withdraw from (D-1779)",
-        [OrderOperation.ReopenDefectClaimByCustomer] = "no pair of the 6.2.16 rows seeds a closed defect claim the customer can reopen (D-1779)",
+        [OrderOperation.WithdrawDigitalItem] = "the catalogue closes the customer's withdrawal from a digital item in every state (OrderOperationCatalog: the operation's rule is a constant Closed), so no seed can open it (D-1779)",
     };
 
     /// <summary>The panel detail's form of each operation it draws; an operation that opens one of several forms lists them all (the page draws the form for the part that exists).</summary>
@@ -111,6 +110,9 @@ public sealed partial class StateRolePageTests
 
         /// <summary>An order old enough for the late delivery termination (Z-11) with its physical item not delivered (03 1.11.8, 1.11.41).</summary>
         Aged,
+
+        /// <summary>A physical item delivered ten days ago whose defect claim was resolved five days ago: the defect channel is open, so the customer may reopen the claim (03 1.11.9; Z-18; D-1779).</summary>
+        ResolvedClaim,
     }
 
     private readonly CollectionDatabaseFixture _database;
@@ -429,6 +431,15 @@ public sealed partial class StateRolePageTests
             {
                 db.TransitionRecords.Add(TransitionRecord.Create(orderId, code, ActorKind.Admin, adminId, "Yönetici", null, null, null, null, null, now));
             }
+        }
+
+        if (state.Records == Records.ResolvedClaim && state.Items == ItemScenario.OpenPhysical)
+        {
+            item.DeliveryDate = DateOnly.FromDateTime(now.UtcDateTime).AddDays(-10);
+            item.DeliveryMarkedAt = now.AddDays(-10);
+            DefectClaim resolved = DefectClaim.Create(item.Id, 1, "Kusurlu", null, now.AddDays(-9));
+            resolved.ApplyStatus(DefectClaimStatus.Resolved, ActorKind.Admin, now.AddDays(-5), null);
+            db.DefectClaims.Add(resolved);
         }
 
         await db.SaveChangesAsync(Ct);

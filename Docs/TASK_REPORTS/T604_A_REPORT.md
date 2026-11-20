@@ -156,7 +156,39 @@ Kalemler: D-1228, D-1418, D-1433, D-1455, D-1456, D-1678, D-1704, D-1709, D-1710
 
 **⚠ A4.** (1) Aynı adlı bağlantı okuması sonuca bağlanmadı (D-1789). (2) Ölçüt kaydı koşu sonunda kırar: CI E2E'nin Audit, Scan, Criteria sınıflarını tek çağrıda koşması şart (D-1736 b kabulü). (3) Ayırt edicilik: D-1704 değişinimle gösterildi; D-1710 `localhost` başlığı `TitleMeasure` testleriyle kırmızı; D-1746 (b) `AuditScriptsTests` ile.
 
+## Dilim A6 — kararsız test, 12 satırı, birim test
+
+Kalemler: D-137, D-894, D-1140, D-1244, D-1311, D-1348, D-1363, D-1366, D-1397, D-1452, D-1471, D-1677; A5'ten kalan D-1770, D-1779, D-1780. `src` değişmedi. Karar kaydı K-1632 (dört belge hizası ve tarama kapsamı); `04` v0.57, `07` v0.46, `09` v0.38, `11` v0.68, `12` v0.38.
+
+### Yapılan işler (A6)
+
+- **D-1363:** `FirmSettingsPureRulesTests` (27 sınama): `FirmSettings.RequiredName`, `TrackText` ve `FirmIdentityModel.ConditionsOf` saf parçaları. Parçalar özel statik olduğu için `src` değişmeden ada göre (yansıma) ulaşılır; ad kalkarsa arama kırılır.
+- **D-1677:** `04` altı hücre tür kimliğini anar; `FormFieldRuleClauseTable` kimliksiz üç anahtarı bıraktı (`Gün (7.3.2.11)` eklendi); `FormFieldInventory`, `FormFieldEnforcementTable`, `FormFieldPlaceEnforcement` kanıt satırlarıyla eşitlendi. Kırmızı: yalnız hücreler değişince `FormInventoryConsistencyTests.FieldInventory_EqualsTheDocumentsAndTheCode` ve `FormFieldRuleClausesTests.EveryClauseKindAndEveryReference_OfTheTable_HasALineOfItsRow` üç hata verdi; tablolar eşitlenince Consistency 696/696.
+- **D-1397, D-1452, D-1244, D-1348 (belge hizaları, K-1632):** net miktar üçüncü decimal kuralı (`09 §7.2` m.3, `07 §6.2.2`, `04` 7.3.2.8); `04` 5.25.19 hesap ekranı cümleleri (+ `07` 4.25 atfı); `12` VAL-A024 "seçilemez" okuması; `11 §7.1` KP-50 satırına T527.
+- **D-1366, D-1140, D-1311:** `Model` ad alanı beş kez koşuldu (taze Postgres 18, `track_commit_timestamp=on`; dört tam koşu 1457/1457 yeşil, biri benim süzgeç zaman aşımımla yarım): kararsız test yakalanmadı. D-1366 testinin zaman bağımlılığı göçün komut zaman aşımıdır (sürücü varsayılanı 30 sn; kayıtlı kırmızı 47 sn); `MigrateAsync` 300 sn komut zaman aşımı alır. ⚠ kök neden yeniden üretilemedi.
+- **D-1770 (yama hazır, commit EDİLEMEDİ):** `storage-setup.sh` `ADMIN_USER`, `package-build.sh` `APP_DSN` ve `CI_LINK_BYTES` değişkenleri ve `test-pre-commit.sh` örnekleri yazıldı ve bu daldaki bekçiyle doğrulandı (254/254); ama makinenin `core.hooksPath`'i main'deki eski bekçiyi çalıştırır ve o iki satırı sır sayıp commit'i durdurdu. Bekçi atlanmadı ve dolanılmadı: yama `helper-state/shopfolio/impl/T604/t604a-d1770.patch`, çalışma ağacından geri alındı; backlog satırı ⚪ kaldı (hedef T604).
+- **D-1779:** `Records.ResolvedClaim` tohumu `ReopenDefectClaimByCustomer`'ı açar (listeden çıktı); `WithdrawDigitalItem` katalogda sabit `Closed` olduğundan tohumla açılmaz, neden metni düzeltildi. `StateRolePageTests` 2/2.
+- **D-1780:** `04` §3 "Taramanın kapsamı" ve `NavigationOutsideTheMapTests` (4 sınama; C# dizgesi `<a href>` üç dosya dört bağlantı, `location.assign` iki dosya).
+- **D-137, D-894 daraltıldı → T604 U** (işaretler ve D-1525 kod seçimi `src`). **D-1471 KISMEN:** payları kanıtlandı (aşağıda), `VAL-B040`/`VAL-B041` tarayıcı gözlemi açık.
+
+**Paylı satır kanıtları (A6; D-1348, D-1471; `Durum` yazılmadı).**
+
+| `12` satırı | Payı bu task'ın | Kanıt (test) | Öteki pay |
+|---|---|---|---|
+| VAL-A258 | T521/T542 sayaç bağlantıları; T527 liste süzgeçleri | `TheHomeCounters_AreSix_…_AndEachLeadsToItsList_T542_KK6`, `ACounter_ChangesWhenTheRecordsChange_AndIsNotStored_T521_KK2`, `ThePaymentDeliveryIbanAndEmailFilters_EachKeepOnlyTheirOwnOrder_KK1`, `ATimedPendingWorkFilter_…_KK1_KK2`, `RequestsPageTests` (`requestStatus=Open`) | altı sayacın sayısı = liste satırı eşitliği tek testte: D-1798; tarayıcı gözlemi |
+| VAL-A264 | T527: `EmailUndeliveredMark` süzgeci yalnız işaretli siparişi gösterir | `ThePaymentDeliveryIbanAndEmailFilters_EachKeepOnlyTheirOwnOrder_KK1` | ana sayfa satırının bağlantısı: T521 |
+| VAL-A059 | T518 müşteri listesi: hiç ödenmemiş sistem iptali yok | `TheHistory_ListsTheGuestOrderThatFellToTheAccount_…_NotTheNeverPaidSystemCancelledOnes_KK9` | T527 panel listesi: `TheList_IsNewestFirst_ShowsTheSystemCancelledUnpaidOrder_AndPagesWithoutLossOnEqualMoments_KK2` |
+| VAL-A603 | T518 adres defteri: düzenleme ve silme reddi (404, kayıt değişmez) | `TheUpdate_WritesToTheOwnersEntryOnly_AForeignOrGoneOrNoIdEntryIs404_AndNoOrderIsTouched_KK5`, `TheDelete_RemovesTheEntry_Is303WithNoNotice_TheSecondIs404_AForeignOneIs404_AndNoOrderIsTouched_KK6` | sepet kaleminin adet reddi: `CartPageTests.ALineOfAnotherCart_OrOneThatNeverWas_Is404_AndNothingIsWritten_T508_KK8` |
+| VAL-A554 | T518 adres kaydı `Saved` | `AnAdd_WritesTheEntry_Is303ToTheBookWithTheSavedNotice_AndAnUndeliveredProvinceIsKept_KK3` | ürün: `ProductFormPageTests.SaveProduct_Saved_Is303ToTheProductsForm_AndWritesTheEntries_KK3`; kategori: `CategoriesPageTests.ACategory_GetsItsAddressFromItsName_…` (`notice=Saved`); kupon: `CouponsPageTests.ANewCoupon_IsWritten_And303GoesToItsOwnAddressWithTheSavedNotice_T526_KK9`; tarayıcı gözlemi |
+| VAL-B040, VAL-B041 | yok (tarayıcı gözlemi yapılmadı) | — | T604 devamı |
+
+**Koşular (A6).** Unit TAM: 8267 sınama, 8266 yeşil; tek kırmızı `TestIsolationScanTests.ConsistencyChecks_Types_CarryTheConsistencyTrait_AndNoOtherTypeDoes` (yeni sınıfta `Consistency` özelliği yoktu) düzeltildi ve yeniden koşuldu. Integration (ilgili): `Model` ad alanı beş kez (1457/1457), `StateRolePageTests` 2/2; **TAM: CI**. `test-pre-commit.sh` yamayla 254/254 (dalda yok). `dotnet format` yalnız değişen sekiz `.cs` dosyasında temiz.
+
+**⚠ A6.** (0) **D-1770 commit edilemedi:** `core.hooksPath` main'deki eski sır bekçisini çalıştırır (D-1120 istisnasız); bekçi atlanmadı. Yama `helper-state/shopfolio/impl/T604/t604a-d1770.patch`; D-1120 bekçisi main'e inince uygulanır. (1) D-1366 kök nedeni yeniden üretilemedi; komut zaman aşımı yükseltmesi gözlemden çıkarımdır. (2) `WithdrawDigitalItem` katalogda koşulsuz kapalı: dijital kalemde müşteri caymasının açılması sahibin kararıdır, bu dilim açmadı. (3) VAL-A024'te "seçilemez" okuması seçildi (`02 §3.3.3` ile uyumlu; "görünmez" okuması `ReadOptionsAsync` süzgeci ister → T604 U). (4) D-1780: dizge ve betik hedefleri tarama türü yapılmadı; bilinen liste testi kuruldu.
+
 ## Para ve güvenlik kalemleri (KK2)
+
+**A6 D-1770 (sır bekçisi betikleri; commit edilmedi).** Kırmızı: bu daldaki bekçi `HEAD` sürümündeki `scripts/local-reference/storage-setup.sh` ve `scripts/ci/package-build.sh` üzerinde çıkış 1 verir; yeşil: yama uygulanmış sürümlerde çıkış 0 (kanıt yamadaki `test-pre-commit.sh` örnekleri: iki gerçek betik bütün olarak çıkış 0, `h1`–`h5` eski satır biçimleri ve değişken + metin biçimleri çıkış 1, `h6`–`h9` kabul biçimleri çıkış 0). Yama main'deki eski bekçiye takıldığı için dalda yok; dalda D-1770 için değişiklik yoktur. Çıkış yolu ve geri alma: yama uygulanmazsa üç betik aynı kalır.
 
 Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "değişiklikten önce kırmızı" yerine her testin **ayırt ediciliği** değişinimle gösterilir (src geçici bozuldu, test kırıldı, geri alındı; `git checkout src`) ve var olan testler değişmeden geçer. Çıkış yolu ve geri alma: test dosyalarının PR'ı geri alınır.
 
@@ -280,6 +312,21 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 | A4 (5) belge kuralını değiştiren 09 metni karar kaydısız | ✓ | `12` §4.17 (3) kural değil koşu biçimi; yine de K-1630 yazıldı; `09` değişmedi |
 | A4 gerçek saate bağlı test yok | ✓ | Yeni testler bekleme içermez (`BrowserWaitScan` temiz); odak okuması Tab sonrası anlık |
 
+### A6 öz denetim tablosu
+
+| Madde | ✓ | Kanıt |
+|---|---|---|
+| Kabul 1: hedefi T604 olan A6 kalemleri kapanır ya da gerekçeyle daraltılır | ✓ | `grep -nE "T604" Docs/DEFERRED_BACKLOG.md Docs/DEFERRED_BACKLOG.d/*.md` ile tarandı: kapandı D-1140, D-1244, D-1311, D-1348, D-1363, D-1366, D-1397, D-1452, D-1677, D-1779, D-1780; D-1770 yaması hazır ama commit bekçiye takıldı (satır ⚪); daraltıldı D-137 (→ T604 U), D-894 (→ T604 U, D-1525 ile); D-1471 KISMEN (VAL-B040/B041 açık, hedef T604); yeni D-1798 (F6 gate) |
+| Kabul 2 / KK2: para-güvenlik | ~ | D-1770: kırmızı (HEAD betikleri çıkış 1) ve yeşil (yamalı çıkış 0) gösterildi ama yama dalda değil (bekçi engeli); öteki A6 kalemleri para-güvenlik değil |
+| Kabul 5 / KK5: satırlar | ✓ | kapanan satırlar `✅ Çözüldü → T604 (2026-11-21; A6)`, daraltılanlar yeni hedef ve gerekçeyle; sayaca dokunulmadı |
+| `sik-fail-nedenleri` (1) bekçi/tarama istisnası geniş | ✓ | Bekçi değişmedi; `NavigationOutsideTheMapTests` yalnız dosya ve sayıyla sabitler, istisna açmaz |
+| (2) kaynak taraması bir çağrı biçimini kaçırıyor | ✓ | Yeni tarama kaçırma örneği: `ANewStringLinkOrScriptExit_IsFoundByThePatterns_WhateverItsQuoting` (kaçışlı, ham, birebir dizge; `assign`, `replace`, `href =`; `==` karşılaştırması sayılmaz) |
+| (3) 06 default/FK | ✓ | Şema değişmedi |
+| (4) aynı sayıyı anan öteki yerler | ✓ | `04`, `07`, `09`, `11`, `12` üst bilgi, altbilgi ve `PRODUCT_DISCOVERY_STATUS` satırları birlikte; K-1632 satırı; MEMORY'ye dokunulmadı; Consistency 696/696 |
+| (5) belge kuralını değiştiren 09 metni karar kaydısız | ✓ | `09 §7.2` m.3 K-1632 ile; kodda var olan kuralı yazar, yeni ürün kuralı yok |
+| Eşitlik denetimleri iki yönlü (sık FAIL 9) | ✓ | `FormField*` tabloları iki yönlü (hücre değişince kırmızı, tablo eşitlenince yeşil); `StateRolePageTests.NeverOpenForTheCustomer` iki yönlü kaldı |
+| Gerçek saate bağlı test yok | ✓ | Yeni testlerde bekleme yok; D-1366 düzeltmesi zaman sınırını yükseltir, hızı sınamaz |
+
 ## ⚠ Maddeler
 
 - D-1283 (2): `06 §4.31` IBAN'ı beyan (istek) başına tek satır sayar ("aynı beyanla girilen IBAN'ı birden çok kalem kullanır"); kod kalem kaydı başına yazar. `06` izlenir (kurala uygun seçenek); hizalama `src` (para) değiştirir → T604 U.
@@ -306,4 +353,4 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 
 ## Commit & PR
 
-PR: #594 — A1, A2, A3, A4, A5, A7 tamam; A4 devamının kod head 9efdefa7 (bu rapor satırı sonraki commit)
+PR: #594 — A1, A2, A3, A4, A5, A6 (D-1471 kısmen), A7 tamam; A4 devamının kod head 9efdefa7; A6 head bu rapor satırından sonraki commit

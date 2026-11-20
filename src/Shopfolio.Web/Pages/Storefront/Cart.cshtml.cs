@@ -82,6 +82,12 @@ internal sealed class CartModel : PageModel
             SentQuantity = Request.HasFormContentType ? Request.Form[nameof(UpdateCartItemInput.Quantity)].ToString() : null;
             await LoadAsync(HttpContext.RequestAborted);
         }
+        else if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: FormResults.ForgeryRefusedStatus })
+        {
+            // The forgery check answered 400 before the handler (07 2.5.4): the cart is read - the refusal wrote nothing and a read is safe - so the page shown again
+            // has its lines, not the empty cart's state (04 2.7.3.1; K-1627 (2); D-1190).
+            await LoadAsync(HttpContext.RequestAborted);
+        }
     }
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)

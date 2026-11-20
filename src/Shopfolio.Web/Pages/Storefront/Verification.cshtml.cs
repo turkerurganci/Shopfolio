@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Security;
@@ -71,7 +72,7 @@ internal sealed class VerificationModel : PageModel
                     // The address became a verified account's meanwhile: the consumption is rolled back, nothing is written (07 UC-53; K-1080).
                     EmailLinkReading kept = await _membership.ReadEmailLinkAsync(key, ct);
                     Show(key, kept, null, addressTaken: true);
-                    return FormResults.Redisplay(this);
+                    return FormResults.Refused(this, ErrorCode.EmailTakenByOtherAccount);
                 }
 
                 break;
@@ -90,7 +91,7 @@ internal sealed class VerificationModel : PageModel
         // The link is not (or no longer) valid: the page tells what it is now, status 200 (07 UC-53).
         EmailLinkReading now = await _membership.ReadEmailLinkAsync(key, ct);
         Show(key, now, null, addressTaken: false);
-        return Page();
+        return FormResults.LinkNoLongerValid(this);
     }
 
     private static IActionResult Done(string key, NoticeCode notice) => FormResults.SeeOther(FramePaths.Verification + "/" + Uri.EscapeDataString(key), notice);

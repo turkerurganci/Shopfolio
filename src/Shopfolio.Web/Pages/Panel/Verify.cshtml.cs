@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Security;
@@ -82,12 +83,12 @@ internal sealed class VerifyModel : PageModel
         if (result.IsTaken)
         {
             Step = LandingStep.Rejected;
-            return FormResults.Redisplay(this);
+            return FormResults.Refused(this, ErrorCode.EmailTakenByOtherAccount);
         }
 
         // The link was spent, replaced or run out between the page and the button: nothing was written and the page says so, 200 (07 UC-186; 2.5.3).
         Step = LandingStep.Invalid;
-        return Page();
+        return FormResults.LinkNoLongerValid(this);
     }
 
     private async Task SetNextStepAsync() => (NextPath, NextText) = await LandingNextStep.ResolveAsync(HttpContext);

@@ -31,7 +31,7 @@ public sealed class PanelHomeAndVerificationPagesTestsDefinition : ICollectionFi
 /// handler answers (303, 200, 422, 429) and what it writes. Accounts, sessions, links and pending changes are real rows of the collection database.
 /// </summary>
 [Collection(PanelHomeAndVerificationPagesTestsDefinition.Name)]
-public sealed class PanelHomeAndVerificationPagesTests : IAsyncLifetime
+public sealed partial class PanelHomeAndVerificationPagesTests : IAsyncLifetime
 {
     private const string Strong = "a-long-enough-password";
     private const string HomePath = "/panel";

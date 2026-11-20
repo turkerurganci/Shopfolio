@@ -246,8 +246,12 @@ internal sealed class SignInModel : PageModel
         PendingValue = value;
     }
 
-    // A value that names nothing pending: back to the sign-in screen without the value - the form in its empty state (07 4.20.3).
-    private static IActionResult GoneAddress() => FormResults.SeeOther(FramePaths.SignIn);
+    // A value that names nothing pending: back to the sign-in screen without the value - the form in its empty state (07 4.20.3), with UC-49's refusal line (07 6.2.5; D-1317).
+    private IActionResult GoneAddress()
+    {
+        HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.PendingRegistrationUnresolved);
+        return FormResults.SeeOther(FramePaths.SignIn);
+    }
 
     private sealed record SignInOutcome(CredentialCheckResult Check, SessionOpening? Opening) : IOperationResult
     {

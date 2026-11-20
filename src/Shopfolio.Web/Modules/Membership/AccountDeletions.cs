@@ -137,11 +137,6 @@ internal sealed class AccountDeletions
         Customer account = await _db.Customers.SingleAsync(c => c.Id == customerId, ct);
         string address = account.Email;
 
-        // What hangs on the account is counted before it goes: the database deletes it with the account (06 2.2.5), the disposal record says how much.
-        int sessions = await _db.Sessions.AsNoTracking().CountAsync(s => s.CustomerId == customerId, ct);
-        int marks = await _db.RecognizedBrowserMarks.AsNoTracking().CountAsync(m => m.CustomerId == customerId, ct);
-        int pendingChanges = await _db.PendingEmailChanges.AsNoTracking().CountAsync(p => p.CustomerId == customerId, ct);
-        int links = await _db.LinkRecords.AsNoTracking().CountAsync(l => l.CustomerId == customerId, ct);
         AccountOrderRelease orders = await _ordering.MarkAccountDeletedAsync(customerId, ct);
 
         // One e-mail to the address of the account, whoever deletes it (02 3.15.1, 9.4); it carries no link and no way back. The address is kept as a value of the row.
@@ -150,23 +145,11 @@ internal sealed class AccountDeletions
             await _notifications.QueueAccountEmailAsync(new AccountDeletedEmail(customerId, address, now), ct);
         }
 
+        // The database deletes what hangs on the account with it (06 2.2.5) - the sessions, the address book, the links, the pending e-mail change, the recognized browsers, the carts - and
+        // those write no row of their own: they are part of the Customer row (06 5.5.3; Z-31, Z-32; D-608).
         _db.Customers.Remove(account);
         _db.DisposalRecords.Add(DisposalRecord.Counted(DisposalRecordType.Customer, 1, now));
-        AddCounted(DisposalRecordType.Session, sessions, now);
-        AddCounted(DisposalRecordType.RecognizedBrowserMark, marks, now);
-        AddCounted(DisposalRecordType.Cart, orders.Carts, now);
-        AddCounted(DisposalRecordType.PendingEmailChange, pendingChanges, now);
-        AddCounted(DisposalRecordType.LinkRecord, links, now);
         return AccountDeletionResult.Deleted(orders.Orders);
-    }
-
-    // A disposal row has a number above zero (06 4.64): what was not there writes no row.
-    private void AddCounted(DisposalRecordType type, int count, DateTimeOffset now)
-    {
-        if (count > 0)
-        {
-            _db.DisposalRecords.Add(DisposalRecord.Counted(type, count, now));
-        }
     }
 
     private void RequireTransaction()

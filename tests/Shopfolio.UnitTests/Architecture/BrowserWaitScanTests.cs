@@ -39,7 +39,7 @@ public sealed class BrowserWaitScanTests
     [InlineData("System.Threading.Thread.Sleep(TimeSpan.FromSeconds(1));")]
     [InlineData("await page.Page.WaitForTimeoutAsync(300);")]
     [InlineData("await page.WaitForTimeout (300);")]
-    [InlineData("string script = \"() => new Promise(r => setTimeout(r, 200))\";")]
+    [InlineData("string script = \"new Promise(r => setTimeout(r, 200))\";")]
     [InlineData("string script = \"setInterval(poll, 50)\";")]
     [InlineData("string text = \"a // b\"; await Task.Delay(5);")]
     public void AFixedWait_IsFound_D1704(string code)
@@ -59,6 +59,15 @@ public sealed class BrowserWaitScanTests
     public void ACommentAStringOrAnotherWait_IsNotAFixedWait_D1704(string code)
     {
         Assert.Empty(BrowserWaitScan.Scan(code));
+    }
+
+    /// <summary>A script written as an arrow function: the string stands in the body (an arrow in a data attribute's string is read as the start of a test method by the forbidden test pattern scan).</summary>
+    [Fact]
+    public void AnArrowScriptThatWaitsWithATimer_IsFound_D1704()
+    {
+        const string code = "string script = \"() => new Promise(r => setTimeout(r, 200))\";";
+
+        Assert.Contains(BrowserWaitScan.Scan(code), f => f.Rule == BrowserWaitScan.FixedWait);
     }
 
     [Fact]

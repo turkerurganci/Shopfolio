@@ -89,6 +89,19 @@ internal static class BrowserSeed
     /// <summary>The brand name of the seed (D-1710).</summary>
     internal const string BrandName = "Örnek Mağaza";
 
+    /// <summary>The name of the seed's one branch (D-1228).</summary>
+    internal const string BranchName = "Kızılay şubesi";
+
+    /// <summary>The map link of the seed's branch: the contact page's "Haritada aç" opens this address (VAL-A121).</summary>
+    internal const string BranchMapUrl = "https://maps.example.com/?q=Tunali+Hilmi+10";
+
+    /// <summary>The published questions of the seed: question, answer (a closed-format text), order.</summary>
+    internal static readonly (string Question, string Answer, int Order)[] FaqSeed =
+    [
+        ("Kargo kaç günde gelir?", "<p>Siparişiniz üç iş gününde teslim edilir.</p>", 1),
+        ("İade nasıl yapılır?", "<p>Hesabınızdaki siparişten iade talebi açarsınız.</p>", 2),
+    ];
+
     private static readonly DateTimeOffset Now = DateTimeOffset.UtcNow;
 
     /// <summary>The state pairs of the orders: (label, shipping, payment, card). One order of each is enough for the screens' hâls; the full matrix is T547's.</summary>
@@ -169,6 +182,24 @@ internal static class BrowserSeed
         CustomPage page = CustomPage.Create("Kargo bilgisi", "t551-sayfa", 1, Now);
         page.PublishStatus = PublishStatus.Published;
         page.SetText("<p>Kargo üç gündür.</p>");
+        // The FAQ and the branch (04 5.9, 5.10; D-1228): the two published questions and the one published branch with its "Haritada aç" link, so the walk of the FAQ page and the contact page has content to observe.
+        foreach ((string question, string answer, int order) in FaqSeed)
+        {
+            FaqItem faq = FaqItem.Create(question, order, Now);
+            faq.SetAnswer(answer);
+            faq.PublishStatus = PublishStatus.Published;
+            db.FaqItems.Add(faq);
+        }
+
+        Branch branch = Branch.Create(BranchName, 1, Now);
+        branch.ProvinceId = province;
+        branch.District = "Çankaya";
+        branch.AddressLine = "Tunalı Hilmi Cad. 10";
+        branch.Phone = "3127654321";
+        branch.WorkingHours = "Hafta içi 09:00-18:00";
+        branch.MapUrl = BranchMapUrl;
+        branch.PublishStatus = PublishStatus.Published;
+        db.Branches.Add(branch);
         db.AboutPages.Add(about);
         db.Offerings.Add(offering);
         db.PortfolioItems.Add(portfolio);

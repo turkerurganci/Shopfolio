@@ -167,6 +167,40 @@ public sealed class CustomerPasswordResetAndReauthenticationPageTests : IAsyncLi
         Assert.Equal(ProductConstants.PasswordResetAttemptsPerEmail + 1, await db.AttemptRecords.CountAsync(a => a.AttemptLimit == AttemptLimit.L2 && a.AttemptAxis == AttemptAxis.Email, Ct));
     }
 
+    /// <summary>VAL-A498 (D-1433): the request that is answered 429 writes no link and no dispatch row ("ek bağlantı gönderilmez"); the attempt record is the only row it leaves.</summary>
+    [Fact]
+    public async Task TheRequestAnswered429_WritesNoLinkAndNoDispatchRow_VALA498_D1433()
+    {
+        await using WebApplicationFactory<Program> factory = Open(google: null, gateOpen: false);
+        await SeedAsync("ali@example.com", hasPassword: true, googleLinked: false);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        // The requests up to the limit are answered and each writes its link and its dispatch row; the loop ends on the first 429.
+        HttpStatusCode last = HttpStatusCode.OK;
+        for (int i = 0; i <= ProductConstants.PasswordResetAttemptsPerEmail + 1 && last != HttpStatusCode.TooManyRequests; i++)
+        {
+            using HttpResponseMessage attempt = await PostAsync(client, FramePaths.PasswordReset, "RequestPasswordReset", [("Input.Email", "ali@example.com")], null);
+            last = attempt.StatusCode;
+        }
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, last);
+        await using AppDbContext db = NewContext();
+        int links = await db.LinkRecords.CountAsync(l => l.LinkType == LinkType.PasswordReset, Ct);
+        int dispatches = await db.DispatchRecords.CountAsync(Ct);
+        int attempts = await db.AttemptRecords.CountAsync(a => a.AttemptLimit == AttemptLimit.L2 && a.AttemptAxis == AttemptAxis.Email, Ct);
+        Assert.True(links > 0, "The requests under the limit wrote links; the claim below is measured against them.");
+        Assert.True(dispatches > 0, "The requests under the limit wrote dispatch rows.");
+
+        // One more request over the limit: 429 again; the link and the dispatch rows are the same, only the attempt is counted.
+        using HttpResponseMessage over = await PostAsync(client, FramePaths.PasswordReset, "RequestPasswordReset", [("Input.Email", "ali@example.com")], null);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, over.StatusCode);
+        await using AppDbContext after = NewContext();
+        Assert.Equal(links, await after.LinkRecords.CountAsync(l => l.LinkType == LinkType.PasswordReset, Ct));
+        Assert.Equal(dispatches, await after.DispatchRecords.CountAsync(Ct));
+        Assert.Equal(attempts + 1, await after.AttemptRecords.CountAsync(a => a.AttemptLimit == AttemptLimit.L2 && a.AttemptAxis == AttemptAxis.Email, Ct));
+    }
+
     [Fact]
     public async Task TheBlockOfTheResetRequest_LiftsWhenTheAttemptsLeaveTheWindow_D572_T516_KK4()
     {

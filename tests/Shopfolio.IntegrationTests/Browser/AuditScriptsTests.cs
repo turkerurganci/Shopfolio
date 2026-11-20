@@ -77,4 +77,47 @@ public sealed class AuditScriptsTests(BrowserHost host) : BrowserTestBase(host)
 
         Assert.True(await page.Page.EvaluateAsync<bool>(StylesLoaded));
     }
+
+    /// <summary>The walk's reading of a Tab walk that does not reach an element (D-1736 d): a control the page keeps out of the tab order, at the page's end, is "not in the Tab order" - never "keyboard trap" (Firefox keeps the focus on the last control).</summary>
+    [Theory]
+    [MemberData(nameof(OnEveryEngine))]
+    public async Task Reach_OfAControlOutOfTheTabOrder_IsNamedAsSuch_AndNotAsAKeyboardTrap_D1736(string engine)
+    {
+        if (engine == "webkit")
+        {
+            // WebKit's walk sets the focus by script (ReachAsync), so tabindex=-1 takes it and the case does not arise there.
+            return;
+        }
+
+        await using IBrowserContext context = await Host.ContextAsync(engine, ScriptPath.Scripted);
+        WatchedPage page = await NewPageAsync(context);
+        await page.Page.SetContentAsync("<!doctype html><html><body><a id=\"first\" href=\"#a\">Birinci</a><a id=\"last\" href=\"#b\">Son</a><button id=\"hidden-from-tab\" tabindex=\"-1\">Tab dışı</button></body></html>");
+        await page.Page.Locator("#first").FocusAsync();
+
+        (bool reached, int _, string problem) = await AccessibilityCriteriaTests.ReachAsync(page.Page, engine, "#hidden-from-tab");
+
+        Assert.False(reached);
+        Assert.DoesNotContain("keyboard trap", problem, StringComparison.Ordinal);
+    }
+
+    /// <summary>The other side of the same reading: a focus that stays on a control with others after it is a keyboard trap, and is named so on every engine.</summary>
+    [Theory]
+    [MemberData(nameof(OnEveryEngine))]
+    public async Task Reach_OfAFocusThatDoesNotLeaveAControl_IsNamedAKeyboardTrap_D1736(string engine)
+    {
+        if (engine == "webkit")
+        {
+            return;
+        }
+
+        await using IBrowserContext context = await Host.ContextAsync(engine, ScriptPath.Scripted);
+        WatchedPage page = await NewPageAsync(context);
+        await page.Page.SetContentAsync("<!doctype html><html><body><input id=\"stuck\" type=\"text\"><a id=\"after\" href=\"#a\">Sonra</a><script>document.getElementById('stuck').addEventListener('keydown', (e) => { if (e.key === 'Tab') { e.preventDefault(); } });</script></body></html>");
+        await page.Page.Locator("#stuck").FocusAsync();
+
+        (bool reached, int _, string problem) = await AccessibilityCriteriaTests.ReachAsync(page.Page, engine, "#after");
+
+        Assert.False(reached);
+        Assert.StartsWith("keyboard trap", problem, StringComparison.Ordinal);
+    }
 }

@@ -227,6 +227,9 @@ public sealed class AccessibilityCriteriaTests(BrowserHost host) : BrowserTestBa
 
     private const int MaxTabs = 300;
 
+    /// <summary>True when the focus is on the last control the Tab key can reach in the document (a control that is disabled, out of the tab order or not drawn is not one).</summary>
+    private const string FocusIsOnTheLastControl = "() => { const all = [...document.querySelectorAll('a[href],button,input:not([type=hidden]),select,textarea,[tabindex]')].filter((e) => !e.disabled && e.tabIndex >= 0 && e.getClientRects().length > 0); return all.length > 0 && all[all.length - 1] === document.activeElement; }";
+
     /// <summary>The element that holds the focus: its place in the document, tag, id, name and text (two elements are told apart by the place).</summary>
     private const string FocusedElement = "() => { const a = document.activeElement; if (!a || a === document.body) { return 'body'; } return [...document.querySelectorAll('*')].indexOf(a) + ':' + a.tagName + '#' + a.id + '[' + (a.getAttribute('name') || '') + ']' + (a.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 24); }";
 
@@ -236,7 +239,7 @@ public sealed class AccessibilityCriteriaTests(BrowserHost host) : BrowserTestBa
     /// Takes the focus to the element the way a person without a pointer does: the Tab key, from where the focus is, until it is on the element. A focus that does not leave an element after two presses, or that does not reach the element in
     /// <see cref="MaxTabs"/> presses, is a keyboard trap or an element the keyboard cannot reach. WebKit (Playwright 26.4 on Windows) does not take a link to its Tab order, so there the focus is set on the element and the keys (Enter, Space, the arrows) that work it are still the keyboard's.
     /// </summary>
-    private static async Task<(bool Reached, int Tabs, string Problem)> ReachAsync(IPage page, string engine, string selector)
+    internal static async Task<(bool Reached, int Tabs, string Problem)> ReachAsync(IPage page, string engine, string selector)
     {
         if (engine == "webkit")
         {
@@ -264,7 +267,11 @@ public sealed class AccessibilityCriteriaTests(BrowserHost host) : BrowserTestBa
             stuck = now == previous ? stuck + 1 : 0;
             if (stuck >= 2)
             {
-                return (false, tabs, $"keyboard trap: the focus does not leave {now}");
+                // A focus that stays on the last control of the page is the page's end (Firefox keeps the focus there and does not wrap): the element the walk looks for is out of the Tab order, no trap (D-1736 d).
+                // A focus that stays on a control with others after it is a trap (WCAG 2.1.2).
+                return (false, tabs, await page.EvaluateAsync<bool>(FocusIsOnTheLastControl)
+                    ? $"{selector} is not in the Tab order: the focus stays on the last control of the page ({now})"
+                    : $"keyboard trap: the focus does not leave {now}");
             }
 
             previous = now;

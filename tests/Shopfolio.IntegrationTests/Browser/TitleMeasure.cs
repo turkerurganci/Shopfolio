@@ -15,11 +15,11 @@ internal static class TitleMeasure
     /// <summary>
     /// The two screens whose title leaves the brand name out today: the FAQ page and the contact page hand the search engine head the page's name alone
     /// (<c>StorefrontHeads.Faq</c> and <c>.Contact</c> say "the page's name with the brand name as the title"; the head writes the name only) - a product defect
-    /// (src; D-1788, T604 U). Known and exact: the address and the title it has; a page that starts carrying the brand name fails the walk until the entry is removed.
+    /// (src; D-1788, T604 U). The FAQ page is named by the menu name the seed sets ("Sıkça Sorulanlar", the page has its questions). Known and exact: the address and the title it has; a page that starts carrying the brand name fails the walk until the entry is removed.
     /// </summary>
     public static readonly IReadOnlyDictionary<string, string> KnownWithoutBrand = new Dictionary<string, string>(StringComparer.Ordinal)
     {
-        ["/sss"] = "Sık sorulan sorular",
+        ["/sss"] = "Sıkça Sorulanlar",
         ["/iletisim"] = "İletişim",
     };
 

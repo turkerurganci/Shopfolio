@@ -103,7 +103,7 @@ Kalemler: D-146, D-1226, D-1285, D-1329 (daraltıldı), D-1614, D-1626, D-1627, 
 - `dotnet format Shopfolio.slnx --no-restore --include <dalın 56 .cs dosyası>`: iki biçim düzeltmesi uygulandı (boşluk), yeniden koşuda değişiklik yok.
 - Ayırt edicilik (D-1547): `ContentForm` Hakkımızda silme koşulu ve `Brand` görsel kodu geçici bozuldu → iki test KIRMIZI; `ProductConstants` tavanı bozulması modeli değiştirdiği için geçersiz deney (başlatma hatası), geri alındı. A5 taramaları için kırmızı örnekler `ViolationSamples` ve Theory satırlarıdır (taramanın eski hâli yeni sabitleri taşımadığından derlenmez).
 
-## Dilim A4 — tarayıcı aracı (KISMEN; BÖLÜNDÜ, süre)
+## Dilim A4 — tarayıcı aracı (tamam; ilk işçi BÖLÜNDÜ, devam işçisi bitirdi)
 
 Kalemler: D-1228, D-1418, D-1433, D-1455, D-1456, D-1678, D-1704, D-1709, D-1710, D-1732, D-1736, D-1746. `src` değişmedi.
 
@@ -114,7 +114,43 @@ Kalemler: D-1228, D-1418, D-1433, D-1455, D-1456, D-1678, D-1704, D-1709, D-1710
 - D-1736: (a) `ScanStep` ekran × ölçüt hücresine girdi (kırmızı tarama = ✗, taranmamış = "–"); (b) `ObservationRecord.AddCompletenessCheck` + `BrowserHost.DisposeAsync`: kayıt koşu sonunda tüm koşudan yeniden yazılır, "–" kalan hücre koşuyu kırar (Audit tek başına artık eksik kayıtla geçmez); (c) WebKit notu kayıtta (`EngineNotes`). Açık: (d) Firefox ileti metni, Firefox sınıf süresi (590 sn) ölçümü.
 - D-1732: (c) kayıt notu, (d) `Facts.skip` sonuca bağlandı (atlanacak `nav` bölgesi olan sayfada blokları atla bağlantısı; kopuk sayfa düzeni E-29/E-30/E-54'te gezinme yok); `sameNameElsewhere` kayıtta bilgi (D-1789, bağlam ölçüsü yok).
 - D-1709: araç kısmı: `ExecutableOverrides` + `SHOPFOLIO_BROWSER_EXECUTABLES` (`motor=yol|motor=yol`), kayıt motor sürümünü yazar. `12` §4.17 karar cümlesi ve K-1630 AÇIK.
-- Yapılmadı (sonraki A4 işçisi): D-1228, D-1418, D-1456 (320 genişlik gözlemleri), D-1433, D-1455 (paylı `12` satırları), D-1709 belge kararı.
+- Yapılmadı (ilk işçide; devam işçisi yaptı, aşağıda): D-1228, D-1418, D-1456, D-1433, D-1455, D-1709 belge kararı.
+
+### A4 devamı (devam işçisi)
+
+`src` değişmedi (geçici değişinimler `git checkout src` ile geri alındı). Yeni dosya `Browser/NarrowClassTests.cs`; tohum (`BrowserSeed`) iki yayında soru ve bir şube (haritada aç bağlantılı) ekledi.
+
+- **D-1228, D-1418, D-1456 (tarayıcı, KK3: üç motor × iki yol; yerelde chromium ve firefox betikli ve betiksiz, webkit CI E2E).** `NarrowClassTests` üç sınıfta (320, 768, 1280) elementlerin gerçek kutularını okur: iletişim sayfası (VAL-B037 geniş sınıfta solda kimlik bloğu ve şubeler, sağda form; öteki sınıflarda tek sütun ve sıra; kimlik bloğu tam, kısaltılmamış, bir bağlantı ya da katlanmanın arkasında değil), VAL-A853 (altbilgideki "İletişim" başlığı altında blok ile sayfadaki blok aynı alanlar, ikisi tam; başlık `/iletisim`'e gider), VAL-A120 (telefon, e-posta, adres), VAL-A121 (her şubede "Haritada aç", adres şubenin harita bağlantısı, yeni sekme), VAL-A122 (dört alan doldurulur ve değer durur, konu seçilir, Gönder görünür; gönderilmez), VAL-B067 (SSS tek sütun, her soru ve cevap tam), VAL-B078 (yeniden doğrulama ekranı tek sütun, bütün blok ve denetim görünür ve sınır içinde, yatay taşma yok), E-25 (dar ve orta sınıfta yatay sekme ve bölümlerden önce; geniş sınıfta dikey liste; "Hesabı sil" her sınıfta son bölüm; klavyeyle belge sırasıyla ve görünür alanda gezinme: chromium ve firefox Tab tuşuyla, webkit odakla). Yatay taşma okuması 04 8.3.2 satır 1'in tek izinli kesmesini (dar sınıfta üst bilgideki uzun marka adı) hariç tutar.
+- **Gözlemin bulduğu sapma → D-1790:** geniş sınıfta hesap ekranının iç gezinmesi solda değil, bölümlerin üstünde tam genişlikte (`Profile.cshtml` `account-layout` kullanmıyor); `04` 5.25.18'e aykırı, `src` → T604 U. Testte iki yönlü bilinen sapma (`KnownNavigationNotAtTheLeft`): sayfa düzelince gözlem kırılır.
+- **D-1433:** `TheRequestAnswered429_WritesNoLinkAndNoDispatchRow_VALA498_D1433`: limit aşılana dek yazılan bağlantı ve kuyruk satırları ölçülür, bir 429 daha gelir, iki sayı değişmez ve e-posta ekseninde bir deneme daha sayılır. Ayırt edicilik: işlem geri alma kuralı (`TransactionRunner`, reddedilen sonuç kaydedilmez) ve sınırda bağlantı yazan geçici bir değişiklik birlikte uygulanınca kırmızı (bağlantı sayısı 4 → 5), geri alındı; yalnız tek başına sınırda bağlantı yazan değişiklik testi kırmadı, çünkü ret sonucunu işlem sarmalayıcısı geri alır (iddiayı tutan o kural).
+- **D-1455, D-1433 paylı satırlar:** her payın kanıtı aşağıdaki "Paylı satır kanıtları" tablosunda; PASS okuması T604 doğrulayıcısının, `12` `Durum` hücreleri yazılmadı.
+- **D-1709:** `12` v0.37 §4.17 "Tarayıcı kümesi" (3) iki sürümün koşusunu yazar; K-1630 (`PRODUCT_DISCOVERY_STATUS.md`).
+- **D-1732 (a), (b):** kodda zaten kapalı çıktı (T552 düzeltme 2/2b; `WcagCriteria.SourceScan` var olan `AccessibilityRecordTests.TheSourceScan...` testlerini anar, `ResultOf` sonucu matristen türetir); ilk A4 işçisi satırı yanlış okumuştu, satır kapatıldı.
+- **D-1736 (d):** `AccessibilityCriteriaTests.ReachAsync`: odak sayfanın son denetiminde kalırsa "Tab sırasında değil", başka denetimde kalırsa "keyboard trap" der; `AuditScriptsTests.Reach_OfAControlOutOfTheTabOrder_...` ve `Reach_OfAFocusThatDoesNotLeaveAControl_...` (chromium, firefox; webkit odağı betikle verir, durum orada doğmaz). Firefox sınıf süresinin 590 sn altı ölçümü ve CI E2E doğrulaması F6 gate'e ileri atıldı (süre bütçesi; yerelde firefox betikli ve betiksiz sınıf koşuları ayrı ayrı geçti).
+- **`TitleMeasure.KnownWithoutBrand`:** tohum artık SSS içeriği ve "Sıkça Sorulanlar" menü adı taşıdığından `/sss` başlığı bu ad olarak güncellendi (D-1788 aynen açık).
+- **`BrowserWaitScanTests`:** `InlineData` dizgesindeki `() =>` `ForbiddenTestPatternScan`'i kırıyordu (önceki işçiden kalma, yalnız Unit TAM'da görüldü); ok işlevli örnek gövdeye taşındı.
+
+**Koşular (devam).** Unit TAM: Consistency dışı 7540/7540, `Consistency=true` 696/696. Integration (ilgili sınıflar): `NarrowClassTests` 4 test × (chromium, firefox) × (betikli, betiksiz) yeşil; `AuditScriptsTests` (iki yeni Reach testi dahil) chromium ve firefox yeşil; `CustomerPasswordResetAndReauthenticationPageTests` yeşil; chromium betikli: `AccessibilityAuditTests` + `AccessibilityScanTests` + `AccessibilityCriteriaTests` + `AccessibilityRecordTests` + `ScreenInventoryTests` tek çağrıda 27/27 (6 dk 40 sn; tohum değişikliğinden sonra bir kez `ScreenInventoryTests` E-09 başlığı kırmızı çıktı, `TitleMeasure` düzeltildi, `ScreenInventoryTests` + `TitleMeasureTests` 20/20). Webkit ve tam Integration: **TAM: CI E2E**, **TAM: CI**. `dotnet format` değişen yedi `.cs` dosyasında değişiklik üretmedi.
+
+**Paylı satır kanıtları (D-1433, D-1455; `Durum` yazılmadı).**
+
+| `12` satırı | Payı bu task'ın | Kanıt (test) | Öteki pay |
+|---|---|---|---|
+| VAL-A352 | T516: sıfırlama istekleri 429 (KK4) | `TooManyRequestsOfOneAddress_Give429_AndTheRequestsAreCounted_T516_KK4`, `TheBlockOfTheResetRequest_LiftsWhenTheAttemptsLeaveTheWindow_D572_T516_KK4` | kayıt ve doğrulama bağlantısının yeniden istenmesi: T514 |
+| VAL-A362 | T516: yeniden doğrulamada L-1, şifre değiştirme işlemi (KK9) | `AWrongPassword_Gives422WithTheFieldMessage_CountsForL1_AndGivesNoPermission_T516_KK9`, `TooManyWrongPasswords_Give429_AndTheRightOneIsThenNotAccepted_T516_KK9`; T517: e-posta ve silme işlemleri `TheEmailChange_...T517_KK7`, `TheDeletion_NeedsTheValue_...T517_KK10` | sayfa ucunun L-1 sayacı hesabı silme ve e-posta için ayrıca yok |
+| VAL-A451 | T516: bağlantı tüketilmez (KK7) | `AWeakOrCommonPassword_Gives422_AndTheLinkIsNotConsumed_T516_KK7` | değer tüketilmez payı T517: `AWeakOrCommonPassword_Gives422_AndTheValueStaysUnspent_T517_KK6` |
+| VAL-A498 | T516: 429 | `TooManyRequestsOfOneAddress_...T516_KK4` ve yeni `TheRequestAnswered429_WritesNoLinkAndNoDispatchRow_VALA498_D1433` (ek bağlantı ve kuyruk satırı yok) | UC-111 panel ucu (başka task) |
+| VAL-A499, VAL-A501 | T516 müşteri yüzü (UC-61, UC-60/62) | `AWrongPassword_Gives422WithTheFieldMessage_...T516_KK9`, `AnOperationOutsideTheClosedList_IsA303ToTheAccountPage_T516_KK8`, `AnOperationParameterSentTwice_..._T538` | UC-185, UC-108 panel |
+| VAL-A506 | T516: bağlantı eski hâli (UC-59) | `AValidLink_OpensTheSettingStep_AndEveryOtherStateOpensTheInvalidOne_T516_KK5`, `ALinkSpentBetweenThePageAndTheButton_Gives200WithTheInvalidState_AndChangesNothing_T516_KK7` | UC-53 T514, UC-112 panel |
+| VAL-A561, VAL-A562 | T516: UC-57, UC-59 | `TheRequest_GivesTheSameAnswerForARegisteredAndAnUnregisteredAddress_T516_KK2`, `TheRequest_QueuesTheEmailOnlyForAVerifiedAccount_...T516_KK3`; `TheNewPassword_ClosesEverySession_OpensNone_AndTheOldPasswordStopsWorking_T516_KK6` | UC-111, UC-112 panel |
+| VAL-A675 | T516: E-23 payı (KK6) | `TheNewPassword_ClosesEverySession_...T516_KK6` | E-21, E-28 |
+| VAL-A100 | T517: e-posta değişikliği başlar (KK7) | `TheEmailChange_WritesThePendingChange_SendsTheLinkToTheNewAddress_AndTheAccountKeepsTheOldOne_T517_KK7` | doğrulanınca hesabın e-postası olur: T343 |
+| VAL-A103 | T517: üç işlem değer ister (KK2, KK10) | `ThePosts_WithoutTheValue_Go303ToTheReauthenticationAndWriteNothing_T517_KK2`, `TheDeletion_NeedsTheValue_AndAMissingOneGoesToTheReauthentication_T517_KK10` | yeniden doğrulama ekranı: T516 |
+| VAL-A494 | T517: UC-66, UC-67 (KK9) | `TheLinkAskedForAgain_WithNothingPendingIs422_AndTooManyAskingsGive429_T517_KK9`, `TheEmailChange_Gives429OnlyWhenItReplacesAPendingChange_...T517_KK8` | UC-49, UC-179, UC-180 |
+| VAL-A504 | T517: UC-66 (KK8) | `TheEmailChange_RefusesABrokenAddress_AVerifiedOthersAddress_ButNotAnUnverifiedOnes_AndSpendsNoValue_T517_KK8` | UC-179 |
+| VAL-A554 | T517: ad kaydı "Kaydedildi" (KK4) | `TheName_IsWritten_With303AndTheSavedNotice_AndAnEmptyNameIs422_T517_KK4` | adres, ürün, kategori, kupon payları |
+| VAL-A560 | T517: UC-67 (KK9) | `TheLinkAskedForAgain_IsNew_TheEarlierOnesAreSuperseded_AndTheLifeIsNotLengthened_T517_KK9` | UC-49, UC-180 |
+| VAL-A566 | T517: UC-65 (KK5) | `ThePasswordChange_TakesTheValueOnce_EndsTheOtherSessions_AndKeepsThisOne_T517_KK5` | UC-181 |
 
 **Koşular.** Unit: `BrowserWaitScanTests` 21/21 (tam Unit koşulmadı: **TAM: CI**). Integration (ilgili sınıflar): `TitleMeasureTests`, `ExecutableOverridesTests`, `AuditScriptsTests`, `MigrationBundleTests` (çözümleme testleri), kesilen betik testleri geçti; chromium betikli: `AccessibilityAuditTests` + `AccessibilityScanTests` + `AccessibilityCriteriaTests` + `AccessibilityRecordTests` + `ScreenInventoryTests` tek çağrıda 27/27 (8 dk 45 sn). Firefox, webkit ve betiksiz yol: **TAM: CI E2E**. Integration TAM: CI. `dotnet format` değişen dosyalarda değişiklik üretmedi.
 
@@ -224,6 +260,25 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 | A5 (4) aynı sayıyı anan yerler | ✓ | `09` §8.3 görünüm cümlesi zaten "türleri ile üyeleri" der (kod söze yetişti); başka belge sayısı değişmedi |
 | A5 (9) eşitlik denetimi iki yönlü | ✓ | D-1614 listesi ve `PanelGateReadGaps`, `NeverOpenForTheCustomer` ikisi de iki yönlü kırılır; ters yön testleri var |
 | A2 12 satırı durumları | ⚠ | `VAL-A351`, `VAL-C075`, `VAL-A306`, `VAL-A308` BEKLEMEDE bırakıldı: kanıt testleri var, PASS yazımı ve uygulama kaydı payı faz kapısı/`12` sahibinde |
+| **A4** Kabul 1: A4 kalemleri kapanır ya da gerekçeyle daraltılır (önceki işçinin yaptıkları dahil) | ✓ | Kapandı: D-1678, D-1704, D-1710, D-1746, D-1228, D-1418, D-1433, D-1455, D-1456, D-1709, D-1732 (hepsi `✅ Çözüldü → T604`, kanıt satırda). Daraltıldı: D-1736 (d) Firefox sınıf süresi ve CI E2E → F6 gate (gerekçe satırda); D-1789 → F6 gate (yeni ölçüt tasarımı); yeni D-1788, D-1790 → T604 U. `grep -nE "T604" Docs/DEFERRED_BACKLOG.md Docs/DEFERRED_BACKLOG.d/*.md` ile on iki kalemin her biri tarandı: ⚪ ve hedefi T604 kalan A4 kalemi yok |
+| A4 D-1228 | ✓ | `NarrowClassTests.TheContactPage_...D1228` (VAL-B037, A853, A120, A121, A122; 320/768/1280), `TheFaqPage_...VALB067`; 12 satırı `Durum` yazılmadı (gözlem kaydı ekranlı: `screenshots/VAL-*`) |
+| A4 D-1418 | ✓ | `NarrowClassTests.TheReauthenticationScreen_...D1418_VALB078` |
+| A4 D-1456 | ✓ | `NarrowClassTests.TheAccountScreen_...D1456`; sapma D-1790 (src) |
+| A4 D-1433 | ✓ | `TheRequestAnswered429_WritesNoLinkAndNoDispatchRow_VALA498_D1433`; paylı satır tablosu |
+| A4 D-1455 | ✓ | Paylı satır kanıtları tablosu (T517 payları) |
+| A4 D-1709 | ✓ | `ExecutableOverridesTests` + `12` v0.37 §4.17 (3) + K-1630 |
+| A4 D-1732 | ✓ | (a), (b) kodda kapalı (`WcagCriteria.SourceScan`, `ResultOf`), (c), (d) `EngineNotes`, `Facts.skip` |
+| A4 D-1736 | ~ | (a), (b), (c) yapıldı; (d) ileti metni yapıldı (`AuditScriptsTests.Reach_...D1736`), Firefox sınıf süresi ve CI E2E F6 gate'e (kısmen karşılanan kabul: PASS sayılmaz, satır açık ve yeni hedefli) |
+| A4 Kabul 3 / KK3: üç motor, iki yol; ölçüt kaydı tek çağrıda eksiksiz | ~ | chromium ve firefox betikli ve betiksiz yeşil (`NarrowClassTests`, `AuditScriptsTests`); ölçüt kaydı (Audit + Scan + Criteria + Record + ScreenInventory) chromium betikli tek çağrıda 27/27; webkit ve firefox'ta ölçüt kaydı sınıf grubu ve 590 sn ölçümü CI E2E'ye (TAM: CI E2E) |
+| A4 Kabul 4 / KK4: D-1678 | ✓ | `MigrationBundleTests` (varsayılan 5 dk, 9 geçersiz değer, 3 geçerli değer) |
+| A4 Kabul 5 / KK5: satırlar | ✓ | sayaca dokunulmadı; kapanan satırlar `✅ Çözüldü → T604`, daraltılanlar yeni hedef ve gerekçeyle |
+| A4 KK2: para-güvenlik | ✓ | D-1433 `VAL-A498` (kimlik/oturum bağlantısı): ayırt edicilik değişinimle gösterildi (yukarıda); eski testler değişmedi, Unit TAM ve ilgili Integration sınıfları yeşil; geri alma: test dosyalarının PR'ı |
+| A4 `sik-fail-nedenleri` (1) bekçi/tarama istisnası geniş | ✓ | Tarama ya da bekçi değişmedi; `BrowserWaitScanTests` yalnız örnek taşıdı |
+| A4 (2) çağrı biçimi kaçırma | ✓ | Yeni tarama yok |
+| A4 (3) 06 default/FK | ✓ | Şema değişmedi |
+| A4 (4) aynı sayıyı anan yerler | ✓ | `12` v0.37: üst bilgi, altbilgi ve `PRODUCT_DISCOVERY_STATUS` 12 satırı birlikte; MEMORY'ye dokunulmadı (kural); karar kaydı K-1630 |
+| A4 (5) belge kuralını değiştiren 09 metni karar kaydısız | ✓ | `12` §4.17 (3) kural değil koşu biçimi; yine de K-1630 yazıldı; `09` değişmedi |
+| A4 gerçek saate bağlı test yok | ✓ | Yeni testler bekleme içermez (`BrowserWaitScan` temiz); odak okuması Tab sonrası anlık |
 
 ## ⚠ Maddeler
 

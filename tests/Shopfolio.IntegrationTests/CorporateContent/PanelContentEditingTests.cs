@@ -7,6 +7,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.Imaging;
 using Shopfolio.Infrastructure.Jobs;
+using Shopfolio.Infrastructure.Validation;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Administration.Contracts;
@@ -164,6 +165,32 @@ public sealed class PanelContentEditingTests : IAsyncLifetime
         Assert.Equal(PanelContentSaveOutcome.Rejected, result.Outcome);
         Assert.NotEmpty(result.Rejections);
         Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM offerings"));
+    }
+
+    [Fact]
+    public async Task ABranchImage_IsWritten_OnANewRecordAndOnAnEdit_WithItsAltText_AndADeletedImage_IsRejectedAtTheImageField_D1547()
+    {
+        Guid first = await SeedImageAsync();
+        Guid second = await SeedImageAsync();
+
+        PanelContentSaveResult created = await RunAsync(m => m.SavePanelContentAsync(
+            new PanelContentSaveCommand(PanelContentType.Branch, null, null, new PanelContentValues { Name = "Merkez", ImageId = first, ImageAltText = "Giriş" }, [], []), Ct));
+        Guid branch = created.Id!.Value;
+        int version = await ScalarAsync<int>($"SELECT version FROM branches WHERE id = '{branch}'");
+
+        PanelContentSaveResult gone = await RunAsync(m => m.SavePanelContentAsync(
+            new PanelContentSaveCommand(PanelContentType.Branch, branch, version, new PanelContentValues { Name = "Merkez", ImageId = Guid.CreateVersion7() }, [], []), Ct));
+        Guid keptAfterRefusal = await ScalarAsync<Guid>($"SELECT image_id FROM branches WHERE id = '{branch}'");
+        PanelContentSaveResult edited = await RunAsync(m => m.SavePanelContentAsync(
+            new PanelContentSaveCommand(PanelContentType.Branch, branch, version, new PanelContentValues { Name = "Merkez", ImageId = second, ImageAltText = "Vitrin" }, [], []), Ct));
+
+        Assert.Equal(PanelContentSaveOutcome.Saved, created.Outcome);
+        Assert.Equal(PanelContentSaveOutcome.Rejected, gone.Outcome);
+        Assert.Contains(gone.Rejections, r => r.Field == PanelContentEditing.BranchImageField && r.Code == FieldCodes.InvalidImage);
+        Assert.Equal(first, keptAfterRefusal);
+        Assert.Equal(PanelContentSaveOutcome.Saved, edited.Outcome);
+        Assert.Equal(second, await ScalarAsync<Guid>($"SELECT image_id FROM branches WHERE id = '{branch}'"));
+        Assert.Equal("Vitrin", await ScalarAsync<string>($"SELECT image_alt_text FROM branches WHERE id = '{branch}'"));
     }
 
     [Fact]

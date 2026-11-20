@@ -8,6 +8,7 @@ using Microsoft.Net.Http.Headers;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Imaging;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages;
@@ -46,7 +47,7 @@ public sealed class ContentPanelPageTests : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         await ListSeed.ClearAsync(_database.Dsn);
-        await ExecuteAsync("TRUNCATE about_pages, offerings, portfolio_items, faq_items, branches, custom_pages, announcements CASCADE");
+        await ExecuteAsync("TRUNCATE about_pages, offerings, portfolio_items, faq_items, branches, custom_pages, announcements, images CASCADE");
         _adminKey = (await TestSessions.AdminAsync(_database.Dsn)).Key;
     }
 
@@ -260,7 +261,215 @@ public sealed class ContentPanelPageTests : IAsyncLifetime
         Assert.Contains("Kalıcı ad", after, StringComparison.Ordinal);
     }
 
+    // ---- D-1547: the behaviours T534's validation proved only by a temporary check ----
+
+    [Fact]
+    public async Task TheNewAddress_OfASingleRecord_WithTheRecordThere_Is303ToIt_ForTheAboutPageAndTheAnnouncement()
+    {
+        AboutPage about = AboutPage.Create(Base);
+        Announcement announcement = Announcement.Create(Base);
+        await SaveAsync(c =>
+        {
+            c.AboutPages.Add(about);
+            c.Announcements.Add(announcement);
+        });
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage aboutMove = await client.GetAsync(new Uri(ContentRoutes.NewPath(PanelContentType.AboutPage), UriKind.Relative), Ct);
+        using HttpResponseMessage announcementMove = await client.GetAsync(new Uri(ContentRoutes.NewPath(PanelContentType.Announcement), UriKind.Relative), Ct);
+
+        Assert.Equal(HttpStatusCode.SeeOther, aboutMove.StatusCode);
+        Assert.Equal(ContentRoutes.FormPath(PanelContentType.AboutPage, about.Id), aboutMove.Headers.Location!.OriginalString);
+        Assert.Equal(HttpStatusCode.SeeOther, announcementMove.StatusCode);
+        Assert.Equal(ContentRoutes.FormPath(PanelContentType.Announcement, announcement.Id), announcementMove.Headers.Location!.OriginalString);
+    }
+
+    [Fact]
+    public async Task ASecondAnnouncement_FromTheNewForm_Is409_WritesNothing_AndTheFormBindsToTheRecordThatIsThere()
+    {
+        Announcement existing = Announcement.Create(Base);
+        existing.Text = "Bayram tatili";
+        await SaveAsync(c => c.Announcements.Add(existing));
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage second = await PostAsync(client, ContentRoutes.NewPath(PanelContentType.Announcement), "SaveContent", ("Input.Text", "Başka duyuru"));
+        string html = WebUtility.HtmlDecode(await second.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
+        Assert.Contains(ContentRoutes.FormPath(PanelContentType.Announcement, existing.Id) + "?handler=SaveContent", html, StringComparison.Ordinal);
+        Assert.DoesNotContain(ContentRoutes.NewPath(PanelContentType.Announcement) + "?handler=SaveContent", html, StringComparison.Ordinal);
+        Assert.Contains(Shopfolio.Infrastructure.Forms.ConflictControls.OverwriteLabel, html, StringComparison.Ordinal);
+        Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM announcements"));
+        Assert.Equal("Bayram tatili", await ScalarAsync<string>($"SELECT text FROM announcements WHERE id = '{existing.Id}'"));
+    }
+
+    [Theory]
+    [InlineData(150, HttpStatusCode.SeeOther, 1L)]
+    [InlineData(151, HttpStatusCode.UnprocessableEntity, 0L)]
+    public async Task TheNameCeiling_P27_IsOneHundredFiftyCharacters_At151_ThePageIs422_AndWritesNothing(int length, HttpStatusCode expected, long rows)
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage response = await PostAsync(client, ContentRoutes.NewPath(PanelContentType.Offering), "SaveContent", ("Input.Name", new string('a', length)));
+
+        Assert.Equal(expected, response.StatusCode);
+        Assert.Equal(rows, await ScalarAsync<long>("SELECT count(*) FROM offerings"));
+    }
+
+    [Theory]
+    [InlineData(120, HttpStatusCode.SeeOther, 1L)]
+    [InlineData(121, HttpStatusCode.UnprocessableEntity, 0L)]
+    public async Task TheAnnouncementTextCeiling_IsOneHundredTwentyCharacters_At121_ThePageIs422_AndWritesNothing(int length, HttpStatusCode expected, long rows)
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage response = await PostAsync(client, ContentRoutes.NewPath(PanelContentType.Announcement), "SaveContent", ("Input.Text", new string('d', length)));
+
+        Assert.Equal(expected, response.StatusCode);
+        Assert.Equal(rows, await ScalarAsync<long>("SELECT count(*) FROM announcements"));
+    }
+
+    [Theory]
+    [InlineData("https://maps.example.com/sube", HttpStatusCode.SeeOther, 1L)]
+    [InlineData("maps.example.com/sube", HttpStatusCode.UnprocessableEntity, 0L)]
+    [InlineData("javascript:alert(1)", HttpStatusCode.UnprocessableEntity, 0L)]
+    [InlineData("https://maps.example.com/bir sube", HttpStatusCode.UnprocessableEntity, 0L)]
+    public async Task TheBranchMapLink_NeedsTheFormOfALink_OtherwiseThePageIs422_AndWritesNothing(string link, HttpStatusCode expected, long rows)
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage response = await PostAsync(client, ContentRoutes.NewPath(PanelContentType.Branch), "SaveContent", ("Input.Name", "Merkez şube"), ("Input.MapUrl", link));
+
+        Assert.Equal(expected, response.StatusCode);
+        Assert.Equal(rows, await ScalarAsync<long>("SELECT count(*) FROM branches"));
+    }
+
+    [Fact]
+    public async Task TheAboutPageDeletion_IsRefused422_OnThePage_EvenWithTheMark_AndTheRecordStays()
+    {
+        AboutPage about = AboutPage.Create(Base);
+        await SaveAsync(c => c.AboutPages.Add(about));
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        string path = ContentRoutes.FormPath(PanelContentType.AboutPage, about.Id);
+
+        using HttpResponseMessage refused = await PostAsync(client, path, "DeleteContent", ("Input.Confirmed", "true"));
+        string html = WebUtility.HtmlDecode(await refused.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, refused.StatusCode);
+        Assert.Contains(ContentFormModel.AboutNotDeletableText, html, StringComparison.Ordinal);
+        Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM about_pages"));
+    }
+
+    [Fact]
+    public async Task TheBrandForm_WithADeletedLogoOrIcon_Is422_AtTheImage_AndWritesNothing_ABoundImage_Saves()
+    {
+        Guid image = await SeedImageAsync();
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        string version = await BrandVersionAsync(client);
+        string gone = Guid.CreateVersion7().ToString("D");
+
+        using HttpResponseMessage deletedLogo = await PostAsync(client, PanelFramePaths.Brand, "SaveBranding", ("Input.BrandName", "Deneme"), ("Input.LogoId", gone), ("Input.Version", version));
+        string logoHtml = WebUtility.HtmlDecode(await deletedLogo.Content.ReadAsStringAsync(Ct));
+        using HttpResponseMessage deletedIcon = await PostAsync(client, PanelFramePaths.Brand, "SaveBranding", ("Input.BrandName", "Deneme"), ("Input.FaviconId", gone), ("Input.Version", version));
+        string iconHtml = WebUtility.HtmlDecode(await deletedIcon.Content.ReadAsStringAsync(Ct));
+        string afterRefusals = await BrandVersionAsync(client);
+        using HttpResponseMessage bound = await PostAsync(client, PanelFramePaths.Brand, "SaveBranding", ("Input.BrandName", "Deneme"), ("Input.LogoId", image.ToString("D")), ("Input.Version", version));
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, deletedLogo.StatusCode);
+        Assert.Contains(BrandModel.ExpiredImageText, logoHtml, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, deletedIcon.StatusCode);
+        Assert.Contains(BrandModel.ExpiredImageText, iconHtml, StringComparison.Ordinal);
+        Assert.Equal(version, afterRefusals);
+        Assert.Equal(HttpStatusCode.SeeOther, bound.StatusCode);
+    }
+
+    [Fact]
+    public async Task TheBrandForm_ShowsTheFallbackTexts_UntilTheNameAndTheLogoAreSet()
+    {
+        Guid image = await SeedImageAsync();
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        (_, string bare) = await GetAsync(client, PanelFramePaths.Brand);
+        string version = await BrandVersionAsync(client);
+        using HttpResponseMessage saved = await PostAsync(client, PanelFramePaths.Brand, "SaveBranding", ("Input.BrandName", "Marka Ltd"), ("Input.LogoId", image.ToString("D")), ("Input.Version", version));
+        (_, string set) = await GetAsync(client, PanelFramePaths.Brand);
+
+        Assert.Contains(BrandModel.NameFallbackPrefix, bare, StringComparison.Ordinal);
+        Assert.Contains(BrandModel.LogoFallbackText, bare, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.SeeOther, saved.StatusCode);
+        Assert.DoesNotContain(BrandModel.NameFallbackPrefix, set, StringComparison.Ordinal);
+        Assert.DoesNotContain(BrandModel.LogoFallbackText, set, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TheBranchImage_IsWritten_OnANewRecordAndOnAnEdit_AndADeletedImage_Is422_AtTheImage()
+    {
+        Guid first = await SeedImageAsync();
+        Guid second = await SeedImageAsync();
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage created = await PostAsync(client, ContentRoutes.NewPath(PanelContentType.Branch), "SaveContent", ("Input.Name", "Merkez"), ("Input.ImageId", first.ToString("D")), ("Input.ImageAltText", "Giriş"));
+        Guid branch = await ScalarAsync<Guid>("SELECT id FROM branches WHERE name = 'Merkez'");
+        Assert.Equal(first, await ScalarAsync<Guid>($"SELECT image_id FROM branches WHERE id = '{branch}'"));
+        Assert.Equal("Giriş", await ScalarAsync<string>($"SELECT image_alt_text FROM branches WHERE id = '{branch}'"));
+        string path = ContentRoutes.FormPath(PanelContentType.Branch, branch);
+        string version = (await ScalarAsync<int>($"SELECT version FROM branches WHERE id = '{branch}'")).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+        using HttpResponseMessage deleted = await PostAsync(client, path, "SaveContent", ("Input.Name", "Merkez"), ("Input.ImageId", Guid.CreateVersion7().ToString("D")), ("Input.Version", version));
+        string deletedHtml = WebUtility.HtmlDecode(await deleted.Content.ReadAsStringAsync(Ct));
+        Guid afterRefusal = await ScalarAsync<Guid>($"SELECT image_id FROM branches WHERE id = '{branch}'");
+        using HttpResponseMessage edited = await PostAsync(client, path, "SaveContent", ("Input.Name", "Merkez"), ("Input.ImageId", second.ToString("D")), ("Input.Version", version));
+
+        Assert.Equal(HttpStatusCode.SeeOther, created.StatusCode);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, deleted.StatusCode);
+        Assert.Contains(ContentFormModel.ExpiredImageText, deletedHtml, StringComparison.Ordinal);
+        Assert.Equal(first, afterRefusal);
+        Assert.Equal(HttpStatusCode.SeeOther, edited.StatusCode);
+        Assert.Equal(second, await ScalarAsync<Guid>($"SELECT image_id FROM branches WHERE id = '{branch}'"));
+    }
+
+    [Fact]
+    public async Task TheOpenForm_AfterAPublishMove_IsAStaleForm_AndItsSaveIs409_WithTheMovedRecordKept()
+    {
+        Guid faq = await SeedFaqAsync("İade var mı?", "<p>Evet.</p>", 1);
+        int opened = await ScalarAsync<int>($"SELECT version FROM faq_items WHERE id = '{faq}'");
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        string path = ContentRoutes.FormPath(PanelContentType.FaqItem, faq);
+
+        using HttpResponseMessage moved = await PostAsync(client, path, "ChangePublishStatus", ("Input.PublishStatus", "Published"));
+        using HttpResponseMessage stale = await PostAsync(client, path, "SaveContent", ("Input.Question", "Değişen soru?"), ("Input.Answer", "<p>Hayır.</p>"), ("Input.Version", opened.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+
+        Assert.Equal(HttpStatusCode.SeeOther, moved.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, stale.StatusCode);
+        Assert.Equal("Published", await ScalarAsync<string>($"SELECT publish_status FROM faq_items WHERE id = '{faq}'"));
+        Assert.Equal("İade var mı?", await ScalarAsync<string>($"SELECT question FROM faq_items WHERE id = '{faq}'"));
+    }
+
     // ---- helpers ----
+
+    private static async Task<string> BrandVersionAsync(HttpClient client)
+    {
+        (_, string html) = await GetAsync(client, PanelFramePaths.Brand);
+        return System.Text.RegularExpressions.Regex.Match(System.Text.RegularExpressions.Regex.Match(html, @"<input[^>]*Input\.Version[^>]*>").Value, @"value=""(\d+)""").Groups[1].Value;
+    }
+
+    private async Task<Guid> SeedImageAsync()
+    {
+        int n = Interlocked.Increment(ref _counter);
+        Image image = Image.Create($"gorsel-{n:D4}", ImageFormat.Jpeg, 800, 600, Base);
+        await SaveAsync(c => c.Images.Add(image));
+        return image.Id;
+    }
 
     private async Task<Guid> SeedProductAsync(string name)
     {

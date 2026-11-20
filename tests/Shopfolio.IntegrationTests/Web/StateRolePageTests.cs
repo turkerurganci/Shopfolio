@@ -56,6 +56,14 @@ public sealed partial class StateRolePageTests
         [OrderOperation.ReopenDefectClaimByCustomer] = "/ayip-talebi",
     };
 
+    /// <summary>The customer's links whose operation is closed for the customer by the catalogue today, with the reason; the test holds the list both ways (an operation that opens must leave it).</summary>
+    private static readonly Dictionary<OrderOperation, string> NeverOpenForTheCustomer = new()
+    {
+        [OrderOperation.CancelDigitalItem] = "the catalogue closes the customer's cancellation of a digital item (D-1197)",
+        [OrderOperation.WithdrawDigitalItem] = "no pair of the 6.2.16 rows seeds a digital item the customer can still withdraw from (D-1779)",
+        [OrderOperation.ReopenDefectClaimByCustomer] = "no pair of the 6.2.16 rows seeds a closed defect claim the customer can reopen (D-1779)",
+    };
+
     /// <summary>The panel detail's form of each operation it draws; an operation that opens one of several forms lists them all (the page draws the form for the part that exists).</summary>
     private static readonly Dictionary<OrderOperation, string[]> PanelForms = new()
     {
@@ -133,11 +141,17 @@ public sealed partial class StateRolePageTests
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
         List<string> problems = [];
         int offered = 0;
+        Dictionary<OrderOperation, int> openedForCustomer = [];
 
         foreach (StateCase state in cases)
         {
             (Guid orderId, string accessKey) = await SeedAsync(state);
             IReadOnlyList<OrderOperationEntry> open = await OpenAsync(factory, orderId, ActorKind.Buyer);
+            foreach (OrderOperationEntry entry in open.Where(e => CustomerLinks.ContainsKey(e.Operation)))
+            {
+                openedForCustomer[entry.Operation] = openedForCustomer.GetValueOrDefault(entry.Operation) + 1;
+            }
+
             using HttpResponseMessage response = await client.GetAsync($"/siparis/erisim/{accessKey}", Ct);
             string html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct));
             if (response.StatusCode != HttpStatusCode.OK)
@@ -178,6 +192,23 @@ public sealed partial class StateRolePageTests
             if (transferOpen != html.Contains("TR00 0000 0000 0000 0000 0000 00", StringComparison.Ordinal) && !state.Card)
             {
                 problems.Add($"{state.Row} {state.Shipping}+{state.Payment}: the transfer details are {(transferOpen ? "open but not shown" : "shown but not open")}.");
+            }
+        }
+
+        // No silent pass (D-1661), as the panel's test does: an operation of the customer's links that no pair of the rows opens is a seed that cannot reach it, so its drawing is not checked.
+        foreach (OrderOperation operation in CustomerLinks.Keys.Where(o => !NeverOpenForTheCustomer.ContainsKey(o)))
+        {
+            if (openedForCustomer.GetValueOrDefault(operation) == 0)
+            {
+                problems.Add($"{operation} was never open for the customer in any pair of the rows: the seeds cannot reach it, so its link is not checked.");
+            }
+        }
+
+        foreach ((OrderOperation operation, string reason) in NeverOpenForTheCustomer)
+        {
+            if (openedForCustomer.GetValueOrDefault(operation) != 0)
+            {
+                problems.Add($"{operation} is open for the customer in {openedForCustomer[operation]} cases, so it is no longer a known closed operation ({reason}).");
             }
         }
 

@@ -87,10 +87,10 @@ public sealed class NoticeParameterSourceScanTests
     }
 
     [Theory]
-    [InlineData("public void OnGet(string? notice) => Keep();", NoticeParameterSourceScan.HandlerParameterRule)]
-    [InlineData("public void OnGet(string? Notice = null) => Keep();", NoticeParameterSourceScan.HandlerParameterRule)]
-    [InlineData("public Task OnPostAsync(int id, string? notice) => Keep();", NoticeParameterSourceScan.HandlerParameterRule)]
-    [InlineData("public Task OnGetPageAsync([FromQuery(Name = \"x\")] string? NOTICE, CancellationToken cancel) => Keep();", NoticeParameterSourceScan.HandlerParameterRule)]
+    [InlineData("public void OnGet(string? notice);", NoticeParameterSourceScan.HandlerParameterRule)]
+    [InlineData("public void OnGet(string? Notice = null);", NoticeParameterSourceScan.HandlerParameterRule)]
+    [InlineData("public Task OnPostAsync(int id, string? notice);", NoticeParameterSourceScan.HandlerParameterRule)]
+    [InlineData("public Task OnGetPageAsync([FromQuery(Name = \"x\")] string? NOTICE, CancellationToken cancel);", NoticeParameterSourceScan.HandlerParameterRule)]
     [InlineData("[BindProperty(SupportsGet = true)] public string? Notice { get; set; }", NoticeParameterSourceScan.BoundPropertyRule)]
     [InlineData("[FromQuery] public string? Notice { get; set; }", NoticeParameterSourceScan.BoundPropertyRule)]
     [InlineData("var raw = Request.Query[NoticeParameter.ParameterName];", NoticeParameterSourceScan.NameConstantRule)]
@@ -101,9 +101,9 @@ public sealed class NoticeParameterSourceScanTests
     }
 
     [Theory]
-    [InlineData("public void OnGet(string? noticeText) => Keep();")]
-    [InlineData("public void OnGet(int id) => Keep(notice);")]
-    [InlineData("public void Helper(string? notice) => Keep();")]
+    [InlineData("public void OnGet(string? noticeText);")]
+    [InlineData("public void OnGet(int id); var notice = Read();")]
+    [InlineData("public void Helper(string? notice);")]
     [InlineData("public MessageView? Notice { get; private set; }")]
     [InlineData("[BindProperty(SupportsGet = true)] public string? Sort { get; set; }")]
     [InlineData("[BindProperty] public string? Notice { get; set; }")]

@@ -1,6 +1,6 @@
 # T604 (A) — F5 kapısından kalan test aracı kalemleri
 
-**Faz:** F5 | **Durum:** ⏳ Devam ediyor (dilimler A1, A2 ve A3 bitti; A7'de D-1547 sürüyor; A4…A6 payları sonraki dilimlerde) | **Tarih:** 2026-11-18
+**Faz:** F5 | **Durum:** ⏳ Devam ediyor (dilimler A1, A2, A3, A7 bitti; A5 kısmi (D-146, D-1226, D-1285, D-1329, D-1614, D-1627, D-1657, D-1661 bitti; D-1626, D-1636, D-1656, D-1671 sürüyor)) | **Tarih:** 2026-11-18
 
 ---
 
@@ -71,13 +71,33 @@ Kalemler: D-1005, D-1020, D-1120, D-1130. Yalnız test, betik ve belge dosyası 
 - Unit: `Shopfolio.UnitTests.Architecture` ad alanı 1861/1861. Unit TAM ve Integration: bkz. A7 notları (süre sınırında bölündü; TAM Unit ve format devam işçisinde yeniden koşulur).
 - `test-pre-commit.sh` 240/240 (eski bekçiyle 232/240: sekiz yeni `check 0` kırmızı).
 
-## Dilim A7 — belge ve yorum (kısmi)
+## Dilim A7 — belge ve yorum
 
 Kalemler: D-1546, D-1547, D-1617.
 
 - D-1546: `ConcurrencySourceScan.ShareLockText` iletisi `ProductLocks.cs`'in yalnız `FOR KEY SHARE` alabildiğini söyler; iletiyi `ConcurrencySourceScanTests.ShareLockText_…_D1546` sınar. Belge payı F5 kapısında kapanmıştı.
 - D-1617: iki yorum `src/…/OrderDetail.Refunds.cs` içinde; A parçası `src` değiştirmez, U parçası aynı dosyayı değiştiriyor → T604 U'ya daraltıldı (satırda gerekçe).
-- D-1547: **sürüyor** (devir notu: `helper-state/shopfolio/impl/T604/devir-A3.md`).
+- D-1547: yedi davranışın hepsi kalıcı testte (`ContentPanelPageTests` 12 yeni test, `PanelContentEditingTests.ABranchImage_…_D1547`); önceki işçinin derlenmemiş WIP işi derlendi, `InitializeAsync` `images CASCADE` markalama satırını da siliyordu (`brandings` kayıtsız kaldı, açılış düştü) — `UPDATE brandings` + `DELETE FROM images` ile düzeltildi. Ayırt edicilik: Hakkımızda silme kuralı ve marka görsel metni bozulunca iki test KIRMIZI. D-1768: `09` v0.37 §18.2 madde 2 (a) yan cümlesi + K-1626 (`PRODUCT_DISCOVERY_STATUS.md`).
+
+## Dilim A5 — kaynak taraması ve mimari testler (kısmi)
+
+Kalemler: D-146, D-1226, D-1285, D-1329, D-1614, D-1627, D-1657, D-1661 bitti; D-1626, D-1636, D-1656, D-1671 sürüyor (süre bütçesiyle bölündü; devir notu `helper-state/shopfolio/impl/T604/devir-A3b.md`). `src` değişmedi.
+
+- D-146: `NoticeParameterSourceScan` üç tırnaksız okuma yolunu bulur (işleyici parametresi `notice`, `SupportsGet`/`FromQuery` ile bağlı `Notice` özelliği, yazıcı dışında `NoticeParameter.ParameterName` ile değer okuma; `ContainsKey` varlık sorusu muaf — `Product.cshtml.cs` gerçek kullanımı). Örnek `ViolationSamples/Notices/NoticeUnquotedReads.cs`.
+- D-1226: `ControlSourceScanTests.TypedLimits` `min`/`max` sayı niteliklerini de bulur; yalnız `min="1"` ve `<progress max="100">` tam biçimiyle muaf. Gezinme (2) maddesi koşullu ileri nottur (başka olay tarihi yok).
+- D-1285: (a) görünüm taraması durum üyelerini tam dizge olarak bulur; (b) `OperationSourceScan.Gate()` runner'ın kendi değişkeninin `RunAsync`'ini ister (üç biçim); başka alıcı kapı değildir.
+- D-1329: tarama kümeyi zincirin kökü sayar (ExecuteUpdate/ExecuteDelete çağrısından önce ya da `CurrentStateWrite.ApplyAsync(` içinde); `names.Products` değeri küme değildir. `CompanySettingsWriter` yerel değişken geçici çözümünün sadeleşmesi `src` ister → T604 U'ya daraltıldı.
+- D-1614: `DirectRequestReadScan` + `DirectRequestReadScanTests`: sayfa modelindeki her `Request.Form`/`Request.Query` okuması gerekçeli, adla ve sayıyla kapalı listeye bağlı (11 kayıt); iki yönlü (liste dışı okuma ve eskimiş kayıt kırar).
+- D-1627: `LinkKeySourceScan.MethodHeader` atomik gruplarla geri izlemesiz; uzun metin testi.
+- D-1657: `StateRoleCheck.Gates` ters yön (`GateReadMissing`); E-45 ve E-46 sayfaları kapıyı okumuyor → bilinen boşluk `PanelGateReadGaps` (iki yönlü) ve yeni D-1778 (`src`, T604 U).
+- D-1661: müşteri durum x rol testi işlem başına "hiç açılmadı" sayar; bilinen üç işlem `NeverOpenForTheCustomer` listesinde (iki yönlü): `CancelDigitalItem` (D-1197) ve yeni D-1779 (tohum eksiği: `WithdrawDigitalItem`, `ReopenDefectClaimByCustomer`).
+
+### Notlar (A5)
+
+- Unit TAM 8187 test: 8186 geçti, 1 kırmızı (`ForbiddenTestPatternScanTests`: `NoticeParameterSourceScanTests` `InlineData` dizgelerinde `) =>`); düzeltildi, o sınıf ve komşu sınıflar yeniden koşuldu, yeşil. Tam koşu düzeltmeden sonra yinelenmedi.
+- Integration (yalnız ilgili sınıflar): `ContentPanelPageTests` + `PanelContentEditingTests` 43/43, `StateRolePageTests` 2/2. **TAM: CI.**
+- `dotnet format --verify-no-changes` değişen `.cs` dosyalarında temiz.
+- Ayırt edicilik (D-1547): `ContentForm` Hakkımızda silme koşulu ve `Brand` görsel kodu geçici bozuldu → iki test KIRMIZI; `ProductConstants` tavanı bozulması modeli değiştirdiği için geçersiz deney (başlatma hatası), geri alındı. A5 taramaları için kırmızı örnekler `ViolationSamples` ve Theory satırlarıdır (taramanın eski hâli yeni sabitleri taşımadığından derlenmez).
 
 ## Para ve güvenlik kalemleri (KK2)
 
@@ -157,10 +177,23 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 | A3 `sik-fail-nedenleri` (2) çağrı biçimi kaçırma | ✓ | Adlı bağımsız değişken (`exception:`, `message:`), sabit adlı şablon, `var` şablon, iç içe anonim nesne, `Log` ve `Scope` çağrısı örnekli |
 | A3 `sik-fail-nedenleri` (3) 06 default/FK | ✓ | Şema değişmedi |
 | A3 `sik-fail-nedenleri` (4) aynı sayıyı anan yerler | ✓ | `git-hooks/README.md` dördüncü istisnayı ve `pre-commit` başlık yorumu üçüncü satırı yazar; sayaçlara dokunulmadı |
-| A3 `sik-fail-nedenleri` (5) belge kuralı / karar kaydı | ⚠ | `09 §18.2` madde 2a'nın yan cümlesi ve K-1626 D-1768'e bırakıldı (belge değişmedi; tarama kodu sözü genişletiyor) |
+| A3 `sik-fail-nedenleri` (5) belge kuralı / karar kaydı | ✓ (K-1626 yazıldı) | `09 §18.2` madde 2a'nın yan cümlesi ve K-1626 D-1768'e bırakıldı (belge değişmedi; tarama kodu sözü genişletiyor) |
 | **A7** D-1546 | ✓ | `ShareLockText` iletisi + `ShareLockText_NamesTheProductLocksExceptionAndTheOneFormItMayTake_D1546` |
 | A7 D-1617 | ~ | T604 U'ya daraltıldı (`src` yorumu; satırda gerekçe) |
-| A7 D-1547 | ⚠ | Henüz yazılmadı: devam işçisi (`devir-A3.md`) |
+| A7 D-1547 | ✓ | `ContentPanelPageTests` (yedi davranış: `TheNewAddress_OfASingleRecord…`, `ASecondAnnouncement…409`, `TheNameCeiling_P27…`, `TheAnnouncementTextCeiling…`, `TheBranchMapLink…`, `TheAboutPageDeletion…422`, `TheBrandForm_WithADeletedLogoOrIcon…`, `TheBrandForm_ShowsTheFallbackTexts…`, `TheBranchImage_IsWritten…`, `TheOpenForm_AfterAPublishMove…409`) + `PanelContentEditingTests.ABranchImage…D1547`; iki sınıf 43/43; değişinim iki testi kırdı |
+| A7 D-1768 | ✓ | `09` §18.2 madde 2 (a) yan cümlesi, v0.37 başlık ve altbilgi, `PRODUCT_DISCOVERY_STATUS` 09 satırı ve K-1626 satırı |
+| **A5** D-146 | ✓ | `NoticeParameterSourceScanTests.OnTheUnquotedReadSample…_D146`, `EachUnquotedReadForm_IsOneFinding_D146` (8 biçim), `TheNearForms_AreNoFinding_D146` (7 yakın biçim); gerçek kaynak taraması temiz |
+| A5 D-1226 | ✓ | `ControlSourceScanTests.ATypedLimit_IsFound_KK10` (6 yeni min/max satırı), `ALimitFromTheConstants_IsQuiet_KK10` (3 yeni) |
+| A5 D-1285 | ✓ | `OperationSourceScanTests`: 3 ihlal + 3 temiz yeni runner satırı, 3 durum üyesi dizgesi ihlal, 2 düz yazı temiz; `ApplicationSource_EveryGatedHandlerReachesTheGate`, `TheSamplePage_…` gerçek dosyada yeşil |
+| A5 D-1329 | ~ | Tarama bitti (`Scan_OfASetThatRootsTheWrite_IsAFinding_…_D1329` 4 satır, 2 sessiz satır); `CompanySettingsWriter` sadeleşmesi T604 U'ya daraltıldı |
+| A5 D-1614 | ✓ | `DirectRequestReadScanTests` (gerçek dosya, eskimiş kayıt, örnek 6 okuma, başka dosya/sayı, kapsam) |
+| A5 D-1627 | ✓ | `Scan_OfALongTextOfOpenParenthesesAndWhereWords_FinishesWithoutATimeout_D1627`; sınıf 16/16 + yeni |
+| A5 D-1657 | ✓ | `PanelScreenThatStopsReadingTheSalesGate_IsReported_D1657`, `AKnownPanelGateGap_ThatThePageHasClosed_IsReportedAsStale_D1657`; D-1778 |
+| A5 D-1661 | ✓ | `TheCustomersPage_OffersExactlyTheOpenOperations_InEveryPairOfTheRows_KK2` (2/2); D-1779 |
+| A5 D-1626, D-1636, D-1656, D-1671 | ⚠ | Yapılmadı (süre bütçesi); devir notunda; satırlar ⚪ hedef T604 |
+| A5 `sik-fail-nedenleri` (1)(2) istisna geniş / çağrı biçimi | ✓ | Muafiyetler tam biçimli ve karşı örnekli (`min="1"`, `progress max="100"`, `ContainsKey`, 11 kayıtlı okuma listesi ad+sayı ile); yeni tarama biçimleri 3–8'er örnek |
+| A5 (4) aynı sayıyı anan yerler | ✓ | `09` §8.3 görünüm cümlesi zaten "türleri ile üyeleri" der (kod söze yetişti); başka belge sayısı değişmedi |
+| A5 (9) eşitlik denetimi iki yönlü | ✓ | D-1614 listesi ve `PanelGateReadGaps`, `NeverOpenForTheCustomer` ikisi de iki yönlü kırılır; ters yön testleri var |
 | A2 12 satırı durumları | ⚠ | `VAL-A351`, `VAL-C075`, `VAL-A306`, `VAL-A308` BEKLEMEDE bırakıldı: kanıt testleri var, PASS yazımı ve uygulama kaydı payı faz kapısı/`12` sahibinde |
 
 ## ⚠ Maddeler
@@ -178,6 +211,12 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 - A2 D-1289 `VAL-A306`/`VAL-A308` testleri ve K-899 testi var olan davranışın ilk testleridir; `VAL-A306`/`VAL-A308` için değişinim yapılmadı (ikisi seed ve ret durumlarını doğrudan sınar), K-899 ve öteki testler değişinimle kırmızı gösterildi.
 - A2 `/kayit` testleri `CustomerSignInPageTests` içinde (Google taklidi ve `Open(google, gateOpen)` orada); backlog "`CustomerSignInPageTests` ve `RegistrationPageTests`" dediği için yeri iki dosyaya bölündü.
 - A2 D-1301 testleri bekletmeyi `pg_stat_activity` ile bekler (var olan KK8 deseni); gerçek saate bağlı bekleme yok.
+- A5 D-1657: `04` 6.1.5.2 "Panelde hâl E-31, E-44…E-47'de görünür" der; E-45 (ödeme yöntemleri) ve E-46 (kargo ve varsayılanlar) sayfaları kapıyı okumuyor. Karar (kurala uygun, `src` yasak): boşluk açık listeye ve D-1778'e yazıldı (T604 U); belge ya da kod hangisine hizalanacağı U işçisinin kararı.
+- A5 D-1661: müşteri testinin iki işlemi (`WithdrawDigitalItem`, `ReopenDefectClaimByCustomer`) hiçbir çiftte açılmıyor; D-1779 (tohum eksiği), bilinen liste iki yönlü.
+- A5 D-1329: tarama konumsal ("küme zincirin kökü"), tür çözümlemesi değil; metin taramasında tür bilgisi olmadığından bu seçildi. Geçici çözümün sadeleşmesi `src` → T604 U.
+- A3 D-1768: karar kaydı yeri `PRODUCT_DISCOVERY_STATUS.md` karar tablosu (K-1626) + `09` altbilgisi; U işçisi K-1625'i aynı tabloya ekleyecekse birleştirmede aynı satır bölgesinde çakışma çıkabilir.
+- Önceki işçinin `ContentPanelPageTests.InitializeAsync` değişikliği `images CASCADE` ile `brandings` satırını siliyordu (29/43 kırmızı); düzeltildi.
+- Süre bütçesi nedeniyle A5'in D-1626, D-1636, D-1656, D-1671 kalemleri yapılmadı (BÖLÜNDÜ).
 
 ## Commit & PR
 

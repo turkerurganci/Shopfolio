@@ -344,7 +344,7 @@ Bu dilimde dış varsayım yok.
 
 ## Dilim UE2b — panel ayıp başvurusu yazıcıları, UE2 artıkları (para ve güvenlik)
 
-**BÖLÜNDÜ (süre).** Beş kalemin üçü kapandı (D-1617, D-1758, D-1759); D-892 ve D-610 sonraki U dilimine (hedef T604 kalır, satırlarında okuma ve yapılacak; devir notu `devir-UE2b.md`).
+**İlk işçi BÖLÜNDÜ (süre).** Beş kalemin üçü kapandı (D-1617, D-1758, D-1759); D-892 devamda kapandı (aşağıda "Devam (2026-11-21)"); D-610 sonraki U dilimine (hedef T604 kalır, satırında gerekçe).
 
 ### Yapılan İşler
 
@@ -353,7 +353,7 @@ Bu dilimde dış varsayım yok.
 | D-1617 | `Pages/Panel/OrderDetail.Refunds.cs` iki özet yorumu yalnız bağlanan modeli anar (`ProcessRefundInput`, `RetryCardRefundInput`); kalkan üç model adı kodda geçmez |
 | D-1758 | Karar K-1629 (1): `DownloadRefusal.ItemClosed`; `OrderPageReader.ClosedReason` sırası ödeme onaysız → kalem kapanmış (`OpenQuantity <= 0`) → hak dolmuş; `OrderPageModel.ItemClosedText`; `07` 4.16.3 ve §6.2 `DownloadNotAvailable` (v0.46), `04` 5.16.13 (v0.59) |
 | D-1759 | Karar K-1629 (2): `Carts.AddAsync` (kilitten önce ve kilit altında yeniden) ve `UpdateItemAsync` sepetin kendi ayırmasını (`OwnReservedUnitsAsync`) geçer; `ICatalogModule.JudgeCartAddAsync` / `CartQuantityReader.JudgeAddAsync` yeni `ownReservedUnits` parametresi; form alan kanıt tablosunun 7.1.4.1 satırı yeni çağrı satırına hizalandı (`FormFieldRuleEvidence.cs`) |
-| D-892 | yapılmadı — okuma satırında: UC-140 talebin malını teslim alır ve izi yazar, bedel indirimi UC-133'tür; eksik olan teslim almadan sonraki geri ödemenin hatta düşmesidir (`ListOwedRefundRecordsAsync` talebin teslim almasını borçlu saymaz; `RescindDefectClaimAsync` çağrılmaz) |
+| D-892 | ilk işçide yapılmadı (devamda kapandı) — okuma satırında: UC-140 talebin malını teslim alır ve izi yazar, bedel indirimi UC-133'tür; eksik olan teslim almadan sonraki geri ödemenin hatta düşmesidir (`ListOwedRefundRecordsAsync` talebin teslim almasını borçlu saymaz; `RescindDefectClaimAsync` çağrılmaz) |
 | D-610 | yapılmadı — süre |
 | Kayıtlar | K-1629 (iki madde); `04` v0.59, `07` v0.46; `DEFERRED_BACKLOG.md` D-1617 ✅, D-892 ve D-610 not; `DEFERRED_BACKLOG.d/T604-U.md` D-1758, D-1759 ✅; `STATUS_CHANGELOG.d/T604-U.md` |
 
@@ -403,4 +403,73 @@ Kırmızı: `src` geçici bozuldu (yedekten geri kondu), yeni testler koşuldu.
 
 - ⚠ K-1629 (2) okuması: `02 §3.17.7`'nin "müşteri kendi ayırdığı stoğa takılmaz" cümlesi ekleme ve adet yolunu da kapsar sayıldı (belge metni değişmedi).
 - ⚠ D-1758 metni (`ItemClosedText`) yeni bir müşteri cümlesidir; `04` 5.16.13'e birebir yazıldı.
-- ⚠ D-892 bu dilimde kod almadı: borçlu kayıt kuralı (AfterSales), UC-131 başlatma yolu, panel sayacı ve geri ödeme satırı birlikte değişir; para işidir, süreye sığmadı.
+- ⚠ D-892 bu dilimde kod almadı: borçlu kayıt kuralı (AfterSales), UC-131 başlatma yolu, panel sayacı ve geri ödeme satırı birlikte değişir; para işidir, süreye sığmadı. → Devamda kapandı.
+
+### Devam (2026-11-21) — D-892 (para)
+
+#### Yapılan İşler
+
+| Kalem | Değişiklik |
+|---|---|
+| D-892 | Karar K-1629 (3). Borçlu kayıt: `AfterSalesModule.PendingWork` yeni `OwedKind.ClaimReceipt` — talebe bağlı teslim alma (`Return.DefectClaimId`, talep açık) → `OwedRefundRecord(DefectClaimRescission, RecordId = talep, ReturnId = teslim alma)`; `NextSubjectsAsync` (panel ana sayfa sayacı) ve `SubjectsOfItemsAsync` (sipariş ekranı satırı) aynı sorgudan (`ClaimReceipts()`). UC-131: `PanelRefundSteps.ProcessRefundAsync` bu satırda `RescindDefectClaimAsync`'i çağırır (`RescindDefectClaimRequest.ReturnId`); geri ödeme `ReturnId` taşır (`DefectRescissionShares.ReturnId` → `Refund.ReturnId`), `FindSubjectsWithRefundAsync` teslim almayı karşılanmış sayar. Havalede adım gönderimdir: `MarkTransferRefundSentAsync` (izlenen satırı `FindAsync` ile bulur) + `ApplyFirmRefundSentAsync`; kartta iş satırı yazıcıda. Sürüm bir kez (`GateAsync` kilidi + `LockItemAsync` aynı satır; `RaiseVersionOnce` ikinci artışı yapmaz — test sürüm +1'i sınar). İz `RefundManually` aynı işlemde. |
+| Tutar (tek ev) | `FirmRefundAmounts.OfAsync` dönme dalı: `IAfterSalesModule.DefectClaimRescissionAmountAsync` (denetimin `RescissionSplitAsync`'i ile aynı bölüşüm) ve `FirmRefundAmounts.ItemRefundLeftAsync` (D-893 kalem tavanı; ödenen satırın kendi borcu düşülmez, öteki borçlu kayıtlar tavansız tutarlarıyla) küçüğü; kargo ücreti yok. Yazıcı aynı tavanı okur (`OrderTransitions.ItemRefundLeftAsync`/`OwedRecordAmountsAsync` kaldırıldı). |
+| Bedel indirimi | `ReduceDefectClaimPriceAsync`, `ReduceDefectClaimPriceRequest`, `IAfterSalesModule.CheckDefectClaimPriceReductionAsync` kaldırıldı (hiçbir uçtan çağrılmıyordu; bedel indirimi UC-133, `09 §25`). |
+| Kayıtlar | K-1629 (3); `DEFERRED_BACKLOG.md` D-892 ✅, D-610 not; `DEFERRED_BACKLOG.d/T604-U.md` D-1783 (yeni); `STATUS_CHANGELOG.d/T604-U.md` |
+| D-610 | yapılmadı — süre; satırında gerekçe, hedef T604 |
+
+#### Para ve güvenlik kalemleri (KK2)
+
+Kırmızı: `src` dalın önceki başına (`47ceb568`) geri alındı, yeni testler koşuldu, sonra `src` geri kondu.
+
+| Kalem | Test | Kırmızı (eski kod) | Yeşil |
+|---|---|---|---|
+| D-892 | `Web/OrderDetailPageTests.AClaimsGoodsReceipt_OwesTheRescissionsRefund_AndUc131PaysIt_WithTheTrailLine_AndNoSecondRefund_D892` (UC-140 teslim alma POST'u → satır → UC-131 onay penceresi 100 TL → onaylı POST → `DefectClaimRescission` + `ReturnId` + `SentAt`, sürüm +1, ödeme ekseni, `RefundManually` 1, ikinci POST yazmaz, satır kalkar) | "Expected: 3, Actual: 1" (teslim almanın geri ödeme satırı yok) | ✓ |
+
+**Spec gereği değişen testler** (`ReduceDefectClaimPriceAsync` kalktı):
+
+| Test | Değişiklik | Gerekçe |
+|---|---|---|
+| `ItemRecordsTests.PriceReduction_StartsAnAmountBasedRefundOfTheItem_AndTakesNoUnit_KK8` | silindi | UC-133'ün davranışı `OrderDetailPageTests.ProcessAmountBasedRefund_*` (KK5, KK7) ile sınanır |
+| `ItemRecordsTests.PriceReduction_IsCappedAtThePaidMoneyNotRefunded_TheStartedRefundsIncluded_KK8` | silindi | UC-133 sipariş tavanı: `ProcessAmountBasedRefund_AnEmptyZeroOrExceedingAmount_Is422_AndWritesNothing_KK7` |
+| `ItemRecordsTests.PriceReduction_IsHeldToTheItemsPaidAmount_WhenTheOrderPaidMore_D893` | silindi | yazıcıyla gitti; UC-133'ün kalem tavanı → D-1783 |
+| `Rescission_AfterAPriceReductionOfTheWholePaidAmount_PaysNothingMore_AndIsRefused_D893`, `Rescission_AfterAPartialPriceReduction_PaysAtMostWhatTheItemsRefundsLeft_D893` | bedel indirimi UC-133'ün yazdığı satırla tohumlanır (`SeedPriceReductionAsync`); beklentiler aynı | yazıcı kalktı |
+| `Remedies_OnTheTransferLineWithoutAnIban_RequestItOnce_AndSendB14Once_KK8`, `Remedies_OnTheTransferLineWithAnIbanOnFile_AskNothing_KK8`, `Remedies_WithoutMoneyToPayBack_OrByANonAdministrator_AreRefused_AndWriteNothing_KK8`, `Rescission_TakesAtMostTheClaimsUnitsNotRescindedYet_AndOnlyOnAnOpenClaim_KK8` | ikinci çözüm ikinci dönme olur ya da bedel indirimi satırı düşer; beklentiler aynı | yazıcı kalktı |
+| `TheIban_OfTheItemsRequest_...`, `TheIban_OnTheOrdersFile_..._KK5` | bedel indirimi yerine ikinci dönme; beklentiler aynı | yazıcı kalktı |
+| `ItemRecordsTests.PriceReduction_OnTheTransfer_CountsTheItemsRecordWhoseRefundIsNotBornYet_D906` → `Rescission_OnTheTransfer_CountsTheItemsRecordWhoseRefundIsNotBornYet_D906` | D-906 sayımı dönmenin kalem tavanında sınanır (100 TL indirim + iptalin doğmamış borcu düşülür, dönme kalanı öder) | yazıcı kalktı; UC-133'ün D-906 sayımı `ProcessAmountBasedRefund_..._KK7` |
+
+- **Çıkış yolu ve geri alma:** şema ve göç yok (`ck_refunds_links_by_type` dönmede `return_id`'ye zaten izin veriyordu); geri alma bu commit'in `git revert`'üdür.
+- **Güvenlik taraması:** yeni dış bağımlılık, sır, girdi yolu yok; anahtar sunucunun borçlu kayıt listesinden eşlenir (yabancı anahtar 404, eski davranış).
+
+#### Öz denetim (bütün UE2b kalemleri ve KK payları)
+
+| Denetim | Sonuç |
+|---|---|
+| D-1617 | ✓ — yorumlar (ilk işçi); `grep` eski üç model adını `src`'de bulmaz |
+| D-1758 | ✓ — K-1629 (1), `ClosedReason`, `OrderPageTests..._D1758` (ilk işçi; Unit TAM ve bu koşu yeşil) |
+| D-1759 | ✓ — K-1629 (2), `OrderConfirmationTests..._D1759` (ilk işçi) |
+| D-892 "talebin teslim alması borçlu kayıt; UC-131 `RescindDefectClaimAsync` ile başlatır; sayaç ve satır aynı kuraldan; iz aynı işlemde; `ReduceDefectClaimPriceAsync` kaldırılır" | ✓ — `ClaimReceipts()` iki okuyucuda; `PanelRefundSteps` dalı; `RefundManually` aynı birimde; yazıcı ve denetimi kalktı; sayfa testi |
+| D-892 kilit/sürüm çifte artışı | ✓ — test sürümün tam bir arttığını sınar (`version + 1`) |
+| D-610 | ⚪ gerekçeli — süre; satırında not, hedef T604 |
+| KK1 — envanter | ✓ — UE2b'nin 5 kalemi: 4 ✅, D-610 gerekçeli |
+| KK2 — para ve güvenlik ayrı başlık, kırmızı–yeşil, eski testler | ✓ — yukarıdaki tablolar; değişen eski testler "spec gereği değişen testler" tablosunda gerekçeli |
+| KK3 — tarayıcı | uygulanmaz — A parçasının (PR #594) |
+| KK4 — D-1678 | uygulanmaz — bu dilimin kalemi değil |
+| KK5 — satırlar ve sayaç | ✓ — D-892 yerinde ✅; D-1783 parça dosyasında; sayaca dokunulmadı |
+| Sık FAIL (1) istisna geniş · (2) tarama çağrı biçimi | uygulanmaz — tarama değişmedi |
+| (3) 06 varsayılan / FK | uygulanmaz — şema değişmedi |
+| (4) aynı kuralı anan öteki yerler | ✓ — D-893 satırının "tek işlev" adı değişti (K-1629 (3) yazar); `OwedRefundRecord.ReturnId` ve `NextSubjectsAsync` "five kinds" özetleri altıya çekildi; test sınıf özetleri |
+| (5) belge kuralı karar kaydısız | ✓ — K-1629 (3); belge metni değişmedi (`03` 8.3.2.1, 8.3.3.7, `07` UC-131 akışı zaten yazar) |
+| Modül arayüzüne yeni yöntem, test düzenekleri | ✓ — `IAfterSalesModule.DefectClaimRescissionAmountAsync`'i uygulayan başka sınıf yok (`grep`); Unit TAM yeşil |
+| `dotnet format` değişen `.cs` | ✓ — dalın 114 `.cs` dosyası (`--include`), değişiklik yok |
+
+#### Test Sonuçları
+
+- **Unit:** TAM 8097/8097 ✓.
+- **Integration:** koşulan — `Ordering.ItemRecordsTests` (tamamı), `PanelHomeTests`, `CardRefundJobTests`, D-892 sayfa testi: 114/114 ✓; `OrderDetailPageTests.ProcessRefund*`, `ProcessAmountBasedRefund*`, `RequestRefundIban*`, `RetryCardRefund*` ve D-892: 25/25 ✓. TAM: CI.
+
+#### Notlar
+
+- ⚠ Kapanmış (çözülmüş) talebin teslim alması borçlu satırda görünmez; talep yeniden açılınca görünür (`03` 1.9.1; denetim açık talep ister). Sahip yerine karar: K-1629 (3).
+- ⚠ D-893'ün bedel indirimi kalem tavanı yazıcıyla gitti; UC-133 `03` 8.3.3.7'nin sipariş tavanıyla kalır → D-1783 (ulaşılabilir davranış değişmedi).
+- ⚠ `MarkTransferRefundSentAsync` artık izlenen satırı `FindAsync` ile bulur (aynı birimde başlatılıp gönderilen dönme için); kaydedilmiş satırlarda davranış aynı.
+- ⚠ D-610 bu devama sığmadı (dört para yazıcısı ve sınamaları birlikte).

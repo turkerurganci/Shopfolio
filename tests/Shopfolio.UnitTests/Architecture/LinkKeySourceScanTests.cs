@@ -53,6 +53,19 @@ public sealed class LinkKeySourceScanTests
     }
 
     [Fact]
+    public void Scan_OfALongTextOfOpenParenthesesAndWhereWords_FinishesWithoutATimeout_D1627()
+    {
+        // The method header pattern holds no backtracking: a long text of calls that never close and of where-clauses that never reach a body ends at once, however loaded the machine is.
+        string text = string.Concat(Enumerable.Repeat("Call(a, b where x y z ", 4000)) + string.Concat(Enumerable.Repeat("Name (int a) where T : class ", 4000));
+
+        System.Diagnostics.Stopwatch clock = System.Diagnostics.Stopwatch.StartNew();
+        IReadOnlyList<(string Rule, int Line)> findings = LinkKeySourceScan.Scan("src/Shopfolio.Web/Pages/Account/Long.cs", text);
+
+        Assert.Empty(findings);
+        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(4), clock.Elapsed.ToString());
+    }
+
+    [Fact]
     public void Scan_OnViolationSampleOutsideTheSecurityFolders_ReportsTheGeneratorTheDerivationAndTheConsuming()
     {
         IReadOnlyList<(string Rule, int Line)> findings = LinkKeySourceScan.Scan("src/Shopfolio.Web/Pages/Account/Misuse.cs", Sample());

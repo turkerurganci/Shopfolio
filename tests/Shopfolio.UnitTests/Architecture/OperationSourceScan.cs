@@ -74,6 +74,9 @@ internal static partial class OperationSourceScan
         if (view)
         {
             Add(findings, ViewDecides, WordsRegex([.. statusTypes, "TurkeyTime", "AddDays", "AddMonths", "DateTime", "DateTimeOffset", "TimeProvider", "LastDayOfPeriod", "DateOnly.FromDateTime"]), clean);
+
+            // D-1285 (a): a status member as a whole string (Model.StatusName == "Shipped", case "Paid":) is the same decision by its member name; prose in markup is not quoted.
+            Add(findings, ViewDecides, QuotedWordsRegex(statusMembers), clean);
         }
         else
         {
@@ -85,6 +88,9 @@ internal static partial class OperationSourceScan
 
     private static Regex WordsRegex(IEnumerable<string> words) =>
         new(@"(?<![A-Za-z0-9_])(?:" + string.Join('|', words.Distinct(StringComparer.Ordinal).Select(Regex.Escape)) + @")(?![A-Za-z0-9_])", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5));
+
+    private static Regex QuotedWordsRegex(IEnumerable<string> words) =>
+        new(@"[""']\s*(?:" + string.Join('|', words.Distinct(StringComparer.Ordinal).Select(Regex.Escape)) + @")\s*[""']", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5));
 
     private static void Add(List<(string Rule, int Line)> findings, string rule, Regex pattern, string text)
     {
@@ -342,6 +348,7 @@ internal static partial class OperationSourceScan
 
     // The gate: OperationGate.Decide(...) (also qualified), or a OperationRunner used (a field, a parameter or a resolved service of that type) and run - its
     // .RunAsync( called after it (09 8.3 item 2 (a); D-154 (a)): a handler that only resolves the runner never reaches the gate.
-    [GeneratedRegex(@"\bOperationGate\s*\.\s*Decide\b|\bOperationRunner\b[\s\S]*?\.\s*RunAsync\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    // D-1285 (b): the runner's own variable runs: "OperationRunner runner = ...; runner.RunAsync(" or "var o = ...<OperationRunner>(); o.RunAsync("; a RunAsync on any other receiver is no gate.
+    [GeneratedRegex(@"\bOperationGate\s*\.\s*Decide\b|\bOperationRunner\s+(?<v>[A-Za-z_]\w*)\b[\s\S]*?(?<![\w.])\k<v>\s*\.\s*RunAsync\s*\(|\b(?<v>[A-Za-z_]\w*)\s*=\s*[^;]*?<\s*OperationRunner\s*>[\s\S]*?(?<![\w.])\k<v>\s*\.\s*RunAsync\s*\(|<\s*OperationRunner\s*>\s*\(\s*\)\s*\.\s*RunAsync\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex Gate();
 }

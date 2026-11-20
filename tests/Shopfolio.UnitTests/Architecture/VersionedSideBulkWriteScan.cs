@@ -106,10 +106,17 @@ internal static partial class VersionedSideBulkWriteScan
                     continue;
                 }
 
-                Match named = NamedSetPattern().Match(statement.Value);
-                if (named.Success)
+                // D-1329: the set is the root of the write's chain, so it stands before the ExecuteUpdate/ExecuteDelete call (db.Products.Where(...).ExecuteUpdateAsync(...)) or
+                // inside CurrentStateWrite.ApplyAsync(...); the same word after the call is a value in the write (SetProperty(s => s.MenuNameProducts, names.Products)), not a set.
+                Match write = BulkWrite().Match(statement.Value);
+                bool rootBeforeCall = !write.Value.StartsWith("Execute", StringComparison.Ordinal);
+                foreach (Match named in NamedSetPattern().Matches(statement.Value))
                 {
-                    AddAt(findings, NamedSetBulkWrite, clean, statement.Index + named.Index);
+                    if (rootBeforeCall || named.Index < write.Index)
+                    {
+                        AddAt(findings, NamedSetBulkWrite, clean, statement.Index + named.Index);
+                        break;
+                    }
                 }
             }
 

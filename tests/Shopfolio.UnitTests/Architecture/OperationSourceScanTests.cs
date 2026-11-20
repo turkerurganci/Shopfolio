@@ -32,6 +32,9 @@ public sealed class OperationSourceScanTests
         "[GatedOperation] public IActionResult OnPostA() { OperationGate . Decide(r, c, 1); return Page(); }",
         "[GatedOperation] public IActionResult OnPostA() => Infrastructure.Operations.OperationGate.Decide(r, c, 1).IsAllowed ? Page() : Page();",
         "[GatedOperation] public async Task<IActionResult> OnPostA() { var o = Services.GetRequiredService<OperationRunner>(); await o.RunAsync(); return Page(); }",
+        "[GatedOperation] public async Task<IActionResult> OnPostA() { OperationRunner runner = Services.GetRequiredService<OperationRunner>(); await runner.RunAsync(); return Page(); }",
+        "[GatedOperation] public async Task<IActionResult> OnPostA() { await Services.GetRequiredService<OperationRunner>().RunAsync(op, ct); return Page(); }",
+        "[GatedOperation] public async Task<IActionResult> OnPostA() { OperationRunner runner = Services.GetRequiredService<OperationRunner>(); await runner . RunAsync(1); return Page(); }",
         "[GatedOperation] public IActionResult OnPostA() { return Go(); } private IActionResult Go() { return Next(); } private IActionResult Next() { OperationGate.Decide(r, c, 1); return Page(); }",
     ];
 
@@ -43,6 +46,9 @@ public sealed class OperationSourceScanTests
         "[GatedOperation] public IActionResult OnPostA() { string s = @\"OperationRunner\"; return Page(); }",
         "[GatedOperation] public IActionResult OnPostA() { var o = Services.GetRequiredService<OperationRunner>(); return Page(); }",
         "[GatedOperation] public async Task<IActionResult> OnPostA() { var o = Services.GetRequiredService<OperationRunner>(); await Other.RunAsyncLater(); return Page(); }",
+        "[GatedOperation] public async Task<IActionResult> OnPostA() { OperationRunner runner = Services.GetRequiredService<OperationRunner>(); await other.RunAsync(); return Page(); }",
+        "[GatedOperation] public async Task<IActionResult> OnPostA() { var o = Services.GetRequiredService<OperationRunner>(); await other.RunAsync(); return Page(); }",
+        "[GatedOperation] public async Task<IActionResult> OnPostA() { var o = Services.GetRequiredService<OperationRunner>(); await this.o.RunAsync(); return Page(); }",
         "[GatedOperation] public IActionResult OnPostA() { return Go(); } private IActionResult Go() { return A(); } private IActionResult A() { return B(); } private IActionResult B() { return C(); } private IActionResult C() { return D(); } private IActionResult D() { OperationGate.Decide(r, c, 1); return Page(); }",
     ];
 
@@ -54,6 +60,9 @@ public sealed class OperationSourceScanTests
         "<p>@Model.At.AddDays(3)</p>",
         "<p>@TimeProvider.System.GetUtcNow()</p>",
         "@{ var t = DateTimeOffset.UtcNow; }",
+        "@if (Model.StatusName == \"Shipped\") { }",
+        "case \"Paid\": break;",
+        "<p data-state='Cancelled'>x</p>",
     ];
 
     public static TheoryData<string> ScanClient_OfAViewThatOnlyShowsTheServersValues_IsCleanRows =>
@@ -63,6 +72,8 @@ public sealed class OperationSourceScanTests
         "@* OrderStatus *@",
         "<!-- AddDays -->",
         "<p>@Model.OrderStatusText</p>",
+        "<p>Paid orders are listed first.</p>",
+        "<p class=\"status status--@Model.StatusClass\">@Model.StatusText</p>",
     ];
 
     public static TheoryData<string> ScanClient_OfAScriptThatDecides_IsAFindingRows =>

@@ -85,7 +85,8 @@ internal sealed class CartModel : PageModel
         else if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: FormResults.ForgeryRefusedStatus })
         {
             // The forgery check answered 400 before the handler (07 2.5.4): the cart is read - the refusal wrote nothing and a read is safe - so the page shown again
-            // has its lines, not the empty cart's state (04 2.7.3.1; K-1627 (2); D-1190).
+            // has its lines, not the empty cart's state, and the check's message stands at the line whose form was sent (04 2.7.3.1; K-1627 (2); D-1190).
+            RefusedItemId = context.HandlerArguments.Values.OfType<UpdateCartItemInput>().FirstOrDefault()?.CartItemId;
             await LoadAsync(HttpContext.RequestAborted);
         }
     }

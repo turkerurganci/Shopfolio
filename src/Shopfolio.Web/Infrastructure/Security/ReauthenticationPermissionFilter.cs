@@ -5,8 +5,10 @@ using Shopfolio.Infrastructure.Values;
 namespace Shopfolio.Infrastructure.Security;
 
 /// <summary>
-/// Marks the page that shows the forms a reauthentication permission is bound to - the customer's account page (07 UC-63) and the administrator's (07 UC-104): the page decides
-/// itself whether the permission stays (its GET opens the form only for the presented value and drops the permission otherwise; its POST takes the value). No other page carries it.
+/// Marks the pages that keep the reauthentication permission's own rule: the account pages that show the forms it is bound to (07 UC-63, UC-104) - their GET opens the form only for
+/// the presented value and drops the permission otherwise, their POST takes the value - and the two reauthentication screens that grant it (07 UC-60, UC-105) - their GET drops the
+/// earlier permission, their POST replaces it or, refused, leaves it (T521 KK5). No other page of the product carries it; outside the product only the test host's forgery token page
+/// does, which no browser asks between a form and its POST.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 internal sealed class ReauthenticationFormPageAttribute : Attribute
@@ -16,8 +18,8 @@ internal sealed class ReauthenticationFormPageAttribute : Attribute
 /// <summary>
 /// The one layer that drops the reauthentication permission at the session's first page request that is not the display of the permission's form (05 6.1.5; K-971; D-1454,
 /// D-1389): every page of the storefront for the customer's session, every page of the panel for the administrator's. The page that shows the form
-/// (<see cref="ReauthenticationFormPageAttribute"/>) is left to its own rule. The permission is dropped before the handler runs, so a page whose handler grants a new
-/// permission - the reauthentication screen's POST, Google's return - keeps the one it granted. The authentication handler marks a session that holds a permission
+/// and the screen that grants it (<see cref="ReauthenticationFormPageAttribute"/>) are left to their own rule. The permission is dropped before the handler runs, so a page whose
+/// handler grants a new permission - Google's return - keeps the one it granted. The authentication handler marks a session that holds a permission
 /// (<see cref="MarkHeld"/>), so a request of a session without one asks the database nothing more.
 /// </summary>
 internal sealed class ReauthenticationPermissionFilter : IAsyncPageFilter, IOrderedFilter

@@ -65,6 +65,11 @@ else
                                 {
                                     <partial name="_Message" model="Messages.ForField(quantityId, error.Text)" />
                                 }
+
+                                @foreach (string general in summary.FormMessages)
+                                {
+                                    <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, general)" />
+                                }
                             }
                         </form>
                     }

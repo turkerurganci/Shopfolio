@@ -47,7 +47,9 @@ public sealed class ContentPanelPageTests : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         await ListSeed.ClearAsync(_database.Dsn);
-        await ExecuteAsync("TRUNCATE about_pages, offerings, portfolio_items, faq_items, branches, custom_pages, announcements, images CASCADE");
+        await ExecuteAsync("TRUNCATE about_pages, offerings, portfolio_items, faq_items, branches, custom_pages, announcements CASCADE");
+        await ExecuteAsync("UPDATE brandings SET brand_name = NULL, logo_id = NULL, favicon_id = NULL, brand_color = NULL");
+        await ExecuteAsync("DELETE FROM images");
         _adminKey = (await TestSessions.AdminAsync(_database.Dsn)).Key;
     }
 

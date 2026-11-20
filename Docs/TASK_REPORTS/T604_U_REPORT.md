@@ -473,3 +473,106 @@ Kırmızı: `src` dalın önceki başına (`47ceb568`) geri alındı, yeni testl
 - ⚠ D-893'ün bedel indirimi kalem tavanı yazıcıyla gitti; UC-133 `03` 8.3.3.7'nin sipariş tavanıyla kalır → D-1783 (ulaşılabilir davranış değişmedi).
 - ⚠ `MarkTransferRefundSentAsync` artık izlenen satırı `FindAsync` ile bulur (aynı birimde başlatılıp gönderilen dönme için); kaydedilmiş satırlarda davranış aynı.
 - ⚠ D-610 bu devama sığmadı (dört para yazıcısı ve sınamaları birlikte).
+
+## Dilim UE4 — görsel ucu, arama motoru başlığı, şube görseli, IBAN beyanı (para ve güvenlik)
+
+İki işçide yapıldı (ilki süre bütçesiyle bölündü, devir notu `devir-UE4.md`); bu bölümün tabloları iki işçinin bütün işini kapsar.
+
+### Yapılan İşler
+
+| Kalem | Değişiklik |
+|---|---|
+| D-1136, D-1711 | `Endpoints/Files/ImageEndpoint.cs` (yeni): `GET /gorsel/{id:guid}` → `ICatalogModule.FindServedImageAsync` (`ImageUploads.FindServedAsync`, `Contracts/ServedImage.cs`); kaynak kopya görsel bölümünden, P-22 medya türü, `Cache-Control: public, max-age=31536000, immutable`, doğrulayıcı başlık yok; satır yok / dosya yok / dijital dosya kimliği → gövdesiz 404. `AddressRules.ImageArea` tek yer (`FrameStyle.ImagePrefix`, `RateLimitScope._imagePath`, `EmailLinks.ImagePrefix` — son ikisi bu devamda). `deploy/caddy/Caddyfile`: `/gorsel/*` önce dosya, yoksa uygulamaya. Tarayıcı envanterinin `/gorsel/` 404 ayıklaması kalktı (`ScreenInventoryTests`, `EmptyStateTests`) |
+| D-357 | `Infrastructure/Security/StructuredData.cs` (yeni): `Render(title, metas, blocks)` başlığı, meta değerlerini ve JSON-LD bloklarını yazar ve kodlar; `Serialize(JsonObject)`. `SearchEngineData.Head` yalnız değer listesi kurar. Tarama `RichTextSourceScan.StructuredDataFile`; `09` 15.3 madde 1 (v0.37) |
+| D-1319 (1) | `ProductConstants.ImageMediaTypes`; `UploadLimits.Accept` ondan |
+| D-1319 (2) | yapılmadı — UE5 (K-1631 (3); `04` 7.2.4.10 belge kararı ister) |
+| D-1539 | `BranchImageInput`; `ContentAuthoring.CreateBranchAsync/SaveBranchAsync` görselli aşırı yüklemeler (alanlar + görsel tek yazım); `SetBranchImageAsync`, `PanelContentEditing.SaveBranchImageAsync` kalktı |
+| D-1283 (2) | `AfterSalesModule.EnterIban`: bir isteğin tek işlemindeki kayıtlar (çok satırlı iptal, gecikme feshi, çok kalemli cayma) tek `RefundIban` satırını paylaşır (K-1631 (4)); (1) A1'de (PR #594) |
+| D-1599 | karar K-1631 (5) (`02` 10.4.10 kazanır); kod ve belge hizası UE5 — 422'nin yerleri PR #594'ün eşitlik tablolarında |
+| D-1374 | karar K-1631 (6) (UC-157 doğrulanmamış kaydı da siler); kod UE5 (süre) |
+| Kayıtlar | K-1631 (altı madde); `05` v0.54, `07` v0.47, `09` v0.37; `DEFERRED_BACKLOG.md` 8 satır yerinde |
+
+### Etkilenen Modüller / Dosyalar
+
+- `src/Shopfolio.Web/Endpoints/Files/` — `ImageEndpoint.cs` (yeni), `FileEndpoints.cs`
+- `src/Shopfolio.Web/Infrastructure/` — `Security/StructuredData.cs` (yeni), `Security/RequestRateLimiting.cs`, `SearchEngine/SearchEngineData.cs`, `SearchEngine/SearchEngineValues.cs`, `Routing/AddressRules.cs`, `ProductConstants.cs`, `EmailComposition/EmailLinks.cs`
+- `src/Shopfolio.Web/Modules/` — `Catalog/` (`CatalogModule`, `ICatalogModule`, `ServedImage`, `ImageUploads`), `CorporateContent/` (`ContentAuthoring`, `ContentGallery`, `ContentInputs`, `PanelContentEditing`), `AfterSales/AfterSalesModule.Cancellations.cs`, `AfterSales/AfterSalesModule.ItemRecords.cs`
+- `src/Shopfolio.Web/Pages/` — `Components/UploadComponentModels.cs`, `Frame/FrameStyle.cs`; `deploy/caddy/Caddyfile`
+- Testler: `Files/ImageEndpointTests.cs` (yeni), `CorporateContent/PanelContentEditingTests.cs`, `CorporateContent/ContentRelationsTests.cs`, `Ordering/BranchFlowTests.T604.cs` (yeni), `Browser/ScreenInventoryTests.cs`, `Browser/EmptyStateTests.cs` (yalnız ayıklama satırları); Unit `RichTextSourceScan(Tests)`, `SitemapSourceTests`, `ControlComponentModelTests`
+- Belgeler: `05` 7.7.1, `07` 3.1.6, `09` 15.3, `PRODUCT_DISCOVERY_STATUS.md` (K-1631, belge tablosu), `DEFERRED_BACKLOG.md`, `STATUS_CHANGELOG.d/T604-U.md`
+
+### Para ve güvenlik kalemleri (KK2)
+
+Kırmızı: kalemin `src` değişikliği geçici geri alındı ya da devre dışı bırakıldı, yeni test koşuldu, sonra değişiklik geri kondu ve sınıf yeşil koşuldu.
+
+| Kalem | Test | Kırmızı (geçici bozma) | Yeşil |
+|---|---|---|---|
+| D-1136 | `ImageEndpointTests.TheAddressAPageWrites_AnswersTheRowsFile_WithP22sTypeOfItsFormat_CachedForGood_D1136` | `MapImageEndpoint` kapalı: OK beklendi, 404 (gövdeli sayfa) | ✓ |
+| D-1711 | `ImageEndpointTests.AnIdOfNoRow_ARowWithoutItsFile_AndADigitalFilesKey_AreABare404_D1711` | aynı bozma: gövdeli 404 — kırmızı | ✓ |
+| D-1539 | `PanelContentEditingTests.ABranchSave_WritesItsFieldsAndItsImageInOneWrite_TheVersionGoesUpOnce_D1539` | `ApplyBranchImage` atlandı: kırmızı | ✓ |
+| D-357 | Unit `SearchEngineDataTests.Head_AValueWithQuotesAndTags_IsEncodedInTheTitleAndTheAttributes`, `RichTextSourceScanTests.TheSearchEngineDataFile_HasNoExceptionOfItsOwn_D357` | `StructuredData` başlık/içerik kodlaması kaldırıldı: kırmızı | ✓ |
+| D-1319 (1) | Unit `ControlComponentModelTests.TheImageMediaTypes_AreP22sFormats_InTheirOrder_AndTheAcceptOfEveryImageSurface_D1319` | `ImageMediaTypes` sırası değişti: kırmızı | ✓ |
+| D-1283 (2) | `BranchFlowTests.TwoLinesCancelledInOneRequest_ShareOneIbanRow_AndALaterRequestEntersItsOwn_D1283` | `AfterSales` değişikliği geri alındı: "Assert.Single() Failure: The collection contained 2 items" | ✓ |
+
+- **Var olan testler:** `ContentRelationsTests` yardımcısı `BranchImageAsync` ayrı görsel yazımından tek yazıma çevrildi (kaldırılan API; sonuçlar aynı). Tarayıcı sınıflarında yalnız `/gorsel/` 404 ayıklaması kalktı ve eksik görsel sıfır istenir. Öteki testler değişmedi.
+- **Çıkış yolu ve geri alma:** şema ve göç yok; geri alma commit'lerin `git revert`'üdür. Görsel ucu kapatılırsa ters vekil diskteki dosyaları sunmaya devam eder (kimlikli adresler 404'e döner); paylaşılan IBAN satırı mevcut satırlara dokunmaz, yalnız yeni yazımları etkiler.
+- **Güvenlik taraması:** görsel ucu yalnız görsel bölümünü okur (`FileArea.Image`), dijital dosya kimliği 404 (testli), çerez ve ayar okumaz, istek sınırlarının dışındadır (`/gorsel`, belgeyle aynı); `HtmlString` yalnız `RichText.cs` ve `StructuredData.cs`'de (tarama); IBAN paylaşımı yalnız aynı işlem, aynı sipariş ve aynı IBAN metniyle — başka siparişin ya da önceki beyanın satırı paylaşılmaz; silme son bekleyen geri ödemeyi bekler (`RefundIbanUses`). Yeni bağımlılık, sır, girdi yolu yok.
+
+### Kabul Kriterleri Kontrolü (UE4 payı)
+
+| Madde | Durum | Kanıt |
+|---|---|---|
+| KK1 — UE4'ün kalemleri kapalı ya da gerekçeli | ✓ | 5 ✅ (D-357, D-1136, D-1711, D-1539, D-1283); D-1319 (2), D-1599, D-1374 gerekçeyle UE5, hedef T604 — satırlarında, K-1631 (3), (5), (6) |
+| KK2 — para ve güvenlik kalemleri ayrı başlıkta; kırmızı–yeşil; eski testler aynı | ✓ | yukarıdaki tablo; tek değişen eski yardımcı kaldırılan API'den |
+| KK3 — tarayıcı kalemleri | ✓ (pay) | `ScreenInventoryTests` + `EmptyStateTests` chromium iki yolda 49/49; firefox/webkit **TAM: CI E2E** |
+| KK4 — D-1678 | — | A parçası |
+| KK5 — kapanan satır `✅ Çözüldü → T604`; sayaç | ✓ | 5 satır ✅, 3 satır gerekçeli not; yeni kalem yok; sayaca dokunulmadı (talimat) |
+| `09 §25` ilgili satırlar | ✓ | tek yer: `AddressRules.ImageArea`, `ImageMediaTypes`, `StructuredData`, `EnterIban`; döngüde sorgu yok (paylaşım bellekte, işlem kimliğiyle) |
+| Güvenlik taraması | ✓ | yukarıda |
+
+### Öz denetim (bütün UE4 kalemleri ve KK payları)
+
+Önceki işçinin yaptıkları dahil `11` T604 kabul kriterleri ve kontrol listesi diff'te yeniden denetlendi; `sik-fail-nedenleri.md` okundu.
+
+| Denetim | Sonuç |
+|---|---|
+| D-357 "başlık ham işaretlemeyi tek yerde kurar, `09` 15.3 ile aynı" | ✓ — `StructuredData` tek yazıcı; `09` imzası ve kodlayıcı ifadesi hizalandı (önceki metin koddan farklıydı) |
+| D-1136 "`/gorsel/{kimlik}` varsayımı belgeye bağlı" | ✓ — `05` 7.7.1, `07` 3.1.6, K-1631 (1); Caddy ve uç |
+| D-1711 "uç var, tohumlu görseller 404 değil" | ✓ — uç testi; tarayıcı envanteri eksik görseli sıfır ister (chromium iki yol yeşil) |
+| D-1539 "sürüm bir kez artar" | ✓ |
+| D-1319 (1) "MIME P-22 yanında tek yer" | ✓; (2) gerekçeli UE5 |
+| D-1283 (2) "istek başınaysa paylaşılır, karar kaydıyla" | ✓ — `06` 4.31 istek başı; K-1631 (4); test; (1) PR #594 |
+| D-1599 "karar + belge hizası + VAL-A238 koşumu" | ⚪ karar verildi (K-1631 (5)); hizası ve koşumu UE5 — A'nın eşitlik tabloları ⚠ |
+| D-1374 "karar ve olası UC-157 kodu birlikte" | ⚪ karar verildi (K-1631 (6)); kod UE5 (süre) ⚠ |
+| Sık FAIL (1) bekçi/tarama istisnası geniş | ✓ — `SearchEngineData`'nın kendi istisnası kalktı, test bunu sabitler; görsel ucu istek sınırı istisnası belgedeki `/gorsel` öneki kadar |
+| (2) tarama çağrı biçimi | ✓ — `HtmlString` taraması iki dosya; yeni çağrı biçimi yok |
+| (3) 06 varsayılan / FK dizini | uygulanmaz — şema değişmedi |
+| (4) aynı kuralı anan öteki yerler | ✓ — `/gorsel` öneki üç kodda tek sabitten (bu devamda `RequestRateLimiting`, `EmailLinks` düzeltildi); `09` 15.3 madde 7 ile madde 1 tutarlı |
+| (5) belge kuralını değiştiren metin karar kaydısız | ✓ — `05`, `07`, `09` değişiklikleri K-1631'i anar; yeni kural yok |
+| Unit TAM | ✓ — 8098/8098 |
+| `dotnet format` değişen `.cs` | ✓ — dalın 137 dosyası (önceki işçi) + bu devamın 5 dosyası, değişiklik yok |
+| Branch izolasyonu | ✓ — A parçasının sınıflarında yalnız iki tarayıcı ayıklama satırı (talimatla); `FormFieldPlaceEnforcement` bu yüzden değişmedi (D-1599) |
+
+### Test Sonuçları
+
+- **Unit:** TAM 8098/8098 ✓.
+- **Integration:** koşulan sınıflar — önceki işçi: `ImageEndpointTests`, `PanelContentEditingTests`, `ContentRelationsTests`, `Web.SearchEngineDataTests`, `FaqPageTests`, `StorefrontHomeAndCategoryTests`, `ContentPagesTests`, `DownloadEndpointTests` (113/113); bu devam: `BranchFlowTests`, `CustomerCancellationTests`, `WithdrawalDeclarationTests`, `ItemRecordsTests`, `OrderCorrectionTests`, `CustomerOperationsTests`, `ImageEndpointTests` (219/219), `RequestLimitsTests`, `CustomerNoticeQueueTests`, `AccountEmailQueueTests`, `OrderDetailPageTests` (158/158). **TAM: CI.**
+- **E2E / tarayıcı:** `ScreenInventoryTests`, `EmptyStateTests` chromium, betikli ve betiksiz, 49/49; firefox/webkit **TAM: CI E2E**.
+
+### Commit & PR
+
+- Commit'ler: 0e82245c ve bu devamın commit'i
+- PR: #595
+
+### Dış Varsayımlar
+
+Bu dilimde dış varsayım yok.
+
+### Notlar
+
+- ⚠ D-1599 kod ve belge hizası UE5'e: 422'nin yerleri A parçasının (PR #594) değiştirdiği `FormFieldPlaceEnforcement` tablosunda; A'nın test sınıflarına dokunulmadı. Karar A1'in önerisiyle aynı.
+- ⚠ D-1374 kodu UE5'e (süre); karar A2'nin ve UE3 devir notunun önerisiyle aynı.
+- ⚠ D-1283 (1)'in kanıtı PR #594'te; satır iki parçanın birleşmesiyle tam kanıtlıdır.
+- ⚠ D-1539: görsel varlık denetimi artık alan denetiminden önce (tek yazım); ulaşılan ret aynı.
+- ⚠ A parçası da `07`/`09` sürümlerini yükseltti; sürüm satırı çakışması birleştirmede çözülür.
+- STATUS T604 tablo satırına dokunulmadı.

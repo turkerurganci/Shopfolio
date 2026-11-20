@@ -396,7 +396,7 @@ Kırmızı: `src` geçici bozuldu (yedekten geri kondu), yeni testler koşuldu.
 
 ### Test Sonuçları
 
-- **Unit:** TAM koşusu 8097: 8094 ✓, 3 ✗ (form alan kanıt tablosunun 7.1.4.1 alıntı satırı; düzeltildi) → üç sınıf (`FormFieldRuleClausesTests`, `FormInventoryConsistencyTests`, `FormFieldEnforcementTests`) 61/61 ✓.
+- **Unit:** TAM 8097/8097 ✓ (ilk koşuda 3 ✗: form alan kanıt tablosunun 7.1.4.1 alıntı satırı; düzeltildi, yeniden TAM koşuldu).
 - **Integration:** koşulan sınıflar — `Ordering.OrderConfirmationTests`, `Files.OrderPageTests`, `Ordering.CartQuantityTests`, `Ordering.CartTests`, `Ordering.MainFlowTests`: 89/89 ✓. TAM: CI.
 
 ### Notlar

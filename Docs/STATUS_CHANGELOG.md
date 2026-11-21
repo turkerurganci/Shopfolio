@@ -9,6 +9,12 @@
 
 ---
 
+## 2026-11-21 — T604 ✓; T601/T601b/T602 ⛔ BLOCKED (OWNER_INPUT)
+
+T604 ✓ (#594, #595, #596). F6'nın kalan task'ları T603, T601, T601b, T602 ⛔ BLOCKED (OWNER_INPUT): gerçek sunucu erişimi, alan adı, bulut deposu ve PayTR sandbox proje sahibinden bekleniyor.
+
+---
+
 ## 2026-11-18 — T603 ⛔ BLOCKED (OWNER_INPUT)
 
 T603 ⛔ BLOCKED (OWNER_INPUT): gerçek sunucu erişimi, alan adı ve bulut deposu proje sahibinden bekleniyor; T601, T601b, T602 ona bağlı. F6'da yapılabilir iş T604.

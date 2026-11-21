@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-18 — T603 ⛔ BLOCKED (OWNER_INPUT): gerçek sunucu erişimi, alan adı ve bulut deposu proje sahibinden bekleniyor; T601, T601b, T602 ona bağlı. F6'da yapılabilir iş T604.
+**Son güncelleme:** 2026-11-21 — T604 ✓ (#594, #595, #596). F6'nın kalan task'ları T603, T601, T601b, T602 ⛔ BLOCKED (OWNER_INPUT): gerçek sunucu erişimi, alan adı, bulut deposu ve PayTR sandbox proje sahibinden bekleniyor.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -316,11 +316,11 @@
 
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
-| T601 | `DEPLOY_RUNBOOK` provası, canlı kanıt, dış sistemde kayıtlı adresler ve yansıyan tablolar | ⬚ | — | — | — |
-| T601b | Yük senaryosu ve kargo takip kalıplarının gerçek numarayla denemesi | ⬚ | — | — | — |
-| T602 | Güncelleme komutu: referanstan başlayıp sırayla, geride kalmış kurulumun ara sürümlerden geçişi, geri alma ve yedekten dönüş koşulu | ⬚ | — | — | — |
+| T601 | `DEPLOY_RUNBOOK` provası, canlı kanıt, dış sistemde kayıtlı adresler ve yansıyan tablolar | ⛔ BLOCKED (OWNER_INPUT) | — | — | — |
+| T601b | Yük senaryosu ve kargo takip kalıplarının gerçek numarayla denemesi | ⛔ BLOCKED (OWNER_INPUT) | — | — | — |
+| T602 | Güncelleme komutu: referanstan başlayıp sırayla, geride kalmış kurulumun ara sürümlerden geçişi, geri alma ve yedekten dönüş koşulu | ⛔ BLOCKED (OWNER_INPUT) | — | — | — |
 | T603 | Gerçek sunucuya ilk iniş: ilk sürüm etiketi, açık imajlar, gerçek alan adı ve bulut deposu | ⛔ BLOCKED (OWNER_INPUT) | — | — | — |
-| T604 | F5 kapısından kalan kod kalemleri: ürün kodu düzeltmeleri, test aracı ve test gücü | ✓ | ✓ PASS — UE (#595) tur 2; A (#594) tur 3; UH (#596) tur 4 (2026-11-21) | `8c6b3ef8`, `0ee35474` (UH: merge sonrası) | #595, #594, #596 |
+| T604 | F5 kapısından kalan kod kalemleri: ürün kodu düzeltmeleri, test aracı ve test gücü | ✓ | ✓ PASS — UE (#595) tur 2; A (#594) tur 3; UH (#596) tur 4 (2026-11-21) | `8c6b3ef8`, `0ee35474`, `d1a4dc82` | #595, #594, #596 |
 
 ---
 

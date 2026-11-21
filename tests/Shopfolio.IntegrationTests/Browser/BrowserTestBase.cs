@@ -68,6 +68,42 @@ public abstract class BrowserTestBase
         return watched;
     }
 
+    /// <summary>
+    /// Opens a page of its own on each stop of a context, a few at a time (<see cref="AccessibilityScanTests.PagesAtOnce"/>; D-1736, the time of the Firefox group), and hands it to
+    /// <paramref name="read"/>; the page that finished last stays open (its screenshot is the row's evidence), the others are closed. <paramref name="read"/> writes shared lists under a lock.
+    /// </summary>
+    internal async Task<WatchedPage?> ReadStopsAsync(IBrowserContext context, IEnumerable<ScreenInventoryTests.Stop> stops, WatchedPage? last, Func<ScreenInventoryTests.Stop, WatchedPage, Task> read)
+    {
+        using SemaphoreSlim gate = new(AccessibilityScanTests.PagesAtOnce);
+        object turn = new();
+        await Task.WhenAll(stops.Select(async stop =>
+        {
+            await gate.WaitAsync();
+            try
+            {
+                WatchedPage page = await NewPageAsync(context);
+                await GoAsync(page, stop.Path);
+                await read(stop, page);
+                WatchedPage? old;
+                lock (turn)
+                {
+                    old = last;
+                    last = page;
+                }
+
+                if (old is not null)
+                {
+                    await old.Page.CloseAsync();
+                }
+            }
+            finally
+            {
+                gate.Release();
+            }
+        }));
+        return last;
+    }
+
     protected async Task<IResponse?> GoAsync(WatchedPage page, string path)
     {
         IResponse? response = await page.Page.GotoAsync(Host.BaseUrl + path, new PageGotoOptions { WaitUntil = WaitUntilState.Load, Timeout = 30000 });

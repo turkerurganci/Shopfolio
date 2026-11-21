@@ -13,7 +13,7 @@ namespace Shopfolio.IntegrationTests.Browser;
 public sealed class AccessibilityScanTests(BrowserHost host) : BrowserTestBase(host)
 {
     /// <summary>How many pages of one context are read at the same time.</summary>
-    internal const int PagesAtOnce = 4;
+    internal const int PagesAtOnce = 6;
 
     /// <summary>The axe-core tags of the WCAG 2.x level A criteria; the list is the tool's own tag vocabulary (axe-core 4.x has no level A tag for 2.2).</summary>
     internal static readonly string[] LevelATags = ["wcag2a", "wcag21a"];

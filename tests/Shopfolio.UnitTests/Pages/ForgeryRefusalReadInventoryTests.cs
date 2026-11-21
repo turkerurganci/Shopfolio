@@ -14,8 +14,23 @@ namespace Shopfolio.UnitTests.Pages;
 /// </summary>
 public sealed class ForgeryRefusalReadInventoryTests
 {
-    /// <summary>The pages that read after the filters on their own (D-1190).</summary>
-    private static readonly string[] OwnReadPages = ["Shopfolio.Pages.Storefront.CartModel", "Shopfolio.Pages.Storefront.CheckoutModel"];
+    /// <summary>
+    /// The pages that read after the filters on their own (D-1190): the page shown again needs the sent form - a handler argument the hook does not see - so the page's own wrapper reads after the 400
+    /// (D-1843). Each has an Integration test of its 400 page.
+    /// </summary>
+    private static readonly string[] OwnReadPages =
+    [
+        "Shopfolio.Pages.Account.AddressesModel",
+        "Shopfolio.Pages.Account.ProfileModel",
+        "Shopfolio.Pages.Account.ReauthenticationModel",
+        "Shopfolio.Pages.ProductModel",
+        "Shopfolio.Pages.Storefront.CartModel",
+        "Shopfolio.Pages.Storefront.CheckoutModel",
+        "Shopfolio.Pages.Storefront.ContactModel",
+        "Shopfolio.Pages.Storefront.PasswordResetModel",
+        "Shopfolio.Pages.Storefront.RegisterModel",
+        "Shopfolio.Pages.Storefront.SignInModel",
+    ];
 
     /// <summary>
     /// The pages whose GET read depends on a query value, a single-use value, the session's permission or the sent values (the contact form's typed text), so the read for the 400 page needs its own
@@ -23,9 +38,6 @@ public sealed class ForgeryRefusalReadInventoryTests
     /// </summary>
     private static readonly string[] WaitingPages =
     [
-        "Shopfolio.Pages.Account.AddressesModel",
-        "Shopfolio.Pages.Account.ProfileModel",
-        "Shopfolio.Pages.Account.ReauthenticationModel",
         "Shopfolio.Pages.Panel.ContentFormModel",
         "Shopfolio.Pages.Panel.CouponsModel",
         "Shopfolio.Pages.Panel.InviteModel",
@@ -39,13 +51,6 @@ public sealed class ForgeryRefusalReadInventoryTests
         "Shopfolio.Pages.Panel.RevertModel",
         "Shopfolio.Pages.Panel.SignInModel",
         "Shopfolio.Pages.Panel.VerifyModel",
-        "Shopfolio.Pages.ProductModel",
-        "Shopfolio.Pages.Storefront.ContactModel",
-        "Shopfolio.Pages.Storefront.EmailRevertModel",
-        "Shopfolio.Pages.Storefront.PasswordResetModel",
-        "Shopfolio.Pages.Storefront.RegisterModel",
-        "Shopfolio.Pages.Storefront.SignInModel",
-        "Shopfolio.Pages.Storefront.VerificationModel",
     ];
 
     [Fact]
@@ -91,7 +96,7 @@ public sealed class ForgeryRefusalReadInventoryTests
     {
         string[] hooked = [.. PagesWithPostHandler().Where(HasHook).Select(t => t.Name).Order(StringComparer.Ordinal)];
 
-        Assert.Equal(["AdminAccountsModel", "CategoriesModel", "ContentListModel"], hooked);
+        Assert.Equal(["AdminAccountsModel", "CategoriesModel", "ContentListModel", "EmailRevertModel", "VerificationModel"], hooked);
         Assert.All(OwnReadPages, name => Assert.Contains(name, PagesWithPostHandler().Select(t => t.FullName)));
     }
 

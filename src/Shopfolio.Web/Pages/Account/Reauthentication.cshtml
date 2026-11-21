@@ -21,6 +21,11 @@
     @Search.Head(ViewContext.HttpContext, RecordPages.ClosedScreen(ReauthenticationTexts.ScreenName, ViewContext.HttpContext.GetStorefrontFrame()?.Brand.BrandName, FramePaths.Reauthentication))
 }
 <h1>@ReauthenticationTexts.ScreenName</h1>
+@* The forgery check's 400 (07 2.5.4; D-1843): the action-level message in place at the page's head (04 2.7.3.1, 2.3.1.2), as on the category tree (D-1844). *@
+@if (Model.ForgeryRefused)
+{
+    <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, Shopfolio.Infrastructure.Security.ForgeryProtectionFilter.Message, "reauth-action-message")' />
+}
 <p id="reauth-operation">@ReauthenticationTexts.OperationLine(Model.Operation)</p>
 @if (Model.ResultMessage is not null)
 {

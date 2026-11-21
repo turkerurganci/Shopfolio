@@ -379,6 +379,91 @@ public sealed class CartPageTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task TheLine_ShowsTheImageAndTheOptionValue_BothLinkingToTheProduct_T604_D1189()
+    {
+        (string customerKey, Guid customerId) = await TestSessions.CustomerAsync(_database.Dsn);
+        (Variant variant, Guid imageId) = await SeedVariantWithImageAndOptionAsync("Kırmızı");
+        Guid cartId = await SeedCartAsync(customerId, null, (variant, 1, 100m));
+        string slug = await SlugOfAsync(variant);
+
+        await using WebApplicationFactory<Program> factory = Open(salesOpen: true);
+        string line = LineOf((await GetAsync(factory, Customer(customerKey))).Html, await ItemIdAsync(cartId, variant.Id));
+
+        // 04 5.12.4: the image, the name and the option value of the line; the image and the name sit inside the one link to the product page.
+        Assert.Contains($"<img class=\"cart-line__image\" src=\"/gorsel/{imageId:D}\"", line, StringComparison.Ordinal);
+        Assert.Contains("<p class=\"cart-line__options\">Kırmızı</p>", WebUtility.HtmlDecode(line), StringComparison.Ordinal);
+        int link = line.IndexOf($"<a href=\"/urun/{slug}\"><img", StringComparison.Ordinal);
+        Assert.True(link >= 0, "The image is not inside the link to the product page: " + line);
+        Assert.True(line.IndexOf("</a>", link, StringComparison.Ordinal) > line.IndexOf("cart-line__image", link, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task ALineOffTheShowcase_HasNoLinkToTheProduct_ButKeepsItsNameAndImage_T604_D1631()
+    {
+        (string customerKey, Guid customerId) = await TestSessions.CustomerAsync(_database.Dsn);
+        (Variant variant, Guid imageId) = await SeedVariantWithImageAndOptionAsync("Mavi");
+        Guid cartId = await SeedCartAsync(customerId, null, (variant, 1, 100m));
+        string slug = await SlugOfAsync(variant);
+        await using (AppDbContext db = NewContext())
+        {
+            await db.Products.Where(p => p.Id == variant.ProductId).ExecuteUpdateAsync(p => p.SetProperty(x => x.PublishStatus, PublishStatus.Archived), Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open(salesOpen: true);
+        string line = LineOf((await GetAsync(factory, Customer(customerKey))).Html, await ItemIdAsync(cartId, variant.Id));
+
+        // 04 3.3.13, 5.12.4: the product is no longer on the showcase, so the product page would answer 404: the line is plain text, the image stays.
+        Assert.DoesNotContain($"/urun/{slug}", line, StringComparison.Ordinal);
+        Assert.DoesNotContain("<a ", line.Split("cart-line__options", 2)[0], StringComparison.Ordinal);
+        Assert.Contains($"src=\"/gorsel/{imageId:D}\"", line, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TheDeliveryRestrictionLine_IsDrawnForAPhysicalLine_AndNotForADigitalOne_T604_D1245()
+    {
+        (string customerKey, Guid customerId) = await TestSessions.CustomerAsync(_database.Dsn);
+        Variant physical = await SeedVariantAsync(price: 100m);
+        Variant digital = await SeedVariantAsync(price: 80m, type: ProductType.Digital);
+        await using WebApplicationFactory<Program> factory = Open(salesOpen: true);
+
+        List<Guid> served;
+        await using (AppDbContext db = NewContext())
+        {
+            served = await db.CompanyDeliveryProvinces.Select(c => c.ProvinceId).ToListAsync(Ct);
+            Assert.NotEmpty(await db.Provinces.ToListAsync(Ct));
+            await db.CompanyDeliveryProvinces.ExecuteDeleteAsync(Ct);
+        }
+
+        try
+        {
+            // A firm that delivers to no province: the restriction line is the sentence of 04 5.4.5 (K-828).
+            await SeedCartAsync(customerId, null, (physical, 1, 100m));
+            string withPhysical = (await GetAsync(factory, Customer(customerKey))).Html;
+            Assert.Contains("class=\"delivery__restriction\"", withPhysical, StringComparison.Ordinal);
+            Assert.Contains("Şu an hiçbir ile teslimat yapılmıyor.", WebUtility.HtmlDecode(withPhysical), StringComparison.Ordinal);
+
+            // A cart of digital lines only has no delivery: the line is not drawn.
+            await using (AppDbContext db = NewContext())
+            {
+                db.CartItems.RemoveRange(await db.CartItems.ToListAsync(Ct));
+                db.Carts.RemoveRange(await db.Carts.ToListAsync(Ct));
+                await db.SaveChangesAsync(Ct);
+            }
+
+            await SeedCartAsync(customerId, null, (digital, 1, 80m));
+            string digitalOnly = (await GetAsync(factory, Customer(customerKey))).Html;
+            Assert.DoesNotContain("delivery__restriction", digitalOnly, StringComparison.Ordinal);
+        }
+        finally
+        {
+            await using AppDbContext db = NewContext();
+            await db.CompanyDeliveryProvinces.ExecuteDeleteAsync(Ct);
+            db.CompanyDeliveryProvinces.AddRange(served.Select(id => CompanyDeliveryProvince.Create(id, Now)));
+            await db.SaveChangesAsync(Ct);
+        }
+    }
+
+    [Fact]
     public async Task ADigitalLine_HasNoQuantityField_AndAQuantityOtherThanOneIsRefused_T508_KK7()
     {
         (string customerKey, Guid customerId) = await TestSessions.CustomerAsync(_database.Dsn);
@@ -744,6 +829,38 @@ public sealed class CartPageTests : IAsyncLifetime
         db.Variants.Add(variant);
         await db.SaveChangesAsync(Ct);
         return variant;
+    }
+
+    private async Task<string> SlugOfAsync(Variant variant)
+    {
+        await using AppDbContext db = NewContext();
+        return await db.Products.Where(p => p.Id == variant.ProductId).Select(p => p.Slug).SingleAsync(Ct);
+    }
+
+    // A published physical variant with one option value and the product's main image (the line shows the image and the value: 04 5.12.4).
+    private async Task<(Variant Variant, Guid ImageId)> SeedVariantWithImageAndOptionAsync(string valueText)
+    {
+        int n = Interlocked.Increment(ref _counter);
+        Product product = Product.Create($"Renkli {n}", $"renkli-{Guid.NewGuid():N}", ProductType.Physical, 20m, Now.AddMinutes(n)).WithSeededOrigin();
+        product.PublishStatus = PublishStatus.Published;
+        Option option = Option.Create(product.Id, "Renk", 1, Now);
+        OptionValue value = OptionValue.Create(option.Id, valueText, 1, Now);
+        Variant variant = Variant.Create(product.Id, $"SKU-{Guid.NewGuid():N}"[..20], 100m, Now.AddMinutes(n));
+        variant.PublishStatus = PublishStatus.Published;
+        variant.StockQuantity = 10;
+        variant.FirstOptionValueId = value.Id;
+        Image image = Image.Create($"sepet-{Guid.NewGuid():N}", ImageFormat.Png, 1, 1, Now);
+        await using AppDbContext db = NewContext();
+        db.Products.Add(product);
+        db.Options.Add(option);
+        db.OptionValues.Add(value);
+        db.Variants.Add(variant);
+        db.Images.Add(image);
+        await db.SaveChangesAsync(Ct);
+        product.BumpVersion();
+        db.ProductImages.Add(ProductImage.Create(product.Id, image.Id, 1, true, Now));
+        await db.SaveChangesAsync(Ct);
+        return (variant, image.Id);
     }
 
     private async Task<(Variant First, Variant Second)> SeedTwoVariantsOfOneProductAsync(int limit)

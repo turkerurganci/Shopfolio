@@ -64,7 +64,7 @@ internal sealed class ShowcaseReader
 
         // Only the columns the card shows are read (09 20 item 3; D-353): the projection comes before the order, so the page keeps the ordered query type `ToPageAsync` asks for.
         PagedList<ShowcaseRow> result = await products
-            .Select(p => new ShowcaseRow(p.Id, p.Name, p.Slug, p.CreatedAt))
+            .Select(p => new ShowcaseRow { Id = p.Id, Name = p.Name, Slug = p.Slug, CreatedAt = p.CreatedAt })
             .OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id)
             .ToPageAsync(page, PageSizes.StorefrontProducts, ct);
 
@@ -85,7 +85,7 @@ internal sealed class ShowcaseReader
 
         List<ShowcaseRow> products = await _db.Products.AsNoTracking().Listed()
             .Where(p => productIds.Contains(p.Id))
-            .Select(p => new ShowcaseRow(p.Id, p.Name, p.Slug, p.CreatedAt))
+            .Select(p => new ShowcaseRow { Id = p.Id, Name = p.Name, Slug = p.Slug, CreatedAt = p.CreatedAt })
             .OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id)
             .ToListAsync(ct);
         return await CardsOfAsync(products, ct);
@@ -112,7 +112,16 @@ internal sealed class ShowcaseReader
     }
 
     // The columns of a product the showcase's card reads, and the one the order is made on.
-    private sealed record ShowcaseRow(Guid Id, string Name, string Slug, DateTimeOffset CreatedAt);
+    private sealed record ShowcaseRow
+    {
+        public Guid Id { get; init; }
+
+        public string Name { get; init; } = string.Empty;
+
+        public string Slug { get; init; } = string.Empty;
+
+        public DateTimeOffset CreatedAt { get; init; }
+    }
 
     private async Task<IReadOnlyList<ShowcaseProduct>> CardsOfAsync(IReadOnlyList<ShowcaseRow> products, CancellationToken ct)
     {

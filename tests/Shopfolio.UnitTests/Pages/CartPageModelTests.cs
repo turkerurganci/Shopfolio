@@ -89,6 +89,19 @@ public sealed class CartPageModelTests
         Assert.All(Enum.GetValues<CartItemUpdateOutcome>().Where(o => o is not (CartItemUpdateOutcome.Updated or CartItemUpdateOutcome.TakenOffShowcase)), o => _ = CartRefusalCodes.CodeOf(o));
     }
 
+    [Fact]
+    public void HasPhysicalLine_IsTrueForAPhysicalLineEvenSoldOut_AndFalseForDigitalLinesOnly_T604_D1245()
+    {
+        CartLine Line(ProductType type, bool soldOut) => new(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Urun", "urun", type, 1, 100m, false, soldOut, !soldOut);
+        CartView ViewOf(params CartLine[] lines) => new(Guid.NewGuid(), lines, [], [], CartPaymentBlock.None, 0m, NoShipping);
+
+        Assert.True(ViewOf(Line(ProductType.Physical, soldOut: false)).HasPhysicalLine);
+        Assert.True(ViewOf(Line(ProductType.Physical, soldOut: true)).HasPhysicalLine);
+        Assert.True(ViewOf(Line(ProductType.Digital, soldOut: false), Line(ProductType.Physical, soldOut: false)).HasPhysicalLine);
+        Assert.False(ViewOf(Line(ProductType.Digital, soldOut: false)).HasPhysicalLine);
+        Assert.False(ViewOf().HasPhysicalLine);
+    }
+
     private static CartView ViewWith(CartPaymentBlock block, int lines)
     {
         List<CartLine> list = [.. Enumerable.Range(0, lines).Select(_ => new CartLine(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Lamba", "lamba", ProductType.Physical, 1, 100m, false, false, true))];

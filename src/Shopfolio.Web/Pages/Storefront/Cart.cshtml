@@ -48,15 +48,7 @@ else
                     @* The image and the name take to the product page (04 3.3.13, 5.12.4; K-775) only while the product stands on the showcase (D-1631); a line off it is plain text. *@
                     @if (line.IsOnShowcase)
                     {
-                        <p class="cart-line__name">
-                            <a href="/@AddressRules.ProductPrefix/@line.ProductSlug">
-                                @if (line.ImageId is Guid imageId)
-                                {
-                                    <img class="cart-line__image" src="@FrameStyle.ImagePath(imageId)" alt="" width="64" height="64" />
-                                }
-                                @line.ProductName
-                            </a>
-                        </p>
+                        <p class="cart-line__name"><a href="/@AddressRules.ProductPrefix/@line.ProductSlug">@if (line.ImageId is Guid imageId) {<img class="cart-line__image" src="@FrameStyle.ImagePath(imageId)" alt="" width="64" height="64" />}@line.ProductName</a></p>
                     }
                     else
                     {

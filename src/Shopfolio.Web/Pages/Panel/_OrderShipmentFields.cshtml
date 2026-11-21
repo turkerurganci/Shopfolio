@@ -1,9 +1,18 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @using Shopfolio.Modules.Ordering.Contracts
 @using Shopfolio.Pages.Panel
 @model OrderDetailModel
-@* The carrier fields of the shipment and the re-sending (T527; 04 9.9.16; 07 UC-124, UC-125): a listed company or "Diğer" with its name, and the tracking number - or the own-vehicle declaration. *@
+@* The carrier fields of the shipment and the re-sending (T527; 04 9.9.16; 07 UC-124, UC-125): a listed company or "Diğer" with its name, and the tracking number - or the own-vehicle declaration.
+   A refused carrier data is the single-field forms' pattern (D-1812, D-1550): the summary at the form's head, the company and the tracking number described by the message under them. *@
+@{
+    bool refused = Model.RefusalIsShipmentField;
+}
+@if (Model.StepSummaryFor(refused, "ship-carrier") is { } summary)
+{
+    <partial name="_FormErrorSummary" model="summary" />
+}
 <label for="ship-carrier">Kargo şirketi</label>
-<select id="ship-carrier" name="Input.Carrier">
+<select id="ship-carrier" name="Input.Carrier" aria-invalid="@OrderDetailModel.StepInvalid(refused)" aria-describedby="@OrderDetailModel.StepDescribedBy(refused)">
     <option value="">Diğer</option>
     @foreach (CarrierEntry carrier in Model.Carriers)
     {
@@ -13,5 +22,9 @@
 <label for="ship-other-carrier">Listede yoksa şirketin adı</label>
 <input id="ship-other-carrier" name="Input.OtherCarrierName" maxlength="@ShipmentLimits.OtherCarrierNameMaxLength" value="@Model.Ship.OtherCarrierName" />
 <label for="ship-tracking">Takip numarası</label>
-<input id="ship-tracking" name="Input.TrackingNumber" maxlength="@ShipmentLimits.TrackingNumberMaxLength" value="@Model.Ship.TrackingNumber" />
+<input id="ship-tracking" name="Input.TrackingNumber" maxlength="@ShipmentLimits.TrackingNumberMaxLength" value="@Model.Ship.TrackingNumber" aria-invalid="@OrderDetailModel.StepInvalid(refused)" aria-describedby="@OrderDetailModel.StepDescribedBy(refused)" />
+@if (Model.StepMessageFor(refused) is { } message)
+{
+    <partial name="_Message" model="message" />
+}
 <label><input type="checkbox" name="Input.IsOwnVehicleDelivery" value="true" checked="@Model.Ship.IsOwnVehicleDelivery" /> Kendi aracımızla teslim</label>

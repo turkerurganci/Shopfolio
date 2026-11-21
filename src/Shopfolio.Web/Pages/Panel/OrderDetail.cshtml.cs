@@ -147,7 +147,7 @@ public sealed partial class OrderDetailModel : PageModel
     public bool IsConflict { get; private set; }
 
     /// <summary>The refusal as a lasting message in the step's place; null when there is none.</summary>
-    public MessageView? RefusalMessage => RefusalText is null ? null : Messages.InPlace(MessageMeaning.Error, RefusalText, "order-step-message");
+    public MessageView? RefusalMessage => RefusalText is null ? null : Messages.InPlace(MessageMeaning.Error, RefusalText, StepMessageId);
 
     /// <summary>The order question of a delivery date on a withdrawal declaration's day, with the declarations' moments (K-608); empty when not asked.</summary>
     public IReadOnlyList<string> DeclarationMomentTexts { get; private set; } = [];

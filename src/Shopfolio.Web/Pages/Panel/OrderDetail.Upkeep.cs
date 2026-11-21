@@ -132,8 +132,11 @@ public sealed partial class OrderDetailModel
         return await AnswerAsync(id, result, ct);
     }
 
-    /// <summary>The refused step's message stands at the line's step section; an item's or the note's stands in their own place (04 9.9.41).</summary>
-    public bool ShowsRefusalAtStep => RefusedItemId is null && !IsNoteRefused;
+    /// <summary>
+    /// The refused step's message stands at the line's step section; an item's or the note's stands in their own place (04 9.9.41), and a shipment or delivery form's field refusal under its field
+    /// in that form (D-1812).
+    /// </summary>
+    public bool ShowsRefusalAtStep => RefusedItemId is null && !IsNoteRefused && !RefusalIsShipmentField && !RefusalIsDeliveryField;
 
     // 04 9.9.33, 2.5.4: a group whose latest row is not its first is a re-sending that ended "undelivered" again - the row stays and the lasting message says so.
     private static bool ResendFailedAgain(IReadOnlyList<Shopfolio.Modules.Notifications.Contracts.UndeliveredNotice> undelivered) =>

@@ -19,6 +19,11 @@
 {
     <partial name="_Message" model="Model.Notice" />
 }
+@* The action-level messages of the model state - the forgery check's 400 (07 2.5.4) - in place at the page's head (04 2.7.3.1, 2.3.1.2; D-1844); no node's own refusal is one. *@
+@foreach (string message in FormErrorSummary.From(ViewData.ModelState).FormMessages)
+{
+    <partial name="_Message" model='Messages.InPlace(MessageMeaning.Error, message, "categories-action-message")' />
+}
 <form method="post" asp-antiforgery="true" asp-page-handler="CreateCategory" class="form category-new" id="@CategoriesModel.NewCategoryFormId" data-js="submit-once">
     @if (Model.NewCategoryMessage is not null)
     {

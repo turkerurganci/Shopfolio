@@ -240,6 +240,67 @@ public sealed partial class OrderDetailPageTests
         Assert.DoesNotContain("aria-invalid", FormOf(plain, OrderDetailModel.CarrierFormId), StringComparison.Ordinal);
     }
 
+    // ---- D-1812: the shipment and delivery mark forms on the same pattern (D-1550; 04 2.3.1.1, 2.3.2, 2.3.3, 9.9.36) ----
+
+    [Fact]
+    public async Task TheShipmentAndDeliveryMarkForms_BindAMissingValueToTheField_WithASummary_AndARulesBoundToTheFieldWithoutOne_InTheForm_D1812()
+    {
+        (string key, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateOnly today = TurkeyTime.DateOf(now);
+        (Guid preparingId, _) = await StepOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid, (ProductType.Physical, false));
+        (Guid returnedId, _) = await StepOrderAsync(OrderStatus.DeliveryFailed, PaymentStatus.Paid, (ProductType.Physical, false));
+        (Guid shippedId, _) = await StepOrderAsync(OrderStatus.Shipped, PaymentStatus.Paid, (ProductType.Physical, false));
+        await using (AppDbContext db = NewContext())
+        {
+            db.TransitionRecords.Add(TransitionRecord.Create(shippedId, TransitionCode.S5, ActorKind.Admin, adminId, CorrectionAdminName, null, null, null, null, null, now.AddDays(-2)));
+            db.TransitionRecords.Add(TransitionRecord.Create(returnedId, TransitionCode.S5, ActorKind.Admin, adminId, CorrectionAdminName, null, null, null, null, null, now.AddDays(-3)));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (HttpStatusCode shipStatus, string shipHtml) = await PostAsync(client, $"{OrdersPath}/{preparingId:D}?handler=MarkShipped", [("Input.Version", "1")], key);
+        (HttpStatusCode reshipStatus, string reshipHtml) = await PostAsync(client, $"{OrdersPath}/{returnedId:D}?handler=MarkReshipped", [("Input.Version", "1")], key);
+        (HttpStatusCode emptyStatus, string emptyHtml) = await PostAsync(client, $"{OrdersPath}/{shippedId:D}?handler=MarkDelivered", [("Input.Version", "1"), ("Input.DeliveryDate", "")], key);
+        (HttpStatusCode futureStatus, string futureHtml) = await PostAsync(client, $"{OrdersPath}/{shippedId:D}?handler=MarkDelivered", [("Input.Version", "1"), ("Input.DeliveryDate", DateText(today.AddDays(1)))], key);
+
+        Assert.Equal(
+            [HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity],
+            new[] { shipStatus, reshipStatus, emptyStatus, futureStatus });
+
+        // The carrier data missing (both shipment forms): the summary at the form's head, the company and the tracking number marked and described by the message under them, in the form only.
+        foreach ((string html, string formId) in new[] { (shipHtml, "mark-shipped-form"), (reshipHtml, "mark-reshipped-form") })
+        {
+            string form = FormOf(html, formId);
+            Assert.Contains("class=\"error-summary\"", form, StringComparison.Ordinal);
+            Assert.Contains("href=\"#ship-carrier\"", form, StringComparison.Ordinal);
+            Assert.Matches(new Regex("<select[^>]*id=\"ship-carrier\"[^>]*aria-invalid=\"true\"[^>]*aria-describedby=\"order-step-message\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), form);
+            Assert.Matches(new Regex("<input[^>]*id=\"ship-tracking\"[^>]*aria-invalid=\"true\"[^>]*aria-describedby=\"order-step-message\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), form);
+            Assert.Contains("id=\"" + OrderDetailModel.StepMessageId + "\"", form, StringComparison.Ordinal);
+            Assert.Contains(OrderDetailModel.ShipmentMissingText, form, StringComparison.Ordinal);
+            Assert.Single(Regex.Matches(html, "id=\"" + OrderDetailModel.StepMessageId + "\"", RegexOptions.None, TimeSpan.FromSeconds(5)));
+        }
+
+        // The delivery date missing: the summary and the date described by the message under it.
+        string empty = FormOf(emptyHtml, "mark-delivered-form");
+        Assert.Contains("href=\"#delivery-date\"", empty, StringComparison.Ordinal);
+        Assert.Matches(new Regex("<input[^>]*id=\"delivery-date\"[^>]*aria-invalid=\"true\"[^>]*aria-describedby=\"order-step-message\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), empty);
+        Assert.Contains(OrderDetailModel.DeliveryDateMissingText, empty, StringComparison.Ordinal);
+
+        // A rule's bound (a future date): the lasting message in place under the date, the date described by it, no summary (04 2.3.3); not repeated at the step section's head.
+        string future = FormOf(futureHtml, "mark-delivered-form");
+        Assert.DoesNotContain("class=\"error-summary\"", future, StringComparison.Ordinal);
+        Assert.Matches(new Regex("<input[^>]*id=\"delivery-date\"[^>]*aria-invalid=\"true\"[^>]*aria-describedby=\"order-step-message\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), future);
+        Assert.Contains(OrderDetailModel.DeliveryDateFutureText, future, StringComparison.Ordinal);
+        Assert.Single(Regex.Matches(futureHtml, Regex.Escape(OrderDetailModel.DeliveryDateFutureText), RegexOptions.None, TimeSpan.FromSeconds(5)));
+
+        // The untouched form of a first drawing carries no mark.
+        (_, string plain) = await GetAsync(client, $"{OrdersPath}/{preparingId:D}", key);
+        Assert.DoesNotContain("aria-invalid", FormOf(plain, "mark-shipped-form"), StringComparison.Ordinal);
+    }
+
     // ---- KK3: the carrier ----
 
     [Fact]

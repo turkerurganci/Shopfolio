@@ -33,6 +33,10 @@ public sealed partial class CategoriesPageTests
         Assert.Contains("Zeytin", html, StringComparison.Ordinal);
         Assert.Contains("Ayakkabı", html, StringComparison.Ordinal);
         Assert.DoesNotContain(CategoriesModel.EmptySentence, html, StringComparison.Ordinal);
+
+        // D-1844 (04 2.7.3.1): the action-level message is on the page, once, in place.
+        Assert.Contains("id=\"categories-action-message\"", html, StringComparison.Ordinal);
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(html, System.Text.RegularExpressions.Regex.Escape(ForgeryProtectionFilter.Message)));
         Assert.Equal(before, await CategoryCountAsync());
     }
 }

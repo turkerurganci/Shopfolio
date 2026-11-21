@@ -353,6 +353,27 @@ internal static class BrowserSeed
         return new SeededOrder(label, id, number, accessKey, shipping, payment);
     }
 
+    /// <summary>
+    /// One more delivered guest order whose items carry the given units, in that order (D-1412, D-1833: the defect claim's one units field stands under the list while several rows carry one
+    /// and none is chosen); the item keys come back in the same order.
+    /// </summary>
+    public static async Task<(SeededOrder Order, Guid[] Items)> NewOrderWithItemsAsync(string dsn, string label, params int[] quantities)
+    {
+        (Guid id, string number, string accessKey) = await TestSessions.OrderAsync(dsn, null);
+        await using AppDbContext db = NewContext(dsn);
+        List<Guid> items = [];
+        foreach (int quantity in quantities)
+        {
+            OrderItem item = OrderItem.Create(id, null, null, ProductType.Physical, $"Kalem {items.Count + 1}", quantity, 50m, 20m, 8.33m * quantity, Now.AddSeconds(items.Count));
+            db.OrderItems.Add(item);
+            items.Add(item.Id);
+        }
+
+        await db.SaveChangesAsync(CancellationToken.None);
+        await db.Database.ExecuteSqlAsync($"UPDATE orders SET order_status = 'Delivered', payment_status = 'Paid' WHERE id = {id}", CancellationToken.None);
+        return (new SeededOrder(label, id, number, accessKey, OrderStatus.Delivered, PaymentStatus.Paid), [.. items]);
+    }
+
     /// <summary>A verified customer with a known password (the sign-in of VAL-B110 needs an account that can sign in).</summary>
     public static async Task NewCustomerWithPasswordAsync(string dsn, string email, string password)
     {

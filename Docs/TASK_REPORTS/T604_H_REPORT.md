@@ -75,9 +75,19 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 2 (2026-11-21, bağımsız doğrulayıcı; head `40ab5981`) · tur 1 ✗ FAIL (head `c83c9702`) |
-| Bulgu sayısı | Tur 2: 1 bulgu (ORTA, S1) + 2 K-notu (K1 bu PR'da kapatıldı, K2 → D-1867) · tur 1: 2 bulgu + 1 K-notu |
+| Doğrulama durumu | ✗ FAIL — tur 3 (2026-11-21, bağımsız doğrulayıcı, eskalasyon sonrası TAM yeniden doğrulama; head `b76b534b`) · tur 2 ✗ FAIL (head `40ab5981`) · tur 1 ✗ FAIL (head `c83c9702`) |
+| Bulgu sayısı | Tur 3: 1 bulgu (ORTA, S2) + 1 K-notu (K1 → D-1874) · tur 2: 1 bulgu (ORTA, S1) + 2 K-notu (K1 bu PR'da kapatıldı, K2 → D-1867) · tur 1: 2 bulgu + 1 K-notu |
 | Düzeltme gerekli mi | Evet |
+
+**Tur 3 bulgusu:**
+
+1. **Erişilebilirlik denetimi, E-37 betiksiz yol (WCAG 3.3.1; D-1550, D-1812'nin kalıbı) — S2:** dalın ilk tamamlanan E2E koşusunda (run 44908644455, 8. E2E) `AccessibilityAuditTests.EveryScreenOfTheInventory_HasAResultUnderEachOfTheFiveHeadings_InTheWay_KK2` betiksiz yolda üç motorda (chromium, firefox, webkit) kırmızı: "Screen x criterion cells with no result: E-37 / 1.3.1, E-37 / 1.4.1, E-37 / 3.3.1". Doğrulayıcı yerelde chromium betiksiz koşuyla yeniden üretti; gözlem kaydında E-37'nin dört formu kalır: `CorrectCarrier`, `CorrectOrderEmail`, `MarkDelivered`, `MarkReshipped` — "hata özeti True …; sorun: the focus is not on the first invalid field or the summary: BODY; gönderim 422". Neden: bu dalın tek alanlı form kalıbına aldığı formlar (`_OrderDetailCorrections.cshtml`, `_OrderShipmentFields.cshtml`, `_OrderDeliveryFields.cshtml`) özeti çizer ama ilk hatalı alana `autofocus` vermez; `_FormErrorSummary` betiksiz yolda odağı alanın kendi `autofocus`'una bırakır (`FormErrorSummary.AutofocusFor`). Ana dalın E2E'si (run 44888714519) yeşildir. Öteki E-37 formları (ör. `RecordWithdrawal`, `CorrectAddress`) geçer. Düzeltme: bu formların ilk hatalı alanına `autofocus` (`AutofocusFor` ile), betiksiz denetim üç motorda yeşil.
+
+**Tur 3 K-notu:** K1 — VAL-A020 gözlemi ifa süresini Ön Bilgilendirme Formu kutusunda değil, onay özetinde (`.checkout__summary-text`) arar; ürün doğru (doğrulayıcı seçiciyi form kutusuna çevirdi, altı koşu yeşil), satır PASS kalır → D-1874 (`DEFERRED_BACKLOG.d/T604-H.md`, F6 gate).
+
+**Tur 3'te kapandığı denetlenen tur 2 maddeleri:** Bulgu 1 (D-1276/D-1820) kapandı — VAL-A010, A012, A016, A018, A020 `ProductPageObservationTests` (yerelde 42/42, üç motor × iki yol; beklenen metinler satırların "Beklenen" sütunundan), VAL-B001 `CheckoutPageTests…_T604_VALB001` (uç yanıtı + veri kaydı); D-1811, D-1819, D-1821 hedef T604 ve kapandı. K2 (D-1867) kapandı — iki kancada `readsQuery: true` yapılınca iki `…_D1867` testi kırmızı.
+
+**Tur 3 doğrulayıcı kanıtları:** KK2 kırmızı–yeşil yeniden üretildi: D-1599 (IBAN düşürme → ret: üç test kırmızı), D-1806 (kalemsiz koşul kesildi), D-1845 (süzgeç kaldırıldı: iki test), D-1843 üç sayfada (Hesabım `keepsPermission: false`; Panel Reset kancası işleyiciyi çağırdı; Profile sarmalayıcısı 400'ü bıraktı), D-1773 (kanca çağrısı kesildi: 16 test), D-1867, D-1819 (iki görsel `alt=""`), D-1821 (`setText("since")` kaldırıldı: betikli üç motor), D-1811 (`common.js` odak satırı kaldırıldı: yalnız webkit betikli), D-1770 (iki betik main sürümüne dönünce `test-pre-commit.sh` 261/2). Geri alınınca hepsi yeşil. Unit 8325/8325; Integration ilgili 46 sınıf 1145/1145 (TAM: CI 4. iş yeşil); tarayıcı 49 + 42 + 645 yeşil; betik testleri 4/4; build `-warnaserror` 0 uyarı; `dotnet format` değişen 174 `.cs` temiz.
 
 **Tur 2 bulgusu:**
 

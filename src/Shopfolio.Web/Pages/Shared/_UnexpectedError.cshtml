@@ -21,12 +21,8 @@
         @if (Model.OffersRetry)
         {
             <a class="button button--primary" href="@Model.RetryPath">Yeniden dene</a>
-            <a class="button button--secondary" href="@Model.HomePath">@Model.HomeLabel</a>
         }
-        else
-        {
-            @* A refusal (429, 413; D-1146): no "Yeniden dene" - the way home is the one action, so it is the primary one. *@
-            <a class="button button--primary" href="@Model.HomePath">@Model.HomeLabel</a>
-        }
+        @* A refusal (429, 413; D-1146) offers no "Yeniden dene": the way home is the one action, so it is the primary one. *@
+        <a class="button @(Model.OffersRetry ? "button--secondary" : "button--primary")" href="@Model.HomePath">@Model.HomeLabel</a>
     </p>
 </section>

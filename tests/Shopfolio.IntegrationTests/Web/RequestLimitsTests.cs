@@ -190,7 +190,7 @@ public sealed class RequestLimitsTests
 
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, response.StatusCode);
         Assert.Equal("text/html", response.Content.Headers.ContentType?.MediaType);
-        Assert.Contains(WebUtility.HtmlEncode(RequestBodyLimitMiddleware.Message), html, StringComparison.Ordinal);
+        Assert.Contains(RequestBodyLimitMiddleware.Message, WebUtility.HtmlDecode(html), StringComparison.Ordinal); // the frame is a Razor page: it encodes the letters its own way
         Assert.DoesNotContain("method=\"post\"", html, StringComparison.OrdinalIgnoreCase); // no form to submit again: the frame's search form is a GET (D-1146)
         Assert.False(response.Headers.Contains("Retry-After"));
         Assert.Equal(0, calls.Count);
@@ -266,7 +266,7 @@ public sealed class RequestLimitsTests
             string html = await answered.Content.ReadAsStringAsync(Ct);
 
             Assert.True(answered.StatusCode == HttpStatusCode.RequestEntityTooLarge, $"{size} bytes, chunked={chunked}: {(int)answered.StatusCode}");
-            Assert.Contains(WebUtility.HtmlEncode(RequestBodyLimitMiddleware.Message), html, StringComparison.Ordinal);
+            Assert.Contains(RequestBodyLimitMiddleware.Message, WebUtility.HtmlDecode(html), StringComparison.Ordinal); // the frame is a Razor page: it encodes the letters its own way
             Assert.DoesNotContain("method=\"post\"", html, StringComparison.OrdinalIgnoreCase); // no form to submit again: the frame's search form is a GET (D-1146)
             Assert.DoesNotContain(nameof(Shopfolio.Infrastructure.Errors.ErrorCode.PayloadTooLarge), html, StringComparison.Ordinal);
             JsonElement line = Assert.Single(LinesOf(logs[0], id), l => l.TryGetProperty("code", out _));
@@ -386,7 +386,7 @@ public sealed class RequestLimitsTests
         using HttpResponseMessage again = await SendAsync(client, HttpMethod.Get, "/urunler");
 
         Assert.Equal(HttpStatusCode.TooManyRequests, refused.StatusCode);
-        Assert.Contains(WebUtility.HtmlEncode(NeutralMessages.LimitExceeded), html, StringComparison.Ordinal);
+        Assert.Contains(NeutralMessages.LimitExceeded, WebUtility.HtmlDecode(html), StringComparison.Ordinal); // the frame is a Razor page: it encodes the letters its own way
         Assert.DoesNotContain("method=\"post\"", html, StringComparison.OrdinalIgnoreCase); // no form to submit again: the frame's search form is a GET (D-1146)
         Assert.False(refused.Headers.Contains("Retry-After"));
         Assert.Equal("no-store", refused.Headers.CacheControl?.ToString());

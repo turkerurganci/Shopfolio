@@ -113,7 +113,7 @@
 - ⚠ D-1550: kargoya verme ve teslim işareti formları değişmedi (D-1812).
 - ⚠ D-1146: çerçeveli 429/413 sayfası DB okur; taşkın altında maliyet (D-1813).
 - Karar (kolay): `/gorsel/simge` adresi (07 §2.1.2 kapalı listesinde `/gorsel` zaten var; yeni ilk segment yok); karar kaydı açılmadı.
-- Süre bütçesi aşıldı; ayırt edicilik D-1788/D-1550/D-1134/D-1135 için denenmedi.
+- Ayırt edicilik UH2b'de tamamlandı (süre bütçesiyle bölünen işçinin kalanı).
 - Temizlik: `t604h-pg` konteyneri ve `bin`/`obj` silinir.
 
 ---
@@ -126,18 +126,18 @@
 - **D-1275, D-353:** ürün sayfası seçenek değerleri tek sorgu; vitrin listesi yalnız kart sütunlarını okur (`ShowcaseRow`; sıralama üye-ataması projeksiyonuyla çevrilir: record kurucusu `CountAsync` altında çevrilemedi, bu devamda düzeltildi).
 - **D-283, D-1705, D-1703:** seçenek bağlama kuralları, ilk seçenek eklenince varyant bağlama, kategori kutuları işaretsiz yükleme.
 - **D-1400, D-1398, D-1673:** karar K-1635 (a), (b), (c); `04` ve `07` hücreleri.
-- **D-1276:** `12` VAL-A008 ve VAL-A014 PASS (kanıt: `ListPatternPageTests.TheStorefrontList_IsNewestFirst_WithNoSortParameter`, `StorefrontSearchAndProductTests` `since` testi); A015, A017, A024 ve tarayıcı satırları D-1276'da / D-1820'de kaldı.
+- **D-1276:** `12` VAL-A008, A014, A015, A017, A024 PASS (kanıt: `ListPatternPageTests.TheStorefrontList_IsNewestFirst_WithNoSortParameter`, `StorefrontSearchAndProductTests` `since` testi, `T604_VALA015`, `T604_VALA017`, `T604_VALA024`); tarayıcı gözlemi isteyen satırlar D-1820'de; D-1276 kapandı.
 
 ## UH2 — Kabul ve öz denetim
 
 | Madde | Sonuç | Kanıt |
 |---|---|---|
-| UH1 + UH2 kalemleri kapalı ya da gerekçeli | ✓ | `DEFERRED_BACKLOG.md` satırları (D-283, 1189, 1243, 1245, 1275, 1398, 1400, 1631, 1673, 1703, 1705, 353, 1200 kapandı; D-1276 daraldı); yeni D-1819…D-1821 |
+| UH1 + UH2 kalemleri kapalı ya da gerekçeli | ✓ | `DEFERRED_BACKLOG.md` satırları (D-283, 1189, 1243, 1245, 1275, 1398, 1400, 1631, 1673, 1703, 1705, 353, 1200 kapandı; D-1276 kapandı); yeni D-1819…D-1821 |
 | Sepet görsel, seçenek, bağlantı | ✓ | `CartPageTests.TheLine_ShowsTheImageAndTheOptionValue_...`, `ALineOffTheShowcase_HasNoLinkToTheProduct_...` |
 | Sepet il kısıtı | ✓ | `CartPageTests.TheDeliveryRestrictionLine_...`, `CartPageModelTests.HasPhysicalLine_...` |
 | Karar kaydı | ✓ | K-1635 `PRODUCT_DISCOVERY_STATUS.md`; `04` 9.5.23, 6.3.5.1, 7.1.16.1, 7.2.17.2, 7.3.2.14; `07` 4.4.1, UC-114 |
 | Eski testler | ✓ | Adres/form kuralı sınıfları `PageFormPatternTests`, `FormSecurity*`, `RequestLimitsTests`, `StorefrontFrameTests`, `OrderDetailPageTests`, `FrameLayoutTests`: koşuda kırmızı yok; var olan `TheLinesProductName_LinksToTheProductPage_T546_3_3_13` değişmeden geçer (görselsiz satırda bağlantı biçimi aynı) |
-| Ayırt edicilik (UH2) | ⏳ | UH2b'ye kaldı (süre bütçesi) |
+| Ayırt edicilik (UH2) | ✓ | src bozuldu, ilgili test kırmızı, geri alındı: D-1631 (`IsOnShowcase` koşulu bozuk) `CartPageTests…T604_D1631`; D-1189 (seçenek değeri bloğu kapalı) `…T604_D1189`; D-1245 (`HasPhysicalLine` ters) `CartPageModelTests.HasPhysicalLine_…`, (`Cart.cshtml.cs` koşulu ters) `CartPageTests…T604_D1245`; D-1243 (`data-js="since"` kaldırıldı) `…D1243`; D-1400 (`> 99`) `ProductFormPageTests…D1400`; D-1788 (SSS başlığında marka eki yok) `SearchEngineDataTests…D1788(path: "/sss")`; D-1550 (`aria-invalid` kaldırıldı) `OrderDetailPageTests…D1550`; D-1134 (`hidden` kaldırıldı) `FrameSourceScanTests…D1134` ve `StorefrontFrameTests…T604_D1134`; D-1135 (simge ucu kapalı) `StorefrontFrameTests…T604_D1135`, (`fill` bozuk) `PanelFrameModelTests…D1135`. Hepsi kırmızı çıktı (3 Unit, 9 Integration); src sonra dosya sürümüne geri alındı, çalışma ağacında src farkı kalmadı. |
 | Sık FAIL (1)-(5) | ✓ | Yeni tarama istisnası yok; 06 şeması değişmedi; P-27 tavanı üç tabloda (`FormFieldInventory`, `EnforcementTable`, `RuleEvidence`) ve `04` hücrelerinde birlikte; K-1635 yazıldı |
 
 ## UH2 — Test sonuçları
@@ -145,7 +145,7 @@
 | Tür | Sonuç | Not |
 |---|---|---|
 | Unit (TAM) | ✓ 8098/8098 | |
-| Integration | ✓ 181/184 → düzeltmeden sonra 39/39 (CartPageTests, PageAddressTests) | Koşulan: CartPageTests, PageAddressTests, StorefrontSearchAndProductTests, ProductSavesTests, ProductFormPageTests, AddressTests, HomepageAndIdentityTrailTests, FrameLayoutTests, RequestLimitsTests, OrderDetailPageTests, ProductListPageTests, StorefrontFrameTests, CategoryTreeAndListsTests, ProductPublishGateTests, ProductTransitionsTests, PageFormPatternTests, FormSecurity* (ikinci çağrı süre sınırıyla kesildi, 288 geçti, 0 kırmızı). TAM: CI |
+| Integration | ✓ 181/184 → düzeltmeden sonra 39/39 (CartPageTests, PageAddressTests) | Koşulan: CartPageTests, PageAddressTests, StorefrontSearchAndProductTests, ProductSavesTests, ProductFormPageTests, AddressTests, HomepageAndIdentityTrailTests, FrameLayoutTests, RequestLimitsTests, OrderDetailPageTests, ProductListPageTests, StorefrontFrameTests, CategoryTreeAndListsTests, ProductPublishGateTests, ProductTransitionsTests, PageFormPatternTests, FormSecurity* (UH2b: ikinci çağrı üç parçada yeniden koşuldu: OrderDetailPageTests 93/93; FrameLayoutTests, RequestLimitsTests, ProductListPageTests, StorefrontFrameTests, CategoryTreeAndListsTests 118/118; ProductPublishGateTests, ProductTransitionsTests, PageFormPatternTests, FormSecurity* 100/100; yeni VAL-A015, A017, A024 testleri 3/3). TAM: CI |
 | `dotnet format` | ✓ | UH2'nin değiştirdiği `.cs` dosyalarında değişiklik yok |
 
 ## UH2 — ⚠ (kolay kararlar, sahip yerine)
@@ -154,4 +154,4 @@
 - D-1400/D-1398/D-1673: K-1635.
 - D-1631: bağlantı ürün VE varyant Yayında iken.
 - Birleştirme notu: `Cart.cshtml` ve `CartModel` UE dalında da değişir (D-1190, D-1246); ad bağlantısı satırlarına dokunmuyorlarsa çakışma yok.
-- Süre bütçesi aşıldı: UH2b'de ayırt edicilik ve ikinci Integration çağrısının tekrarı.
+- Süre bütçesi UH2a'da aşıldı; UH2b ayırt edicilik, ikinci Integration çağrısı ve D-1276 kalanını tamamladı.

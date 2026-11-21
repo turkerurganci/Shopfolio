@@ -54,18 +54,18 @@ public sealed partial class MyAccountPageTests
     public async Task TheForgeryRefusal_OfTheReauthentication_ShowsTheSentOperationsForm_AndKeepsTheEarlierPermission_D1843()
     {
         Guid adminId = await SeedAdminAsync();
-        (string key, Guid sessionId, _) = await SeedSessionAsync(adminId, ReauthenticationOperation.EmailChange);
+        (string key, Guid sessionId, _) = await SeedSessionAsync(adminId, ReauthenticationOperation.PasswordChange);
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
 
-        (HttpStatusCode status, string html) = await ForgedPosts.SendAsync(client, $"{ReauthPath}?handler=Reauthenticate", [("Input.Password", Strong), ("Input.ReauthenticatedOperation", "PasswordChange")], AdminCookie(key));
+        (HttpStatusCode status, string html) = await ForgedPosts.SendAsync(client, $"{ReauthPath}?handler=Reauthenticate", [("Input.Password", Strong), ("Input.ReauthenticatedOperation", "EmailChange")], AdminCookie(key));
 
         Assert.Equal(HttpStatusCode.BadRequest, status);
-        Assert.Contains("name=\"Input.ReauthenticatedOperation\" value=\"PasswordChange\"", html, StringComparison.Ordinal);
+        Assert.Contains("name=\"Input.ReauthenticatedOperation\" value=\"EmailChange\"", html, StringComparison.Ordinal);
         Assert.Contains(ForgeryProtectionFilter.Message, html, StringComparison.Ordinal);
         await using AppDbContext db = NewContext();
         Session session = await db.Sessions.AsNoTracking().SingleAsync(s => s.Id == sessionId, Ct);
         Assert.NotNull(session.ReauthenticationTokenHash);
-        Assert.Equal(ReauthenticationOperation.EmailChange, session.ReauthenticatedOperation);
+        Assert.Equal(ReauthenticationOperation.PasswordChange, session.ReauthenticatedOperation);
     }
 }

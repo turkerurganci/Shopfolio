@@ -168,7 +168,14 @@ function bindMenuOverflow(item) {
         }
     };
 
-    button.addEventListener("click", () => setOpen(button.getAttribute("aria-expanded") !== "true"));
+    // A click does not give a button the focus in Safari; the focus is put on it when the drop-down opens, so Escape (heard on the item) closes it for a mouse user too (D-1811).
+    button.addEventListener("click", () => {
+        const open = button.getAttribute("aria-expanded") !== "true";
+        setOpen(open);
+        if (open) {
+            button.focus();
+        }
+    });
     item.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && button.getAttribute("aria-expanded") === "true") {
             setOpen(false);

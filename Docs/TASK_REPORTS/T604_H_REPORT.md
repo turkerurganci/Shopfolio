@@ -235,16 +235,17 @@ Envanter: birleştirmeden sonra `WaitingPages` boş (S ve P birlikte 23 sayfa); 
 | Madde | Durum | Kanıt |
 |---|---|---|
 | KK1 UH1: D-138, D-1022, D-1134, D-1143, D-1146, D-1173, D-1174, D-1216, D-1387, D-1550, D-1788 kapalı; D-1135 daraldı | ✓ | "UH1–UH5 — bütün kalemler" tablosu; D-1135 satırı hedef `T601 (F6)` + gerekçe (`DEFERRED_BACKLOG.md` 643); D-1022 `SesEmailGatewayTests`, D-1173 `MessageStateModelTests…D1173`, D-1216 `NotFoundAnswerTests…D1216`, D-1387 `FieldMessageCatalogTests…D1387` |
-| KK1 UH2: D-283, D-1189, D-1243, D-1245, D-1275, D-1276, D-1398, D-1400, D-1631, D-1673, D-1703, D-1705 | ✓ | aynı tablo; UH2 bölümü "Kabul ve öz denetim"; D-1243 tarayıcı gözlemi ileri atıldı → D-1821 (T601, yeni ID kayıtlı) |
+| KK1 UH2: D-283, D-1189, D-1243, D-1245, D-1275, D-1276, D-1398, D-1400, D-1631, D-1673, D-1703, D-1705 | ✓ | aynı tablo; UH2 bölümü "Kabul ve öz denetim"; D-1243 tarayıcı gözlemi düzeltme 2 (B) ile yapıldı: D-1821 ✅ (`ProductPageObservationTests…_D1821`); D-1276'nın tarayıcı payı A010, A012, A016, A018, A020 PASS (B001 öteki işçide) |
 | KK1 UH3: D-442, D-880, D-1330, D-1332, D-1334, D-1365, D-1386, D-1412, D-1464, D-1604, D-1701 | ✓ | tablo; D-1412 `AfterSalesScreenTests.SeveralFieldedItems_…_D1412_D1833` + `Browser/DefectClaimFieldTests` (chromium iki yol) |
 | KK1 UH4: D-1329, D-1778, D-1790, D-1806, D-1773 | ✓ | tablo; D-1773 `✅` + `ForgeryRefusalReadInventoryTests`; kalan 23 sayfa D-1843'te kapandı (aşağıda) |
 | KK1 UH5: D-1599, D-1845, D-1815 | ✓ | `OrderCorrectionTests …_D1599_VALA238`, `CustomerOperationsTests …_D1845`; D-1815 `TitleMeasure.KnownWithoutBrand` kalktı |
 | KK1 UH son: D-1770 | ✓ | `test-pre-commit.sh` 263/0, `run-script-tests.sh` geçti |
 | KK1 düzeltme 1: D-1412, D-1833, D-1812, D-1550 (tam), D-1844, D-1859 (K1) | ✓ | `AfterSalesScreenTests…_D1412_D1833`; `OrderDetailPageTests.TheShipmentAndDeliveryMarkForms_…_D1812`; `CategoriesPageTests …_D1773` (`categories-action-message`) |
 | KK1 düzeltme 1: D-1843 — 23 sayfa | ✓ | `ForgeryRefusalReadInventoryTests` `WaitingPages = []`; S: 10 sayfa, P: 13 sayfa tabloları ve `…_D1843` testleri; `MyAccountPageTests…WhenTheAccountIsGone_…_D1843` |
-| KK1 tarama: `grep -nE "T604" Docs/DEFERRED_BACKLOG.md Docs/DEFERRED_BACKLOG.d/*.md` | ✓ | ⚪ kalan satırlar yalnız ileri atılanlar: D-1135, D-1811, D-1813, D-1814, D-1819, D-1820, D-1821 → T601 (tarayıcı gözlemi / dağıtım provası); D-1769 → sahip; D-1789, D-1803, D-1840, D-1841, D-1851, D-1864 → F6 gate; D-1832 → faz kapısı. UH'ye düşüp ⚪ kalan satır yok; hedefler geçerli, hiçbiri ürün kodu isteyen T604 kalemi değil |
+| KK1 tarama: `grep -nE "T604" Docs/DEFERRED_BACKLOG.md Docs/DEFERRED_BACKLOG.d/*.md` | ✓ | ⚪ kalan satırlar yalnız ileri atılanlar: D-1135, D-1813, D-1814, D-1819 → T601 (dağıtım provası / erişilebilirlik turu; D-1811 ve D-1821 düzeltme 2 (B) ile ✅, D-1820 hedefi T604'e döndü ve B001 kapanınca kapanır); D-1769 → sahip; D-1789, D-1803, D-1840, D-1841, D-1851, D-1864 → F6 gate; D-1832 → faz kapısı. UH'ye düşüp ⚪ kalan satır yok; hedefler geçerli, hiçbiri ürün kodu isteyen T604 kalemi değil |
 | KK2 para ve güvenlik: D-1599, D-1806, D-1845 ayrı başlık, kırmızı–yeşil | ✓ | "Para ve güvenlik kalemleri" (UH4, UH5); D-1843 güvenlik payı (tek kullanımlık değer tüketilmez, izin düşürülmez): S ve P kırmızı–yeşil tabloları, M4 (izin) ve `UsedAt` boş / `ReauthenticationTokenHash` duruyor denetimleri |
-| KK3 tarayıcı kalemleri | ✓ | `NarrowClassTests`, `ScreenInventoryTests`, `TitleMeasure*`, `DefectClaimFieldTests` chromium iki yol; firefox/webkit CI E2E |
+| KK3 tarayıcı kalemleri | ✓ | `NarrowClassTests`, `ScreenInventoryTests`, `TitleMeasure*`, `DefectClaimFieldTests` chromium iki yol; firefox/webkit CI E2E; düzeltme 2 (B): `ProductPageObservationTests` yerelde chromium, firefox, webkit, iki yol (42/42) |
+| KK1 düzeltme 2 (B): tur 2 Bulgu 1'in tarayıcı payı — VAL-A010, A012, A016, A018, A020 PASS; D-1811, D-1821 ✅; D-1820 ve D-1276 sonuçla güncel | ✓ | `ProductPageObservationTests` (`…_VALA010`, `…_VALA012`, `…_VALA016`, `…_VALA018`, `…_VALA020`, `…_D1811`, `…_D1821`); `12` satırları `PASS`; `12_matris_denetle.py --kapsam 1-77` Hata: 0; `DEFERRED_BACKLOG.d/T604-H.md` ve `DEFERRED_BACKLOG.md` D-1276 satırı; VAL-B001 ve D-1819, D-1867 öteki işçide |
 | KK4 belge | ✓ | `04` v0.61, `07` v0.51, `12` VAL-A238/VAL-A024 (UH5); düzeltme 1'de belge değişmedi |
 | KK5 backlog: kapanan `✅ Çözüldü → T604`, daraltılanın hedefi + gerekçe, sayaç | ✓ | D-1843 (T604-H.md) ve D-1773 (T604-U.md) `✅` + kanıt; "Aktif kalem" sayacına ve STATUS tablo satırına dokunulmadı; yeni kalem D-1864 (S dilimi) kayıtlı |
 | Sık FAIL (1) bekçi/tarama istisnası geniş | ✓ | yeni tarama istisnası yok; `ForgeryRefusalReadInventoryTests` kapalı liste yalnız kısalır, şimdi boş; `OwnReadPages` dar (D-1864 sınırı kayıtlı) |
@@ -283,7 +284,7 @@ Envanter: birleştirmeden sonra `WaitingPages` boş (S ve P birlikte 23 sayfa); 
 
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
-| 1 | "Diğer" menüsü tarayıcı gözlemi | D-1811 | Gerçek tarayıcı gerekir. |
+| 1 | "Diğer" menüsü tarayıcı gözlemi | D-1811 ✅ | Düzeltme 2 (B) ile gözlendi (`ProductPageObservationTests`); kapandı. |
 | 2 | Sipariş adım formları D-1550 kalıbına | D-1812 | UE ile ortak dosya, T527'de PASS. |
 | 3 | 429 çerçeveli sayfası maliyet gözlemi | D-1813 | Taşkın altında ölçüm. |
 | 4 | `/gorsel/simge` ve vekil kuralı birleşme sırası | D-1814 | PR 595 birleşimi. |
@@ -293,7 +294,7 @@ Envanter: birleştirmeden sonra `WaitingPages` boş (S ve P birlikte 23 sayfa); 
 ## Notlar
 
 - ⚠ `AMachineEndpoint_IsRefusedWith429AndNoBodyAndNoRetryAfter`: ilk (reddedilmeyen) `/sistem/canlilik` isteği 503 döndü (canlılık probu veritabanını 2 sn içinde bulamadı, yerel Docker'da). Test ve probe bu PR'da değişmedi; reddedilen istekten önce kırılır, `WriteRejectionAsync` değişikliğine ulaşmaz. İki ayrı koşuda tekrarlandı; ana dalda karşılaştırılmadı. CI'da doğrulanır.
-- ⚠ D-1134: "Diğer" betiği gerçek tarayıcıda gözlenmedi (D-1811).
+- ⚠ (düzeltme 2 (B) ile kapandı) D-1134: "Diğer" betiği gerçek tarayıcıda gözlendi (D-1811 ✅).
 - ⚠ D-1550: kargoya verme ve teslim işareti formları değişmedi (D-1812).
 - ⚠ D-1146: çerçeveli 429/413 sayfası DB okur; taşkın altında maliyet (D-1813).
 - Karar (kolay): `/gorsel/simge` adresi (07 §2.1.2 kapalı listesinde `/gorsel` zaten var; yeni ilk segment yok); karar kaydı açılmadı.
@@ -579,8 +580,8 @@ Değişinimlerin hepsi geri alındı (`git checkout`), aynı sınıflar sonra ye
 |---|---|---|
 | D-1867 | ✅ kapandı | iki `…_D1867` testi; sözleşme belgesi değişmedi, kod hizalandı |
 | D-1819 | ✅ kapandı (hedefi T601'den T604'e alındı) | `…_D1819` testi |
-| D-1820 (içinden VAL-B001) | B001 payı kapandı; satırın kalanı öteki işçide | `…_T604_VALB001`; D-1820 / D-1276 metnini öteki işçi yazar |
-| D-1811, D-1821 | öteki işçide (tarayıcı gözlemi) | — |
+| D-1820 | ✅ kapandı (B001 payı bu yarıda, öteki beş satır tarayıcı yarısında) | `…_T604_VALB001`; D-1820 ve D-1276 satırları birleştirmede kapatıldı |
+| D-1811, D-1821 | ✅ öteki işçide (tarayıcı gözlemi) | — |
 | Önceki kalemlerin tamamı (UH1–UH5, düzeltme 1) | ✅ (tur 2 envanteri: açık T604 hedefli satır yok) | `dogrulama-raporu-H-r2.md` KK1 |
 
 ### Para ve güvenlik notu
@@ -615,3 +616,45 @@ Bu yarıda para kodu yok. Güvenlik yönü: sahtecilik reddi yolu önceden de ya
 
 1. D-1819'un kendi kapsamı sepet satırı görselidir; aynı kuralın (`02` 3.34.5 (2)) yan örneği olan sipariş sayfasındaki satır görseli (`order-items__image`, `_OrderPage.cshtml`) de `alt=""` idi: dondurulmuş kalem adı (seçenek değerleriyle) alt metin oldu, test `OrderPageTests.TheItemsImage_HasTheFrozenNameAsItsAlternativeText_D1819`. Yeni kayıt gerekmedi.
 2. D-1819 çözümünde ürün adı bağlantı içinde görsel alt metni ve görünür metin olarak iki kez okunabilir; `02` 3.34.5 (2) "her görselin alternatif metni" der ve süsleyici istisnası yazmaz, kural önceliklendi.
+
+## Düzeltme 2 — tarayıcı (2026-11-21; tur 2 Bulgu 1'in tarayıcı payı)
+
+Yönetici bölüşümü: iki işçi paralel; B001 (uç yanıtı + veri kaydı), D-1867 ve D-1819 öteki işçide. Bu işçinin payı: `12` VAL-A010, A012, A016, A018, A020 satırlarının kanıtı ve D-1811, D-1821'in tarayıcı gözlemi.
+
+### Yapılan işler
+
+- `tests/Shopfolio.IntegrationTests/Browser/ProductPageObservationTests.cs` (yeni): yedi gözlem testi, her biri `Ways()` ile üç motor × iki yol (42 koşu). Beklenen metinler satırın "Beklenen" sütunundan ve `DisplayFormat`'tan türetilir; her ürün gözlemin kendi tohumudur (`BrowserSeed.NewShowcaseProductAsync`, `ShowcaseSpec`), başka testin değişikliği ona ulaşmaz.
+  - VAL-A010: üç seçenekli ürün kategori listesinde, aramada ve ana sayfa vitrininde bir kartla görünür.
+  - VAL-A012: iki görselli ve açıklamalı ürünün sayfasında ana görsel ve öteki görsel yüklenmiş (doğal genişlik > 0) ve açıklama metni yazar.
+  - VAL-A016: Türkiye üretimli fiziksel üründe fiyat bloğunda logo (görünür, yüklenmiş, alt metni "Yerli üretim logosu"); Almanya üretimlide logo yok, "Üretim yeri: Almanya"; yönetici panelinin ürün formunda logo ya da "yerli" adlı denetim yok, üretim yeri alanı var.
+  - VAL-A018: yüzde 10'luk sürmekte olan indirimde sayfada ve vitrin kartında (aramada) referans fiyat, işaret ve başlangıç–bitiş tarihleri görünür; yanıt gövdesi de taşır (uç yanıtı).
+  - VAL-A020: ifa süresi üç gün olan hizmetin sayfasında "Hizmet, ödeme onayından itibaren 3 gün içinde yerine getirilir"; sepete eklenip ödeme adımına gidilince onay özetinde (Ön Bilgilendirme Formu'nun başı, `OrderDocuments.Produce`) "İfa süresi: 3 gün (ödemenin onaylandığı andan itibaren)"; veri kaydı: `products.fulfilment_period` satırı gözlem kaydında.
+  - D-1821: üç seçenekli üründe seçim değişince "Fiyatın geçerlilik başlangıcı" satırı seçilen seçeneğin tarihini yazar, tarihi olmayan seçenekte gizlenir (betikli: adres değişmeden; betiksiz: "Seçimi uygula" ile sunucu yanıtı).
+  - D-1811: orta sınıfta (800) sığmayan girişler sırasıyla "Diğer" listesine taşınır, satır tek satır, giriş kaybolmaz; tıkla açılır, Escape kapatır ve odak düğmeye döner, Enter açar; betiksiz yolda "Diğer" gizli, hiçbir şey taşınmaz.
+- `tests/Shopfolio.IntegrationTests/Browser/BrowserSeed.cs`: `ShowcaseSpec`, `TurkeyToday`, `NewShowcaseProductAsync`.
+- **Ürün düzeltmesi (gözlemin bulduğu sapma):** `src/Shopfolio.Web/wwwroot/js/common.js` `bindMenuOverflow`: Safari düğmeye tıklamada odak vermez, bu yüzden fareyle açılan "Diğer" listesi Escape ile kapanmıyordu (Escape olayı öğede dinlenir, odak dışarıdaydı); WebKit'te D-1811 gözlemi kırmızı çıktı. Liste açılırken düğmeye `focus()` verilir. Davranış betiğin kendi başlık yorumundaki sözleşmedir (Escape kapatır, odak düğmeye döner); belge değişmedi.
+- `Docs/12_VALIDATION_PROTOCOL.md`: VAL-A010, A012, A016, A018, A020 `Durum` PASS. `Docs/DEFERRED_BACKLOG.d/T604-H.md`: D-1811 ve D-1821 `✅ Çözüldü → T604` (hedef T604); D-1820 hedefi T604, tarayıcı payı kapandı, B001 öteki işçide. `Docs/DEFERRED_BACKLOG.md`: D-1276 satırı sonuçla, D-1134 satırındaki "D-1811'de gözlenecek" ifadesi güncel.
+
+### Kanıt ve kırmızı–yeşil
+
+- Yerel koşu, üç motor × iki yol: `ProductPageObservationTests` 42/42.
+- Kırmızı–yeşil: `product.js` `setText("since", …)` satırı yorumlanınca `…_D1821` (betikli) kırmızı; `bindMenuOverflow` taşıma döngüsü bozulunca `…_D1811` (betikli) kırmızı; geri alındı. `common.js` odak düzeltmesi WebKit'te kırmızıyı yeşile çevirdi (düzeltmeden önceki koşuda "Escape'e basılır" satırı kırmızı).
+- Gözlem sınırı (yazılı): tohum menüsünün altı girişi 800 genişlikte tek satıra sığar; D-1811 gözleminde sayfanın menüsü sekiz ek girişle uzatılır ve betiği gerçek `resize` olayı uyandırır (gözlem satırının "gözlenen" metninde yazılı). Betik gerçek düzen üzerinde çalışır; sunucu menüsünün uzunluğu değil, betiğin taşıma davranışı gözlenir.
+- VAL-A020 "Ön Bilgilendirme Formu" gözlemi ödeme adımının onay özetindedir (sipariş verilmeden; özet, siparişin form metninin başıdır, `OrderDocuments.Produce`); siparişe yazılan metin `OrderDocuments` Integration testlerinin işidir.
+
+### Test sonuçları (düzeltme 2 (B))
+
+| Tür | Sonuç | Komut / sınıf |
+|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` 0 uyarı, 0 hata |
+| Unit TAM | ✓ 8325/8325 | `dotnet test --project tests/Shopfolio.UnitTests` |
+| Integration (ilgili sınıflar) | ✓ 89/89 | FrameLayoutTests, StorefrontFrameTests, StorefrontSearchAndProductTests, PageAddressTests — TAM: CI |
+| Tarayıcı (yerel, üç motor, iki yol) | ✓ 42/42 | `ProductPageObservationTests` |
+| `12_matris_denetle.py --kapsam 1-77` | ✓ Hata: 0 | |
+| `dotnet format` (değişen `.cs`: BrowserSeed.cs, ProductPageObservationTests.cs) | ✓ değişiklik yok | |
+
+### ⚠ (kolay kararlar, sahip yerine)
+
+- D-1820 satırı bu işçide kapatılmadı: VAL-B001 öteki işçide; B001 PASS olunca kalem ✅ olur. Hedefi T601'den T604'e döndü.
+- D-1819 (sepet görseli alt metni) hedefi bu işçinin payı dışında (öteki işçi).
+- `common.js` odak değişikliği `bindMenuOverflow`'un tek davranış değişikliğidir (Safari'de fareyle açma); Chromium ve Firefox'ta düğme zaten odaklanır, davranış aynı.

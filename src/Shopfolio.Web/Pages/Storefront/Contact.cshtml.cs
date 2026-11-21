@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
@@ -57,6 +58,25 @@ public sealed class ContactModel : PageModel
 
     /// <summary>True when the address carries <c>ContactRequestSent</c>: the form's place shows the state after the send (04 5.10.8).</summary>
     public bool ShowsSentState { get; private set; }
+
+    /// <summary>True on the forgery check's 400 (07 2.5.4; D-1843): the page draws the check's action-level message in place (04 2.7.3.1).</summary>
+    public bool ForgeryRefused { get; private set; }
+
+    /// <summary>
+    /// The forgery check answers 400 before the handler (07 2.5.4; D-1773, D-1843): the page shown again reads the identity block, the branches and the form's gate as the GET does - a read, nothing was
+    /// sent and no limit counted - and keeps the sent values in the form. The query is not read.
+    /// </summary>
+    public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        PageHandlerExecutedContext executed = await next();
+        if (executed.Exception is null && executed.Result is PageResult { StatusCode: FormResults.ForgeryRefusedStatus })
+        {
+            ForgeryRefused = true;
+            await LoadAsync(context.HandlerArguments.Values.OfType<SendContactRequestInput>().FirstOrDefault(), HttpContext.RequestAborted);
+        }
+    }
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {

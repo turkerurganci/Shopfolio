@@ -41,7 +41,7 @@ public sealed class CustomerSignInPageTestsDefinition : ICollectionFixture<Colle
 /// collection database; Google is a stub that answers what a test queues, so no call leaves the process; the flow's cookie and state are made by the application's own flow.
 /// </summary>
 [Collection(CustomerSignInPageTestsDefinition.Name)]
-public sealed class CustomerSignInPageTests : IAsyncLifetime
+public sealed partial class CustomerSignInPageTests : IAsyncLifetime
 {
     private const string Entered = "orchid-lantern-4471-violet";
 

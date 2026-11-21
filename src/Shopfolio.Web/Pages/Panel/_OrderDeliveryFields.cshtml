@@ -1,8 +1,22 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @using Shopfolio.Pages.Panel
 @model OrderDetailModel
-@* The delivery mark's fields (T527; 04 9.9.17; 07 UC-126): the delivery date and, on a declaration's day, the order question. The same form is the primary button or one of the order's operations (04 9.9.5, 6.3.9.5). *@
+@* The delivery mark's fields (T527; 04 9.9.17; 07 UC-126): the delivery date and, on a declaration's day, the order question. The same form is the primary button or one of the order's operations (04 9.9.5, 6.3.9.5).
+   A refused date is the single-field forms' pattern (D-1812, D-1550): missing or malformed - the summary at the form's head and the message under the date; a rule's bound - the message in place
+   under the date, no summary. The order question's message keeps the step section's place. *@
+@{
+    bool refused = Model.RefusalIsDeliveryField;
+}
+@if (Model.StepSummaryFor(refused, "delivery-date") is { } summary)
+{
+    <partial name="_FormErrorSummary" model="summary" />
+}
 <label for="delivery-date">Teslim tarihi</label>
-<input id="delivery-date" type="date" name="Input.DeliveryDate" value="@Model.Delivery.DeliveryDate" required />
+<input id="delivery-date" type="date" name="Input.DeliveryDate" value="@Model.Delivery.DeliveryDate" required aria-invalid="@OrderDetailModel.StepInvalid(refused)" aria-describedby="@OrderDetailModel.StepDescribedBy(refused)" />
+@if (Model.StepMessageFor(refused) is { } message)
+{
+    <partial name="_Message" model="message" />
+}
 @if (Model.AsksDeliveryOrder)
 {
     <fieldset class="order-detail__question" id="delivery-order-question">

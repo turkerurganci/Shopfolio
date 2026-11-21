@@ -31,7 +31,7 @@ namespace Shopfolio.IntegrationTests.Web;
 /// units, the gate's unmet conditions, the absolute publish moves, the last Published variant's refusal, the deletion's confirmation state and the deletion itself.
 /// </summary>
 [Collection(ProductListPageTestsDefinition.Name)]
-public sealed class ProductFormPageTests : IAsyncLifetime
+public sealed partial class ProductFormPageTests : IAsyncLifetime
 {
     private static readonly DateTimeOffset Base = new(2026, 10, 1, 9, 0, 0, TimeSpan.Zero);
 
@@ -268,6 +268,34 @@ public sealed class ProductFormPageTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task UploadImage_WithUntickedCategoryBoxes_DrawsTheFormAgain_AndTheBinderLeavesNoNullEntry_D1703()
+    {
+        (Guid productId, _) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        // Three keyed boxes, only the middle one ticked: the other two keys have no field behind them (the page's own markup, _ProductFormBody).
+        using HttpResponseMessage response = await UploadAsync(
+            client,
+            ProductFormModel.PathOf(productId),
+            ImageFixtures.Png(120, 80),
+            ProductFormModel.GalleryTarget,
+            ("Input.Categories.Index", "0"),
+            ("Input.Categories.Index", "1"),
+            ("Input.Categories.Index", "2"),
+            ("Input.Categories[1].CategoryId", Guid.NewGuid().ToString("D")));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        // The list itself: an entry the binder cannot fill is not added, whatever the way it is filled.
+        NonNullList<SaveProductCategoryRow> list = [];
+        list.Add(null!);
+        list.Insert(0, null!);
+        list.Add(new SaveProductCategoryRow());
+        Assert.Single(list);
+    }
+
+    [Fact]
     public async Task UploadImage_ToAVariantRow_PutsTheNewImageInThatRowsField_KK10()
     {
         (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
@@ -435,6 +463,58 @@ public sealed class ProductFormPageTests : IAsyncLifetime
         Assert.Equal(
             [productFile.Id, variantFile.Id],
             await check.DigitalFiles.AsNoTracking().Where(f => f.DetachedAt == null && f.AttachedAt != null).OrderBy(f => f.VariantId != null).Select(f => f.Id).ToListAsync(Ct));
+    }
+
+    [Fact]
+    public async Task MoreThanOneCategoryMarkedAsTheMainOne_Is422AtTheCategoriesField_AndWritesNothing_D1400()
+    {
+        (Guid productId, _) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
+        Category first = Category.Create("Mutfak", $"mutfak-{Guid.NewGuid():N}"[..20], null, 1, Base);
+        Category second = Category.Create("Sofra", $"sofra-{Guid.NewGuid():N}"[..20], null, 1, Base);
+        await using (AppDbContext seed = ListSeed.Open(_database.Dsn))
+        {
+            seed.Categories.AddRange(first, second);
+            await seed.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+        (_, string html) = await GetAsync(client, ProductFormModel.PathOf(productId));
+        List<(string Name, string Value)> fields =
+        [
+            .. SaveFormFieldsOf(html).Where(f => !f.Name.StartsWith("Input.Categories", StringComparison.Ordinal)),
+            ("Input.Categories.Index", "0"),
+            ("Input.Categories[0].CategoryId", first.Id.ToString("D")),
+            ("Input.Categories[0].IsPrimaryCategory", "true"),
+            ("Input.Categories.Index", "1"),
+            ("Input.Categories[1].CategoryId", second.Id.ToString("D")),
+            ("Input.Categories[1].IsPrimaryCategory", "true"),
+        ];
+
+        using HttpResponseMessage twoMain = await PostAsync(client, productId, "SaveProduct", [.. fields]);
+        string answer = WebUtility.HtmlDecode(await twoMain.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, twoMain.StatusCode);
+        Assert.Contains(ProductSaveRefusals.OnePrimaryCategoryText, answer, StringComparison.Ordinal);
+        await using AppDbContext check = ListSeed.Open(_database.Dsn);
+        Assert.Equal(0, await check.ProductCategories.AsNoTracking().CountAsync(l => l.ProductId == productId, Ct));
+
+        // One main category among two is saved: the rule refuses the second mark, not the second category.
+        List<(string Name, string Value)> one = [.. fields.Where(f => f.Name != "Input.Categories[1].IsPrimaryCategory")];
+        using HttpResponseMessage oneMain = await PostAsync(client, productId, "SaveProduct", [.. one]);
+        Assert.Equal(HttpStatusCode.SeeOther, oneMain.StatusCode);
+        Assert.Equal(
+            [(first.Id, true), (second.Id, false)],
+            (await check.ProductCategories.AsNoTracking().Where(l => l.ProductId == productId).OrderByDescending(l => l.IsPrimaryCategory).Select(l => new { l.CategoryId, l.IsPrimaryCategory }).ToListAsync(Ct)).Select(l => (l.CategoryId, l.IsPrimaryCategory)));
+    }
+
+    [Fact]
+    public void ThePrimaryCategoryCount_CountsTheMarkedRows_D1400()
+    {
+        SaveProductInput input = new() { Categories = [new SaveProductCategoryRow { IsPrimaryCategory = true }, null!, new SaveProductCategoryRow(), new SaveProductCategoryRow { IsPrimaryCategory = true }] };
+
+        Assert.Equal(2, ProductFormModel.PrimaryCategoryCount(input));
+        Assert.Equal(0, ProductFormModel.PrimaryCategoryCount(new SaveProductInput()));
     }
 
     [Fact]

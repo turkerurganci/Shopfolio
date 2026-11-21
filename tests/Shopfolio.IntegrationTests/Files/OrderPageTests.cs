@@ -371,6 +371,32 @@ public sealed class OrderPageTests
         Assert.Equal(await ContentOfAsync(renewed), await ContentOfAsync(gone));
     }
 
+    // --- T604 D-1819 (02 3.34.5 (2)): the item's image has the item's frozen name - with its option values - as its alternative text, never empty ---
+
+    [Fact]
+    public async Task TheItemsImage_HasTheFrozenNameAsItsAlternativeText_D1819()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (_, _, string key, Guid itemId) = await SeedAsync(host, PaymentStatus.Paid);
+        string name;
+        Guid imageId;
+        await using (AppDbContext db = host.NewContext())
+        {
+            Image image = Image.Create($"siparis-{Guid.NewGuid():N}", ImageFormat.Png, 1, 1, host.Time.GetUtcNow());
+            db.Images.Add(image);
+            await db.SaveChangesAsync(Ct);
+            imageId = image.Id;
+            await db.OrderItems.Where(i => i.Id == itemId).ExecuteUpdateAsync(i => i.SetProperty(x => x.ImageId, imageId), Ct);
+            name = await db.OrderItems.Where(i => i.Id == itemId).Select(i => i.ProductName).SingleAsync(Ct);
+        }
+
+        using HttpResponseMessage response = await host.Client.GetAsync(At(OrderRoutes.AccessPath(key)), Ct);
+        string body = await response.Content.ReadAsStringAsync(Ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains($"src=\"/gorsel/{imageId:D}\" alt=\"{await EncodedAsync(host, name)}\"", body, StringComparison.Ordinal);
+    }
+
     /// <summary>The page's content region; the frame around it carries the per-response nonce.</summary>
     private static async Task<string> ContentOfAsync(HttpResponseMessage response)
     {

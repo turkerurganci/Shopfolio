@@ -202,7 +202,7 @@ public static class AddressForms
         {
             string text = refusal.Code == ErrorCode.DeliveryProvinceNotServed
                 ? AddressMessages.NotDelivered(refusal.Detail ?? string.Empty)
-                : FieldMessageCatalog.Build(refusal.Code.ToString(), LabelOf(refusal.Field), null);
+                : FieldMessageCatalog.Build(refusal.Code.ToString(), LabelOf(refusal.Field), refusal.Code == ErrorCode.TextTooLong ? refusal.Detail : null);
             modelState.AddModelError(namePrefix + MemberOf(refusal.Field), text);
         }
     }

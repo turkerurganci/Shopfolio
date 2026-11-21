@@ -24,7 +24,7 @@ namespace Shopfolio.Pages.Panel;
 /// scheme and are not touched (K-899). A wrong e-mail or password is one sentence that does not say which (K-779, K-1204); over the limit L-1 is the neutral sentence and the attempts are counted by the module (K-972).
 /// </summary>
 [NoStore]
-internal sealed class SignInModel : PageModel
+internal sealed class SignInModel : PageModel, IReadsOnForgeryRefusal
 {
     /// <summary>The name of the query parameter that carries the invitation's protected value (07 9.2.2; K-1190 (2)).</summary>
     internal const string AcceptedInvitationParameter = "acceptedInvitation";
@@ -34,6 +34,9 @@ internal sealed class SignInModel : PageModel
     private readonly ProtectedValues _protectedValues;
 
     private bool _loaded;
+
+    // The handler's context, kept for the forgery refusal's read (D-1843): the sent values.
+    private PageHandlerExecutingContext? _executing;
 
     public SignInModel(IAdministrationModule administration, ITransactionRunner transactions, ProtectedValues protectedValues)
     {
@@ -64,10 +67,33 @@ internal sealed class SignInModel : PageModel
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(next);
+        _executing = context;
         PageHandlerExecutedContext executed = await next();
-        if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity }
-            && context.HandlerArguments.Values.OfType<SignInInput>().FirstOrDefault() is { } sent)
+        if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
         {
+            ShowSent(context);
+        }
+    }
+
+    /// <summary>
+    /// D-1843 (07 2.5.4; 04 2.7.3.1): the forgery check's 400 shows the form with the sent values and the return address only when it is local - no read of the invitation's query
+    /// value (the GET's), nothing written.
+    /// </summary>
+    Task IReadsOnForgeryRefusal.ReadAfterForgeryRefusalAsync(CancellationToken ct)
+    {
+        if (!_loaded && _executing is { } context)
+        {
+            ShowSent(context);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void ShowSent(PageHandlerExecutingContext context)
+    {
+        if (context.HandlerArguments.Values.OfType<SignInInput>().FirstOrDefault() is { } sent)
+        {
+            sent.ReturnUrl = ReturnPath.IsLocalPath(sent.ReturnUrl) ? sent.ReturnUrl : null;
             Input = sent;
             _loaded = true;
         }

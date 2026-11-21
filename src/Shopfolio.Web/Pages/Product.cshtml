@@ -93,16 +93,13 @@
                 <div class="price-block">
                     <p class="price-block__row">
                         <span class="price-block__price" data-js="price">@price.PriceText</span>
-                        @* The four variable lines are always drawn (hidden when empty) so the script can fill them for a variant the first one does not have (04 5.4.4). *@
+                        @* The five variable lines (the unit price and the day the price applies since too) are always drawn (hidden when empty) so the script can fill them for a variant the first one does not have (04 5.4.4). *@
                         <del class="price-block__reference" data-js="reference" hidden="@(price.ReferencePriceText is null)">@price.ReferencePriceText</del>
                         <span class="price-block__mark" data-js="mark" hidden="@(price.ReferencePriceText is null)">@price.DiscountMark</span>
                     </p>
                     <p class="price-block__dates" data-js="dates" hidden="@(price.DiscountDates is null)">@price.DiscountDates</p>
                     <p class="price-block__unit" data-js="unit-price" hidden="@(price.UnitPriceText is null)">@price.UnitPriceText</p>
-                    @if (price.SinceText is not null)
-                    {
-                        <p class="price-block__since">@price.SinceText</p>
-                    }
+                    <p class="price-block__since" data-js="since" hidden="@(price.SinceText is null)">@price.SinceText</p>
                     @if (price.Origin is { } origin)
                     {
                         <partial name="_OriginLabel" model="origin" />
@@ -184,17 +181,7 @@
                     }
                     @if (delivery.Restriction is { } restriction)
                     {
-                        @if (restriction.FullList is null)
-                        {
-                            <p class="delivery__restriction">@restriction.Text</p>
-                        }
-                        else
-                        {
-                            <details class="delivery__restriction">
-                                <summary>@restriction.Text</summary>
-                                <p>@restriction.FullList</p>
-                            </details>
-                        }
+                        <partial name="_DeliveryRestriction" model="restriction" />
                     }
                 </div>
             }

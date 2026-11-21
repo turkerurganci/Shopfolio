@@ -80,9 +80,15 @@
         @if (carrier)
         {
             <form method="post" action="@(Model.PagePath)?handler=CorrectCarrier" asp-antiforgery="true" class="form" data-js="submit-once" id="@OrderDetailModel.CarrierFormId">
+                @* The single-field forms share one pattern (D-1550; 04 2.3.1.1, 2.3.2, 9.9.36): a missing or malformed value is the field's message under it and the summary at the form's head, the field
+                   carries aria-invalid and aria-describedby; a rule's bound is the lasting message in place (04 2.3.3), described the same way. *@
+                @if (Model.CorrectionSummaryFor(OrderDetailModel.CarrierFormId, "correct-carrier") is { } carrierSummary)
+                {
+                    <partial name="_FormErrorSummary" model="carrierSummary" />
+                }
                 @VersionFields.Version(Model.Operations.Version, "Input")
                 <label for="correct-carrier">Kargo şirketi</label>
-                <select id="correct-carrier" name="Input.Carrier">
+                <select id="correct-carrier" name="Input.Carrier" aria-invalid="@Model.InvalidFor(OrderDetailModel.CarrierFormId)" aria-describedby="@Model.DescribedBy(OrderDetailModel.CarrierFormId)">
                     <option value="">Diğer</option>
                     @foreach (CarrierEntry entry in Model.Carriers)
                     {
@@ -92,21 +98,30 @@
                 <label for="correct-other-carrier">Listede yoksa şirketin adı</label>
                 <input id="correct-other-carrier" name="Input.OtherCarrierName" maxlength="@ShipmentLimits.OtherCarrierNameMaxLength" value="@Model.Ship.OtherCarrierName" />
                 <label for="correct-tracking">Takip numarası</label>
-                <input id="correct-tracking" name="Input.TrackingNumber" maxlength="@ShipmentLimits.TrackingNumberMaxLength" value="@Model.Ship.TrackingNumber" />
-                <label><input type="checkbox" name="Input.IsOwnVehicleDelivery" value="true" checked="@Model.Ship.IsOwnVehicleDelivery" /> Kendi aracımızla teslim</label>
+                <input id="correct-tracking" name="Input.TrackingNumber" maxlength="@ShipmentLimits.TrackingNumberMaxLength" value="@Model.Ship.TrackingNumber" aria-invalid="@Model.InvalidFor(OrderDetailModel.CarrierFormId)" aria-describedby="@Model.DescribedBy(OrderDetailModel.CarrierFormId)" />
                 @if (Model.CorrectionMessageFor(OrderDetailModel.CarrierFormId) is { } carrierMessage)
                 {
                     <partial name="_Message" model="carrierMessage" />
                 }
+                <label><input type="checkbox" name="Input.IsOwnVehicleDelivery" value="true" checked="@Model.Ship.IsOwnVehicleDelivery" /> Kendi aracımızla teslim</label>
                 <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.CorrectCarrierLabel)">@OrderDetailModel.CorrectCarrierLabel</button>
             </form>
         }
         @if (delivery)
         {
             <form method="post" action="@(Model.PagePath)?handler=CorrectDeliveryDate" asp-antiforgery="true" class="form" data-js="submit-once" id="@OrderDetailModel.DeliveryDateFormId">
+                @if (Model.CorrectionSummaryFor(OrderDetailModel.DeliveryDateFormId, "correct-delivery-date") is { } deliverySummary)
+                {
+                    <partial name="_FormErrorSummary" model="deliverySummary" />
+                }
                 @VersionFields.Version(Model.Operations.Version, "Input")
                 <label for="correct-delivery-date">Teslim tarihi</label>
-                <input id="correct-delivery-date" type="date" name="Input.DeliveryDate" value="@Model.SentDeliveryDate" required />
+                <input id="correct-delivery-date" type="date" name="Input.DeliveryDate" value="@Model.SentDeliveryDate" required aria-invalid="@(Model.AsksCorrectionDeliveryOrder ? null : Model.InvalidFor(OrderDetailModel.DeliveryDateFormId))" aria-describedby="@(Model.AsksCorrectionDeliveryOrder ? null : Model.DescribedBy(OrderDetailModel.DeliveryDateFormId))" />
+                @* The order question's own message is the question's (it stays after it); the date's refusal sits under the date. *@
+                @if (!Model.AsksCorrectionDeliveryOrder && Model.CorrectionMessageFor(OrderDetailModel.DeliveryDateFormId) is { } deliveryMessage)
+                {
+                    <partial name="_Message" model="deliveryMessage" />
+                }
                 @if (Model.AsksCorrectionDeliveryOrder)
                 {
                     <fieldset class="order-detail__question" id="correction-delivery-order-question">
@@ -118,10 +133,10 @@
                         <label><input type="radio" name="Input.IsDeliveredBeforeDeclaration" value="true" required /> Teslim beyandan önce</label>
                         <label><input type="radio" name="Input.IsDeliveredBeforeDeclaration" value="false" /> Teslim beyandan sonra</label>
                     </fieldset>
-                }
-                @if (Model.CorrectionMessageFor(OrderDetailModel.DeliveryDateFormId) is { } deliveryMessage)
-                {
-                    <partial name="_Message" model="deliveryMessage" />
+                    @if (Model.CorrectionMessageFor(OrderDetailModel.DeliveryDateFormId) is { } deliveryQuestionMessage)
+                    {
+                        <partial name="_Message" model="deliveryQuestionMessage" />
+                    }
                 }
                 <button type="submit" class="button button--secondary" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.CorrectDeliveryDateLabel)">@OrderDetailModel.CorrectDeliveryDateLabel</button>
             </form>
@@ -134,10 +149,14 @@
                 string arrivalForm = OrderDetailModel.ArrivalDateFormId(record.RecordId);
                 <form method="post" action="@(Model.PagePath)?handler=CorrectArrivalDate" asp-antiforgery="true" class="form" data-js="submit-once" id="@arrivalForm">
                     @VersionFields.Version(Model.Operations.Version, "Input")
+                    @if (Model.CorrectionSummaryFor(arrivalForm, "correct-arrival-date-" + recordKey) is { } arrivalSummary)
+                    {
+                        <partial name="_FormErrorSummary" model="arrivalSummary" />
+                    }
                     <input type="hidden" name="Input.ArrivalRecordId" value="@recordKey" />
                     <p>@Model.ItemNameOf(record.OrderItemId) · Ulaşma tarihi: @DisplayFormat.Date(record.ArrivalDate)</p>
                     <label for="correct-arrival-date-@recordKey">Yeni ulaşma tarihi</label>
-                    <input id="correct-arrival-date-@recordKey" type="date" name="Input.ArrivalDate" value="@(Model.SentArrivalRecordId == record.RecordId ? Model.SentArrivalDate : null)" required />
+                    <input id="correct-arrival-date-@recordKey" type="date" name="Input.ArrivalDate" value="@(Model.SentArrivalRecordId == record.RecordId ? Model.SentArrivalDate : null)" required aria-invalid="@Model.InvalidFor(arrivalForm)" aria-describedby="@Model.DescribedBy(arrivalForm)" />
                     @if (Model.CorrectionMessageFor(arrivalForm) is { } arrivalMessage)
                     {
                         <partial name="_Message" model="arrivalMessage" />
@@ -183,9 +202,13 @@
         {
             <p class="order-detail__reminder" id="email-correction-reminder">@OrderDetailModel.EmailReminderText</p>
             <form method="post" action="@(Model.PagePath)?handler=CorrectOrderEmail" asp-antiforgery="true" class="form" data-js="submit-once" id="@OrderDetailModel.OrderEmailFormId">
+                @if (Model.CorrectionSummaryFor(OrderDetailModel.OrderEmailFormId, "correct-order-email") is { } emailSummary)
+                {
+                    <partial name="_FormErrorSummary" model="emailSummary" />
+                }
                 @VersionFields.Version(Model.Operations.Version, "Input")
                 <label for="correct-order-email">Yeni e-posta adresi</label>
-                <input id="correct-order-email" type="email" name="Input.ContactEmail" value="@Model.SentEmail" autocomplete="off" required />
+                <input id="correct-order-email" type="email" name="Input.ContactEmail" value="@Model.SentEmail" autocomplete="off" required aria-invalid="@Model.InvalidFor(OrderDetailModel.OrderEmailFormId)" aria-describedby="@Model.DescribedBy(OrderDetailModel.OrderEmailFormId)" />
                 @if (Model.CorrectionMessageFor(OrderDetailModel.OrderEmailFormId) is { } emailMessage)
                 {
                     <partial name="_Message" model="emailMessage" />

@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
@@ -59,6 +60,50 @@ internal sealed class AddressesModel : PageModel
 
     /// <summary>The short-lived "kaydedildi" notice (04 5.26.6); null when the address carries none.</summary>
     public MessageView? Notice { get; private set; }
+
+    /// <summary>True on the forgery check's 400 (07 2.5.4; D-1843): the page draws the check's action-level message in place (04 2.7.3.1).</summary>
+    public bool ForgeryRefused { get; private set; }
+
+    /// <summary>
+    /// The forgery check answers 400 before the handler (07 2.5.4; D-1773, D-1843): the page shown again reads the member's own entries - a read, the refusal wrote nothing - and keeps the sent form open
+    /// with the sent values, the edit form only for an entry of this account (the list is the account's own). The query is not read; a refused deletion shows the list.
+    /// </summary>
+    public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        PageHandlerExecutedContext executed = await next();
+        if (executed.Exception is not null || executed.Result is not PageResult { StatusCode: FormResults.ForgeryRefusedStatus } || CustomerId() is not Guid customerId)
+        {
+            return;
+        }
+
+        ForgeryRefused = true;
+        CancellationToken ct = HttpContext.RequestAborted;
+        Entries = await _membership.GetAddressBookAsync(customerId, ct);
+        if (context.HandlerArguments.Values.OfType<CreateAddressBookInput>().FirstOrDefault() is not { } sent)
+        {
+            return;
+        }
+
+        Guid? editing = null;
+        if (sent is UpdateAddressBookInput update)
+        {
+            if (!Guid.TryParse(update.AddressBookId, out Guid id) || !Entries.Any(e => e.Id == id))
+            {
+                return;
+            }
+
+            editing = id;
+        }
+
+        EditingId = editing;
+        Form = AddressForms.Create(
+            AddressVariant.Book,
+            FieldPrefix,
+            await ProvincesAsync(ct),
+            new AddressValuesView(sent.Name, sent.RecipientName, sent.ProvinceId, sent.District, sent.AddressLine, sent.Phone));
+    }
 
     public async Task<IActionResult> OnGetAsync(AddressBookQuery query, CancellationToken ct)
     {
@@ -164,7 +209,7 @@ internal sealed class AddressesModel : PageModel
     {
         foreach (MembershipFieldError refusal in result.Fields)
         {
-            ModelState.AddFieldError(FieldPrefix + refusal.Field, refusal.Code.ToString());
+            ModelState.AddFieldError(FieldPrefix + refusal.Field, refusal.Code.ToString(), refusal.Code == ErrorCode.TextTooLong ? refusal.Detail : null); // P-27 (K-1635): the ceiling is the message's parameter
         }
 
         Entries = await _membership.GetAddressBookAsync(customerId, ct);

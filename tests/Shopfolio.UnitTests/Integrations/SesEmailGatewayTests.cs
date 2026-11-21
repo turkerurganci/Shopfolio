@@ -278,6 +278,24 @@ public sealed class SesEmailGatewayTests
         Assert.Equal(new EmailSendResult.Sent(), result);
         Assert.Single(rig.Queries);
         Assert.Single(rig.Sends);
+
+        // D-1022: the pre-query's own timeout is in the log with the pre-query prefix, so it is told from the send's timeout.
+        using JsonDocument line = JsonDocument.Parse(Assert.Single(rig.Harness.Lines));
+        Assert.Equal(SesEmailGateway.QueryReasonPrefix + ExternalCallFailure.TimeoutReason, line.RootElement.GetProperty("reason").GetString());
+        Assert.Equal(nameof(ExternalCallFailureKind.TimedOut), line.RootElement.GetProperty("failureKind").GetString());
+    }
+
+    [Fact]
+    public async Task SendAsync_PreQueryConnectionRefused_IsInTheLogWithItsOwnPrefix_AndTheSendStillGoes()
+    {
+        using Rig rig = new(Script(new WireAnswer.Refuse(), WireAnswer.Sent()));
+
+        EmailSendResult result = await rig.Gateway.SendAsync(Message(), Ct);
+
+        Assert.Equal(new EmailSendResult.Sent(), result);
+        Assert.Single(rig.Queries);
+        using JsonDocument line = JsonDocument.Parse(Assert.Single(rig.Harness.Lines));
+        Assert.StartsWith(SesEmailGateway.QueryReasonPrefix, line.RootElement.GetProperty("reason").GetString(), StringComparison.Ordinal);
     }
 
     // ---- KK2 and KK6: the limit, no retry, the error table ----

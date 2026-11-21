@@ -137,6 +137,21 @@ public sealed class AddressTests : IAsyncLifetime
     // ---- KK1: a member names and keeps more than one address; a guest has no book ----
 
     [Fact]
+    public async Task AnAddressBookName_AboveTheShortTextCeiling_IsRefusedTextTooLongWithTheCeiling_AndTheCeilingItselfIsSaved_D1673()
+    {
+        Guid member = await SeedCustomerAsync("ceiling@example.com");
+        int ceiling = Shopfolio.Infrastructure.ProductConstants.ProductNameMaxLength;
+
+        AddressBookSaveResult tooLong = await RunAsync(m => m.CreateAddressBookEntryAsync(member, Book(new string('e', ceiling + 1), Ankara), Ct));
+        AddressBookSaveResult atCeiling = await RunAsync(m => m.CreateAddressBookEntryAsync(member, Book(new string('e', ceiling), Ankara), Ct));
+
+        Assert.False(tooLong.IsSaved);
+        Assert.Equal([new MembershipFieldError("Name", ErrorCode.TextTooLong, ceiling.ToString(System.Globalization.CultureInfo.InvariantCulture))], tooLong.Fields);
+        Assert.True(atCeiling.IsSaved);
+        Assert.Single(await ReadAsync(m => m.GetAddressBookAsync(member, Ct)));
+    }
+
+    [Fact]
     public async Task AMember_KeepsSeveralNamedAddresses_OldestFirst_AndAGuestHasNoBook_KK1()
     {
         Guid member = await SeedCustomerAsync("ali@example.com");

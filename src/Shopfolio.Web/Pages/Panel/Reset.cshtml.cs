@@ -42,13 +42,16 @@ internal enum ResetStep
 /// except in the form's action.
 /// </summary>
 [NoStore]
-internal sealed class ResetModel : PageModel
+internal sealed class ResetModel : PageModel, IReadsOnForgeryRefusal
 {
     private readonly IAdministrationModule _administration;
     private readonly INotificationsModule _notifications;
     private readonly ITransactionRunner _transactions;
 
     private bool _loaded;
+
+    // The handler's context, kept for the forgery refusal's read (D-1843): the sent values.
+    private PageHandlerExecutingContext? _executing;
 
     public ResetModel(IAdministrationModule administration, INotificationsModule notifications, ITransactionRunner transactions)
     {
@@ -82,20 +85,38 @@ internal sealed class ResetModel : PageModel
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(next);
+        _executing = context;
         PageHandlerExecutedContext executed = await next();
         if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
         {
-            _loaded = true;
-            if (context.HandlerArguments.Values.OfType<RequestPasswordResetInput>().FirstOrDefault() is { } request)
-            {
-                SentEmail = request.Email;
-                return;
-            }
+            await ShowSentAsync(context, readsQuery: true);
+        }
+    }
 
-            if (RouteData.Values["key"] is string key)
-            {
-                await LoadStepAsync(key, HttpContext.RequestAborted);
-            }
+    /// <summary>
+    /// D-1843 (07 2.5.4; 04 2.7.3.1): the forgery check's 400 shows the sent address, or the step of the route's link - a read of the link that does not use it (the handler's
+    /// completion is the only use); no query value, nothing written.
+    /// </summary>
+    async Task IReadsOnForgeryRefusal.ReadAfterForgeryRefusalAsync(CancellationToken ct)
+    {
+        if (!_loaded && _executing is { } context)
+        {
+            await ShowSentAsync(context, readsQuery: false);
+        }
+    }
+
+    private async Task ShowSentAsync(PageHandlerExecutingContext context, bool readsQuery)
+    {
+        _loaded = true;
+        if (context.HandlerArguments.Values.OfType<RequestPasswordResetInput>().FirstOrDefault() is { } request)
+        {
+            SentEmail = request.Email;
+            return;
+        }
+
+        if (RouteData.Values["key"] is string key)
+        {
+            await LoadStepAsync(key, HttpContext.RequestAborted, readsQuery);
         }
     }
 
@@ -178,14 +199,14 @@ internal sealed class ResetModel : PageModel
     }
 
     // The step the link allows: a valid link opens the setting; a used one with the result code is the completed state; every other state - used without the code, run out, replaced, unknown - is the invalid state.
-    private async Task LoadStepAsync(string key, CancellationToken ct)
+    private async Task LoadStepAsync(string key, CancellationToken ct, bool readsQuery = true)
     {
         Key = key;
         AccountLinkReading reading = await _administration.ReadPasswordResetLinkAsync(key, ct);
         Step = reading.Status switch
         {
             AccountLinkStatus.Valid => ResetStep.Set,
-            AccountLinkStatus.Used when NoticeParameter.Read(Request, NoticeKind.Result) == NoticeCode.PasswordResetCompleted => ResetStep.Completed,
+            AccountLinkStatus.Used when readsQuery && NoticeParameter.Read(Request, NoticeKind.Result) == NoticeCode.PasswordResetCompleted => ResetStep.Completed,
             _ => ResetStep.Invalid,
         };
     }

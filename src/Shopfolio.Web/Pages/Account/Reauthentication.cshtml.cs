@@ -63,22 +63,28 @@ internal sealed class ReauthenticationModel : PageModel
     /// <summary>True after a 429: the neutral limit sentence stands beside the button (04 5.24.6).</summary>
     public bool LimitReached { get; private set; }
 
+    /// <summary>True on the forgery check's 400 (07 2.5.4; D-1843): the page draws the check's action-level message in place (04 2.7.3.1).</summary>
+    public bool ForgeryRefused { get; private set; }
+
     /// <summary>True after the 422 of the Google route: the account is not linked to Google or the Google application is not defined (07 UC-62).</summary>
     public bool GoogleNotOffered { get; private set; }
 
     /// <summary>
     /// A form whose fields break their rules (the password is required) is answered 422 by the validation filter without the handler: the screen it shows again still needs the operation and the account's ways.
+    /// The forgery check's 400 is answered before the handler too and shows the same screen (D-1773, D-1843), for either form: the account's ways are only read and the earlier permission is not dropped - the
+    /// GET's drop is a write, and the refusal writes nothing.
     /// </summary>
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(next);
         PageHandlerExecutedContext executed = await next();
-        if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity }
-            && context.HandlerArguments.Values.OfType<ReauthenticateInput>().FirstOrDefault() is { } sent
-            && ReauthenticationAddresses.TryParse(sent.ReauthenticatedOperation, out ReauthenticationOperation operation))
+        if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity or FormResults.ForgeryRefusedStatus }
+            && SentOperationOf(context.HandlerArguments) is { } sent
+            && ReauthenticationAddresses.TryParse(sent, out ReauthenticationOperation operation))
         {
             _loaded = true;
+            ForgeryRefused = executed.Result is PageResult { StatusCode: FormResults.ForgeryRefusedStatus };
             Operation = operation;
             await LoadMethodsAsync(HttpContext.RequestAborted);
         }
@@ -193,6 +199,11 @@ internal sealed class ReauthenticationModel : PageModel
     }
 
     // An operation outside the closed list, or none: nothing is done and the account page is the answer (07 UC-60 to UC-62; 07 6.2 ReauthenticationOperationInvalid).
+    // The operation the sent form names: the password form's or the Google button's.
+    private static string? SentOperationOf(IDictionary<string, object?> arguments) =>
+        arguments.Values.OfType<ReauthenticateInput>().FirstOrDefault()?.ReauthenticatedOperation
+        ?? arguments.Values.OfType<StartSocialReauthenticationInput>().FirstOrDefault()?.ReauthenticatedOperation;
+
     private IActionResult NotAnOperation()
     {
         HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.ReauthenticationOperationInvalid);

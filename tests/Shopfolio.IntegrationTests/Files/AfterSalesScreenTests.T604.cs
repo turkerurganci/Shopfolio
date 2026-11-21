@@ -196,6 +196,66 @@ public sealed partial class AfterSalesScreenTests
         Assert.Equal(0, await WithdrawalCountAsync(host, itemId) + await WithdrawalCountAsync(host, foreignItem));
     }
 
+    // ---- D-1412, D-1833: the one units field on an order with several fielded items ----
+
+    [Fact]
+    public async Task SeveralFieldedItems_TheFieldStandsUnderTheListWithNoChoice_InTheSentItemsRow_AndUnderTheListForAnUnfieldedChoice_D1412_D1833()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (Guid orderId, string key, Guid[] items) = await SeedOrderAsync(host, 3, 2, 1);
+        await ChargeAndShipAsync(host, orderId, 0m);
+
+        using HttpResponseMessage open = await host.Client.GetAsync(At(ClaimScreen(key)), Ct);
+        using HttpResponseMessage sentFielded = await PostAsync(host, ClaimScreen(key), "SubmitDefectClaim", [new("OrderItemId", items[1].ToString()), new("Quantity", "2"), new("Description", "  ")]);
+        using HttpResponseMessage sentSingle = await PostAsync(host, ClaimScreen(key), "SubmitDefectClaim", [new("OrderItemId", items[2].ToString()), new("Quantity", "1"), new("Description", "  ")]);
+
+        Assert.Equal(
+            [HttpStatusCode.OK, HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity],
+            new[] { open.StatusCode, sentFielded.StatusCode, sentSingle.StatusCode });
+        string[] pages = [await open.Content.ReadAsStringAsync(Ct), await sentFielded.Content.ReadAsStringAsync(Ct), await sentSingle.Content.ReadAsStringAsync(Ct)];
+
+        // No choice among two fielded rows: the field is under the list; the two fielded rows say so for the script, the single-unit row does not.
+        Assert.Equal((1, false, false, false), Places(pages[0], items));
+        Assert.Equal(["true", "true", "false"], items.Select(i => FieldMark(pages[0], i)).ToArray());
+
+        // The sent fielded item: its row holds the field with the sent units, and its choice is checked.
+        Assert.Equal((0, false, true, false), Places(pages[1], items));
+        Assert.Contains("value=\"2\"", RowMarkup(pages[1], items[1]), StringComparison.Ordinal);
+        Assert.Contains("checked=\"checked\"", RowMarkup(pages[1], items[1]), StringComparison.Ordinal);
+
+        // The sent single-unit item carries no field: the one field stays under the list.
+        Assert.Equal((1, false, false, false), Places(pages[2], items));
+        Assert.All(pages, p => Assert.Single(System.Text.RegularExpressions.Regex.Matches(p, "name=\"Quantity\"")));
+        await using AppDbContext db = host.NewContext();
+        Assert.Equal(0, await db.DefectClaims.CountAsync(c => items.Contains(c.OrderItemId), Ct));
+    }
+
+    /// <summary>Where the units field stands: the count under the list (the slot) and whether each of the three rows holds it.</summary>
+    private static (int Slot, bool First, bool Second, bool Third) Places(string html, Guid[] items)
+    {
+        const string holder = "data-js=\"defect-claim-quantity\"";
+        int slotFrom = html.IndexOf("data-js=\"defect-claim-slot\"", StringComparison.Ordinal);
+        int slotTo = html.IndexOf("name=\"Description\"", slotFrom, StringComparison.Ordinal);
+        int slot = System.Text.RegularExpressions.Regex.Count(html[slotFrom..slotTo], holder);
+        return (slot, RowMarkup(html, items[0]).Contains(holder, StringComparison.Ordinal), RowMarkup(html, items[1]).Contains(holder, StringComparison.Ordinal), RowMarkup(html, items[2]).Contains(holder, StringComparison.Ordinal));
+    }
+
+    /// <summary>The markup of one item's row: from its <c>data-item</c> to the next row or the end of the list.</summary>
+    private static string RowMarkup(string html, Guid item)
+    {
+        int from = html.IndexOf("data-item=\"" + item + "\"", StringComparison.Ordinal);
+        Assert.True(from >= 0, "row of " + item);
+        int next = html.IndexOf("class=\"operation-screen__item\"", from, StringComparison.Ordinal);
+        int end = html.IndexOf("</fieldset>", from, StringComparison.Ordinal);
+        return html[from..(next >= 0 && next < end ? next : end)];
+    }
+
+    private static string FieldMark(string html, Guid item)
+    {
+        System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(RowMarkup(html, item), "data-quantity-field=\"(true|false)\"");
+        return match.Groups[1].Value;
+    }
+
     private static async Task<Admin> SeedAdminAsync(AppDbContext db, DateTimeOffset now)
     {
         Admin admin = Admin.Create("Firma Yöneticisi", $"yonetici-{Guid.NewGuid():N}@example.com", "digest-placeholder", now);

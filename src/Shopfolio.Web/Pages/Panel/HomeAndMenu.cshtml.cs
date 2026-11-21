@@ -226,11 +226,12 @@ public sealed class HomeAndMenuModel : PageModel
                 if (rejection.Code == FieldCodes.FieldRequired && defaultName.Length > 0)
                 {
                     // K-813: an empty menu name's message reminds the default name; the common field error carries it as the parameter, so the filter logs the rejection too.
-                    ModelState.AddFieldError("Input." + rejection.Field, rejection.Code, defaultName);
+                    ModelState.AddFieldError("Input." + rejection.Field, rejection.Code, FieldMessageCatalog.MenuDefaultNameParameter(defaultName));
                     continue;
                 }
 
-                ModelState.AddFieldError("Input." + rejection.Field, rejection.Code);
+                // P-27 (K-1635; D-1673): the ceiling is the message's parameter, as for the other short texts.
+                ModelState.AddFieldError("Input." + rejection.Field, rejection.Code, rejection.Code == FieldCodes.TextTooLong ? rejection.Fence.ToString(System.Globalization.CultureInfo.InvariantCulture) : null);
             }
 
             foreach (SocialLinkRejection rejection in outcome.Social.Rejections)

@@ -131,20 +131,6 @@ public static class CouponFields
         };
     }
 
-    /// <summary>
-    /// The field of a customer who comes back from the sign-in with a typed code (04 2.12.6.4; 03 3.6.2): the code is applied again and, when it is no longer valid, the refusal is told; a customer who typed
-    /// no code sees the closed row. <paramref name="reapplied"/> is the module's answer to the saved code, null when there was no code.
-    /// </summary>
-    public static CouponFieldView AfterSignIn(string name, string? savedCode, CouponApplication? reapplied)
-    {
-        if (string.IsNullOrWhiteSpace(savedCode) || reapplied is null)
-        {
-            return Closed(name);
-        }
-
-        return From(reapplied, name, savedCode);
-    }
-
     /// <summary>The text at the field of a refused code (04 2.12.6.3, 5.13.15): the minimum amount's message names the amount; every other refusal is the one message (K-845).</summary>
     public static string RefusalText(CouponOutcome outcome, decimal? minimumBasketAmount = null) => outcome switch
     {

@@ -169,10 +169,11 @@ internal sealed class PanelItemSteps : IPanelItemSteps
             return PanelItemStepResult.Refused(PanelItemObstacle.DateInvalid);
         }
 
-        // OB-14: an IBAN given with a notice from the order's contact e-mail passes the order page's check; otherwise the record would drop it silently.
+        // OB-14 (02 10.4.10, 03 8.4.8; K-1631 (5)): an IBAN of a notice from the order's contact e-mail that fails the order page's check is no refusal - the record is made without it,
+        // the item asks for the IBAN and B-14 goes, as for a notice that carries none.
         if (request.CameFromOrderEmail && !string.IsNullOrWhiteSpace(request.NoticeIban) && !NoticeIbanRule.Allows(request.NoticeIban))
         {
-            return PanelItemStepResult.Refused(PanelItemObstacle.IbanInvalid);
+            request = request with { NoticeIban = null };
         }
 
         (PanelItemStepResult? refused, OrderOperationFacts? facts) = await LockAsync(request.OrderId, request.ExpectedVersion, ct);
@@ -266,10 +267,11 @@ internal sealed class PanelItemSteps : IPanelItemSteps
             return PanelItemStepResult.Refused(PanelItemObstacle.DateInvalid);
         }
 
-        // OB-14: the IBAN of a notice from the order's contact e-mail (the page passes it only then) passes the order page's check; otherwise the record would drop it silently.
+        // OB-14 (02 10.4.10, 03 8.4.8; K-1631 (5)): the IBAN of a notice from the order's contact e-mail (the page passes it only then) that fails the order page's check is no refusal -
+        // the record is made without it, the items ask for the IBAN and B-14 goes, as for a notice that carries none.
         if (!string.IsNullOrWhiteSpace(request.Iban) && !NoticeIbanRule.Allows(request.Iban))
         {
-            return PanelItemStepResult.Refused(PanelItemObstacle.IbanInvalid);
+            request = request with { Iban = null };
         }
 
         (PanelItemStepResult? refused, OrderOperationFacts? facts) = await LockAsync(request.OrderId, request.ExpectedVersion ?? -1, ct);

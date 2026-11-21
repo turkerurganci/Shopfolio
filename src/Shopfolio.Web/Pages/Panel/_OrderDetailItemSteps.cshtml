@@ -21,7 +21,8 @@
     List<OrderPageItem> closeItems = [.. items.Where(i => Model.Operations.IsOpen(OrderOperation.CloseAsNotReturned, i.OrderItemId))];
     List<(OrderPageItem Item, ReturnReceiptFact Receipt)> restock = [.. items.SelectMany(i => Model.RestockableOf(i).Select(r => (i, r)))];
     List<OrderDefectClaim> claims = [.. Model.Claims.Where(c => Model.Operations.IsOpen(OrderOperation.ResolveOrReopenDefectClaim, c.OrderItemId))];
-    bool any = cancelWhole || cancelItems.Count > 0 || withdrawItems.Count > 0 || terminate || removeItems.Count > 0 || receiveItems.Count > 0 || closeItems.Count > 0 || restock.Count > 0 || claims.Count > 0;
+    bool notShippedNote = Model.ShowsNotShippedItemNote;
+    bool any = cancelWhole || cancelItems.Count > 0 || withdrawItems.Count > 0 || notShippedNote || terminate || removeItems.Count > 0 || receiveItems.Count > 0 || closeItems.Count > 0 || restock.Count > 0 || claims.Count > 0;
     string today = Model.TodayText;
     // 04 9.9.19, K-798 (2): Z-10 or Z-39 ran out for an item the cancellation may fall on (before the payment the whole order's).
     bool cancelWarnsInterest = cancelWhole ? items.Any(i => Model.LegalInterestDueItems.Contains(i.OrderItemId)) : cancelItems.Any(i => Model.LegalInterestDueItems.Contains(i.OrderItemId));
@@ -72,6 +73,11 @@
                 }
                 <button type="submit" class="button button--danger" data-busy-label="@LoadingViews.BusyLabelOf(OrderDetailModel.CancelByCompanyLabel)">@OrderDetailModel.CancelByCompanyLabel</button>
             </form>
+        }
+        @if (notShippedNote)
+        {
+            @* D-1604 (04 9.9.20; K-604): the withdrawal record's place tells why an item not handed to the carrier is not listed and which way its giving up takes. *@
+            <p class="order-detail__reminder" id="withdrawal-not-shipped-note">@OrderDetailModel.NotShippedItemText</p>
         }
         @if (withdrawItems.Count > 0)
         {

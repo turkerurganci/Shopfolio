@@ -9,6 +9,7 @@ using Shopfolio.Infrastructure.Binding;
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Notices;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Categories;
@@ -81,7 +82,7 @@ public sealed record CategoryNodeView(
 /// methods, one transaction each (09 9.1), and the module takes the tree's advisory lock first (05 7.3.5; K-1089). No operation asks a confirmation (04 2.4.2). A refusal is
 /// said in place on its node with K-799's text, 422; a key that names no category is 404.
 /// </summary>
-internal sealed class CategoriesModel : PageModel
+internal sealed class CategoriesModel : PageModel, IReadsOnForgeryRefusal
 {
     public const string NewCategoryLabel = "Yeni kategori";
 
@@ -259,6 +260,9 @@ internal sealed class CategoriesModel : PageModel
         _failedMessage = message;
         _sentName = name;
     }
+
+    /// <inheritdoc />
+    public Task ReadAfterForgeryRefusalAsync(CancellationToken ct) => LoadAsync(ct);
 
     private async Task LoadAsync(CancellationToken ct)
     {

@@ -314,6 +314,32 @@ public sealed partial class StorefrontSearchAndProductTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task AnEmptySearchResult_OffersTheRootCategoriesAsItsWayOut_AndAResultListHasNoSuchLinks_D1200()
+    {
+        int n = Interlocked.Increment(ref _counter);
+        Category root = Category.Create($"Salon {n}", $"salon-kok-{n:D3}", null, 1, Now);
+        Category child = Category.Create($"Koltuk {n}", $"salon-alt-{n:D3}", root.Id, 2, Now);
+        SeededProduct found = await SeedAsync("Bulunan masa");
+        await using (AppDbContext db = NewContext())
+        {
+            db.Categories.AddRange(root, child);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        Reply none = await GetAsync(client, "/arama?search=hicbirseybulunmaz");
+        Assert.Contains("class=\"search-categories\"", none.Body, StringComparison.Ordinal);
+        Assert.Contains($"href=\"/kategori/{root.Slug}\"", none.Body, StringComparison.Ordinal);
+        Assert.DoesNotContain($"/kategori/{child.Slug}", none.Body, StringComparison.Ordinal);
+
+        Reply result = await GetAsync(client, "/arama?search=bulunan");
+        Assert.Contains($"/urun/{found.Slug}\"", result.Body, StringComparison.Ordinal);
+        Assert.DoesNotContain("search-categories", result.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task TheFilters_TakeThePriceRangeAndTheStockSwitch_AndAWrongRangeIsAMessage_T503_KK2()
     {
         SeededProduct cheap = await SeedAsync("Masa ucuz", variants: new VariantSpec(Price: 10m, Stock: 5));
@@ -585,6 +611,100 @@ public sealed partial class StorefrontSearchAndProductTests : IAsyncLifetime
         Assert.DoesNotContain("<script>", page.Body.Replace("<script type=\"module\"", string.Empty, StringComparison.Ordinal), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task TheScriptData_CarriesEachVariantsOwnPriceDate_AndThePageDrawsTheLineForTheScript_D1243()
+    {
+        SeededProduct product = await SeedAsync("Masa tarih", variants: [new VariantSpec(First: 1), new VariantSpec(First: 2), new VariantSpec(First: 3)]);
+        DateTimeOffset firstSince = Now.AddDays(-30);
+        DateTimeOffset secondSince = Now.AddDays(-4);
+        await using (AppDbContext db = NewContext())
+        {
+            db.PriceHistories.AddRange(
+                PriceHistory.Create(product.VariantIds[0], 100m, firstSince, Now),
+                PriceHistory.Create(product.VariantIds[1], 100m, secondSince, Now));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        Reply page = await GetAsync(client, $"/urun/{product.Slug}");
+
+        JsonElement[] variants = ScriptVariantsOf(page);
+        Assert.Equal(3, variants.Length);
+        Assert.Equal($"Fiyatın geçerlilik başlangıcı: {DisplayFormat.Date(firstSince)}", variants.Single(v => v.GetProperty("id").GetGuid() == product.VariantIds[0]).GetProperty("since").GetString());
+        Assert.Equal($"Fiyatın geçerlilik başlangıcı: {DisplayFormat.Date(secondSince)}", variants.Single(v => v.GetProperty("id").GetGuid() == product.VariantIds[1]).GetProperty("since").GetString());
+
+        // A variant without a history row has no date: the script hides the line for it.
+        Assert.Equal(JsonValueKind.Null, variants.Single(v => v.GetProperty("id").GetGuid() == product.VariantIds[2]).GetProperty("since").ValueKind);
+
+        // The line is always on the page (hidden when empty), so the script can fill it for a variant the first view did not have (04 5.4.4).
+        Assert.Contains("data-js=\"since\"", page.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AProductSoldByMeasure_ShowsTheUnitPriceFromTheNetQuantity_AndOneWithoutMeasureDrawsNoValue_T604_VALA017()
+    {
+        SeededProduct measured = await SeedAsync("Masa olcu");
+        SeededProduct plain = await SeedAsync("Masa olcusuz");
+        await using (AppDbContext db = NewContext())
+        {
+            Product measuredProduct = await db.Products.SingleAsync(p => p.Id == measured.ProductId, Ct);
+            measuredProduct.MeasurementUnit = MeasurementUnit.Gram;
+            measuredProduct.BumpVersion();
+            (await db.Variants.SingleAsync(v => v.Id == measured.VariantIds[0], Ct)).NetQuantity = 500m;
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        Reply measuredPage = await GetAsync(client, $"/urun/{measured.Slug}");
+        Reply plainPage = await GetAsync(client, $"/urun/{plain.Slug}");
+
+        // 100 TL for 500 g is 200 TL for the kilogram (04 5.4.4).
+        Assert.Contains($"Birim fiyat: {DisplayFormat.Amount(200m)} / kg", WebUtility.HtmlDecode(measuredPage.Body), StringComparison.Ordinal);
+        Assert.DoesNotContain("Birim fiyat:", plainPage.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TheOriginLine_ShowsForAPhysicalProduct_AndForADigitalOneOnlyWhenItIsFilled_T604_VALA015()
+    {
+        SeededProduct physical = await SeedAsync("Masa mensei");
+        SeededProduct digitalFilled = await SeedAsync("Kitap mensei dolu", type: ProductType.Digital);
+        SeededProduct digitalEmpty = await SeedAsync("Kitap mensei bos", type: ProductType.Digital);
+        await using (AppDbContext db = NewContext())
+        {
+            Product empty = await db.Products.SingleAsync(p => p.Id == digitalEmpty.ProductId, Ct);
+            empty.OriginCountryId = null;
+            empty.BumpVersion();
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        Assert.Contains("Üretim yeri:", WebUtility.HtmlDecode((await GetAsync(client, $"/urun/{physical.Slug}")).Body), StringComparison.Ordinal);
+        Assert.Contains("Üretim yeri:", WebUtility.HtmlDecode((await GetAsync(client, $"/urun/{digitalFilled.Slug}")).Body), StringComparison.Ordinal);
+        Assert.DoesNotContain("Üretim yeri:", WebUtility.HtmlDecode((await GetAsync(client, $"/urun/{digitalEmpty.Slug}")).Body), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ADraftVariantOfAPublishedProduct_IsNotInTheOptionChoicesOfThePage_T604_VALA024()
+    {
+        SeededProduct product = await SeedAsync("Masa secenek", variants: [new VariantSpec(First: 1), new VariantSpec(First: 2, Status: PublishStatus.Draft)]);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        Reply page = await GetAsync(client, $"/urun/{product.Slug}");
+
+        Assert.Equal(HttpStatusCode.OK, page.Status);
+        // The value of the draft variant is listed (04 5.4.6) but cannot be chosen, and the script data has no row for the draft variant.
+        Assert.Matches(new Regex("<option[^>]*data-label=\"Renk 2\"[^>]*disabled", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), page.Body);
+        Assert.DoesNotMatch(new Regex("<option[^>]*data-label=\"Renk 1\"[^>]*disabled", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), page.Body);
+        JsonElement[] data = ScriptVariantsOf(page);
+        Assert.Equal(product.VariantIds[0], Assert.Single(data).GetProperty("id").GetGuid());
+    }
+
     // ---- KK7, KK9: the 303, the notice, the cart; a second send is a second add ----
 
     [Fact]
@@ -656,7 +776,8 @@ public sealed partial class StorefrontSearchAndProductTests : IAsyncLifetime
 
         Reply sold = await PostAsync(client, AddPath(soldOut.Slug), null, ("VariantId", soldOut.VariantIds[1].ToString("D")), ("Quantity", "1"));
         Assert.Equal(HttpStatusCode.UnprocessableEntity, sold.Status);
-        Assert.Contains(CartAddMessages.SoldOutText, sold.Text, StringComparison.Ordinal);
+        Assert.Contains(CartAddMessages.NoStockText, sold.Text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Bu ürün tükendi", sold.Text, StringComparison.Ordinal); // D-1243: the stock message, not a sentence of the code's own
 
         Reply unselected = await PostAsync(client, AddPath(soldOut.Slug), null, ("VariantId", string.Empty), ("Quantity", "1"));
         Assert.Equal(HttpStatusCode.UnprocessableEntity, unselected.Status);

@@ -441,6 +441,9 @@ public sealed class AccessOrderModel(IOrderingModule ordering, IOrderPage page, 
 /// <summary>One button of the operations area (04 5.16.6): the words and the screen under the root it opens (07 2.1.3).</summary>
 public sealed record OrderScreenLink(string Text, string Href)
 {
+    /// <summary>The button of an item whose defect claim period (Z-18) ran out: it opens the contact form directly (D-880).</summary>
+    public const string ExpiredDefectChannelText = "Süresi dolmuş ayıp bildirimi için iletişim formuna yaz";
+
     /// <summary>The buttons of the open operations, in the order of 04 5.16.6; an operation open for several items is one button - the screen asks for the item (04 5.16.11).</summary>
     public static IReadOnlyList<OrderScreenLink> From(OrderOperationsView operations, string rootPath)
     {
@@ -475,6 +478,12 @@ public sealed record OrderScreenLink(string Text, string Href)
         if (Any(OrderOperation.ReopenDefectClaimByCustomer))
         {
             links.Add(new("Ayıp talebini yeniden aç", OrderRoutes.ScreenPath(rootPath, "ayip-talebi")));
+        }
+
+        // Z-18 ran out on an item: "sorun bildir" is not offered for it and the way is the contact form (04 5.19.10, 6.2.16.23; D-880).
+        if (operations.HasExpiredDefectChannel)
+        {
+            links.Add(new(ExpiredDefectChannelText, Frame.FramePaths.Contact));
         }
 
         return links;

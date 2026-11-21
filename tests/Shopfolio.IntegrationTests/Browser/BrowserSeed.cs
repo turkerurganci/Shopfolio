@@ -353,6 +353,27 @@ internal static class BrowserSeed
         return new SeededOrder(label, id, number, accessKey, shipping, payment);
     }
 
+    /// <summary>
+    /// One more delivered guest order whose items carry the given units, in that order (D-1412, D-1833: the defect claim's one units field stands under the list while several rows carry one
+    /// and none is chosen); the item keys come back in the same order.
+    /// </summary>
+    public static async Task<(SeededOrder Order, Guid[] Items)> NewOrderWithItemsAsync(string dsn, string label, params int[] quantities)
+    {
+        (Guid id, string number, string accessKey) = await TestSessions.OrderAsync(dsn, null);
+        await using AppDbContext db = NewContext(dsn);
+        List<Guid> items = [];
+        foreach (int quantity in quantities)
+        {
+            OrderItem item = OrderItem.Create(id, null, null, ProductType.Physical, $"Kalem {items.Count + 1}", quantity, 50m, 20m, 8.33m * quantity, Now.AddSeconds(items.Count));
+            db.OrderItems.Add(item);
+            items.Add(item.Id);
+        }
+
+        await db.SaveChangesAsync(CancellationToken.None);
+        await db.Database.ExecuteSqlAsync($"UPDATE orders SET order_status = 'Delivered', payment_status = 'Paid' WHERE id = {id}", CancellationToken.None);
+        return (new SeededOrder(label, id, number, accessKey, OrderStatus.Delivered, PaymentStatus.Paid), [.. items]);
+    }
+
     /// <summary>A verified customer with a known password (the sign-in of VAL-B110 needs an account that can sign in).</summary>
     public static async Task NewCustomerWithPasswordAsync(string dsn, string email, string password)
     {
@@ -534,6 +555,97 @@ internal static class BrowserSeed
 
         db.Images.AddRange(variantImages);
         db.Variants.AddRange(variants);
+        await db.SaveChangesAsync(CancellationToken.None);
+        return new SeededProduct(label, product.Id, slug, [.. variants.Select(v => v.Id)]);
+    }
+
+    /// <summary>What a product page and a card of the showcase carry, for the rows that observe them (T604, VAL-A010, A012, A016, A018, A020, D-1821): the place of origin, the fulfilment period, the discount, the images and the variants.</summary>
+    internal sealed record ShowcaseSpec(
+        ProductType Type = ProductType.Physical,
+        string? OriginCode = "TR",
+        int? FulfilmentPeriod = null,
+        int? DiscountPercent = null,
+        string? Description = null,
+        int ImageCount = 0,
+        int Variants = 1,
+        DateTimeOffset?[]? SinceDates = null,
+        bool InCategory = false);
+
+    /// <summary>The Turkey date today (the discount's days are Turkey days, 06 2.5.2).</summary>
+    internal static DateOnly TurkeyToday => DateOnly.FromDateTime(DateTime.UtcNow.AddHours(3));
+
+    /// <summary>
+    /// One more published product made as the spec says: its name is <c>Vitrin {label}</c> and its address <c>t604b-{label}</c>; a running discount starts yesterday and ends in thirty days; the variants take
+    /// one value each of one option; a variant's price history row (the day its price applies since) is written for each non-empty date of <see cref="ShowcaseSpec.SinceDates"/>.
+    /// </summary>
+    public static async Task<SeededProduct> NewShowcaseProductAsync(string dsn, string label, ShowcaseSpec spec)
+    {
+        string slug = $"t604b-{label}";
+        Product product = Product.Create($"Vitrin {label}", slug, spec.Type, 20m, DateTimeOffset.UtcNow);
+        product.PublishStatus = PublishStatus.Published;
+        if (spec.OriginCode is { } code && spec.Type != ProductType.Service)
+        {
+            product.OriginCountryId = SeededCountry.IdOf(code);
+        }
+
+        product.FulfilmentPeriod = spec.FulfilmentPeriod;
+        product.SetDescription(spec.Description);
+        Option? option = spec.Variants > 1 ? Option.Create(product.Id, "Renk", 1, Now) : null;
+        List<OptionValue> values = [];
+        List<Variant> variants = [];
+        for (int i = 0; i < spec.Variants; i++)
+        {
+            // The stock code is at most 20 characters; the label is long, so the code is made of a fresh key and the variant's place.
+            Variant variant = Variant.Create(product.Id, $"T604B{Guid.NewGuid():N}"[..19] + i.ToString(System.Globalization.CultureInfo.InvariantCulture), 100m, Now.AddSeconds(i));
+            variant.PublishStatus = PublishStatus.Published;
+            variant.StockQuantity = spec.Type == ProductType.Physical ? 50 : null;
+            if (option is not null)
+            {
+                OptionValue value = OptionValue.Create(option.Id, $"Renk {i + 1}", i + 1, Now);
+                values.Add(value);
+                variant.FirstOptionValueId = value.Id;
+            }
+
+            variants.Add(variant);
+        }
+
+        await using AppDbContext db = NewContext(dsn);
+        db.Products.Add(product);
+        if (option is not null)
+        {
+            db.Options.Add(option);
+            db.OptionValues.AddRange(values);
+        }
+
+        db.Variants.AddRange(variants);
+        for (int i = 0; i < spec.ImageCount; i++)
+        {
+            Image image = SeededImage($"{label}-gallery-{i}");
+            db.Images.Add(image);
+            ProductImage link = ProductImage.Create(product.Id, image.Id, i + 1, i == 0, Now);
+            link.AltText = $"{product.Name} görseli {i + 1}";
+            db.ProductImages.Add(link);
+        }
+
+        if (spec.DiscountPercent is { } percent)
+        {
+            db.Discounts.Add(Discount.Create(product.Id, percent, TurkeyToday.AddDays(-1), TurkeyToday.AddDays(30), Now));
+        }
+
+        if (spec.InCategory)
+        {
+            Guid category = await db.Categories.Where(c => c.Slug == "t551-kategori").Select(c => c.Id).SingleAsync(CancellationToken.None);
+            db.ProductCategories.Add(ProductCategory.Create(product.Id, category, true, Now));
+        }
+
+        for (int i = 0; i < (spec.SinceDates?.Length ?? 0); i++)
+        {
+            if (spec.SinceDates![i] is { } since)
+            {
+                db.PriceHistories.Add(PriceHistory.Create(variants[i].Id, 100m, since, Now));
+            }
+        }
+
         await db.SaveChangesAsync(CancellationToken.None);
         return new SeededProduct(label, product.Id, slug, [.. variants.Select(v => v.Id)]);
     }

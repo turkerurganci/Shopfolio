@@ -31,7 +31,7 @@ public sealed class CouponsPageTestsDefinition : ICollectionFixture<CollectionDa
 /// before the field rules. The module's rules (the floor under a race, the end day, the frozen share) are the model tests' (CouponTests).
 /// </summary>
 [Collection(CouponsPageTestsDefinition.Name)]
-public sealed class CouponsPageTests : IAsyncLifetime
+public sealed partial class CouponsPageTests : IAsyncLifetime
 {
     private const string Path = "/panel/kuponlar";
 

@@ -731,7 +731,7 @@ internal static class NavigationInventory
         ["3.7.5"] =
         [
             X("!Modules/Catalog/ProductPageReader.cs", "product is null || (product.PublishStatus == PublishStatus.Draft && !isAdministrator))"),
-            X("Product.cshtml.cs", "page.Kind == ProductPageKind.NotFound"),
+            X("Product.cshtml.cs", "page.Kind == ProductPageKind.NotFound", 2), // the GET and the forgery refusal's page (D-1843): the same 404
             X("!Modules/CorporateContent/StorefrontContentPages.cs", "ContentAudience audience = asAdministrator ? ContentAudience.Administrator : ContentAudience.Visitor;"),
             X("Frame/FramedNotFoundPageRenderer.cs", "private const string ViewPath = \"/Pages/Shared/_NotFound.cshtml\";"),
         ],

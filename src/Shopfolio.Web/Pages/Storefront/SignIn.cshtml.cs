@@ -79,6 +79,9 @@ internal sealed class SignInModel : PageModel
     /// <summary>True after a 429: the neutral limit sentence stands beside the button (04 5.22.7).</summary>
     public bool LimitReached { get; private set; }
 
+    /// <summary>True on the forgery check's 400 (07 2.5.4; D-1843): the page draws the check's action-level message in place (04 2.7.3.1).</summary>
+    public bool ForgeryRefused { get; private set; }
+
     /// <summary>The pending registration the page shows the awaited-verification state for, in the place of the form; null for the form (04 5.22.8).</summary>
     public PendingRegistrationReading? Pending { get; private set; }
 
@@ -106,6 +109,7 @@ internal sealed class SignInModel : PageModel
             }
 
             _loaded = true;
+            ForgeryRefused = executed.Result is PageResult { StatusCode: FormResults.ForgeryRefusedStatus };
         }
     }
 

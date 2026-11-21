@@ -26,13 +26,16 @@ namespace Shopfolio.Pages.Panel;
 /// A link that went invalid between the page and the button writes nothing and the page tells so, 200 (07 9.2.2).
 /// </summary>
 [NoStore]
-internal sealed class InviteModel : PageModel
+internal sealed class InviteModel : PageModel, IReadsOnForgeryRefusal
 {
     private readonly IAdministrationModule _administration;
     private readonly ITransactionRunner _transactions;
     private readonly ProtectedValues _protectedValues;
 
     private bool _loaded;
+
+    // The handler's context, kept for the forgery refusal's read (D-1843): the sent values.
+    private PageHandlerExecutingContext? _executing;
 
     public InviteModel(IAdministrationModule administration, ITransactionRunner transactions, ProtectedValues protectedValues)
     {
@@ -63,15 +66,33 @@ internal sealed class InviteModel : PageModel
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(next);
+        _executing = context;
         PageHandlerExecutedContext executed = await next();
         if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
         {
-            _loaded = true;
-            SentName = context.HandlerArguments.Values.OfType<AcceptAdminInvitationInput>().FirstOrDefault()?.Name;
-            if (RouteData.Values["key"] is string key)
-            {
-                await LoadAsync(key, HttpContext.RequestAborted);
-            }
+            await ShowSentAsync(context);
+        }
+    }
+
+    /// <summary>
+    /// D-1843 (07 2.5.4; 04 2.7.3.1): the forgery check's 400 shows the invitation as it stands and the sent name - a read of the route's link that does not use it (the acceptance is the
+    /// only use); no query value, nothing written.
+    /// </summary>
+    async Task IReadsOnForgeryRefusal.ReadAfterForgeryRefusalAsync(CancellationToken ct)
+    {
+        if (!_loaded && _executing is { } context)
+        {
+            await ShowSentAsync(context);
+        }
+    }
+
+    private async Task ShowSentAsync(PageHandlerExecutingContext context)
+    {
+        _loaded = true;
+        SentName = context.HandlerArguments.Values.OfType<AcceptAdminInvitationInput>().FirstOrDefault()?.Name;
+        if (RouteData.Values["key"] is string key)
+        {
+            await LoadAsync(key, HttpContext.RequestAborted);
         }
     }
 

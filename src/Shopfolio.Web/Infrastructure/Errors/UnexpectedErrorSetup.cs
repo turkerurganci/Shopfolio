@@ -125,8 +125,9 @@ internal sealed class UnexpectedErrorMiddleware
             return;
         }
 
-        // A 404 with no body of its own is the "page not found" page (T504; 07 UC-06): no unexpected error, so neither a line nor the counter.
-        await NotFoundAnswer.WriteIfNotFoundAsync(context);
+        // A 404 with no body of its own is the "page not found" page (T504; 07 UC-06): no unexpected error, so neither a line nor the counter - unless drawing the page fails, which is one
+        // (the layer is handed over for that case only; D-1216).
+        await NotFoundAnswer.WriteIfNotFoundAsync(context, _layer);
     }
 #pragma warning restore CA1031
 }

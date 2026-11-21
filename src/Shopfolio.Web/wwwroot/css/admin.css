@@ -321,7 +321,40 @@
     font-weight: 600;
 }
 
+/* The narrow class's card orders its information by priority where a list asks for it (04 9.8.14; D-1386): the cells with a place of their own come first, in that order; the others follow. Nothing is hidden. */
+.panel-table td.panel-table__cell--card-1 {
+    order: 1;
+}
+
+.panel-table td.panel-table__cell--card-2 {
+    order: 2;
+}
+
+.panel-table td.panel-table__cell--card-3 {
+    order: 3;
+}
+
+.panel-table td.panel-table__cell--card-4 {
+    order: 4;
+}
+
+.panel-table td.panel-table__cell--secondary:not([class*="panel-table__cell--card-"]) {
+    order: 5;
+}
+
 @media (min-width: 768px) {
+    /* From the medium class on the card's own order ends: the primary cells stay in the row in the column order and the secondary ones go under it (04 2.13.4). */
+    .panel-table td.panel-table__cell--card-1,
+    .panel-table td.panel-table__cell--card-2,
+    .panel-table td.panel-table__cell--card-3,
+    .panel-table td.panel-table__cell--card-4 {
+        order: 0;
+    }
+
+    .panel-table td.panel-table__cell--secondary:not([class*="panel-table__cell--card-"]) {
+        order: 1;
+    }
+
     .panel-table__row {
         flex-direction: row;
         flex-wrap: wrap;

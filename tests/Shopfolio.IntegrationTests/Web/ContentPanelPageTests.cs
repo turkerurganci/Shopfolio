@@ -27,7 +27,7 @@ namespace Shopfolio.IntegrationTests.Web;
 /// stale-screen refusal, and the brand screen's read and save.
 /// </summary>
 [Collection(ProductListPageTestsDefinition.Name)]
-public sealed class ContentPanelPageTests : IAsyncLifetime
+public sealed partial class ContentPanelPageTests : IAsyncLifetime
 {
     private static readonly DateTimeOffset Base = new(2026, 11, 14, 9, 0, 0, TimeSpan.Zero);
 

@@ -29,12 +29,16 @@ namespace Shopfolio.Pages.Panel;
 /// </summary>
 [NoStore]
 [ReauthenticationFormPage]
-internal sealed class MyAccountModel : PageModel
+internal sealed class MyAccountModel : PageModel, IReadsOnForgeryRefusal
 {
     private readonly IAdministrationModule _administration;
     private readonly ITransactionRunner _transactions;
 
     private bool _loaded;
+
+    // The handler's context, kept for the forgery refusal's read (D-1843), and whether that read found the account.
+    private PageHandlerExecutingContext? _executing;
+    private bool _refusalFound = true;
 
     public MyAccountModel(IAdministrationModule administration, ITransactionRunner transactions)
     {
@@ -82,12 +86,35 @@ internal sealed class MyAccountModel : PageModel
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(next);
+        _executing = context;
         PageHandlerExecutedContext executed = await next();
+        if (executed.Exception is null && executed.Result is PageResult { StatusCode: FormResults.ForgeryRefusedStatus } && !_refusalFound)
+        {
+            // D-1843: an account that is gone is the GET's 404.
+            executed.Result = AccessDenial.NotFound();
+            return;
+        }
+
         if (_loaded || executed.Exception is not null || executed.Result is not PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
         {
             return;
         }
 
+        await ShowSentAsync(context);
+    }
+
+    /// <summary>
+    /// D-1843 (07 2.5.4; 04 2.7.3.1): the forgery check's 400 shows the account and the sent entries - the read the 422 makes, with the sent operation and single-use value only checked: the
+    /// value is not used and the permission is not dropped (<see cref="IAdministrationModule.ReadOwnAccountKeepingReauthenticationAsync"/>) - the refusal writes nothing, as the storefront's account
+    /// page (D-1843 S). No query value.
+    /// </summary>
+    async Task IReadsOnForgeryRefusal.ReadAfterForgeryRefusalAsync(CancellationToken ct)
+    {
+        _refusalFound = _loaded || _executing is not { } context || await ShowSentAsync(context, keepsPermission: true);
+    }
+
+    private async Task<bool> ShowSentAsync(PageHandlerExecutingContext context, bool keepsPermission = false)
+    {
         _loaded = true;
         ReauthenticationOperation? operation = null;
         string? held = null;
@@ -110,7 +137,7 @@ internal sealed class MyAccountModel : PageModel
             }
         }
 
-        await LoadAsync(operation, held, HttpContext.RequestAborted);
+        return await LoadAsync(operation, held, HttpContext.RequestAborted, keepsPermission);
     }
 
     public async Task<IActionResult> OnGetAsync(AdminAccountQuery query, CancellationToken ct)
@@ -292,7 +319,7 @@ internal sealed class MyAccountModel : PageModel
         return Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out adminId) && Guid.TryParse(User.FindFirstValue(SessionSchemes.SessionIdClaim), out sessionId);
     }
 
-    private async Task<bool> LoadAsync(ReauthenticationOperation? operation, string? held, CancellationToken ct)
+    private async Task<bool> LoadAsync(ReauthenticationOperation? operation, string? held, CancellationToken ct, bool keepsPermission = false)
     {
         if (!TryIds(out Guid adminId, out Guid sessionId))
         {
@@ -300,7 +327,9 @@ internal sealed class MyAccountModel : PageModel
         }
 
         OwnAccountRead read = await _transactions.RunAsync(
-            async cancel => new OwnAccountRead(await _administration.ReadOwnAccountAsync(adminId, sessionId, operation, held, cancel)),
+            async cancel => new OwnAccountRead(keepsPermission
+                ? await _administration.ReadOwnAccountKeepingReauthenticationAsync(adminId, sessionId, operation, held, cancel)
+                : await _administration.ReadOwnAccountAsync(adminId, sessionId, operation, held, cancel)),
             ct);
         if (read.Account is null)
         {

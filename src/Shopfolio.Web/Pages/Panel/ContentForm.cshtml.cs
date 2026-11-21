@@ -158,7 +158,7 @@ public sealed record ProductSearchHit(Guid ProductId, string Name, PublishStatus
 [HandlerBodyClass("SaveContent", RequestBodyClass.LongText)]
 [HandlerBodyClass("SearchProducts", RequestBodyClass.LongText)]
 [HandlerBodyClass("UploadImage", RequestBodyClass.ImageUpload)]
-internal sealed class ContentFormModel : PageModel, IOutcomeTarget
+internal sealed class ContentFormModel : PageModel, IOutcomeTarget, IReadsOnForgeryRefusal
 {
     public const string DeleteLabel = "Kalıcı olarak sil";
 
@@ -196,6 +196,10 @@ internal sealed class ContentFormModel : PageModel, IOutcomeTarget
     private readonly ITransactionRunner _transactions;
     private readonly RejectionLog _rejections;
     private bool _ran;
+
+    // The handler's context, kept for the forgery refusal's read (D-1843), and whether that read found the record.
+    private PageHandlerExecutingContext? _executing;
+    private bool _refusalFound = true;
     private string _outcomeScreen = PanelFramePaths.CorporateContent;
 
     public ContentFormModel(
@@ -308,21 +312,50 @@ internal sealed class ContentFormModel : PageModel, IOutcomeTarget
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(next);
+        _executing = context;
         PageHandlerExecutedContext executed = await next();
-        if (!_ran && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity }
-            && context.HandlerArguments.TryGetValue("tip", out object? segment) && ContentRoutes.TryParse(segment as string, out PanelContentType type))
+        if (executed.Exception is null && executed.Result is PageResult { StatusCode: FormResults.ForgeryRefusedStatus } && !_refusalFound)
         {
-            // A form whose fields break their rules is answered 422 by the validation filter without the handler: the record must still exist (404 first), and the page needs the sent entries.
-            Guid? id = context.HandlerArguments.TryGetValue("id", out object? key) ? key as Guid? : null;
-            if (!await LoadAsync(type, id, HttpContext.RequestAborted))
-            {
-                executed.Result = NotFound();
-                return;
-            }
-
-            Form = context.HandlerArguments.Values.OfType<SaveContentInput>().FirstOrDefault() ?? Form;
-            await LoadLinkedAsync(HttpContext.RequestAborted);
+            // D-1843: the forgery check's 400 for a type outside the list or a record that is gone is the one 404, as the 422 below.
+            executed.Result = NotFound();
+            return;
         }
+
+        // A form whose fields break their rules is answered 422 by the validation filter without the handler: the record must still exist (404 first), and the page needs the sent entries.
+        if (!_ran && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity }
+            && context.HandlerArguments.TryGetValue("tip", out object? segment) && ContentRoutes.TryParse(segment as string, out _)
+            && !await LoadSentFormAsync(context))
+        {
+            executed.Result = NotFound();
+        }
+    }
+
+    /// <summary>
+    /// D-1843 (07 2.5.4; 04 2.7.3.1): the forgery check's 400 shows the record as it stands and the sent entries - the read the 422 makes, from the route's type and key; no query value,
+    /// nothing written.
+    /// </summary>
+    async Task IReadsOnForgeryRefusal.ReadAfterForgeryRefusalAsync(CancellationToken ct)
+    {
+        _refusalFound = _ran || (_executing is { } context && await LoadSentFormAsync(context));
+    }
+
+    // The record of the route's type and key and the sent entries; false when the type is outside the list or the key names no record of it.
+    private async Task<bool> LoadSentFormAsync(PageHandlerExecutingContext context)
+    {
+        if (!context.HandlerArguments.TryGetValue("tip", out object? segment) || !ContentRoutes.TryParse(segment as string, out PanelContentType type))
+        {
+            return false;
+        }
+
+        Guid? id = context.HandlerArguments.TryGetValue("id", out object? key) ? key as Guid? : null;
+        if (!await LoadAsync(type, id, HttpContext.RequestAborted))
+        {
+            return false;
+        }
+
+        Form = context.HandlerArguments.Values.OfType<SaveContentInput>().FirstOrDefault() ?? Form;
+        await LoadLinkedAsync(HttpContext.RequestAborted);
+        return true;
     }
 
     /// <summary>UC-96: the new record's form or the record's form; a type outside the list or a key that is no record of the type is 404; a new Hakkımızda or announcement with the record there is 303 to it.</summary>

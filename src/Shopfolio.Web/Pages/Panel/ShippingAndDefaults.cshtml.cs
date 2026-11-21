@@ -162,6 +162,9 @@ public sealed class ShippingAndDefaultsModel : PageModel
         _afterSales = afterSales;
     }
 
+    /// <summary>The sales state the panel shows on this screen (04 6.1.5.2, 2.8.2; D-1778): open, or closed with the conditions that wait - the return address among them; read from the sales gate on every request, so it is the same as the home page's.</summary>
+    public string SalesStateLine { get; private set; } = string.Empty;
+
     public string? ConflictedSection => _conflictedSection;
 
     public FormErrorSummary Summary => _summary ??= FormErrorSummary.From(ModelState, FormOrder);
@@ -431,6 +434,7 @@ public sealed class ShippingAndDefaultsModel : PageModel
             await _settings.GetReturnAddressAsync(ct),
             await _settings.GetProvincesAsync(ct));
         _summary = null;
+        SalesStateLine = PanelHomeTexts.SalesState(await _settings.GetSalesGateAsync(ct));
         NoticeCode? notice = NoticeParameter.Read(Request, NoticeKind.ShortLived);
         Notice = notice is { } code && NoticeTexts.TryShortLived(code, out string? noticeText) ? Messages.ShortLivedSuccess(noticeText) : null;
     }

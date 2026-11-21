@@ -162,6 +162,30 @@ public static class Confirmations
             throw new ArgumentException("The form's address and the way back are paths of this site (05 6.5.6).");
         }
 
-        return new ConfirmView(surface, operationName.Trim(), warning, sentence.Trim(), irreversible, confirmLabel.Trim(), actionPath, handler, cancelPath, fields);
+        return new ConfirmView(surface, operationName.Trim(), warning, sentence.Trim(), irreversible, confirmLabel.Trim(), actionPath, handler, cancelPath, WithConfirmationMark(fields));
+    }
+
+    /// <summary>The name of the confirmation mark the confirm button's form sends back (07 2.2.4): the panel's convention, <c>Input.Confirmed</c>.</summary>
+    public const string ConfirmedFieldName = "Input.Confirmed";
+
+    /// <summary>
+    /// The confirmation carries its own mark (07 2.2.4; D-1173): a screen that forgot to hand it over would draw a button that can never complete the operation, so the component adds it when no field
+    /// of the form is the mark - the name <c>Confirmed</c> or any <c>...Confirmed</c> after a dot, which is how the screens that bind a bare name or another prefix write it. A mark that is handed over
+    /// with any value but <c>true</c> is refused: the button would confirm nothing.
+    /// </summary>
+    private static List<KeyValuePair<string, string>> WithConfirmationMark(IReadOnlyList<KeyValuePair<string, string>> fields)
+    {
+        List<KeyValuePair<string, string>> carried = [.. fields];
+        KeyValuePair<string, string>[] marks = [.. carried.Where(f => f.Key == "Confirmed" || f.Key.EndsWith(".Confirmed", StringComparison.Ordinal))];
+        if (marks.Length == 0)
+        {
+            carried.Add(new(ConfirmedFieldName, "true"));
+        }
+        else if (marks.Any(m => m.Value != "true"))
+        {
+            throw new ArgumentException("The confirmation mark is handed over as \"true\" or not at all (07 2.2.4).", nameof(fields));
+        }
+
+        return carried;
     }
 }

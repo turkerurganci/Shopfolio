@@ -28,12 +28,6 @@ internal static partial class StateRoleCheck
         "Beklemede", "İade edildi", "Kısmi iade", "Çözümlendi", "Kapandı", "Kapalı talep", "Tamamlandı", "Hazırlandı", "Onaylandı",
     ];
 
-    /// <summary>
-    /// D-1778: the panel screens that 04 6.1.5.2 names as showing the sales gate and whose page does not read it today (the payment methods and the shipping and defaults pages);
-    /// closing the gap needs product code (T604 U), so the reverse direction of the gate check lists them until then.
-    /// </summary>
-    public static readonly IReadOnlyList<string> PanelGateReadGaps = ["E-45", "E-46"];
-
     public static IReadOnlyList<string> Problems(string document, IReadOnlyDictionary<string, string> sources, string requirements)
     {
         ArgumentNullException.ThrowIfNull(document);
@@ -207,16 +201,10 @@ internal static partial class StateRoleCheck
             yield return $"GateReadDiffers: the panel's {screen} reads the sales gate, 04 6.1.5.2 names [{string.Join(", ", panel)}].";
         }
 
-        // D-1657: the other direction - a screen 04 6.1.5.2 names stops reading the gate, and the panel no longer shows it.
-        foreach (string screen in panel.Where(s => !panelCode.Contains(s, StringComparer.Ordinal) && !PanelGateReadGaps.Contains(s, StringComparer.Ordinal)))
+        // D-1657: the other direction - a screen 04 6.1.5.2 names stops reading the gate, and the panel no longer shows it. No screen is exempt: E-45 and E-46 read the gate since D-1778 (T604).
+        foreach (string screen in panel.Where(s => !panelCode.Contains(s, StringComparer.Ordinal)))
         {
             yield return $"GateReadMissing: 04 6.1.5.2 says the panel shows the sales gate in {screen}, its page does not read it.";
-        }
-
-        // The known gaps are held both ways: a gap that the page has closed (or that the document no longer names) is a stale entry.
-        foreach (string screen in PanelGateReadGaps.Where(s => panelCode.Contains(s, StringComparer.Ordinal) || !panel.Contains(s, StringComparer.Ordinal)))
-        {
-            yield return $"GateReadGapStale: {screen} is listed as a screen whose page does not read the sales gate (D-1778), but its page reads it or 04 6.1.5.2 no longer names it.";
         }
     }
 

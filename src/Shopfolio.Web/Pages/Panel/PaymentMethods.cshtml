@@ -13,6 +13,7 @@
     ViewData["Title"] = "Ödeme yöntemleri";
 }
 <h1>Ödeme yöntemleri</h1>
+<p class="sales-status__state" id="sales-state">@Model.SalesStateLine</p>
 @if (Model.Notice is not null)
 {
     <partial name="_Message" model="Model.Notice" />

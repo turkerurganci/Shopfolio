@@ -112,6 +112,15 @@ check 1 "sh cat lone variable"       "scripts/g28.sh"      '  -e "'"$K_API"'=$(c
 check 1 "sh cat lone braced variable" "scripts/g29.sh"     '  -e "'"$K_API"'=$(cat "${'"$V_LIVE"'}")" \'
 check 1 "cs $@ prefix"             "src/v3.cs"           'var Password = $@"abc12345xyz";'
 check 1 "cs @$ prefix"               "src/v4.cs"           'var Password = @$"abc12345xyz";'
+# The three script lines of D-1770 keep their real-secret counterparts next to the accepted forms below: the literal user name of eight characters, the call that builds
+# the connection value, and the literal base64 bytes; and the accepted variable form with text after it is still a value.
+K_AKI='AWS_ACCESS_KEY_''ID'
+K_DCS='Database__Connection''String'
+check 1 "sh literal access key id"   "scripts/h1.sh"       '  -e '"$K_AKI"'=t09admin -e AWS_CA_BUNDLE=/work/ca.crt \'
+check 1 "sh connection by a call"    "scripts/h2.sh"       '  -e "'"$K_DCS"'=$(package_dsn "$PKG_APP" "$PKG_DB")" \'
+check 1 "sh literal base64 bytes"    "scripts/h3.sh"       '  -e "'"$K_DER"'='"$V_B64"'=" \'
+check 1 "sh access key id + text"    "scripts/h4.sh"       '  -e "'"$K_AKI"'=$ADMIN_USER:'"$V_LIVE"'" \'
+check 1 "sh connection var + text"   "scripts/h5.sh"       '  -e "'"$K_DCS"'=$APP_DSN;Password='"$V_DBP"'" \'
 check 1 "cs raw literal"             "src/v5.cs"           'var Password = """abc12345xyz""";'
 check 1 "cs $$ raw literal"          "src/v6.cs"           'var Password = $$"""abc12345xyz""";'
 check 1 "cs u8 literal"              "src/v7.cs"           'var ApiKey = "abc12345xyz"u8;'
@@ -280,6 +289,17 @@ check 0 "sh plain assignment cat"    "scripts/g17.sh"      'DB_PASSWORD=$(cat /r
 check 0 "sh cat absolute path, quoted" "scripts/g21.sh"    '  -e "'"$K_API"'=$(cat "/run/secrets/api-id")" \'
 check 0 "sh cat variable path, unquoted" "scripts/g22.sh"  '  -e "'"$K_API"'=$(cat $STATE_DIR/api-id)" \'
 check 0 "sh cat braced variable path" "scripts/g23.sh"     '  -e "'"$K_API"'=$(cat "${STATE_DIR}/api-id")" \'
+# The accepted forms of the three script lines of D-1770 (their counterparts are among the caught samples above): a bare variable for the access key id, the connection
+# value and the made-up bytes; the lines that fill those variables name no secret key.
+check 0 "sh access key id variable"  "scripts/h6.sh"       '  -e AWS_CA_BUNDLE=/work/ca.crt -e "'"$K_AKI"'=$ADMIN_USER" -e "'"$K_AWS"'=$ADMIN_CREDENTIAL" \'
+check 0 "sh connection variable"     "scripts/h7.sh"       '  -e "'"$K_DCS"'=$APP_DSN" \'
+check 0 "sh derivation variable"     "scripts/h8.sh"       '  -e "'"$K_DER"'=$CI_LINK_BYTES" \'
+check 0 "sh variable fill lines"     "scripts/h9.sh"       $'ADMIN_USER=t09admin\nAPP_DSN="$(package_dsn "$PKG_APP" "$PKG_DB")"\nCI_LINK_BYTES="'"$V_B64"$'="'
+# The three real script files, added whole as a first commit would add them: no line of them is a candidate any more (D-1770).
+REPO_ROOT="$(cd "$(dirname "$HOOK")/../.." && pwd)"
+for real in scripts/local-reference/storage-setup.sh scripts/ci/package-build.sh; do
+  check 0 "real script: $real"         "$real"               "$(cat "$REPO_ROOT/$real")"
+done
 check 0 "known limit: bare identifier" "src/u15.cs"        'Token = AKIAEXAMPLEKEY123;'
 check 0 "lock file keeps skip"       "poetry.lock"         'password = "abcdefgh12345678"'
 check 0 "cs type CancellationToken"  "src/B.cs"            'public Task Run(CancellationToken cancellationToken = default) {}'

@@ -48,10 +48,11 @@ internal sealed class FramedErrorPageRenderer : IErrorPageRenderer
             page.Message,
             retry,
             storefront ? "/" : PanelFramePaths.Home,
-            storefront ? "Ana sayfaya dön" : "Panele dön");
+            storefront ? "Ana sayfaya dön" : "Panele dön",
+            page.OffersRetry);
 
         ViewDataDictionary<ErrorPageView> viewData = new(_metadata, new ModelStateDictionary()) { Model = model };
-        ViewResult result = new() { ViewName = ViewPath, ViewData = viewData, StatusCode = StatusCodes.Status500InternalServerError };
+        ViewResult result = new() { ViewName = ViewPath, ViewData = viewData, StatusCode = page.Status };
         await result.ExecuteResultAsync(new ActionContext(context, context.GetRouteData(), new ActionDescriptor()));
     }
 

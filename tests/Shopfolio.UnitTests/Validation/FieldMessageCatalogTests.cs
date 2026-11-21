@@ -72,6 +72,22 @@ public sealed partial class FieldMessageCatalogTests
     }
 
     [Fact]
+    public void Build_OfFieldRequired_TakesTheMenuNameText_OnlyWhenTheParameterIsMarkedAsAMenuDefaultName_D1387()
+    {
+        // The two branches of the parametrised FieldRequired: the marked parameter is K-813's text, any other parameter does not turn the message into it.
+        Assert.Equal("Menü adı boş olamaz; varsayılan ad: Ürünler.", FieldMessageCatalog.Build(FieldCodes.FieldRequired, "Ürünler menü adı", FieldMessageCatalog.MenuDefaultNameParameter("Ürünler")));
+        Assert.Equal("Ad boş olamaz.", FieldMessageCatalog.Build(FieldCodes.FieldRequired, "Ad", "Ayrıntı"));
+        Assert.Equal("Ad boş olamaz.", FieldMessageCatalog.Build(FieldCodes.FieldRequired, "Ad", null));
+
+        // The marked parameter travels the common encoding: the code stays FieldRequired, and the filter reads it back whole.
+        string encoded = FieldError.Encode(FieldCodes.FieldRequired, FieldMessageCatalog.MenuDefaultNameParameter("Ürünler"));
+        Assert.True(FieldError.TryParse(encoded, out string code, out string? parameter));
+        Assert.Equal(FieldCodes.FieldRequired, code);
+        Assert.Equal(FieldMessageCatalog.MenuDefaultNameParameter("Ürünler"), parameter);
+        Assert.Throws<ArgumentException>(() => FieldMessageCatalog.MenuDefaultNameParameter(" "));
+    }
+
+    [Fact]
     public void Build_AmountAndPercentageMessages_NameTheLimit_InTheDisplayFormatTheRuleGives()
     {
         // D-124; 04 7.3.1: the value of the limit is the parameter and appears in the message (07 6.2.2: the money type's limit, K-1214).

@@ -77,6 +77,13 @@ internal sealed class ForgeryProtectionFilter : IAsyncPageFilter, IOrderedFilter
         }
 
         page.ModelState.AddModelError(string.Empty, Message);
+
+        // The page's own reads for the page shown again (D-1773): the handler did not run, so what the GET reads has not been read. A read only; the refusal writes nothing.
+        if (page is IReadsOnForgeryRefusal reader)
+        {
+            await reader.ReadAfterForgeryRefusalAsync(context.HttpContext.RequestAborted);
+        }
+
         context.Result = FormResults.ForgeryRefused(page);
     }
 

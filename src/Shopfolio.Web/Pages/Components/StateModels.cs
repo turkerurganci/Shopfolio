@@ -86,9 +86,10 @@ public enum ErrorSurface
 /// <summary>
 /// The view model of the error page (T541; 04 2.7.3.2; D-135): the short explanation, "Yeniden dene" (the address of the request that failed) and the way home. No error code, no request id, no
 /// technical detail (07 2.7.3). <paramref name="Surface"/> chooses the layout: the page is drawn inside the storefront's frame, inside the panel's frame, or - on the panel screens that have no frame
-/// - bare, with the panel title only.
+/// - bare, with the panel title only. <paramref name="OffersRetry"/> is false for the pages of a refusal - the general limit's 429 and the body ceiling's 413 (D-1146; 07 2.8.4, 2.8.7) -: the
+/// request is not repeated by a button, so only the way home stays.
 /// </summary>
-public sealed record ErrorPageView(ErrorSurface Surface, string Title, string Message, string RetryPath, string HomePath, string HomeLabel);
+public sealed record ErrorPageView(ErrorSurface Surface, string Title, string Message, string RetryPath, string HomePath, string HomeLabel, bool OffersRetry = true);
 
 /// <summary>
 /// The sales closed state (T541; 04 2.8). The storefront only says that sales are closed - never which condition is not met (04 2.8.1); the panel says it in four places and names the unmet condition
@@ -119,8 +120,12 @@ public static class SalesClosedMessages
     }
 }
 
-/// <summary>One condition of the sales gate as the panel shows it (04 2.8.2): its name, whether it is met and the screen that fixes it.</summary>
-public sealed record PanelSalesConditionRow(string Name, bool IsMet, string FixPath);
+/// <summary>
+/// One condition of the sales gate as the panel shows it (04 2.8.2): its name, whether it is met and the screen that fixes it. The row reads "name: state" and the state word is the row's own:
+/// "Tamam" or "Eksik" for a missing part, but the temporary closure is "Yok" or "Var" - "anahtarı kapalı: Eksik" read as a double negative (D-1174) - and the legal texts name the waiting part in
+/// the state, after the colon, so the row never carries two colons.
+/// </summary>
+public sealed record PanelSalesConditionRow(string Name, bool IsMet, string FixPath, string MetText = "Tamam", string UnmetText = "Eksik");
 
 /// <summary>One line of the panel home's setup checklist (04 2.8.2; 02 10.8.2): the missing item by name and the setting screen it leads to.</summary>
 public sealed record PanelChecklistRow(string Name, string FixPath);
@@ -149,21 +154,26 @@ public sealed record PanelSalesStatus(
 
         SalesGateCondition[] legalParts = [.. new[] { SalesGateCondition.PrivacyNotice, SalesGateCondition.CookiePolicy, SalesGateCondition.ReturnAddress }.Where(Unmet)];
         string legalPath = legalParts.Length > 0 ? PathOf(legalParts[0]) : PanelFramePaths.LegalTexts;
-        string legalName = legalParts.Length > 0 ? "Yasal metinler: " + string.Join(", ", legalParts.Select(NameOf)) : "Yasal metinler";
+        string legalUnmet = legalParts.Length > 0 ? "Eksik (" + string.Join(", ", legalParts.Select(NameOf)) + ")" : "Eksik";
         List<PanelSalesConditionRow> conditions =
         [
             new("Firma kimliği", !Unmet(SalesGateCondition.CompanyIdentity), PanelFramePaths.FirmIdentityAndSales),
             new("Ödeme yöntemi", !Unmet(SalesGateCondition.PaymentMethod), PanelFramePaths.PaymentMethods),
-            new("Satışı geçici kapatma anahtarı kapalı", !Unmet(SalesGateCondition.TemporaryClosure), PanelFramePaths.SalesStateSection),
-            new(legalName, legalParts.Length == 0, legalPath),
+            new("Geçici kapatma", !Unmet(SalesGateCondition.TemporaryClosure), PanelFramePaths.SalesStateSection, MetText: "Yok", UnmetText: "Var"),
+            new("Yasal metinler", legalParts.Length == 0, legalPath, UnmetText: legalUnmet),
         ];
 
         List<PanelChecklistRow> checklist = [.. gate.SetupChecklist.Select(c => new PanelChecklistRow(NameOf(c), PathOf(c)))];
+
+        // The reason is the temporary closure, the unmet conditions or both (04 2.8.2): the closure is told as what it is - the owner's own switch -, never as a part that "was not completed".
+        string[] missing = [.. gate.UnmetConditions.Where(c => c != SalesGateCondition.TemporaryClosure).Select(NameOf)];
         string? warning = gate.IsOpen
             ? null
-            : gate.IsTemporarilyClosed && gate.SetupChecklist.Count == 0
-                ? "Satış kapalı: satışı geçici kapattınız."
-                : "Satış kapalı: " + string.Join(", ", gate.UnmetConditions.Select(NameOf)) + " tamamlanmadı.";
+            : !gate.IsTemporarilyClosed
+                ? "Satış kapalı: " + string.Join(", ", missing) + " tamamlanmadı."
+                : missing.Length == 0
+                    ? "Satış kapalı: satışı geçici kapattınız."
+                    : "Satış kapalı: satışı geçici kapattınız; " + string.Join(", ", missing) + " tamamlanmadı.";
         IReadOnlyList<string> dataNames = [.. new[] { SalesGateCondition.PrivacyNotice, SalesGateCondition.CookiePolicy }.Where(Unmet).Select(NameOf)];
 
         return new PanelSalesStatus(

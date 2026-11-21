@@ -136,6 +136,49 @@ public sealed class RequestLimitsTests
     }
 
     [Fact]
+    public async Task TheRefusalOfAPage_413_IsDrawnInsideTheStorefrontFrame_WithNoRetryButton_AndKeepsItsStatusAndHeaders_D1146()
+    {
+        EndpointCalls calls = new();
+        await using WebApplicationFactory<Program> factory = Open(Clock(), calls: calls);
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage response = await SendAsync(client, HttpMethod.Post, GeneralPath, Bytes(64 * Kilobyte + 1));
+        string html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.RequestEntityTooLarge, response.StatusCode);
+        Assert.Equal("no-store", response.Headers.CacheControl?.ToString());
+        Assert.Contains("<header class=\"site-header", html, StringComparison.Ordinal);
+        Assert.Contains("<footer class=\"site-footer", html, StringComparison.Ordinal);
+        Assert.Contains("class=\"error-page\"", html, StringComparison.Ordinal);
+        Assert.Contains(RequestBodyLimitMiddleware.Message, html, StringComparison.Ordinal);
+        Assert.DoesNotContain("Yeniden dene", html, StringComparison.Ordinal);
+        Assert.Equal(0, calls.Count);
+    }
+
+    [Fact]
+    public async Task TheRefusalOfAPage_429_IsDrawnInsideTheStorefrontFrame_WithNoRetryButton_AndNoRetryAfter_D1146()
+    {
+        await using WebApplicationFactory<Program> factory = Open(Clock(), pages: 2);
+        using HttpClient client = ClientOf(factory);
+        for (int i = 0; i < 2; i++)
+        {
+            using HttpResponseMessage ok = await SendAsync(client, HttpMethod.Get, "/urunler");
+            Assert.NotEqual(HttpStatusCode.TooManyRequests, ok.StatusCode);
+        }
+
+        using HttpResponseMessage refused = await SendAsync(client, HttpMethod.Get, "/urunler");
+        string html = WebUtility.HtmlDecode(await refused.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, refused.StatusCode);
+        Assert.False(refused.Headers.Contains("Retry-After"));
+        Assert.Equal("no-store", refused.Headers.CacheControl?.ToString());
+        Assert.Contains("<header class=\"site-header", html, StringComparison.Ordinal);
+        Assert.Contains("class=\"error-page\"", html, StringComparison.Ordinal);
+        Assert.Contains(NeutralMessages.LimitExceeded, html, StringComparison.Ordinal);
+        Assert.DoesNotContain("Yeniden dene", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task TheRefusal_OfAPage_IsAPlainPageWithNoFormAndNoRetryAfter_AndNothingWasRead()
     {
         EndpointCalls calls = new();
@@ -148,7 +191,7 @@ public sealed class RequestLimitsTests
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, response.StatusCode);
         Assert.Equal("text/html", response.Content.Headers.ContentType?.MediaType);
         Assert.Contains(WebUtility.HtmlEncode(RequestBodyLimitMiddleware.Message), html, StringComparison.Ordinal);
-        Assert.DoesNotContain("<form", html, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("method=\"post\"", html, StringComparison.OrdinalIgnoreCase); // no form to submit again: the frame's search form is a GET (D-1146)
         Assert.False(response.Headers.Contains("Retry-After"));
         Assert.Equal(0, calls.Count);
     }
@@ -224,7 +267,7 @@ public sealed class RequestLimitsTests
 
             Assert.True(answered.StatusCode == HttpStatusCode.RequestEntityTooLarge, $"{size} bytes, chunked={chunked}: {(int)answered.StatusCode}");
             Assert.Contains(WebUtility.HtmlEncode(RequestBodyLimitMiddleware.Message), html, StringComparison.Ordinal);
-            Assert.DoesNotContain("<form", html, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("method=\"post\"", html, StringComparison.OrdinalIgnoreCase); // no form to submit again: the frame's search form is a GET (D-1146)
             Assert.DoesNotContain(nameof(Shopfolio.Infrastructure.Errors.ErrorCode.PayloadTooLarge), html, StringComparison.Ordinal);
             JsonElement line = Assert.Single(LinesOf(logs[0], id), l => l.TryGetProperty("code", out _));
             Assert.Equal(nameof(Shopfolio.Infrastructure.Errors.ErrorCode.PayloadTooLarge), line.GetProperty("code").GetString());
@@ -344,7 +387,7 @@ public sealed class RequestLimitsTests
 
         Assert.Equal(HttpStatusCode.TooManyRequests, refused.StatusCode);
         Assert.Contains(WebUtility.HtmlEncode(NeutralMessages.LimitExceeded), html, StringComparison.Ordinal);
-        Assert.DoesNotContain("<form", html, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("method=\"post\"", html, StringComparison.OrdinalIgnoreCase); // no form to submit again: the frame's search form is a GET (D-1146)
         Assert.False(refused.Headers.Contains("Retry-After"));
         Assert.Equal("no-store", refused.Headers.CacheControl?.ToString());
         Assert.NotEqual(HttpStatusCode.TooManyRequests, again.StatusCode);

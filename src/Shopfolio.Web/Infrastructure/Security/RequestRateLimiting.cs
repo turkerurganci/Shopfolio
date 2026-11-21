@@ -109,6 +109,9 @@ internal static class RateLimitScope
 /// </summary>
 internal static class RequestRateLimiting
 {
+    /// <summary>The title of the 429 page.</summary>
+    public const string LimitTitle = "Çok fazla deneme";
+
     public static IServiceCollection AddRequestRateLimiting(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -161,11 +164,20 @@ internal static class RequestRateLimiting
             return;
         }
 
+        // The page is drawn inside the frame of the surface (07 2.8.4; D-1146): no code, no "Yeniden dene". If the frame cannot be drawn, the plain page below answers.
+        if (context.RequestServices.GetService(typeof(IErrorPageRenderer)) is IErrorPageRenderer renderer
+            && await UnexpectedErrorAnswer.TryRenderFramedAsync(context, renderer, new ErrorPageText(LimitTitle, NeutralMessages.LimitExceeded, StatusCodes.Status429TooManyRequests, OffersRetry: false)))
+        {
+            return;
+        }
+
+        response.StatusCode = StatusCodes.Status429TooManyRequests;
+        response.Headers.CacheControl = "no-store";
         response.ContentType = "text/html; charset=utf-8";
         string message = WebUtility.HtmlEncode(NeutralMessages.LimitExceeded);
         await response.WriteAsync(
-            "<!DOCTYPE html><html lang=\"tr\"><head><meta charset=\"utf-8\"><title>Çok fazla deneme</title></head><body><main>" +
-            "<h1>Çok fazla deneme</h1><p>" + message + "</p><p><a href=\"/\">Ana sayfaya dön</a></p></main></body></html>",
+            "<!DOCTYPE html><html lang=\"tr\"><head><meta charset=\"utf-8\"><title>" + LimitTitle + "</title></head><body><main>" +
+            "<h1>" + LimitTitle + "</h1><p>" + message + "</p><p><a href=\"/\">Ana sayfaya dön</a></p></main></body></html>",
             cancellationToken);
     }
 }

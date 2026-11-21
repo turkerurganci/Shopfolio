@@ -167,30 +167,31 @@ public sealed class CookieRulesTests
     }
 
     [Fact]
-    public async Task HeaderFilter_WhenThePublicationQueryFails_LetsTheCatchLayerOutsideItHandleItAndStripsTheCookiesOfTheErrorPage()
+    public async Task HeaderFilter_WhenThePublicationQueryFails_LetsTheExceptionLeaveToTheFrameworksPlain500AndStripsItsCookies()
     {
         var context = new DefaultHttpContext();
         context.Features.Set<IHttpResponseFeature>(new CallbackResponseFeature());
         context.Request.Path = "/sepet";
         var filter = new CookieHeaderFilterMiddleware(_ => throw new InvalidOperationException("the filter let a request through"), new CookiePolicyGate());
-        Exception? reachedTheCatchLayer = null;
+        Exception? leftThePipeline = null;
 
-        // Stands in for the single catch layer (09 8.1 item 2b) registered outside the filter: it records the exception and writes an error page that sets a cookie.
+        // Stands in for the framework's plain 500 outside the pipeline: the single catch layer (09 8.1 item 2b) is registered after the filter, inside it,
+        // so it never sees this failure (documented exception, 05 10.3.6; D-138). The stand-in answers 500 and, to prove the removal, sets a cookie.
         try
         {
             await filter.InvokeAsync(context, new FailingPublication());
         }
-#pragma warning disable CA1031 // Test stand-in for the single catch layer (09 8.1 item 2b); it keeps the exception for the assertion.
+#pragma warning disable CA1031 // Test stand-in for the framework's plain 500; it keeps the exception for the assertion.
         catch (Exception exception)
         {
-            reachedTheCatchLayer = exception;
+            leftThePipeline = exception;
             context.Response.StatusCode = 500;
             context.Response.Cookies.Append(CookieNames.Cart, "x");
             await ((CallbackResponseFeature)context.Features.Get<IHttpResponseFeature>()!).RunAsync();
         }
 #pragma warning restore CA1031
 
-        Assert.IsType<TimeoutException>(reachedTheCatchLayer);
+        Assert.IsType<TimeoutException>(leftThePipeline);
         Assert.Equal(500, context.Response.StatusCode);
         Assert.Equal(string.Empty, context.Response.Headers.SetCookie.ToString());
     }

@@ -41,7 +41,7 @@ else
             {
                 <li class="sales-status__row">
                     <span class="message__symbol" aria-hidden="true">@(row.IsMet ? MessageSymbols.Of(MessageMeaning.Success) : MessageSymbols.Of(MessageMeaning.Warning))</span>
-                    <span>@row.Name: @(row.IsMet ? "Tamam" : "Eksik")</span>
+                    <span>@row.Name: @(row.IsMet ? row.MetText : row.UnmetText)</span>
                     @if (!row.IsMet)
                     {
                         <a href="@row.FixPath">Düzelt</a>

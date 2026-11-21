@@ -50,7 +50,7 @@ internal sealed class SesEmailGateway : IEmailGateway
     public async Task<EmailSendResult> SendAsync(EmailMessage message, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(message);
-        RecipientQuery answer = await _runner.RunAsync(IntegrationOperation.EmailSend, token => AskRecipientAsync(message.RecipientEmail, token), ct);
+        RecipientQuery answer = await _runner.RunAsync(IntegrationOperation.EmailSend, token => AskRecipientAsync(message.RecipientEmail, ct, token), ct);
         if (answer is RecipientQuery.Listed)
         {
             return new EmailSendResult.RecipientError(SuppressedReason);
@@ -177,7 +177,9 @@ internal sealed class SesEmailGateway : IEmailGateway
         return text.Append("\" <").Append(senderAddress).Append('>').ToString();
     }
 
-    private async Task<RecipientQuery> AskRecipientAsync(string recipient, CancellationToken token)
+    // The pre-query catches the layer's own job limit and the transport's error here, before the runner can: the runner would write them without the
+    // prefix, and the log could not tell the pre-query's timeout from the send's (D-1022; 08 2.2.2).
+    private async Task<RecipientQuery> AskRecipientAsync(string recipient, CancellationToken ct, CancellationToken token)
     {
         try
         {
@@ -190,9 +192,14 @@ internal sealed class SesEmailGateway : IEmailGateway
             // The address is not on the list: the send goes. This 404 is not the table's NotFoundException row (08 2.2.2).
             return new RecipientQuery.Proceed();
         }
-        catch (OperationCanceledException) when (!token.IsCancellationRequested)
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
+            // The library's own limit or the layer's job limit passed; the caller's cancellation (the host stopping) is not a timeout and passes up.
             return QueryFailed(ExternalCallFailure.TimedOut());
+        }
+        catch (HttpRequestException exception)
+        {
+            return QueryFailed(ExternalCallFailure.Unreachable(ExternalCallRunner.ConnectionReason(exception.HttpRequestError)));
         }
         catch (AmazonServiceException exception)
         {

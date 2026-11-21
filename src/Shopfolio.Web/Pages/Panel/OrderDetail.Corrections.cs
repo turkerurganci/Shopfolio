@@ -132,6 +132,29 @@ public sealed partial class OrderDetailModel
     public MessageView? CorrectionMessageFor(string formId) =>
         CorrectionRefusalText is { } text && string.Equals(RefusedCorrection, formId, StringComparison.Ordinal) ? Messages.InPlace(MessageMeaning.Error, text, CorrectionMessageId) : null;
 
+    /// <summary>
+    /// The single-field forms' one pattern (04 9.9.36, 7.2.8.1, 7.2.8.3, 7.2.14.2, 7.2.14.4; 2.3.1.1; D-1550): while the refusal belongs to <paramref name="formId"/> the field it names carries
+    /// <c>aria-invalid</c> and <c>aria-describedby</c> pointing at the message under it; null (the attribute is not written) otherwise.
+    /// </summary>
+    public string? InvalidFor(string formId) => RefusalBelongsTo(formId) ? "true" : null;
+
+    /// <summary>The id of the message the refused field is described by (see <see cref="InvalidFor"/>); null when the form is not the refused one.</summary>
+    public string? DescribedBy(string formId) => RefusalBelongsTo(formId) ? CorrectionMessageId : null;
+
+    /// <summary>
+    /// The summary at the head of a single-field form whose value was missing or malformed (04 2.3.2): one wrong field, linked and focused. A rule's bound - a date in the future, an unchanged value - is
+    /// the lasting message in place (04 2.3.3) and has no summary.
+    /// </summary>
+    public FormErrorSummary? CorrectionSummaryFor(string formId, string fieldId) =>
+        RefusalBelongsTo(formId) && CorrectionRefusalIsFieldBound && CorrectionRefusalText is { } text
+            ? new FormErrorSummary([new FormFieldError(fieldId, text)])
+            : null;
+
+    /// <summary>Whether the refusal of <see cref="RefusedCorrection"/> is a missing or malformed value (a field message and the summary) and not a rule's bound (the in-place message, 04 2.3.3).</summary>
+    public bool CorrectionRefusalIsFieldBound => CorrectionRefusalText is ShipmentMissingText or EmailMissingText or EmailInvalidText or DeliveryDateMissingText or ArrivalDateMissingText;
+
+    private bool RefusalBelongsTo(string formId) => CorrectionRefusalText is not null && string.Equals(RefusedCorrection, formId, StringComparison.Ordinal);
+
     /// <summary>The order question of a corrected delivery date on a declaration's day (K-608).</summary>
     public bool AsksCorrectionDeliveryOrder { get; private set; }
 

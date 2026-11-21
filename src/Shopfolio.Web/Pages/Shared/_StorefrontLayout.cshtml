@@ -37,6 +37,11 @@
     {
         <link rel="icon" href="@FrameStyle.ImagePath(faviconId)">
     }
+    else
+    {
+        @* No site icon uploaded: the first letter of the brand on the brand colour (02 3.29.4), so the browser's /favicon.ico request is never a 404 (D-1135). *@
+        <link rel="icon" type="@FrameStyle.SiteIconContentType" href="@FrameStyle.SiteIconPath">
+    }
     <style nonce="@nonce">@FrameStyle.BrandVariables(frame.Brand)</style>
     <link rel="stylesheet" href="@Context.StaticAsset("css/base.css")">
     <link rel="stylesheet" href="@Context.StaticAsset("css/components.css")">

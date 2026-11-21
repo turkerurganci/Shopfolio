@@ -226,7 +226,7 @@ public sealed class HomeAndMenuModel : PageModel
                 if (rejection.Code == FieldCodes.FieldRequired && defaultName.Length > 0)
                 {
                     // K-813: an empty menu name's message reminds the default name; the common field error carries it as the parameter, so the filter logs the rejection too.
-                    ModelState.AddFieldError("Input." + rejection.Field, rejection.Code, defaultName);
+                    ModelState.AddFieldError("Input." + rejection.Field, rejection.Code, FieldMessageCatalog.MenuDefaultNameParameter(defaultName));
                     continue;
                 }
 

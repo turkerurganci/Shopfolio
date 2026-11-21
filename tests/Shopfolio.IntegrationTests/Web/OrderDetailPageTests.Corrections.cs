@@ -193,6 +193,53 @@ public sealed partial class OrderDetailPageTests
         Assert.Equal(1, await reader.Orders.Where(o => o.Id == orderId).Select(o => o.Version).SingleAsync(Ct));
     }
 
+    // ---- D-1550: the single-field forms' one refusal pattern (04 2.3.1.1, 2.3.2, 2.3.3, 9.9.36) ----
+
+    [Fact]
+    public async Task TheSingleFieldCorrectionForms_BindAMissingValueToTheField_WithASummary_AndARulesBoundToTheFieldWithoutOne_D1550()
+    {
+        (string key, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateOnly today = TurkeyTime.DateOf(now);
+        (Guid shippedId, _) = await StepOrderAsync(OrderStatus.Shipped, PaymentStatus.Paid, (ProductType.Physical, false));
+        (Guid deliveredId, _) = await StepOrderAsync(OrderStatus.Delivered, PaymentStatus.Paid, (ProductType.Physical, true));
+        (Guid guestId, _) = await StepOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid, (ProductType.Digital, false));
+        await using (AppDbContext db = NewContext())
+        {
+            db.TransitionRecords.Add(TransitionRecord.Create(shippedId, TransitionCode.S5, ActorKind.Admin, adminId, CorrectionAdminName, null, null, null, null, null, now.AddHours(-1)));
+            db.TransitionRecords.Add(TransitionRecord.Create(deliveredId, TransitionCode.S5, ActorKind.Admin, adminId, CorrectionAdminName, null, null, null, null, null, now.AddDays(-5)));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (_, string carrierHtml) = await PostAsync(client, $"{OrdersPath}/{shippedId:D}?handler=CorrectCarrier", [("Input.Version", "1")], key);
+        (_, string emailHtml) = await PostAsync(client, $"{OrdersPath}/{guestId:D}?handler=CorrectOrderEmail", [("Input.Version", "1"), ("Input.ContactEmail", "")], key);
+        (_, string futureHtml) = await PostAsync(client, $"{OrdersPath}/{deliveredId:D}?handler=CorrectDeliveryDate", [("Input.Version", "1"), ("Input.DeliveryDate", DateText(today.AddDays(1)))], key);
+
+        // A missing value: the summary at the form's head, the field marked and described by the message under it.
+        string carrier = FormOf(carrierHtml, OrderDetailModel.CarrierFormId);
+        Assert.Contains("class=\"error-summary\"", carrier, StringComparison.Ordinal);
+        Assert.Contains("href=\"#correct-carrier\"", carrier, StringComparison.Ordinal);
+        Assert.Matches(new Regex("<select[^>]*id=\"correct-carrier\"[^>]*aria-invalid=\"true\"[^>]*aria-describedby=\"correction-message\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), carrier);
+        Assert.Matches(new Regex("<input[^>]*id=\"correct-tracking\"[^>]*aria-invalid=\"true\"[^>]*aria-describedby=\"correction-message\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), carrier);
+        Assert.Contains("id=\"" + OrderDetailModel.CorrectionMessageId + "\"", carrier, StringComparison.Ordinal);
+        string email = FormOf(emailHtml, OrderDetailModel.OrderEmailFormId);
+        Assert.Contains("class=\"error-summary\"", email, StringComparison.Ordinal);
+        Assert.Matches(new Regex("<input[^>]*id=\"correct-order-email\"[^>]*aria-invalid=\"true\"[^>]*aria-describedby=\"correction-message\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), email);
+
+        // A rule's bound (a date in the future): the lasting message in place, the field described by it, no summary (04 2.3.3).
+        string future = FormOf(futureHtml, OrderDetailModel.DeliveryDateFormId);
+        Assert.DoesNotContain("class=\"error-summary\"", future, StringComparison.Ordinal);
+        Assert.Matches(new Regex("<input[^>]*id=\"correct-delivery-date\"[^>]*aria-invalid=\"true\"[^>]*aria-describedby=\"correction-message\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), future);
+        Assert.Contains(OrderDetailModel.DeliveryDateFutureText, future, StringComparison.Ordinal);
+
+        // The untouched form of a first drawing carries no mark.
+        (_, string plain) = await GetAsync(client, $"{OrdersPath}/{shippedId:D}", key);
+        Assert.DoesNotContain("aria-invalid", FormOf(plain, OrderDetailModel.CarrierFormId), StringComparison.Ordinal);
+    }
+
     // ---- KK3: the carrier ----
 
     [Fact]

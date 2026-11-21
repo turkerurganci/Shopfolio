@@ -108,6 +108,13 @@
                                     </li>
                                 }
                             }
+                            @* "Diğer" (04 2.2.3): the entries that do not fit the menu's one row on the medium and wide classes are moved here by common.js; hidden until then, so without the script the entries wrap and nothing is lost (04 2.1.2). *@
+                            <li class="site-menu__item site-menu__item--overflow" data-js="menu-overflow" hidden>
+                                <button type="button" class="site-menu__group-toggle" data-js="menu-overflow-toggle" aria-controls="site-menu-overflow" aria-expanded="false">Diğer</button>
+                                <div class="site-menu__panel" id="site-menu-overflow">
+                                    <ul class="site-menu__overflow-list" data-js="menu-overflow-list"></ul>
+                                </div>
+                            </li>
                         </ul>
                     </nav>
                 }

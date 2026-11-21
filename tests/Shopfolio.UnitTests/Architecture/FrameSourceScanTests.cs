@@ -409,6 +409,42 @@ public sealed partial class FrameSourceScanTests
     }
 
     [Fact]
+    public void TheEtbisBand_StandsBesideTheIdentityBlockOnTheMediumAndWideClasses_AndUnderItOnTheNarrowClass_D1143()
+    {
+        string view = FrameView("_StorefrontFooter");
+        string css = StripStyleComments(ReadWeb("wwwroot/css/storefront.css"));
+
+        // One wrapper holds the identity block and the band, so the style sheet can place the two side by side (04 2.2.5).
+        Match wrapper = Regex.Match(view, @"<div class=""site-footer__identity-body"">(?<inner>[\s\S]*?)</div>", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5));
+        Assert.True(wrapper.Success, "The footer has no wrapper around the identity block and the band.");
+        Assert.Contains("_IdentityBlock", wrapper.Groups["inner"].Value, StringComparison.Ordinal);
+        Assert.Contains("etbis-band", wrapper.Groups["inner"].Value, StringComparison.Ordinal);
+
+        // The side by side placement is inside a min-width block (the narrow class has none) and the base rule leaves the wrapper a plain block.
+        int medium = css.IndexOf("@media (min-width: 768px)", css.IndexOf(".site-footer__grid", StringComparison.Ordinal), StringComparison.Ordinal);
+        int placed = css.IndexOf(".site-footer__identity-body {", StringComparison.Ordinal);
+        Assert.True(medium >= 0 && placed > medium, "The band is not placed beside the block inside the medium class.");
+        Assert.Contains("display: flex;", css[placed..css.IndexOf('}', placed)], StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheMenusOtherItem_IsHiddenInTheMarkup_AndTheScriptMovesTheEntriesThatWrapIntoItWithAButtonThatEscapeCloses_D1134()
+    {
+        string view = FrameView("_StorefrontHeader");
+        string script = ReadWeb("wwwroot/js/common.js");
+        string css = StripStyleComments(ReadWeb("wwwroot/css/storefront.css"));
+
+        Assert.Matches(new Regex(@"<li[^>]*data-js=""menu-overflow""[^>]*\shidden[\s>]", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), view);
+        Assert.Contains("function bindMenuOverflow", script, StringComparison.Ordinal);
+        Assert.Contains("offsetTop", script, StringComparison.Ordinal);
+        Assert.Contains("(min-width: 768px)", script, StringComparison.Ordinal);
+        Assert.Contains("\"Escape\"", script[script.IndexOf("function bindMenuOverflow", StringComparison.Ordinal)..], StringComparison.Ordinal);
+
+        // The class's block display rule must not undo the hidden attribute, or the empty "Diğer" shows on every page.
+        Assert.Contains(".site-menu__item--overflow[hidden]", css, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TheMenuGroupTitle_HasAFocusableTrigger_ThatTheScriptOpensByClickAndClosesOnEscape_KK4()
     {
         Assert.Empty(TreeTriggerViolations(FrameView("_StorefrontHeader"), ReadWeb("wwwroot/js/common.js")));

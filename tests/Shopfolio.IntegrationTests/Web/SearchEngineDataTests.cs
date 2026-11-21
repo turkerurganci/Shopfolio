@@ -217,6 +217,23 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
         return (slug, imageId);
     }
 
+    // ---- D-1788: the tab title of the FAQ (E-09) and the contact page (E-10) names the page and the brand, like every other page ----
+
+    [Theory]
+    [InlineData("/sss", "SSS")]
+    [InlineData("/iletisim", "İletişim")]
+    public async Task TheFaqAndTheContactPage_TitleTheTabWithThePagesNameAndTheBrandName_D1788(string path, string menuName)
+    {
+        await SeedBrandAsync(withLogo: false);
+        await using Host host = new(_database.Dsn, kestrel: false);
+
+        Answer page = await GetAsync(host, path);
+
+        // The page's name is the menu item's name (02 3.28.4: SSS and İletişim until the firm renames them); the brand name follows it after the en dash.
+        Assert.Equal(HttpStatusCode.OK, page.Status);
+        Assert.Contains($"<title>{menuName} – Yılmaz Mobilya</title>", page.Body, StringComparison.Ordinal);
+    }
+
     // ---- KK3, KK4, KK5: the first HTML of a record page ----
 
     [Theory]

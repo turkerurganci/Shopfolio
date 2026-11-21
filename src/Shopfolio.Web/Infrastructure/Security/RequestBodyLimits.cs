@@ -145,6 +145,9 @@ internal sealed class RequestBodyLimitMiddleware
     /// <summary>The message of the 413 page (07 2.8.7): the operation did not happen and the sent values were not read.</summary>
     public const string Message = "Gönderdiğiniz veri izin verilen boyutu aşıyor; işlem yapılmadı.";
 
+    /// <summary>The title of the 413 page.</summary>
+    public const string RefusalTitle = "İşlem yapılamadı";
+
     private readonly RequestDelegate _next;
 
     public RequestBodyLimitMiddleware(RequestDelegate next)
@@ -259,10 +262,25 @@ internal sealed class RequestBodyLimitMiddleware
             return;
         }
 
+        // The operation-level message inside the frame of the surface (07 2.8.7; D-1146): no code, no "Yeniden dene" - the body was not read, so a repeat is the visitor's own choice. If the frame
+        // cannot be drawn the plain page below answers, with the status and the headers written again (a failed draw clears the response).
+        if (context.RequestServices.GetService(typeof(IErrorPageRenderer)) is IErrorPageRenderer renderer
+            && await UnexpectedErrorAnswer.TryRenderFramedAsync(context, renderer, new ErrorPageText(RefusalTitle, Message, StatusCodes.Status413PayloadTooLarge, OffersRetry: false)))
+        {
+            return;
+        }
+
+        response.StatusCode = StatusCodes.Status413PayloadTooLarge;
+        response.Headers.CacheControl = "no-store";
+        if (!HttpProtocol.IsHttp2(context.Request.Protocol) && !HttpProtocol.IsHttp3(context.Request.Protocol))
+        {
+            response.Headers.Connection = "close";
+        }
+
         response.ContentType = "text/html; charset=utf-8";
         await response.WriteAsync(
-            "<!DOCTYPE html><html lang=\"tr\"><head><meta charset=\"utf-8\"><title>İşlem yapılamadı</title></head><body><main>" +
-            "<h1>İşlem yapılamadı</h1><p>" + WebUtility.HtmlEncode(Message) + "</p><p><a href=\"/\">Ana sayfaya dön</a></p></main></body></html>",
+            "<!DOCTYPE html><html lang=\"tr\"><head><meta charset=\"utf-8\"><title>" + RefusalTitle + "</title></head><body><main>" +
+            "<h1>" + RefusalTitle + "</h1><p>" + WebUtility.HtmlEncode(Message) + "</p><p><a href=\"/\">Ana sayfaya dön</a></p></main></body></html>",
             context.RequestAborted);
     }
 }

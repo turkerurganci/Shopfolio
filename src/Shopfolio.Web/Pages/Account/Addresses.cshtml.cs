@@ -164,7 +164,7 @@ internal sealed class AddressesModel : PageModel
     {
         foreach (MembershipFieldError refusal in result.Fields)
         {
-            ModelState.AddFieldError(FieldPrefix + refusal.Field, refusal.Code.ToString());
+            ModelState.AddFieldError(FieldPrefix + refusal.Field, refusal.Code.ToString(), refusal.Code == ErrorCode.TextTooLong ? refusal.Detail : null); // P-27 (K-1635): the ceiling is the message's parameter
         }
 
         Entries = await _membership.GetAddressBookAsync(customerId, ct);

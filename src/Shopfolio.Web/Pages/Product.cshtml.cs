@@ -167,7 +167,6 @@ public sealed class ProductModel : PageModel
         string text = outcome switch
         {
             CartAddOutcome.OverOrderLimit => CartAddMessages.OrderLimitText(attempt.Result.OrderLimit ?? 0),
-            CartAddOutcome.SoldOut => CartAddMessages.SoldOutText,
             CartAddOutcome.AlreadyInCart => CartAddMessages.AlreadyInCartText,
             _ => CartAddMessages.NoStockText,
         };
@@ -252,7 +251,7 @@ public sealed class ProductModel : PageModel
             ProductPriceBlock block = ProductViews.PriceBlockOf(label, origin);
             ProductImage? image = variantImage is null ? null : new ProductImage(FrameStyle.ImagePath(variantImage.ImageId), variantImage.AltText);
             script.Add(new VariantScriptData(
-                variant.Id, variant.FirstValueOrder, variant.SecondValueOrder, block.PriceText, block.ReferencePriceText, block.DiscountMark, block.DiscountDates, block.UnitPriceText,
+                variant.Id, variant.FirstValueOrder, variant.SecondValueOrder, block.PriceText, block.ReferencePriceText, block.DiscountMark, block.DiscountDates, block.UnitPriceText, block.SinceText,
                 image?.Path, image?.AltText, variant.Status == PublishStatus.Published && !variant.IsSoldOut, variant.Status == PublishStatus.Published && variant.IsSoldOut));
             if (shown is not null && variant.Id == shown.Id)
             {

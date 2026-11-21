@@ -48,11 +48,24 @@ internal sealed class CartVariantReader
                     v.Price,
                     v.StockQuantity,
                     v.ReservedQuantity,
+                    v.ImageId,
+                    v.FirstOptionValueId,
+                    v.SecondOptionValueId,
                 })
             .ToListAsync(ct);
 
         DateTimeOffset now = _time.GetUtcNow();
-        Dictionary<Guid, RunningDiscount> running = await PriceHistoryReads.RunningDiscountsAsync(_db, [.. rows.Select(r => r.ProductId).Distinct()], now, ct);
+        Guid[] productIds = [.. rows.Select(r => r.ProductId).Distinct()];
+        Dictionary<Guid, RunningDiscount> running = await PriceHistoryReads.RunningDiscountsAsync(_db, productIds, now, ct);
+
+        // The image and the option values of every line are each one read, whatever the number of lines (09 20 item 4; D-1189): the variant's own image, else the product's main one.
+        Dictionary<Guid, Guid> mainImages = await _db.ProductImages.AsNoTracking()
+            .Where(p => p.IsMain && productIds.Contains(p.ProductId))
+            .ToDictionaryAsync(p => p.ProductId, p => p.ImageId, ct);
+        Guid[] valueIds = [.. rows.SelectMany(r => new[] { r.FirstOptionValueId, r.SecondOptionValueId }).OfType<Guid>().Distinct()];
+        Dictionary<Guid, string> valueTexts = valueIds.Length == 0
+            ? []
+            : await _db.OptionValues.AsNoTracking().Where(o => valueIds.Contains(o.Id)).ToDictionaryAsync(o => o.Id, o => o.Value, ct);
         return [.. rows.Select(r => new CartVariantFact(
             r.VariantId,
             r.ProductId,
@@ -61,6 +74,8 @@ internal sealed class CartVariantReader
             r.ProductType,
             r.ProductStatus == PublishStatus.Published && r.VariantStatus == PublishStatus.Published,
             StockRules.IsSoldOut(r.StockQuantity, r.ReservedQuantity),
-            DiscountRules.AppliedPrice(r.Price, running.TryGetValue(r.ProductId, out RunningDiscount? discount) ? discount.Terms : null, now)))];
+            DiscountRules.AppliedPrice(r.Price, running.TryGetValue(r.ProductId, out RunningDiscount? discount) ? discount.Terms : null, now),
+            r.ImageId ?? (mainImages.TryGetValue(r.ProductId, out Guid main) ? main : null),
+            [.. new[] { r.FirstOptionValueId, r.SecondOptionValueId }.OfType<Guid>().Select(id => valueTexts.GetValueOrDefault(id)).OfType<string>()]))];
     }
 }

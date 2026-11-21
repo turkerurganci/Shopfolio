@@ -1427,3 +1427,16 @@
         height: 45rem;
     }
 }
+
+/* The cart line shows the product image beside its name and the variant's option values under it (04 5.12.4; D-1189). */
+.cart-line__image {
+    display: inline-block;
+    vertical-align: middle;
+    margin-inline-end: var(--space-2);
+    object-fit: cover;
+}
+
+.cart-line__options {
+    margin: 0;
+    color: var(--color-text-muted);
+}

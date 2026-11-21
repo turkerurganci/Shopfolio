@@ -156,6 +156,12 @@ internal sealed class FirmSettings
         {
             rejections.Add(new FieldRejection(field, FieldCodes.FieldRequired));
         }
+        else if (name.Length > ProductConstants.ProductNameMaxLength)
+        {
+            // 04 7.2.17.2, 7.3.2.14 (P-27; K-1635; D-1673): a menu name is a short text with the same ceiling as the product's name.
+            rejections.Add(new FieldRejection(field, FieldCodes.TextTooLong, FenceSide.Within, ProductConstants.ProductNameMaxLength));
+            return null;
+        }
 
         return name;
     }

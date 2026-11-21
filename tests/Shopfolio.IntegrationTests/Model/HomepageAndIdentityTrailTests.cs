@@ -190,6 +190,23 @@ public sealed class HomepageAndIdentityTrailTests : IAsyncLifetime
         Assert.Equal(1, await ScalarAsync<int>("SELECT homepage_version FROM company_settings"));
     }
 
+    [Fact]
+    public async Task SaveHomepage_WithAMenuNameAboveTheShortTextCeiling_RefusesTextTooLongWithTheCeiling_AndTheCeilingItselfIsSaved_D1673()
+    {
+        string atCeiling = new('m', Shopfolio.Infrastructure.ProductConstants.ProductNameMaxLength);
+        string aboveCeiling = atCeiling + "m";
+
+        HomepageOutcome refused = await SaveHomepageAsync(Input(products: aboveCeiling), new Dictionary<string, string?>(), 1);
+
+        Assert.False(refused.IsSaved);
+        FieldRejection rejection = Assert.Single(refused.Settings!.Rejections);
+        Assert.Equal(("MenuNameProducts", FieldCodes.TextTooLong, Shopfolio.Infrastructure.ProductConstants.ProductNameMaxLength), (rejection.Field, rejection.Code, rejection.Fence));
+        Assert.Equal(1, await ScalarAsync<int>("SELECT homepage_version FROM company_settings"));
+
+        HomepageOutcome saved = await SaveHomepageAsync(Input(products: atCeiling), new Dictionary<string, string?>(), 1);
+        Assert.True(saved.IsSaved);
+    }
+
     [Theory]
     [InlineData("12345")]
     [InlineData("abcdefghij")]

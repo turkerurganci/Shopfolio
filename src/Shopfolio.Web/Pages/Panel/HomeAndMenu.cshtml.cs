@@ -230,7 +230,8 @@ public sealed class HomeAndMenuModel : PageModel
                     continue;
                 }
 
-                ModelState.AddFieldError("Input." + rejection.Field, rejection.Code);
+                // P-27 (K-1635; D-1673): the ceiling is the message's parameter, as for the other short texts.
+                ModelState.AddFieldError("Input." + rejection.Field, rejection.Code, rejection.Code == FieldCodes.TextTooLong ? rejection.Fence.ToString(System.Globalization.CultureInfo.InvariantCulture) : null);
             }
 
             foreach (SocialLinkRejection rejection in outcome.Social.Rejections)

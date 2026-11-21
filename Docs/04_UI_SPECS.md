@@ -4027,7 +4027,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 
 | # | Rol | Durum | Ne gösterilir | Hangi aksiyonlar aktif | Kaynak |
 |---|---|---|---|---|---|
-| 6.3.5.1 | Yönetici | Hâl: yeni ürün, kaydedilmemiş | Boş form; KDV varsayılanla, stok kodu ad girilince sistemin önerisiyle — ad boşken öneri gelmez (9.5.23) | Kaydetmek — Taslak doğar (9.5.12) | `03 §8.1.1` · K-801, K-885 |
+| 6.3.5.1 | Yönetici | Hâl: yeni ürün, kaydedilmemiş | Boş form; KDV varsayılanla, stok kodu boş bırakılırsa ad girilmişse kayıtta sistemin önerisiyle yazılır — ad boşken öneri gelmez (9.5.23; K-1635) | Kaydetmek — Taslak doğar (9.5.12) | `03 §8.1.1` · K-801, K-885 |
 | 6.3.5.2 | Yönetici | Taslak | Yan sütun: rozet ve kapının koşulları (9.5.10) | Kaydetmek · "Önizle" → E-04 bandla · Yayına almak — kapı · Arşive almak · Kalıcı silmek (9.5.13–9.5.16, 9.5.22) | `03 §1.8.1`, §8.1.7–§8.1.9 |
 | 6.3.5.3 | Yönetici | Yayında | 6.3.5.2; adres sabitlenmiş (9.5.10) | Kaydetmek — kapıyı bozan kayıt engellenir · "Sitede gör" → E-04 · Taslağa almak · Arşive almak · Kalıcı silmek — son Yayında varyant engeliyle (9.5.12, 9.5.14, 9.5.15) | `03 §1.8.2` · K-799 |
 | 6.3.5.4 | Yönetici | Arşiv | 6.3.5.2 | Kaydetmek · "Sitede gör" → E-05 · Yayına almak — kapı · Taslağa almak · Kalıcı silmek (9.5.22; K-827) | `03 §1.8.1` · K-827 |
@@ -4366,7 +4366,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 
 | # | Alan | Zorunluluk | Kural | Hata mesajı | Limit |
 |---|---|---|---|---|---|
-| 7.1.16.1 | Adres adı | Zorunlu | Kısa metin — serbest (ör. Ev, İş) (`03 §9.3.2`) | Alan mesajı | — |
+| 7.1.16.1 | Adres adı | Zorunlu | Kısa metin, P-27 (7.3.2.14) — serbest (ör. Ev, İş) (`03 §9.3.2`) | Alan mesajı | — |
 | 7.1.16.2 | Alıcının adı ve soyadı, il, ilçe, açık adres | Zorunlu | Adres (7.3.2.5) | Alan mesajı | — |
 | 7.1.16.3 | Telefon | İsteğe bağlı | Telefon (7.3.2.4) | Alan mesajı | — |
 
@@ -4538,7 +4538,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 | # | Alan | Zorunluluk | Kural | Hata mesajı | Limit |
 |---|---|---|---|---|---|
 | 7.2.17.1 | Ana sayfa düzeni | Zorunlu — kurulumda seçili gelir | Kapalı seçenek listesi (K-813) | — | — |
-| 7.2.17.2 | Menü adları | Zorunlu | Kısa metin; boş kaydedilmez | Alan mesajı — K-813'ün metni | — |
+| 7.2.17.2 | Menü adları | Zorunlu | Kısa metin, P-27 (7.3.2.14); boş kaydedilmez | Alan mesajı — K-813'ün metni | — |
 | 7.2.17.3 | Sosyal bağlantılar | İsteğe bağlı | Bağlantı (7.3.2.13) | Alan mesajı | — |
 | 7.2.17.4 | WhatsApp numarası | İsteğe bağlı | Telefon (7.3.2.4) | Alan mesajı | — |
 
@@ -4640,7 +4640,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 | 7.3.2.11 | Süre ve olay tarihi | Süre gün ya da iş günü olarak, çitin içinde (2.12.1.4); olay tarihi geçmişe dönük, ileri tarih reddedilir, alt sınırı olan tarih sınırın altında reddedilir (2.12.5.1); biçim 8.2.1 | Alan mesajı — çit ve tarih için K-799 ve K-817'nin metinleri | 7.2.4, 7.2.8, 7.2.10, 7.2.12, 7.2.21 |
 | 7.3.2.12 | Tarih aralığı | Bitiş başlangıçtan önce olamaz; ileri tarih indirimde, kuponda ve duyuruda serbest, rapor ve iz süzgeçlerinde reddedilir (2.12.5.3; 9.22.9, 9.23.9, 9.24.8) | Alan mesajı | 7.2.3, 7.2.4, 7.2.6, 7.2.16, 7.2.25 |
 | 7.3.2.13 | Bağlantı | "http://" ya da "https://" ile başlayan tam adres (K-825) | Alan mesajı | 7.2.16, 7.2.17, 7.2.19 |
-| 7.3.2.14 | Kısa metin — karakter tavanlı | Ürün adı, kategori adı ve kurumsal içerikte ad ya da başlık P-27; SSS sorusu, kısa açıklama ve çalışma saatleri P-28; Hakkımızda kısa tanıtımı P-29; duyuru metni P-30 (`02 §3.4.1`, §3.11.5, §3.27.15) | Alan mesajı | 7.2.4, 7.2.5, 7.2.16 |
+| 7.3.2.14 | Kısa metin — karakter tavanlı | Ürün adı, kategori adı, adres defteri girdisinin adı, menü adları ve kurumsal içerikte ad ya da başlık P-27; SSS sorusu, kısa açıklama ve çalışma saatleri P-28; Hakkımızda kısa tanıtımı P-29; duyuru metni P-30 (`02 §3.4.1`, §3.11.5, §3.27.15) | Alan mesajı | 7.1.16, 7.2.4, 7.2.5, 7.2.16, 7.2.17 |
 | 7.3.2.15 | Uzun metin | Tavan yok; kapalı biçim seti yalnız `02 §3.11.6`'nın saydığı alanlarda; öteki uzun metinler — panelde de — ve müşteri formları düz metin | Alan mesajı — boş zorunlu alan | 7.1.3, 7.1.10, 7.2.4, 7.2.9, 7.2.16, 7.2.22 |
 | 7.3.2.16 | Kapalı liste | Liste ürünle gelir; firma düzenlemez; serbest metin kabul etmez (2.12.1.3) | Alan mesajı | 7.1.3, 7.2.3, 7.2.4, 7.2.6, 7.2.7, 7.2.9, 7.2.10, 7.2.14, 7.2.19 |
 | 7.3.2.17 | Arama alanı | Serbest metin; biçim denetimi yok; en çok P-27 karakter (ürün adının tavanı), fazlası kırpılır; vitrinde Türkçe karakter ve büyük-küçük harf duyarsız (`10 §2` KP-2), panelde 7.2.3'ün kuralları | Sonuç boşsa boş hâl satırı (K-765) | 7.1.1, 7.2.3 |
@@ -4833,7 +4833,7 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
   - **9.5.20 Eşzamanlı düzenleme** (OB-10, kayıt varyantı; `02 §3.31.1`): ikinci kaydeden kaydın o arada değiştiğini görür ve iki yoldan birini seçer — güncel hâli açmak ya da uyarıyı görerek üzerine yazmak; metinler K-800'dedir.
 - **9.5.21 Validasyonlar.** Ad zorunlu ve P-27 ile sınırlı · fiyat sıfırdan büyük ve en çok iki ondalıklı (`02 §3.8.4`); indirim yürürken yuvarlanmış indirimli fiyatı sıfıra inecek fiyat reddedilir ve sebebi yerinde söylenir — mesajı K-799'dadır (`02 §3.9.1`; `03 §3.5.1.13`) · stok kodu zorunlu ve tekil (K-801) · stok tam sayı ve ayrılmış adedin altında olamaz · kargoya verme süresi P-5'in çitinde, ifa süresi P-44'ün çitinde · görsel ve dosya P-22…P-26'nın sınırlarında (2.12.8.3) · en fazla iki seçenek boyutu · fiziksel üründe üretim yeri zorunlu · ölçü birimi seçiliyse her varyantın net miktarı sıfırdan büyük ve en çok üç ondalıklı — boş net miktarlı varyant alan mesajıyla gösterilir (K-1020). Ret alan mesajıdır, yayın kapısının ve engellerin mesajı yerinde kalıcıdır (K-799). Alan envanteri §7.2'dedir — 7.2.4.
 - **9.5.22 Durum × rol varyantları.** Tipe göre alanlar değişir: fiziksel üründe stok, zorunlu üretim yeri ve kargoya verme süresi; dijital üründe dosya ve isteğe bağlı üretim yeri, stok alanı yok (`02 §3.8.5`); hizmette ifa süresi ve kontenjan (`02 §3.2.2`, §3.6.2). Yayın durumuna göre yan sütunun düğmeleri değişir (`03 §1.8.1`): taslakta "Önizle", yayına alma ve arşive alma · yayında "Sitede gör", taslağa ve arşive alma · arşivde "Sitede gör", yayına alma ve taslağa alma; arşivdeki ürünün adresi herkese "Bu ürün artık satılmıyor" sayfasını döner ve "Sitede gör" onu açar (E-05; `02 §3.7.6`; K-827). Tam matris §6.3'tedir — 6.3.5.
-- **9.5.23 Boş / yükleniyor / hata durumları.** Yeni ürünün formu boş gelir: KDV oranı varsayılanla; stok kodu alanı boştur ve ad girilince sistemin önerisiyle dolar — ad boşken öneri gelmez ve alan zorunlu kalır (K-801, K-885). Görsel ve dosya yüklemesi kendi yerinde ilerler (2.12.8.4); kayıt beklenmeyen bir sebeple tamamlanamazsa form korunur (§2.7.3.1); sayfa açılamazsa §2.7.3.2.
+- **9.5.23 Boş / yükleniyor / hata durumları.** Yeni ürünün formu boş gelir: KDV oranı varsayılanla; stok kodu alanı boştur; ad girilmişse kayıtta sistemin önerisi yazılır, kayıttan sonra alanda görünür ve değiştirilebilir (formda yazarken önerilmez; K-1635) — ad boşken öneri gelmez ve alan zorunlu kalır (K-801, K-885, K-1189 (3)). Görsel ve dosya yüklemesi kendi yerinde ilerler (2.12.8.4); kayıt beklenmeyen bir sebeple tamamlanamazsa form korunur (§2.7.3.1); sayfa açılamazsa §2.7.3.2.
 - **9.5.24 Responsive notları.** Dar ve orta sınıfta tek sütundur; yan sütunun yayın durumu ve kapı koşulları formun başına gelir. Varyant tablosu dar sınıfta varyant kartlarına döner — kart seçenek değerlerini, fiyatı, stoğu ve yayın durumunu taşır, öteki alanlar kart açılınca gelir (§2.13.4). Hiçbir alan bir sınıfta gizlenmez.
 
 *Kaynak: `02 §3.2.2`, §3.2.3, §3.3.1–§3.3.4, §3.4.4, §3.5.3, §3.6.2, §3.6.4, §3.6.7, §3.7.1, §3.7.3–§3.7.8, §3.8.1, §3.8.2, §3.8.4, §3.8.5, §3.9.1, §3.9.3, §3.9.5, §3.11.2, §3.11.4, §3.11.6, §3.11.7, §3.12.2, §3.12.7, §3.12.8, §3.23.1, §3.30.2, §3.31.1, §5.1, §5.11, §6.6, §7.3.4, §10.1.2, §10.1.3, §10.7.2, §11.1 · `03 §1.4.4`, §1.8.1, §1.8.2, §1.10.1, §2.3.5, §3.5.1.1, §3.5.1.4–§3.5.1.7, §3.5.1.9–§3.5.1.14, §3.5.1.16, §3.5.2.8, §4.1.23, §4.1.27, §6.3.1.1, §8.1.1–§8.1.11 · `10 §2` KP-39–KP-45, KP-76 · K-737, K-797, K-798, K-799, K-800, K-801, K-805, K-827, K-885 · devir: K-509 (sebep listesi), K-511 (fiyat etiketi alanları), K-538 (yayın kapısının engeli), K-564 (üretilen alternatif metin), K-573 (ölçü birimi hatırlatması), K-600 (sıfır fiyat ve %100 indirim), K-653 (ayrılmış adet), K-655 (silme onayı), K-674 (son varyantın silinmesi); `02 §3.3.4`'ün stok kodu devri — K-801 · K-1019, K-1020 (Aşama 5 — Veri modeli aşamasının workshop'unun 2. oturumu — net miktar varyant tablosunda), K-1023 (üretim yerinin listesi).*

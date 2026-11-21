@@ -1,0 +1,17 @@
+@using Shopfolio.Modules.Settings.Contracts
+@model DeliveryRestrictionLine
+@*
+    The delivery province restriction line (04 5.4.5; K-773, K-828), one component for the product page and the cart (04 5.12.3 (3); D-1245): the text, and - when the line is shortened - the
+    whole list that opens inside it without a page change.
+*@
+@if (Model.FullList is null)
+{
+    <p class="delivery__restriction">@Model.Text</p>
+}
+else
+{
+    <details class="delivery__restriction">
+        <summary>@Model.Text</summary>
+        <p>@Model.FullList</p>
+    </details>
+}

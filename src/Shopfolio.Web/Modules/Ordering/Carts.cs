@@ -285,7 +285,10 @@ internal sealed class Carts
                 fact.IsSoldOut,
                 CartRules.EntersOrder(fact.IsOnShowcase, fact.IsSoldOut, verdict.Problem),
                 verdict.Problem,
-                verdict.OrderLimit));
+                verdict.OrderLimit,
+                fact.ImageId,
+                fact.OptionValues,
+                fact.IsOnShowcase));
             if (item.IsMergeNoticePending)
             {
                 // Told once: the mark goes in the request that tells it (06 4.16; K-1183).

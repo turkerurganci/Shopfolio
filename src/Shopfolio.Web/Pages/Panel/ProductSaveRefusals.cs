@@ -25,6 +25,9 @@ internal static class ProductSaveRefusals
     /// <summary>04 9.5.21 (K-801; 07 6.2.2 <c>DuplicateSku</c>): the stock code is unique, compared without case (K-1016). The form follows K-799's coupon code text.</summary>
     public const string DuplicateStockCodeText = "Bu stok kodu başka bir seçenekte kullanılıyor.";
 
+    /// <summary>04 7.2.4.3 (K-1635; 07 UC-114 422; D-1400): the product has one main category; the form's boxes can mark several.</summary>
+    public const string OnePrimaryCategoryText = "Ana kategori olarak yalnız bir kategori işaretlenebilir.";
+
     /// <summary>04 2.12.1.5, 9.5.12 (07 6.2.2 <c>PublishedRecordGateBroken</c>): the edit that empties a field the published product's gate needs; the way out is the draft (K-799's form).</summary>
     public const string PublishedGateText = "Yayındaki ürünün bu alanı yayın için gerekli; boşaltılamaz. Önce ürünü taslağa alın.";
 

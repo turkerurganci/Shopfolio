@@ -67,6 +67,7 @@ function show(variant) {
     setText("mark", variant.mark);
     setText("dates", variant.dates);
     setText("unit-price", variant.unitPrice);
+    setText("since", variant.since);
     const image = document.querySelector("[data-js='lead-image']");
     if (image && variant.imagePath) {
         image.src = variant.imagePath;

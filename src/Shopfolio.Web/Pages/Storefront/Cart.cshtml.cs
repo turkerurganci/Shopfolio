@@ -58,6 +58,12 @@ internal sealed class CartModel : PageModel
     /// <summary>The once-told messages at the head of the content (04 2.3.1.3, 5.12.3, 5.12.15).</summary>
     public IReadOnlyList<MessageView> OnceTold { get; private set; } = [];
 
+    /// <summary>
+    /// The delivery province restriction line, between the lines and the breakdown (04 5.12.3 (3); K-773, K-828; D-1245): read from the settings, drawn only when the cart holds a physical line
+    /// and the firm's list restricts the delivery. Null otherwise.
+    /// </summary>
+    public DeliveryRestrictionLine? DeliveryRestriction { get; private set; }
+
     /// <summary>The line a refused quantity change was about (07 UC-20 422); its row carries the refusal.</summary>
     public Guid? RefusedItemId { get; private set; }
 
@@ -173,6 +179,10 @@ internal sealed class CartModel : PageModel
         {
             PaymentStepBlock = view.PaymentStepBlock(gate.Permits(SalesGateOperation.ProceedToCheckout));
             OnceTold = OnceToldOf(view);
+            if (view.HasPhysicalLine)
+            {
+                DeliveryRestriction = (await _settings.GetDeliveryAreaAsync(ct)).RestrictionLine();
+            }
         }
 
         if (owner is not null && view?.CartId is not null)

@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+
 using Shopfolio.Infrastructure.Binding;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.AfterSales.Contracts;
@@ -34,7 +36,7 @@ public sealed class SaveProductInput : IFormInput
     public WithdrawalExemptionReason? WithdrawalExemptionReason { get; set; }
 
     [SpecAssignedName]
-    public IList<SaveProductCategoryRow> Categories { get; set; } = [];
+    public IList<SaveProductCategoryRow> Categories { get; set; } = new NonNullList<SaveProductCategoryRow>();
 
     [SpecAssignedName]
     public IList<SaveProductOptionRow> Options { get; set; } = [];
@@ -137,4 +139,28 @@ public sealed class SaveProductDiscountRow
 
     [InvalidDate]
     public DateOnly? EndDate { get; set; }
+}
+
+/// <summary>
+/// A list the model binder fills without the empty entries (D-1703): a keyed collection (<c>Input.Categories.Index</c>) binds an entry for every key it was sent, and the key of an unticked box has no
+/// field behind it, so the binder adds a null for it. The list takes no null, so the form that is drawn again - the image upload keeps the sent form as it is - never holds one, and no view has to guard.
+/// </summary>
+public sealed class NonNullList<T> : Collection<T>
+    where T : class
+{
+    protected override void InsertItem(int index, T item)
+    {
+        if (item is not null)
+        {
+            base.InsertItem(index, item);
+        }
+    }
+
+    protected override void SetItem(int index, T item)
+    {
+        if (item is not null)
+        {
+            base.SetItem(index, item);
+        }
+    }
 }

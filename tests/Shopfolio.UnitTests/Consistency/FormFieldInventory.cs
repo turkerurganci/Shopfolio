@@ -84,7 +84,7 @@ internal static class FormFieldInventory
         new("7.1.15.4", "Pages/Account/Profile.cshtml.cs#OnPostResendEmailChangeLinkAsync", "—", "7.1.11.4", "L-9"),
 
         // 7.1.16 E-26: the address book.
-        new("7.1.16.1", "Account.CreateAddressBookInput.Name", "Zorunlu"),
+        new("7.1.16.1", "Account.CreateAddressBookInput.Name", "Zorunlu", "7.3.2.14 P-27"),
         new("7.1.16.2", "Account.CreateAddressBookInput.RecipientName", "Zorunlu", "7.3.2.5"),
         new("7.1.16.3", "Account.CreateAddressBookInput.Phone", "İsteğe bağlı", "7.3.2.4"),
 
@@ -183,7 +183,7 @@ internal static class FormFieldInventory
 
         // 7.2.17 E-42, 7.2.18 E-43, 7.2.19 E-44: the home page and menu, the brand, the firm's identity.
         new("7.2.17.1", "Panel.SaveHomepageInput.HomepageLayout", "Zorunlu"),
-        new("7.2.17.2", "Panel.SaveHomepageInput.MenuNameProducts", "Zorunlu"),
+        new("7.2.17.2", "Panel.SaveHomepageInput.MenuNameProducts", "Zorunlu", "7.3.2.14 P-27"),
         new("7.2.17.3", "Panel.SaveHomepageInput.SocialLinks", "İsteğe bağlı", "7.3.2.13"),
         new("7.2.17.4", "Panel.SaveHomepageInput.WhatsAppNumber", "İsteğe bağlı", "7.3.2.4"),
         new("7.2.18.1", "Panel.SaveBrandingInput.BrandName", "Zorunlu"),

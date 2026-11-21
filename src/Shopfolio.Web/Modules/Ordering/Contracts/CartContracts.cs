@@ -48,7 +48,8 @@ public sealed class CartOwner
 /// sold-out line, which stays in the cart marked and does not enter the order or the amounts (02 3.16.6, 3.16.7). <see cref="ProductType"/> tells whether the line carries the shipping fee and
 /// the minimum order amount (02 3.18.3, 3.19.1). <see cref="QuantityProblem"/> says why a line stays out for its quantity (T347; 02 3.16.8-3.16.10): above the stock ("Bu adette stok yok", no
 /// number) or above the product's per-order limit (<see cref="OrderLimit"/>, told as a number). Such a line stays in the cart, its quantity is never lowered by itself, and it does not enter the
-/// order, the amounts or the limit's total.
+/// order, the amounts or the limit's total. <see cref="ImageId"/> and <see cref="OptionValues"/> are what the line shows besides the name (04 5.12.4; D-1189); <see cref="IsOnShowcase"/> is the
+/// condition of the line's link to the product page (04 3.3.13: the product is Published; D-1631) - a line off the showcase is told as plain text, never as a link to a page that answers E-05 or E-06.
 /// </summary>
 public sealed record CartLine(
     Guid ItemId,
@@ -63,7 +64,10 @@ public sealed record CartLine(
     bool IsSoldOut,
     bool EntersOrder,
     CartQuantityProblem QuantityProblem = CartQuantityProblem.None,
-    int? OrderLimit = null);
+    int? OrderLimit = null,
+    Guid? ImageId = null,
+    IReadOnlyList<string>? OptionValues = null,
+    bool IsOnShowcase = true);
 
 /// <summary>
 /// The cart as the cart page shows it (T346). <see cref="RemovedProductNames"/> are the items taken off the showcase since the last view, told once and deleted by the call that gave them;
@@ -86,6 +90,12 @@ public sealed record CartView(
 
     /// <summary>The lines that enter the order and the amounts, in the cart's order.</summary>
     public IEnumerable<CartLine> OrderingLines => Lines.Where(l => l.EntersOrder);
+
+    /// <summary>
+    /// True when the cart holds a physical line - a sold-out one too: the delivery province restriction line stands between the lines and the breakdown then (04 5.12.3 (3); K-773; D-1245). The
+    /// shipping fee's own condition is another one (a physical line that enters the order, 02 3.18.3).
+    /// </summary>
+    public bool HasPhysicalLine => Lines.Any(l => l.ProductType == ProductType.Physical);
 
     /// <summary>True when the cart holds no line at all - not even a sold-out one: the page shows the empty state and the checkout step's cookie goes (04 5.12.16; 05 6.7.7).</summary>
     public bool IsEmpty => Lines.Count == 0;

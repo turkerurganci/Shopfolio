@@ -85,7 +85,7 @@ public sealed record ProductBuyArea(
 /// variant with nothing left; a draft variant of a panel preview is neither). The script draws the other option's choices from these two flags with the same rule as <see cref="VariantSelection.Fields"/>.
 /// </summary>
 public sealed record VariantScriptData(
-    Guid Id, int? First, int? Second, string Price, string? Reference, string? Mark, string? Dates, string? UnitPrice, string? ImagePath, string? ImageAlt, bool Purchasable, bool SoldOut);
+    Guid Id, int? First, int? Second, string Price, string? Reference, string? Mark, string? Dates, string? UnitPrice, string? Since, string? ImagePath, string? ImageAlt, bool Purchasable, bool SoldOut);
 
 /// <summary>
 /// The product page as the screen draws it (E-04, E-05; 04 5.4): the name, the path from the root, the gallery, the price block, the delivery lines, the selection fields, the buy area, the description

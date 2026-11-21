@@ -253,6 +253,13 @@ internal sealed class ProductFormModel : PageModel
         DiscountView = Record is { Discount: not null } record ? await _catalog.GetDiscountAsync(record.Id, ct) : null;
     }
 
+    /// <summary>The number of category rows marked as the main category (04 7.2.4.3): a product has one, so more than one is refused (K-1635; D-1400).</summary>
+    public static int PrimaryCategoryCount(SaveProductInput input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return input.Categories.Count(c => c is not null && c.IsPrimaryCategory);
+    }
+
     /// <summary>
     /// The blank new entries are not read (07 5.1.5; K-1189 (2)): an unticked category, a new option or value left empty, a new variant row left empty while another row stands, and a discount
     /// whose three fields are empty.
@@ -418,6 +425,22 @@ internal sealed class ProductFormModel : PageModel
         _ran = true;
         ReturnPath = ListReturn.Target(returnUrl, PanelFramePaths.Products);
         OmitBlankEntries(input);
+
+        // The product has one main category (02 3.4.4; 04 7.2.4.3): more than one box marked "Ana kategori" is the categories field's 422, never "the first one wins" (K-1635; D-1400). The module's
+        // command carries the one id, so the page is where the count is known; nothing is written.
+        if (PrimaryCategoryCount(input) > 1)
+        {
+            if (id is { } checkedId && !await LoadAsync(checkedId, ct))
+            {
+                return NotFound();
+            }
+
+            Form = input;
+            _rejections.Rejected(ErrorCode.InvalidListValue);
+            ModelState.AddModelError("Input.Categories", ProductSaveRefusals.OnePrimaryCategoryText);
+            return FormResults.Redisplay(this);
+        }
+
         List<ProductSaveVariant> variants = [];
         foreach (SaveProductVariantRow row in input.Variants)
         {

@@ -668,7 +668,29 @@ public sealed class ContentRelationsTests : IAsyncLifetime
     {
         await using AsyncServiceScope scope = _provider.CreateAsyncScope();
         ContentGallery gallery = scope.ServiceProvider.GetRequiredService<ContentGallery>();
-        return await scope.ServiceProvider.GetRequiredService<ITransactionRunner>().RunAsync(token => gallery.SetBranchImageAsync(branchId, imageId, altText, version, token), Ct);
+        ContentAuthoring authoring = scope.ServiceProvider.GetRequiredService<ContentAuthoring>();
+        AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        // D-1539: the image is written with the branch's fields in one write - here the fields the branch already has.
+        return await scope.ServiceProvider.GetRequiredService<ITransactionRunner>().RunAsync(
+            async token =>
+            {
+                if (!await gallery.BranchImageAcceptedAsync(imageId, token))
+                {
+                    return new ContentGalleryResult(ContentGalleryOutcome.ImageNotFound);
+                }
+
+                Branch branch = await db.Branches.AsNoTracking().SingleAsync(b => b.Id == branchId, token);
+                BranchInput fields = new(branch.Name, branch.ProvinceId, branch.District, branch.AddressLine, branch.Phone, branch.WorkingHours, branch.MapUrl);
+                AuthoringResult saved = await authoring.SaveBranchAsync(branchId, fields, new BranchImageInput(imageId, altText), version, token);
+                return saved.Outcome switch
+                {
+                    AuthoringOutcome.Saved => new ContentGalleryResult(ContentGalleryOutcome.Saved, saved.Version),
+                    AuthoringOutcome.VersionConflict => new ContentGalleryResult(ContentGalleryOutcome.VersionConflict),
+                    _ => throw new InvalidOperationException($"The branch save ended as {saved.Outcome}."),
+                };
+            },
+            Ct);
     }
 
     private async Task<IReadOnlyList<GalleryImage>> ReadGalleryAsync(ContentRecordKind kind, Guid ownerId)

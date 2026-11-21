@@ -185,7 +185,7 @@ internal sealed class PasswordResetModel : PageModel
 
         // The link was spent between the page and the button: nothing was written and the page tells the link is not valid, 200 (07 UC-59; 2.5.3).
         Step = PasswordResetStep.Invalid;
-        return Page();
+        return FormResults.LinkNoLongerValid(this);
     }
 
     // The step the link allows: a valid link opens the setting (the heading depends on whether the account has a password); a used one with the result code is the completed state; every other state -

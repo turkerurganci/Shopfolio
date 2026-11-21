@@ -17,7 +17,7 @@ namespace Shopfolio.IntegrationTests.Ordering;
 
 /// <summary>
 /// The defect claim's money remedies on a real PostgreSQL (T374 KK8; 02 7.5.3, 7.1.6, 7.1.7; K-1077, K-686): the rescission starts the rescission's refund with the units'
-/// shares and its units leave the open quantity without closing the item; the price reduction starts an amount-based refund within the paid money; on the bank transfer
+/// shares and its units leave the open quantity without closing the item, within what the item's earlier refunds left (D-893) - the price reduction is UC-133's refund (K-1629 (3)); on the bank transfer
 /// line without an IBAN the item's request is written once and B-14 goes. The expected shares come from <see cref="ItemShares"/>, the one rule of 02 7.1.7.
 /// </summary>
 public sealed partial class ItemRecordsTests
@@ -66,7 +66,7 @@ public sealed partial class ItemRecordsTests
         Assert.Equal(TransitionRefusal.InvalidInput, (await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 3, 1), t))).Refusal);
 
         Assert.Null((await RunAsync((u, t) => u.ResolveDefectClaimAsync(new ResolveDefectClaimRequest(order.Id, item.Id, AdminCaller, 3), t))).Refusal);
-        Assert.Equal(TransitionRefusal.ConditionNotMet, (await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 4, 10m), t))).Refusal);
+        Assert.Equal(TransitionRefusal.ConditionNotMet, (await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 4, 1), t))).Refusal);
 
         (Order other, OrderItem unclaimed) = await SeedDeliveredAsync(2, null);
         Assert.Equal(TransitionRefusal.ConditionNotMet, (await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(other.Id, unclaimed.Id, AdminCaller, 1, 1), t))).Refusal);
@@ -88,43 +88,14 @@ public sealed partial class ItemRecordsTests
     }
 
     [Fact]
-    public async Task PriceReduction_StartsAnAmountBasedRefundOfTheItem_AndTakesNoUnit_KK8()
-    {
-        (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.Card);
-
-        ItemRecordResult result = await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 2, 40m), t));
-
-        Assert.Null(result.Refusal);
-        Refund refund = await RefundAsync(result.RecordId!.Value);
-        Assert.Equal(
-            (RefundType.AmountBased, 40m, (Guid?)item.Id, (int?)null, (Guid?)null, (DateTimeOffset?)null),
-            (refund.RefundType, refund.Amount, refund.OrderItemId, refund.Quantity, refund.DefectClaimId, refund.SentAt));
-        Assert.Equal(0, await UnavailableAsync(item.Id));
-        await AssertOrderAsync(order.Id, 3);
-    }
-
-    [Fact]
-    public async Task PriceReduction_IsCappedAtThePaidMoneyNotRefunded_TheStartedRefundsIncluded_KK8()
-    {
-        (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.Card);
-
-        Assert.Equal(TransitionRefusal.InvalidInput, (await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 2, 0m), t))).Refusal);
-        Assert.Equal(TransitionRefusal.InvalidInput, (await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 2, 1.005m), t))).Refusal);
-        Assert.Equal(TransitionRefusal.InvalidInput, (await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 2, PaidTotal + 0.01m), t))).Refusal);
-        Assert.Null((await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 2, 200m), t))).Refusal);
-        Assert.Equal(TransitionRefusal.InvalidInput, (await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 3, PaidTotal - 200m + 0.01m), t))).Refusal);
-        Assert.Null((await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 3, PaidTotal - 200m), t))).Refusal);
-        Assert.Equal(2, await CountAsync(c => c.Refunds.Where(r => r.OrderId == order.Id)));
-    }
-
-    [Fact]
     public async Task Remedies_OnTheTransferLineWithoutAnIban_RequestItOnce_AndSendB14Once_KK8()
     {
         (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.BankTransfer);
 
+        // Two rescissions of the claim's two units: the first writes the item's request, the second uses the open one (06 4.29).
         ItemRecordResult rescinded = await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 2, 1), t));
         Assert.Null(rescinded.Refusal);
-        Assert.Null((await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 3, 10m), t))).Refusal);
+        Assert.Null((await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 3, 1), t))).Refusal);
 
         await using AppDbContext reader = NewContext();
         RefundIbanRequest request = await reader.RefundIbanRequests.SingleAsync(r => r.OrderItemId == item.Id, Ct);
@@ -139,7 +110,7 @@ public sealed partial class ItemRecordsTests
         (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.BankTransfer);
         await SaveAsync(c => c.RefundIbans.Add(RefundIban.Create(order.Id, "TR330006100519786457841326", Start)));
 
-        Assert.Null((await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 2, 10m), t))).Refusal);
+        Assert.Null((await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 2, 1), t))).Refusal);
 
         Assert.Equal(0, await CountAsync(c => c.RefundIbanRequests.Where(r => r.OrderItemId == item.Id)));
         Assert.Equal(0, await CountAsync(c => c.DispatchRecords.Where(d => d.OrderId == order.Id && d.DispatchType == DispatchType.B14)));
@@ -152,11 +123,9 @@ public sealed partial class ItemRecordsTests
         (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.Card);
         TransitionAdmin nobody = new(Guid.Empty, " ");
         Assert.Equal(TransitionRefusal.ActorNotAllowed, (await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, nobody, 2, 1), t))).Refusal);
-        Assert.Equal(TransitionRefusal.ActorNotAllowed, (await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, nobody, 2, 1m), t))).Refusal);
 
         await ExecuteAsync($"UPDATE orders SET payment_status = '{payment}' WHERE id = '{order.Id}'");
         Assert.Equal(TransitionRefusal.ConditionNotMet, (await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 2, 1), t))).Refusal);
-        Assert.Equal(TransitionRefusal.ConditionNotMet, (await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 2, 1m), t))).Refusal);
         Assert.Equal(0, await CountAsync(c => c.Refunds.Where(r => r.OrderId == order.Id)));
     }
 
@@ -238,9 +207,9 @@ public sealed partial class ItemRecordsTests
     public async Task Rescission_AfterAPriceReductionOfTheWholePaidAmount_PaysNothingMore_AndIsRefused_D893()
     {
         (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.Card);
-        Assert.Null((await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 2, PaidTotal), t))).Refusal);
+        await SeedPriceReductionAsync(order, item, PaidTotal);
 
-        ItemRecordResult rescinded = await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 3, ClaimUnits), t));
+        ItemRecordResult rescinded = await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 2, ClaimUnits), t));
 
         // The item's refunds never pass its paid amount (D-893); with nothing left the zero-amount rule refuses the rescission (D-881) and its units stay open.
         Assert.Equal(TransitionRefusal.ConditionNotMet, rescinded.Refusal);
@@ -254,9 +223,9 @@ public sealed partial class ItemRecordsTests
     {
         const decimal reduction = 200m;
         (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.Card);
-        Assert.Null((await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 2, reduction), t))).Refusal);
+        await SeedPriceReductionAsync(order, item, reduction);
 
-        ItemRecordResult rescinded = await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 3, ClaimUnits), t));
+        ItemRecordResult rescinded = await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 2, ClaimUnits), t));
 
         // 02 7.1.7 would pay 186.67 for the two units; the item's refunds stop at its paid amount, so the rescission pays the 80 left and still takes its units back.
         Assert.Null(rescinded.Refusal);
@@ -267,19 +236,18 @@ public sealed partial class ItemRecordsTests
         Assert.Equal(ClaimUnits, await UnavailableAsync(item.Id));
     }
 
-    [Fact]
-    public async Task PriceReduction_IsHeldToTheItemsPaidAmount_WhenTheOrderPaidMore_D893()
-    {
-        (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.Card);
-        await ExecuteAsync($"UPDATE orders SET total = 400 WHERE id = '{order.Id}'");
-
-        // The order's paid money not refunded is 400 (02 5.5), but the item paid 280: the item's refunds never pass that (D-893).
-        Assert.Equal(TransitionRefusal.InvalidInput, (await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 2, PaidTotal + 0.01m), t))).Refusal);
-        Assert.Null((await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 2, PaidTotal), t))).Refusal);
-        Assert.Equal(1, await CountAsync(c => c.Refunds.Where(r => r.OrderItemId == item.Id)));
-    }
-
     // ---- helpers ----
+
+    /// <summary>
+    /// The price reduction of the item as UC-133 writes it (03 8.3.3.7; K-1629 (3): the price reduction is UC-133's amount-based refund, not a writer of its own): an amount-based
+    /// card refund of the item, started by the administrator and not sent yet. The D-893 cases read it as the earlier refund the rescission's cap deducts.
+    /// </summary>
+    private async Task SeedPriceReductionAsync(Order order, OrderItem item, decimal amount)
+    {
+        Refund reduction = Refund.ByAdmin(order.Id, RefundType.AmountBased, PaymentMethod.Card, amount, _admin!.Id, _admin.Name, Start);
+        reduction.OrderItemId = item.Id;
+        await SaveAsync(c => c.Refunds.Add(reduction));
+    }
 
     /// <summary>
     /// A delivered physical item with the customer's open claim on <paramref name="claimUnits"/> units; the order's version is 2 after the claim. On a returned shipment

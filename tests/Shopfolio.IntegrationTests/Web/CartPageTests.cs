@@ -38,7 +38,7 @@ public sealed class CartPageTestsDefinition : ICollectionFixture<CollectionDatab
 /// T130's tests.
 /// </summary>
 [Collection(CartPageTestsDefinition.Name)]
-public sealed class CartPageTests : IAsyncLifetime
+public sealed partial class CartPageTests : IAsyncLifetime
 {
     private const string CookiePolicyId = "01000000-0000-7000-8000-000000508001";
 

@@ -5,7 +5,7 @@ namespace Shopfolio.Modules.Ordering.Contracts;
 /// <summary>
 /// What the order confirmation and waiting screen shows and starts from (07 UC-28, UC-29; 04 5.14; T510). <see cref="IsAwaitingPayment"/> is the one state the screen opens
 /// in - Alındı + Bekliyor, whatever the method (K-1209 (1)). The transfer's view shows the IBAN frozen on the order, the total and the end of the payment period
-/// (<see cref="PaymentWindowEndsAt"/>; 02 4.2 Z-8 - after an outage it is the deferred end); the card's start sends the contact and billing values with the firm's frozen
+/// (<see cref="PaymentWindowEndsAt"/>; 02 4.2 Z-8 - after an outage it is the deferred end) and its last day from the module's one rule (<see cref="LastPaymentDay"/>; D-1450); the card's start sends the contact and billing values with the firm's frozen
 /// values (08 2.1.4) and the access key of the return address.
 /// </summary>
 public sealed record ConfirmationScreenFacts(
@@ -22,7 +22,11 @@ public sealed record ConfirmationScreenFacts(
     string? BillingAddressLine,
     string? ShippingPhone,
     string CompanyPhone,
-    string? OrderAccessKey);
+    string? OrderAccessKey)
+{
+    /// <summary>The last payment day of <see cref="PaymentWindowEndsAt"/> (Z-8): the one rule of <see cref="PaymentWindowDay"/>, the day the notices and the panel name (D-1450).</summary>
+    public DateOnly LastPaymentDay => PaymentWindowDay.LastOf(PaymentWindowEndsAt);
+}
 
 /// <summary>The cancellation's answer as the transaction runner takes it: everything but <see cref="UnopenedPaymentCancellation.Cancelled"/> is rolled back.</summary>
 public sealed record UnopenedPaymentCancellationResult(UnopenedPaymentCancellation Outcome) : Infrastructure.IOperationResult

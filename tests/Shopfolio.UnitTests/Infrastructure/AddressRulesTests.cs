@@ -200,6 +200,33 @@ public sealed class AddressRulesTests
         Assert.Contains(problems, p => p.Contains("internal key", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void Check_OnTheImageEndpointsTemplate_FindsNothing_D1136()
+    {
+        // The image row's id is the file serving's name of the file, not a key of the customer's own record (07 2.1.6, 3.1.6; K-1631 (1), K-1636).
+        Assert.Equal("/gorsel/{id:guid}", AddressRules.ImageAddressTemplate);
+        Assert.Empty(AddressTemplates.Check(AddressRules.ImageAddressTemplate));
+        Assert.Empty(AddressTemplates.Check(AddressRules.ImageAddressTemplate.TrimStart('/')));
+    }
+
+    [Theory]
+    [InlineData("/gorsel/{id}")]
+    [InlineData("/gorsel/{id:int}")]
+    [InlineData("/gorsel/{imageId:guid}")]
+    [InlineData("/gorsel/{id:guid}/{orderItemId}")]
+    [InlineData("/gorsel/{orderItemId:guid}")]
+    [InlineData("/indir/{id:guid}")]
+    [InlineData("/sepet/{id:guid}")]
+    [InlineData("/hesap/adresler/{id:guid}")]
+    [InlineData("/hesap/gorsel/{id:guid}")]
+    public void Check_OnAnyOtherTemplateWithAKey_TheImageExceptionDoesNotReach_Reports_D1136(string template)
+    {
+        // The exception is the image endpoint's exact text: another name, constraint, segment or area is the storefront rule again (07 2.1.6).
+        IReadOnlyList<string> problems = AddressTemplates.Check(template);
+
+        Assert.Contains(problems, p => p.Contains("internal key", StringComparison.Ordinal));
+    }
+
     [Theory]
     [InlineData("/panel/urunler/{id}")]
     [InlineData("/panel/urunler/{productId}")]

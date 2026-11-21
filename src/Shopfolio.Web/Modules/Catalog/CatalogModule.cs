@@ -198,17 +198,18 @@ internal sealed class CatalogModule : ICatalogModule
     public Task<IReadOnlyDictionary<Guid, VariantImage>> GetProductVariantImagesAsync(Guid productId, CancellationToken ct)
         => _gallery.GetProductVariantImagesAsync(productId, ct);
 
-    public Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct)
-        => _cartVariants.ListAsync(variantIds, ct);
+    public Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct)
+        => _cartVariants.ListAsync(variantIds, ownReservedUnits, ct);
 
     public Task<IReadOnlyList<OrderItemSource>> ListOrderItemSourcesAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct)
         => _orderItemSources.ListAsync(variantIds, ct);
 
-    public Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, CancellationToken ct)
-        => _cartQuantities.JudgeAsync(lines, ct);
+    public Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct)
+        => _cartQuantities.JudgeAsync(lines, ownReservedUnits, ct);
 
-    public Task<CartQuantityVerdict> JudgeCartAddAsync(CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, CancellationToken ct)
-        => _cartQuantities.JudgeAddAsync(candidate, others, ct);
+    public Task<CartQuantityVerdict> JudgeCartAddAsync(
+        CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct)
+        => _cartQuantities.JudgeAddAsync(candidate, others, ownReservedUnits, ct);
 
     public Task<DigitalFileLocation?> FindDownloadFileAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct)
         => _fileReader.FindAsync(variantId, lastKnownFileId, ct);
@@ -245,6 +246,8 @@ internal sealed class CatalogModule : ICatalogModule
     public Task<ImageUploadResult> UploadImageAsync(byte[] content, CancellationToken ct) => _imageUploads.UploadAsync(content, ct);
 
     public Task<bool> ImageExistsAsync(Guid imageId, CancellationToken ct) => _imageUploads.ExistsAsync(imageId, ct);
+
+    public Task<ServedImage?> FindServedImageAsync(Guid imageId, CancellationToken ct) => _imageUploads.FindServedAsync(imageId, ct);
 
     public Task ReleaseAsync(StockClaim claim, CancellationToken ct) => ApplyAsync(claim, CounterMove.Release, ct);
 

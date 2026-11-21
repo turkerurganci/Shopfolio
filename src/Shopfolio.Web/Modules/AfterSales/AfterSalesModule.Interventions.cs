@@ -19,18 +19,35 @@ internal sealed partial class AfterSalesModule
         ItemRecordSubject subject = entry.Subject;
         RequireOrderLock(subject);
 
-        // The removed units are cancelled units on the shipping line (02 10.4.3 (1)): the cancellation's unit rule and its amounts (02 7.1.7).
-        int open = await OpenQuantityAsync(subject, ct);
-        if (!ItemQuantities.IsSelectable(entry.Quantity, open))
+        if (await RemovalAmountsAsync(subject, entry.Quantity, entry.Frozen, ct) is not { } amounts)
         {
             return ItemRecordWriteResult.Rejected(ItemRecordRefusal.QuantityExceedsOpen);
         }
 
-        (decimal couponSetAside, decimal vatSetAside) = await SetAsideAsync(subject.OrderItemId, ct);
-        ItemAmounts amounts = ItemShares.SetAside(entry.Frozen, subject.ItemQuantity, entry.Quantity, entry.Quantity == open, couponSetAside, vatSetAside);
         ItemRemoval removal = ItemRemoval.Create(subject.OrderItemId, entry.Quantity, entry.Admin.AdminId, entry.Admin.AdminName, amounts, entry.At);
         _db.ItemRemovals.Add(removal);
         return new ItemRecordWriteResult(null, removal.Id, null);
+    }
+
+    public async Task<decimal?> ItemRemovalAmountAsync(ItemRecordSubject subject, int quantity, ItemFrozenAmounts frozen, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(subject);
+        ArgumentNullException.ThrowIfNull(frozen);
+        return await RemovalAmountsAsync(subject, quantity, frozen, ct) is { } amounts ? amounts.ProductAmount - amounts.CouponShare : null;
+    }
+
+    // The removed units are cancelled units on the shipping line (02 10.4.3 (1)): the cancellation's unit rule and its amounts (02 7.1.7). The writer and the confirmation
+    // window's read (D-1598) take the amounts from here, so the window says the amount the record then writes. Null: the units are not open to the operation.
+    private async Task<ItemAmounts?> RemovalAmountsAsync(ItemRecordSubject subject, int quantity, ItemFrozenAmounts frozen, CancellationToken ct)
+    {
+        int open = await OpenQuantityAsync(subject, ct);
+        if (!ItemQuantities.IsSelectable(quantity, open))
+        {
+            return null;
+        }
+
+        (decimal couponSetAside, decimal vatSetAside) = await SetAsideAsync(subject.OrderItemId, ct);
+        return ItemShares.SetAside(frozen, subject.ItemQuantity, quantity, quantity == open, couponSetAside, vatSetAside);
     }
 
     public async Task<IReadOnlyList<ArrivalRecordDate>> ArrivalRecordDatesAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct)

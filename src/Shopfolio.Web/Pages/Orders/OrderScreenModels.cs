@@ -28,7 +28,7 @@ namespace Shopfolio.Pages.Orders;
 /// POST without the confirmation mark is the script-free last step - 200, nothing written (07 2.2.4); the confirmed POST runs the module's write in the page's transaction
 /// (<see cref="OperationRunner"/>) and answers 303 to the root, where the result stays (04 5.17.9).
 /// </summary>
-public abstract class CustomerOperationPageModel : PageModel
+public abstract class CustomerOperationPageModel : PageModel, IOutcomeTarget
 {
     private readonly ICustomerOperations _operations;
     private readonly IOrderingModule _ordering;
@@ -66,7 +66,10 @@ public abstract class CustomerOperationPageModel : PageModel
     public ConfirmView? Confirm { get; protected set; }
 
     /// <summary>The IBAN field of a paid transfer order (04 5.17.5, 7.1.8): empty when it arrives; null on the card line and on the order's cancellation.</summary>
-    public IbanFieldView? IbanField { get; private set; }
+    /// <remarks>The field's 422 message is bound when the page is drawn, after the validation filter turned the handler's code into the catalog text (D-1702).</remarks>
+    public IbanFieldView? IbanField => _ibanField is null ? null : _ibanField with { Field = Fields.Bind(_ibanField.Field, FormErrorSummary.From(ModelState)) };
+
+    private IbanFieldView? _ibanField;
 
     /// <summary>The values of the form as sent, keyed by the field's name, so the 422 page and the last step show them again.</summary>
     public IDictionary<string, string> Sent { get; } = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -84,6 +87,9 @@ public abstract class CustomerOperationPageModel : PageModel
         string[] options = [.. new[] { item.FirstOptionValue, item.SecondOptionValue }.OfType<string>()];
         return options.Length == 0 ? item.ProductName : item.ProductName + " (" + string.Join(", ", options) + ")";
     }
+
+    /// <summary>The screen of an uncertain cancellation or termination (07 6.4.2: UC-39, UC-40, UC-41 to the root; 09 8.1 item 4; D-137): the order page shows what happened.</summary>
+    public string OutcomeScreen() => RootPath;
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
@@ -127,14 +133,9 @@ public abstract class CustomerOperationPageModel : PageModel
         }
 
         Screen = screen;
-        IbanField = screen.AsksIban
+        _ibanField = screen.AsksIban
             ? IbanFields.Create(IbanFieldPlace.Declaration, screen.PaymentMethod, IbanOpening.Standard, IbanFieldName, Sent.TryGetValue(IbanFieldName, out string? iban) ? iban : null)
             : null;
-        if (IbanField is not null)
-        {
-            IbanField = IbanField with { Field = Fields.Bind(IbanField.Field, FormErrorSummary.From(ModelState)) };
-        }
-
         return null;
     }
 
@@ -235,6 +236,7 @@ public abstract class CancellationPageModel(ICustomerOperations operations, IOrd
 
     /// <summary>UC-39 (07 4.17.2).</summary>
     [GatedOperation]
+    [OutcomeUncertain("UC-39")]
     public async Task<IActionResult> OnPostCancelOrderAsync(CancelOrderInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -261,6 +263,7 @@ public abstract class CancellationPageModel(ICustomerOperations operations, IOrd
 
     /// <summary>UC-40 (07 4.17.3): 422 for no item chosen or a quantity under one; the module checks the whole request against the order as it is now.</summary>
     [GatedOperation]
+    [OutcomeUncertain("UC-40")]
     public async Task<IActionResult> OnPostCancelOrderItemsAsync(CancelOrderItemsInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -360,6 +363,7 @@ public abstract class LateDeliveryTerminationPageModel(ICustomerOperations opera
 
     /// <summary>UC-41 (07 4.17.4).</summary>
     [GatedOperation]
+    [OutcomeUncertain("UC-41")]
     public async Task<IActionResult> OnPostSubmitLateDeliveryTerminationAsync(SubmitLateDeliveryTerminationInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);

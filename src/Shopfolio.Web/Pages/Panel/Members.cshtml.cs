@@ -195,7 +195,10 @@ internal sealed class MembersModel : PageModel, IOutcomeTarget
         return Page();
     }
 
-    /// <summary>UC-157: deletes the account on the data subject's request. Without the confirmation mark: the confirmation state (200). Confirmed: one transaction; a revert link open is 422 and nothing is deleted; no account is 404.</summary>
+    /// <summary>
+    /// UC-157: deletes the account - or the unverified registration (04 6.3.12.2; K-1633 (3)) - on the data subject's request. Without the confirmation mark: the confirmation state (200).
+    /// Confirmed: one transaction; a revert link open is 422 and nothing is deleted; no record is 404.
+    /// </summary>
     [OutcomeUncertain("UC-157")]
     public async Task<IActionResult> OnPostDeleteCustomerAsync(DeleteCustomerInput input, CancellationToken ct)
     {
@@ -209,7 +212,7 @@ internal sealed class MembersModel : PageModel, IOutcomeTarget
         if (!input.Confirmed)
         {
             MemberRecord record = await _membership.FindMemberRecordAsync(searched, ct);
-            if (!record.IsAccount || record.CustomerId != input.CustomerId)
+            if (!record.Exists || record.CustomerId != input.CustomerId)
             {
                 return AccessDenial.NotFound();
             }
@@ -276,7 +279,13 @@ internal sealed class MembersModel : PageModel, IOutcomeTarget
         string created = record.CreatedAt is { } at ? DisplayFormat.Date(at) : string.Empty;
         if (!record.IsAccount || record.CustomerId is not { } customerId)
         {
-            Record = new MemberRecordView { State = MemberSearchState.Unverified, Email = record.Email, CreatedDate = created };
+            Record = new MemberRecordView
+            {
+                State = MemberSearchState.Unverified,
+                Email = record.Email,
+                CreatedDate = created,
+                Deletion = record.CustomerId is { } pendingId ? new MemberDeletionView(pendingId, searched, null) : null,
+            };
             return;
         }
 

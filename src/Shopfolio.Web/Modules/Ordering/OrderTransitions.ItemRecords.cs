@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Forms;
+using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -30,6 +31,19 @@ internal sealed partial class OrderTransitions
         if (refusal is { } locked)
         {
             return ItemRefused(locked);
+        }
+
+        // 1.11.9's decision on the locked order (D-610; 09 8.3 item 3): the one rule the order page's button is drawn from - one claim per item, the channel open
+        // (Z-18), the units at most the open ones. A quantity under one is a wrong value, not a closed operation (the field rule, 09 3.4).
+        if (request.Quantity < 1)
+        {
+            return ItemRefused(TransitionRefusal.InvalidInput);
+        }
+
+        OperationVerdict verdict = await _operations.CheckAsync(order!.Id, OrderOperation.OpenDefectClaim, item!.Id, request.Quantity, ct); // non-null: the item lock returns the order and the item when it returns no refusal
+        if (VerdictRefusal(verdict) is { } closed)
+        {
+            return ItemRefused(closed);
         }
 
         DateTimeOffset now = _time.GetUtcNow();
@@ -89,6 +103,14 @@ internal sealed partial class OrderTransitions
         if (refusal is { } locked)
         {
             return ItemRefused(locked);
+        }
+
+        // The customer's reopening asks 1.11.10's decision on the locked order (D-610; 09 8.3 item 3): a resolved claim, the channel open. The raised units stay
+        // the writer's (04 5.19.3: up to the units open to a claim); the decision's row carries no quantity. The administrator's way is the panel's gate (1.11.37).
+        if (request.Actor == ActorKind.Buyer
+            && VerdictRefusal(await _operations.CheckAsync(order!.Id, OrderOperation.ReopenDefectClaimByCustomer, item!.Id, null, ct)) is { } closed) // non-null: the item lock returns the order and the item when it returns no refusal
+        {
+            return ItemRefused(closed);
         }
 
         DateTimeOffset now = _time.GetUtcNow();

@@ -16,7 +16,7 @@ public static partial class FrameStyle
     internal const string DefaultBrandTextColor = "#FFFFFF";
 
     /// <summary>The path prefix of the brand's images (07 2.1.2: <c>/gorsel</c>).</summary>
-    internal const string ImagePrefix = "/gorsel/";
+    internal const string ImagePrefix = Shopfolio.Infrastructure.Routing.AddressRules.ImageArea + "/";
 
     /// <summary>The WhatsApp chat address of a ten-digit national number: <c>wa.me</c> with the Turkish country code (02 3.32.9; 04 2.2.3). The number is digits only, so nothing can leave the address.</summary>
     internal const string WhatsAppPrefix = "https://wa.me/90";

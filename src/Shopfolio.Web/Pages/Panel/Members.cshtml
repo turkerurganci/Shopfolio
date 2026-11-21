@@ -46,6 +46,19 @@
                     <dd>@record.CreatedDate</dd>
                 </dl>
             </section>
+            @if (record.Deletion is { } pendingDeletion)
+            {
+                @* 04 6.3.12.2 (K-811; K-1633 (3)): the unverified registration is deleted on the request too, with the same confirmation (9.12.10). *@
+                <section class="member-record__section member-record__deletion" aria-labelledby="member-deletion-heading">
+                    <h2 class="member-record__heading" id="member-deletion-heading">@MembersModel.DeleteButtonLabel</h2>
+                    <p class="member-record__line">@MembersModel.DeletionResultText</p>
+                    <form method="post" action="@(PanelFramePaths.Members)?handler=@(MembersModel.DeleteHandler)" asp-antiforgery="true">
+                        <input type="hidden" name="CustomerId" value="@pendingDeletion.CustomerId" />
+                        <input type="hidden" name="SearchEmail" value="@pendingDeletion.SearchEmail" />
+                        <button type="submit" class="button button--primary" id="member-delete-button">@MembersModel.DeleteButtonLabel</button>
+                    </form>
+                </section>
+            }
             break;
         }
 

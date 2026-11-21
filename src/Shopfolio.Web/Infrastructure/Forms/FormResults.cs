@@ -109,6 +109,29 @@ internal static class FormResults
     }
 
     /// <summary>
+    /// The page again after a named business-rule refusal, status 422, with the refusal's rejection line (07 2.7.1, 6.1.3; 09 8.2 item 3; D-1317): the one
+    /// way a link page (UC-53, UC-76, UC-186, UC-187) answers the address that became another verified account's meanwhile.
+    /// </summary>
+    public static IActionResult Refused(PageModel page, ErrorCode code)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+        page.HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(code);
+        return Redisplay(page);
+    }
+
+    /// <summary>
+    /// The page of a link that went invalid between the page and the button, status 200 with <see cref="ErrorCode.LinkNoLongerValid"/> in the rejection line
+    /// (07 2.5.3, 6.2.5; 09 8.2 item 3; D-1317, D-1508): nothing was written and the page tells the link's state now. Every link page's POST answers it here
+    /// (UC-53, UC-59, UC-76, UC-112, UC-113, UC-186, UC-187), so the line is written in one place.
+    /// </summary>
+    public static IActionResult LinkNoLongerValid(PageModel page)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+        page.HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.LinkNoLongerValid);
+        return page.Page();
+    }
+
+    /// <summary>
     /// The page again after an attempt limit (L-1 to L-9) refused the POST, status 429 (07 2.8.5; 09 15.4 item 5): the sent values stay in the form and
     /// the neutral message (<see cref="Security.NeutralMessages.LimitExceeded"/>, 02 6.1.5) is added to the model state at the level of the action - the
     /// page shows it beside the blocked button. The message names neither the remaining attempts, the length of the block nor the axis, and no

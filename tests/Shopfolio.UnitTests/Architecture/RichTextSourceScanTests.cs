@@ -36,7 +36,7 @@ public sealed class RichTextSourceScanTests
 
         Assert.Contains(RichTextSourceScan.SanitizerFile, scanned);
         Assert.Contains(RichTextSourceScan.DisplayFile, scanned);
-        Assert.Contains(RichTextSourceScan.SearchHeadFile, scanned);
+        Assert.Contains(RichTextSourceScan.StructuredDataFile, scanned);
         Assert.Contains(scanned, f => f.StartsWith("src/Shopfolio.Web/Modules/", StringComparison.Ordinal));
         Assert.Empty(findings);
     }
@@ -48,16 +48,16 @@ public sealed class RichTextSourceScanTests
 
         Assert.Contains("using Ganss.Xss;", File.ReadAllText(Path.Combine(root, RichTextSourceScan.SanitizerFile)), StringComparison.Ordinal);
         Assert.Contains("new HtmlString(", File.ReadAllText(Path.Combine(root, RichTextSourceScan.DisplayFile)), StringComparison.Ordinal);
-        Assert.Contains("new HtmlString(", File.ReadAllText(Path.Combine(root, RichTextSourceScan.SearchHeadFile)), StringComparison.Ordinal);
+        Assert.Contains("new HtmlString(", File.ReadAllText(Path.Combine(root, RichTextSourceScan.StructuredDataFile)), StringComparison.Ordinal);
     }
 
     [Fact]
-    public void TheSearchHeadException_IsTheTwoHeadBuildersOfTodayAndGrowsByNothing_UntilD357MovesThem()
+    public void TheSearchEngineDataFile_HasNoExceptionOfItsOwn_D357()
     {
-        string text = File.ReadAllText(Path.Combine(RepositoryRoot.Find(), RichTextSourceScan.SearchHeadFile));
-
-        // D-357: the two places that return the head as markup. A third one is a new raw-markup place and needs its own decision, not this file's exception.
-        Assert.Equal(2, System.Text.RegularExpressions.Regex.Count(text, @"\bHtmlString\b", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
+        // D-357: the head moved into the structured data helper; the search engine data file is scanned like any other and a HtmlString in it is a finding.
+        const string file = "src/Shopfolio.Web/Infrastructure/SearchEngine/SearchEngineData.cs";
+        Assert.Empty(RichTextSourceScan.Scan(file, File.ReadAllText(Path.Combine(RepositoryRoot.Find(), file))));
+        Assert.Contains((RichTextSourceScan.HtmlStringOutsideItsPlaces, 7), RichTextSourceScan.Scan(file, Sample()));
     }
 
     [Fact]
@@ -96,9 +96,9 @@ public sealed class RichTextSourceScanTests
     }
 
     [Fact]
-    public void Scan_OnTheSearchHeadFile_AllowsHtmlString_ButNotTheOtherRawMarkupOrTheCleaner()
+    public void Scan_OnTheStructuredDataFile_AllowsHtmlString_ButNotTheOtherRawMarkupOrTheCleaner()
     {
-        IReadOnlyList<(string Rule, int Line)> findings = RichTextSourceScan.Scan(RichTextSourceScan.SearchHeadFile, Sample());
+        IReadOnlyList<(string Rule, int Line)> findings = RichTextSourceScan.Scan(RichTextSourceScan.StructuredDataFile, Sample());
 
         Assert.DoesNotContain(findings, f => f.Rule == RichTextSourceScan.HtmlStringOutsideItsPlaces);
         Assert.Equal([3, 6, 8, 9, 10, 11], findings.Select(f => f.Line));

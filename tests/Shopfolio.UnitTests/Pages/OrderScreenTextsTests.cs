@@ -70,6 +70,16 @@ public sealed class OrderScreenTextsTests
     }
 
     [Fact]
+    public void TheWithdrawalSentence_OfAMixedChoice_NamesEachStartWithItsUnits_AndOneStartIsTheOneStartSentence_D1439()
+    {
+        Assert.Equal(
+            "Seçtiğiniz 3 ürün için cayma beyanınız kaydedilecek; geri ödeme 1 ürün için beyanınızdan, 2 ürün için malın firmaya ulaşmasından itibaren 14 gün içinde IBAN'ınıza yapılacak.",
+            OrderScreenTexts.WithdrawalSentence(1, 2, PaymentMethod.BankTransfer, 14));
+        Assert.Equal(OrderScreenTexts.WithdrawalSentence(3, PaymentMethod.Card, fromGoodsArrival: false, 14), OrderScreenTexts.WithdrawalSentence(3, 0, PaymentMethod.Card, 14));
+        Assert.Equal(OrderScreenTexts.WithdrawalSentence(2, PaymentMethod.Card, fromGoodsArrival: true, 14), OrderScreenTexts.WithdrawalSentence(0, 2, PaymentMethod.Card, 14));
+    }
+
+    [Fact]
     public void TheSendingPeriod_NamesTheDaysAndTheLastDay_KK1()
     {
         Assert.Equal(

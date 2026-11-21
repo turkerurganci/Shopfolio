@@ -7,19 +7,19 @@ namespace Shopfolio.UnitTests.Architecture;
 /// type (<c>HtmlSanitizer</c>) are named only in <c>Infrastructure/Security/RichTextSanitizer.cs</c> - the allow list is built in one class; (2) the raw markup calls
 /// (<c>Html.Raw</c>, <c>Raw(</c>, <c>AddMarkupContent</c>, <c>WriteLiteral</c>, <c>AppendHtml(</c> with a string argument) and the Blazor <c>MarkupString</c> are named only in
 /// <c>Infrastructure/Security/RichText.cs</c> - a page prints no other text unescaped; (3) <c>HtmlString</c>, in any spelling (<c>new HtmlString(</c>, target-typed
-/// <c>new(</c> is not a spelling of the type's name and so is covered by the two lists above), is named only in <c>RichText.cs</c> and in the one file that builds the search
-/// engine head from values it encodes itself (<c>SearchEngine/SearchEngineData.cs</c>; its move into the structured data helper of 09 15.3 item 1 is D-357). Full-line comments
+/// <c>new(</c> is not a spelling of the type's name and so is covered by the two lists above), is named only in <c>RichText.cs</c> and in the structured data helper
+/// of 09 15.3 item 1 (<c>Security/StructuredData.cs</c>: the search engine head, from values it encodes itself; D-357 moved it there). Full-line comments
 /// are blanked first and keep their line. The test projects are not scanned. The scan reads text and writes nothing.
 /// </summary>
 internal static partial class RichTextSourceScan
 {
     public const string CleanerOutsideItsClass = "names the cleaner library outside Infrastructure/Security/RichTextSanitizer.cs (09 15.3 item 1: the allow list is built in one class)";
     public const string RawMarkupOutsideTheDisplay = "prints or builds raw markup outside Infrastructure/Security/RichText.cs (09 15.3 item 1: Html.Raw and its kin live only in RichText.Render)";
-    public const string HtmlStringOutsideItsPlaces = "names HtmlString outside RichText.cs and the search engine head (09 15.3 item 7)";
+    public const string HtmlStringOutsideItsPlaces = "names HtmlString outside RichText.cs and StructuredData.cs (09 15.3 items 1, 7)";
 
     public const string SanitizerFile = "src/Shopfolio.Web/Infrastructure/Security/RichTextSanitizer.cs";
     public const string DisplayFile = "src/Shopfolio.Web/Infrastructure/Security/RichText.cs";
-    public const string SearchHeadFile = "src/Shopfolio.Web/Infrastructure/SearchEngine/SearchEngineData.cs";
+    public const string StructuredDataFile = "src/Shopfolio.Web/Infrastructure/Security/StructuredData.cs";
 
     public static IReadOnlyList<(string Rule, int Line)> Scan(string relativePath, string text)
     {
@@ -34,7 +34,7 @@ internal static partial class RichTextSourceScan
         if (!string.Equals(path, DisplayFile, StringComparison.Ordinal))
         {
             Add(findings, RawMarkupOutsideTheDisplay, RawMarkup(), code);
-            if (!string.Equals(path, SearchHeadFile, StringComparison.Ordinal))
+            if (!string.Equals(path, StructuredDataFile, StringComparison.Ordinal))
             {
                 Add(findings, HtmlStringOutsideItsPlaces, HtmlStringName(), code);
             }

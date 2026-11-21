@@ -92,13 +92,8 @@ public sealed partial class MembershipTests
         Assert.Equal(0L, await ScalarAsync<long>($"SELECT count(*) FROM link_records WHERE customer_id = '{id}'"));
         await using AppDbContext db = NewContext();
         Dictionary<DisposalRecordType, int?> records = await db.DisposalRecords.AsNoTracking().ToDictionaryAsync(r => r.DisposalRecordType, r => r.Count, Ct);
-        Assert.Equal(1, records[DisposalRecordType.Customer]);
-        Assert.Equal(2, records[DisposalRecordType.Session]); // the account's own session and the one the e-mail change request of the seed opened (T517)
-        Assert.Equal(2, records[DisposalRecordType.RecognizedBrowserMark]); // each sign-in of the seed leaves a mark
-        Assert.Equal(1, records[DisposalRecordType.Cart]);
-        Assert.Equal(1, records[DisposalRecordType.PendingEmailChange]);
-        Assert.True(records[DisposalRecordType.LinkRecord] >= 1);
-        Assert.DoesNotContain(DisposalRecordType.Order, records.Keys);
+        // What hangs on the account goes with it and writes no row of its own: it is part of the Customer row (06 5.5.3; D-608) - the one row of the deletion.
+        Assert.Equal(new Dictionary<DisposalRecordType, int?> { [DisposalRecordType.Customer] = 1 }, records);
     }
 
     // ---- KK2, KK4: the orders keep their own record; an order that is still open does not stop the deletion ----
@@ -345,15 +340,17 @@ public sealed partial class MembershipTests
     }
 
     [Fact]
-    public async Task DeleteOnRequest_WithoutAnActor_Throws_AndAnUnverifiedRegistrationIsNotFound()
+    public async Task DeleteOnRequest_WithoutAnActor_Throws_AnUnverifiedRegistrationToo_D1374()
     {
         Guid verified = await SeedCustomerAsync("ali@example.com", verified: true);
         Guid pending = await SeedCustomerAsync("veli@example.com", verified: false);
 
-        AccountDeletionResult unverified = await RunAsync(m => m.DeleteAccountOnRequestAsync(pending, Ct));
+        // The unverified registration is deleted on the request too (04 6.3.12.2; K-1631 (6), K-1633 (3)) - the same trail row, so the same actor rule.
+        await Assert.ThrowsAsync<InvalidOperationException>(() => RunAsync(m => m.DeleteAccountOnRequestAsync(pending, Ct)));
         await Assert.ThrowsAsync<InvalidOperationException>(() => RunAsync(m => m.DeleteAccountOnRequestAsync(verified, Ct)));
+        AccountDeletionResult missing = await RunAsync(m => m.DeleteAccountOnRequestAsync(Guid.NewGuid(), Ct));
 
-        Assert.Equal(ErrorCode.NotFound, unverified.Code);
+        Assert.Equal(ErrorCode.NotFound, missing.Code);
         Assert.Equal(2L, await ScalarAsync<long>("SELECT count(*) FROM customers"));
         Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM audit_logs"));
     }

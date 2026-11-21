@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Binding;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Security;
@@ -247,6 +248,7 @@ public sealed class FirmIdentityModel : PageModel
     }
 
     /// <summary>UC-165: the first send answers 200 with the confirmation; the confirmed send writes the switch against the shown value and answers 303 - also when the switch was changed meanwhile or is already closed (K-1194).</summary>
+    [OutcomeUncertain("UC-165")]
     public async Task<IActionResult> OnPostSuspendSalesAsync(SuspendSalesInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);

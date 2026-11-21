@@ -156,6 +156,73 @@ public sealed class OrderPageTests
         Assert.DoesNotContain("handler=DownloadDigitalFile", body, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task TheTransfersLastPaymentDay_IsTheModulesDay_TheOneBeforeTheWindowsEnd_AsOnTheNoticesAndThePanel_D1450()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (Guid orderId, _, string key, _) = await SeedAsync(host, PaymentStatus.Pending);
+        DateOnly lastDay = TurkeyTime.DateOf(host.Time.GetUtcNow()).AddDays(2);
+        await using (AppDbContext db = host.NewContext())
+        {
+            // A window ends at the 00:00 after its last day (TurkeyTime.EndOfPeriod).
+            await db.Orders.Where(o => o.Id == orderId).ExecuteUpdateAsync(s => s.SetProperty(o => o.PaymentWindowEndsAt, TurkeyTime.StartOf(lastDay.AddDays(1))), Ct);
+        }
+
+        using HttpResponseMessage response = await host.Client.GetAsync(At(OrderRoutes.AccessPath(key)), Ct);
+        string body = await response.Content.ReadAsStringAsync(Ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains($"<dd>{await EncodedAsync(host, DisplayFormat.Date(lastDay))}</dd>", body, StringComparison.Ordinal);
+        Assert.DoesNotContain(await EncodedAsync(host, DisplayFormat.Date(lastDay.AddDays(1))), body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AClosedPaidDigitalItem_HasNoDownloadButton_AndItsPostIsRefused_SpendingNothing_K1624_D1197_D1259()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (_, _, string key, Guid itemId) = await SeedAsync(host, PaymentStatus.Paid);
+        await using (AppDbContext db = host.NewContext())
+        {
+            // A record closes the item's only unit while its right is not used up (K-1624 (1)).
+            DateTimeOffset now = host.Time.GetUtcNow();
+            db.Withdrawals.Add(Modules.AfterSales.Withdrawal.ByBuyer(itemId, 1, DateOnly.FromDateTime(now.UtcDateTime), null, new(10m, 0m, 1.67m), null, now));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        using HttpResponseMessage page = await host.Client.GetAsync(At(OrderRoutes.AccessPath(key)), Ct);
+        string body = await page.Content.ReadAsStringAsync(Ct);
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+
+        // The button reads the operation's row (D-1259): closed, no button and no used-up notice either - the right is not what closed it.
+        Assert.DoesNotContain("handler=DownloadDigitalFile", body, StringComparison.Ordinal);
+        Assert.DoesNotContain(await EncodedAsync(host, OrderPageModel.AllowanceUsedText), body, StringComparison.Ordinal);
+
+        using HttpResponseMessage refused = await DownloadAsync(host, key, itemId);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, refused.StatusCode);
+        Assert.Equal(0, await DownloadCountAsync(host, itemId));
+    }
+
+    [Fact]
+    public async Task AClosedPaidDigitalItemsStalePost_SaysTheItemClosed_NotThatTheRightIsUsedUp_K1629_D1758()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (_, _, string key, Guid itemId) = await SeedAsync(host, PaymentStatus.Paid);
+        await using (AppDbContext db = host.NewContext())
+        {
+            DateTimeOffset now = host.Time.GetUtcNow();
+            db.Withdrawals.Add(Modules.AfterSales.Withdrawal.ByBuyer(itemId, 1, DateOnly.FromDateTime(now.UtcDateTime), null, new(10m, 0m, 1.67m), null, now));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        // The page opened before the record closed the item posts its button: 422 with the fourth reason in the button's place (07 4.16.3; K-1629) - the right is not used up.
+        using HttpResponseMessage refused = await DownloadAsync(host, key, itemId);
+        string body = await refused.Content.ReadAsStringAsync(Ct);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, refused.StatusCode);
+        Assert.Contains(await EncodedAsync(host, OrderPageModel.ItemClosedText), body, StringComparison.Ordinal);
+        Assert.DoesNotContain(await EncodedAsync(host, OrderPageModel.AllowanceUsedText), body, StringComparison.Ordinal);
+        Assert.Equal(0, await DownloadCountAsync(host, itemId));
+    }
+
     // --- KK8: the awaited card result is said, the page never refreshes itself ---
 
     [Fact]

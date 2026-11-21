@@ -48,10 +48,10 @@ public interface IAfterSalesModule
     Task<DefectRemedyCheck> CheckDefectClaimRescissionAsync(DefectClaimRescissionEntry entry, CancellationToken ct);
 
     /// <summary>
-    /// The check of the firm's price reduction on a defect claim (02 7.5.3; 03 8.3.3.7; K-228, K-539): the item's claim is open. The item is not returned and no unit
-    /// leaves the open quantity; the amount's ceiling is the payment's. Requires the caller's transaction and order row lock.
+    /// The amounts a rescission of <see cref="DefectClaimRescissionEntry.Quantity"/> units would carry now (K-1629 (3)): the split of <see cref="CheckDefectClaimRescissionAsync"/>
+    /// without its checks and without the lock - the order screen's line of a claim's goods receipt reads it, and the check returns the same split under the lock.
     /// </summary>
-    Task<DefectRemedyCheck> CheckDefectClaimPriceReductionAsync(ItemRecordSubject subject, CancellationToken ct);
+    Task<RefundAmount> DefectClaimRescissionAmountAsync(DefectClaimRescissionEntry entry, CancellationToken ct);
 
     /// <summary>
     /// The IBAN request of a defect remedy's refund on the bank transfer line (02 7.5.3, 7.4.5; 03 8.3.3.6; K-686): when the order has no IBAN on file and the item has no
@@ -301,6 +301,13 @@ public interface IAfterSalesModule
     /// </summary>
     DateOnly RefundLastDay(DateTimeOffset startedAt);
 
+    /// <summary>
+    /// The moment each of <paramref name="recordIds"/> starts its refund's period (D-1382; 02 7.1, 7.2.3; 03 2): a cancellation's, a removal's, a late delivery termination's and a withdrawal's own
+    /// moment, a withdrawal receipt's moment for a withdrawal after delivery - the records' moments, as an owed record's line reads them (<see cref="OwedRefundRecord.RecordedAt"/>), so a refund the
+    /// firm's step bore later still runs from its record. An id that is none of these is left out. A plain read.
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, DateTimeOffset>> RefundPeriodStartsAsync(IReadOnlyCollection<Guid> recordIds, CancellationToken ct);
+
     /// <summary>True when an IBAN request on the refund was fulfilled: the customer chose the transfer path, so the card refund is not retried (02 7.2.8; K-569).</summary>
     Task<bool> IsRefundIbanEnteredForRefundAsync(Guid refundId, CancellationToken ct);
 
@@ -432,6 +439,12 @@ public interface IAfterSalesModule
     /// caller's transaction under the order's row lock and saves nothing.
     /// </summary>
     Task<ItemRecordWriteResult> AddItemRemovalAsync(ItemRemovalEntry entry, CancellationToken ct);
+
+    /// <summary>
+    /// The product amount less the coupon share a removal of <paramref name="quantity"/> units would pay back now (02 7.1.7; K-797 "{tutar}"; D-1598): the removal writer's own
+    /// amount rule, read without a lock for the card line's confirmation window and writing nothing. The shipping fee is apart. Null: the units are not open to the operation.
+    /// </summary>
+    Task<decimal?> ItemRemovalAmountAsync(ItemRecordSubject subject, int quantity, ItemFrozenAmounts frozen, CancellationToken ct);
 
     /// <summary>The receipts and rejections of returned goods on the given items, with their arrival dates (02 10.4.5; K-1474, K-712). A plain read.</summary>
     Task<IReadOnlyList<ArrivalRecordDate>> ArrivalRecordDatesAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);

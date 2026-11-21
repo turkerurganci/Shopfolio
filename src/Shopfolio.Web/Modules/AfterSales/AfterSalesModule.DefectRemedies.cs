@@ -51,24 +51,21 @@ internal sealed partial class AfterSalesModule
             return DefectRemedyCheck.Rejected(ItemRecordRefusal.QuantityExceedsOpen);
         }
 
-        (decimal couponSetAside, decimal vatSetAside) = await SetAsideAsync(subject.OrderItemId, ct);
-        ItemAmounts amounts = ItemShares.SetAside(entry.Frozen, subject.ItemQuantity, entry.Quantity, entry.Quantity == open, couponSetAside, vatSetAside);
-        return new DefectRemedyCheck(null, claim.Id, new RefundAmount(entry.Quantity, amounts.ProductAmount, amounts.CouponShare, amounts.VatAmount));
+        return new DefectRemedyCheck(null, claim.Id, await RescissionSplitAsync(entry, open, ct));
     }
 
-    public async Task<DefectRemedyCheck> CheckDefectClaimPriceReductionAsync(ItemRecordSubject subject, CancellationToken ct)
+    public async Task<RefundAmount> DefectClaimRescissionAmountAsync(DefectClaimRescissionEntry entry, CancellationToken ct)
     {
-        ArgumentNullException.ThrowIfNull(subject);
-        RequireOrderLock(subject);
-        DefectClaim? claim = await OpenClaimAsync(subject, ct);
-        if (claim is not null)
-        {
-            return new DefectRemedyCheck(null, claim.Id, null);
-        }
+        ArgumentNullException.ThrowIfNull(entry);
+        return await RescissionSplitAsync(entry, await OpenQuantityAsync(entry.Subject, ct), ct);
+    }
 
-        return DefectRemedyCheck.Rejected(await _db.DefectClaims.AnyAsync(c => c.OrderItemId == subject.OrderItemId, ct)
-            ? ItemRecordRefusal.StatusNotAllowed
-            : ItemRecordRefusal.ClaimNotFound);
+    /// <summary>The one split of a rescission's amounts (02 7.1.7): the item's frozen values against what its earlier records set aside; the last open units take the rest.</summary>
+    private async Task<RefundAmount> RescissionSplitAsync(DefectClaimRescissionEntry entry, int open, CancellationToken ct)
+    {
+        (decimal couponSetAside, decimal vatSetAside) = await SetAsideAsync(entry.Subject.OrderItemId, ct);
+        ItemAmounts amounts = ItemShares.SetAside(entry.Frozen, entry.Subject.ItemQuantity, entry.Quantity, entry.Quantity == open, couponSetAside, vatSetAside);
+        return new RefundAmount(entry.Quantity, amounts.ProductAmount, amounts.CouponShare, amounts.VatAmount);
     }
 
     public async Task<bool> RequestDefectRemedyIbanAsync(DefectRemedyIbanRequest request, CancellationToken ct)

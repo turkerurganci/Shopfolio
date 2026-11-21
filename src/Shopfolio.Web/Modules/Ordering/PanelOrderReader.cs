@@ -69,9 +69,17 @@ internal sealed class PanelOrderReader : IPanelOrderReader
 
         // Z-16, Z-17: each refund not yet sent runs from its start, as on the order's page (04 9.9.6) - the AfterSales rule gives the last day.
         IReadOnlyList<PendingRefundStart> refunds = await _payment.ListPendingRefundStartsAsync(ids, ct);
-        periods.AddRange(refunds.Select(r => new OrderRunningPeriod(r.OrderId, CountedPeriod.RefundPeriod, _afterSales.RefundLastDay(r.StartedAt))));
+        IReadOnlyDictionary<Guid, DateTimeOffset> refundStarts = await _afterSales.RefundPeriodStartsAsync([.. refunds.Select(r => r.PeriodRecordId).OfType<Guid>()], ct);
+        periods.AddRange(refunds.Select(r => new OrderRunningPeriod(r.OrderId, CountedPeriod.RefundPeriod, _afterSales.RefundLastDay(PeriodStartOf(r.StartedAt, r.PeriodRecordId, refundStarts)))));
         return periods;
     }
+
+    /// <summary>
+    /// The start of a pending refund's period (D-1382; 02 7.1, 7.2.3; 03 2): its record's moment - on the transfer the refund line is born later, with the firm's step, and the period does not wait
+    /// for it (the owed record's line already runs from the record, <see cref="OwedRefundRecord.RecordedAt"/>) -; the refund's own moment when it has no record.
+    /// </summary>
+    private static DateTimeOffset PeriodStartOf(DateTimeOffset bornAt, Guid? recordId, IReadOnlyDictionary<Guid, DateTimeOffset> starts) =>
+        recordId is { } id && starts.TryGetValue(id, out DateTimeOffset recordedAt) ? recordedAt : bornAt;
 
     public async Task<IReadOnlyDictionary<Guid, PanelOrderMarkFacts>> FindListMarksAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct)
     {
@@ -129,6 +137,7 @@ internal sealed class PanelOrderReader : IPanelOrderReader
             orderId,
             [.. (await _payment.FindPendingTransferRefundsAsync(orderId, ct)).Select(r => RefundPayeeSubject.Of(r.RefundId, r.CancellationId, r.LateDeliveryTerminationId, r.WithdrawalId, r.OrderItemId))],
             ct);
+        IReadOnlyDictionary<Guid, DateTimeOffset> starts = await _afterSales.RefundPeriodStartsAsync([.. pending.Select(r => r.PeriodRecordId).OfType<Guid>()], ct);
         List<PanelPendingRefund> pendingRefunds =
         [
             .. pending.Select(r => new PanelPendingRefund(
@@ -138,7 +147,7 @@ internal sealed class PanelOrderReader : IPanelOrderReader
                 r.Amount,
                 r.Way,
                 r.Way == PaymentMethod.BankTransfer ? payees.FirstOrDefault(p => p.Subject.RefundId == r.RefundId)?.Iban : null,
-                r.HasPeriod ? _afterSales.RefundLastDay(r.StartedAt) : null)),
+                r.HasPeriod ? _afterSales.RefundLastDay(PeriodStartOf(r.StartedAt, r.PeriodRecordId, starts)) : null)),
         ];
 
         IReadOnlyDictionary<Guid, string> provinces = (await _settings.GetProvincesAsync(ct)).ToDictionary(p => p.Id, p => p.Name);

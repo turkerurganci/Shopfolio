@@ -20,22 +20,24 @@ internal sealed class CartQuantityReader
     }
 
     /// <summary>The verdict on each line of a cart that is read; a line whose variant does not exist is not in the answer.</summary>
-    public async Task<IReadOnlyList<CartQuantityVerdict>> JudgeAsync(IReadOnlyList<CartQuantityLine> lines, CancellationToken ct)
+    public async Task<IReadOnlyList<CartQuantityVerdict>> JudgeAsync(IReadOnlyList<CartQuantityLine> lines, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(lines);
-        IReadOnlyList<QuantityInput> inputs = await LoadAsync(lines, ct);
+        IReadOnlyList<QuantityInput> inputs = await LoadAsync(lines, ownReservedUnits, ct);
         return CartQuantityRules.Judge(inputs);
     }
 
     /// <summary>
     /// The verdict on an add (02 3.16.8, 3.16.9): <paramref name="candidate"/> is the variant with the quantity the line would hold after the add, <paramref name="others"/> the cart's other
-    /// lines. A variant that does not exist gets <see cref="CartQuantityProblem.None"/>: the caller has already answered that it is not there.
+    /// lines. A variant that does not exist gets <see cref="CartQuantityProblem.None"/>: the caller has already answered that it is not there. The cart's own reservations count as sellable,
+    /// as on the read (02 3.17.7; D-1759).
     /// </summary>
-    public async Task<CartQuantityVerdict> JudgeAddAsync(CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, CancellationToken ct)
+    public async Task<CartQuantityVerdict> JudgeAddAsync(
+        CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(candidate);
         ArgumentNullException.ThrowIfNull(others);
-        IReadOnlyList<QuantityInput> inputs = await LoadAsync([candidate, .. others.Where(o => o.VariantId != candidate.VariantId)], ct);
+        IReadOnlyList<QuantityInput> inputs = await LoadAsync([candidate, .. others.Where(o => o.VariantId != candidate.VariantId)], ownReservedUnits, ct);
         QuantityInput? found = inputs.FirstOrDefault(i => i.VariantId == candidate.VariantId);
         if (found is null)
         {
@@ -45,7 +47,7 @@ internal sealed class CartQuantityReader
         return CartQuantityRules.JudgeAdd(found, [.. inputs.Where(i => i.VariantId != candidate.VariantId)]);
     }
 
-    private async Task<IReadOnlyList<QuantityInput>> LoadAsync(IReadOnlyList<CartQuantityLine> lines, CancellationToken ct)
+    private async Task<IReadOnlyList<QuantityInput>> LoadAsync(IReadOnlyList<CartQuantityLine> lines, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct)
     {
         Dictionary<Guid, int> quantities = lines.GroupBy(l => l.VariantId).ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity));
         if (quantities.Count == 0)
@@ -79,7 +81,7 @@ internal sealed class CartQuantityReader
                 r.ProductId,
                 quantities[r.VariantId],
                 r.StockQuantity,
-                r.ReservedQuantity,
+                StockRules.ReservedAgainst(r.ReservedQuantity, r.VariantId, ownReservedUnits),
                 r.MaxQuantityPerOrder,
                 r.ProductStatus == PublishStatus.Published && r.VariantStatus == PublishStatus.Published)),
         ];

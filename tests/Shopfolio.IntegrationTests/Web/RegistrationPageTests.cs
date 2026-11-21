@@ -35,7 +35,7 @@ public sealed class RegistrationPageTestsDefinition : ICollectionFixture<Collect
 /// collection database; the sales gate is the real one except where a test opens it (the template's firm does not meet the gate's conditions).
 /// </summary>
 [Collection(RegistrationPageTestsDefinition.Name)]
-public sealed class RegistrationPageTests : IAsyncLifetime
+public sealed partial class RegistrationPageTests : IAsyncLifetime
 {
     private const string Entered = "orchid-lantern-4471-violet";
 

@@ -23,6 +23,7 @@ namespace Shopfolio.Pages.Panel;
 /// sentence and nothing is done; an operation outside the list answers 303 to the account page (07 UC-185).
 /// </summary>
 [NoStore]
+[ReauthenticationFormPage]
 internal sealed class ReauthModel : PageModel
 {
     /// <summary>The name of the query parameter that carries the operation (07 5.6.8; K-1186 (4)).</summary>

@@ -26,7 +26,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
 
     private readonly AppDbContext _db;
     private readonly OrderOperations _operations;
-    private readonly OrderLocks _locks;
+    private readonly PanelOrderGate _gate;
     private readonly IOrderTransitions _transitions;
     private readonly IOrderCorrections _corrections;
     private readonly IAfterSalesModule _afterSales;
@@ -38,7 +38,7 @@ internal sealed class PanelItemSteps : IPanelItemSteps
     {
         _db = db;
         _operations = operations;
-        _locks = locks;
+        _gate = new PanelOrderGate(db, locks, operations);
         _transitions = transitions;
         _corrections = corrections;
         _afterSales = afterSales;
@@ -331,6 +331,34 @@ internal sealed class PanelItemSteps : IPanelItemSteps
             : PanelItemStepResult.Done;
     }
 
+    public async Task<decimal?> RemovalRefundAsync(Guid orderId, Guid orderItemId, int quantity, CancellationToken ct)
+    {
+        Order? order = await _db.Orders.AsNoTracking().SingleOrDefaultAsync(o => o.Id == orderId, ct);
+        OrderItem? item = await _db.OrderItems.AsNoTracking().SingleOrDefaultAsync(i => i.Id == orderItemId && i.OrderId == orderId, ct);
+        if (order is null || item is null || quantity < 1 || order.PaymentStatus is not (PaymentStatus.Paid or PaymentStatus.PartiallyRefunded))
+        {
+            return null;
+        }
+
+        // The record's amount (02 7.1.7) by the removal writer's own rule, and the fee by the shipping fee rule's trigger (1) as the record meets it: the removal before the carrier
+        // took the order counts the open units of the physical items, the units this removal takes as the moves of its moment; after the shipment it carries none (02 7.2.9).
+        if (await _afterSales.ItemRemovalAmountAsync(OrderTransitions.Subject(order, item), quantity, OrderTransitions.FrozenOf(item), ct) is not { } amount)
+        {
+            return null;
+        }
+
+        if (order.ShippingFee == 0m || item.ProductType != ProductType.Physical || await OrderPeriods.HandedToCarrierAtAsync(_db, orderId, ct) is not null)
+        {
+            return amount;
+        }
+
+        IReadOnlyDictionary<Guid, int> open = await _operations.ReadOpenQuantitiesAsync(orderId, ct) ?? new Dictionary<Guid, int>();
+        HashSet<Guid> physical = [.. (await OrderPeriods.ShippedItemsAsync(_db, orderId, ct)).Select(i => i.OrderItemId)];
+        Dictionary<Guid, int> openPhysical = open.Where(o => physical.Contains(o.Key) && o.Value > 0).ToDictionary(o => o.Key, o => o.Value);
+        bool fee = _afterSales.CancellationRefundsShippingFee(openPhysical, new Dictionary<Guid, int> { [orderItemId] = quantity });
+        return amount + (fee ? order.ShippingFee : 0m);
+    }
+
     public Task<PanelItemStepResult> ReceiveReturnAsync(PanelReturnArrival request, CancellationToken ct) => ArriveAsync(request, false, ct);
 
     public Task<PanelItemStepResult> RejectReturnAsync(PanelReturnArrival request, CancellationToken ct) => ArriveAsync(request, true, ct);
@@ -542,25 +570,13 @@ internal sealed class PanelItemSteps : IPanelItemSteps
     }
 
     /// <summary>
-    /// The re-check of 09 8.3 item 3 in its order: the order's row lock, the version the screen showed (<see cref="ShownVersion.Matches"/>; a change is the conflict and the rule is not asked),
+    /// The re-check of 09 8.3 item 3 in its order, through the one gate (<see cref="PanelOrderGate"/>; D-1542): the order's row lock, the version the screen showed (<see cref="ShownVersion.Matches"/>; a change is the conflict and the rule is not asked),
     /// then the facts the operation's rule reads, after the lock.
     /// </summary>
     private async Task<(PanelItemStepResult? Refused, OrderOperationFacts? Facts)> LockAsync(Guid orderId, int expectedVersion, CancellationToken ct)
     {
-        await _locks.LockAsync([orderId], ct);
-        Order? order = await _db.Orders.AsNoTracking().SingleOrDefaultAsync(o => o.Id == orderId, ct);
-        if (order is null)
-        {
-            return (new PanelItemStepResult(TransitionRefusal.OrderNotFound), null);
-        }
-
-        if (!ShownVersion.Matches(order, expectedVersion))
-        {
-            return (new PanelItemStepResult(TransitionRefusal.VersionConflict), null);
-        }
-
-        OrderOperationFacts? facts = await _operations.ReadFactsAsync(orderId, ct);
-        return facts is null ? (new PanelItemStepResult(TransitionRefusal.OrderNotFound), null) : (null, facts);
+        (TransitionRefusal? refusal, OrderOperationFacts? facts) = await _gate.LockAsync(orderId, expectedVersion, ct);
+        return refusal is { } refused ? (new PanelItemStepResult(refused), null) : (null, facts);
     }
 
     // A quantity over the units open to the operation is the field's refusal (K-1188 (4)); any other closed verdict is "not open".

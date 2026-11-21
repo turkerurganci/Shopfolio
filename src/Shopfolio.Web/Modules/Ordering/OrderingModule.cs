@@ -249,8 +249,7 @@ internal sealed class OrderingModule : IOrderingModule
             marked = orders.Count;
         }
 
-        int carts = await _db.Carts.AsNoTracking().CountAsync(c => c.CustomerId == customerId, ct);
-        return new AccountOrderRelease(marked, carts);
+        return new AccountOrderRelease(marked);
     }
 
     public async Task<int> RemoveFromCartsAsync(IReadOnlyCollection<Guid> variantIds, string productName, CancellationToken ct)

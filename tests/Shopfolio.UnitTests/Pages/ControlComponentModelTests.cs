@@ -619,6 +619,19 @@ public sealed class ControlComponentModelTests
         Assert.NotNull(UploadLimits.Accept(UploadSurface.Logo));
     }
 
+    [Fact]
+    public void TheImageMediaTypes_AreP22sFormats_InTheirOrder_AndTheAcceptOfEveryImageSurface_D1319()
+    {
+        // One media type per format P-22 names, in its order and in the stored ImageFormat's order (the type an image is served with).
+        string[] formats = [.. ProductConstants.ImageFormats.Split(", ")];
+        Assert.Equal(formats.Select(f => "image/" + f.ToLowerInvariant()), ProductConstants.ImageMediaTypes);
+        Assert.Equal(Enum.GetNames<Shopfolio.Modules.Catalog.Contracts.ImageFormat>().Select(n => "image/" + n.ToLowerInvariant()), ProductConstants.ImageMediaTypes);
+        foreach (UploadSurface surface in Enum.GetValues<UploadSurface>().Where(UploadLimits.IsImage))
+        {
+            Assert.Equal(string.Join(',', ProductConstants.ImageMediaTypes), UploadLimits.Accept(surface));
+        }
+    }
+
     [Theory]
     [InlineData(UploadSurface.Logo)]
     [InlineData(UploadSurface.SiteIcon)]

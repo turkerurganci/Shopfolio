@@ -97,7 +97,7 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
             return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet);
         }
 
-        (decimal amount, bool fee) = born is not null ? (born.Amount, born.IsShippingFeeIncluded) : await FirmRefundAmounts.OfAsync(_db, _afterSales, order, owed!, lines.Refunds, ct); // non-null: without a born refund the owed record was found above
+        (decimal amount, bool fee) = born is not null ? (born.Amount, born.IsShippingFeeIncluded) : await FirmRefundAmounts.OfAsync(_db, _afterSales, _payment, order, owed!, lines.Refunds, ct); // non-null: without a born refund the owed record was found above
         if (!request.Confirmed)
         {
             return new PanelRefundStepResult(TransitionRefusal.ConfirmationRequired) { Amount = amount, Iban = iban };
@@ -115,6 +115,28 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
             }
 
             refundId = born.RefundId;
+        }
+        else if (owed!.Type == RefundType.DefectClaimRescission) // non-null: without a born refund the owed record was found above
+        {
+            // A claim's goods receipt is paid by the rescission's one writer (K-808; K-1629 (3)): the 02 7.1.7 shares, the item's cap and the claim's check under this lock; on the
+            // transfer the firm's step is the sending itself (07 UC-131), so the started refund is marked sent and the axis moves by the sent refund's one rule.
+            ItemRecordResult rescinded = await _transitions.RescindDefectClaimAsync(
+                new RescindDefectClaimRequest(order.Id, owed.OrderItemId, request.Admin, request.ExpectedVersion, owed.Quantity) { ReturnId = owed.ReturnId }, ct);
+            if (rescinded.Refusal is { } refusal)
+            {
+                return new PanelRefundStepResult(refusal);
+            }
+
+            refundId = rescinded.RecordId ?? throw new InvalidOperationException("A rescission without a refusal carries its refund.");
+            if (way == PaymentMethod.BankTransfer)
+            {
+                RefundFacts sent = await _payment.MarkTransferRefundSentAsync(order.Id, refundId, ct)
+                    ?? throw new InvalidOperationException("The rescission's transfer refund was started in this unit and is open.");
+                if (await SentAsync(order, sent, request.Admin, ct) is { } notSent)
+                {
+                    return new PanelRefundStepResult(notSent);
+                }
+            }
         }
         else
         {
@@ -217,11 +239,13 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
             return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet);
         }
 
+        // 03 8.3.3.7 (K-1633 (2); D-1783): an item-bound amount is capped by the order's money only, as an itemless one - the item names what the refund is for; it is not
+        // the item's refund (that is the dönme's, capped by FirmRefundAmounts.ItemRefundLeftAsync).
         // K-1078: the paid money not yet given back, under the order's row lock - the sent and the started refunds, and the records whose refund is owed but not born yet (D-906), are deducted.
         decimal owedTotal = 0m;
         foreach (OwedRefundRecord owed in lines.Owed)
         {
-            owedTotal += (await FirmRefundAmounts.OfAsync(_db, _afterSales, order, owed, lines.Refunds, ct)).Amount;
+            owedTotal += (await FirmRefundAmounts.OfAsync(_db, _afterSales, _payment, order, owed, lines.Refunds, ct)).Amount;
         }
 
         decimal left = order.Total - await _payment.CommittedRefundTotalAsync(order.Id, ct) - owedTotal;
@@ -432,7 +456,7 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
         List<PanelRefundLine> result = [];
         foreach (OwedRefundRecord owed in lines.Owed)
         {
-            (decimal amount, _) = await FirmRefundAmounts.OfAsync(_db, _afterSales, order, owed, lines.Refunds, ct);
+            (decimal amount, _) = await FirmRefundAmounts.OfAsync(_db, _afterSales, _payment, order, owed, lines.Refunds, ct);
             string? iban = orderWay == PaymentMethod.BankTransfer ? lines.IbanOf(null, owed) : null;
             result.Add(new PanelRefundLine(owed.CauseId, null, owed.OrderItemId, owed.Type, owed.Quantity, amount, orderWay, iban, owed.RecordedAt)
             {
@@ -555,6 +579,8 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
         public static RefundPayeeSubject SubjectOf(PanelRefundFacts refund) =>
             RefundPayeeSubject.Of(refund.RefundId, refund.CancellationId, refund.LateDeliveryTerminationId, refund.WithdrawalId, refund.OrderItemId);
 
-        public static RefundPayeeSubject SubjectOf(OwedRefundRecord owed) => new(null, owed.RecordId, owed.OrderItemId);
+        // A claim's goods receipt carries no IBAN of its own record (the claim is none of the three that do): its item's, as the born rescission's (K-1629 (3)).
+        public static RefundPayeeSubject SubjectOf(OwedRefundRecord owed) =>
+            new(null, owed.Type == RefundType.DefectClaimRescission ? null : owed.RecordId, owed.OrderItemId);
     }
 }

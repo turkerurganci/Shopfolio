@@ -33,7 +33,7 @@ public sealed class AccountProfilePageTestsDefinition : ICollectionFixture<Colle
 /// collection database; the re-authentication is made through the application's own screen, so the single-use value is the one the application gave.
 /// </summary>
 [Collection(AccountProfilePageTestsDefinition.Name)]
-public sealed class AccountProfilePageTests : IAsyncLifetime
+public sealed partial class AccountProfilePageTests : IAsyncLifetime
 {
     private const string Entered = "orchid-lantern-4471-violet";
     private const string NewPassword = "amber-harbor-9023-quartz";

@@ -174,7 +174,7 @@ internal sealed class ResetModel : PageModel
 
         // The link was spent between the page and the button: nothing was written and the page tells the link is not valid, 200 (07 9.1.4; 2.5.3).
         Step = ResetStep.Invalid;
-        return Page();
+        return FormResults.LinkNoLongerValid(this);
     }
 
     // The step the link allows: a valid link opens the setting; a used one with the result code is the completed state; every other state - used without the code, run out, replaced, unknown - is the invalid state.

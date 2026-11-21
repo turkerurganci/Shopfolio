@@ -28,6 +28,7 @@ namespace Shopfolio.Pages.Panel;
 /// written back into the page.
 /// </summary>
 [NoStore]
+[ReauthenticationFormPage]
 internal sealed class MyAccountModel : PageModel
 {
     private readonly IAdministrationModule _administration;

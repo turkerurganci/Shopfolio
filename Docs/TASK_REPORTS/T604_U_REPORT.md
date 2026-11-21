@@ -1,6 +1,6 @@
 # T604 (U) — F5 kapısından kalan ürün kodu kalemleri
 
-**Faz:** F6 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-20
+**Faz:** F6 | **Durum:** ⏳ Devam ediyor (UE dilimleri UE1–UE5 kapandı; UH dalı ayrı) | **Tarih:** 2026-11-21
 
 T604 iki parça ve iki PR'da yürür (11 T604 KK1): **U** ürün kodu (bu rapor, dal `task/T604-urun-kodu`), **A** test aracı (dal `task/T604-test-araci`, PR #594). U parçası dilimlerle aynı dalda ilerler; her dilim bu dosyaya kendi başlığıyla ekler.
 
@@ -576,3 +576,169 @@ Bu dilimde dış varsayım yok.
 - ⚠ D-1539: görsel varlık denetimi artık alan denetiminden önce (tek yazım); ulaşılan ret aynı.
 - ⚠ A parçası da `07`/`09` sürümlerini yükseltti; sürüm satırı çakışması birleştirmede çözülür.
 - STATUS T604 tablo satırına dokunulmadı.
+
+---
+
+## Dilim UE5 — müşteri yazıcılarının işlem kararı, doğrulanmamış kaydın silinmesi, son sonucu belirsiz işaretleri (para ve güvenlik)
+
+İki işçide yapıldı (ilki kodu ve testleri yazdı, süre bütçesiyle bölündü — devir notu `devir-UE5.md`; ikincisi kayıtları, kırmızı–yeşil koşularını, D-894 ve D-1319 (2) kapanışını ve UE kapanışını yaptı); bu bölümün tabloları iki işçinin bütün işini kapsar.
+
+### Yapılan İşler
+
+| Kalem | Değişiklik |
+|---|---|
+| D-610 | Karar K-1633 (1). Müşteri iptali (`CancelItemAsync`) ve cayma (`DeclareWithdrawalAsync`) kararı zaten soruyordu. Eklendi: `OrderTransitions.ItemRecords.OpenDefectClaimAsync` (adet birden küçükse `InvalidInput`, sonra `CheckAsync(OpenDefectClaim, kalem, adet)` + `VerdictRefusal`), `ReopenDefectClaimAsync` müşteri dalı (`ReopenDefectClaimByCustomer`; adet yazıcıda), `OrderTransitions.RefundLine.EnterRefundIbanAsync` (kalemli istekte `EnterRefundIban`), `ChangeRefundIbanAsync` (`CorrectRefundIban`). AfterSales yazıcılarının denetimleri aynı kural işlevleriyle (`AfterSalesPeriodRules`, `ItemQuantities`) modül savunması olarak kaldı |
+| D-1374 | Karar K-1631 (6), ayrıntı K-1633 (3). `AccountDeletions.DeleteByAdministratorAsync`: hesap kilidinden sonra doğrulanmamış satır varsa iz satırı + satır silinir + `DisposalRecordType.PendingRegistration`, e-posta yok, `Deleted(0)`; yoksa eski yol. `Members.cshtml(.cs)`: doğrulanmamış hâlde aynı düğme ve onay; ikisi de yoksa 404. `07` UC-157 amaç, 404, yan etkiler (v0.48) |
+| D-137 | `[OutcomeUncertain]` UC-39, UC-40, UC-41 (`OrderScreenModels`), UC-43 (`AfterSalesScreenModels`), UC-53 (`Storefront/Verification`), UC-165 (`FirmIdentity` askıya alma), UC-177 (`AdminAccounts` kaldırma), UC-186 (`Panel/Verify`), UC-187 (`Panel/Revert`); `CustomerOperationPageModel` ve `WithdrawalPageModel` `IOutcomeTarget` → `RootPath` (`07` 6.4.2 "→ kök"); `NotMarkedYet` silindi |
+| D-1783 | Bilinçli kabul, K-1633 (2): kaleme bağlı UC-133 `03` 8.3.3.7'nin sipariş tavanıyla sınırlıdır; `PanelRefundSteps.ProcessAmountBasedRefundAsync` açıklama satırı; kod davranışı değişmedi |
+| D-894 | Kod yok: D-1525'in kararı (K-1624 (4)) `12` VAL-A239 ve VAL-A244'ün beklenen sonucunu UE2'de yazdı (`12` v0.37, satır 780 ve 790) — teyit isteğe alan olarak girmez, beyansız çağrı düzeltme yapmaz, teyidin değeri saklanmaz; saklama gerekmez. Satır ✅ |
+| D-1319 (2) | Bilinçli kabul, K-1633 (4): dijital dosyanın boyut reddi `InvalidImage` koduyla kalır — `04` 7.2.4.10 onu 7.3.2.18'in tek kodlu sınıfına bağlar (`FormFieldEnforcement` `7.3.2.18 → Image`); kod ve belge değişmez |
+| D-1599 | Daraltıldı (yönetici kararı): T604 U, PR #594 merge'ünden sonra UH dalında (`task/T604-urun-kodu-h`) — 422'nin yerleri #594'ün eşitlik tablolarında |
+| D-1773 | Daraltıldı: T604 U, UH dalı — yazmayan reddin yeniden gösterimi, para yazıcısına dokunmaz |
+| Kayıtlar | K-1633 (dört madde); `07` v0.48; `DEFERRED_BACKLOG.md` 6 satır yerinde (D-137, D-610, D-894, D-1319, D-1374 ✅; D-1599 daraltıldı); `DEFERRED_BACKLOG.d/T604-U.md` D-1783 ✅, D-1773 daraltıldı, yeni D-1806; `STATUS_CHANGELOG.d/T604-U.md` |
+
+### Etkilenen Modüller / Dosyalar
+
+- `src/Shopfolio.Web/Modules/` — `Ordering/OrderTransitions.ItemRecords.cs`, `Ordering/OrderTransitions.RefundLine.cs`, `Ordering/PanelRefundSteps.cs` (yorum), `Membership/AccountDeletions.cs`
+- `src/Shopfolio.Web/Pages/` — `Orders/OrderScreenModels.cs`, `Orders/AfterSalesScreenModels.cs`, `Panel/Members.cshtml(.cs)`, `Panel/AdminAccounts.cshtml.cs`, `Panel/FirmIdentity.cshtml.cs`, `Panel/Verify.cshtml.cs`, `Panel/Revert.cshtml.cs`, `Storefront/Verification.cshtml.cs`
+- Testler: Integration `Web/MemberRecordPageTests.cs`, `Model/MembershipAccountDeletionTests.cs` (`MembershipTests`); Unit `Consistency/OutcomeUncertainConsistencyTests.cs`
+- Belgeler: `07` UC-157 (v0.48), `PRODUCT_DISCOVERY_STATUS.md` (K-1633, belge tablosu), `DEFERRED_BACKLOG.md`, `DEFERRED_BACKLOG.d/T604-U.md`, `STATUS_CHANGELOG.d/T604-U.md`
+
+### Para ve güvenlik kalemleri (KK2)
+
+Kırmızı: kalemin `src` değişikliği geçici bozuldu, test koşuldu, sonra değişiklik geri kondu ve sınıf yeşil koşuldu (2026-11-21, `t604u-pg`, PostgreSQL 18 `track_commit_timestamp=on`).
+
+| Kalem | Test | Kırmızı (geçici bozma) | Yeşil |
+|---|---|---|---|
+| D-610 | `ItemRecordsTests.OpenDefectClaim_OnAnUndatedPhysicalItem_FollowsTheChannelRule_DeliveryFailedIncluded` (4 durum) | AfterSales `OpenDefectClaimAsync`'in kanal denetimi ve `OrderTransitions`'ın yeni kararı birlikte devre dışı: `(status: Preparing, opens: False)` "Expected: False, Actual: True" | ✓ — yalnız modülün kanal denetimi devre dışıyken (karar yerinde) 4/4 yeşil: kuralı karar uygular; denetim geri konunca da yeşil |
+| D-1374 | `MemberRecordPageTests.AnUnverifiedRegistration_IsDeletedOnTheRequest_WithTheConfirmation_ItsOwnDisposalType_TheTrailRow_AndNoEmail_D1374`; `MembershipTests.DeleteOnRequest_WithoutAnActor_Throws_AnUnverifiedRegistrationToo_D1374` | doğrulanmamış kayıt dalı kapatıldı (sorgu hiç satır bulmaz): "Expected: SeeOther, Actual: NotFound"; "Assert.Throws() Failure: No exception was thrown" | ✓ |
+| D-137 | Unit `OutcomeUncertainConsistencyTests.MarkedHandlers_EqualTheUseCaseListOf07_InBothDirections_EachOnOneHandler_D137` | `Panel/Revert`'in `[OutcomeUncertain("UC-187")]` işareti kaldırıldı: "Collections differ at index 7 — Expected: UC-187" | ✓ |
+| D-1783 | `OrderDetailPageTests.ProcessAmountBasedRefund_AnEmptyZeroOrExceedingAmount_Is422_AndWritesNothing_KK7` (sipariş tavanı) | — kod değişmedi (bilinçli kabul, yalnız yorum); kırmızı kurulacak değişiklik yok | ✓ (var olan test) |
+
+- **Var olan testler:** `MemberRecordPageTests.TheResult_...KK2` (bekleyen kayıtta düğme artık VAR) ve `ADeletionOfAnAccountThatIsNotThere_Answers404_InBothSteps_KK7` (yeniden adlandı, bekleyen kayıt yerine olmayan kimlik) K-1631 (6) gereği değişti; öteki testler değişmedi — `ItemRecordsTests`, `CustomerOperationsTests`, `MemberRecordPageTests`, `MembershipTests` 255/255.
+- **Çıkış yolu ve geri alma:** şema ve göç yok; geri alma commit'lerin `git revert`'üdür. D-610'da karar yazıcının önündedir, modül denetimi yerinde kaldığı için karar geri alınsa da yazıcı aynı kuralla reddeder. D-1374 geri alınırsa doğrulanmamış kayıt yine 404 alır (silinmiş kayıtlar geri gelmez; imha kaydı yazılmıştır).
+- **Güvenlik taraması:** silme yalnız yönetici oturumuyla, onaylı adımda ve aynı iz satırıyla (aktörsüz çağrı istisna — test); doğrulanmamış kayıtta e-posta gönderilmez (doğrulanmamış adrese yazılmaz). Karar kilitli siparişte okunur (yarışta bayat karar yok). Yeni bağımlılık, sır, girdi yolu yok.
+
+### Kabul Kriterleri Kontrolü (UE5 payı)
+
+| Madde | Durum | Kanıt |
+|---|---|---|
+| KK1 — UE5'in kalemleri kapalı ya da gerekçeli | ✓ | 6 ✅ (D-610, D-1374, D-137, D-894, D-1319, D-1783); D-1599, D-1773 gerekçeyle UH dalına, hedef T604 |
+| KK2 — para ve güvenlik kalemleri ayrı başlıkta; kırmızı–yeşil; eski testler aynı | ✓ | yukarıdaki tablo; değişen iki eski test spec gereği (K-1631 (6)) |
+| KK3 — tarayıcı kalemleri | — | UE5'te tarayıcı kalemi yok; A parçası |
+| KK4 — D-1678 | — | A parçası |
+| KK5 — kapanan satır `✅ Çözüldü → T604`; daraltılan satır yeni hedef + gerekçe; sayaç | ✓ | 6 satır ✅, 2 satır daraltıldı, yeni D-1806 parça dosyasında; sayaca dokunulmadı (talimat) |
+| `09 §25` ilgili satırlar | ✓ | tek kural evi: düğme ve yazıcı aynı karar (`CheckAsync`); işaret kümesi tek liste (`07` 6.4.2) |
+| Güvenlik taraması | ✓ | yukarıda |
+
+### Öz denetim (UE5)
+
+| Denetim | Sonuç |
+|---|---|
+| D-610 "yazıcıların kendi koşul denetimleri karara indirilir (tek işlev)" | ✓ — dört müşteri yazıcısı kararı sorar; modül denetimi aynı kural işlevini çağırır (ikinci kural evi değil, K-1633 (1)); kalemsiz IBAN isteği ⚠ D-1806 |
+| D-1374 "karar ve UC-157 kodu birlikte" | ✓ — K-1631 (6) + K-1633 (3), kod, `07`, iki test |
+| D-137 "son task listeyi boşaltır ve siler" | ✓ — `NotMarkedYet` yok, dokuz işaret, test iki yönlü |
+| D-1783 "karar kaydıyla kalem tavanı ya da sipariş tavanının yettiği bilinçli kabul" | ✓ — K-1633 (2), yorum, var olan test |
+| D-894 "`12` hücreleri D-1525'in kararıyla netleşir" | ✓ — `12` VAL-A239/A244 (v0.37); `06` saklama yok |
+| D-1319 (2) "dijital dosya ekranında uygun kod seçilir" | ✓ — K-1633 (4) bilinçli kabul (belge tek kod ister) |
+| Sık FAIL (1) bekçi/tarama istisnası geniş | uygulanmaz — yeni istisna yok; `NotMarkedYet` istisnası kalktı |
+| (2) tarama çağrı biçimi | ✓ — işaret taraması yansımayla (öznitelik biçimi değişmedi) |
+| (3) 06 varsayılan / FK dizini | uygulanmaz — şema değişmedi |
+| (4) aynı kuralı anan öteki yerler | ✓ — `07` UC-157'nin amaç, 404 ve yan etki cümleleri birlikte; `07` sürüm satırı ve `PRODUCT_DISCOVERY_STATUS.md` belge tablosu v0.48 |
+| (5) belge kuralını değiştiren metin karar kaydısız | ✓ — `07` metni K-1633 (3)'ü anar |
+| Kısmen karşılanan kriter | yok — açık iki kalem gerekçeli daraltıldı |
+
+### Test Sonuçları
+
+- **Unit:** TAM 8098/8098 ✓ (`--filter-trait Consistency=true` 667 + `--filter-not-trait Consistency=true` 7431; tek çağrı 590 sn'yi aşıyor).
+- **Integration:** koşulan sınıflar `ItemRecordsTests`, `CustomerOperationsTests`, `MemberRecordPageTests`, `MembershipTests` — 255/255 (tek çağrı). **TAM: CI.**
+- **`dotnet format`:** dalın değiştirdiği 149 `.cs` dosyası, değişiklik yok.
+- **E2E / tarayıcı:** UE5'te tarayıcı kalemi yok.
+
+### Commit & PR
+
+- Commit'ler: c7f55efd (kod), dfdf0435 (kayıtlar) ve kapanış commit'i
+- PR: #595
+
+### Dış Varsayımlar
+
+Bu dilimde dış varsayım yok.
+
+### Notlar
+
+- ⚠ D-610'un kırmızısı ayıp talebi açma yolunda kuruldu; IBAN girişi, düzeltmesi ve müşterinin yeniden açması için ayrı kırmızı yok — modülün denetimi yerinde olduğundan karar kaldırılınca uçtan ret değişmez; o yolların sınaması var olan testlerin değişmeden yeşil kalmasıdır (`CustomerOperationsTests`, `ItemRecordsTests`).
+- ⚠ D-1806 (yeni, para): kalemsiz geç ödeme IBAN isteği kararın olgusunda yok; hedef UH dalı, kendi kırmızı–yeşil başlığıyla — UE5 son UE dilimidir.
+- ⚠ D-1773 UH dalına: yazmayan reddin yeniden gösterimi, para yazıcısına dokunmaz.
+- ⚠ D-1599 UH dalına (yönetici kararı): PR #594 açık.
+- ⚠ A parçası (`K-1632`) da `07` sürümünü yükseltti (v0.46); sürüm satırı çakışması birleştirmede çözülür.
+- STATUS T604 tablo satırına dokunulmadı.
+
+---
+
+## UE kapanışı — UE1–UE5'in bütün kalemleri
+
+UE dilimleri (para ve güvenlik) bu dilimle kapandı. Tablo bütün UE kalemlerini (önceki işçilerin yaptıkları dahil) satır başına denetler; her ✅ satırın kanıtı kendi diliminin "Para ve güvenlik kalemleri (KK2)" tablosundadır. Backlog satırları 2026-11-21'de yeniden okundu: aşağıdaki ✅'lerin hepsi `✅ Çözüldü → T604` taşır.
+
+| Kalem | Dilim | Durum | Kanıt / gerekçe ve yeni hedef |
+|---|---|---|---|
+| D-568 | UE1 | ✅ | `ItemRecordRulesTests..._D568` (kırmızı–yeşil UE1) |
+| D-906 | UE1 | ✅ | `ItemRecordsTests.PriceReduction_..._D906` |
+| D-1195 | UE1 | ✅ | `AfterSalesScreenTests.TheReturnRejection_..._D1195` |
+| D-1281 | UE1 | ✅ | `LateDeliveryAndFirmCancellationTests..._D1281` |
+| D-1382 | UE1 | ✅ | `AfterSalesScreenTests.APendingRefundBornAfterItsRecord_..._D1382` |
+| D-1439 | UE1 | ✅ | K-1622; `AfterSalesScreenTests..._D1439`, `OrderScreenTextsTests..._D1439` |
+| D-1440 | UE1 | ✅ | `AfterSalesScreenTests.TheDeclarationsOfOneRequest_..._D1440` |
+| D-1588 | UE1 | ✅ | `ItemRecordsTests.ThePayeeRead_..._D1588` |
+| D-1598 | UE1 | ✅ | `OrderDetailPageTests.CardRemovalWindow_..._D1598`, `OrderCorrectionTests.PanelRemoval_..._D1598` |
+| D-1702 | UE1 | ✅ | `AfterSalesScreenTests.TheWithdrawalsEmptyIban_..._D1702` |
+| D-1450 | UE2 | ✅ | `OrderPageTests..._D1450`, `CheckoutPageTests..._D1450` |
+| D-1246 | UE2 | ✅ | Unit `CartRulesTests..._D1246` |
+| D-1197 | UE2 | ✅ | K-1624 (1); `OrderPageTests.AClosedPaidDigitalItem_..._D1197_D1259` |
+| D-1259 | UE2 | ✅ | aynı test (ayrı kırmızı koşu) |
+| D-1542 | UE2 | ✅ | `PanelOrderGate`; `OrderDetailPageTests` + `OrderCorrectionTests` değişmeden 165/165 |
+| D-1544 | UE2 | ✅ | `OrderDetailPageTests.AFormValueThatDoesNotBind_..._D1544` |
+| D-1401 | UE2 | ✅ | K-1624 (3); `AfterSalesScreenTests.AForeignItem_..._D1401` |
+| D-769 | UE2 | ✅ | `OrderConfirmationTests.ThePaymentStepsSummary_..._D769` |
+| D-650 | UE2 | ✅ | K-1624 (2); Unit `ShippingChargeTests..._D650` |
+| D-1525 | UE2 | ✅ | K-1624 (4); `OrderCorrectionTests` KK4, KK7; `12` VAL-A239/A244 |
+| D-610 | UE2 → UE2b → UE5 | ✅ | K-1633 (1); UE5 KK2 |
+| D-892 | UE2 → UE2b | ✅ | K-1629 (3); `OrderDetailPageTests.AClaimsGoodsReceipt_..._D892` |
+| D-141 | UE3 | ✅ | K-1627 (1); Unit `FieldMessageCatalogTests..._D141` |
+| D-608 | UE3 | ✅ | `MembershipTests.DeleteOwn_..._KK1` (spec gereği değişti) |
+| D-1190 | UE3 | ✅ | K-1627 (2); `CartPageTests..._D1190`, `CheckoutPageTests..._D1190` |
+| D-1317 | UE3 | ✅ | dört sınıfta `..._D1317` |
+| D-1375 | UE3 | ✅ | istisna dalı; kırmızı kurulamaz (dal kilit altında erişilemez) ⚠ UE3 |
+| D-1389 | UE3 | ✅ | K-1627 (4); `PanelHomeAndVerificationPagesTests..._D1389_D1454` |
+| D-1454 | UE3 | ✅ | K-1627 (4); üç sayfa + istisna kümesi (Unit `ReauthenticationFormPageTests`) |
+| D-1473 | UE3 | ✅ | `MyAccountPageTests..._D1473` |
+| D-1474 | UE3 | ✅ | K-1627 (3); `AccountProfilePageTests..._D1474`, `MyAccountPageTests..._D1474` |
+| D-1508 | UE3 | ✅ | `EmailRevertPageTests..._D1508` |
+| D-1374 | UE3 → UE4 → UE5 | ✅ | K-1631 (6), K-1633 (3); UE5 KK2 |
+| D-1617 | UE2b | ✅ | yorumlar; `grep` eski üç model adını `src`'de bulmaz |
+| D-1758 | UE2 (yeni) → UE2b | ✅ | K-1629 (1); `OrderPageTests..._D1758` |
+| D-1759 | UE2 (yeni) → UE2b | ✅ | K-1629 (2); `OrderConfirmationTests..._D1759` |
+| D-1783 | UE2b (yeni) → UE5 | ✅ | K-1633 (2) bilinçli kabul; sipariş tavanı testi |
+| D-357 | UE4 | ✅ | K-1631 (2); Unit `SearchEngineDataTests`, `RichTextSourceScanTests..._D357` |
+| D-1136 | UE4 | ✅ | K-1631 (1); `ImageEndpointTests..._D1136` |
+| D-1711 | UE4 | ✅ | `ImageEndpointTests..._D1711`; tarayıcı envanteri eksik görsel sıfır |
+| D-1539 | UE4 | ✅ | `PanelContentEditingTests..._D1539` |
+| D-1283 | UE4 | ✅ | (2) K-1631 (4), `BranchFlowTests..._D1283`; (1) PR #594'te (A1) |
+| D-1319 | UE4 → UE5 | ✅ | (1) Unit `ControlComponentModelTests..._D1319`; (2) K-1633 (4) bilinçli kabul |
+| D-137 | UE5 (A6'dan) | ✅ | UE5 KK2 |
+| D-894 | UE5 (A6'dan) | ✅ | K-1624 (4); `12` VAL-A239/A244 |
+| D-1599 | UE4 → UE5 | ⚪ daraltıldı | K-1631 (5) kararı verildi; kod ve belge hizası + VAL-A238 koşumu → **T604 U, PR #594 merge'ünden sonra UH dalı** (`task/T604-urun-kodu-h`): 422'nin yerleri #594'ün eşitlik tablolarında |
+| D-1773 | UE3 (yeni) | ⚪ daraltıldı | → **T604 U, UH dalı**: yazmayan reddin yeniden gösterimi (ortak kanca + sayfa envanteri), para yazıcısına dokunmaz |
+| D-1806 | UE5 (yeni) | ⚪ yeni | → **T604 U, UH dalı** (para, kendi kırmızı–yeşil başlığıyla): kalemsiz geç ödeme IBAN isteği kararın olgusunda yok; davranış doğru (modül denetimi) |
+
+**Hedefi T604 olan öteki kalemler (U-E dışı):** A parçasının kalemleri (A1–A7: D-697, D-981, D-1167, D-1284, D-1368, D-1424, D-1494, D-1676, D-1725, D-464, D-572, D-801, D-1289, D-1301, D-1394, D-1405, D-1723, D-1005, D-1020, D-1120, D-1130, D-1228, D-1418, D-1433, D-1455, D-1456, D-1678, D-1704, D-1709, D-1710, D-1732, D-1736, D-1746, D-146, D-1226, D-1285, D-1614, D-1626, D-1627, D-1636, D-1656, D-1657, D-1661, D-1671, D-1140, D-1244, D-1311, D-1348, D-1363, D-1366, D-1397, D-1452, D-1471, D-1677, D-1546, D-1547) PR #594'te; UH dilimlerinin kalemleri (UH1–UH3: D-138, D-1022, D-1134, D-1135, D-1143, D-1146, D-1173, D-1174, D-1216, D-1387, D-1550, D-283, D-1189, D-1243, D-1245, D-1275, D-1276, D-1398, D-1400, D-1631, D-1673, D-1703, D-1705, D-442, D-880, D-1330, D-1332, D-1334, D-1365, D-1386, D-1412, D-1464, D-1604, D-1701, D-1329) dal `task/T604-urun-kodu-h`'de. Bu PR onlara dokunmaz; satırları kendi parçalarının raporunda denetlenir.
+
+### KK1–KK5 payları (UE bütünü)
+
+| Madde | Durum | Kanıt |
+|---|---|---|
+| KK1 — envanter; her kalem kapalı ya da gerekçeli | ✓ | yukarıdaki tablo: 45 ✅, 2 daraltıldı + 1 yeni, üçü yeni hedefli (UH dalı) ve gerekçeli |
+| KK2 — para ve güvenlik kalemleri ayrı başlıkta; kırmızı–yeşil; eski testler aynı | ✓ | her dilimin "Para ve güvenlik kalemleri (KK2)" tablosu; spec gereği değişen eski testler dilim tablolarında adıyla (UE3 `DeleteOwn_..._KK1`, UE2b bedel indirimi yazıcısı, UE4 `ContentRelationsTests` yardımcısı, UE5 iki `MemberRecordPageTests` testi); kırmızısı kurulamayan iki kalem gerekçeli (D-1375 erişilemez dal, D-1783 kod değişmedi) |
+| KK3 — tarayıcı kalemleri üç motorda | — (pay) | U parçasında tarayıcı kalemi yok; UE4'ün iki tarayıcı ayıklama satırı chromium iki yolda yeşil, firefox/webkit **TAM: CI E2E** |
+| KK4 — D-1678 | — | A parçası (PR #594) |
+| KK5 — backlog satırları ve sayaç | ✓ (pay) | kapanan her satır `✅ Çözüldü → T604`, daraltılan satır yeni hedef + gerekçe; yeni kalemler (D-1758, D-1759, D-1773, D-1783, D-1806) `DEFERRED_BACKLOG.d/T604-U.md`'de; sayaç parça dosyasından birleştirmede (talimat: sayaca dokunulmaz) |
+| `09 §25` ilgili satırlar; güvenlik taraması | ✓ | her dilimin KK tablosu ve güvenlik maddesi |

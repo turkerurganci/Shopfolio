@@ -53,7 +53,7 @@ public sealed partial class RegistrationPageTests
         Assert.Equal(!gateOpen, html.Contains(SalesClosedMessages.DataEntryText, StringComparison.Ordinal));
         Assert.Equal(gateOpen, html.Contains("value=\"kasnak@example.com\"", StringComparison.Ordinal));
         Assert.DoesNotContain(Entered, html, StringComparison.Ordinal);
-        Assert.Equal(gateOpen, html.Contains(ForgeryProtectionFilter.Message, StringComparison.Ordinal));
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(html, System.Text.RegularExpressions.Regex.Escape(ForgeryProtectionFilter.Message)));
         await using AppDbContext db = NewContext();
         Assert.Equal(0, await db.Customers.CountAsync(Ct));
     }

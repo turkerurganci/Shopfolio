@@ -55,6 +55,10 @@
 else if (!Model.IsOpen)
 {
     <partial name="_Message" model="Messages.InPlace(MessageMeaning.Info, SalesClosedMessages.DataEntryText)" />
+    @foreach (string text in summary.FormMessages)
+    {
+        <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, text)" />
+    }
 }
 else
 {

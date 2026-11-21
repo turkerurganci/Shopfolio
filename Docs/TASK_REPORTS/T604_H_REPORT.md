@@ -112,6 +112,51 @@ Var olan testler değişmeden geçti: `OrderDetailPageTests` (ship/teslim mesaj 
 
 **Öz denetim (düzeltme 1 dilimi; tam tablo PR'ı açan dilimde):** KK1 — D-1412, D-1833, D-1812, D-1550, D-1844, D-1859 kabul cümleleriyle kapandı (yukarıdaki tablo), D-1843 açık ve hedefi T604; KK2 — bu dilimde para kalemi yok; KK5 — kapanan satırlar `✅ Çözüldü → T604`, açık satırın hedefi ve gerekçesi yazılı, "Aktif kalem" sayacına dokunulmadı. Sık FAIL: (1) istisna eklenmedi; (2) tarama değişmedi; `FormFieldPlaceEnforcement` kaynak dizgileri (`RefuseAsync(id, ShipmentMissingText…)`, `…DeliveryDateMissingText…`) değişmeden tutuyor; (3) göç yok; (4) D-1550/D-1773 satırları ve rapor tablosu aynı olguyla hizalandı; (5) 09 değişmedi.
 
+### Düzeltme 1 — D-1843 (S): hesap, ürün ve vitrin sayfaları (2026-11-21)
+
+Bölüşüm: yönetici; bu dilim `WaitingPages`'in Account (3), ProductModel ve Storefront (6) satırlarındaki 10 sayfayı aldı; panel sayfaları öteki işçide. Kural: sahtecilik reddinin 400'ü yalnız okur — tek kullanımlık değer tüketilmez, izin düşürülmez ya da harcanmaz, sorgu değeri okunmaz; sayfa GET'inin gösterdiğini ve eylem düzeyi mesajı (`04` 2.7.3.1, D-1844 kalıbı) çizer.
+
+| Sayfa | Okuma yolu | Ne okunur / ne okunmaz | Kırmızı (src geri alındı) | Yeşil (Integration) |
+|---|---|---|---|---|
+| Storefront/Verification | kanca `IReadsOnForgeryRefusal` | yoldaki anahtarla `ReadEmailLinkAsync` (yalnız okur); sonuç kodu yok, düğme yerinde | ✓ kırmızı | `RegistrationPageTests.TheLandingPagesForgeryRefusal_…_D1843` |
+| Storefront/EmailRevert | kanca | yoldaki anahtarla `ReadEmailRestoreLinkAsync`; geri alma ve tüketim yok, "done" hâli yok | ✓ kırmızı | `EmailRevertPageTests.TheForgeryRefusal_…_D1843` |
+| Storefront/PasswordReset | kendi sarmalayıcısı (422 yolu 400'ü de kapsar) | ayar adımında bağlantı yalnız okunur (tüketim yok), istek adımında gönderilen adres | ✓ kırmızı | `CustomerPasswordResetAndReauthenticationPageTests.TheResetPagesForgeryRefusal_…_D1843` |
+| Account/Reauthentication | kendi sarmalayıcısı (iki formun işlemi) | hesabın yolları okunur; GET'in izin düşürmesi (yazma) yapılmaz | ✓ kırmızı | `…TheReauthenticationScreensForgeryRefusal_…_D1843` |
+| Account/Profile | kendi sarmalayıcısı (422 yolu 400'ü de kapsar) | hesap okunur; iznin değeri yalnız denetlenir (düz okuma), harcanmaz ve düşürülmez; gönderilen değerler | ✓ kırmızı | `AccountProfilePageTests.TheForgeryRefusal_…_D1843` |
+| Account/Addresses | yeni sarmalayıcı | üyenin kendi kayıtları; gönderilen form açık kalır, düzenleme formu yalnız bu hesabın kaydı için | ✓ kırmızı | `AccountAddressAndOrderHistoryPageTests.TheForgeryRefusal_…_D1843` |
+| ProductModel | yeni sarmalayıcı | ürün GET'teki gibi (yönetici önizlemesi dahil), formun adlandırdığı varyant ve yazılan adet; mesaj düğmenin yanında (`BuyState`); ürün yoksa GET'in 404'ü (önceden görünüm istisna atıyordu, 500) | ✓ kırmızı | `StorefrontSearchAndProductTests.TheForgeryRefusal_…_D1843` |
+| Storefront/Contact | yeni sarmalayıcı | kimlik bloğu, şubeler, formun kapısı; gönderilen değerler (tuzak alanı boş) | ✓ kırmızı (açık ve kapalı) | `ContactPageTests.TheForgeryRefusal_…_D1843` (iki durum) |
+| Storefront/SignIn | var olan sarmalayıcı (okuma zaten doğruydu: GET veritabanını yalnız sorguya bağlı yeniden gönderimde okur) | gönderilen adres ve yerel dönüş yolu; eksik olan eylem mesajıydı | ✓ kırmızı (mesaj) | `CustomerSignInPageTests.TheForgeryRefusal_…_D1843` |
+| Storefront/Register | var olan sarmalayıcı (okuma zaten doğruydu) | kapı ve gönderilen değerler; kapalı kapı hâline de eylem mesajı eklendi | — (okuma önceden yeşil; kapalı hâl mesajı yeni) | `RegistrationPageTests.TheRegistrationsForgeryRefusal_…_D1843` (iki durum) |
+
+Envanter: `ForgeryRefusalReadInventoryTests.WaitingPages` bu 10 satırı çıkardı; kanca listesi `EmailRevertModel`, `VerificationModel` ile beşe çıktı; `OwnReadPages` sekiz sayfayla on oldu. `NavigationInventory` 3.7.5: ürün sayfasının 404 kanıtı iki yerde (GET ve 400). Eylem mesajı kimlikleri: `addresses-`, `account-`, `reauth-`, `contact-`, `email-revert-`, `password-reset-`, `sign-in-`, `verification-action-message`.
+
+| Koşu | Sonuç |
+|---|---|
+| Derleme `-warnaserror` (Web, Unit, Integration) | ✓ 0 uyarı |
+| Unit TAM | ✓ 8325/8325 (ilk koşuda `NavigationConsistencyTests` kırmızısı 3.7.5 kanıt sayısıydı; düzeltildi, sınıf yeniden ✓) |
+| Integration (ilgili sınıflar, TAM: CI) | ✓ 179/179 (EmailRevertPageTests, RegistrationPageTests, CustomerPasswordResetAndReauthenticationPageTests, AccountAddressAndOrderHistoryPageTests, AccountProfilePageTests, CustomerSignInPageTests) · ✓ 146/146 (ContactPageTests, StorefrontSearchAndProductTests, PageFormPatternTests, OneTimeValueTests, ForgeryProtectionTests, CartPageTests, CategoriesPageTests) · Register kapalı hâl eki sonrası ✓ 74/74 (RegistrationPageTests, CustomerSignInPageTests) |
+| Kırmızı–yeşil | ✓ src geri alınınca 12 yeni testin 10'u kırmızı (Register iki durumu önceden yeşil — okuma zaten doğruydu); geri getirince 12/12 yeşil |
+| `dotnet format` (dalın değiştirdiği `.cs`) | ✓ değişiklik yok |
+
+**Öz denetim (bu dilimin satırları; UH'nin tam tablosu PR'ı bitiren son işçide):**
+
+| Madde | Durum | Kanıt |
+|---|---|---|
+| D-1843 — 10 sayfa (S payı) | ✓ | yukarıdaki tablo; `WaitingPages` yalnız panel satırlarını taşır |
+| D-1844 payı — eylem mesajı bu 10 sayfada | ✓ | her testte mesaj (çoğunda tek kez ve kimliğiyle) |
+| Tek kullanımlık değer tüketilmez (doğrulama, geri alma, sıfırlama bağlantısı; yeniden doğrulama izni) | ✓ | testlerde `UsedAt` boş, `ReauthenticationTokenHash` duruyor, izin verilmedi |
+| Ret yolu yazmaz (oturum, deneme, sepet, iletişim isteği, gönderim satırı) | ✓ | testlerin DB denetimleri |
+| Sorgu değeri ret yolunda okunmaz | ✓ | kanca ve sarmalayıcılar yalnız yol değeri ve form argümanını okur (PasswordReset'in ayar adımı istisna: bkz. ⚠) |
+| Envanter kapalı liste yalnız kısalır | ✓ | `ForgeryRefusalReadInventoryTests` (3 test ✓) |
+| Kural sayısını anan öteki yerler | ✓ | kanca listesi testi beşe, `NavigationInventory` 3.7.5 ikiye güncellendi |
+| Var olan testler değişmeden geçer | ✓ | yukarıdaki sınıflar; yalnız iki test sınıfı `partial` oldu (`ContactPageTests`, `CustomerSignInPageTests`) |
+
+⚠ (kolay kararlar, sahip yerine):
+- Eylem mesajı sekiz sayfada sayfanın başında (D-1844'ün kategori kalıbı); ürün sayfasında düğmenin yanında (var olan `BuyState` iletisi), kayıt sayfasında var olan düğme yanı döngüsü.
+- PasswordReset ayar adımı ret yolunda var olan 422 yolunun `LoadStepAsync`'ini kullanır; bu yöntem "tamamlandı" sonuç kodunu sorgudan okur — yalnız kullanılmış bağlantının ifadesini seçer, yazmaz; 422 ile aynı davranış korundu.
+- `OwnReadPages` istisnası sayfanın sarmalayıcıyı bildirmesine bakar; 400 davranışının kanıtı her sayfanın Integration testidir (D-1864, DÜŞÜK).
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Yok

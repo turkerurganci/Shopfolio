@@ -23,7 +23,7 @@ namespace Shopfolio.Pages.Storefront;
 /// </summary>
 [KeyedLinkPage]
 [NoStore]
-internal sealed class EmailRevertModel : PageModel
+internal sealed class EmailRevertModel : PageModel, IReadsOnForgeryRefusal
 {
     private readonly IMembershipModule _membership;
     private readonly ITransactionRunner _transactions;
@@ -38,6 +38,9 @@ internal sealed class EmailRevertModel : PageModel
 
     /// <summary>The key of the link, as the address holds it: the button's form posts back to it.</summary>
     public string LinkKey { get; private set; } = string.Empty;
+
+    /// <summary>True on the forgery check's 400 (07 2.5.4; D-1843): the page draws the check's action-level message in place (04 2.7.3.1).</summary>
+    public bool ForgeryRefused { get; private set; }
 
     /// <summary>What the page tells for the link's state now.</summary>
     public EmailRevertLanding Landing { get; private set; } = EmailRevertLandings.Of(VerificationLinkStatus.Missing, done: false, notApplied: false);
@@ -80,6 +83,18 @@ internal sealed class EmailRevertModel : PageModel
         EmailRevertLinkReading now = await _membership.ReadEmailRestoreLinkAsync(key, ct);
         Show(key, now.Status, done: false, notApplied: false);
         return FormResults.LinkNoLongerValid(this);
+    }
+
+    /// <summary>
+    /// The page the forgery check's 400 shows again (D-1773, D-1843): the link as it stands, read by the key the address holds - the same read as the GET, which reverts and consumes nothing - and not the
+    /// done state, so the refused button stays where it was. The query is not read.
+    /// </summary>
+    public async Task ReadAfterForgeryRefusalAsync(CancellationToken ct)
+    {
+        string key = RouteData.Values["key"] as string ?? string.Empty;
+        EmailRevertLinkReading reading = await _membership.ReadEmailRestoreLinkAsync(key, ct);
+        ForgeryRefused = true;
+        Show(key, reading.Status, done: false, notApplied: false);
     }
 
     private void Show(string key, VerificationLinkStatus status, bool done, bool notApplied)

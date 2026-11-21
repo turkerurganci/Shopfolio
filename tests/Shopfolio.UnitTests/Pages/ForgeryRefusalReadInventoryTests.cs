@@ -14,26 +14,29 @@ namespace Shopfolio.UnitTests.Pages;
 /// </summary>
 public sealed class ForgeryRefusalReadInventoryTests
 {
-    /// <summary>The pages that read after the filters on their own (D-1190).</summary>
-    private static readonly string[] OwnReadPages = ["Shopfolio.Pages.Storefront.CartModel", "Shopfolio.Pages.Storefront.CheckoutModel"];
-
     /// <summary>
-    /// The pages whose GET read depends on a query value, a single-use value, the session's permission or the sent values (the contact form's typed text), so the read for the 400 page needs its own
-    /// safe split rather than the GET's call: D-1773 stays open for them. The list only shrinks.
+    /// The pages that read after the filters on their own (D-1190): the page shown again needs the sent form - a handler argument the hook does not see - so the page's own wrapper reads after the 400
+    /// (D-1843). Each has an Integration test of its 400 page.
     /// </summary>
-    private static readonly string[] WaitingPages =
+    private static readonly string[] OwnReadPages =
     [
         "Shopfolio.Pages.Account.AddressesModel",
         "Shopfolio.Pages.Account.ProfileModel",
         "Shopfolio.Pages.Account.ReauthenticationModel",
         "Shopfolio.Pages.ProductModel",
+        "Shopfolio.Pages.Storefront.CartModel",
+        "Shopfolio.Pages.Storefront.CheckoutModel",
         "Shopfolio.Pages.Storefront.ContactModel",
-        "Shopfolio.Pages.Storefront.EmailRevertModel",
         "Shopfolio.Pages.Storefront.PasswordResetModel",
         "Shopfolio.Pages.Storefront.RegisterModel",
         "Shopfolio.Pages.Storefront.SignInModel",
-        "Shopfolio.Pages.Storefront.VerificationModel",
     ];
+
+    /// <summary>
+    /// The pages whose GET read depends on a query value, a single-use value, the session's permission or the sent values (the contact form's typed text), so the read for the 400 page needs its own
+    /// safe split rather than the GET's call. The list only shrinks: empty since D-1843 gave every one of its 23 pages its own safe read (the hook or its own wrapper), and a page cannot join it.
+    /// </summary>
+    private static readonly string[] WaitingPages = [];
 
     [Fact]
     public void EveryPageWithAPostHandler_HasTheHook_ReadsBeforeTheCheck_ReadsOnItsOwn_ReadsNothing_OrIsOnTheClosedWaitingList_D1773()
@@ -80,8 +83,8 @@ public sealed class ForgeryRefusalReadInventoryTests
 
         Assert.Equal(
             [
-                "AdminAccountsModel", "CategoriesModel", "ContentFormModel", "ContentListModel", "CouponsModel", "InviteModel", "MembersModel", "MyAccountModel", "OrderDetailModel",
-                "ProductFormModel", "ReauthModel", "RequestDetailModel", "ResetModel", "RevertModel", "SignInModel", "VerifyModel",
+                "AdminAccountsModel", "CategoriesModel", "ContentFormModel", "ContentListModel", "CouponsModel", "EmailRevertModel", "InviteModel", "MembersModel", "MyAccountModel",
+                "OrderDetailModel", "ProductFormModel", "ReauthModel", "RequestDetailModel", "ResetModel", "RevertModel", "SignInModel", "VerificationModel", "VerifyModel",
             ],
             hooked);
         Assert.All(OwnReadPages, name => Assert.Contains(name, PagesWithPostHandler().Select(t => t.FullName)));

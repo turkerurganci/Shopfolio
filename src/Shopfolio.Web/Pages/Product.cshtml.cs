@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
@@ -55,6 +56,38 @@ public sealed class ProductModel : PageModel
 
     /// <summary>The page is closed to the search engines (02 3.30.6; K-1178): a draft preview, the archived page and any address that carries a selection or a notice.</summary>
     public bool ClosedToSearchEngines { get; private set; }
+
+    /// <summary>
+    /// The forgery check answers 400 before the handler (07 2.5.4; D-1773, D-1843): the page shown again reads the product as the GET does for this visitor - a read, the refusal wrote nothing and added
+    /// nothing to a cart - with the variant the form named (the default one when it names none on sale) and the typed quantity. The query is not read and the page is closed to the search engines. An
+    /// address that holds no product for this visitor has no page to draw: the same 404 as the GET.
+    /// </summary>
+    public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        PageHandlerExecutedContext executed = await next();
+        if (View is not null || executed.Exception is not null || executed.Result is not PageResult { StatusCode: FormResults.ForgeryRefusedStatus })
+        {
+            return;
+        }
+
+        CancellationToken ct = HttpContext.RequestAborted;
+        string slug = RouteData.Values["slug"] as string ?? string.Empty;
+        ProductPage page = await _catalog.GetProductPageAsync(AddressRules.SlugForLookup(slug), await HttpContext.HasAdminSessionAsync(), ct);
+        if (page.Kind == ProductPageKind.NotFound)
+        {
+            executed.Result = NotFound();
+            return;
+        }
+
+        AddCartItemInput? sent = context.HandlerArguments.Values.OfType<AddCartItemInput>().FirstOrDefault();
+        ProductPageVariant? shown = sent?.ReadVariantId() is Guid variantId && VariantSelection.Find(page, variantId) is { Status: PublishStatus.Published } named
+            ? named
+            : VariantSelection.Default(page.Variants);
+        ClosedToSearchEngines = true;
+        View = await BuildAsync(page, shown, BuyState.Of(sent?.Quantity, ForgeryProtectionFilter.Message), ct);
+    }
 
     public async Task<IActionResult> OnGetAsync(string slug, VariantQuery query, CancellationToken ct)
     {

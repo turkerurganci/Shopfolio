@@ -842,7 +842,9 @@ internal static class NavigationInventory
     public static IReadOnlyList<NavigationOutcomeScreen> OutcomeScreens { get; } =
     [
         new(Path("Account/Profile.cshtml.cs"), "FramePaths.Account", "the deletion of the account shows the account or, deleted, the sign-in (04 2.7.3.3, 5.25.17)", []),
-        new(Path("Panel/ContentForm.cshtml.cs"), "_outcomeScreen", "the content form returns to the list that shows what happened (04 2.7.3.3, 9.16.13)", [OutcomeScreenFields[0]]),
+        new(Path("Orders/AfterSalesScreenModels.cs"), "RootPath", "an uncertain declaration returns to the order page of the screen's own root, which shows what happened (04 2.7.3.3; 07 6.4.2 UC-43; D-137)", [X("Orders/AfterSalesScreenModels.cs", "public string RootPath => OrderRoots.RootOf(ScreenPath, Screen);"), X("Orders/OrderScreenModels.cs", "return last > 0 ? path[..last] : path;")]),
+        new(Path("Orders/OrderScreenModels.cs"), "RootPath", "an uncertain cancellation or termination returns to the order page of the screen's own root, which shows what happened (04 2.7.3.3; 07 6.4.2 UC-39, UC-40, UC-41; D-137)", [X("Orders/AfterSalesScreenModels.cs", "public string RootPath => OrderRoots.RootOf(ScreenPath, Screen);"), X("Orders/OrderScreenModels.cs", "return last > 0 ? path[..last] : path;")]),
+        new(Path("Panel/ContentForm.cshtml.cs"), "_outcomeScreen","the content form returns to the list that shows what happened (04 2.7.3.3, 9.16.13)", [OutcomeScreenFields[0]]),
         new(Path("Panel/Members.cshtml.cs"), "_outcomeAddress", "the member search returns to the search of the e-mail the form carried (04 2.7.3.3, 9.12.14)", [OutcomeScreenFields[1], OutcomeScreenFields[2]]),
         new(Path("Storefront/Checkout.cshtml.cs"), "StorefrontFrameBuilder.CartOwnerOf(HttpContext)?.CustomerId is null ? FramePaths.OrderTracking : FramePaths.AccountOrders", "the order confirmation goes to the member's orders or the guest's order tracking (04 2.7.3.3, 5.13.31)", []),
     ];

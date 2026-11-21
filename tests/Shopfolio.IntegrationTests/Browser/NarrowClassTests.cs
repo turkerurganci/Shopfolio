@@ -37,7 +37,8 @@ public sealed class NarrowClassTests(BrowserHost host) : BrowserTestBase(host)
     /// <summary>The controls of the page's main part a keyboard reaches, in document order (a control that is disabled, out of the tab order or not drawn is not one).</summary>
     private const string Focusables = "const T = () => [...document.querySelectorAll('main a[href], main button, main input:not([type=hidden]), main select, main textarea')].filter((e) => !e.disabled && e.tabIndex >= 0 && e.getClientRects().length > 0 && getComputedStyle(e).visibility !== 'hidden');";
 
-    private const string ReadFocus = "const R = () => { const e = document.activeElement; const r = e.getBoundingClientRect(); return JSON.stringify({ index: T().indexOf(e), inView: r.width > 0 && r.top >= 0 && r.left >= 0 && r.bottom <= innerHeight && r.right <= innerWidth + 1 }); };";
+    /// <summary>The focused control's index and whether it is in view; a control scrolled flush against an edge reads up to one pixel past it (sub-pixel layout: WebKit measured 800.4 against a viewport of 800).</summary>
+    private const string ReadFocus = "const R = () => { const e = document.activeElement; const r = e.getBoundingClientRect(); return JSON.stringify({ index: T().indexOf(e), where: Math.round(r.top) + '-' + Math.round(r.bottom) + ' of ' + innerHeight + ', scrolled ' + Math.round(scrollY), inView: r.width > 0 && r.top >= -1 && r.left >= -1 && r.bottom <= innerHeight + 1 && r.right <= innerWidth + 1 }); };";
 
     private sealed record Box(string Id, double X, double Y, double W, double H, bool Visible, bool Clipped, string Text, string Href, string Target, bool Hidden)
     {
@@ -330,7 +331,9 @@ public sealed class NarrowClassTests(BrowserHost host) : BrowserTestBase(host)
         {
             if (i == 0 || !byTab)
             {
-                await page.Page.EvaluateAsync($"(i) => {{ {Focusables} T()[i].focus(); }}", i);
+                // WebKit's focus() reveals only the caret (a text field) or part of the control, and how much varies from run to run (a field 12 px under the fold counts as revealed); the Tab key of the other engines
+                // scrolls the whole control into view. The tool does the same by the call below, so the reading asks whether the control can be brought into view, not how far WebKit's focus() scrolled (D-1456).
+                await page.Page.EvaluateAsync($"(i) => {{ {Focusables} const e = T()[i]; e.focus(); e.scrollIntoView({{ block: 'nearest', inline: 'nearest' }}); }}", i);
             }
             else
             {
@@ -341,7 +344,7 @@ public sealed class NarrowClassTests(BrowserHost host) : BrowserTestBase(host)
             reached.Add(read.RootElement.GetProperty("index").GetInt32());
             if (!read.RootElement.GetProperty("inView").GetBoolean())
             {
-                outOfView.Add(expected[i]);
+                outOfView.Add($"{expected[i]} ({read.RootElement.GetProperty("where").GetString()})");
             }
         }
 

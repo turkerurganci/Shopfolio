@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-18 — F5 (Kullanıcı arayüzü) faz kapısı tur 2 ✓ PASS (`chore: F5 gate check PASS`; rapor `CHECKPOINT_REPORTS/GATE_CHECK_F5.md`; squash ve `phase/F5-pass` etiketi merge'de yardımcıda): 52/52 task ✓; Release `-warnaserror` 0 uyarı, format temiz; Unit 8088, Integration 4607, betik 4 dosya, tarayıcı testleri üç motorda (chromium, firefox, webkit) yeşil; 19 göç, ikinci uygulama no-op; paket denetimi 7/7. `12 §6.2` F5: A seviyesi tarama (T552) ve betiksiz yol gözlemi (T551) ✓; DV-5 (`VAL-E005`) ve Kontrol Listesi A payı (`VAL-A340`, `A776`) BEKLİYOR (OWNER_INPUT — D-1466, D-1727). `11 §7.1` 891 F5 satırı×task dolu, `GATE_DOLU` += F5. Backlog: F5 kapısına bırakılmış ≈195 kalem yeniden doğrulandı — 58 ✅, ≈135 → yeni F6 task'ı T604 (K-1621), 4 → T601, 2 OWNER_INPUT; aktif 311. F6 `T601`–`T604`, `T601b` (5). Öğrenim PF-278…PF-280.
+**Son güncelleme:** 2026-11-18 — T603 ⛔ BLOCKED (OWNER_INPUT): gerçek sunucu erişimi, alan adı ve bulut deposu proje sahibinden bekleniyor; T601, T601b, T602 ona bağlı. F6'da yapılabilir iş T604.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -319,7 +319,7 @@
 | T601 | `DEPLOY_RUNBOOK` provası, canlı kanıt, dış sistemde kayıtlı adresler ve yansıyan tablolar | ⬚ | — | — | — |
 | T601b | Yük senaryosu ve kargo takip kalıplarının gerçek numarayla denemesi | ⬚ | — | — | — |
 | T602 | Güncelleme komutu: referanstan başlayıp sırayla, geride kalmış kurulumun ara sürümlerden geçişi, geri alma ve yedekten dönüş koşulu | ⬚ | — | — | — |
-| T603 | Gerçek sunucuya ilk iniş: ilk sürüm etiketi, açık imajlar, gerçek alan adı ve bulut deposu | ⬚ | — | — | — |
+| T603 | Gerçek sunucuya ilk iniş: ilk sürüm etiketi, açık imajlar, gerçek alan adı ve bulut deposu | ⛔ BLOCKED (OWNER_INPUT) | — | — | — |
 | T604 | F5 kapısından kalan kod kalemleri: ürün kodu düzeltmeleri, test aracı ve test gücü | ⬚ | — | — | — |
 
 ---

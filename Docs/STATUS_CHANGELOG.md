@@ -9,6 +9,18 @@
 
 ---
 
+## 2026-11-18 — T603 ⛔ BLOCKED (OWNER_INPUT)
+
+T603 ⛔ BLOCKED (OWNER_INPUT): gerçek sunucu erişimi, alan adı ve bulut deposu proje sahibinden bekleniyor; T601, T601b, T602 ona bağlı. F6'da yapılabilir iş T604.
+
+---
+
+## 2026-11-18 — F5 faz kapısı tur 2 ✓ PASS (önceki "Son güncelleme")
+
+F5 (Kullanıcı arayüzü) faz kapısı tur 2 ✓ PASS (`chore: F5 gate check PASS`; rapor `CHECKPOINT_REPORTS/GATE_CHECK_F5.md`; squash ve `phase/F5-pass` etiketi merge'de yardımcıda): 52/52 task ✓; Release `-warnaserror` 0 uyarı, format temiz; Unit 8088, Integration 4607, betik 4 dosya, tarayıcı testleri üç motorda (chromium, firefox, webkit) yeşil; 19 göç, ikinci uygulama no-op; paket denetimi 7/7. `12 §6.2` F5: A seviyesi tarama (T552) ve betiksiz yol gözlemi (T551) ✓; DV-5 (`VAL-E005`) ve Kontrol Listesi A payı (`VAL-A340`, `A776`) BEKLİYOR (OWNER_INPUT — D-1466, D-1727). `11 §7.1` 891 F5 satırı×task dolu, `GATE_DOLU` += F5. Backlog: F5 kapısına bırakılmış ≈195 kalem yeniden doğrulandı — 58 ✅, ≈135 → yeni F6 task'ı T604 (K-1621), 4 → T601, 2 OWNER_INPUT; aktif 311. F6 `T601`–`T604`, `T601b` (5). Öğrenim PF-278…PF-280.
+
+---
+
 ## 2026-11-16 — F5 (Kullanıcı arayüzü) faz kapısı tur 1 ✗ FAIL; plan düzeltmesi (`chore: F5 plan düzeltmesi`)
 
 F5 (Kullanıcı arayüzü) faz kapısı tur 1 ✗ FAIL (kod sağlam: Unit 8087, Integration 4579, Release 0 uyarı; faz ölçütü olan A seviyesi tarama ve betiksiz yol gözlemi için araç yok); plan düzeltmesi (`chore: F5 plan düzeltmesi`): F5 `T501`–`T552` (52), yeni T551 (tarayıcı aracı ve betiksiz yol gözlemi) ve T552 (A seviyesi erişilebilirlik taraması), K-1620; kapı tur 2 bu iki task'tan sonra.

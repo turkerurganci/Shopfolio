@@ -75,17 +75,22 @@ public sealed class PaymentMethodsModel : PageModel
     private readonly IPaymentMethodSettings _methods;
     private readonly ICardPaymentCondition _card;
     private readonly IOrderingModule _ordering;
+    private readonly ISettingsModule _settings;
     private SavePaymentMethodsInput? _posted;
     private bool _conflicted;
     private PaymentMethodsSection? _section;
     private (FormErrorSummary Summary, IReadOnlyList<FieldView> Fields)? _built;
 
-    public PaymentMethodsModel(IPaymentMethodSettings methods, ICardPaymentCondition card, IOrderingModule ordering)
+    public PaymentMethodsModel(IPaymentMethodSettings methods, ICardPaymentCondition card, IOrderingModule ordering, ISettingsModule settings)
     {
         _methods = methods;
         _card = card;
         _ordering = ordering;
+        _settings = settings;
     }
+
+    /// <summary>The sales state the panel shows on this screen (04 6.1.5.2, 2.8.2; D-1778): open, or closed with the conditions that wait; read from the sales gate on every request, so it is the same as the home page's.</summary>
+    public string SalesStateLine { get; private set; } = string.Empty;
 
     public bool IsCardOpen { get; private set; }
 
@@ -251,6 +256,7 @@ public sealed class PaymentMethodsModel : PageModel
         IsCardOpen = await _card.IsOpenAsync(ct);
         IsTransferOpen = section.IsBankTransferEnabled && section.BankTransferIban is not null;
         _section = section;
+        SalesStateLine = PanelHomeTexts.SalesState(await _settings.GetSalesGateAsync(ct));
         FormVersion = _posted is null || _conflicted ? section.Version : _posted.PaymentMethodsVersion;
         IsBankTransferEnabledShown = _posted?.IsBankTransferEnabled ?? section.IsBankTransferEnabled;
         _built = null;

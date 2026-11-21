@@ -5,6 +5,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.DataModel;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Ordering;
+using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.UnitTests.Support;
 
 namespace Shopfolio.UnitTests.Architecture;
@@ -270,6 +271,34 @@ public sealed class VersionedSideBulkWriteScanTests
     public void Scan_OfAReadOfTheSidesOrAWriteOfAnotherSet_IsQuietOutsideTheSideModules(string text)
     {
         Assert.Empty(VersionedSideBulkWriteScan.Scan(OtherModule, text));
+    }
+
+    [Theory]
+    [InlineData("MenuNames names; int w = await _db.CompanySettings.ExecuteUpdateAsync(set => set.SetProperty(s => s.MenuNameProducts, names.Products), ct);")]
+    [InlineData("MenuNames Names; await _db.CompanySettings.ExecuteUpdateAsync(set => set.SetProperty(s => s.MenuNameProducts, request.Names.Products), ct);")]
+    public void Scan_OfAContractMemberNamedLikeASet_IsQuiet_D1329(string text)
+    {
+        Assert.Empty(VersionedSideBulkWriteScan.Scan(OtherModule, text));
+    }
+
+    [Theory]
+    [InlineData("await _db.CompanySettings.ExecuteUpdateAsync(set => set.SetProperty(s => s.MenuNameProducts, names.Products), ct);")]
+    [InlineData("MenuNames names; await _db.Products.Where(p => p.Id == names.Id).ExecuteDeleteAsync(ct);")]
+    [InlineData("MenuNames names; await db.Set<Product>().ExecuteDeleteAsync(ct); string n = names.Products;")]
+    public void Scan_OfARealSetOrAnUndeclaredReceiver_StaysAFinding_D1329(string text)
+    {
+        Assert.Equal([(VersionedSideBulkWriteScan.NamedSetBulkWrite, 1)], VersionedSideBulkWriteScan.Scan(OtherModule, text));
+    }
+
+    [Fact]
+    public void ContractTypesWithSetNamedMembers_AreContractsOnly_NeitherTheContextNorAnEntity_D1329()
+    {
+        IReadOnlyList<string> types = VersionedSideBulkWriteScan.ContractTypesWithSetNamedMembers;
+
+        Assert.Contains(nameof(MenuNames), types);
+        Assert.DoesNotContain(nameof(AppDbContext), types);
+        Assert.DoesNotContain(nameof(Product), types);
+        Assert.DoesNotContain(nameof(Order), types);
     }
 
     [Fact]

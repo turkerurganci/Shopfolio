@@ -40,7 +40,7 @@ public sealed class ReorderContentInput : IFormInput
 /// GET writes nothing. A move whose orders are no longer the shown ones writes nothing and the list is shown as it is now, with the lasting message in its place (409; K-1193 (4)).
 /// </summary>
 [NoStore]
-internal sealed class ContentListModel : PageModel
+internal sealed class ContentListModel : PageModel, IReadsOnForgeryRefusal
 {
     public const string Title = "Kurumsal içerik";
 
@@ -87,8 +87,14 @@ internal sealed class ContentListModel : PageModel
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        List = await _content.GetPanelContentListAsync(ct);
+        await ReadAfterForgeryRefusalAsync(ct);
         return Page();
+    }
+
+    /// <inheritdoc />
+    public async Task ReadAfterForgeryRefusalAsync(CancellationToken ct)
+    {
+        List = await _content.GetPanelContentListAsync(ct);
     }
 
     /// <summary>UC-161: moves a record one place in its group; written only while both records still carry the shown orders. 409 shows the list as it is now; 422 is the edge or a type with no order; 404 is no type or no record.</summary>

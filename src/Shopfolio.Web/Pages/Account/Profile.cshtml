@@ -26,7 +26,9 @@
     @Search.Head(ViewContext.HttpContext, RecordPages.ClosedScreen(AccountTexts.ScreenName, ViewContext.HttpContext.GetStorefrontFrame()?.Brand.BrandName, FramePaths.Account))
 }
 <h1>@AccountTexts.ScreenName</h1>
+<div class="account-layout">
 <partial name="_AccountNav" model="FramePaths.Account" />
+<div class="account-layout__content">
 @if (Model.Notice is not null)
 {
     <partial name="_Message" model="Model.Notice" />
@@ -135,3 +137,5 @@
         <a id="account-delete-start" class="button button--secondary" href="@ReauthenticationAddresses.Screen(ReauthenticationOperation.AccountDeletion)">@AccountTexts.DeleteLink</a>
     }
 </section>
+</div>
+</div>

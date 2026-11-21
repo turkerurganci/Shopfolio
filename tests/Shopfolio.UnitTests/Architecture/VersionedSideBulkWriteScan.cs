@@ -96,6 +96,7 @@ internal static partial class VersionedSideBulkWriteScan
         string path = relativePath.Replace('\\', '/');
         string clean = BlankCommentLines(text.ReplaceLineEndings("\n"));
         bool allowedPlace = AllowedPlaces.Contains(path);
+        HashSet<string> contractReceivers = DeclaredContractReceivers(clean);
         List<(string Rule, int Line)> findings = [];
         if (!allowedPlace)
         {
@@ -106,10 +107,15 @@ internal static partial class VersionedSideBulkWriteScan
                     continue;
                 }
 
-                Match named = NamedSetPattern().Match(statement.Value);
-                if (named.Success)
+                foreach (Match named in NamedSetPattern().Matches(statement.Value))
                 {
+                    if (IsContractMember(statement.Value, named, contractReceivers))
+                    {
+                        continue;
+                    }
+
                     AddAt(findings, NamedSetBulkWrite, clean, statement.Index + named.Index);
+                    break;
                 }
             }
 
@@ -130,6 +136,51 @@ internal static partial class VersionedSideBulkWriteScan
 
         findings.Sort((a, b) => a.Line != b.Line ? a.Line.CompareTo(b.Line) : string.CompareOrdinal(a.Rule, b.Rule));
         return findings;
+    }
+
+    /// <summary>
+    /// The contract types (a type of a module's <c>Contracts</c> namespace, not an entity and not the context) that carry a member named like a set of the two sides - <c>MenuNames.Products</c>, the menu's
+    /// "Products" name. A member access whose receiver is declared with one of these types is the contract's member, not a set of the product form (D-1329): the scan reads the set from the type of the
+    /// receiver, not from the member's name alone. Derived from the application assembly, so a new contract with such a member is covered without a list to keep.
+    /// </summary>
+    public static IReadOnlyList<string> ContractTypesWithSetNamedMembers { get; } = ContractTypeNames();
+
+    private static List<string> ContractTypeNames()
+    {
+        HashSet<string> setNames = [.. OrderSideSets, .. ProductFormSets];
+        return [.. typeof(Shopfolio.Modules.Settings.Contracts.MenuNames).Assembly.GetTypes()
+            .Where(t => t.Namespace is not null && t.Namespace.EndsWith(".Contracts", StringComparison.Ordinal) && !t.IsNested)
+            .Where(t => t.GetProperties().Any(p => setNames.Contains(p.Name)))
+            .Select(t => t.Name)
+            .Distinct()
+            .Order(StringComparer.Ordinal)];
+    }
+
+    // The identifiers declared in the file with one of those types (a parameter, a field, a local with the type written): `MenuNames names`, `MenuNames Names`.
+    private static HashSet<string> DeclaredContractReceivers(string clean)
+    {
+        HashSet<string> receivers = [];
+        foreach (string type in ContractTypesWithSetNamedMembers)
+        {
+            foreach (Match declaration in Regex.Matches(clean, @"\b" + Regex.Escape(type) + @"\??\s+(\w+)\b", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)))
+            {
+                receivers.Add(declaration.Groups[1].Value);
+            }
+        }
+
+        return receivers;
+    }
+
+    // `receiver.Products`: true when the member is reached through an identifier declared with a contract type.
+    private static bool IsContractMember(string statement, Match named, HashSet<string> contractReceivers)
+    {
+        if (contractReceivers.Count == 0 || !named.Value.StartsWith('.'))
+        {
+            return false;
+        }
+
+        Match receiver = Regex.Match(statement.Substring(0, named.Index), @"(\w+)\s*$", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5));
+        return receiver.Success && contractReceivers.Contains(receiver.Groups[1].Value);
     }
 
     private static void AddAt(List<(string Rule, int Line)> findings, string rule, string text, int index)

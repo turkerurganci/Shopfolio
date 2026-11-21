@@ -28,11 +28,29 @@ internal static class PanelHomeTexts
 
     public const string SalesClosedTemporary = "Satış kapalı — geçici olarak kapatıldı.";
 
+    public const string SalesOpen = "Satış açık.";
+
     public const string ChannelBroken = "E-posta gönderilemiyor — kurulum ayarını kontrol edin.";
 
     public const string ChecklistTitle = "Kurulum listesi";
 
     public static string SalesClosed(IEnumerable<string> missing) => "Satış kapalı — " + string.Join(", ", missing) + ".";
+
+    /// <summary>
+    /// The sales state line of the panel screens that show it (04 6.1.5.2, 2.8.2: E-45, E-46): open, closed by the firm's switch, or closed by the conditions that wait, by name. One place for the
+    /// words, one source for the state: the gate (<c>ISettingsModule.GetSalesGateAsync</c>), never re-derived from the conditions' sources.
+    /// </summary>
+    public static string SalesState(SalesGate gate)
+    {
+        ArgumentNullException.ThrowIfNull(gate);
+        if (gate.IsOpen)
+        {
+            return SalesOpen;
+        }
+
+        string[] missing = [.. gate.SetupChecklist.Select(ConditionName)];
+        return missing.Length > 0 ? SalesClosed(missing) : SalesClosedTemporary;
+    }
 
     public static string FirmNoticesBroken(string address) => $"Firma bildirimleri ulaşmıyor — {address} adresine giden e-postalar teslim edilemedi.";
 

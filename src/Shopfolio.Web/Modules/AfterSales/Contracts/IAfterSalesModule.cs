@@ -245,8 +245,8 @@ public interface IAfterSalesModule
     /// </summary>
     Task<IReadOnlyDictionary<Guid, ItemPeriodState>> ItemPeriodStatesAsync(IReadOnlyCollection<ItemPeriodQuery> items, DateTimeOffset now, CancellationToken ct);
 
-    /// <summary>The order's refund IBAN as the operation decision reads it (03 1.11.11, 1.11.12, 1.11.39): the IBAN on file, and an open request on one of the given items. A plain read.</summary>
-    Task<RefundIbanState> RefundIbanStateAsync(Guid orderId, IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+    /// <summary>The order's refund IBAN as the operation decision reads it (03 1.11.11, 1.11.12, 1.11.39): the IBAN on file, and an open request on one of the given items or an itemless one on one of the given refunds (the late payment's refund; K-1075; D-1806). A plain read.</summary>
+    Task<RefundIbanState> RefundIbanStateAsync(Guid orderId, IReadOnlyCollection<Guid> orderItemIds, IReadOnlyCollection<Guid> orderRefundIds, CancellationToken ct);
 
     /// <summary>
     /// Opens the IBAN request of the refund line (T370; 06 4.29; 02 7.2.8, 7.4.5; K-569, K-690): on the item - or, itemless, on the late payment's refund - unless

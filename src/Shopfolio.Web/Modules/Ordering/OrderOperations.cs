@@ -203,7 +203,9 @@ internal sealed class OrderOperations : IOrderOperations
                 i.Id, i.ProductType, order.OrderStatus, i.DeliveryDate, i.DeliveryMarkedAt, order.CreatedAt, hasPhysical, orderDeliveryDate, i.WithdrawalExemptionReason))],
             now,
             ct);
-        RefundIbanState iban = await _afterSales.RefundIbanStateAsync(orderId, itemIds, ct);
+        // The order's refunds name the itemless IBAN request of a late payment's refund (K-1075): the request is the order's through its refund (D-1806).
+        Guid[] refundIds = [.. (await _payment.ListPendingRefundsAsync(orderId, ct)).Select(r => r.RefundId)];
+        RefundIbanState iban = await _afterSales.RefundIbanStateAsync(orderId, itemIds, refundIds, ct);
         RefundMarks marks = await _payment.ReadRefundMarksAsync(orderId, ct);
         decimal refunded = await _payment.SentRefundTotalAsync(orderId, ct);
 

@@ -818,3 +818,14 @@ Bozma geçici `false &&` ile yapıldı; deneyden sonra `git checkout -- src`.
 - ⚠ IBAN yollarında (a) aşaması kurulamaz (yazıcının satır araması yazma için zorunlu); gerekçe yukarıda.
 - ⚠ Unit TAM ve `dotnet format` bu turda yeniden koşulmadı: `src`/`tests` önceki işçinin koşusundan beri değişmedi; CI Unit ve LINT yeni uçta koşar.
 - A (#594) ve UH (#596) dallarının dosyalarına dokunulmadı; `04`/`07` sürüm satırı çakışması birleştirmede çözülür.
+
+---
+
+## Doğrulama — UE (PR #595), tur 2 (2026-11-21)
+
+- **Durum:** ✓ PASS — 0 bulgu, 0 K-notu; düzeltme gerekmez. Doğrulanan uç `d7345ff7`; ayrıntı: doğrulama raporu (yardımcının `dogrulama-raporu-U-r2.md`). TAM yeniden doğrulama (kapsam daraltılmadı).
+- **Tur 1'in kapanışı:** Bulgu 1 — `/gorsel/{id:guid}` istisnası yalnız birebir `AddressRules.ImageAddressTemplate` metni (`AddressTemplates.Check`); `PageFormPatternTests` değişmeden yeşil, karşı örnek teorisi 9 satır yeşil; istisna kaldırılınca `PageFormPatternTests.EveryMappedEndpoint_...` ve `AddressRulesTests.Check_OnTheImageEndpointsTemplate_FindsNothing_D1136` kırmızı. Bulgu 2 — `ReauthenticationSampleModel` işaretli; `OneTimeValueTests` iki KK3 testi değişmeden yeşil; test derlemesinin kümesi kapalı liste (yeni test), ürün kümesi dört sayfa (`ReauthenticationFormPageTests`). K1 — D-1283 satırında #594 bağı ve sıra yazılı. K2 — D-610 iki aşama doğrulayıcı tarafından üretildi: modülün kanal denetimi kaldırılınca `ItemRecordsTests.OpenDefectClaim_OnAnUndatedPhysicalItem_...` 4/4 yeşil, karar da kaldırılınca `(Preparing, opens: False)` kırmızı.
+- **Kırmızı–yeşil (doğrulayıcının kendi koşumu, ortam değişkeniyle açılan geçici bozmalar, `git checkout -- src` ile geri alındı):** D-892, D-1283 (2), D-1374 (2 test), D-1454/D-1389 (3 satır + panel), D-1473, D-1474 (müşteri), D-1711 → 11 kırmızı; karşı yön 4 test yeşil (D-1136 sunum, D-1454 form açılışı, yönetici D-1474, kapalı liste).
+- **CI:** run 44863634294 (`d7345ff7`): Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate ✓; E2E (advisory) koşuyordu.
+- **Yerel sınama:** restore, build `-warnaserror` 0/0; Unit TAM 8108/8108; `dotnet format` (154 `.cs`) çıkış 0; betik testleri 4/4; Integration parçalı 954 test 0 kırmızı (`OneTimeValueTests`, `PageFormPatternTests`, `ForgeryProtectionTests`, yeniden doğrulama, profil, hesap, kayıt, panel, sepet, ödeme, sipariş, ayıp, şube, iptal, düzeltme sınıfları; `OrderDetailPageTests` 95/95, `ItemRecordsTests` 72/72); tarayıcı `ScreenInventoryTests` + `EmptyStateTests` chromium 49/49. TAM: CI.
+- **Yapım raporu karşılaştırması:** uyumlu; öz denetim tablosu ve kanıtlar var.

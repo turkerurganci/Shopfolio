@@ -126,7 +126,10 @@ public abstract class BrowserTestBase
         Host.Record.Add(new Observation(row, path == ScriptPath.Scripted ? "betikli" : "betiksiz", engine, width, step, expected, maskedObserved, ok, shot, data));
         if (!ok)
         {
-            Failures.Add($"{row} {engine} {path} - {step}: expected [{expected}], observed [{maskedObserved}]");
+            lock (Failures)
+            {
+                Failures.Add($"{row} {engine} {path} - {step}: expected [{expected}], observed [{maskedObserved}]");
+            }
         }
     }
 }

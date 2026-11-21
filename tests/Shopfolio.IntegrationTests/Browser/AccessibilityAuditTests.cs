@@ -147,19 +147,25 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
             await using IBrowserContext narrow = await AccessibilityScanTests.AuditContextAsync(Host, engine, path, group.Key.Actor, ZoomedWidth);
             await AccessibilityScanTests.PrepareAsync(context, group);
             await AccessibilityScanTests.PrepareAsync(narrow, group);
-            foreach (ScreenInventoryTests.Stop stop in group)
+            // The stops of a context are read on pages of their own, a few at a time (D-1736: the time of the Firefox group); the shared lists are changed one reader at a time.
+            using SemaphoreSlim gate = new(AccessibilityScanTests.PagesAtOnce);
+            async Task AuditStopAsync(ScreenInventoryTests.Stop stop)
             {
                 WatchedPage page = await NewPageAsync(context);
                 await GoAsync(page, stop.Path);
                 string where = new Uri(page.Page.Url).AbsolutePath;
                 if (where == new Uri(Host.BaseUrl + stop.Path).AbsolutePath)
                 {
-                    if (!formKeys.TryGetValue(stop.Screen, out HashSet<string>? keys))
+                    IEnumerable<string> read = await ValidationStateTests.FormKeysAsync(page.Page, stop.Screen);
+                    lock (formKeys)
                     {
-                        formKeys[stop.Screen] = keys = [];
-                    }
+                        if (!formKeys.TryGetValue(stop.Screen, out HashSet<string>? keys))
+                        {
+                            formKeys[stop.Screen] = keys = [];
+                        }
 
-                    keys.UnionWith(await ValidationStateTests.FormKeysAsync(page.Page, stop.Screen));
+                        keys.UnionWith(read);
+                    }
                 }
 
                 // The keyboard and the focus order: the Tab key until the controls the page offers have all been reached.
@@ -239,15 +245,18 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
                     bool ok = f.GetProperty("lang").GetString() == "tr" && title.Length > 0 && f.GetProperty("media").GetInt32() == 0 && f.GetProperty("refresh").GetInt32() == 0 && f.GetProperty("infinite").GetInt32() == 0 && sensory.Count == 0 && !f.GetProperty("skipped").GetBoolean() && (f.GetProperty("main").GetInt32() == 0 || f.GetProperty("nav").GetInt32() == 0 || f.GetProperty("skip").GetInt32() > 0);
                     // A stop that answers 404 or sends the visitor on (the empty cart's checkout, a re-verification with nothing to confirm) shows another screen's page: that page has its own stop, so its title is not compared here.
                     bool ownPage = stop.Status == 200 && where == new Uri(Host.BaseUrl + stop.Path).AbsolutePath;
-                    if (ownPage && titles.TryGetValue(title, out string? other) && other != stop.Screen && title.Length > 0)
+                    lock (titles)
                     {
-                        ok = false;
-                        title += $" (aynı başlık {other} ekranında da)";
-                    }
+                        if (ownPage && titles.TryGetValue(title, out string? other) && other != stop.Screen && title.Length > 0)
+                        {
+                            ok = false;
+                            title += $" (aynı başlık {other} ekranında da)";
+                        }
 
-                    if (ownPage)
-                    {
-                        titles.TryAdd(title, stop.Screen);
+                        if (ownPage)
+                        {
+                            titles.TryAdd(title, stop.Screen);
+                        }
                     }
 
                     await ObserveAsync(
@@ -277,6 +286,19 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
 
                 await zoomed.Page.CloseAsync();
             }
+
+            await Task.WhenAll(group.Select(async stop =>
+            {
+                await gate.WaitAsync();
+                try
+                {
+                    await AuditStopAsync(stop);
+                }
+                finally
+                {
+                    gate.Release();
+                }
+            }));
         }
 
         // The error message heading: each form of the screen is sent with a value that is not allowed and the page that answers is read; a screen with no form with a field has nothing to send.

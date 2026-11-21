@@ -12,6 +12,9 @@ namespace Shopfolio.IntegrationTests.Browser;
 /// </summary>
 public sealed class AccessibilityScanTests(BrowserHost host) : BrowserTestBase(host)
 {
+    /// <summary>How many pages of one context are read at the same time.</summary>
+    internal const int PagesAtOnce = 4;
+
     /// <summary>The axe-core tags of the WCAG 2.x level A criteria; the list is the tool's own tag vocabulary (axe-core 4.x has no level A tag for 2.2).</summary>
     internal static readonly string[] LevelATags = ["wcag2a", "wcag21a"];
 
@@ -126,27 +129,37 @@ public sealed class AccessibilityScanTests(BrowserHost host) : BrowserTestBase(h
         {
             await using IBrowserContext context = await AuditContextAsync(Host, engine, path, group.Key.Actor);
             await PrepareAsync(context, group);
-            foreach (ScreenInventoryTests.Stop stop in group)
+            // The stops of a context are read on pages of their own, a few at a time (D-1736: the time of the Firefox group); the first scan reads the rule list alone.
+            using SemaphoreSlim gate = new(PagesAtOnce);
+            await Task.WhenAll(group.Select(async stop =>
             {
-                WatchedPage page = await NewPageAsync(context);
-                await GoAsync(page, stop.Path);
-                List<Finding> violations;
-                int passed;
-                List<string> incomplete;
-                string version;
+                await gate.WaitAsync();
                 try
                 {
-                    (violations, passed, incomplete, version) = await ScanAsync(page.Page);
-                }
-                catch (PlaywrightException e)
-                {
-                    throw new InvalidOperationException($"{stop.Screen} {stop.State} ({stop.Path}) at {page.Page.Url}: {e.Message}", e);
-                }
+                    WatchedPage page = await NewPageAsync(context);
+                    await GoAsync(page, stop.Path);
+                    List<Finding> violations;
+                    int passed;
+                    List<string> incomplete;
+                    string version;
+                    try
+                    {
+                        (violations, passed, incomplete, version) = await ScanAsync(page.Page);
+                    }
+                    catch (PlaywrightException e)
+                    {
+                        throw new InvalidOperationException($"{stop.Screen} {stop.State} ({stop.Path}) at {page.Page.Url}: {e.Message}", e);
+                    }
 
-                string observed = $"axe-core {version}: {violations.Count} violations, {passed} rules passed, {incomplete.Count} incomplete" + (violations.Count > 0 ? ": " + string.Join(" / ", violations.Take(5).Select(v => $"{v.Rule} ({v.Criteria}) {v.Target}")) : string.Empty);
-                await ObserveAsync(stop.Screen, path, engine, page, "otomatik tarama: " + stop.State, "axe-core WCAG A kural kümesi: ihlal yok", observed, violations.Count == 0);
-                await page.Page.CloseAsync();
-            }
+                    string observed = $"axe-core {version}: {violations.Count} violations, {passed} rules passed, {incomplete.Count} incomplete" + (violations.Count > 0 ? ": " + string.Join(" / ", violations.Take(5).Select(v => $"{v.Rule} ({v.Criteria}) {v.Target}")) : string.Empty);
+                    await ObserveAsync(stop.Screen, path, engine, page, "otomatik tarama: " + stop.State, "axe-core WCAG A kural kümesi: ihlal yok", observed, violations.Count == 0);
+                    await page.Page.CloseAsync();
+                }
+                finally
+                {
+                    gate.Release();
+                }
+            }));
         }
 
         Assert.Empty(Failures);

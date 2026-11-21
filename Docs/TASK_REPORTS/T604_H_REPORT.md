@@ -75,9 +75,11 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 3 (2026-11-21, bağımsız doğrulayıcı, eskalasyon sonrası TAM yeniden doğrulama; head `b76b534b`) · tur 2 ✗ FAIL (head `40ab5981`) · tur 1 ✗ FAIL (head `c83c9702`) |
-| Bulgu sayısı | Tur 3: 1 bulgu (ORTA, S2) + 1 K-notu (K1 → D-1874) · tur 2: 1 bulgu (ORTA, S1) + 2 K-notu (K1 bu PR'da kapatıldı, K2 → D-1867) · tur 1: 2 bulgu + 1 K-notu |
-| Düzeltme gerekli mi | Evet |
+| Doğrulama durumu | ✓ PASS — tur 4 (2026-11-21, bağımsız doğrulayıcı, eskalasyon sonrası TAM yeniden doğrulama; head `78a4e083`) · tur 3 ✗ FAIL (head `b76b534b`) · tur 2 ✗ FAIL (head `40ab5981`) · tur 1 ✗ FAIL (head `c83c9702`) |
+| Bulgu sayısı | Tur 4: 0 bulgu, 0 K-notu · tur 3: 1 bulgu (ORTA, S2) + 1 K-notu (K1 → D-1874) · tur 2: 1 bulgu (ORTA, S1) + 2 K-notu (K1 bu PR'da kapatıldı, K2 → D-1867) · tur 1: 2 bulgu + 1 K-notu |
+| Düzeltme gerekli mi | Hayır |
+
+**Tur 4 (PASS):** tur 3 Bulgu 1 kapandı — yedi tek alanlı formun ilk hatalı alanı 422'de `autofocus` taşır; doğrulayıcının yerel `AccessibilityAuditTests` koşusu (audit kümesi, üç motor × iki yol) 6/6 yeşil, E-37 hata mesajı satırları (`CorrectCarrier`, `CorrectOrderEmail`, `MarkDelivered`, `MarkReshipped` dahil) üç motorda ✓, kayıtta ✗ hücre yok; CI run 44917106996 (head `78a4e083`) bütün işler yeşil, 8. E2E audit 6/6, scan 30/30, öteki tarayıcı sınıfları 772/772, Integration 4833/4833. KK1: 59 kalemlik envanter betikle tarandı, hedefi T604 olan açık satır yok; ileri atılanlar (D-1135 (2), D-1813, D-1814 → T601; D-1832 faz kapısı; D-1864, D-1874 F6 gate) T604 kabul ölçüsü dışında. KK2 kırmızı–yeşil doğrulayıcıda yeniden üretildi: D-1599 (düşürme → ret: üç `…_D1599` testi ve T528 KK1 kırmızı), D-1806 (kalemsiz koşul kesildi: `…_D1806`), D-1845 (süzgeç kaldırıldı: `…_D1845`, `…_D1284`), D-1843 Hesabım (`keepsPermission: false`), Profile (400 bırakıldı), Panel Reset (kanca bağlantıyı tüketti: `…ConsumesNoLink_D1843`), D-1867 (iki kanca `readsQuery: true`: iki test), D-1773 (kanca çağrısı kesildi: 16 test), E-37 (iki form `autofocus`suz: `…_D1550`, `…_D1812`), D-1770 (iki betik main sürümüne: `test-pre-commit.sh` 261/2); geri alındı, yeşil. Unit 8325/8325; Integration ilgili 39 sınıf 1085/1085 (TAM: CI); tarayıcı `ProductPageObservationTests` 42/42, `DefectClaimFieldTests` + `NarrowClassTests` + `ScreenInventoryTests` 49/49.
 
 **Tur 3 bulgusu:**
 

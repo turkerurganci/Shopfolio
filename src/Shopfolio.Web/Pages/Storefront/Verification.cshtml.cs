@@ -47,6 +47,7 @@ internal sealed class VerificationModel : PageModel
         return Page();
     }
 
+    [OutcomeUncertain("UC-53")]
     public async Task<IActionResult> OnPostVerifyEmailAsync(string key, CancellationToken ct)
     {
         EmailLinkReading reading = await _membership.ReadEmailLinkAsync(key, ct);

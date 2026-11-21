@@ -174,6 +174,7 @@ internal sealed class AdminAccountsModel : PageModel
     /// UC-177: removes another administrator. Without the mark the answer is the confirmation state (200, nothing written); with it the module deletes the account, its sessions and links, ends its
     /// invitations and writes the trail row, the disposal record and the F-6 notice. The own row and the last administrator are 422 with the permanent message.
     /// </summary>
+    [OutcomeUncertain("UC-177")]
     public async Task<IActionResult> OnPostRemoveAdminAsync(RemoveAdminInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);

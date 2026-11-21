@@ -28,7 +28,7 @@ namespace Shopfolio.Pages.Orders;
 /// POST without the confirmation mark is the script-free last step - 200, nothing written (07 2.2.4); the confirmed POST runs the module's write in the page's transaction
 /// (<see cref="OperationRunner"/>) and answers 303 to the root, where the result stays (04 5.17.9).
 /// </summary>
-public abstract class CustomerOperationPageModel : PageModel
+public abstract class CustomerOperationPageModel : PageModel, IOutcomeTarget
 {
     private readonly ICustomerOperations _operations;
     private readonly IOrderingModule _ordering;
@@ -87,6 +87,9 @@ public abstract class CustomerOperationPageModel : PageModel
         string[] options = [.. new[] { item.FirstOptionValue, item.SecondOptionValue }.OfType<string>()];
         return options.Length == 0 ? item.ProductName : item.ProductName + " (" + string.Join(", ", options) + ")";
     }
+
+    /// <summary>The screen of an uncertain cancellation or termination (07 6.4.2: UC-39, UC-40, UC-41 to the root; 09 8.1 item 4; D-137): the order page shows what happened.</summary>
+    public string OutcomeScreen() => RootPath;
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
@@ -233,6 +236,7 @@ public abstract class CancellationPageModel(ICustomerOperations operations, IOrd
 
     /// <summary>UC-39 (07 4.17.2).</summary>
     [GatedOperation]
+    [OutcomeUncertain("UC-39")]
     public async Task<IActionResult> OnPostCancelOrderAsync(CancelOrderInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -259,6 +263,7 @@ public abstract class CancellationPageModel(ICustomerOperations operations, IOrd
 
     /// <summary>UC-40 (07 4.17.3): 422 for no item chosen or a quantity under one; the module checks the whole request against the order as it is now.</summary>
     [GatedOperation]
+    [OutcomeUncertain("UC-40")]
     public async Task<IActionResult> OnPostCancelOrderItemsAsync(CancelOrderItemsInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -358,6 +363,7 @@ public abstract class LateDeliveryTerminationPageModel(ICustomerOperations opera
 
     /// <summary>UC-41 (07 4.17.4).</summary>
     [GatedOperation]
+    [OutcomeUncertain("UC-41")]
     public async Task<IActionResult> OnPostSubmitLateDeliveryTerminationAsync(SubmitLateDeliveryTerminationInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);

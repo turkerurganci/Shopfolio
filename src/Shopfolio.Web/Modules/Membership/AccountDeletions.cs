@@ -72,13 +72,20 @@ internal sealed class AccountDeletions
     /// <summary>
     /// The administrator's deletion on the data subject's request (02 3.15.5; 07 UC-157): the same gate and the same removal as the member's own, with no reauthentication (that is the account's own
     /// operation, 02 8.1.5), and the operation's row in the trail - it names the operation and its date, not the account (02 10.3.1 (8)). The irreversible-action confirmation is the page's (03 1.6.1.8).
-    /// An unverified pending registration is no account: it is not found.
+    /// An unverified pending registration is deleted on the request too (04 6.3.12.2; K-811; K-1631 (6), K-1633 (3)): it carries personal data, so the same trail row and the row's removal,
+    /// with the disposal record's own type (<see cref="DisposalRecordType.PendingRegistration"/>) and no e-mail - its address was never verified, and it has no account to tell of.
     /// </summary>
     public async Task<AccountDeletionResult> DeleteByAdministratorAsync(Guid customerId, CancellationToken ct)
     {
         RequireTransaction();
         DateTimeOffset now = _time.GetUtcNow();
-        AccountDeletionResult? refusal = await HoldAndCheckAsync(customerId, now, ct);
+        if (!await AccountLocks.LockAsync(_db, AccountType.Customer, customerId, ct))
+        {
+            return AccountDeletionResult.Refused(ErrorCode.NotFound);
+        }
+
+        Customer? pending = await _db.Customers.SingleOrDefaultAsync(c => c.Id == customerId && c.EmailVerifiedAt == null, ct);
+        AccountDeletionResult? refusal = pending is null ? await HoldAndCheckAsync(customerId, now, ct) : null;
         if (refusal is not null)
         {
             return refusal;
@@ -93,6 +100,14 @@ internal sealed class AccountDeletions
                 customerId,
                 new AuditDetails(values: [new AuditValue("Operation", nameof(AuditOperation.DeleteCustomerAccount)), new AuditValue("Date", day)])),
             ct);
+        if (pending is not null)
+        {
+            // A pending registration has no orders, sessions or address book of its own (02 3.13.5); the database deletes what hangs on the row with it.
+            _db.Customers.Remove(pending);
+            _db.DisposalRecords.Add(DisposalRecord.Counted(DisposalRecordType.PendingRegistration, 1, now));
+            return AccountDeletionResult.Deleted(0);
+        }
+
         return await RemoveAsync(customerId, now, ct);
     }
 

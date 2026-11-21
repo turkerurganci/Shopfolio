@@ -239,6 +239,8 @@ internal sealed class PanelRefundSteps : IPanelRefundSteps
             return new PanelRefundStepResult(TransitionRefusal.ConditionNotMet);
         }
 
+        // 03 8.3.3.7 (K-1633 (2); D-1783): an item-bound amount is capped by the order's money only, as an itemless one - the item names what the refund is for; it is not
+        // the item's refund (that is the dönme's, capped by FirmRefundAmounts.ItemRefundLeftAsync).
         // K-1078: the paid money not yet given back, under the order's row lock - the sent and the started refunds, and the records whose refund is owed but not born yet (D-906), are deducted.
         decimal owedTotal = 0m;
         foreach (OwedRefundRecord owed in lines.Owed)

@@ -207,7 +207,7 @@ public sealed record WithdrawalRowView(
 /// K-789); the confirmed POST re-reads the open units inside the transaction and refuses the whole request when they differ from the ones shown before the module writes the
 /// declarations - each with its date stamp, units and the return address of the moment (06 4.25).
 /// </summary>
-public abstract class WithdrawalPageModel : AfterSalesScreenModel
+public abstract class WithdrawalPageModel : AfterSalesScreenModel, IOutcomeTarget
 {
     /// <summary>The 422 message when no item is chosen (04 5.18.12; 7.1.9.1).</summary>
     public const string NoItemText = "Cayacağınız en az bir ürünü seçin.";
@@ -276,8 +276,12 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct) => await ReloadAsync(ct) ?? Page();
 
+    /// <summary>The screen of an uncertain declaration (07 6.4.2: UC-43 to the root; 09 8.1 item 4; D-137): the order page shows what happened.</summary>
+    public string OutcomeScreen() => RootPath;
+
     /// <summary>UC-43 (07 4.18.2).</summary>
     [GatedOperation]
+    [OutcomeUncertain("UC-43")]
     public async Task<IActionResult> OnPostSubmitWithdrawalAsync(SubmitWithdrawalInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);

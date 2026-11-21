@@ -55,6 +55,7 @@ internal sealed class RevertModel : PageModel
         return Page();
     }
 
+    [OutcomeUncertain("UC-187")]
     public async Task<IActionResult> OnPostRevertPendingEmailChangeAsync(string key, CancellationToken ct)
     {
         Key = key;

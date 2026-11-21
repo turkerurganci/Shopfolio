@@ -70,6 +70,7 @@ internal sealed class VerifyModel : PageModel
         return Page();
     }
 
+    [OutcomeUncertain("UC-186")]
     public async Task<IActionResult> OnPostVerifyEmailAsync(string key, CancellationToken ct)
     {
         Key = key;

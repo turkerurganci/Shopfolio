@@ -340,15 +340,17 @@ public sealed partial class MembershipTests
     }
 
     [Fact]
-    public async Task DeleteOnRequest_WithoutAnActor_Throws_AndAnUnverifiedRegistrationIsNotFound()
+    public async Task DeleteOnRequest_WithoutAnActor_Throws_AnUnverifiedRegistrationToo_D1374()
     {
         Guid verified = await SeedCustomerAsync("ali@example.com", verified: true);
         Guid pending = await SeedCustomerAsync("veli@example.com", verified: false);
 
-        AccountDeletionResult unverified = await RunAsync(m => m.DeleteAccountOnRequestAsync(pending, Ct));
+        // The unverified registration is deleted on the request too (04 6.3.12.2; K-1631 (6), K-1633 (3)) - the same trail row, so the same actor rule.
+        await Assert.ThrowsAsync<InvalidOperationException>(() => RunAsync(m => m.DeleteAccountOnRequestAsync(pending, Ct)));
         await Assert.ThrowsAsync<InvalidOperationException>(() => RunAsync(m => m.DeleteAccountOnRequestAsync(verified, Ct)));
+        AccountDeletionResult missing = await RunAsync(m => m.DeleteAccountOnRequestAsync(Guid.NewGuid(), Ct));
 
-        Assert.Equal(ErrorCode.NotFound, unverified.Code);
+        Assert.Equal(ErrorCode.NotFound, missing.Code);
         Assert.Equal(2L, await ScalarAsync<long>("SELECT count(*) FROM customers"));
         Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM audit_logs"));
     }

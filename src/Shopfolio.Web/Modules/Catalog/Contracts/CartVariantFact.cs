@@ -15,6 +15,7 @@ namespace Shopfolio.Modules.Catalog.Contracts;
 /// <param name="UnitPrice">The unit price that applies now, VAT included.</param>
 /// <param name="ImageId">The image the line shows (04 5.12.4): the variant's own, else the product's main image; empty when it has neither (D-1189).</param>
 /// <param name="OptionValues">The variant's option values in the option order, first option first (04 5.12.4); empty for a product without options (D-1189).</param>
+/// <param name="ImageAltText">The alternative text of the image the line shows (02 3.11.4; 3.34.5 (2); D-1819): the firm's when it wrote one for that image, else the generated one - the product's name and the variant's option values for the variant's own image, the name and the place in the gallery for the product's main image; empty only when the line has no image.</param>
 public sealed record CartVariantFact(
     Guid VariantId,
     Guid ProductId,
@@ -25,4 +26,5 @@ public sealed record CartVariantFact(
     bool IsSoldOut,
     decimal UnitPrice,
     Guid? ImageId = null,
-    IReadOnlyList<string>? OptionValues = null);
+    IReadOnlyList<string>? OptionValues = null,
+    string? ImageAltText = null);

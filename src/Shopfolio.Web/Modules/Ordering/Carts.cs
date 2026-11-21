@@ -294,7 +294,8 @@ internal sealed class Carts
                 verdict.OrderLimit,
                 fact.ImageId,
                 fact.OptionValues,
-                fact.IsOnShowcase));
+                fact.IsOnShowcase,
+                fact.ImageAltText));
             if (item.IsMergeNoticePending)
             {
                 // Told once: the mark goes in the request that tells it (06 4.16; K-1183).

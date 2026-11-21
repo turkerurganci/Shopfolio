@@ -48,7 +48,7 @@ public sealed class CartOwner
 /// sold-out line, which stays in the cart marked and does not enter the order or the amounts (02 3.16.6, 3.16.7). <see cref="ProductType"/> tells whether the line carries the shipping fee and
 /// the minimum order amount (02 3.18.3, 3.19.1). <see cref="QuantityProblem"/> says why a line stays out for its quantity (T347; 02 3.16.8-3.16.10): above the stock ("Bu adette stok yok", no
 /// number) or above the product's per-order limit (<see cref="OrderLimit"/>, told as a number). Such a line stays in the cart, its quantity is never lowered by itself, and it does not enter the
-/// order, the amounts or the limit's total. <see cref="ImageId"/> and <see cref="OptionValues"/> are what the line shows besides the name (04 5.12.4; D-1189); <see cref="IsOnShowcase"/> is the
+/// order, the amounts or the limit's total. <see cref="ImageId"/> and <see cref="OptionValues"/> are what the line shows besides the name (04 5.12.4; D-1189), the image with its alternative text <see cref="ImageAltText"/> (02 3.11.4; D-1819); <see cref="IsOnShowcase"/> is the
 /// condition of the line's link to the product page (04 3.3.13: the product is Published; D-1631) - a line off the showcase is told as plain text, never as a link to a page that answers E-05 or E-06.
 /// </summary>
 public sealed record CartLine(
@@ -67,7 +67,8 @@ public sealed record CartLine(
     int? OrderLimit = null,
     Guid? ImageId = null,
     IReadOnlyList<string>? OptionValues = null,
-    bool IsOnShowcase = true)
+    bool IsOnShowcase = true,
+    string? ImageAltText = null)
 {
     /// <summary>The line's amount: unit price times quantity, not rounded (02 3.8.3). The one home of the product the page writes and the subtotal sums (D-1246).</summary>
     public decimal LineAmount => UnitPrice * Quantity;

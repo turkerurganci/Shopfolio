@@ -103,7 +103,7 @@ internal sealed class PasswordResetModel : PageModel
 
             if (RouteData.Values["key"] is string key)
             {
-                await LoadStepAsync(key, HttpContext.RequestAborted);
+                await LoadStepAsync(key, HttpContext.RequestAborted, readsQuery: !ForgeryRefused);
             }
         }
     }
@@ -195,7 +195,7 @@ internal sealed class PasswordResetModel : PageModel
 
     // The step the link allows: a valid link opens the setting (the heading depends on whether the account has a password); a used one with the result code is the completed state; every other state -
     // used without the code, run out, replaced, unknown - is the invalid state (07 UC-58).
-    private async Task LoadStepAsync(string key, CancellationToken ct)
+    private async Task LoadStepAsync(string key, CancellationToken ct, bool readsQuery = true)
     {
         Key = key;
         AccountLinkReading reading = await _membership.ReadPasswordResetLinkAsync(key, ct);
@@ -206,7 +206,7 @@ internal sealed class PasswordResetModel : PageModel
             return;
         }
 
-        Step = reading.Status == AccountLinkStatus.Used && NoticeParameter.Read(Request, NoticeKind.Result) == NoticeCode.PasswordResetCompleted
+        Step = readsQuery && reading.Status == AccountLinkStatus.Used && NoticeParameter.Read(Request, NoticeKind.Result) == NoticeCode.PasswordResetCompleted
             ? PasswordResetStep.Completed
             : PasswordResetStep.Invalid;
     }

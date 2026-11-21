@@ -5,8 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Security;
-using Shopfolio.IntegrationTests.Pages;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.IntegrationTests.Pages;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Pages.Frame;

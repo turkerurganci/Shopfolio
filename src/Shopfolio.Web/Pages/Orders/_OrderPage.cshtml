@@ -79,7 +79,7 @@
                 <li class="order-items__item">
                     @if (item.ImageId is Guid imageId)
                     {
-                        <img class="order-items__image" src="@FrameStyle.ImagePath(imageId)" alt="" />
+                        <img class="order-items__image" src="@FrameStyle.ImagePath(imageId)" alt="@item.Name" />
                     }
                     <span class="order-items__name">@item.Name</span>
                     <span class="order-items__quantity">

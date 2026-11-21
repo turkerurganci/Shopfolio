@@ -560,3 +560,58 @@ Değişinimlerin hepsi geri alındı (`git checkout`), aynı sınıflar sonra ye
 - ✓ D-1770 kabul ölçüsü (yama uygulanır, bekçi geçirir, test yeşil): `test-pre-commit.sh` 263 geçti / 0 kaldı; `run-script-tests.sh` 4 dosya geçti.
 - ✓ Birleştirme denetimi 1 (`git diff --quiet cea4b177 origin/main`): çıkış 0.
 - ✓ Birleştirme denetimi 2 (`merge-base --is-ancestor cea4b177 HEAD`): çıkış 0.
+
+
+## Düzeltme 2 — uç ve veri (2026-11-21; tur 2 FAIL sonrası eskalasyon turu, uç/veri yarısı)
+
+İki işçi paralel, ortak dalda: bu yarı üç iş yapar — VAL-B001'in uç yanıtı ve veri kaydı kanıtı, K2 / D-1867 ve D-1819. Tarayıcı gözlemi satırları (VAL-A010, A012, A016, A018, A020; D-1820, D-1276, D-1811, D-1821) öteki yarıdadır ve bu bölüme girmez.
+
+### Yapılanlar
+
+1. **VAL-B001 (kanıt türü "Uç yanıtı + Veri kaydı"):** `CheckoutPageTests.APhysicalADigitalAndAServiceProduct_AreListedInOneCatalog_EnterOneCart_AndAreConfirmedInOneOrder_T604_VALB001` (yeni dosya `CheckoutPageTests.B001.T604.cs`). Yayında birer fiziksel, dijital ve hizmet ürünü: (a) `/arama` aynı sonuç sayfasında üçünün ürün sayfası bağlantısını listeler; (b) üç `AddCartItem` POST'u ilk eklemenin açtığı tek sepete gider (`carts` 1 satır, `cart_items` 3 satır); (c) onay adımı tek siparişi kurar (`orders` 1 satır) ve `order_items` üç satırı kendi varyantı ve ürün türüyle (Physical, Digital, Service) taşır. `12` VAL-B001 satırı PASS.
+2. **K2 / D-1867:** sözleşme (`IReadsOnForgeryRefusal`: "sorgu değeri okunmaz") üst belge sayıldı, kod hizalandı. `Panel/Reset` kancası (`ShowSentAsync(…, readsQuery: false)`) ve vitrin `PasswordReset` sarmalayıcısı (`readsQuery: !ForgeryRefused`) 400 yolunda `LoadStepAsync`'i sorgu okumadan çağırır: kullanılmış bağlantı bu yolda "geçersiz" adımıyla çizilir; 422 ve GET yolları değişmedi. Testler: `PanelAccessPagesTests.TheForgeryRefusal_OfTheReset_ReadsNoQueryValue_…_D1867`, `CustomerPasswordResetAndReauthenticationPageTests.TheResetPagesForgeryRefusal_ReadsNoQueryValue_…_D1867` (kullanılmış bağlantı + adreste tamamlandı kodu: GET "tamamlandı", reddedilen POST "geçersiz"; bağlantının `UsedAt`'i ve gönderim kayıtları değişmez). Kırmızı–yeşil: üç değişinim (iki kancada `readsQuery: true`, görselde `alt=""`) üç testi de kırdı; geri alınca yeşil.
+3. **D-1819:** karar K-1641 — sepet satırı görseli süsleyici sayılmaz, alt metni boş bırakılmaz (`02` 3.34.5 (2), 3.11.4; `12` VAL-A344). Metin firmanın o görsel için yazdığı, yoksa üretilen: varyantın kendi görselinde "Ad — Kırmızı", ürünün ana görselinde "Ad — görsel 1 / 3". `CartVariantReader` galeri bağlantılarını tek okumayla alır (satır sayısına bağlı değil), `CartVariantFact.ImageAltText` → `CartLine.ImageAltText` → `Cart.cshtml` (iki yerde). Test: `CartPageTests.TheLinesImage_HasTheAlternativeTextOf3114_…_D1819` (üretilen ana görsel metni, firma metni, varyantın kendi görseli).
+4. Kayıt: `DEFERRED_BACKLOG.d/T604-H.md` D-1867 ve D-1819 satırları `✅ Çözüldü → T604`; `PRODUCT_DISCOVERY_STATUS.md` K-1641; `12` VAL-B001 PASS; `STATUS_CHANGELOG.d/T604-H.md` girişi. STATUS tablo satırına dokunulmadı.
+
+### Hedefi T604 olan backlog kalemleri (bu yarının payı)
+
+| Kalem | Durum | Kanıt |
+|---|---|---|
+| D-1867 | ✅ kapandı | iki `…_D1867` testi; sözleşme belgesi değişmedi, kod hizalandı |
+| D-1819 | ✅ kapandı (hedefi T601'den T604'e alındı) | `…_D1819` testi |
+| D-1820 (içinden VAL-B001) | B001 payı kapandı; satırın kalanı öteki işçide | `…_T604_VALB001`; D-1820 / D-1276 metnini öteki işçi yazar |
+| D-1811, D-1821 | öteki işçide (tarayıcı gözlemi) | — |
+| Önceki kalemlerin tamamı (UH1–UH5, düzeltme 1) | ✅ (tur 2 envanteri: açık T604 hedefli satır yok) | `dogrulama-raporu-H-r2.md` KK1 |
+
+### Para ve güvenlik notu
+
+Bu yarıda para kodu yok. Güvenlik yönü: sahtecilik reddi yolu önceden de yazmıyor ve tüketmiyordu; D-1867 yalnız okuduğu girdiyi daraltır (sorgu değeri artık okunmaz). Geri alma: `readsQuery` bağımsız değişkenini kaldırmak. D-1819 salt okur; yeni yazma yok.
+
+### Öz denetim — düzeltme 2 (kendi diff'imde; önceki işçilerin işi dahil `11` T604 kabul kriterleri ve `12` ilgili satırlar)
+
+| # | Madde | Sonuç | Kanıt |
+|---|---|---|---|
+| H2-1 | VAL-B001: üç tür aynı katalogda, tek sepette, tek siparişte; uç yanıtı + veri kaydı | ✓ | `…_T604_VALB001` (listeleme gövdesi, `carts`/`cart_items`/`orders`/`order_items` sayıları ve türleri) |
+| H2-2 | `12` VAL-B001 satırı PASS; öteki `12` satırları dokunulmadı | ✓ | `Docs/12_VALIDATION_PROTOCOL.md` tek hücre; `12_matris_denetle.py` sonucu aşağıda |
+| H2-3 | K2: sözleşme ve kod uyumlu; yazma/tüketme yok testi | ✓ | `…ReadsNoQueryValue…_D1867` ×2; değişinimle kırmızı |
+| H2-4 | Aynı sorgu okuma başka sahtecilik reddi yolunda var mı (kaynak taraması) | ✓ | `grep NoticeParameter.Read` sahtecilik kancalı sayfalarda: yalnız GET işleyicileri ve `LoadStepAsync`'in kapılanmış kolu; `ForgeryRefusalReadInventoryTests` yeşil |
+| H2-5 | D-1819: `04`/`08` erişilebilirlik kuralına göre karar, uygulama, test, satır ✅ | ✓ | K-1641; `…_D1819`; backlog satırı |
+| H2-6 | Kural değişince aynı kuralı anan öteki yerler | ✓ | sepet görseli iki yerde (`Cart.cshtml` bağlantılı ve düz metin kolu); sipariş sayfası görseli de (`_OrderPage.cshtml`, `alt=""` idi) aynı turda düzeltildi (⚠ 1); başka `alt=""` yok (`grep 'alt=""' src` boş) |
+| H2-7 | Belge kuralını değiştiren metin karar kaydısız mı | ✓ | belge kuralı değişmedi; K-1641 kaydı yine de yazıldı |
+| H2-8 | Var olan testler değişmeden geçer | ✓ | Integration 265/265 ve OrderPageTests 14/14 (sınıf listesi aşağıda); Unit 8325/8325 |
+| H2-9 | Yeni modül kurucusu bağımlılığı | ✓ yok | `CartVariantReader` kurucusu değişmedi |
+| H2-10 | Biçim, derleme | ✓ | `dotnet build -warnaserror` 0/0; `dotnet format … --include <değişen .cs>` (yalnız using sırası düzeldi, B001 dosyası) |
+
+### Test sonuçları (düzeltme 2)
+
+| Tür | Sonuç | Not |
+|---|---|---|
+| Build | ✓ | `-warnaserror` 0 uyarı 0 hata |
+| Format | ✓ | değişen `.cs` dosyalarında |
+| Unit TAM | ✓ 8325/8325 | |
+| Integration (ilgili sınıflar) | ✓ 265/265 + OrderPageTests 14/14 | CartQuantityTests, CartTests, CartPageTests, CheckoutPageTests, CustomerPasswordResetAndReauthenticationPageTests, PanelAccessPagesTests, ForgeryRefusalReadInventoryTests, FormSecurity*, PageFormPatternTests, ForgeryProtectionTests, StorefrontSearchAndProductTests; TAM: CI |
+
+### ⚠ (kolay kararlar, sahip yerine)
+
+1. D-1819'un kendi kapsamı sepet satırı görselidir; aynı kuralın (`02` 3.34.5 (2)) yan örneği olan sipariş sayfasındaki satır görseli (`order-items__image`, `_OrderPage.cshtml`) de `alt=""` idi: dondurulmuş kalem adı (seçenek değerleriyle) alt metin oldu, test `OrderPageTests.TheItemsImage_HasTheFrozenNameAsItsAlternativeText_D1819`. Yeni kayıt gerekmedi.
+2. D-1819 çözümünde ürün adı bağlantı içinde görsel alt metni ve görünür metin olarak iki kez okunabilir; `02` 3.34.5 (2) "her görselin alternatif metni" der ve süsleyici istisnası yazmaz, kural önceliklendi.

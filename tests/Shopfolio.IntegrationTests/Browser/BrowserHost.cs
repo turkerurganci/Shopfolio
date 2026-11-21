@@ -247,7 +247,7 @@ public sealed class BrowserHost : IAsyncLifetime
 
         if (incomplete.Count > 0)
         {
-            throw new InvalidOperationException("The criteria record of the run is incomplete - run the scan, the criteria and the audit classes in one call: " + string.Join(" | ", incomplete));
+            throw new InvalidOperationException($"The criteria record of the run is incomplete for its cluster ('{AccessibilityCluster.Current.Name}'; the classes of a cluster run in one call, see AccessibilityCluster): " + string.Join(" | ", incomplete));
         }
     }
 
@@ -386,6 +386,8 @@ public sealed class BrowserHost : IAsyncLifetime
     {
         string? configured = Environment.GetEnvironmentVariable("SHOPFOLIO_BROWSER_OUT");
         string directory = string.IsNullOrWhiteSpace(configured) ? Path.Combine(Path.GetTempPath(), "shopfolio-browser-observations") : configured;
+        // The clusters of the accessibility pass are separate runs (AccessibilityCluster): each flushes its own observation files, so each has a folder of its own under the output folder.
+        directory = AccessibilityCluster.Current.FolderIn(directory);
         Directory.CreateDirectory(directory);
         return directory;
     }
@@ -479,6 +481,29 @@ public sealed class ObservationRecord
         return incomplete;
     }
 
+    private readonly List<string> _crashRetries = [];
+
+    /// <summary>The piece of work that was run again after a page crash (<see cref="CrashRetry"/>), counted in the files the record writes.</summary>
+    public void NoteCrashRetry(string what)
+    {
+        lock (_lock)
+        {
+            _crashRetries.Add(what);
+        }
+    }
+
+    /// <summary>What was run again after a "Page crashed" so far.</summary>
+    public IReadOnlyList<string> CrashRetries
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return [.. _crashRetries];
+            }
+        }
+    }
+
     public void Add(Observation observation)
     {
         lock (_lock)
@@ -503,7 +528,7 @@ public sealed class ObservationRecord
         {
             JsonSerializerOptions options = new() { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
             using StreamWriter lines = new(System.IO.Path.Combine(_directory, "observations.jsonl"), append: false);
-            lines.WriteLine(JsonSerializer.Serialize(new { versions = _versions, seed = JsonDocument.Parse(_seed).RootElement }, options));
+            lines.WriteLine(JsonSerializer.Serialize(new { versions = _versions, seed = JsonDocument.Parse(_seed).RootElement, crashRetries = _crashRetries }, options));
             foreach (Observation observation in _observations)
             {
                 lines.WriteLine(JsonSerializer.Serialize(observation, options));
@@ -515,6 +540,8 @@ public sealed class ObservationRecord
             table.WriteLine("Sürümler: " + string.Join(", ", _versions.Select(v => $"{v.Key} {v.Value}")));
             table.WriteLine();
             table.WriteLine("Tohum: " + _seed);
+            table.WriteLine();
+            table.WriteLine($"Sayfa çökmesi yeniden denemesi (Firefox yük altında; yalnız 'Page crashed', iş başına bir): {_crashRetries.Count}" + (_crashRetries.Count > 0 ? " - " + string.Join("; ", _crashRetries) : string.Empty));
             table.WriteLine();
             table.WriteLine("| Satır | Yol | Tarayıcı | Genişlik | Adım | Beklenen | Gözlenen | Veri kaydı (maskeli) | Sonuç | Ekran görüntüsü |");
             table.WriteLine("|---|---|---|---|---|---|---|---|---|---|");

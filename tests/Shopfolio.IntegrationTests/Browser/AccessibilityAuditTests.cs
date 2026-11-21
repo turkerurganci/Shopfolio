@@ -292,7 +292,8 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
                 await gate.WaitAsync();
                 try
                 {
-                    await AuditStopAsync(stop);
+                    // A page that crashes under load (Firefox, "Page crashed") is audited once more, the retry counted in the record; a second crash fails the run (CrashRetry).
+                    await RetryOnCrashAsync($"{stop.Screen} {stop.Path}", () => AuditStopAsync(stop));
                 }
                 finally
                 {
@@ -360,19 +361,14 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
         Assert.True(blanks.Count == 0, "Screens with a heading that has no result: " + string.Join(", ", blanks.Take(10)));
         List<string> screenList = [.. stops.Select(s => s.Screen).Distinct()];
         string directory = Host.Record.Directory;
-        (List<string> gaps, _) = WriteRecordOfCriteria(directory, engine, wayName, screenList, record);
+        (List<string> gaps, _) = WriteRecordOfCriteria(directory, engine, wayName, screenList, record, Host.Record.CrashRetries);
         Assert.True(gaps.Count == 0, "Screen x criterion cells with no result: " + string.Join(", ", gaps.Take(10)));
         Assert.Empty(Failures);
 
-        // The record is complete only when the run has made the observations of the other classes too (the scan, the cross-screen tests), and the order of the classes is not assumed: so the record is written once more when the
-        // run ends (BrowserHost.DisposeAsync), from the whole run, and a cell that is still "not measured" then fails the run (D-1736 b). An Audit class run alone no longer ends with a record that passes with six criteria "ölçülmedi".
-        Host.Record.AddCompletenessCheck(
-            $"{engine}/{wayName}",
-            all =>
-            {
-                (_, List<string> notMeasured) = WriteRecordOfCriteria(directory, engine, wayName, screenList, all);
-                return notMeasured.Count == 0 ? null : $"{notMeasured.Count} not measured, e.g. " + string.Join(" / ", notMeasured.Take(6));
-            });
+        // The record is complete only when the run has made every observation of the parts its cluster measures (AccessibilityCluster: the audit's own headings, the scan of each screen, the cross-screen tests), and the order of the
+        // classes is not assumed: so the record is written once more when the run ends (BrowserHost.DisposeAsync), from the whole run, and a cell of the cluster that is still "not measured" then fails the run (D-1736 b). The cells of
+        // the parts another cluster measures are not this run's to check; the other cluster's run checks them, and the union of the clusters covers every part (AccessibilityRecordTests).
+        AccessibilityScanTests.RegisterCompleteness(Host, engine, path);
     }
 
     /// <summary>The result a criterion carries in the record: "uygulanmaz" when it does not apply, "karşılandı" when no screen failed it, otherwise "karşılanmadı" with the screens (T552 D-1732 (b)).</summary>
@@ -436,8 +432,10 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
     /// met when every observation the criterion's evidence names for that screen was made and agreed, "uygulanmaz" for a criterion that does not apply (with the reason in the table), and "ortak" when the criterion is answered
     /// for all screens at once by a source scan or a cross-screen observation (named in the table). A cell that is none of these is a gap and the test fails on it.
     /// </summary>
-    internal static (List<string> Gaps, List<string> NotMeasured) WriteRecordOfCriteria(string directory, string engine, string wayName, IReadOnlyList<string> screens, IReadOnlyList<Observation> record)
+    internal static (List<string> Gaps, List<string> NotMeasured) WriteRecordOfCriteria(string directory, string engine, string wayName, IReadOnlyList<string> screens, IReadOnlyList<Observation> record, IReadOnlyList<string>? crashRetries = null, AccessibilityCluster? cluster = null)
     {
+        // A run of one cluster measures the parts of the record that cluster names (T604 D-1736): a cell none of whose evidence is measured here is "·" (another cluster's), and only the parts of this cluster can be "not measured".
+        cluster ??= AccessibilityCluster.Current;
         List<string> notMeasured = [];
         HashSet<string> scanMissing = new(StringComparer.Ordinal);
         List<string> gaps = [];
@@ -445,7 +443,7 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
         text.AddRange([$"# Erişilebilirlik tarama kaydı: {engine}, {wayName} yol", string.Empty]);
         // The result of a criterion is read from the run (T552 D-1732 (b)): the matrix below is evaluated first, and a criterion with a screen that did not meet it is "karşılanmadı", whatever the table of the document says.
         Dictionary<string, List<string>> unmet = WcagCriteria.All.ToDictionary(c => c.Id, _ => new List<string>(), StringComparer.Ordinal);
-        Dictionary<string, (CommonState State, string Detail)> common = WcagCriteria.All.Where(c => c.Applies && c.Evidence.Any(e => e == WcagCriteria.SourceScan || CrossObservations.ContainsKey(e))).ToDictionary(c => c.Id, c => CommonResultOf(c, record, engine, wayName), StringComparer.Ordinal);
+        Dictionary<string, (CommonState State, string Detail)> common = WcagCriteria.All.Where(c => cluster.Measures(RecordPart.Common) && c.Applies && c.Evidence.Any(e => e == WcagCriteria.SourceScan || CrossObservations.ContainsKey(e))).ToDictionary(c => c.Id, c => CommonResultOf(c, record, engine, wayName), StringComparer.Ordinal);
         foreach (KeyValuePair<string, (CommonState State, string Detail)> answered in common.Where(a => a.Value.State == CommonState.Unmet))
         {
             unmet[answered.Key].Add("ortak");
@@ -470,6 +468,12 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
                 string[] own = [.. c.Evidence.Where(WcagCriteria.ScreenEvidence.Contains)];
                 if (own.Length == 0)
                 {
+                    if (!cluster.Measures(RecordPart.Common))
+                    {
+                        cells.Add("·");
+                        continue;
+                    }
+
                     // Answered for all screens at once: the cell is "●" only when the run made the observation and it agreed ("–": not made in this run, "✗": it disagreed).
                     cells.Add(common[c.Id].State switch { CommonState.Met => "●", CommonState.Unmet => "✗", _ => "–" });
                     continue;
@@ -479,10 +483,19 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
                 // the run has not scanned yet is "not measured" (D-1736 a), not a pass.
                 static string Prefix(string e) => e is WcagCriteria.FactsStep or WcagCriteria.ScanStep ? e : $"elle denetim, {e}";
                 string[] audited = [.. own.Where(e => e != WcagCriteria.ScanStep)];
-                bool met = audited.All(e => record.Any(o => o.Row == screen && o.Engine == engine && o.Path == wayName && o.Ok && o.Step.StartsWith(Prefix(e), StringComparison.Ordinal))
+                bool auditedHere = audited.Length > 0 && cluster.Measures(RecordPart.AuditOwn);
+                bool scanHere = own.Contains(WcagCriteria.ScanStep) && cluster.Measures(RecordPart.Scan);
+                if (!auditedHere && !scanHere)
+                {
+                    // Every evidence of this cell is another cluster's: this run neither measures nor fails it.
+                    cells.Add("·");
+                    continue;
+                }
+
+                bool met = !auditedHere || audited.All(e => record.Any(o => o.Row == screen && o.Engine == engine && o.Path == wayName && o.Ok && o.Step.StartsWith(Prefix(e), StringComparison.Ordinal))
                     && !record.Any(o => o.Row == screen && o.Engine == engine && o.Path == wayName && !o.Ok && o.Step.StartsWith(Prefix(e), StringComparison.Ordinal)));
                 string cell = met ? "✓" : "✗";
-                if (met && own.Contains(WcagCriteria.ScanStep))
+                if (met && scanHere)
                 {
                     List<Observation> scans = [.. record.Where(o => o.Row == screen && o.Engine == engine && o.Path == wayName && o.Step.StartsWith(WcagCriteria.ScanStep, StringComparison.Ordinal))];
                     if (scans.Count == 0)
@@ -513,14 +526,21 @@ public sealed class AccessibilityAuditTests(BrowserHost host) : BrowserTestBase(
         text.AddRange(["| Ölçüt | Sonuç | Gerekçe ya da kanıt | Satır |", "|---|---|---|---|"]);
         foreach (WcagCriteria.Criterion c in WcagCriteria.All)
         {
-            text.Add($"| {c.Id} {c.Name} | {ResultOf(c.Applies, unmet[c.Id], (common.TryGetValue(c.Id, out (CommonState State, string Detail) answer) && answer.State == CommonState.NotMeasured) || scanMissing.Contains(c.Id))} | {(c.Applies ? string.Empty : c.Reason + "; ")}kanıt: {string.Join(", ", c.Evidence)} | {string.Join(", ", c.Rows)} |");
+            string result = c.Applies && !c.Evidence.Any(e => cluster.Measures(AccessibilityCluster.PartOf(e)))
+                ? $"başka kümede ölçülür (bu koşunun kümesi: {cluster.Name})"
+                : ResultOf(c.Applies, unmet[c.Id], (common.TryGetValue(c.Id, out (CommonState State, string Detail) answer) && answer.State == CommonState.NotMeasured) || scanMissing.Contains(c.Id));
+            text.Add($"| {c.Id} {c.Name} | {result} | {(c.Applies ? string.Empty : c.Reason + "; ")}kanıt: {string.Join(", ", c.Evidence)} | {string.Join(", ", c.Rows)} |");
         }
 
         text.AddRange(["", "## Kontrol Listesi A Seviyesi maddeleri (12 §12.2 Ayrım; T552 kabul kriteri 4)", string.Empty, WcagCriteria.ChecklistAStatus + ": " + WcagCriteria.ChecklistAReason]);
-        text.AddRange(["", "## Ekran × ölçüt matrisi (✓ karşılandı, o uygulanmaz, ● ortak kanıt koşuda ölçüldü ve uydu, – bu koşuda ölçülmedi, ✗ uymadı)", string.Empty]);
+        text.AddRange(["", "## Ekran × ölçüt matrisi (✓ karşılandı, o uygulanmaz, ● ortak kanıt koşuda ölçüldü ve uydu, – bu koşuda ölçülmedi, ✗ uymadı, · öteki kümenin koşusunda ölçülür)", string.Empty]);
         text.AddRange(matrix);
         text.AddRange(["", "## Notlar", string.Empty]);
         text.AddRange(EngineNotes(engine));
+        text.Add(cluster.Name.Length == 0
+            ? "- Koşu: tüm erişilebilirlik geçişi tek çağrıda (elle denetim, tarama, ortak ölçütler); her ölçüt bu dosyada ölçülür."
+            : $"- Koşu: '{cluster.Name}' kümesi ({string.Join(", ", cluster.Parts)}); '·' hücreler ve 'başka kümede ölçülür' ölçütler öteki kümenin koşusunda ölçülür ve onun dosyasında yazılır (AccessibilityCluster: kümelerin birleşimi her bölümü kapsar).");
+        text.Add($"- Sayfa çökmesi yeniden denemesi (Firefox yük altında; yalnız 'Page crashed', iş başına bir; ikinci çökme koşuyu düşürür): {crashRetries?.Count ?? 0}" + (crashRetries is { Count: > 0 } ? " - " + string.Join("; ", crashRetries) : string.Empty));
 
         string file = System.IO.Path.Combine(directory, $"accessibility-record-{engine}-{wayName}.md");
         File.WriteAllLines(file, text);

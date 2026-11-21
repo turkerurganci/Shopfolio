@@ -136,6 +136,9 @@ public sealed class AccessibilityScanTests(BrowserHost host) : BrowserTestBase(h
                 await gate.WaitAsync();
                 try
                 {
+                    // A page that crashes under load is read once more (CrashRetry); the second crash, or any other tool error, ends the run with the stop named.
+                    await RetryOnCrashAsync($"{stop.Screen} {stop.Path}", async () =>
+                    {
                     WatchedPage page = await NewPageAsync(context);
                     await GoAsync(page, stop.Path);
                     List<Finding> violations;
@@ -146,7 +149,7 @@ public sealed class AccessibilityScanTests(BrowserHost host) : BrowserTestBase(h
                     {
                         (violations, passed, incomplete, version) = await ScanAsync(page.Page);
                     }
-                    catch (PlaywrightException e)
+                    catch (PlaywrightException e) when (!CrashRetry.IsCrash(e))
                     {
                         throw new InvalidOperationException($"{stop.Screen} {stop.State} ({stop.Path}) at {page.Page.Url}: {e.Message}", e);
                     }
@@ -154,6 +157,7 @@ public sealed class AccessibilityScanTests(BrowserHost host) : BrowserTestBase(h
                     string observed = $"axe-core {version}: {violations.Count} violations, {passed} rules passed, {incomplete.Count} incomplete" + (violations.Count > 0 ? ": " + string.Join(" / ", violations.Take(5).Select(v => $"{v.Rule} ({v.Criteria}) {v.Target}")) : string.Empty);
                     await ObserveAsync(stop.Screen, path, engine, page, "otomatik tarama: " + stop.State, "axe-core WCAG A kural kümesi: ihlal yok", observed, violations.Count == 0);
                     await page.Page.CloseAsync();
+                    });
                 }
                 finally
                 {
@@ -162,6 +166,29 @@ public sealed class AccessibilityScanTests(BrowserHost host) : BrowserTestBase(h
             }));
         }
 
+        // The cells of the criteria record this cluster measures are checked when the run ends (BrowserHost.DisposeAsync): the scan of every screen, and the cross-screen criteria when this is the cluster that runs them.
+        RegisterCompleteness(Host, engine, path);
         Assert.Empty(Failures);
+    }
+
+    /// <summary>The screens of the pass in the order of the inventory, each once: the rows and the columns of the criteria record.</summary>
+    internal IReadOnlyList<string> ScreenList() => [.. AuditStops().Select(s => s.Screen).Distinct()];
+
+    /// <summary>
+    /// Registers the completeness check of the criteria record of this engine and way for the cluster of the run (D-1736 b; <see cref="AccessibilityCluster"/>): when the run ends the record is written once more from the whole run and every
+    /// part the cluster measures must have been measured. The audit class and the scan class both register it (a cluster has one of them), under the same name, so the check is one however the classes are combined.
+    /// </summary>
+    internal static void RegisterCompleteness(BrowserHost host, string engine, ScriptPath path)
+    {
+        string wayName = path == ScriptPath.Scripted ? "betikli" : "betiksiz";
+        string directory = host.Record.Directory;
+        IReadOnlyList<string> screens = new AccessibilityScanTests(host).ScreenList();
+        host.Record.AddCompletenessCheck(
+            $"{engine}/{wayName}",
+            all =>
+            {
+                (_, List<string> notMeasured) = AccessibilityAuditTests.WriteRecordOfCriteria(directory, engine, wayName, screens, all, host.Record.CrashRetries);
+                return notMeasured.Count == 0 ? null : $"{notMeasured.Count} not measured, e.g. " + string.Join(" / ", notMeasured.Take(6));
+            });
     }
 }

@@ -81,9 +81,13 @@ public abstract class BrowserTestBase
             await gate.WaitAsync();
             try
             {
-                WatchedPage page = await NewPageAsync(context);
-                await GoAsync(page, stop.Path);
-                await read(stop, page);
+                WatchedPage? page = null;
+                await RetryOnCrashAsync($"{stop.Screen} {stop.Path}", async () =>
+                {
+                    page = await NewPageAsync(context);
+                    await GoAsync(page, stop.Path);
+                    await read(stop, page);
+                });
                 WatchedPage? old;
                 lock (turn)
                 {
@@ -103,6 +107,9 @@ public abstract class BrowserTestBase
         }));
         return last;
     }
+
+    /// <summary>Runs the page work of one stop; a page that crashed ("Page crashed", Firefox under load) is run once more and the retry is counted in the record, a second crash or any other error is not retried (<see cref="CrashRetry"/>).</summary>
+    internal Task RetryOnCrashAsync(string what, Func<Task> work) => CrashRetry.RunAsync(what, Host.Record.NoteCrashRetry, work);
 
     protected async Task<IResponse?> GoAsync(WatchedPage page, string path)
     {

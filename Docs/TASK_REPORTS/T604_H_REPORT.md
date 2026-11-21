@@ -202,3 +202,48 @@
 - D-1412 ve D-1365 (sayfasız okuma) daraltıldı: D-1833, D-1832.
 - Birleştirme notu: `EmailLinks.cs` (UE: `ImagePrefix` sabiti), `OrderPageModels.cs`, `OrderingModule.cs`, `FirmIdentity.cshtml.cs`, `OrderDetail.ItemSteps.cs`, `PRODUCT_DISCOVERY_STATUS.md` (K-1636/K-1637 aynı yer) UE dalında da değişir; hunk'lar ayrı, K-numarası satırları çakışırsa ikisi de tutulur.
 - Süre bütçesi aşıldı (45 dk): ayırt edicilik ve Unit TAM yeniden koşusu UH3b'de.
+
+
+## UH4 — Yapılan İşler
+
+- **Birleştirme (main #595):** `CartContracts.cs` `CartLine` hem UH parametrelerini (`ImageId`, `OptionValues`, `IsOnShowcase`) hem main'in `LineAmount` gövdesini taşır; `CartVariantReader.cs` stok satırı main'in `StockRules.ReservedAgainst(...)` ile, görsel/seçenek satırları UH'deki gibi. Belge çakışmaları: `DEFERRED_BACKLOG.md` (sekiz yerde satır satır: UH'nin kapattığı satır UH'den, main'in kapattığı satır main'den), `PRODUCT_DISCOVERY_STATUS.md` (K-1635, K-1637 main'in K-1622…K-1636 satırları arasına sıralı). 04/07 sürüm satırları çakışmadı. Birleştirme commit'i push'landı; Unit TAM 8135 ve sepet/ürün sınıfları birleştirmeden sonra yeşil.
+- **D-1329:** `VersionedSideBulkWriteScan` kümeyi alıcının türünden tanır: `Contracts` ad alanındaki sözleşme türlerinden küme adlı üyesi olanlar (`MenuNames.Products`) derlemeden türetilir (`ContractTypesWithSetNamedMembers`); bu türle bildirilmiş alıcının üyesi küme sayılmaz. `CompanySettingsWriter.WriteHomepageAsync` yerel değişken geçici çözümü kalktı.
+- **D-1778 (belge değil kod; 04 6.1.5.2 kazanır):** E-45 ve E-46 satış kapısını okur (`ISettingsModule.GetSalesGateAsync`) ve `id="sales-state"` satırında gösterir (`PanelHomeTexts.SalesState`: açık / geçici kapalı / eksik koşullar adıyla; ana sayfa uyarısıyla aynı metin ve aynı kaynak).
+- **D-1790:** `Profile.cshtml` iç gezinmeyi ve beş bölümü adres ve sipariş ekranlarının `account-layout` / `account-layout__content` sarmalayıcısına koyar (CSS değişmedi: iki sütun zaten tanımlı).
+- **D-1806 (para):** `RefundIbanStateAsync` kalemsiz açık isteği de sayar — siparişin bekleyen iadelerinin kimlikleri `OrderOperations`tan verilir (AfterSales Payment varlığına uzanamaz, modül sınırı testi); `EnterRefundIbanAsync` kalemsiz istekte de `CheckAsync(EnterRefundIban)` kararını sorar.
+- **D-1773 (daraldı):** `IReadsOnForgeryRefusal` ortak kancası (`ForgeryProtectionFilter` sahtecilik 400'ünde, ileti konduktan sonra bir kez çağırır; yalnız okur); AdminAccounts, Categories, ContentList'te uygulandı; `ForgeryRefusalReadInventoryTests` her POST işleyicili sayfayı sınıflar: kanca / seçim aşamasında okur (6) / kendi okuması (Cart, Checkout) / GET okumaz (4) / kapalı bekleme listesi (23 sayfa; yalnız kısalır). Kalan 23 sayfanın GET okuması sorgu değeri, tek kullanımlık değer, oturum izni ya da gönderilen değerlere bağlıdır (iletişim formunda kanca yazılan değerleri sıfırlardı), bu yüzden sayfa başına ayrım gerekir: satır D-1773 daralttı → T604 (U, UH dalı), D-1843.
+
+## UH4 — Kabul ve öz denetim
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Hedefi T604 olan UH4 kalemleri kapalı ya da gerekçeli (KK1) | ~ | D-1329, D-1806 `✅ Çözüldü → T604` (`DEFERRED_BACKLOG.md`, `DEFERRED_BACKLOG.d/T604-U.md`); D-1778/D-1790 kapandı (satırı #594 ile main'e girer; birleştirmede yerinde ✅; `DEFERRED_BACKLOG.d/T604-H.md` notu); D-1773 daraldı (satır + D-1843) |
+| D-1329 kabul cümlesi: tarama ürün kümesini tür adından tanır, geçici çözüm sadeleşir | ✓ | `VersionedSideBulkWriteScanTests.Scan_OfAContractMemberNamedLikeASet_IsQuiet_D1329`, `…StaysAFinding_D1329`, `ContractTypesWithSetNamedMembers_…_D1329`; `ApplicationSource_WritesNoRecord…` gerçek kaynakta (`names.Products` doğrudan) yeşil |
+| D-1778 sayfalar kapıyı okur, hâl gösterilir | ✓ | `PaymentAndShippingPagesTests.TheSalesState_IsOnTheScreen_AsTheSalesGatesAnswer_AndFollowsTheGate_D1778` (iki sayfa; kapalı hâl ve koşul düşünce satırın değişmesi) |
+| D-1790 sarmalayıcı | ✓ | `AccountProfilePageTests.TheScreen_PutsTheNavigationAndTheFiveSectionsInTheAccountLayout_…_D1790` (gezinme sarmalayıcının çocuğu, bölümler içerik sütununda). `NarrowClassTests` `KnownNavigationNotAtTheLeft` sabiti A dalındadır (dokunulmadı; aşağıda birleştirme notu) |
+| D-1806 olgu ve karar | ✓ | `OrderDetailPageTests.TheItemlessIbanRequest_IsInTheDecisionsFact_…_D1806` (istek açılmadan olgu yanlış ve karar kapalı; açılınca ikisi doğru; başka sipariş sayılmaz; müşteri girişi uygulanır, istek kapanır, olgu yanlışa döner) |
+| D-1773 kanca + envanter | ✓ | `ForgeryRefusalReadInventoryTests` (3 test); `CategoriesPageTests.TheForgeryRefusal_ShowsTheTreeWithItsNodes_…_D1773` (400, ağaç düğümleri çizilir, hiçbir şey yazılmaz) |
+| Para/güvenlik KK2 (D-1806, D-1773) | ✓ | aşağıda "Para ve güvenlik kalemleri" |
+| Var olan testler değişmeden | ✓ | Unit TAM, `OrderDetailPageTests`, `CustomerOperationsTests`, `ItemRecordsTests`, `StatusCorrectionTests`, `BranchFlowTests`, `StateRolePageTests`, sepet/ödeme/form kalıbı sınıfları değişmeden yeşil (`CategoriesPageTests` yalnız `partial` oldu) |
+| Karar kaydı | ✓ | gerekmedi: D-1778 04 6.1.5.2'nin zaten istediğini yapar (üst belge kazanır); belge kuralı değişmedi |
+| Sık FAIL (1)–(5) | ✓ | (1) yeni tarama istisnası yok: alıcı bildirimi yalnız `Contracts` türleriyle, kendi alıcısı için; (2) alıcı tarama biçimleri: parametre, alan/özellik, `x.Names.Products` (zincir) sınandı, `var` yerelleri bilerek tanınmaz (kapalı düşer); (3) şema değişmedi; (4) yeni sınıf/sayı yok (`MenuNames` dışında tür yok, test türetilir); (5) 04/05/07/11 kuralı değişmedi |
+| Ayırt edicilik (src boz → kırmızı → geri al) | ✓ | D-1329: alıcı süzgeci kapatılınca `ApplicationSource_…` ve iki `_D1329` örneği kırmızı. D-1778: iki sayfada satır boşaltılınca `…_D1778` (iki satır) kırmızı. D-1790: `account-layout` sınıf adı bozulunca `…_D1790` kırmızı. D-1806: olgu yalnız kalemli isteğe döndürülünce `…_D1806` kırmızı (kalemsiz istek olgusu yanlış). D-1773: kanca çağrısı kapatılınca `…_D1773` kırmızı. Hepsi geri alındı, aynı testler sonra yeşil |
+
+### Para ve güvenlik kalemleri
+
+- **D-1806 (iade IBAN'ı; para):** değişiklikten önce kırmızı: olgu `RefundIbanStateAsync`'te yalnız kalemli isteği sayarken `TheItemlessIbanRequest_…_D1806` "açık hâl" iddiasında kırmızı (`Assert.True` → `False`); yeşil: olgu kalemsiz isteği siparişin iade kimlikleriyle sayınca. Var olan davranış: kalemsiz isteğin girişi daha önce modülün kendi satır denetimiyle yapılırdı (`IsOrdersAsync`); karar artık da sorulur ve ikisi birlikte geçer. Çıkış yolu: yeni parametre `orderRefundIds` ve `OrderOperations` okuması geri alınırsa `EnterRefundIbanAsync`'in kalemsiz dalı `open.OrderItemId is not null &&` koşuluna döner (önceki davranış). Geri alma: tek commit `52b2c75b`.
+- **D-1773 (sahtecilik reddi; güvenlik):** kanca yalnız okur; reddedilen istek hiçbir şey yazmaz (`CategoriesPageTests…_D1773` satır sayısı değişmez). Kanca yalnız kendi sayfasının GET okumasını (sorgu değeri ve tek kullanımlık değer olmadan) çağırır; GET'i yazan, değer tüketen ya da sorguyla karar veren sayfa kancayı uygulamaz (envanter testi kapalı liste tutar). Çıkış yolu: kancayı uygulayan üç sayfada arayüz kaldırılır.
+
+## UH4 — Test sonuçları
+
+| Tür | Sonuç | Not |
+|---|---|---|
+| Unit (TAM) | ✓ 8144/8144 | ilk koşuda 3 kırmızı düzeltildi: modül sınırı (AfterSales → Payment varlığı: kimlikler Ordering'den), yasak test deseni (örnek metinde `) {` bulunması test gövdesi taramasını bozdu) |
+| Integration | ✓ TAM: CI (sahip 2026-11-12) | koşulan: PaymentAndShippingPagesTests, CategoriesPageTests, AccountProfilePageTests, AdminAccountsPageTests, ContentPanelPageTests, CartPageTests, CheckoutPageTests, PageFormPatternTests, FormSecurity*, PanelHomeAndVerificationPagesTests, StorefrontSearchAndProductTests (263/263); OrderDetailPageTests, CustomerOperationsTests, StateRolePageTests, ItemRecordsTests, StatusCorrectionTests, PaymentAndShippingPagesTests (291/291); ItemRecordsTests, BranchFlowTests, StatusCorrectionTests, CartTests, CartQuantityTests (168/168) |
+| `dotnet format` | ✓ | UH4'ün 21 `.cs` dosyasında temiz |
+
+## UH4 — ⚠ (kolay kararlar, sahip yerine)
+
+- **Birleştirme notu (PR #594, E-25 ve sahtecilik 400'ü):** D-1790 E-25'te içeriği iki sütunlu düzene koyar; iç gezinme artık solda, sayfa bölümleri sağda. Odak sırası ve kaydırma: gezinme belgede içerikten önce kaldığı için tab sırası değişmedi; kaydırma konumu değişmez (sarmalayıcı yalnız ızgara ekler). A dalında `NarrowClassTests` E-25 testi (A r2 Bulgu 1) webkit'te solda gezinmeyi bekleyen `KnownNavigationNotAtTheLeft` sabitine bağlıdır: #594 birleşince sabit kaldırılır, iki yönlü test bunu ister. `StateRoleCheck.PanelGateReadGaps` ("E-45", "E-46") de aynı şekilde kaldırılır (`GateReadGapStale` kırmızı verir; ikisi artık `GetSalesGateAsync` okur). Tarayıcı gözlemi bu dilimde yapılmadı (A parçasının aracı).
+- D-1773 daraldı (kalan 23 sayfa): D-1843; kategori 400 sayfasında eylem mesajı yok: D-1844; `ListRefundIbanFieldsAsync` kalemsiz istekleri siparişe bağlamıyor (sınanmadı): D-1845.
+- Süre bütçesi aşıldı (45 dk): birleştirme, beş kalem, ayırt edicilik ve Unit TAM tek diliminde tamamlandı.

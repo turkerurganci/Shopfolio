@@ -88,6 +88,30 @@
 
 **Doğrulayıcının kanıtları:** KK2 kırmızı–yeşil yeniden üretildi (D-1599, D-1806, D-1845, D-1773: `src` geçici bozuldu → dört test kırmızı → geri alındı → 6/6 yeşil). Unit 8325/8325; Integration ilgili 28 sınıf 750/750 (TAM: CI 4. iş yeşil); `NarrowClassTests` 36/36, `ScreenInventoryTests` 7/7; betik testleri 4/4; `test-pre-commit.sh` 263/0; build `-warnaserror` 0 uyarı; `dotnet format` değişen 118 `.cs` temiz. Birleştirme: `git diff cea4b177 origin/main` boş; D-1770 bekçiyi değiştirmedi.
 
+## Düzeltme 1 — tur 1 bulguları ve K1 (2026-11-21; dilim (1)–(3), D-1843 sonraki dilimde)
+
+Başlangıç: working tree temiz; `core.hooksPath` = `scripts/git-hooks`; ana dal son üç tamamlanmış run success (44888714519, 44871351996, 44871351968). Dış varsayım yok (tarayıcı motorları yerelde kurulu: chromium-1217, firefox-1511, webkit-2272). Yönetici kararı: ürün kodu isteyen T604 kalemleri T601'e atılamaz, bu PR'da kapanır.
+
+| Kalem | Ne yapıldı | Kırmızı (değişinim) | Yeşil |
+|---|---|---|---|
+| D-1412 / D-1833 | `AfterSalesScreenTests.SeveralFieldedItems_…_D1412_D1833` (3, 2, 1 adetli üç kalem: seçim yokken liste altında; gönderilen alanlı kalemin satırında, adet ve seçimle; alansız kalem gönderilince liste altında; tek `Quantity`). `DefectClaimFieldTests` (tarayıcı; `BrowserSeed.NewOrderWithItemsAsync`): betikli yolda seçim alanı satıra taşır, alansız kalemde geri getirir; betiksiz yolda yerinde kalır, ret sayfasında sunucu seçilen satıra çizer | `QuantityFieldRow` seçimi yok sayınca Integration + betiksiz kırmızı; betikte `place(...)` kesilince betikli kırmızı | 1/1 + chromium 2/2 (betikli, betiksiz); firefox/webkit CI E2E |
+| D-1812 (D-1550'nin payı) | `OrderDetail.StepForms.cs` (`RefusalIsShipmentField`, `RefusalIsDeliveryField`, `StepSummaryFor`, `StepMessageFor`, `StepMessageId`); `_OrderShipmentFields`/`_OrderDeliveryFields` özet + `aria-invalid` + `aria-describedby` + alan altı mesaj; kural sınırı yerinde, özetsiz; form çizildiğinde adım başındaki mesaj yinelenmez (`ShowsRefusalAtStep`); sıra sorusu yerinde. `OrderDetailPageTests.TheShipmentAndDeliveryMarkForms_…_D1812` (kargoya verme, yeniden kargoya verme, boş ve ileri teslim tarihi) | iki parçada `refused = false` → kırmızı | 1/1; `OrderDetailPageTests` 99/99 |
+| D-1844 + K1 (D-1859) | `Categories.cshtml` model durumunun eylem düzeyi mesajlarını sayfa başında yerinde çizer (`categories-action-message`); `CategoriesPageTests …_D1773` mesajı bir kez ve kimliğiyle sınar | döngü boş diziye çevrilince kırmızı | 1/1 |
+| D-1843 | hedef T604'e döndü, gerekçe düzeltildi; 23 sayfanın sayfa başına güvenli okuması sonraki dilimde (süre) | — | — |
+| UH5 gerekçesi | rapordaki kalem tablosu, gerekçe paragrafı ve ⚠ satırı; D-1812, D-1843, D-1844, D-1773 (T604-U) backlog satırları | — | — |
+
+Var olan testler değişmeden geçti: `OrderDetailPageTests` (ship/teslim mesaj metni testleri dahil), `AfterSalesScreenTests`, `CategoriesPageTests`, `PageFormPatternTests`, `FormSecurityTests`, `OneTimeValueTests`, `ForgeryProtectionTests`, `MessageComponentTests`, `ComponentMarkupTests`.
+
+| Koşu | Sonuç |
+|---|---|
+| Derleme `-warnaserror` | ✓ 0 uyarı |
+| Unit TAM | ✓ 8325/8325 |
+| Integration (ilgili sınıflar) | ✓ 92/92 (AfterSalesScreenTests, CategoriesPageTests, PageFormPatternTests, FormSecurityTests, OneTimeValueTests, ForgeryProtectionTests) · 119/119 (OrderDetailPageTests, MessageComponentTests, ComponentMarkupTests) · 4/4 (D1833 + chromium iki yol + D1773); TAM: CI |
+| Kırmızı–yeşil | ✓ dört değişinim → 5/5 kırmızı; geri alma → yeşil |
+| `dotnet format` (dilimin değiştirdiği 8 `.cs`) | ✓ değişiklik yok |
+
+**Öz denetim (düzeltme 1 dilimi; tam tablo PR'ı açan dilimde):** KK1 — D-1412, D-1833, D-1812, D-1550, D-1844, D-1859 kabul cümleleriyle kapandı (yukarıdaki tablo), D-1843 açık ve hedefi T604; KK2 — bu dilimde para kalemi yok; KK5 — kapanan satırlar `✅ Çözüldü → T604`, açık satırın hedefi ve gerekçesi yazılı, "Aktif kalem" sayacına dokunulmadı. Sık FAIL: (1) istisna eklenmedi; (2) tarama değişmedi; `FormFieldPlaceEnforcement` kaynak dizgileri (`RefuseAsync(id, ShipmentMissingText…)`, `…DeliveryDateMissingText…`) değişmeden tutuyor; (3) göç yok; (4) D-1550/D-1773 satırları ve rapor tablosu aynı olguyla hizalandı; (5) 09 değişmedi.
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Yok
@@ -194,7 +218,7 @@
 | D-1464 | ✓ | `04` 7.2.8.1; `OrderDetailPageTests` (`DeliveryDateFutureText`, `DeliveryDateBeforeShipmentText` — işaret ve düzeltme ekranı) değişmeden geçer |
 | D-1604 | ✓ | `OrderDetailPageTests.AnOrderNotHandedToTheCarrier_..._D1604` |
 | D-1701 | ✓ | `07` §8.2.2, `09` §16.2 m.2, `12` VAL-B097 metni; K-1637 (d) |
-| D-1412 | ~ daraldı | betik ve işaretleme kancaları `AfterSalesScreenTests …_KK6`; çok kalemli sayfa testi D-1833 |
+| D-1412 | ~ daraldı → ✓ düzeltme 1 | betik ve işaretleme kancaları `AfterSalesScreenTests …_KK6`; çok kalemli sayfa testi ve tarayıcı gözlemi düzeltme 1'de (`…_D1412_D1833`, `DefectClaimFieldTests`) |
 | Karar kaydı | ✓ | K-1637 `PRODUCT_DISCOVERY_STATUS.md` (a)–(d) |
 | Ayırt edicilik (UH3, src boz → kırmızı → geri al) | ✓ | Sekiz bozma birlikte uygulandı, her biri kendi testinde kırmızı verdi, `git checkout -- src` ile geri alındı: D-442 (`DispatchSender` logo satırı `null`) `DispatchRetryAndMarkTests…D442`; D-880 (`OrderOperations` `HasExpiredDefectChannel` hep `false`) `AfterSalesScreenTests…KK7` (iletişim bağlantısı bulunamadı); D-1330 (`data-type-fields` boş) `HomeAndFirmPageTests…D1330`; D-1332 (`WhatsAppNumberRule` reddetmiyor) `WhatsAppNumberRuleTests…D1332` (`"12345"` ve `"whatsapp numaram"` satırları); D-1334 (`AfterSignIn` geri eklendi) `ControlComponentModelTests…KK6`; D-1365 (sipariş başına okuma) `PanelHomeDetailsTests…T521_KK3`; D-1386 (kart sınıfı yazılmıyor) `OrderListPageTests…KK2`; D-1604 (`ShowsNotShippedItemNote` hep `false`) `OrderDetailPageTests…D1604` |
 | Sık FAIL (1)–(5) | ✓ | (1) yeni tarama istisnası yok; (2) JS kaynak taraması `member-defect-claim.js`/`firm-identity.js` için `NoScriptPathSourceScanTests` geçti; (3) 06 şeması değişmedi; (4) eşitlik tablosu, `07`/`09`/`12` üçlüsü ve `04` aynı turda; (5) belge kuralı değişen yerler K-1637'de |
@@ -302,7 +326,7 @@
 | UH3 | D-1334 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
 | UH3 | D-1365 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
 | UH3 | D-1386 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
-| UH3 | D-1412 | ↘ daraltıldı | faz kapısı | `DEFERRED_BACKLOG.md` |
+| UH3 | D-1412 | ✅ kapandı (düzeltme 1; D-1833 ile) | T604 | `DEFERRED_BACKLOG.md` |
 | UH3 | D-1464 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
 | UH3 | D-1604 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
 | UH3 | D-1701 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
@@ -314,12 +338,12 @@
 | UH5 | D-1599 | ✅ kapandı | T604 (U, #594 sonrası UH dalı) | `DEFERRED_BACKLOG.md` |
 | UH5 | D-1845 | ✅ kapandı | T604 (U, UH dalı) | `DEFERRED_BACKLOG.d/T604-H.md` |
 | UH5 | D-1815 | ✅ kapandı | T604 (A sonrası) | `DEFERRED_BACKLOG.d/T604-H.md` |
-| UH5 | D-1812 | ↘ daraltıldı | T601 (F6) | `DEFERRED_BACKLOG.d/T604-H.md` |
-| UH5 | D-1843 | ↘ daraltıldı | T601 (F6) | `DEFERRED_BACKLOG.d/T604-H.md` |
-| UH5 | D-1844 | ↘ daraltıldı | T601 (F6) | `DEFERRED_BACKLOG.d/T604-H.md` |
+| UH5 | D-1812 | ✅ kapandı (düzeltme 1) | T604 | `DEFERRED_BACKLOG.d/T604-H.md` |
+| UH5 | D-1843 | ↘ açık; hedef T604 (düzeltme 1: T601 geri alındı) | T604 | `DEFERRED_BACKLOG.d/T604-H.md` |
+| UH5 | D-1844 | ✅ çözüldü (düzeltme 1) | T604 | `DEFERRED_BACKLOG.d/T604-H.md` |
 | UH5 | D-1770 | ✅ çözüldü (UH son) | T604 | `DEFERRED_BACKLOG.d/T604-A.md` |
 
-Daraltılanların gerekçesi: D-1135 (UH1) ve D-1412 (UH3) kendi dilim notlarında; D-1812, D-1843, D-1844 UH dilim listelerine (KK1) girmedi, U parçası bu PR ile kapanır, kalan ürün kodu F6 ürün işinde; D-1770 yaması UH son işinde uygulandı (main bekçisi artık D-1120 istisnasını taşıyor).
+Daraltılanların gerekçesi: D-1135 (UH1) kendi dilim notunda. **Düzeltme 1 ile düzeltildi:** UH3'ün D-1412 daraltması gerekçesizdi; UH5'in D-1812, D-1843, D-1844 için yazdığı "UH dilim listelerine (KK1) girmedi" gerekçesi olguya uymuyordu — D-1812 D-1550'nin (UH1), D-1843 ve D-1844 D-1773'ün (UH3 eki) payıdır — ve T601 dağıtım provası ürün kodu almaz. D-1412, D-1833, D-1812, D-1844, D-1859 düzeltme 1'de kapandı; D-1843'ün hedefi T604'e döndü; D-1770 yaması UH son işinde uygulandı (main bekçisi artık D-1120 istisnasını taşıyor).
 
 ## UH5 — KK1–KK5 payları
 
@@ -374,7 +398,7 @@ Değişinimlerin hepsi geri alındı (`git checkout`), aynı sınıflar sonra ye
 - ⚠ VAL-A024: A'nın metni + PASS (UH2 testi A'nın "seçilemez" okumasını ölçer).
 - ⚠ `HomeAndMenu` P-27 parametresi için `FormFieldCodeInventory` muafiyeti (sayfa modülün reddini gösterir; denetim 7.2.17.2 `FirmSettings.cs` satırında).
 - ⚠ D-1599'da sayfa IBAN'ın düşürüldüğünü yöneticiye ayrıca söylemez (belge istemiyor; kayıt sonrası kalemde "IBAN bekleniyor" görünür).
-- ⚠ D-1812, D-1843, D-1844 `T601 (F6)`'ya daraltıldı (UH kapanışı; satırlarda gerekçe); D-1770 UH son işinde çözüldü.
+- ⚠ (düzeltme 1 ile geri alındı) D-1812, D-1843, D-1844 `T601 (F6)`'ya daraltılmıştı; gerekçe yanlıştı (bkz. "Düzeltme 1"); D-1770 UH son işinde çözüldü.
 - ⚠ `TitleMeasure.KnownWithoutBrand` (D-1815) bu dilimin kalem listesinde yoktu; birleşmeden sonra E2E'yi kıracağı için kaldırıldı.
 
 ## UH son — main birleştirmesi ve D-1770

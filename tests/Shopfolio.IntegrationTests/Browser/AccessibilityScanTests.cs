@@ -18,11 +18,27 @@ public sealed class AccessibilityScanTests(BrowserHost host) : BrowserTestBase(h
     /// <summary>The rules that run beside the tags: contrast (WCAG 1.4.3, level AA; the target of the product is AA, 02 3.34.5, VAL-A343).</summary>
     internal static readonly string[] ExtraRules = ["color-contrast"];
 
-    /// <summary>The option sets of the scan: the level A tags, then the contrast rule, nothing else (a best-practice rule is not a criterion). Two runs, because a tag run is exclusive.</summary>
-    internal static IEnumerable<AxeRunOptions> OptionSets()
+    /// <summary>The rule ids the tool itself runs for the level A tags (read once from a tag run of the tool, so a new tool version brings its own list); the scan runs these and <see cref="ExtraRules"/>, nothing else (a best-practice rule is not a criterion).</summary>
+    private static string[]? _levelARules;
+
+    /// <summary>
+    /// The option set of the scan: every rule of the level A tags and the contrast rule, in one run. A tag run is exclusive, so the contrast rule cannot join it by tag; the tag run's rules are named by id instead
+    /// (the list of that tag run), which gives one run, one injection of the tool's script and one reading of the page's style per screen instead of two (D-1736: the Firefox group's time).
+    /// </summary>
+    internal static async Task<AxeRunOptions> OptionSetAsync(IPage page)
     {
-        yield return new AxeRunOptions { RunOnly = new RunOnlyOptions { Type = "tag", Values = [.. LevelATags] } };
-        yield return new AxeRunOptions { RunOnly = new RunOnlyOptions { Type = "rule", Values = [.. ExtraRules] } };
+        string[]? ids = _levelARules;
+        if (ids is null)
+        {
+            // The first scan of the run is a tag run: the rules it ran (every rule the tool runs for the tags, whatever the page's answer: a violation, a pass, incomplete or not applicable) are the list. A tag run leaves out the
+            // rules the tool switches off by default and its experimental ones, which the tool's own rule list for the tags (getRules) would carry, so the list is read from a run, not from the rule catalogue.
+            AxeResult tagRun = await page.RunAxe(new AxeRunOptions { RunOnly = new RunOnlyOptions { Type = "tag", Values = [.. LevelATags] } });
+            ids = [.. tagRun.Violations.Concat(tagRun.Passes).Concat(tagRun.Incomplete).Concat(tagRun.Inapplicable).Select(r => r.Id).Distinct()];
+            Assert.NotEmpty(ids);
+            _levelARules = ids;
+        }
+
+        return new AxeRunOptions { RunOnly = new RunOnlyOptions { Type = "rule", Values = [.. ids, .. ExtraRules] } };
     }
 
     /// <summary>
@@ -89,27 +105,17 @@ public sealed class AccessibilityScanTests(BrowserHost host) : BrowserTestBase(h
     /// <summary>Runs the scan on the page as it is; in the scriptless way the tool's own script runs in the page's isolated evaluation and the page's script stays off.</summary>
     internal static async Task<(List<Finding> Violations, int Passed, List<string> Incomplete, string Version)> ScanAsync(IPage page)
     {
+        AxeResult result = await page.RunAxe(await OptionSetAsync(page));
         List<Finding> violations = [];
-        int passed = 0;
-        List<string> incomplete = [];
-        string version = "?";
-        foreach (AxeRunOptions options in OptionSets())
+        foreach (AxeResultItem item in result.Violations)
         {
-            AxeResult result = await page.RunAxe(options);
-            foreach (AxeResultItem item in result.Violations)
+            foreach (AxeResultNode node in item.Nodes)
             {
-                foreach (AxeResultNode node in item.Nodes)
-                {
-                    violations.Add(new Finding(item.Id, item.Impact ?? string.Empty, string.Join(' ', item.Tags.Where(t => t.StartsWith("wcag", StringComparison.Ordinal))), node.Target.ToString() ?? string.Empty, node.Html ?? string.Empty));
-                }
+                violations.Add(new Finding(item.Id, item.Impact ?? string.Empty, string.Join(' ', item.Tags.Where(t => t.StartsWith("wcag", StringComparison.Ordinal))), node.Target.ToString() ?? string.Empty, node.Html ?? string.Empty));
             }
-
-            passed += result.Passes.Length;
-            incomplete.AddRange(result.Incomplete.Select(i => i.Id));
-            version = result.TestEngine?.Version ?? version;
         }
 
-        return (violations, passed, incomplete, version);
+        return (violations, result.Passes.Length, [.. result.Incomplete.Select(i => i.Id)], result.TestEngine?.Version ?? "?");
     }
 
     [Theory]

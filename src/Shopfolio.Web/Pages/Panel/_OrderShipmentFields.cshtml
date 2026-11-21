@@ -1,5 +1,6 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @using Shopfolio.Modules.Ordering.Contracts
+@using Shopfolio.Pages.Components
 @using Shopfolio.Pages.Panel
 @model OrderDetailModel
 @* The carrier fields of the shipment and the re-sending (T527; 04 9.9.16; 07 UC-124, UC-125): a listed company or "Diğer" with its name, and the tracking number - or the own-vehicle declaration.
@@ -7,12 +8,15 @@
 @{
     bool refused = Model.RefusalIsShipmentField;
 }
-@if (Model.StepSummaryFor(refused, "ship-carrier") is { } summary)
+@{
+    FormErrorSummary? summary = Model.StepSummaryFor(refused, "ship-carrier");
+}
+@if (summary is not null)
 {
     <partial name="_FormErrorSummary" model="summary" />
 }
 <label for="ship-carrier">Kargo şirketi</label>
-<select id="ship-carrier" name="Input.Carrier" aria-invalid="@OrderDetailModel.StepInvalid(refused)" aria-describedby="@OrderDetailModel.StepDescribedBy(refused)">
+<select id="ship-carrier" name="Input.Carrier" autofocus="@(summary is not null && summary.AutofocusFor("ship-carrier").Length > 0)" aria-invalid="@OrderDetailModel.StepInvalid(refused)" aria-describedby="@OrderDetailModel.StepDescribedBy(refused)">
     <option value="">Diğer</option>
     @foreach (CarrierEntry carrier in Model.Carriers)
     {

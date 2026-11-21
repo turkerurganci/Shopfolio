@@ -542,6 +542,7 @@ Değişinimlerin hepsi geri alındı (`git checkout`), aynı sınıflar sonra ye
 | Var olan testler değişmeden geçer | ✓ | değişmeyen davranışın testleri değişmeden yeşil; K-1631 (5) ile değişen davranışın (IBAN reddi kalktı) dört testi bu davranışa göre güncellendi: `PanelWithdrawalNotice_…_T528_KK5` (IBAN satırı çıktı, ad güncellendi), `PanelLateTermination_…_D1590_D1599` (yanlış IBAN artık IBAN'sız kayıt), `LateTerminationRecord_…_KK1_KK5` (ret ileri tarih, IBAN formda kalır), `WithdrawalRecord_…_OnTheUnitsRefusals_…_D1599` (IBAN'lı gönderim uyarı kuralına ulaşır). `StateRoleConsistencyTests.AKnownPanelGateGap_…` kalktı (yerine iki satırlı teori). Öteki bütün sınıflar değişmeden yeşil |
 | Dokunulan sayfaların test sınıfları + `PageFormPatternTests`/`FormSecurity*` | ✓ | Integration ikinci çağrı 244/244 |
 | Branch izolasyonu | ✓ | commit konuları yalnız T604 |
+| E-37 betiksiz odak: tek alanlı kalıba alınan her formda 422'de ilk hatalı alan `autofocus` (düzeltme 3) | ✓ | `_OrderDetailCorrections.cshtml` (taşıyıcı, e-posta, teslim tarihi, ulaşma tarihi), `_OrderShipmentFields.cshtml`, `_OrderDeliveryFields.cshtml`; `OrderDetailPageTests…_D1550`, `…_D1812`, `…_PutTheFocusOnTheMissingDate_…_D1550`; `AccessibilityAuditTests` betiksiz üç motor yeşil |
 
 ## UH5 — Test sonuçları
 
@@ -668,3 +669,49 @@ Yönetici bölüşümü: iki işçi paralel; B001 (uç yanıtı + veri kaydı), 
 - D-1820 satırı bu işçide kapatılmadı: VAL-B001 öteki işçide; B001 PASS olunca kalem ✅ olur. Hedefi T601'den T604'e döndü.
 - D-1819 (sepet görseli alt metni) hedefi bu işçinin payı dışında (öteki işçi).
 - `common.js` odak değişikliği `bindMenuOverflow`'un tek davranış değişikliğidir (Safari'de fareyle açma); Chromium ve Firefox'ta düğme zaten odaklanır, davranış aynı.
+
+## Düzeltme 3 — E-37 betiksiz odak (2026-11-21; tur 3 Bulgu 1)
+
+### Yapılan işler
+
+- Tur 3 Bulgu 1 (erişilebilirlik denetimi E-37, WCAG 3.3.1): panel sipariş ayrıntısında tek alanlı kalıba alınan formlarda 422'de odak BODY'de kalıyordu (özet ve `aria-invalid` vardı, `autofocus` yoktu). Her formda özet (`FormErrorSummary`) yerel değişkene alındı; ilk hatalı alan etiketi `autofocus="@(özet is not null && özet.AutofocusFor(alanId).Length > 0)"` taşır (`_FormErrorSummary` kalıbı, `Tracking.cshtml` ile aynı biçim). Odak yalnız gönderilen formun, özetin bağladığı alandadır; özet yoksa (kuralın sınırı) ve ilk çizimde `autofocus` yok.
+  - `_OrderDetailCorrections.cshtml`: `CorrectCarrier` (`correct-carrier`), `CorrectOrderEmail` (`correct-order-email`), `CorrectDeliveryDate` (`correct-delivery-date`), `CorrectArrivalDate` (`correct-arrival-date-<kayıt>`).
+  - `_OrderShipmentFields.cshtml` (`MarkShipped`, `MarkReshipped`; `ship-carrier`) ve `_OrderDeliveryFields.cshtml` (`MarkDelivered`; `delivery-date`).
+- Aynı kalıbı alan başka form kaldı mı (sık FAIL 4): `_FormErrorSummary` kullanan bütün sayfa/parçalar tarandı; panelde öteki sayfalar `_Field`/adres/yükleme bileşenleriyle zaten `autofocus` taşır, sipariş ayrıntısında özet kullanan başka form yok (adres düzeltme formları `_AddressForm` bileşeniyle).
+- Testler: `OrderDetailPageTests.Corrections.cs` — `_D1550` ve `_D1812` testlerine her formda "tam bir `autofocus`, ilk hatalı alanda" (`AssertFocusOnlyOn`), kural sınırı (gelecek tarih) ve ilk çizimde `autofocus` yok; yeni `TheDeliveryDateAndArrivalDateCorrectionForms_PutTheFocusOnTheMissingDate_OnTheFormSentOnly_D1550` (teslim ve ulaşma tarihi; gönderilmeyen formda yok).
+
+### Kanıt ve kırmızı–yeşil
+
+- Üç `src` dosyası geçici olarak `HEAD`'e döndürüldü: üç test kırmızı (`…_D1550`, `…_D1812`, yeni test); geri alındı: yeşil.
+- Bulgu 1 (E-37 betiksiz odak): `SHOPFOLIO_BROWSER_CLUSTER=audit`, betiksiz yol, `AccessibilityAuditTests` yerelde chromium, firefox, webkit yeşil (1/1 ×3); gözlem kaydında "focus is not on the first invalid field" yok (chromium kaydı `grep` 0).
+- Aynı kalıbı alan CI E2E: bu turda push tek kez sonda; E2E sonucu motor motor CI'da okunur (sık FAIL 8).
+
+### Öz denetim — düzeltme 3 (önceki işçilerin işi dahil; ayrıntı UH1–UH5 tabloları yukarıda, bu turda yeniden denetlenenler)
+
+| # | Madde | Sonuç | Kanıt |
+|---|---|---|---|
+| H3-1 | Tur 3 Bulgu 1: yedi formun hepsinde 422'de ilk hatalı alanda `autofocus` | ✓ | `_OrderDetailCorrections.cshtml`, `_OrderShipmentFields.cshtml`, `_OrderDeliveryFields.cshtml`; `…_D1550`, `…_D1812`, `…_PutTheFocusOnTheMissingDate_…_D1550` |
+| H3-2 | Betiksiz erişilebilirlik denetimi üç motorda yeşil | ✓ | yukarıdaki üç koşu |
+| H3-3 | Bekçi/tarama istisnası geniş (sık FAIL 1) | — | yeni istisna yok |
+| H3-4 | Kaynak taraması çağrı biçimi (sık FAIL 2) | — | tarama değişmedi |
+| H3-5 | Hedefi T604 olan backlog kalemleri (sık FAIL 8) | ✓ | `grep T604` açık satırlar: yalnız T601/F6'ya geçerli hedefle ileri atılanlar (D-1135, D-1813, D-1814, D-1832, D-1864, D-1874); kalan T604 hedefli açık satır yok |
+| H3-6 | DB varsayılanı / FK / göç | — | değişmedi |
+| H3-7 | Aynı sayıyı anan yerler (sık FAIL 4) | ✓ | sayı/etiket değişmedi; `_FormErrorSummary` kullanan öteki dosyalar tarandı |
+| H3-8 | Belge kuralını değiştiren 09 metni | — | belge değişmedi (`04` 2.3.2 zaten odağı ister) |
+| H3-9 | Var olan testler değişmeden geçer | ✓ | `OrderDetailPageTests` (+ yeni test) `PageFormPatternTests`, `FormSecurity*`, `ForgeryRefusalReadInventoryTests` 128/128 |
+| H3-10 | Unit TAM, biçim, derleme | ✓ | Unit 8325/8325; `-warnaserror` 0/0; `dotnet format … --include <değişen .cs>` değişiklik yok |
+| H3-11 | Para/güvenlik etkisi | — | yok; yalnız işaretleme niteliği |
+
+### Test sonuçları (düzeltme 3)
+
+| Tür | Sonuç | Not |
+|---|---|---|
+| Build | ✓ | `-warnaserror` 0 uyarı 0 hata |
+| Unit TAM | ✓ 8325/8325 | |
+| Integration (ilgili sınıflar) | ✓ 128/128 | OrderDetailPageTests, PageFormPatternTests, FormSecurity*, ForgeryRefusalReadInventoryTests; TAM: CI |
+| Tarayıcı (yerel, betiksiz, audit kümesi) | ✓ chromium, firefox, webkit 1/1 | `AccessibilityAuditTests` |
+| `dotnet format` (değişen `.cs`) | ✓ değişiklik yok | |
+
+### ⚠ (kolay kararlar, sahip yerine)
+
+- Yeni backlog kalemi yok.

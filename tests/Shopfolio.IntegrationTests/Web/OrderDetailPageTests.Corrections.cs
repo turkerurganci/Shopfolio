@@ -229,15 +229,71 @@ public sealed partial class OrderDetailPageTests
         Assert.Contains("class=\"error-summary\"", email, StringComparison.Ordinal);
         Assert.Matches(new Regex("<input[^>]*id=\"correct-order-email\"[^>]*aria-invalid=\"true\"[^>]*aria-describedby=\"correction-message\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), email);
 
+        // D-1550 / E-37 (WCAG 3.3.1): without a script the focus goes to the first wrong field by its own autofocus (FormErrorSummary.AutofocusFor): exactly one, on the field the summary links.
+        AssertFocusOnlyOn(carrier, "select", "correct-carrier");
+        AssertFocusOnlyOn(email, "input", "correct-order-email");
+
         // A rule's bound (a date in the future): the lasting message in place, the field described by it, no summary (04 2.3.3).
         string future = FormOf(futureHtml, OrderDetailModel.DeliveryDateFormId);
         Assert.DoesNotContain("class=\"error-summary\"", future, StringComparison.Ordinal);
         Assert.Matches(new Regex("<input[^>]*id=\"correct-delivery-date\"[^>]*aria-invalid=\"true\"[^>]*aria-describedby=\"correction-message\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), future);
         Assert.Contains(OrderDetailModel.DeliveryDateFutureText, future, StringComparison.Ordinal);
+        Assert.DoesNotContain("autofocus", future, StringComparison.Ordinal);
 
         // The untouched form of a first drawing carries no mark.
         (_, string plain) = await GetAsync(client, $"{OrdersPath}/{shippedId:D}", key);
         Assert.DoesNotContain("aria-invalid", FormOf(plain, OrderDetailModel.CarrierFormId), StringComparison.Ordinal);
+        Assert.DoesNotContain("autofocus", FormOf(plain, OrderDetailModel.CarrierFormId), StringComparison.Ordinal);
+    }
+
+    // ---- D-1550 / E-37 (WCAG 3.3.1): the focus of a refused date correction (the delivery date and a return's arrival date) ----
+
+    [Fact]
+    public async Task TheDeliveryDateAndArrivalDateCorrectionForms_PutTheFocusOnTheMissingDate_OnTheFormSentOnly_D1550()
+    {
+        (string key, Guid adminId) = await TestSessions.AdminAsync(_database.Dsn);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateOnly today = TurkeyTime.DateOf(now);
+        (Guid orderId, Guid[] items) = await StepOrderAsync(OrderStatus.Delivered, PaymentStatus.Paid, (ProductType.Physical, false));
+        Return receipt;
+        await using (AppDbContext db = NewContext())
+        {
+            await db.OrderItems.Where(i => i.Id == items[0]).ExecuteUpdateAsync(s => s.SetProperty(i => i.DeliveryMarkedAt, now.AddDays(-6)).SetProperty(i => i.DeliveryDate, today.AddDays(-6)), Ct);
+            Withdrawal withdrawal = Withdrawal.ByBuyer(items[0], 1, today.AddDays(-4), null, StepAmounts, null, now.AddDays(-4));
+            db.Withdrawals.Add(withdrawal);
+            receipt = Return.ForWithdrawal(items[0], withdrawal.Id, 1, today.AddDays(-1), adminId, CorrectionAdminName, now.AddDays(-1));
+            db.Returns.Add(receipt);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string record = receipt.Id.ToString("D");
+
+        (HttpStatusCode deliveryStatus, string deliveryHtml) = await PostAsync(client, $"{OrdersPath}/{orderId:D}?handler=CorrectDeliveryDate", [("Input.Version", "1"), ("Input.DeliveryDate", "")], key);
+        (HttpStatusCode arrivalStatus, string arrivalHtml) = await PostAsync(client, $"{OrdersPath}/{orderId:D}?handler=CorrectArrivalDate", [("Input.Version", "1"), ("Input.ArrivalRecordId", record), ("Input.ArrivalDate", "")], key);
+        (_, string plain) = await GetAsync(client, $"{OrdersPath}/{orderId:D}", key);
+
+        Assert.Equal((HttpStatusCode.UnprocessableEntity, HttpStatusCode.UnprocessableEntity), (deliveryStatus, arrivalStatus));
+        string delivery = FormOf(deliveryHtml, OrderDetailModel.DeliveryDateFormId);
+        Assert.Contains("href=\"#correct-delivery-date\"", delivery, StringComparison.Ordinal);
+        AssertFocusOnlyOn(delivery, "input", "correct-delivery-date");
+        string arrivalFormId = OrderDetailModel.ArrivalDateFormId(receipt.Id);
+        string arrival = FormOf(arrivalHtml, arrivalFormId);
+        Assert.Contains($"href=\"#correct-arrival-date-{record}\"", arrival, StringComparison.Ordinal);
+        AssertFocusOnlyOn(arrival, "input", "correct-arrival-date-" + record);
+
+        // The form that was not sent and the untouched first drawing carry no autofocus.
+        Assert.DoesNotContain("autofocus", FormOf(deliveryHtml, arrivalFormId), StringComparison.Ordinal);
+        Assert.DoesNotContain("autofocus", FormOf(arrivalHtml, OrderDetailModel.DeliveryDateFormId), StringComparison.Ordinal);
+        Assert.DoesNotContain("autofocus", SectionOf(plain, "duzeltmeler"), StringComparison.Ordinal);
+    }
+
+    /// <summary>The form carries exactly one autofocus and it is on the element (the first wrong field the summary links).</summary>
+    private static void AssertFocusOnlyOn(string form, string tag, string fieldId)
+    {
+        Assert.Matches(new Regex("<" + tag + "[^>]*id=\"" + Regex.Escape(fieldId) + "\"[^>]*autofocus", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), form);
+        Assert.Single(Regex.Matches(form, "\\sautofocus[\\s=>]", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
     }
 
     // ---- D-1812: the shipment and delivery mark forms on the same pattern (D-1550; 04 2.3.1.1, 2.3.2, 2.3.3, 9.9.36) ----
@@ -280,6 +336,7 @@ public sealed partial class OrderDetailPageTests
             Assert.Matches(new Regex("<input[^>]*id=\"ship-tracking\"[^>]*aria-invalid=\"true\"[^>]*aria-describedby=\"order-step-message\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), form);
             Assert.Contains("id=\"" + OrderDetailModel.StepMessageId + "\"", form, StringComparison.Ordinal);
             Assert.Contains(OrderDetailModel.ShipmentMissingText, form, StringComparison.Ordinal);
+            AssertFocusOnlyOn(form, "select", "ship-carrier");
             Assert.Single(Regex.Matches(html, "id=\"" + OrderDetailModel.StepMessageId + "\"", RegexOptions.None, TimeSpan.FromSeconds(5)));
         }
 
@@ -288,6 +345,7 @@ public sealed partial class OrderDetailPageTests
         Assert.Contains("href=\"#delivery-date\"", empty, StringComparison.Ordinal);
         Assert.Matches(new Regex("<input[^>]*id=\"delivery-date\"[^>]*aria-invalid=\"true\"[^>]*aria-describedby=\"order-step-message\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), empty);
         Assert.Contains(OrderDetailModel.DeliveryDateMissingText, empty, StringComparison.Ordinal);
+        AssertFocusOnlyOn(empty, "input", "delivery-date");
 
         // A rule's bound (a future date): the lasting message in place under the date, the date described by it, no summary (04 2.3.3); not repeated at the step section's head.
         string future = FormOf(futureHtml, "mark-delivered-form");
@@ -295,10 +353,12 @@ public sealed partial class OrderDetailPageTests
         Assert.Matches(new Regex("<input[^>]*id=\"delivery-date\"[^>]*aria-invalid=\"true\"[^>]*aria-describedby=\"order-step-message\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)), future);
         Assert.Contains(OrderDetailModel.DeliveryDateFutureText, future, StringComparison.Ordinal);
         Assert.Single(Regex.Matches(futureHtml, Regex.Escape(OrderDetailModel.DeliveryDateFutureText), RegexOptions.None, TimeSpan.FromSeconds(5)));
+        Assert.DoesNotContain("autofocus", future, StringComparison.Ordinal);
 
         // The untouched form of a first drawing carries no mark.
         (_, string plain) = await GetAsync(client, $"{OrdersPath}/{preparingId:D}", key);
         Assert.DoesNotContain("aria-invalid", FormOf(plain, "mark-shipped-form"), StringComparison.Ordinal);
+        Assert.DoesNotContain("autofocus", FormOf(plain, "mark-shipped-form"), StringComparison.Ordinal);
     }
 
     // ---- KK3: the carrier ----

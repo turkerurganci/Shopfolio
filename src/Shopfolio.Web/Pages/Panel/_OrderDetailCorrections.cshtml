@@ -82,13 +82,16 @@
             <form method="post" action="@(Model.PagePath)?handler=CorrectCarrier" asp-antiforgery="true" class="form" data-js="submit-once" id="@OrderDetailModel.CarrierFormId">
                 @* The single-field forms share one pattern (D-1550; 04 2.3.1.1, 2.3.2, 9.9.36): a missing or malformed value is the field's message under it and the summary at the form's head, the field
                    carries aria-invalid and aria-describedby; a rule's bound is the lasting message in place (04 2.3.3), described the same way. *@
-                @if (Model.CorrectionSummaryFor(OrderDetailModel.CarrierFormId, "correct-carrier") is { } carrierSummary)
+                @{
+                    FormErrorSummary? carrierSummary = Model.CorrectionSummaryFor(OrderDetailModel.CarrierFormId, "correct-carrier");
+                }
+                @if (carrierSummary is not null)
                 {
                     <partial name="_FormErrorSummary" model="carrierSummary" />
                 }
                 @VersionFields.Version(Model.Operations.Version, "Input")
                 <label for="correct-carrier">Kargo şirketi</label>
-                <select id="correct-carrier" name="Input.Carrier" aria-invalid="@Model.InvalidFor(OrderDetailModel.CarrierFormId)" aria-describedby="@Model.DescribedBy(OrderDetailModel.CarrierFormId)">
+                <select id="correct-carrier" name="Input.Carrier" autofocus="@(carrierSummary is not null && carrierSummary.AutofocusFor("correct-carrier").Length > 0)" aria-invalid="@Model.InvalidFor(OrderDetailModel.CarrierFormId)" aria-describedby="@Model.DescribedBy(OrderDetailModel.CarrierFormId)">
                     <option value="">Diğer</option>
                     @foreach (CarrierEntry entry in Model.Carriers)
                     {
@@ -110,13 +113,16 @@
         @if (delivery)
         {
             <form method="post" action="@(Model.PagePath)?handler=CorrectDeliveryDate" asp-antiforgery="true" class="form" data-js="submit-once" id="@OrderDetailModel.DeliveryDateFormId">
-                @if (Model.CorrectionSummaryFor(OrderDetailModel.DeliveryDateFormId, "correct-delivery-date") is { } deliverySummary)
+                @{
+                    FormErrorSummary? deliverySummary = Model.CorrectionSummaryFor(OrderDetailModel.DeliveryDateFormId, "correct-delivery-date");
+                }
+                @if (deliverySummary is not null)
                 {
                     <partial name="_FormErrorSummary" model="deliverySummary" />
                 }
                 @VersionFields.Version(Model.Operations.Version, "Input")
                 <label for="correct-delivery-date">Teslim tarihi</label>
-                <input id="correct-delivery-date" type="date" name="Input.DeliveryDate" value="@Model.SentDeliveryDate" required aria-invalid="@(Model.AsksCorrectionDeliveryOrder ? null : Model.InvalidFor(OrderDetailModel.DeliveryDateFormId))" aria-describedby="@(Model.AsksCorrectionDeliveryOrder ? null : Model.DescribedBy(OrderDetailModel.DeliveryDateFormId))" />
+                <input id="correct-delivery-date" type="date" name="Input.DeliveryDate" value="@Model.SentDeliveryDate" required autofocus="@(deliverySummary is not null && deliverySummary.AutofocusFor("correct-delivery-date").Length > 0)" aria-invalid="@(Model.AsksCorrectionDeliveryOrder ? null : Model.InvalidFor(OrderDetailModel.DeliveryDateFormId))" aria-describedby="@(Model.AsksCorrectionDeliveryOrder ? null : Model.DescribedBy(OrderDetailModel.DeliveryDateFormId))" />
                 @* The order question's own message is the question's (it stays after it); the date's refusal sits under the date. *@
                 @if (!Model.AsksCorrectionDeliveryOrder && Model.CorrectionMessageFor(OrderDetailModel.DeliveryDateFormId) is { } deliveryMessage)
                 {
@@ -149,14 +155,17 @@
                 string arrivalForm = OrderDetailModel.ArrivalDateFormId(record.RecordId);
                 <form method="post" action="@(Model.PagePath)?handler=CorrectArrivalDate" asp-antiforgery="true" class="form" data-js="submit-once" id="@arrivalForm">
                     @VersionFields.Version(Model.Operations.Version, "Input")
-                    @if (Model.CorrectionSummaryFor(arrivalForm, "correct-arrival-date-" + recordKey) is { } arrivalSummary)
+                    @{
+                        FormErrorSummary? arrivalSummary = Model.CorrectionSummaryFor(arrivalForm, "correct-arrival-date-" + recordKey);
+                    }
+                    @if (arrivalSummary is not null)
                     {
                         <partial name="_FormErrorSummary" model="arrivalSummary" />
                     }
                     <input type="hidden" name="Input.ArrivalRecordId" value="@recordKey" />
                     <p>@Model.ItemNameOf(record.OrderItemId) · Ulaşma tarihi: @DisplayFormat.Date(record.ArrivalDate)</p>
                     <label for="correct-arrival-date-@recordKey">Yeni ulaşma tarihi</label>
-                    <input id="correct-arrival-date-@recordKey" type="date" name="Input.ArrivalDate" value="@(Model.SentArrivalRecordId == record.RecordId ? Model.SentArrivalDate : null)" required aria-invalid="@Model.InvalidFor(arrivalForm)" aria-describedby="@Model.DescribedBy(arrivalForm)" />
+                    <input id="correct-arrival-date-@recordKey" type="date" name="Input.ArrivalDate" value="@(Model.SentArrivalRecordId == record.RecordId ? Model.SentArrivalDate : null)" required autofocus="@(arrivalSummary is not null && arrivalSummary.AutofocusFor("correct-arrival-date-" + recordKey).Length > 0)" aria-invalid="@Model.InvalidFor(arrivalForm)" aria-describedby="@Model.DescribedBy(arrivalForm)" />
                     @if (Model.CorrectionMessageFor(arrivalForm) is { } arrivalMessage)
                     {
                         <partial name="_Message" model="arrivalMessage" />
@@ -202,13 +211,16 @@
         {
             <p class="order-detail__reminder" id="email-correction-reminder">@OrderDetailModel.EmailReminderText</p>
             <form method="post" action="@(Model.PagePath)?handler=CorrectOrderEmail" asp-antiforgery="true" class="form" data-js="submit-once" id="@OrderDetailModel.OrderEmailFormId">
-                @if (Model.CorrectionSummaryFor(OrderDetailModel.OrderEmailFormId, "correct-order-email") is { } emailSummary)
+                @{
+                    FormErrorSummary? emailSummary = Model.CorrectionSummaryFor(OrderDetailModel.OrderEmailFormId, "correct-order-email");
+                }
+                @if (emailSummary is not null)
                 {
                     <partial name="_FormErrorSummary" model="emailSummary" />
                 }
                 @VersionFields.Version(Model.Operations.Version, "Input")
                 <label for="correct-order-email">Yeni e-posta adresi</label>
-                <input id="correct-order-email" type="email" name="Input.ContactEmail" value="@Model.SentEmail" autocomplete="off" required aria-invalid="@Model.InvalidFor(OrderDetailModel.OrderEmailFormId)" aria-describedby="@Model.DescribedBy(OrderDetailModel.OrderEmailFormId)" />
+                <input id="correct-order-email" type="email" name="Input.ContactEmail" value="@Model.SentEmail" autocomplete="off" required autofocus="@(emailSummary is not null && emailSummary.AutofocusFor("correct-order-email").Length > 0)" aria-invalid="@Model.InvalidFor(OrderDetailModel.OrderEmailFormId)" aria-describedby="@Model.DescribedBy(OrderDetailModel.OrderEmailFormId)" />
                 @if (Model.CorrectionMessageFor(OrderDetailModel.OrderEmailFormId) is { } emailMessage)
                 {
                     <partial name="_Message" model="emailMessage" />

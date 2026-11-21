@@ -18,7 +18,7 @@ namespace Shopfolio.Pages.Panel;
 /// operation - close an open request, reopen a closed one. The GET writes nothing; each POST is a named handler that changes the status in one transaction and answers 303 with the short-lived notice. A
 /// request that is not there - never was, or destroyed at the end of its retention - answers 404 on the three handlers (K-1192).
 /// </summary>
-public sealed class RequestDetailModel : PageModel
+public sealed class RequestDetailModel : PageModel, IReadsOnForgeryRefusal
 {
     public const string CloseLabel = "Talebi kapat";
 
@@ -41,6 +41,9 @@ public sealed class RequestDetailModel : PageModel
     public const string RetentionRunsText = "Saklama süresi bu tarihten işler.";
 
     private readonly ICorporateContentModule _content;
+
+    // Whether the forgery refusal's read found the request (D-1843).
+    private bool _refusalFound = true;
 
     public RequestDetailModel(ICorporateContentModule content)
     {
@@ -89,6 +92,31 @@ public sealed class RequestDetailModel : PageModel
         NoticeCode? notice = NoticeParameter.Read(HttpContext.Request, NoticeKind.ShortLived);
         Notice = notice is { } code && NoticeTexts.TryShortLived(code, out string? text) ? Messages.ShortLivedSuccess(text) : null;
         return Page();
+    }
+
+    /// <summary>D-1843: the forgery check's 400 for a key that is no request's is the one 404, as the handler and the GET answer.</summary>
+    public override async Task OnPageHandlerExecutionAsync(Microsoft.AspNetCore.Mvc.Filters.PageHandlerExecutingContext context, Microsoft.AspNetCore.Mvc.Filters.PageHandlerExecutionDelegate next)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        Microsoft.AspNetCore.Mvc.Filters.PageHandlerExecutedContext executed = await next();
+        if (executed.Exception is null && executed.Result is PageResult { StatusCode: FormResults.ForgeryRefusedStatus } && !_refusalFound)
+        {
+            executed.Result = NotFound();
+        }
+    }
+
+    /// <summary>
+    /// D-1843 (07 2.5.4; 04 2.7.3.1): the forgery check's 400 shows the request of the route's key as it stands - the GET's read without its query notice; nothing written.
+    /// </summary>
+    async Task IReadsOnForgeryRefusal.ReadAfterForgeryRefusalAsync(CancellationToken ct)
+    {
+        ContactRequestDetail? found = Guid.TryParse(RouteData.Values["id"] as string, out Guid id) ? await _content.FindContactRequestAsync(id, ct) : null;
+        _refusalFound = found is not null;
+        if (found is not null)
+        {
+            Show(found);
+        }
     }
 
     /// <summary>UC-155: closes an open contact request; a request already closed is not touched (303 all the same).</summary>

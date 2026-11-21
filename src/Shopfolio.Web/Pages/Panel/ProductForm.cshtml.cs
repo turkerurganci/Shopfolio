@@ -71,7 +71,7 @@ public sealed record PublishMoveView(PublishStatus Target, string Label);
 /// </summary>
 [HandlerBodyClass("SaveProduct", RequestBodyClass.LongText)]
 [HandlerBodyClass("UploadImage", RequestBodyClass.ImageUpload)]
-internal sealed class ProductFormModel : PageModel
+internal sealed class ProductFormModel : PageModel, IReadsOnForgeryRefusal
 {
     public const string NewTitle = "Yeni ürün";
 
@@ -116,6 +116,10 @@ internal sealed class ProductFormModel : PageModel
 
     // True once a handler ran: the validation filter's 422 runs none (OnPageHandlerExecutionAsync).
     private bool _ran;
+
+    // The handler's context, kept for the forgery refusal's read (D-1843), and whether that read found the record.
+    private PageHandlerExecutingContext? _executing;
+    private bool _refusalFound = true;
 
     public ProductFormModel(
         IPanelProductForm form,
@@ -199,23 +203,47 @@ internal sealed class ProductFormModel : PageModel
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(next);
+        _executing = context;
         PageHandlerExecutedContext executed = await next();
-        if (!_ran && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
+        if (executed.Exception is null && executed.Result is PageResult { StatusCode: FormResults.ForgeryRefusedStatus } && !_refusalFound)
         {
-            // K-800: a record that is gone is 404 before its fields' 422 (07 UC-114), as the handler would have answered.
-            if (context.HandlerArguments.TryGetValue("id", out object? key) && key is Guid productId && !await LoadAsync(productId, HttpContext.RequestAborted))
-            {
-                executed.Result = NotFound();
-                return;
-            }
+            // D-1843: the forgery check's 400 for a record that is gone is the one 404, as the 422 below.
+            executed.Result = NotFound();
+            return;
+        }
 
-            Form = context.HandlerArguments.Values.OfType<SaveProductInput>().FirstOrDefault() ?? Form;
+        // K-800: a record that is gone is 404 before its fields' 422 (07 UC-114), as the handler would have answered.
+        if (!_ran && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity } && !await LoadSentFormAsync(context))
+        {
+            executed.Result = NotFound();
+            return;
         }
 
         if (executed.Exception is null && executed.Result is PageResult)
         {
             await LoadChoicesAsync(HttpContext.RequestAborted);
         }
+    }
+
+    /// <summary>
+    /// D-1843 (07 2.5.4; 04 2.7.3.1): the forgery check's 400 shows the record as it stands and the sent entries - the read the 422 makes, from the route's key; no query value, nothing
+    /// written. The page's lists are read by <see cref="OnPageHandlerExecutionAsync"/> for every shown page.
+    /// </summary>
+    async Task IReadsOnForgeryRefusal.ReadAfterForgeryRefusalAsync(CancellationToken ct)
+    {
+        _refusalFound = _ran || (_executing is not { } context || await LoadSentFormAsync(context));
+    }
+
+    // The record of the route's key (none for a new product) and the sent entries; false when the key names no record.
+    private async Task<bool> LoadSentFormAsync(PageHandlerExecutingContext context)
+    {
+        if (context.HandlerArguments.TryGetValue("id", out object? key) && key is Guid productId && !await LoadAsync(productId, HttpContext.RequestAborted))
+        {
+            return false;
+        }
+
+        Form = context.HandlerArguments.Values.OfType<SaveProductInput>().FirstOrDefault() ?? Form;
+        return true;
     }
 
     /// <summary>The category tree the form's categories are chosen from, in E-34's order (04 9.5.3; K-805).</summary>

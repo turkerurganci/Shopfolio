@@ -26,19 +26,6 @@ public sealed class ForgeryRefusalReadInventoryTests
         "Shopfolio.Pages.Account.AddressesModel",
         "Shopfolio.Pages.Account.ProfileModel",
         "Shopfolio.Pages.Account.ReauthenticationModel",
-        "Shopfolio.Pages.Panel.ContentFormModel",
-        "Shopfolio.Pages.Panel.CouponsModel",
-        "Shopfolio.Pages.Panel.InviteModel",
-        "Shopfolio.Pages.Panel.MembersModel",
-        "Shopfolio.Pages.Panel.MyAccountModel",
-        "Shopfolio.Pages.Panel.OrderDetailModel",
-        "Shopfolio.Pages.Panel.ProductFormModel",
-        "Shopfolio.Pages.Panel.ReauthModel",
-        "Shopfolio.Pages.Panel.RequestDetailModel",
-        "Shopfolio.Pages.Panel.ResetModel",
-        "Shopfolio.Pages.Panel.RevertModel",
-        "Shopfolio.Pages.Panel.SignInModel",
-        "Shopfolio.Pages.Panel.VerifyModel",
         "Shopfolio.Pages.ProductModel",
         "Shopfolio.Pages.Storefront.ContactModel",
         "Shopfolio.Pages.Storefront.EmailRevertModel",
@@ -91,7 +78,12 @@ public sealed class ForgeryRefusalReadInventoryTests
     {
         string[] hooked = [.. PagesWithPostHandler().Where(HasHook).Select(t => t.Name).Order(StringComparer.Ordinal)];
 
-        Assert.Equal(["AdminAccountsModel", "CategoriesModel", "ContentListModel"], hooked);
+        Assert.Equal(
+            [
+                "AdminAccountsModel", "CategoriesModel", "ContentFormModel", "ContentListModel", "CouponsModel", "InviteModel", "MembersModel", "MyAccountModel", "OrderDetailModel",
+                "ProductFormModel", "ReauthModel", "RequestDetailModel", "ResetModel", "RevertModel", "SignInModel", "VerifyModel",
+            ],
+            hooked);
         Assert.All(OwnReadPages, name => Assert.Contains(name, PagesWithPostHandler().Select(t => t.FullName)));
     }
 

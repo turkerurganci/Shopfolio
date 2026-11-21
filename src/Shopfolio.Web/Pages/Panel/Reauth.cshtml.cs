@@ -24,7 +24,7 @@ namespace Shopfolio.Pages.Panel;
 /// </summary>
 [NoStore]
 [ReauthenticationFormPage]
-internal sealed class ReauthModel : PageModel
+internal sealed class ReauthModel : PageModel, IReadsOnForgeryRefusal
 {
     /// <summary>The name of the query parameter that carries the operation (07 5.6.8; K-1186 (4)).</summary>
     internal const string OperationParameter = "reauthenticatedOperation";
@@ -33,6 +33,9 @@ internal sealed class ReauthModel : PageModel
     private readonly ITransactionRunner _transactions;
 
     private bool _loaded;
+
+    // The handler's context, kept for the forgery refusal's read (D-1843): the sent operation.
+    private Microsoft.AspNetCore.Mvc.Filters.PageHandlerExecutingContext? _executing;
 
     public ReauthModel(IAdministrationModule administration, ITransactionRunner transactions)
     {
@@ -58,9 +61,31 @@ internal sealed class ReauthModel : PageModel
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(next);
+        _executing = context;
         Microsoft.AspNetCore.Mvc.Filters.PageHandlerExecutedContext executed = await next();
-        if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity }
-            && context.HandlerArguments.Values.OfType<ReauthenticateInput>().FirstOrDefault() is { } sent
+        if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
+        {
+            ShowSent(context);
+        }
+    }
+
+    /// <summary>
+    /// D-1843 (07 2.5.4; 04 2.7.3.1): the forgery check's 400 shows the form of the sent operation. The GET's drop of the earlier permission is a write and is not made here (05 6.1.5):
+    /// the refusal writes nothing and leaves the session's permission as it was.
+    /// </summary>
+    Task IReadsOnForgeryRefusal.ReadAfterForgeryRefusalAsync(CancellationToken ct)
+    {
+        if (!_loaded && _executing is { } context)
+        {
+            ShowSent(context);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void ShowSent(Microsoft.AspNetCore.Mvc.Filters.PageHandlerExecutingContext context)
+    {
+        if (context.HandlerArguments.Values.OfType<ReauthenticateInput>().FirstOrDefault() is { } sent
             && TryParse(sent.ReauthenticatedOperation, out ReauthenticationOperation operation))
         {
             _loaded = true;

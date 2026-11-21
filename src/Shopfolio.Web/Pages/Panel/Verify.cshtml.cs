@@ -35,7 +35,7 @@ internal enum LandingStep
 /// No session is opened: the landing's next step is "Hesabım" when the panel's session is open, else the sign-in.
 /// </summary>
 [NoStore]
-internal sealed class VerifyModel : PageModel
+internal sealed class VerifyModel : PageModel, IReadsOnForgeryRefusal
 {
     private readonly IAdministrationModule _administration;
     private readonly ITransactionRunner _transactions;
@@ -68,6 +68,18 @@ internal sealed class VerifyModel : PageModel
         };
         await SetNextStepAsync();
         return Page();
+    }
+
+    /// <summary>
+    /// D-1843 (07 2.5.4; 04 2.7.3.1): the forgery check's 400 shows the route's link as it stands - a read of its record that does not consume it (the button is the only use). The result
+    /// code is a query value and is not read: a used link is the invalid state. Nothing written.
+    /// </summary>
+    async Task IReadsOnForgeryRefusal.ReadAfterForgeryRefusalAsync(CancellationToken ct)
+    {
+        Key = RouteData.Values["key"] as string ?? string.Empty;
+        AdminLinkReading reading = await _administration.ReadNewEmailLinkAsync(Key, ct);
+        Step = reading.Status == Shopfolio.Infrastructure.Security.AccountLinkStatus.Valid ? LandingStep.Valid : LandingStep.Invalid;
+        await SetNextStepAsync();
     }
 
     [OutcomeUncertain("UC-186")]

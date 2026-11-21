@@ -97,7 +97,7 @@ public sealed class MemberRecordView
 /// module deletes in the transaction of this request and the screen returns to the search field with a lasting message (04 9.12.10). A deletion whose outcome is uncertain returns to the search, which shows
 /// the account if it stands and "no account" if it was deleted (04 9.12.14).
 /// </summary>
-internal sealed class MembersModel : PageModel, IOutcomeTarget
+internal sealed class MembersModel : PageModel, IOutcomeTarget, IReadsOnForgeryRefusal
 {
     /// <summary>The label of the search field (04 9.12.3).</summary>
     public const string SearchLabel = "E-posta";
@@ -136,6 +136,9 @@ internal sealed class MembersModel : PageModel, IOutcomeTarget
     private readonly ITransactionRunner _transactions;
 
     private bool _loaded;
+
+    // The handler's context, kept for the forgery refusal's read (D-1843): the sent search e-mail.
+    private PageHandlerExecutingContext? _executing;
     private string _outcomeAddress = PanelFramePaths.Members;
 
     public MembersModel(IMembershipModule membership, IOrderingModule ordering, ITransactionRunner transactions)
@@ -168,9 +171,28 @@ internal sealed class MembersModel : PageModel, IOutcomeTarget
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(next);
+        _executing = context;
         PageHandlerExecutedContext executed = await next();
-        if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity }
-            && context.HandlerArguments.Values.OfType<DeleteCustomerInput>().FirstOrDefault() is { } input)
+        if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
+        {
+            await LoadSentSearchAsync(context);
+        }
+    }
+
+    /// <summary>
+    /// D-1843 (07 2.5.4; 04 2.7.3.1): the forgery check's 400 shows the record of the e-mail the form carried - the read the 422 makes, from the sent values; no query value, nothing written.
+    /// </summary>
+    async Task IReadsOnForgeryRefusal.ReadAfterForgeryRefusalAsync(CancellationToken ct)
+    {
+        if (!_loaded && _executing is { } context)
+        {
+            await LoadSentSearchAsync(context);
+        }
+    }
+
+    private async Task LoadSentSearchAsync(PageHandlerExecutingContext context)
+    {
+        if (context.HandlerArguments.Values.OfType<DeleteCustomerInput>().FirstOrDefault() is { } input)
         {
             _loaded = true;
             await LoadAsync(input.SearchEmail, PageNumber.First, HttpContext.RequestAborted);

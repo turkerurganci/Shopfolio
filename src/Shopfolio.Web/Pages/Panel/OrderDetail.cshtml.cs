@@ -38,8 +38,11 @@ public enum OrderPrimaryStep
 /// (04 9.9.37). Every step carries the order's version: a stale version is 409 with the order as it is now and no way to overwrite (04 9.9.34); a step that is not open, or a refused value, is 422. A key
 /// that is not an order's is 404 (K-803). The GET writes nothing.
 /// </summary>
-public sealed partial class OrderDetailModel : PageModel
+public sealed partial class OrderDetailModel : PageModel, IReadsOnForgeryRefusal
 {
+    // The handler's context, kept for the forgery refusal's read (D-1843): the hook reads the route's key the handler would have had.
+    private PageHandlerExecutingContext? _executing;
+    private bool _refusalFound = true;
     public const string BackLabel = "Listeye dön";
 
     public const string MarkPaidLabel = "Ödendi olarak işaretle";
@@ -255,16 +258,31 @@ public sealed partial class OrderDetailModel : PageModel
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(next);
+        _executing = context;
         PageHandlerExecutedContext executed = await next();
-        if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
+        if (executed.Exception is null && executed.Result is PageResult { StatusCode: FormResults.ForgeryRefusedStatus } && !_refusalFound)
         {
-            bool found = context.HandlerArguments.TryGetValue("id", out object? value) && value is Guid id && await LoadAsync(id, HttpContext.RequestAborted);
-            if (!found)
-            {
-                executed.Result = NotFound();
-            }
+            // D-1843: the forgery check's 400 with a key that is no order's is the one 404, as the 422 below.
+            executed.Result = NotFound();
+            return;
+        }
+
+        if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity } && !await LoadSentOrderAsync(context))
+        {
+            executed.Result = NotFound();
         }
     }
+
+    /// <summary>
+    /// D-1843 (07 2.5.4; 04 2.7.3.1): the forgery check's 400 shows the order the form was sent for - the route's key, the read the 422 above makes; no query value, nothing written.
+    /// </summary>
+    async Task IReadsOnForgeryRefusal.ReadAfterForgeryRefusalAsync(CancellationToken ct)
+    {
+        _refusalFound = _loaded || (_executing is { } context && await LoadSentOrderAsync(context));
+    }
+
+    private async Task<bool> LoadSentOrderAsync(PageHandlerExecutingContext context) =>
+        context.HandlerArguments.TryGetValue("id", out object? value) && value is Guid id && await LoadAsync(id, HttpContext.RequestAborted);
 
     /// <summary>UC-123: the transfer order's "paid" mark; unconfirmed, the window repeats the frozen IBAN and the total (200); confirmed, Ö1 and its effects (303).</summary>
     [GatedOperation]

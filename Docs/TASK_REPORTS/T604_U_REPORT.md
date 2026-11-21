@@ -742,3 +742,17 @@ UE dilimleri (para ve güvenlik) bu dilimle kapandı. Tablo bütün UE kalemleri
 | KK4 — D-1678 | — | A parçası (PR #594) |
 | KK5 — backlog satırları ve sayaç | ✓ (pay) | kapanan her satır `✅ Çözüldü → T604`, daraltılan satır yeni hedef + gerekçe; yeni kalemler (D-1758, D-1759, D-1773, D-1783, D-1806) `DEFERRED_BACKLOG.d/T604-U.md`'de; sayaç parça dosyasından birleştirmede (talimat: sayaca dokunulmaz) |
 | `09 §25` ilgili satırlar; güvenlik taraması | ✓ | her dilimin KK tablosu ve güvenlik maddesi |
+
+
+---
+
+## Doğrulama — UE (PR #595), tur 1 (2026-11-21)
+
+- **Durum:** ✗ FAIL — 2 bulgu (ikisi S2, ORTA), düzeltme gerekli. Ayrıntı: doğrulama raporu (yardımcının `dogrulama-raporu-U-r1.md`).
+- **Neden:** dal ucu `fb70d822`'nin CI Integration işi kırmızı (run 44848221151, 4645 testten 3'ü); üçü yerelde de kırmızı (`OneTimeValueTests` + `PageFormPatternTests`: 35 testten 3'ü). KK2'nin "var olan testler değişmeden geçer" şartı tutmuyor.
+  1. `PageFormPatternTests.EveryMappedEndpoint_StartsWithAFirstSegmentOfTheClosedList`: yeni `/gorsel/{id:guid}` ucu `AddressTemplates.CheckNoInternalKey`'e takılıyor ("the parameter 'id' is an internal key in a storefront path", `07 2.1.6`). D-1136/D-1711 (K-1631 (1)) adres kuralının denetimine ve `07 2.1.6`/§3.1.6'ya hizalanmadı.
+  2. `OneTimeValueTests.TheFormCarriesTheValueInAHiddenField_..._KK3` ve `AValidationErrorOnTheForm_DoesNotConsumeTheValue_..._KK3`: D-1454 izin düşürme katmanı (`ReauthenticationPermissionFilter`) test örnek sayfası `/hesap/ornek-yeniden-dogrulama`'nın (`ReauthenticationSample`) POST'unda izni işleyiciden önce düşürüyor; geçerli değer 303 `?asked=1` alıyor. Örnek sayfa işaretlenmedi, test de gerekçeyle değişmedi.
+- **Doğrulayıcı kanıtları (kırmızı–yeşil, kendi koşumu):** `src` geçici bozuldu (D-1454/D-1389 katman kaydı kaldırıldı, D-1473 erken izin okuması kapatıldı, D-1474 L-9 sayımı öne alındı, D-1374 doğrulanmamış kayıt yolu kapatıldı, D-1283 (2) paylaşım kapatıldı, D-892 UC-131 dönme dalı kapatıldı, D-1711 dosya varlık denetimi kapatıldı) → ilgili 12 test kırmızı, 2 karşı yön testi yeşil; geri alınınca CI'da ve yerelde yeşil. Sınır örneği (geçici test, commit edilmedi): kartta 3 × 300, kupon 100, KDV 100,01, talep 2 adet → UC-131 dönmesi 533,34 / kupon 66,66 / KDV 66,67; eski sürümle POST hiçbir şey yazmadı; sürüm bir kez arttı; tek `RefundManually` iz satırı — yeşil.
+- **Yerel sınama:** build `-warnaserror` 0 uyarı; Unit TAM 8098/8098 (Consistency ve Architecture dahil); betik testleri 4/4; `dotnet format` (dalın 149 `.cs` dosyası) değişiklik yok; Integration: yukarıdaki sınıflar + kırmızı–yeşil süzgeci. TAM: CI (kırmızı).
+- **Kalem envanteri (KK1):** UE1–UE4'ün 36 kalemi ve eklenenler (D-1374, D-1389, D-1283 (2), D-1758, D-1759, D-1617, D-1783, D-1319 (2), D-137, D-894) `✅ Çözüldü → T604`; D-1599 ve D-1773 UH dalına gerekçe ve yeni hedefle daraltıldı; D-1806 yeni, hedefi UH dalı. ✓
+- **Yapım raporu karşılaştırması:** KK2 satırındaki "eski testler aynı ✓" tutmuyor (Integration TAM CI'a bırakıldı, CI kırmızı). Öz denetim tablosu var.

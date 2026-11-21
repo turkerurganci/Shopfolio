@@ -163,13 +163,16 @@ fi
 # The database value is the migrated database as the application user: no password, an ephemeral database that exists only in this job. The other
 # required settings (05 8.4.6; 09 3.5 item 2: without them the application does not open) are made up and belong to no installation;
 # the e-mail credential is two made-up lines (the access key id, then the secret key; T407, D-79) and the link secret is 32 made-up bytes in Base64.
+# Both values are read into variables first so the lines that hand them to the container carry a bare expansion, not a call or a literal (D-1770).
+APP_DSN="$(package_dsn "$PKG_APP" "$PKG_DB")"
+CI_LINK_BYTES="ZGV2LW9ubHktbWFkZS11cC1saW5rLXNlY3JldC0zMiE="
 docker run -d --name "$APP_CONTAINER" --network "$NETWORK" "${PUBLISH_ARGS[@]}" \
-  -e "Database__ConnectionString=$(package_dsn "$PKG_APP" "$PKG_DB")" \
+  -e "Database__ConnectionString=$APP_DSN" \
   -e "Site__Domain=localhost" \
   -e "Email__SenderAddress=ci@example.com" \
   -e "Email__Region=eu-central-1" \
   -e "$(printf 'Email__Credential=ci-only-made-up-key-id\nci-only-made-up-secret-key')" \
-  -e "LinkKey__DerivationSecret=ZGV2LW9ubHktbWFkZS11cC1saW5rLXNlY3JldC0zMiE=" \
+  -e "LinkKey__DerivationSecret=$CI_LINK_BYTES" \
   "shopfolio-app:$TAG" >/dev/null
 
 deadline=$((SECONDS + LIVENESS_DEADLINE_SECONDS))

@@ -254,7 +254,7 @@
 - **#594 sonrası hiza:** `StateRoleCheck.PanelGateReadGaps` ve `GateReadGapStale` kalktı (E-45/E-46 kapıyı okur; ters yön istisnasız, yeni test iki sayfa için `GateReadMissing` ister); `NarrowClassTests.KnownNavigationNotAtTheLeft` kalktı (gözlem doğrudan "gezinme solda"yı ister); `TitleMeasure.KnownWithoutBrand` ve `ScreenInventoryTests`'teki bilinen giriş kalktı (D-1788 UH1'de kapanmıştı; liste iki yönlü olduğundan birleşmeden sonra E2E kırmızı verecekti). D-1778, D-1790, D-1788 (A satırları) ve D-1815 yerinde ✅.
 - **D-1599 (para; K-1631 (5)):** denetimden geçmeyen bildirim IBAN'ı ret değildir. `PanelItemSteps` cayma ve gecikme feshinde OB-14'ten geçmeyen IBAN'ı düşürür; kayıt IBAN'sız açılır, kalemde IBAN isteği (`NoticeWithoutIban`) ve B-14 (çekirdeğin var olan yolu). Sayfanın 422'si, `PanelItemObstacle.IbanInvalid`, `NoticeIbanInvalidText` kalktı. Belge: `04` 7.2.10.4 (yeni yan tümce, ret hücresi "—") ve 9.9.36, `07` 9.9.9 (422 listesinden IBAN satırı çıktı, yan etkiler yolu yazar) ve 9.9.36 eşleme satırı; `04` v0.61, `07` v0.51 (`PRODUCT_DISCOVERY_STATUS.md` satırları). Form alanı tabloları: `FormFieldPlaceEnforcement`, `FormFieldRuleEvidence`, `FormFieldRuleClauseTable` (`C:denetimden-gecmeyen-iban-ret`), `FormFieldInventory` yer işareti. `12` VAL-A238 → PASS.
 - **D-1845 (para-güvenlik):** sınandı, sızıntı yok, gerekçeyle kapandı (aşağıda).
-- **UH kapanışı:** UH'ye düşüp ⚪ kalan satırlar tarandı: D-1773 kapandı (kalanı D-1843'te); D-1812, D-1843, D-1844 ve D-1770 `T601 (F6)`'ya daraltıldı (gerekçe satırlarda). Tarama sonunda hedefi T604 olan ⚪ satır yok.
+- **UH kapanışı:** UH'ye düşüp ⚪ kalan satırlar tarandı: D-1773 kapandı (kalanı D-1843'te); D-1812, D-1843 ve D-1844 `T601 (F6)`'ya daraltıldı (gerekçe satırlarda); D-1770 UH son işinde çözüldü. Tarama sonunda hedefi T604 olan ⚪ satır yok.
 
 ## UH1–UH5 — bütün kalemler
 
@@ -306,9 +306,9 @@
 | UH5 | D-1812 | ↘ daraltıldı | T601 (F6) | `DEFERRED_BACKLOG.d/T604-H.md` |
 | UH5 | D-1843 | ↘ daraltıldı | T601 (F6) | `DEFERRED_BACKLOG.d/T604-H.md` |
 | UH5 | D-1844 | ↘ daraltıldı | T601 (F6) | `DEFERRED_BACKLOG.d/T604-H.md` |
-| UH5 | D-1770 | ↘ daraltıldı | T601 (F6) | `DEFERRED_BACKLOG.d/T604-A.md` |
+| UH5 | D-1770 | ✅ çözüldü (UH son) | T604 | `DEFERRED_BACKLOG.d/T604-A.md` |
 
-Daraltılanların gerekçesi: D-1135 (UH1) ve D-1412 (UH3) kendi dilim notlarında; D-1812, D-1843, D-1844 UH dilim listelerine (KK1) girmedi, U parçası bu PR ile kapanır, kalan ürün kodu F6 ürün işinde; D-1770 yaması hazır, commit makinenin main bekçisi D-1120 istisnasını taşımadıkça engellenir (bekçi atlanmadı).
+Daraltılanların gerekçesi: D-1135 (UH1) ve D-1412 (UH3) kendi dilim notlarında; D-1812, D-1843, D-1844 UH dilim listelerine (KK1) girmedi, U parçası bu PR ile kapanır, kalan ürün kodu F6 ürün işinde; D-1770 yaması UH son işinde uygulandı (main bekçisi artık D-1120 istisnasını taşıyor).
 
 ## UH5 — KK1–KK5 payları
 
@@ -363,5 +363,16 @@ Değişinimlerin hepsi geri alındı (`git checkout`), aynı sınıflar sonra ye
 - ⚠ VAL-A024: A'nın metni + PASS (UH2 testi A'nın "seçilemez" okumasını ölçer).
 - ⚠ `HomeAndMenu` P-27 parametresi için `FormFieldCodeInventory` muafiyeti (sayfa modülün reddini gösterir; denetim 7.2.17.2 `FirmSettings.cs` satırında).
 - ⚠ D-1599'da sayfa IBAN'ın düşürüldüğünü yöneticiye ayrıca söylemez (belge istemiyor; kayıt sonrası kalemde "IBAN bekleniyor" görünür).
-- ⚠ D-1812, D-1843, D-1844, D-1770 `T601 (F6)`'ya daraltıldı (UH kapanışı; satırlarda gerekçe).
+- ⚠ D-1812, D-1843, D-1844 `T601 (F6)`'ya daraltıldı (UH kapanışı; satırlarda gerekçe); D-1770 UH son işinde çözüldü.
 - ⚠ `TitleMeasure.KnownWithoutBrand` (D-1815) bu dilimin kalem listesinde yoktu; birleşmeden sonra E2E'yi kıracağı için kaldırıldı.
+
+## UH son — main birleştirmesi ve D-1770
+
+- #594 squash ile main'e girdi (`0ee35474`). İki denetim: `git diff --quiet cea4b177 origin/main` çıkış 0; `git merge-base --is-ancestor cea4b177 HEAD` çıkış 0. İkisi tuttuğu için `git merge -s ours origin/main` yapıldı; `git diff origin/main...HEAD --stat` yalnız UH'nin değişikliklerini gösteriyor (A'nın test aracı dosyaları yok).
+- D-1770 yaması `git apply --3way` ile uygulandı; `test-pre-commit.sh` tek çakışması (iki yanın yeni örnekleri) ikisi de korunarak çözüldü. D-1770 satırı yerinde `✅ Çözüldü → T604`; UH5'in "T601'e ertelendi" yazdığı yerler düzeltildi.
+
+### Öz denetim (UH son)
+
+- ✓ D-1770 kabul ölçüsü (yama uygulanır, bekçi geçirir, test yeşil): `test-pre-commit.sh` 263 geçti / 0 kaldı; `run-script-tests.sh` 4 dosya geçti.
+- ✓ Birleştirme denetimi 1 (`git diff --quiet cea4b177 origin/main`): çıkış 0.
+- ✓ Birleştirme denetimi 2 (`merge-base --is-ancestor cea4b177 HEAD`): çıkış 0.

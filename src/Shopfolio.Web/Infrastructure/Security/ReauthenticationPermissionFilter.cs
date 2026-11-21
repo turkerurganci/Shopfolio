@@ -7,8 +7,8 @@ namespace Shopfolio.Infrastructure.Security;
 /// <summary>
 /// Marks the pages that keep the reauthentication permission's own rule: the account pages that show the forms it is bound to (07 UC-63, UC-104) - their GET opens the form only for
 /// the presented value and drops the permission otherwise, their POST takes the value - and the two reauthentication screens that grant it (07 UC-60, UC-105) - their GET drops the
-/// earlier permission, their POST replaces it or, refused, leaves it (T521 KK5). No other page of the product carries it; outside the product only the test host's forgery token page
-/// does, which no browser asks between a form and its POST.
+/// earlier permission, their POST replaces it or, refused, leaves it (T521 KK5). No other page of the product carries it; outside the product only two test host pages do - the
+/// forgery token page, which no browser asks between a form and its POST, and the reauthentication sample form, which stands where the product's form pages stand (K-1636 (2)).
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 internal sealed class ReauthenticationFormPageAttribute : Attribute

@@ -15,7 +15,7 @@ namespace Shopfolio.Endpoints.Files;
 /// </summary>
 internal static class ImageEndpoint
 {
-    public const string Pattern = AddressRules.ImageArea + "/{id:guid}";
+    public const string Pattern = AddressRules.ImageAddressTemplate;
 
     private const string CacheControl = "public, max-age=31536000, immutable";
 

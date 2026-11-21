@@ -5,7 +5,8 @@ namespace Shopfolio.Infrastructure.Routing;
 /// <summary>
 /// The check of a route template against the address rules (07 2.1): every literal segment is lower case ASCII, digits and single hyphens; the first
 /// segment is a literal of the closed list; a record address has the form <c>/{prefix}/{slug}</c>; the order root has one of its two forms; and a
-/// storefront path carries no internal key (07 2.1.6). The panel is the one area where an internal key may be part of the path (07 2.1.5).
+/// storefront path carries no internal key (07 2.1.6). The panel is the one area where an internal key may be part of the path (07 2.1.5); outside it only the image
+/// endpoint's exact template <see cref="AddressRules.ImageAddressTemplate"/> carries one, as the file serving's name of the file (07 2.1.6, 3.1.6).
 /// The page convention applies the check at the start of the application and the tests apply it to every mapped endpoint.
 /// </summary>
 internal static class AddressTemplates
@@ -50,7 +51,9 @@ internal static class AddressTemplates
             problems.Add("a template under /siparis starts with one of the two order roots (07 2.1.3)");
         }
 
-        if (!string.Equals(first, AddressRules.PanelArea, StringComparison.Ordinal))
+        // The panel may carry a key (07 2.1.5); the image endpoint's one template is file serving, its id the file's name (07 2.1.6, 3.1.6; K-1636) - the exact text only.
+        if (!string.Equals(first, AddressRules.PanelArea, StringComparison.Ordinal)
+            && !string.Equals("/" + trimmed, AddressRules.ImageAddressTemplate, StringComparison.Ordinal))
         {
             CheckNoInternalKey(segments, problems);
         }

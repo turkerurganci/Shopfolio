@@ -138,6 +138,20 @@ public sealed partial class OneTimeValueTests
     // --- the value in the form of the operation (07 2.5.2; KK3) ---
 
     [Fact]
+    public void TheTestHostPagesLeftToThePermissionsOwnRule_AreTheTokenPageAndTheSampleForm_AndNoOther_D1454()
+    {
+        // The test assembly's set is a closed list too (K-1636 (2)): a sample page marked by mistake would hide a drop the product makes.
+        Type[] expected = [typeof(ForgeryTokenSampleModel), typeof(ReauthenticationSampleModel)];
+
+        Type[] marked = typeof(OneTimeValueTests).Assembly.GetTypes()
+            .Where(t => t.IsDefined(typeof(ReauthenticationFormPageAttribute), inherit: false))
+            .OrderBy(t => t.FullName, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Equal(expected.OrderBy(t => t.FullName, StringComparer.Ordinal), marked);
+    }
+
+    [Fact]
     public async Task TheFormCarriesTheValueInAHiddenField_AndTheValidSendConsumesIt_SoTheSecondSendAsksAgain_KK3()
     {
         (string key, _, _) = await TestSessions.CustomerWithSessionAsync(_database.Dsn);

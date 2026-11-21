@@ -75,9 +75,19 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-21, bağımsız doğrulayıcı; head `c83c9702`) |
-| Bulgu sayısı | 2 bulgu (ORTA, S1) + 1 K-notu (D-1859) |
+| Doğrulama durumu | ✗ FAIL — tur 2 (2026-11-21, bağımsız doğrulayıcı; head `40ab5981`) · tur 1 ✗ FAIL (head `c83c9702`) |
+| Bulgu sayısı | Tur 2: 1 bulgu (ORTA, S1) + 2 K-notu (K1 bu PR'da kapatıldı, K2 → D-1867) · tur 1: 2 bulgu + 1 K-notu |
 | Düzeltme gerekli mi | Evet |
+
+**Tur 2 bulgusu:**
+
+1. **D-1276 / D-1820 (KK1 ~, kabul kriteri 1 ve 5 ~):** D-1276'nın F5 kapısı daraltması `12` KP-2…KP-7 satırlarının (A008, A010, A012, A014–A018, A020, A024, B001) BEKLEMEDE'den kanıtla çıkmasını T604'e verdi. UH2 beşini PASS yaptı, altısını (VAL-A010, A012, A016, A018, A020, B001) D-1820 ile T601'e attı; gerekçe "kanıt türü tarayıcı gözlemi; tarayıcısız PASS sayılmaz; T601/F6 tarayıcı turunda gözlenir". Gerekçe olguya uymaz: (a) VAL-B001'in kanıt türü "Uç yanıtı + Veri kaydı"dır, tarayıcı istemez; (b) öteki beşinin kanıt ortamı "yok"tur ve tarayıcı aracı (T551, T604 A) yerelde üç motorda çalışır — bu PR da `DefectClaimFieldTests`'i onunla yazdı; araç varken tarayıcı gözlemi ertelenmez (PF-278); (c) T601'in kabul kriterlerinde KP satırı gözlemi yok (KK10 yalnız VAL-F001…F012), 11 ve 12'de "F6 tarayıcı turu" diye bir iş yok — hedef işlevsiz (tur 1 Bulgu 2 (c) ile aynı örüntü). Altı satırın ikisi KRİTİK (A018 indirim satırı, A020 ifa süresi). Komşu: D-1811, D-1821 (bu PR'ın betiklerinin tarayıcı gözlemi) ve D-1819 ("F6 erişilebilirlik turu") de T601'e işlevsiz hedefle atıldı; kendi kalemlerinin kabul ölçüsü dışında oldukları için bulgu değil, ama hedefleri düzeltilmeli. Düzeltme: altı satırın kanıtı bu PR'da üretilir (B001 uç + veri kaydı testi; A010, A012, A016, A018, A020 tarayıcı gözlemi) ve `Durum` PASS olur; ya da gerekçe olguya göre yeniden yazılıp satırları gerçekten koşacak bir hedefe bağlanır. D-1811, D-1819, D-1821'in hedefi geçerli bir yere (ör. F6 gate) alınır.
+
+**Tur 2 K-notları:** K1 — D-1770 satırı `✅ Çözüldü → T604` ama Hedef hücresi `T601 (F6)` kalmıştı; doğrulayıcı kayıt commit'inde `T604` yaptı (`DEFERRED_BACKLOG.d/T604-A.md`). K2 — `IReadsOnForgeryRefusal` sözleşmesi "sorgu değeri okunmaz" der, iki sıfırlama sayfası kullanılmış bağlantının cümlesini sorgudan seçer → D-1867 (`DEFERRED_BACKLOG.d/T604-H.md`).
+
+**Tur 2'de kapandığı denetlenen tur 1 maddeleri:** Bulgu 1 (D-1412/D-1833) kapandı — `AfterSalesScreenTests…_D1412_D1833` ve `DefectClaimFieldTests` üç motorda iki yol; `QuantityFieldRow` seçimi yok sayınca Integration ve betiksiz yol, betikte taşıma kesilince betikli yol kırmızı (doğrulayıcı yeniden üretti). Bulgu 2 kapandı — D-1812 kalıbı (`StepInvalid` kesilince `…_D1812` kırmızı), D-1843 23 sayfa (`WaitingPages` boş), D-1844 mesajı; hedefler T604. K1 (D-1859) kapandı.
+
+**Tur 2 doğrulayıcı kanıtları:** KK2 kırmızı–yeşil yeniden üretildi: D-1599 (IBAN düşürme → ret), D-1806 (kalemsiz istek koşulu kaldırıldı), D-1845 (sipariş süzgeci etkisiz), D-1843 dört sayfada (Hesabım `keepsPermission: false` → izin düştü; Panel Reauth kancasına GET'in düşürmesi eklendi → izin düştü; Panel Reset kancası işleyiciyi çağırdı → bağlantı tüketildi; Profile sarmalayıcısı 400'ü bırakınca içerik boş), D-1773 kanca kesildi → kancalı 16 sayfa testi kırmızı; geri alınınca 40/40 yeşil (üç motor). Unit 8325/8325; Integration ilgili 44 sınıf 1127/1127 (333 + 324 + 470; TAM: CI 4. iş yeşil); tarayıcı `DefectClaimFieldTests`, `NarrowClassTests`, `ScreenInventoryTests` 49/49 üç motor; betik testleri 4/4; `test-pre-commit.sh` 263/0; build `-warnaserror` 0 uyarı; `dotnet format` değişen 168 `.cs` temiz. `-s ours` birleştirmesi: `cea4b177` ağacı `origin/main` ile aynı ve dalın atası; A dosyalarında yalnız kapanan kalemlerin bilinen sapma girişleri kalktı.
 
 **Tur 1 bulguları:**
 

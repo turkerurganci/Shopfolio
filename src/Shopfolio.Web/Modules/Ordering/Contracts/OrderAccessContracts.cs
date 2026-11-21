@@ -17,6 +17,8 @@ public sealed record OrderDownloadButton(Guid OrderItemId, string ProductName, b
 /// "Takip et" link), the download buttons and the bank transfer IBAN frozen on the order (02 3.21.5). Read from the order alone: no e-mail, no notice and no queue
 /// stands between the buyer and any of the four (02 6.1.1). <see cref="TransferPaymentEndsAt"/> is the last moment of a bank transfer order still waiting for its
 /// payment - after an outage it is the deferred one (03 4.2.12; 02 4.2 Z-8: the order page shows the new last day, no e-mail tells it); empty on every other order.
+/// <see cref="TransferLastPaymentDay"/> is the day that moment closes, read from the one rule (<see cref="PaymentWindowDay"/>; D-1450) - the day the notices
+/// (B-2, B-3) and the panel name; the page writes it and computes no day of its own.
 /// </summary>
 public sealed record OrderPageSummary(
     Guid OrderId,
@@ -26,4 +28,8 @@ public sealed record OrderPageSummary(
     ShippingDisplay Shipping,
     IReadOnlyList<OrderDownloadButton> Downloads,
     string? TransferIban,
-    DateTimeOffset? TransferPaymentEndsAt);
+    DateTimeOffset? TransferPaymentEndsAt)
+{
+    /// <summary>The day <see cref="TransferPaymentEndsAt"/> closes (<see cref="PaymentWindowDay"/>; D-1450); null with it.</summary>
+    public DateOnly? TransferLastPaymentDay => TransferPaymentEndsAt is { } end ? PaymentWindowDay.LastOf(end) : null;
+}

@@ -133,8 +133,8 @@ internal sealed partial class AfterSalesModule
         RefundIban? refundIban = onFile;
         if (iban.Entered is { } entered)
         {
-            refundIban = RefundIban.Create(subject.OrderId, entered, declaration.At);
-            _db.RefundIbans.Add(refundIban);
+            // The items of one notice share the row (D-1283 (2)); the deletion day below keeps the later one (K-1110).
+            refundIban = EnterIban(subject.OrderId, entered, declaration.At);
         }
 
         Withdrawal withdrawal = declaration.Admin is { } admin

@@ -86,7 +86,12 @@ public sealed class ConfirmationInput
     public string ConfirmationKey { get; set; } = string.Empty;
 }
 
-/// <summary>The sample operation that needs a reauthentication (07 2.5.2): the form carries the single-use value of the customer's session; a valid send consumes it, an invalid one does not.</summary>
+/// <summary>
+/// The sample operation that needs a reauthentication (07 2.5.2): the form carries the single-use value of the customer's session; a valid send consumes it, an invalid one does not.
+/// It stands where the product's form pages stand (<c>ProfileModel</c>, <c>MyAccountModel</c>): its GET shows the form, its POST takes the value - so it keeps the permission's own rule
+/// and the one dropping layer leaves it alone (ReauthenticationFormPageAttribute; 05 6.1.5; D-1454; K-1636 (2)).
+/// </summary>
+[ReauthenticationFormPage]
 public sealed class ReauthenticationSampleModel(FormSecurityLog log) : PageModel
 {
     public string Value { get; private set; } = string.Empty;

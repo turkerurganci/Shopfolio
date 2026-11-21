@@ -310,7 +310,7 @@ public sealed partial class OrderDetailModel
 }
 
 /// <summary>
-/// UC-131, UC-132 <c>ProcessRefundInput</c> · <c>MarkBankTransferRefundFailedInput</c>: exactly one of the links of 06 4.33 - the record that causes the refund (07 9.9.10) - or the refund's own id
+/// UC-131 and UC-132 bind <c>ProcessRefundInput</c>: exactly one of the links of 06 4.33 - the record that causes the refund (07 9.9.10) - or the refund's own id
 /// for a refund that has none; the version, the confirmation and the IBAN the window showed.
 /// </summary>
 public sealed class ProcessRefundInput : IFormInput
@@ -394,7 +394,7 @@ public sealed class RequestRefundIbanInput : IFormInput
     public int Version { get; set; }
 }
 
-/// <summary>UC-135...UC-137 <c>RetryCardRefundInput</c> · <c>SwitchRefundToBankTransferInput</c> · <c>MarkCardRefundFailedInput</c>: the refund, the version and - on the retry - the confirmation.</summary>
+/// <summary>UC-135...UC-137 bind <c>RetryCardRefundInput</c>: the refund, the version and - on the retry - the confirmation.</summary>
 public sealed class RetryCardRefundInput : IFormInput
 {
     public Guid? RefundId { get; set; }

@@ -118,6 +118,8 @@ public sealed class SitemapSourceTests
 
         public Task<bool> ImageExistsAsync(Guid imageId, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<ServedImage?> FindServedImageAsync(Guid imageId, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<DigitalFileLocation?> FindDownloadFileAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<UploadStartResult> StartUploadAsync(string? fileName, long sizeBytes, CancellationToken ct) => throw new NotSupportedException();
@@ -216,13 +218,13 @@ public sealed class SitemapSourceTests
 
         public Task<IReadOnlyDictionary<Guid, VariantImage>> GetProductVariantImagesAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
 
-        public Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct) => throw new NotSupportedException();
+        public Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<OrderItemSource>> ListOrderItemSourcesAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct) => throw new NotSupportedException();
 
-        public Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, CancellationToken ct) => throw new NotSupportedException();
+        public Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct) => throw new NotSupportedException();
 
-        public Task<CartQuantityVerdict> JudgeCartAddAsync(CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, CancellationToken ct) => throw new NotSupportedException();
+        public Task<CartQuantityVerdict> JudgeCartAddAsync(CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct) => throw new NotSupportedException();
     }
 
     private sealed class FakeContent(IReadOnlyList<string> paths) : ICorporateContentModule

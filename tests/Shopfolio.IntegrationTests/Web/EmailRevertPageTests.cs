@@ -33,7 +33,7 @@ public sealed class EmailRevertPageTestsDefinition : ICollectionFixture<Collecti
 /// deletes the pending registration of the address, and the 422 and 200 answers of a changed address and a spent link. Accounts, links, sessions and rows are real rows of the collection database.
 /// </summary>
 [Collection(EmailRevertPageTestsDefinition.Name)]
-public sealed class EmailRevertPageTests : IAsyncLifetime
+public sealed partial class EmailRevertPageTests : IAsyncLifetime
 {
     private const string Earlier = "eski@example.com";
     private const string Current = "yeni@example.com";

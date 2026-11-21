@@ -117,7 +117,10 @@ internal sealed partial class OrderTransitions
     private async Task CancelOpenItemsByFirmAsync(Guid orderId, Guid transitionRecordId, CancelOrderRequest request, CancellationToken ct)
     {
         Order order = await _db.Orders.SingleAsync(o => o.Id == orderId, ct);
-        List<OrderItem> items = await _db.OrderItems.Where(i => i.OrderId == orderId).OrderBy(i => i.CreatedAt).ThenBy(i => i.Id).ToListAsync(ct);
+        // Each record's refund is worked out when it is written, from the records already there (05 4.6), and the records share one moment, of which the shipping fee goes
+        // to the smallest item id (K-1107; ShippingFeeRefunds): the items go in descending uuid order, as the customer's cancellation writes them, so the record that
+        // meets the trigger is the smallest item's and it carries the fee (D-1281).
+        List<OrderItem> items = [.. (await _db.OrderItems.Where(i => i.OrderId == orderId).ToListAsync(ct)).OrderByDescending(i => i.Id.ToString("N"), StringComparer.Ordinal)];
         IReadOnlyDictionary<Guid, int> closed = await _afterSales.UnavailableQuantitiesAsync([.. items.Select(i => i.Id)], ct);
         TransitionAdmin firmAdmin = request.Admin ?? throw new InvalidOperationException("The firm's whole-order cancellation is an administrator's request.");
         ItemRecordAdmin admin = new(firmAdmin.AdminId, firmAdmin.AdminName);
@@ -143,7 +146,7 @@ internal sealed partial class OrderTransitions
         await _counters.ReturnAsync(order, units, ct);
     }
 
-    private static ItemFrozenAmounts FrozenOf(OrderItem item) => new(item.DiscountedUnitPrice ?? item.UnitPrice, item.CouponShare, item.VatAmount);
+    internal static ItemFrozenAmounts FrozenOf(OrderItem item) => new(item.DiscountedUnitPrice ?? item.UnitPrice, item.CouponShare, item.VatAmount);
 
     /// <summary>The units an item record gives back to a counter: a physical item's stock or a service item's capacity; a digital item has no counter (02 7.2.6).</summary>
     private static IReadOnlyList<VariantQuantity> UnitsOf(OrderItem item, int quantity) =>

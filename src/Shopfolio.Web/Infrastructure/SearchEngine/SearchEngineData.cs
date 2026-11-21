@@ -1,13 +1,10 @@
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.Unicode;
 
 using Microsoft.AspNetCore.Html;
 using Microsoft.Extensions.Options;
 
 using Shopfolio.Infrastructure.InstallationSettings;
+using Shopfolio.Infrastructure.Security;
 
 namespace Shopfolio.Infrastructure.SearchEngine;
 
@@ -48,16 +45,7 @@ internal sealed class SearchEngineData
 {
     private const string SchemaContext = "https://schema.org";
 
-    // The Latin ranges of the Turkish alphabet stay as they are; the characters that matter inside a script element (< > & ' +) are escaped by every
-    // JavaScriptEncoder.Create encoder, so a name that holds "</script>" cannot leave the block.
-    private static readonly JsonSerializerOptions _json = new()
-    {
-        Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement, UnicodeRanges.LatinExtendedA),
-        WriteIndented = false,
-    };
-
-    private static readonly HtmlEncoder _html = HtmlEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement, UnicodeRanges.LatinExtendedA);
-
+    // The head and the blocks' text are written by StructuredData (09 15.3 item 1; D-357): this class builds values and trees, never markup.
     private readonly SiteAddress _site;
 
     public SearchEngineData(SiteAddress site)
@@ -191,55 +179,43 @@ internal sealed class SearchEngineData
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(data);
-        StringBuilder head = new();
-        head.Append("<title>").Append(_html.Encode(data.Title)).Append("</title>\n");
         if (data.Closed || SearchEngineClosure.IsClosed(context))
         {
-            Meta(head, "name", "robots", SearchEngineClosure.Directive);
-            return new HtmlString(head.ToString());
+            return StructuredData.Render(data.Title, [new HeadMeta(HeadMetaKind.Name, "robots", SearchEngineClosure.Directive)], []);
         }
 
+        List<HeadMeta> metas = [];
         if (!string.IsNullOrWhiteSpace(data.Description))
         {
-            Meta(head, "name", "description", data.Description);
+            metas.Add(new HeadMeta(HeadMetaKind.Name, "description", data.Description));
         }
 
-        Meta(head, "property", "og:type", data.OpenGraphType);
+        metas.Add(new HeadMeta(HeadMetaKind.Property, "og:type", data.OpenGraphType));
         if (!string.IsNullOrWhiteSpace(data.BrandName))
         {
-            Meta(head, "property", "og:site_name", data.BrandName);
+            metas.Add(new HeadMeta(HeadMetaKind.Property, "og:site_name", data.BrandName));
         }
 
-        Meta(head, "property", "og:locale", "tr_TR");
-        Meta(head, "property", "og:title", data.Title);
+        metas.Add(new HeadMeta(HeadMetaKind.Property, "og:locale", "tr_TR"));
+        metas.Add(new HeadMeta(HeadMetaKind.Property, "og:title", data.Title));
         if (!string.IsNullOrWhiteSpace(data.Description))
         {
-            Meta(head, "property", "og:description", data.Description);
+            metas.Add(new HeadMeta(HeadMetaKind.Property, "og:description", data.Description));
         }
 
-        Meta(head, "property", "og:url", _site.Absolute(data.Path));
+        metas.Add(new HeadMeta(HeadMetaKind.Property, "og:url", _site.Absolute(data.Path)));
         string? image = data.ImagePath ?? data.LogoPath;
         if (!string.IsNullOrWhiteSpace(image))
         {
-            Meta(head, "property", "og:image", _site.Absolute(image));
+            metas.Add(new HeadMeta(HeadMetaKind.Property, "og:image", _site.Absolute(image)));
         }
 
-        foreach (JsonLdBlock block in data.StructuredData)
-        {
-            head.Append("<script type=\"application/ld+json\">").Append(block.Json).Append("</script>\n");
-        }
-
-        return new HtmlString(head.ToString());
-    }
-
-    private static void Meta(StringBuilder head, string attribute, string name, string content)
-    {
-        head.Append("<meta ").Append(attribute).Append("=\"").Append(_html.Encode(name)).Append("\" content=\"").Append(_html.Encode(content)).Append("\">\n");
+        return StructuredData.Render(data.Title, metas, [.. data.StructuredData.Select(b => b.Root)]);
     }
 
     private static JsonObject Root(string type) => new() { ["@context"] = SchemaContext, ["@type"] = type };
 
-    private static JsonLdBlock Block(string type, JsonObject root) => new(type, root.ToJsonString(_json));
+    private static JsonLdBlock Block(string type, JsonObject root) => new(type, root);
 
     private static bool IsWebAddress(string value) =>
         Uri.TryCreate(value, UriKind.Absolute, out Uri? uri) && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);

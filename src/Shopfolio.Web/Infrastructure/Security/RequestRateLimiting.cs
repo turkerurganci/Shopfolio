@@ -37,7 +37,7 @@ internal static class NeutralMessages
 internal static class RateLimitScope
 {
     private static readonly PathString _staticPath = new(Routing.AddressRules.StaticArea);
-    private static readonly PathString _imagePath = new("/gorsel");
+    private static readonly PathString _imagePath = new(Routing.AddressRules.ImageArea);
     private static readonly PathString _chunkedUploadPath = new("/panel/yukleme");
     private static readonly PathString _notificationPath = new(AntiforgeryExemptions.PaymentNotificationPath);
 

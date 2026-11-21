@@ -1,6 +1,7 @@
 using System.Net;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
@@ -150,6 +151,23 @@ internal sealed class CheckoutModel : PageModel, IOutcomeTarget
     public string? ReasonOf(PaymentMethod method) => IsSelectable(method)
         ? null
         : method == PaymentMethod.Card ? CheckoutTexts.CardUnavailableNow : NeutralMessages.LimitExceeded;
+
+    /// <summary>
+    /// The forgery check answers a POST 400 before the handler (07 2.5.4): the step is read as the GET reads it, with the sent values, so the page shown again has its
+    /// summary and its form, not an empty step (04 2.7.3.1; K-1627 (2); D-1190). The refusal wrote nothing; the 400 and its message stay whatever the read finds.
+    /// </summary>
+    public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        PageHandlerExecutedContext executed = await next();
+        if (Step is null && executed.Exception is null && executed.Result is PageResult { StatusCode: FormResults.ForgeryRefusedStatus }
+            && StorefrontFrameBuilder.CartOwnerOf(HttpContext) is CartOwner owner)
+        {
+            PlaceOrderInput sent = context.HandlerArguments.Values.OfType<PlaceOrderInput>().FirstOrDefault() ?? new PlaceOrderInput();
+            _ = await ShowAsync(owner, sent, appliesCoupon: false, HttpContext.RequestAborted, checksGate: false);
+        }
+    }
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {

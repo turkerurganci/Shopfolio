@@ -28,7 +28,7 @@ public sealed class MyAccountPageTestsDefinition : ICollectionFixture<Collection
 /// 429) and what it writes. Accounts, sessions, links and pending changes are real rows of the collection database.
 /// </summary>
 [Collection(MyAccountPageTestsDefinition.Name)]
-public sealed class MyAccountPageTests : IAsyncLifetime
+public sealed partial class MyAccountPageTests : IAsyncLifetime
 {
     private const string Strong = "a-long-enough-password";
     private const string AccountPath = "/panel/hesabim";

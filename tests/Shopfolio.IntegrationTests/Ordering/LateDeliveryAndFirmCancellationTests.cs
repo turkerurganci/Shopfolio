@@ -426,6 +426,26 @@ public sealed class LateDeliveryAndFirmCancellationTests : IAsyncLifetime
         Assert.Equal(6, (await VariantAsync(second.Id)).Stock);
     }
 
+    // ---- D-1281: the shipping fee of the firm's whole-order cancellation (K-1107) ----
+
+    [Fact]
+    public async Task TheFirmsWholeOrderCancellation_OfTwoPhysicalItems_ReturnsTheShippingFeeOnce_OnTheSmallestItem_D1281()
+    {
+        (Order order, List<OrderItem> items) = await SeedAsync(OrderStatus.Preparing, new Line(ProductType.Physical, 2), new Line(ProductType.Physical, 1));
+        await ExecuteAsync($"UPDATE orders SET shipping_fee = 30, shipping_fee_vat_breakdown = '[]' WHERE id = '{order.Id}'");
+
+        OrderTransitionResult result = await RunAsync((unit, token) =>
+            unit.CancelOrderAsync(CancelOrderRequest.ByAdministrator(order.Id, AdminCaller, 1, true, CancellationReason.OutOfStock), token));
+
+        Assert.False(result.IsRejected);
+        await using AppDbContext reader = NewContext();
+        List<Refund> refunds = await reader.Refunds.Where(r => r.OrderId == order.Id).ToListAsync(Ct);
+        Assert.Equal(2, refunds.Count);
+        Guid smallest = items.Select(i => i.Id).OrderBy(id => id.ToString("N"), StringComparer.Ordinal).First();
+        Assert.Equal(smallest, Assert.Single(refunds, r => r.IsShippingFeeIncluded).OrderItemId);
+        Assert.Equal(330m, refunds.Sum(r => r.Amount));
+    }
+
     // ---- T370: the termination's refund line (02 7.2.8, 7.4.5) ----
 
     [Fact]

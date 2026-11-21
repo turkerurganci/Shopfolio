@@ -279,7 +279,51 @@ public sealed partial class OrderCorrectionTests
         Assert.Equal(0, await CountAsync(c => c.ItemRemovals));
     }
 
+    [Fact]
+    public async Task PanelRemoval_TheWindowsAmount_IsTheRefundTheRecordThenWrites_TheFeeWithTheLastPhysicalUnit_AndNoneBeforeThePaymentCame_D1598()
+    {
+        // K-797 "{tutar}": the window's read and the record's refund line are one rule (02 7.1.7, 7.2.9). Two units of 300 with a coupon share of 20, a fee of 30.
+        Order order = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical);
+        await ExecuteAsync($"UPDATE orders SET shipping_fee = 30, shipping_fee_vat_breakdown = '[]' WHERE id = '{order.Id}'");
+        order = await ReloadAsync(order.Id);
+        Guid item = await ItemIdAsync(order.Id, ProductType.Physical);
+
+        decimal? first = await PreviewAsync(order.Id, item, 1);
+        decimal? both = await PreviewAsync(order.Id, item, 2);
+        Assert.Null(await PreviewAsync(order.Id, item, 3));
+        Assert.Null((await StepAsync(s => s.RemoveItemAsync(Removal(order, item, 1), Ct))).Refusal);
+        decimal firstWritten = await RefundedAsync(item);
+        _clock.Advance(TimeSpan.FromMinutes(1)); // two operations, two moments: the fee's trigger reads the moves of one moment as one operation (K-1107)
+        order = await ReloadAsync(order.Id);
+        decimal? last = await PreviewAsync(order.Id, item, 1);
+        Assert.Null((await StepAsync(s => s.RemoveItemAsync(Removal(order, item, 1), Ct))).Refusal);
+        decimal lastWritten = await RefundedAsync(item) - firstWritten;
+
+        Assert.Equal(firstWritten, first);
+        Assert.Equal(lastWritten, last);
+        Assert.Equal(300m - 10m, first); // the first unit: its price less half the coupon share, no fee - a unit still goes
+        Assert.Equal(300m - 10m + 30m, last); // the last unit takes what is left of the coupon share and meets the fee's trigger
+        Assert.Equal(600m - 20m + 30m, both);
+
+        Order unpaid = await SeedAsync(OrderStatus.Placed, PaymentStatus.Pending, ProductType.Physical);
+        Assert.Null(await PreviewAsync(unpaid.Id, await ItemIdAsync(unpaid.Id, ProductType.Physical), 1));
+    }
+
     // ---- helpers ----
+
+    private async Task<decimal?> PreviewAsync(Guid orderId, Guid item, int quantity)
+    {
+        await using ServiceProvider provider = BuildProvider();
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<IPanelItemSteps>().RemovalRefundAsync(orderId, item, quantity, Ct);
+    }
+
+    // The sum of the item's refund lines (two lines written in one test moment have no order of their own).
+    private async Task<decimal> RefundedAsync(Guid item)
+    {
+        await using AppDbContext reader = NewContext();
+        return await reader.Refunds.AsNoTracking().Where(r => r.OrderItemId == item).SumAsync(r => r.Amount, Ct);
+    }
 
     private PanelFirmCancellation FirmCancellation(Order order, bool confirmed, params (Guid Item, int Quantity)[] items) =>
         new(order.Id, AdminCaller, ShownVersionOf(order.Id), confirmed, CancellationReason.OutOfStock, null, false, [.. items.Select(i => new PanelItemUnits(i.Item, i.Quantity))]);

@@ -81,6 +81,14 @@ internal sealed partial class OrderTransitions
             return Refused(TransitionRefusal.ConditionNotMet);
         }
 
+        // 1.11.11's decision on the locked order (D-610; 09 8.3 item 3) for a request on an item - the decision's fact counts the items' open requests. An itemless
+        // request of a late payment's refund (K-1075) is not in that fact yet (D-1806); its own row above is its condition.
+        if (open.OrderItemId is not null
+            && !(await _operations.CheckAsync(order.Id, OrderOperation.EnterRefundIban, null, null, ct)).IsAllowed)
+        {
+            return Refused(TransitionRefusal.ConditionNotMet);
+        }
+
         // On a failed card refund's transfer path the IBAN turns the refund's way to the transfer - only while its latest card request is still failed;
         // a refund that went meanwhile, or one whose result is pending, takes no IBAN (02 7.2.8; K-569).
         if (open.RefundId is { } refundId && open.Reason == RefundIbanRequestReason.CardRefundFailed)
@@ -114,6 +122,12 @@ internal sealed partial class OrderTransitions
         if (order is null)
         {
             return Refused(TransitionRefusal.OrderNotFound);
+        }
+
+        // 1.11.12's decision on the locked order (D-610; 09 8.3 item 3): an IBAN on file - it lives only until the refund using it is processed (K-575).
+        if (!(await _operations.CheckAsync(order.Id, OrderOperation.CorrectRefundIban, null, null, ct)).IsAllowed)
+        {
+            return Refused(TransitionRefusal.ConditionNotMet);
         }
 
         RefundIbanWriteResult written = await _afterSales.ChangeRefundIbanAsync(new RefundIbanCorrection(order.Id, request.RefundIbanId, request.Iban, _time.GetUtcNow()), ct);

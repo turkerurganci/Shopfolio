@@ -73,13 +73,13 @@ internal sealed class EmailRevertModel : PageModel
         {
             // The earlier address is another verified account's: nothing was written and the consumption is taken back (07 UC-76; K-1210).
             Show(key, VerificationLinkStatus.Valid, done: false, notApplied: true);
-            return FormResults.Redisplay(this);
+            return FormResults.Refused(this, ErrorCode.EmailTakenByOtherAccount);
         }
 
         // The link is not (or no longer) valid: the page tells what it is now, status 200 (07 UC-76).
         EmailRevertLinkReading now = await _membership.ReadEmailRestoreLinkAsync(key, ct);
         Show(key, now.Status, done: false, notApplied: false);
-        return Page();
+        return FormResults.LinkNoLongerValid(this);
     }
 
     private void Show(string key, VerificationLinkStatus status, bool done, bool notApplied)

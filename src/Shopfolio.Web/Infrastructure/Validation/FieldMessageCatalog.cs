@@ -1,4 +1,7 @@
+using System.Collections.Frozen;
 using System.Globalization;
+
+using Shopfolio.Infrastructure.Errors;
 
 namespace Shopfolio.Infrastructure.Validation;
 
@@ -52,8 +55,24 @@ internal static class FieldMessageCatalog
     /// </summary>
     internal const string NetQuantityPattern = "{0} sıfırdan büyük bir sayı olmalıdır; en çok üç ondalık yazılabilir ve en çok {1} olabilir.";
 
+    /// <summary>
+    /// The messages of the codes that belong to no field (09 3.4 item 4, 8.2 item 4; D-141): the action-level sentence a refusal shows at the place of the action (04 2.7.3.1).
+    /// The catalog grows here code by code as the refusals move their sentences into it; the forgery refusal is the first (07 6.2.1 <c>AntiforgeryValidationFailed</c>; K-1627 (1)).
+    /// </summary>
+    private static readonly FrozenDictionary<ErrorCode, string> _actionMessages = new Dictionary<ErrorCode, string>
+    {
+        [ErrorCode.AntiforgeryValidationFailed] = "İşlem tamamlanamadı. Sayfanın süresi dolmuş olabilir; yazdıklarınız korundu, aynı düğmeyle yeniden deneyin.",
+    }.ToFrozenDictionary();
+
     /// <summary>The patterns, by code.</summary>
     public static IReadOnlyDictionary<string, string> Patterns => _patterns;
+
+    /// <summary>The action-level messages, by the code that belongs to no field.</summary>
+    public static IReadOnlyDictionary<ErrorCode, string> ActionMessages => _actionMessages;
+
+    /// <summary>The action-level message of a code that belongs to no field.</summary>
+    public static string ActionMessage(ErrorCode code) =>
+        _actionMessages.TryGetValue(code, out string? message) ? message : throw new ArgumentException($"'{code}' has no action-level message.", nameof(code));
 
     /// <summary>Whether the code's message names a limit - the rule that reports it must carry the value.</summary>
     public static bool NeedsParameter(string code) => _patterns.TryGetValue(code, out string? pattern) && pattern.Contains("{1}", StringComparison.Ordinal);

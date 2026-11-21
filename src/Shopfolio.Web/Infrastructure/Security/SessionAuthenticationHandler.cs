@@ -76,7 +76,7 @@ internal sealed class SessionAuthenticationHandler : AuthenticationHandler<Sessi
         string digest = SecretKey.Hash(key);
         var row = await db.Sessions.AsNoTracking()
             .Where(s => s.TokenHash == digest)
-            .Select(s => new { s.Id, s.CustomerId, s.AdminId, s.IsLongLived, s.LastActivityAt })
+            .Select(s => new { s.Id, s.CustomerId, s.AdminId, s.IsLongLived, s.LastActivityAt, HoldsPermission = s.ReauthenticatedOperation != null })
             .SingleOrDefaultAsync(Context.RequestAborted);
         if (row is null)
         {
@@ -106,6 +106,12 @@ internal sealed class SessionAuthenticationHandler : AuthenticationHandler<Sessi
             {
                 BrowserCookies.Write(Context, Options.CookieName, key, _longLifetime);
             }
+        }
+
+        if (row.HoldsPermission)
+        {
+            // Only that a permission stands, beside the identity and not in it (09 15.1 item 2; 05 6.1.5; D-1454): the page request that does not show the permission's form drops it.
+            ReauthenticationPermissionFilter.MarkHeld(Context, Scheme.Name, row.Id, accountId.Value);
         }
 
         var identity = new ClaimsIdentity(

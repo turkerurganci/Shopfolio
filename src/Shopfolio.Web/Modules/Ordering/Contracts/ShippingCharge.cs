@@ -19,7 +19,7 @@ public static class ShippingCharge
     /// <summary>
     /// The shipping terms of a basket. <paramref name="basis"/> is the sum of the items that enter the order, discounted, before the coupon; <paramref name="hasPhysicalItem"/> is true when at
     /// least one of those items is physical - a sold-out physical line does not count (02 3.18.3). The fee is charged once when there is a physical item and the basis is under the threshold
-    /// (or there is no threshold); the minimum applies only with a physical item; the threshold message shows only when the threshold is set and there is a physical item.
+    /// (or there is no threshold); the minimum applies only with a physical item; the threshold message shows only when the threshold is set, the fee is above zero and there is a physical item.
     /// </summary>
     public static ShippingAssessment Assess(ShippingFeeSection terms, decimal basis, bool hasPhysicalItem)
     {
@@ -43,7 +43,8 @@ public static class ShippingCharge
         }
 
         decimal? shortfall = terms.MinimumOrderAmount is decimal minimum && basis < minimum ? minimum - basis : null;
-        decimal? remaining = terms.FreeShippingThreshold is decimal threshold ? Math.Max(threshold - basis, 0m) : null;
+        // A fee of 0 TL makes every order free already (02 3.19.1): the threshold has nothing left to tell and no message shows (02 3.19.5; K-1624 (2); D-650).
+        decimal? remaining = terms.FreeShippingThreshold is decimal threshold && terms.ShippingFee > 0m ? Math.Max(threshold - basis, 0m) : null;
         bool isFreeByThreshold = remaining == 0m;
         decimal fee = isFreeByThreshold ? 0m : terms.ShippingFee;
         return new ShippingAssessment(basis, true, fee, isFreeByThreshold, remaining, shortfall);
@@ -60,7 +61,7 @@ public static class ShippingCharge
 
 /// <summary>
 /// The shipping terms of one basket (02 3.18, 3.19). <see cref="Fee"/> is what the order pays for shipping, once - zero without a physical item, at or above the threshold, or when the firm's
-/// fee is zero. <see cref="RemainingToFreeShipping"/> is set exactly when the threshold message shows (threshold set, physical item present): zero means "Kargo ücretsiz".
+/// fee is zero. <see cref="RemainingToFreeShipping"/> is set exactly when the threshold message shows (threshold set, fee above zero, physical item present): zero means "Kargo ücretsiz".
 /// <see cref="MinimumOrderShortfall"/> is set exactly when the minimum applies and the basis is under it; the order cannot be placed then.
 /// </summary>
 public sealed record ShippingAssessment(decimal Basis, bool HasPhysicalItem, decimal Fee, bool IsFreeByThreshold, decimal? RemainingToFreeShipping, decimal? MinimumOrderShortfall)

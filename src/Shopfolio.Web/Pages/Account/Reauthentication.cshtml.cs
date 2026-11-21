@@ -29,6 +29,7 @@ namespace Shopfolio.Pages.Account;
 /// The response is personal and not stored.
 /// </summary>
 [NoStore]
+[ReauthenticationFormPage]
 internal sealed class ReauthenticationModel : PageModel
 {
     private readonly IMembershipModule _membership;

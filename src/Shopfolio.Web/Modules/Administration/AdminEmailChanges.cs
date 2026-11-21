@@ -84,6 +84,13 @@ internal sealed class AdminEmailChanges
             return AdminEmailChangeRequestResult.Refused(AdminEmailChangeOutcome.NotFound, ErrorCode.NotFound);
         }
 
+        // The value of the reauthentication is read first (a plain read; it is taken last, below), so no refusal that follows - the address's format, an address another administrator holds,
+        // the limit - is shown to a session that does not hold the permission, and L-9 counts no line for it (02 3.13.11; K-786; D-1473): the same order as the customer's change.
+        if (!await _sessions.HoldsReauthenticationAsync(AccountType.Admin, adminId, sessionId, ReauthenticationOperation.EmailChange, reauthenticationValue, ct))
+        {
+            return AdminEmailChangeRequestResult.Refused(AdminEmailChangeOutcome.ReauthenticationRequired, ErrorCode.ReauthenticationRequired);
+        }
+
         var own = await _db.Admins.AsNoTracking().Where(a => a.Id == adminId).Select(a => new { a.Name, a.Email, a.NormalizedEmail }).SingleAsync(ct);
         string ownNormalized = own.NormalizedEmail;
         string entered = newEmail.Trim();
@@ -149,17 +156,18 @@ internal sealed class AdminEmailChanges
 
         string normalizedEmail = await _db.Admins.AsNoTracking().Where(a => a.Id == adminId).Select(a => a.NormalizedEmail).SingleAsync(ct);
 
-        // L-9 is counted on every request, on the e-mail and on the IP (02 8.2); over the limit the earlier link stays valid.
-        if (await EmailChangeRules.CountedOverLimitAsync(_attempts, normalizedEmail, ipAddress, ct))
-        {
-            return AdminEmailChangeResendResult.Limited();
-        }
-
+        // No pending change writes nothing - no attempt line either; the change is looked for before L-9 counts, as on the customer's side (D-1474).
         DateTimeOffset now = _time.GetUtcNow();
         AdminPendingEmailChange? pending = await _pending.FindAsync(adminId, ct);
         if (pending is null || EmailChangeRules.IsEnded(pending.CreatedAt, now))
         {
             return AdminEmailChangeResendResult.Nothing();
+        }
+
+        // L-9 is counted on every request for a pending change, on the e-mail and on the IP (02 8.2); over the limit the earlier link stays valid.
+        if (await EmailChangeRules.CountedOverLimitAsync(_attempts, normalizedEmail, ipAddress, ct))
+        {
+            return AdminEmailChangeResendResult.Limited();
         }
 
         // The new link ends where the pending change ends: asking again does not lengthen it (02 3.13.5).
@@ -369,7 +377,9 @@ internal sealed class AdminEmailChanges
                 .ExecuteUpdateAsync(set => set.SetProperty(a => a.Email, previousEmail).SetProperty(a => a.NormalizedEmail, normalizedPrevious), ct);
             if (changed != 1)
             {
-                return AdminEmailRevertResult.LinkInvalid(AccountLinkStatus.Superseded);
+                // Unreachable under the row lock, as in the verification: the exception rolls the consumption back with the transaction - a result here would
+                // be no refusal and would commit the spent link with the address unchanged (D-1375).
+                throw new InvalidOperationException("The administrator's address changed under the account's row lock.");
             }
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })

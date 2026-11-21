@@ -65,12 +65,17 @@ else
                                 {
                                     <partial name="_Message" model="Messages.ForField(quantityId, error.Text)" />
                                 }
+
+                                @foreach (string general in summary.FormMessages)
+                                {
+                                    <partial name="_Message" model="Messages.InPlace(MessageMeaning.Warning, general)" />
+                                }
                             }
                         </form>
                     }
                     @if (line.EntersOrder)
                     {
-                        <p class="cart-line__total">@DisplayFormat.Amount(line.UnitPrice * line.Quantity)</p>
+                        <p class="cart-line__total">@DisplayFormat.Amount(line.LineAmount)</p>
                     }
                     @if (line.PriceChanged)
                     {
@@ -101,7 +106,7 @@ else
                     <dd id="cart-shipping">@DisplayFormat.Amount(view.Shipping.Fee)</dd>
                 }
                 <dt>Ödenecek toplam</dt>
-                <dd id="cart-total">@DisplayFormat.Amount(view.OrderableSubtotal + view.Shipping.Fee)</dd>
+                <dd id="cart-total">@DisplayFormat.Amount(view.PayableTotal)</dd>
             </dl>
             @if (freeShipping is not null)
             {

@@ -1,6 +1,7 @@
 using System.Globalization;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -100,6 +101,7 @@ public sealed partial class OrderDetailModel : PageModel
     private readonly IOrderOperations _operations;
     private readonly IAfterSalesModule _afterSales;
     private readonly IOrderDocuments _documents;
+    private bool _loaded;
 
     public OrderDetailModel(IOrderingModule ordering, IOrderPage page, IOrderOperations operations, IAfterSalesModule afterSales, IOrderDocuments documents)
     {
@@ -243,6 +245,26 @@ public sealed partial class OrderDetailModel : PageModel
 
     public async Task<IActionResult> OnGetAsync(Guid id, CancellationToken ct) =>
         await LoadAsync(id, ct) ? Page() : NotFound();
+
+    /// <summary>
+    /// The validation filter answers a form it cannot bind or whose fields break their rules itself, 422 without the handler (09 3.4 item 3): the page it shows again still needs the order - read
+    /// here, the handler's own <see cref="LoadAsync"/> - and a key that is not an order's is the one 404 (D-1544). A form value that does not bind (a version "abc", an undefined enum number) is
+    /// a 422 with the order on the screen, never a 500.
+    /// </summary>
+    public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(next);
+        PageHandlerExecutedContext executed = await next();
+        if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
+        {
+            bool found = context.HandlerArguments.TryGetValue("id", out object? value) && value is Guid id && await LoadAsync(id, HttpContext.RequestAborted);
+            if (!found)
+            {
+                executed.Result = NotFound();
+            }
+        }
+    }
 
     /// <summary>UC-123: the transfer order's "paid" mark; unconfirmed, the window repeats the frozen IBAN and the total (200); confirmed, Ö1 and its effects (303).</summary>
     [GatedOperation]
@@ -439,6 +461,7 @@ public sealed partial class OrderDetailModel : PageModel
 
     private async Task<bool> LoadAsync(Guid id, CancellationToken ct)
     {
+        _loaded = true;
         OrderPageSummary? summary = await _ordering.GetOrderPageSummaryAsync(id, ct);
         OrderPageDetail? detail = await _page.ReadAsync(id, ct);
         OrderOperationsView? operations = await _operations.ReadAsync(id, ActorKind.Admin, ct);

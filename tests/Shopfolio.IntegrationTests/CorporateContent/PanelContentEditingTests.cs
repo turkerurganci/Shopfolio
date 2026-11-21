@@ -398,6 +398,31 @@ public sealed class PanelContentEditingTests : IAsyncLifetime
         return await work(scope.ServiceProvider.GetRequiredService<ICorporateContentModule>());
     }
 
+    [Fact]
+    public async Task ABranchSave_WritesItsFieldsAndItsImageInOneWrite_TheVersionGoesUpOnce_D1539()
+    {
+        Guid image = await SeedImageAsync();
+        PanelContentSaveResult plain = await RunAsync(m => m.SavePanelContentAsync(
+            new PanelContentSaveCommand(PanelContentType.Branch, null, null, new PanelContentValues { Name = "Görselsiz" }, [], []), Ct));
+        PanelContentSaveResult created = await RunAsync(m => m.SavePanelContentAsync(
+            new PanelContentSaveCommand(PanelContentType.Branch, null, null, new PanelContentValues { Name = "Merkez", ImageId = image, ImageAltText = "Ön cephe" }, [], []), Ct));
+
+        Assert.Equal(PanelContentSaveOutcome.Saved, created.Outcome);
+        Guid branch = created.Id!.Value;
+        int first = await ScalarAsync<int>($"SELECT version FROM branches WHERE id = '{branch}'");
+        // A new branch with an image has the version of a new branch without one: one write, not a second for the image.
+        Assert.Equal(await ScalarAsync<int>($"SELECT version FROM branches WHERE id = '{plain.Id!.Value}'"), first);
+        Assert.Equal(image, await ScalarAsync<Guid>($"SELECT image_id FROM branches WHERE id = '{branch}'"));
+
+        PanelContentSaveResult edited = await RunAsync(m => m.SavePanelContentAsync(
+            new PanelContentSaveCommand(PanelContentType.Branch, branch, first, new PanelContentValues { Name = "Merkez şube", ImageId = Guid.Empty }, [], []), Ct));
+
+        Assert.Equal(PanelContentSaveOutcome.Saved, edited.Outcome);
+        Assert.Equal(first + 1, await ScalarAsync<int>($"SELECT version FROM branches WHERE id = '{branch}'"));
+        Assert.Equal(0L, await ScalarAsync<long>($"SELECT count(*) FROM branches WHERE id = '{branch}' AND (image_id IS NOT NULL OR image_alt_text IS NOT NULL)"));
+        Assert.Equal("Merkez şube", await ScalarAsync<string>($"SELECT name FROM branches WHERE id = '{branch}'"));
+    }
+
     // ---- seeds ----
 
     private async Task<Guid> SeedOfferingAsync(string name, int order)

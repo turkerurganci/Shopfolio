@@ -320,8 +320,8 @@ internal sealed partial class CustomerNoticeTemplates
         yield return new EmailKeyValue("Havale açıklamasına yazılacak sipariş numarası", number);
     }
 
-    /// <summary>The last payment day: a window ends at the end of its last day, so the day is the one that holds the instant just before the end (<c>TransferSchedule</c>).</summary>
-    private static string LastPaymentDay(DateTimeOffset windowEndsAt) => DisplayFormat.Date(TurkeyTime.DateOf(windowEndsAt.AddTicks(-1)));
+    /// <summary>The last payment day of Z-8 from the one rule (<see cref="PaymentWindowDay"/>; D-1450): the day the screens and the panel name too.</summary>
+    private static string LastPaymentDay(DateTimeOffset windowEndsAt) => DisplayFormat.Date(PaymentWindowDay.LastOf(windowEndsAt));
 
     /// <summary>The firm's contact in the text itself (08 2.2.6 item 6): the contact e-mail and the telephone; the reply goes to the same address.</summary>
     private static IEnumerable<EmailBlock> FirmContact(OrderNoticeContext order)

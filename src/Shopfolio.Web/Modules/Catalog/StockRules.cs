@@ -51,6 +51,13 @@ internal static class StockRules
     public static bool IsSoldOut(int? stock, int reserved) => stock is not null && stock - reserved <= 0;
 
     /// <summary>
+    /// The reserved units that stand against a reader (02 3.17.7; D-769): the variant's reserved units less the ones the reader's own earlier unpaid orders hold - the customer is not stopped by
+    /// the stock it reserved itself, the confirmation cancels those orders first. Never below zero.
+    /// </summary>
+    public static int ReservedAgainst(int reserved, Guid variantId, IReadOnlyDictionary<Guid, int>? ownReservedUnits) =>
+        ownReservedUnits is not null && ownReservedUnits.TryGetValue(variantId, out int own) ? Math.Max(0, reserved - own) : reserved;
+
+    /// <summary>
     /// Whether the product is shown as sold out (02 3.6.4): it has variants the visitor can see and every one of them is sold out. A product with no visible variant is not
     /// sold out; it is not for sale at all, which is the publication gate's matter.
     /// </summary>

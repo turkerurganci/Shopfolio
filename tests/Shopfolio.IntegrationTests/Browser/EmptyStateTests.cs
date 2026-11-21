@@ -432,11 +432,9 @@ public sealed class EmptyStateTests(BrowserHost host) : BrowserTestBase(host)
             await NavigateAsync(page, () => exit.ClickAsync());
             string landed = new Uri(page.Page.Url).PathAndQuery;
             string title = await page.Page.TitleAsync();
-            // The image address has no serving endpoint yet (D-1711): the browser's own 404 line of such a request is the known state, as in the walk.
-            List<string> fresh = [.. OwnErrors(page, path).Skip(before)];
-            int known = Math.Min(missingImages, fresh.Count(e => e.Contains("status of 404", StringComparison.Ordinal)));
-            int unknown = fresh.Count - known;
-            ok = (response?.Status ?? 0) is >= 200 and < 400 && page.Page.Url.StartsWith(target, StringComparison.Ordinal) && title.Length > 0 && unknown == 0;
+            // The image address is served (D-1711): every browser message counts, an image's 404 too.
+            int unknown = OwnErrors(page, path).Count - before;
+            ok = (response?.Status ?? 0) is >= 200 and < 400 && page.Page.Url.StartsWith(target, StringComparison.Ordinal) && title.Length > 0 && unknown == 0 && missingImages == 0;
             observed = $"tıklanınca {landed}; durum {response?.Status}; başlık \"{title}\"; tarayıcı iletisi {unknown}";
         }
 

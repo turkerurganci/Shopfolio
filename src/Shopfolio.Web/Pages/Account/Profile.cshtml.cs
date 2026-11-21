@@ -78,6 +78,7 @@ public sealed class DeleteAccountInput : IFormInput
 /// the 303 back to this screen (07 6.4.2). The response is personal and not stored.
 /// </summary>
 [NoStore]
+[ReauthenticationFormPage]
 internal sealed class ProfileModel : PageModel, IOutcomeTarget
 {
     private readonly IMembershipModule _membership;

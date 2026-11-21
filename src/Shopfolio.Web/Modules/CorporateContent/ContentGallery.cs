@@ -190,38 +190,21 @@ internal sealed class ContentGallery
     }
 
     /// <summary>
-    /// Gives the branch its one image with the firm's text, or - with null - takes it away (the text goes with it); the image is a column of the branch, so the save carries the form's version
-    /// like any edit of the record (05 7.3.1). An image that is not an uploaded image is refused.
+    /// Whether the branch's image may be saved (D-1539): no image, or an uploaded image. A plain read; the save itself is the branch's one write
+    /// (<see cref="ContentAuthoring.SaveBranchAsync(Guid, BranchInput, BranchImageInput?, int, CancellationToken)"/>), so the version goes up once.
     /// </summary>
-    public async Task<ContentGalleryResult> SetBranchImageAsync(Guid branchId, Guid? imageId, string? altText, int formVersion, CancellationToken ct)
+    public async Task<bool> BranchImageAcceptedAsync(Guid? imageId, CancellationToken ct) => imageId is not { } id || await _catalog.ImageExistsAsync(id, ct);
+
+    /// <summary>
+    /// Gives the branch its one image with the firm's text, or - with null - takes it away (the text goes with it); the image is a column of the branch, so it is written with the
+    /// branch's fields and the form's version like any edit of the record (05 7.3.1). Applied inside the branch's one write; it saves nothing.
+    /// </summary>
+    public static void ApplyBranchImage(Branch branch, BranchImageInput image)
     {
-        RequireTransaction();
-        Branch? branch = await _db.Branches.SingleOrDefaultAsync(b => b.Id == branchId, ct);
-        if (branch is null)
-        {
-            return new ContentGalleryResult(ContentGalleryOutcome.OwnerNotFound);
-        }
-
-        if (imageId is { } id && !await _catalog.ImageExistsAsync(id, ct))
-        {
-            return new ContentGalleryResult(ContentGalleryOutcome.ImageNotFound);
-        }
-
-        ContentResult saved = await _publishing.SaveEditAsync(
-            branch,
-            formVersion,
-            b =>
-            {
-                b.ImageId = imageId;
-                b.ImageAltText = imageId is null ? null : GalleryText.CleanAltText(altText);
-            },
-            ct);
-        return saved.Outcome switch
-        {
-            ContentOutcome.Saved => new ContentGalleryResult(ContentGalleryOutcome.Saved, saved.Version),
-            ContentOutcome.VersionConflict => new ContentGalleryResult(ContentGalleryOutcome.VersionConflict),
-            _ => throw new InvalidOperationException($"The save of a branch's image cannot end as {saved.Outcome}."),
-        };
+        ArgumentNullException.ThrowIfNull(branch);
+        ArgumentNullException.ThrowIfNull(image);
+        branch.ImageId = image.ImageId;
+        branch.ImageAltText = image.ImageId is null ? null : GalleryText.CleanAltText(image.AltText);
     }
 
     /// <summary>The image of a branch with the text the page uses (the firm's, else the branch's name with the place "görsel 1 / 1"); null when the branch has none or does not exist.</summary>

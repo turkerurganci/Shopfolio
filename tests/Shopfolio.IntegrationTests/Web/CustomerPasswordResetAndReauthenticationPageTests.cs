@@ -38,7 +38,7 @@ public sealed class CustomerPasswordResetAndReauthenticationPageTestsDefinition 
 /// Accounts, links, sessions and rows are real rows of the collection database; Google is a stub that answers what a test queues; the flow's cookie and state are made by the application's own flow.
 /// </summary>
 [Collection(CustomerPasswordResetAndReauthenticationPageTestsDefinition.Name)]
-public sealed class CustomerPasswordResetAndReauthenticationPageTests : IAsyncLifetime
+public sealed partial class CustomerPasswordResetAndReauthenticationPageTests : IAsyncLifetime
 {
     private const string Entered = "orchid-lantern-4471-violet";
     private const string NewPassword = "amber-harbor-9023-quartz";

@@ -78,10 +78,20 @@
 
 	# Images: public, fingerprinted addresses (a changed image gets a new address, 05 7.7.1), so the browser may keep them for a year.
 	# The volume is mounted at /srv/gorsel read-only; no other file area is visible to this container.
+	# A page writes an image by its row's id (/gorsel/{image id}; K-1631 (1)), which names no file here: such a request goes on to the application's
+	# image endpoint, which sends the row's file with the same cache header.
 	handle /gorsel/* {
 		root * /srv
-		header Cache-Control "public, max-age=31536000, immutable"
-		file_server
+		@imageFile file
+		handle @imageFile {
+			header Cache-Control "public, max-age=31536000, immutable"
+			file_server
+		}
+		handle {
+			reverse_proxy app:8080 {
+				header_up X-Request-Id {http.request.uuid}
+			}
+		}
 	}
 
 	# The panel's export paths: the file is made while the request waits, so the proxy waits 150 seconds for the response header - above the

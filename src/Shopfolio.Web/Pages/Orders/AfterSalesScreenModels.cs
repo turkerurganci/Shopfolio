@@ -66,12 +66,39 @@ public abstract class AfterSalesScreenModel : PageModel
         PageHandlerExecutedContext executed = await next();
         if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
         {
-            if (await ReloadAsync(HttpContext.RequestAborted) is IActionResult refusal)
+            // A sent item that is not the order's is the one 404 before the field's 422 (07 2.3.3; K-1624 (3); D-1401) - the handler's own order, kept on the filter's path.
+            if (await ForeignItemSentAsync(context.HandlerArguments, HttpContext.RequestAborted))
+            {
+                executed.Result = AccessDenial.NotFound();
+            }
+            else if (await ReloadAsync(HttpContext.RequestAborted) is IActionResult refusal)
             {
                 executed.Result = refusal;
             }
         }
     }
+
+    /// <summary>
+    /// Whether the form the validation filter answered names an item that is not the root's order's (07 2.3.3; D-1401): the bound handler argument's item ids against the order's items. False when
+    /// the root does not hold (the reload answers it) or the form names no item.
+    /// </summary>
+    private async Task<bool> ForeignItemSentAsync(IDictionary<string, object?> arguments, CancellationToken ct)
+    {
+        Guid[] sent = [.. SentItemIds(arguments)];
+        if (sent.Length == 0 || await FindOrderAsync(ct) is not (Guid orderId, _))
+        {
+            return false;
+        }
+
+        IReadOnlyCollection<Guid> own = await OrderItemIdsAsync(orderId, ct);
+        return sent.Any(id => !own.Contains(id));
+    }
+
+    /// <summary>The item ids the bound form names (07 2.3.3: each is the order's, or the request is 404); empty when the form names none.</summary>
+    protected abstract IEnumerable<Guid> SentItemIds(IDictionary<string, object?> arguments);
+
+    /// <summary>The ids of the order's items, as the screen's handler reads them for its own 404.</summary>
+    protected abstract Task<IReadOnlyCollection<Guid>> OrderItemIdsAsync(Guid orderId, CancellationToken ct);
 
     /// <summary>The screen of the order as it opens now; a refusal (404, or 303 with the reason) when the root does not hold or the operation is not open.</summary>
     protected async Task<IActionResult?> ReloadAsync(CancellationToken ct)
@@ -180,7 +207,7 @@ public sealed record WithdrawalRowView(
 /// K-789); the confirmed POST re-reads the open units inside the transaction and refuses the whole request when they differ from the ones shown before the module writes the
 /// declarations - each with its date stamp, units and the return address of the moment (06 4.25).
 /// </summary>
-public abstract class WithdrawalPageModel : AfterSalesScreenModel
+public abstract class WithdrawalPageModel : AfterSalesScreenModel, IOutcomeTarget
 {
     /// <summary>The 422 message when no item is chosen (04 5.18.12; 7.1.9.1).</summary>
     public const string NoItemText = "Cayacağınız en az bir ürünü seçin.";
@@ -225,7 +252,10 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
     public IReadOnlyList<string> RefundTexts { get; private set; } = [];
 
     /// <summary>The IBAN field of the transfer line when the order has no IBAN on file (04 5.18.6, 2.12.3); null otherwise.</summary>
-    public IbanFieldView? IbanField { get; private set; }
+    /// <remarks>The field's 422 message is bound when the page is drawn, after the validation filter turned the handler's code into the catalog text (D-1702).</remarks>
+    public IbanFieldView? IbanField => _ibanField is null ? null : _ibanField with { Field = Fields.Bind(_ibanField.Field, FormErrorSummary.From(ModelState)) };
+
+    private IbanFieldView? _ibanField;
 
     /// <summary>The last step of the script-free path (07 2.2.4); null on the first view.</summary>
     public ConfirmView? Confirm { get; private set; }
@@ -246,8 +276,12 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct) => await ReloadAsync(ct) ?? Page();
 
+    /// <summary>The screen of an uncertain declaration (07 6.4.2: UC-43 to the root; 09 8.1 item 4; D-137): the order page shows what happened.</summary>
+    public string OutcomeScreen() => RootPath;
+
     /// <summary>UC-43 (07 4.18.2).</summary>
     [GatedOperation]
+    [OutcomeUncertain("UC-43")]
     public async Task<IActionResult> OnPostSubmitWithdrawalAsync(SubmitWithdrawalInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -329,9 +363,10 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
         if (!input.Confirmed)
         {
             ChosenItems = [.. lines.Select(l => (Rows.First(r => r.OrderItemId == l.ItemId).Name, l.Quantity))];
-            bool fromArrival = lines.Any(l => Rows.First(r => r.OrderItemId == l.ItemId).RefundFromGoodsArrival);
+            // A mixed choice names each start with its units (K-1622; D-1439): the refund of a unit runs from the goods' arrival or from the declaration, as its row says.
+            int fromArrival = lines.Where(l => Rows.First(r => r.OrderItemId == l.ItemId).RefundFromGoodsArrival).Sum(l => l.Quantity);
             RefundsShippingFee = _operations.WithdrawalRefundsShippingFee(_screens, lines.ToDictionary(l => l.ItemId, l => l.Quantity));
-            string sentence = OrderScreenTexts.WithdrawalSentence(lines.Sum(l => l.Quantity), _paymentMethod, fromArrival, _refundPeriodDays);
+            string sentence = OrderScreenTexts.WithdrawalSentence(lines.Sum(l => l.Quantity) - fromArrival, fromArrival, _paymentMethod, _refundPeriodDays);
             List<KeyValuePair<string, string>> fields = [.. Sent.Where(f => f.Key != nameof(SubmitWithdrawalInput.Confirmed))];
             fields.Add(new(nameof(SubmitWithdrawalInput.Confirmed), "true"));
             Confirm = Confirmations.ForCustomer(OrderScreenTexts.WithdrawalName, sentence, OrderScreenTexts.WithdrawalConfirmLabel, ScreenPath, Handler, RootPath, fields);
@@ -357,7 +392,7 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
                     }
                 }
 
-                foreach ((Guid itemId, int quantity, int _) in lines)
+                foreach ((Guid itemId, int quantity, int _) in InWriteOrder(lines, l => l.ItemId))
                 {
                     WithdrawalResult result = await _transitions.DeclareWithdrawalAsync(new DeclareWithdrawalRequest(orderId, itemId, quantity, true, iban), stepCt);
                     if (result.IsRejected)
@@ -370,6 +405,19 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
             },
             ct);
     }
+
+    /// <summary>
+    /// The order the declarations of one request are written in (K-1107 (1), 06 4.33; D-1440): each record takes its own moment and the shipping fee's trigger is met by the one
+    /// written last, so the lines go in descending uuid order - the record of the smallest item id is the last and carries the fee, as the customer's cancellation writes its lines.
+    /// </summary>
+    internal static IEnumerable<T> InWriteOrder<T>(IEnumerable<T> lines, Func<T, Guid> itemOf) =>
+        lines.OrderByDescending(l => itemOf(l).ToString("N"), StringComparer.Ordinal);
+
+    protected override IEnumerable<Guid> SentItemIds(IDictionary<string, object?> arguments) =>
+        arguments.Values.OfType<SubmitWithdrawalInput>().SelectMany(i => i.Items).Select(r => r.OrderItemId).OfType<Guid>();
+
+    protected override async Task<IReadOnlyCollection<Guid>> OrderItemIdsAsync(Guid orderId, CancellationToken ct) =>
+        (await _page.ReadAsync(orderId, ct))?.Items.Select(i => i.OrderItemId).ToHashSet() ?? [];
 
     protected override async Task<IActionResult?> LoadScreenAsync(Guid orderId, CancellationToken ct)
     {
@@ -416,14 +464,9 @@ public abstract class WithdrawalPageModel : AfterSalesScreenModel
             }
         }
 
-        IbanField = _asksIban
+        _ibanField = _asksIban
             ? IbanFields.Create(IbanFieldPlace.Declaration, first.PaymentMethod, IbanOpening.Standard, nameof(SubmitWithdrawalInput.Iban), SentValue(nameof(SubmitWithdrawalInput.Iban)))
             : null;
-        if (IbanField is not null)
-        {
-            IbanField = IbanField with { Field = Fields.Bind(IbanField.Field, FormErrorSummary.From(ModelState)) };
-        }
-
         return null;
     }
 }
@@ -644,6 +687,17 @@ public abstract class DefectClaimPageModel : AfterSalesScreenModel
             async stepCt => DecisionOf((await _transitions.ReopenDefectClaimAsync(ReopenDefectClaimRequest.ByCustomer(orderId, itemId, quantity), stepCt)).Refusal),
             ct);
     }
+
+    protected override IEnumerable<Guid> SentItemIds(IDictionary<string, object?> arguments) =>
+        arguments.Values.Select(a => a switch
+        {
+            SubmitDefectClaimInput submit => submit.OrderItemId,
+            ReopenDefectClaimInput reopen => reopen.OrderItemId,
+            _ => null,
+        }).OfType<Guid>();
+
+    protected override async Task<IReadOnlyCollection<Guid>> OrderItemIdsAsync(Guid orderId, CancellationToken ct) =>
+        (await _page.ReadAsync(orderId, ct))?.Items.Select(i => i.OrderItemId).ToHashSet() ?? [];
 
     protected override async Task<IActionResult?> LoadScreenAsync(Guid orderId, CancellationToken ct)
     {

@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
@@ -11,13 +13,75 @@ namespace Shopfolio.Modules.Ordering;
 /// </summary>
 internal static class FirmRefundAmounts
 {
-    /// <summary>The amount and the fee flag of the record's refund now.</summary>
+    /// <summary>
+    /// The amount and the fee flag of the record's refund now. A defect claim's goods receipt (K-1629 (3)) pays the rescission's 02 7.1.7 amount of its units, at most what the item's refunds
+    /// left (D-893: <see cref="ItemRefundLeftAsync"/> without the receipt's own owed amount), and carries no shipping fee - the amount the rescission writer pays.
+    /// </summary>
     public static async Task<(decimal Amount, bool IsShippingFeeIncluded)> OfAsync(
+        AppDbContext db, IAfterSalesModule afterSales, IPaymentModule payment, Order order, OwedRefundRecord record, IReadOnlyList<PanelRefundFacts> refunds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(db);
+        ArgumentNullException.ThrowIfNull(record);
+        if (record.Type == RefundType.DefectClaimRescission)
+        {
+            OrderItem item = await db.OrderItems.AsNoTracking().SingleAsync(i => i.Id == record.OrderItemId, ct);
+            decimal gross = (await RescissionAsync(afterSales, order, item, record.Quantity, ct)).Amount;
+            return (Math.Min(gross, await ItemRefundLeftAsync(db, afterSales, payment, order, item, record.CauseId, ct)), false);
+        }
+
+        return await UncappedAsync(db, afterSales, order, record, refunds, ct);
+    }
+
+    /// <summary>
+    /// What the item's refunds may still pay back (D-893; 12 P5.5): the item's paid amount - its frozen unit price times its units less its coupon share (02 7.1.7) - less its refunds that are
+    /// not voided, started or sent, and less the refunds its records owe but have not born yet (D-906), each without the shipping fee it carries. <paramref name="exceptCause"/> is the owed record
+    /// being paid, whose own amount is not deducted. Never below zero. The one home of the cap: the rescission writer and the order screen's line read it.
+    /// </summary>
+    public static async Task<decimal> ItemRefundLeftAsync(
+        AppDbContext db, IAfterSalesModule afterSales, IPaymentModule payment, Order order, OrderItem item, Guid? exceptCause, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(afterSales);
+        ArgumentNullException.ThrowIfNull(payment);
+        ArgumentNullException.ThrowIfNull(order);
+        ArgumentNullException.ThrowIfNull(item);
+        decimal paid = ((item.DiscountedUnitPrice ?? item.UnitPrice) * item.Quantity) - item.CouponShare;
+        decimal committed = await payment.CommittedItemRefundTotalAsync(item.Id, order.ShippingFee, ct);
+        List<OwedRefundRecord> owed = [.. (await afterSales.ListOwedRefundRecordsAsync([item.Id], ct)).Where(r => exceptCause is not { } except || r.CauseId != except)];
+        decimal owedTotal = 0m;
+        if (owed.Count > 0)
+        {
+            IReadOnlyList<PanelRefundFacts> refunds = await payment.ListPanelRefundsAsync(order.Id, ct);
+            foreach (OwedRefundRecord record in owed)
+            {
+                // The other owed records count at their own amount before any cap: a cap that read the others' caps would read itself.
+                (decimal amount, bool fee) = await UncappedAsync(db, afterSales, order, record, refunds, ct);
+                owedTotal += amount - (fee ? order.ShippingFee : 0m);
+            }
+        }
+
+        return Math.Max(0m, paid - committed - owedTotal);
+    }
+
+    /// <summary>The rescission's split of <paramref name="quantity"/> units of the item now (02 7.1.7): the After-sales module's one split, from the item's frozen values.</summary>
+    public static Task<RefundAmount> RescissionAsync(IAfterSalesModule afterSales, Order order, OrderItem item, int quantity, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(afterSales);
+        ArgumentNullException.ThrowIfNull(item);
+        ItemFrozenAmounts frozen = new(item.DiscountedUnitPrice ?? item.UnitPrice, item.CouponShare, item.VatAmount);
+        return afterSales.DefectClaimRescissionAmountAsync(new DefectClaimRescissionEntry(OrderTransitions.Subject(order, item), quantity, frozen), ct);
+    }
+
+    private static async Task<(decimal Amount, bool IsShippingFeeIncluded)> UncappedAsync(
         AppDbContext db, IAfterSalesModule afterSales, Order order, OwedRefundRecord record, IReadOnlyList<PanelRefundFacts> refunds, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(order);
-        ArgumentNullException.ThrowIfNull(record);
         ArgumentNullException.ThrowIfNull(refunds);
+        if (record.Type == RefundType.DefectClaimRescission)
+        {
+            OrderItem item = await db.OrderItems.AsNoTracking().SingleAsync(i => i.Id == record.OrderItemId, ct);
+            return ((await RescissionAsync(afterSales, order, item, record.Quantity, ct)).Amount, false);
+        }
+
         RefundSubject subject = new(record.Type, record.RecordId, record.ReturnId);
         RefundAmount gross = await afterSales.RefundAmountAsync(subject, ct)
             ?? throw new InvalidOperationException("The owed record is read from the same context.");

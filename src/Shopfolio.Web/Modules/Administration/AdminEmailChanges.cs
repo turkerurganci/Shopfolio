@@ -275,7 +275,7 @@ internal sealed class AdminEmailChanges
         ReadOwnAccountAsync(adminId, sessionId, operation, reauthenticationValue, dropsUnheld: true, ct);
 
     /// <summary>The same read with the permission left as it was: the forgery refusal's page (D-1843; 07 2.5.4) - a refused request writes nothing.</summary>
-    public Task<AdminOwnAccount?> ReadOwnAccountKeepingPermissionAsync(Guid adminId, Guid sessionId, ReauthenticationOperation? operation, string? reauthenticationValue, CancellationToken ct) =>
+    public Task<AdminOwnAccount?> ReadOwnAccountKeepingReauthenticationAsync(Guid adminId, Guid sessionId, ReauthenticationOperation? operation, string? reauthenticationValue, CancellationToken ct) =>
         ReadOwnAccountAsync(adminId, sessionId, operation, reauthenticationValue, dropsUnheld: false, ct);
 
     private async Task<AdminOwnAccount?> ReadOwnAccountAsync(Guid adminId, Guid sessionId, ReauthenticationOperation? operation, string? reauthenticationValue, bool dropsUnheld, CancellationToken ct)

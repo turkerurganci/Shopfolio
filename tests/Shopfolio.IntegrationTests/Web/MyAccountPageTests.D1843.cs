@@ -51,6 +51,32 @@ public sealed partial class MyAccountPageTests
     }
 
     [Fact]
+    public async Task TheForgeryRefusal_OfTheAccountPage_WhenTheAccountIsGone_IsTheGetsNotFound_D1843()
+    {
+        Guid adminId = await SeedAdminAsync();
+        (string key, _, _) = await SeedSessionAsync(adminId, null);
+
+        // The session stays while the account row goes (the foreign key checks are off for this one delete): the case between the sign-in check and the handler.
+        await using (Npgsql.NpgsqlConnection connection = new(_database.Dsn))
+        {
+            await connection.OpenAsync(Ct);
+            await using Npgsql.NpgsqlCommand delete = new("SET session_replication_role = replica; DELETE FROM admins WHERE id = @id", connection);
+            delete.Parameters.AddWithValue("id", adminId);
+            Assert.Equal(1, await delete.ExecuteNonQueryAsync(Ct));
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (HttpStatusCode status, string html) = await ForgedPosts.SendAsync(client, $"{AccountPath}?handler=ChangeName", [("Input.Name", "Yeni Ad")], AdminCookie(key));
+        (HttpStatusCode get, _) = await GetAsync(client, AccountPath, key);
+
+        Assert.Equal(HttpStatusCode.NotFound, get);
+        Assert.Equal(HttpStatusCode.NotFound, status);
+        Assert.DoesNotContain("id=\"change-name-form\"", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task TheForgeryRefusal_OfTheReauthentication_ShowsTheSentOperationsForm_AndKeepsTheEarlierPermission_D1843()
     {
         Guid adminId = await SeedAdminAsync();

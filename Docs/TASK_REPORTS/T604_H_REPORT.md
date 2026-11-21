@@ -97,7 +97,7 @@ Başlangıç: working tree temiz; `core.hooksPath` = `scripts/git-hooks`; ana da
 | D-1412 / D-1833 | `AfterSalesScreenTests.SeveralFieldedItems_…_D1412_D1833` (3, 2, 1 adetli üç kalem: seçim yokken liste altında; gönderilen alanlı kalemin satırında, adet ve seçimle; alansız kalem gönderilince liste altında; tek `Quantity`). `DefectClaimFieldTests` (tarayıcı; `BrowserSeed.NewOrderWithItemsAsync`): betikli yolda seçim alanı satıra taşır, alansız kalemde geri getirir; betiksiz yolda yerinde kalır, ret sayfasında sunucu seçilen satıra çizer | `QuantityFieldRow` seçimi yok sayınca Integration + betiksiz kırmızı; betikte `place(...)` kesilince betikli kırmızı | 1/1 + chromium 2/2 (betikli, betiksiz); firefox/webkit CI E2E |
 | D-1812 (D-1550'nin payı) | `OrderDetail.StepForms.cs` (`RefusalIsShipmentField`, `RefusalIsDeliveryField`, `StepSummaryFor`, `StepMessageFor`, `StepMessageId`); `_OrderShipmentFields`/`_OrderDeliveryFields` özet + `aria-invalid` + `aria-describedby` + alan altı mesaj; kural sınırı yerinde, özetsiz; form çizildiğinde adım başındaki mesaj yinelenmez (`ShowsRefusalAtStep`); sıra sorusu yerinde. `OrderDetailPageTests.TheShipmentAndDeliveryMarkForms_…_D1812` (kargoya verme, yeniden kargoya verme, boş ve ileri teslim tarihi) | iki parçada `refused = false` → kırmızı | 1/1; `OrderDetailPageTests` 99/99 |
 | D-1844 + K1 (D-1859) | `Categories.cshtml` model durumunun eylem düzeyi mesajlarını sayfa başında yerinde çizer (`categories-action-message`); `CategoriesPageTests …_D1773` mesajı bir kez ve kimliğiyle sınar | döngü boş diziye çevrilince kırmızı | 1/1 |
-| D-1843 | hedef T604'e döndü, gerekçe düzeltildi; 23 sayfanın sayfa başına güvenli okuması sonraki dilimde (süre) | — | — |
+| D-1843 | hedef T604'e döndü, gerekçe düzeltildi; 23 sayfanın sayfa başına güvenli okuması iki işçide bitti, bkz. "Düzeltme 1 — D-1843 (S)" ve "(P)" ile "Düzeltme 1 — kapanış" | — | — |
 | UH5 gerekçesi | rapordaki kalem tablosu, gerekçe paragrafı ve ⚠ satırı; D-1812, D-1843, D-1844, D-1773 (T604-U) backlog satırları | — | — |
 
 Var olan testler değişmeden geçti: `OrderDetailPageTests` (ship/teslim mesaj metni testleri dahil), `AfterSalesScreenTests`, `CategoriesPageTests`, `PageFormPatternTests`, `FormSecurityTests`, `OneTimeValueTests`, `ForgeryProtectionTests`, `MessageComponentTests`, `ComponentMarkupTests`.
@@ -169,7 +169,7 @@ Bölüşüm: yönetici; bu dilim `WaitingPages`'in Panel satırındaki 13 sayfay
 | Panel/RequestDetail | yoldaki talep; sorgudaki kısa ömürlü bildirim okunmaz; yabancı anahtar 404 (önceden 500) | ✓ (M1, M2, M3) | `RequestsPageTests.TheForgeryRefusal_…_D1843` |
 | Panel/Coupons | liste ilk sayfa + adresin kuponu, gönderilen değerler formda; yok olan kupon önceden 404 | ✓ (M1, M2) | `CouponsPageTests.TheForgeryRefusal_…_D1843` |
 | Panel/Members | formun taşıdığı e-postanın kaydı (422'nin okuması); silme yok | ✓ (M1, M2) | `MemberRecordPageTests.TheForgeryRefusal_…_D1843` |
-| Panel/MyAccount | hesap + gönderilen değerler; yeniden doğrulama değeri yalnız denetlenir; izin düşürülmez (`ReadOwnAccountKeepingPermissionAsync`, modülün yeni salt okur yolu) | ✓ (M1, M2, M4) | `MyAccountPageTests.TheForgeryRefusal_OfTheAccountPage_…_D1843` |
+| Panel/MyAccount | hesap + gönderilen değerler; yeniden doğrulama değeri yalnız denetlenir; izin düşürülmez (`ReadOwnAccountKeepingReauthenticationAsync`, modülün yeni salt okur yolu) | ✓ (M1, M2, M4) | `MyAccountPageTests.TheForgeryRefusal_OfTheAccountPage_…_D1843` |
 | Panel/Reauth | gönderilen işlemin formu; GET'in izin düşürmesi (yazma) yapılmaz | ✓ (M1, M2) | `MyAccountPageTests.TheForgeryRefusal_OfTheReauthentication_…_D1843` |
 | Panel/SignIn | gönderilen adres, yalnız yerel dönüş yolu; davetin sorgu değeri okunmaz; oturum açılmaz | ✓ (M1, M2) | `PanelAccessPagesTests.TheForgeryRefusal_OfTheSignIn_…_D1843` |
 | Panel/Reset | istek adımında gönderilen adres, ayar adımında bağlantı yalnız okunur (tüketim yok) | ✓ (M1, M2) | `PanelAccessPagesTests.TheForgeryRefusal_OfTheResetAndTheInvitation_…_D1843` |
@@ -207,6 +207,49 @@ Envanter: birleştirmeden sonra `WaitingPages` boş (S ve P birlikte 23 sayfa); 
 - Kanca bağlamı: sayfanın kendi filtresi işleyici bağlamını saklar, kanca onu okur (S dilimi aynı işi kendi sarmalayıcısıyla yaptı; iki yol envanterde ayrı sayılır).
 - Reset ayar adımı ret yolunda 422'nin `LoadStepAsync`'ini kullanır; "tamamlandı" sonuç kodunu sorgudan okur ama yalnız kullanılmış bağlantının ifadesini seçer, yazmaz (S'nin PasswordReset ⚠'ıyla aynı).
 - Kupon formu sahtecilik ve bayat sürüm birlikteyken çakışma görünümüyle çizilir (sürüm denetimi filtreden önce; yazma yok). Hesap sayfasının "hesap yok" 404 yolu testsiz (oturumlu hesabın silinmesi gerekir).
+
+### Düzeltme 1 — kapanış (2026-11-21): D-1843 kaydı, tutarlılık notu, testsiz yol ve bütün öz denetim
+
+İş: D-1843 (S) ve (P) iki işçide bitti; `ForgeryRefusalReadInventoryTests.WaitingPages` boş (`private static readonly string[] WaitingPages = [];`), üç testi yeşil. Kapanış işçisi kodu yalnız iki yerde değiştirdi: (a) testsiz yol: `MyAccountPageTests.TheForgeryRefusal_OfTheAccountPage_WhenTheAccountIsGone_IsTheGetsNotFound_D1843` (oturum duruyor, hesap satırı yabancı anahtar denetimi kapalıyken silinir; sahtecilik 400'ü ve GET ikisi de 404; `MyAccount.cshtml.cs` 404 dönüşümü kaldırılınca 400 döndü, kırmızı; geri alınca yeşil); (b) `ReadOwnAccountKeepingPermissionAsync` adı `ReadOwnAccountKeepingReauthenticationAsync` oldu — `AdminAccountRulesScanTests` (Administration modülünde rol/izin sözcüğü yasağı, 02 10.2.3) adı yakalıyordu: Unit TAM'da tek kırmızıydı (P dilimi bu testi birleştirmeden sonra koşmamış), ad değişince 8325/8325. Davranış aynı.
+
+**Tutarlılık notu (iki kurulum yolu).** S işçisi sayfaların çoğunda sayfanın kendi sarmalayıcısını (422 yolunun okumasını 400'e de bağlayan işleyici sarmalayıcısı) kurdu, yalnız Verification ve EmailRevert kancayı kullandı; P işçisi 13 panel sayfasında ortak kancayı (sayfanın filtresi işleyici bağlamını saklar, kanca 422 okumasını çağırır) kullandı. İkisi aynı kuralı uygular: ret yolu yazmaz, tek kullanımlık değer tüketilmez, izin düşürülmez, sorgu değeri okunmaz, kayıt yoksa GET'in 404'ü, eylem mesajı sayfanın başında (ürün sayfasında düğmenin yanında). Envanter testi iki yolu ayrı sayar: kanca listesi 18 sayfa (`HasHook`), `OwnReadPages` istisnası sarmalayıcılı sayfalar; biri öteki yolun yerine geçmez. Ayrım bilerek bırakıldı (her sayfanın okuması farklı: sorgu, tek kullanımlık değer, oturum izni); tek yola indirme istenirse ayrı iyileştirme (D-1864 `OwnReadPages` sertleştirmesiyle birlikte).
+
+**⚠ (kolay kararlar, sahip yerine):**
+- Reset (hem vitrin PasswordReset hem Panel/Reset) ayar adımı ret yolunda 422'nin `LoadStepAsync`'ini kullanır; bu yöntem "tamamlandı" sonuç kodunu sorgudan okur. Yalnız kullanılmış bağlantının ifadesini seçer, yazmaz; 422 ile aynı davranış korundu (sorgu değeri "okunmaz" kuralının tek bilinçli istisnası).
+- Kupon formu sahtecilik ve bayat sürüm birlikteyken çakışma görünümüyle çizilir (sürüm denetimi filtreden önce; yazma yok). Kuralla çelişmez: iki ret birlikte olunca kullanıcıya daha eyleme dönük olan gösterilir; ayrı test yazılmadı (iki hata birlikte yalnız elle üretilebilir; kod yolu P'nin `…_D1843` testi ve bayat sürüm testlerinin kesişimi).
+- Hesabım "hesap yok" 404 yolu testsizdi; bu kapanışta test yazıldı (yukarıda).
+- D-1864 (`OwnReadPages` istisnası yalnız `OnPageHandlerExecutionAsync` bildirimine bakar, DÜŞÜK, test aracı) ve D-1832 (panel ana sayfası IBAN okuması) hedefi faz kapısı kalır: ikisi de ürün davranışını değiştirmez/performans notudur ve T604 kabul ölçüsünde değil; ürün kodu isteyen T604 kalemi değiller.
+
+#### Öz denetim — UH1–UH5, UH son ve düzeltme 1 (bütün kalemler) ile KK1–KK5
+
+| Madde | Durum | Kanıt |
+|---|---|---|
+| KK1 UH1: D-138, D-1022, D-1134, D-1143, D-1146, D-1173, D-1174, D-1216, D-1387, D-1550, D-1788 kapalı; D-1135 daraldı | ✓ | "UH1–UH5 — bütün kalemler" tablosu; D-1135 satırı hedef `T601 (F6)` + gerekçe (`DEFERRED_BACKLOG.md` 643); D-1022 `SesEmailGatewayTests`, D-1173 `MessageStateModelTests…D1173`, D-1216 `NotFoundAnswerTests…D1216`, D-1387 `FieldMessageCatalogTests…D1387` |
+| KK1 UH2: D-283, D-1189, D-1243, D-1245, D-1275, D-1276, D-1398, D-1400, D-1631, D-1673, D-1703, D-1705 | ✓ | aynı tablo; UH2 bölümü "Kabul ve öz denetim"; D-1243 tarayıcı gözlemi ileri atıldı → D-1821 (T601, yeni ID kayıtlı) |
+| KK1 UH3: D-442, D-880, D-1330, D-1332, D-1334, D-1365, D-1386, D-1412, D-1464, D-1604, D-1701 | ✓ | tablo; D-1412 `AfterSalesScreenTests.SeveralFieldedItems_…_D1412_D1833` + `Browser/DefectClaimFieldTests` (chromium iki yol) |
+| KK1 UH4: D-1329, D-1778, D-1790, D-1806, D-1773 | ✓ | tablo; D-1773 `✅` + `ForgeryRefusalReadInventoryTests`; kalan 23 sayfa D-1843'te kapandı (aşağıda) |
+| KK1 UH5: D-1599, D-1845, D-1815 | ✓ | `OrderCorrectionTests …_D1599_VALA238`, `CustomerOperationsTests …_D1845`; D-1815 `TitleMeasure.KnownWithoutBrand` kalktı |
+| KK1 UH son: D-1770 | ✓ | `test-pre-commit.sh` 263/0, `run-script-tests.sh` geçti |
+| KK1 düzeltme 1: D-1412, D-1833, D-1812, D-1550 (tam), D-1844, D-1859 (K1) | ✓ | `AfterSalesScreenTests…_D1412_D1833`; `OrderDetailPageTests.TheShipmentAndDeliveryMarkForms_…_D1812`; `CategoriesPageTests …_D1773` (`categories-action-message`) |
+| KK1 düzeltme 1: D-1843 — 23 sayfa | ✓ | `ForgeryRefusalReadInventoryTests` `WaitingPages = []`; S: 10 sayfa, P: 13 sayfa tabloları ve `…_D1843` testleri; `MyAccountPageTests…WhenTheAccountIsGone_…_D1843` |
+| KK1 tarama: `grep -nE "T604" Docs/DEFERRED_BACKLOG.md Docs/DEFERRED_BACKLOG.d/*.md` | ✓ | ⚪ kalan satırlar yalnız ileri atılanlar: D-1135, D-1811, D-1813, D-1814, D-1819, D-1820, D-1821 → T601 (tarayıcı gözlemi / dağıtım provası); D-1769 → sahip; D-1789, D-1803, D-1840, D-1841, D-1851, D-1864 → F6 gate; D-1832 → faz kapısı. UH'ye düşüp ⚪ kalan satır yok; hedefler geçerli, hiçbiri ürün kodu isteyen T604 kalemi değil |
+| KK2 para ve güvenlik: D-1599, D-1806, D-1845 ayrı başlık, kırmızı–yeşil | ✓ | "Para ve güvenlik kalemleri" (UH4, UH5); D-1843 güvenlik payı (tek kullanımlık değer tüketilmez, izin düşürülmez): S ve P kırmızı–yeşil tabloları, M4 (izin) ve `UsedAt` boş / `ReauthenticationTokenHash` duruyor denetimleri |
+| KK3 tarayıcı kalemleri | ✓ | `NarrowClassTests`, `ScreenInventoryTests`, `TitleMeasure*`, `DefectClaimFieldTests` chromium iki yol; firefox/webkit CI E2E |
+| KK4 belge | ✓ | `04` v0.61, `07` v0.51, `12` VAL-A238/VAL-A024 (UH5); düzeltme 1'de belge değişmedi |
+| KK5 backlog: kapanan `✅ Çözüldü → T604`, daraltılanın hedefi + gerekçe, sayaç | ✓ | D-1843 (T604-H.md) ve D-1773 (T604-U.md) `✅` + kanıt; "Aktif kalem" sayacına ve STATUS tablo satırına dokunulmadı; yeni kalem D-1864 (S dilimi) kayıtlı |
+| Sık FAIL (1) bekçi/tarama istisnası geniş | ✓ | yeni tarama istisnası yok; `ForgeryRefusalReadInventoryTests` kapalı liste yalnız kısalır, şimdi boş; `OwnReadPages` dar (D-1864 sınırı kayıtlı) |
+| Sık FAIL (2) kaynak taraması bir çağrı biçimini kaçırıyor | ✓ | kapalı liste iki yolu (kanca, sarmalayıcı) birlikte sayar; her sayfanın 400 davranışını sayfa başına Integration testi kanıtlar |
+| Sık FAIL (3) 06 Varsayılan / FK | — | göç ve varlık değişmedi |
+| Sık FAIL (4) aynı sayıyı anan yerler | ✓ | kanca listesi 18, `NavigationInventory` 3.7.5, D-1773/D-1843/D-1844 satırları ve rapor tabloları aynı olguyla hizalı; eski "kalan 23 sayfa" ifadeleri kapandı notuyla güncel |
+| Sık FAIL (5) belge kuralını değiştiren yeni 09 metni | ✓ | 09 değişmedi; karar kaydı gerekmedi |
+| Branch izolasyonu | ✓ | commit konuları T604 |
+
+| Kapanış koşusu | Sonuç |
+|---|---|
+| Unit TAM | ✓ 8325/8325 (isim değişikliğinden sonra; ilk koşuda `AdminAccountRulesScanTests` kırmızı, düzeltildi) |
+| Integration (23 sayfanın sınıfları, TAM: CI) | ✓ 361/361 (EmailRevertPageTests, RegistrationPageTests, CustomerPasswordResetAndReauthenticationPageTests, AccountAddressAndOrderHistoryPageTests, AccountProfilePageTests, CustomerSignInPageTests, ContactPageTests, StorefrontSearchAndProductTests, PanelAccessPagesTests, PanelHomeAndVerificationPagesTests, CouponsPageTests, MemberRecordPageTests, RequestsPageTests, ForgeryProtectionTests) · ✓ 224/224 (OrderDetailPageTests, ProductFormPageTests, ContentPanelPageTests, CategoriesPageTests, AdminAccountsPageTests, MyAccountPageTests — yeni test dahil) |
+| Yeni test kırmızı–yeşil | ✓ 404 dönüşümü kaldırılınca 400 (kırmızı); geri alınınca yeşil |
+| `dotnet format` (değişen `.cs`) | ✓ değişiklik yok |
 
 ## Altyapı Değişiklikleri
 
@@ -435,7 +478,7 @@ Envanter: birleştirmeden sonra `WaitingPages` boş (S ve P birlikte 23 sayfa); 
 | UH5 | D-1845 | ✅ kapandı | T604 (U, UH dalı) | `DEFERRED_BACKLOG.d/T604-H.md` |
 | UH5 | D-1815 | ✅ kapandı | T604 (A sonrası) | `DEFERRED_BACKLOG.d/T604-H.md` |
 | UH5 | D-1812 | ✅ kapandı (düzeltme 1) | T604 | `DEFERRED_BACKLOG.d/T604-H.md` |
-| UH5 | D-1843 | ↘ açık; hedef T604 (düzeltme 1: T601 geri alındı) | T604 | `DEFERRED_BACKLOG.d/T604-H.md` |
+| UH5 | D-1843 | ✅ çözüldü (düzeltme 1 (S) ve (P); 23 sayfa, `WaitingPages` boş) | T604 | `DEFERRED_BACKLOG.d/T604-H.md` |
 | UH5 | D-1844 | ✅ çözüldü (düzeltme 1) | T604 | `DEFERRED_BACKLOG.d/T604-H.md` |
 | UH5 | D-1770 | ✅ çözüldü (UH son) | T604 | `DEFERRED_BACKLOG.d/T604-A.md` |
 

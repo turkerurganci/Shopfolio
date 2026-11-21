@@ -105,7 +105,7 @@ internal sealed class MyAccountModel : PageModel, IReadsOnForgeryRefusal
 
     /// <summary>
     /// D-1843 (07 2.5.4; 04 2.7.3.1): the forgery check's 400 shows the account and the sent entries - the read the 422 makes, with the sent operation and single-use value only checked: the
-    /// value is not used and the permission is not dropped (<see cref="IAdministrationModule.ReadOwnAccountKeepingPermissionAsync"/>) - the refusal writes nothing, as the storefront's account
+    /// value is not used and the permission is not dropped (<see cref="IAdministrationModule.ReadOwnAccountKeepingReauthenticationAsync"/>) - the refusal writes nothing, as the storefront's account
     /// page (D-1843 S). No query value.
     /// </summary>
     async Task IReadsOnForgeryRefusal.ReadAfterForgeryRefusalAsync(CancellationToken ct)
@@ -328,7 +328,7 @@ internal sealed class MyAccountModel : PageModel, IReadsOnForgeryRefusal
 
         OwnAccountRead read = await _transactions.RunAsync(
             async cancel => new OwnAccountRead(keepsPermission
-                ? await _administration.ReadOwnAccountKeepingPermissionAsync(adminId, sessionId, operation, held, cancel)
+                ? await _administration.ReadOwnAccountKeepingReauthenticationAsync(adminId, sessionId, operation, held, cancel)
                 : await _administration.ReadOwnAccountAsync(adminId, sessionId, operation, held, cancel)),
             ct);
         if (read.Account is null)

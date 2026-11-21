@@ -283,7 +283,7 @@ Kırmızı koşusunun özeti: 16 Integration testinden 15'i kırmızı (16.'sı 
 | Madde | Durum | Kanıt |
 |---|---|---|
 | KK1 — UE3'ün 11 kalemi kapalı ya da gerekçeli | ✓ | 10 ✅ (her biri kalemin "Yapılacak" cümlesiyle denetlendi, aşağıda); D-1374 gerekçeyle UE4'e, hedef T604 — satırında not, K-1627 (5) |
-| KK2 — para ve güvenlik kalemleri ayrı başlıkta; kırmızı–yeşil; eski testler aynı | ✓ | "Para ve güvenlik kalemleri (KK2)"; tek değişen eski test spec gereği, tabloda; D-1375 kırmızısı kurulamaz ⚠ |
+| KK2 — para ve güvenlik kalemleri ayrı başlıkta; kırmızı–yeşil; eski testler aynı | ✓ (tur 1 düzeltmesiyle) | "Para ve güvenlik kalemleri (KK2)"; tek değişen eski test spec gereği, tabloda; D-1375 kırmızısı kurulamaz ⚠. **Düzeltme (tur 1, Bulgu 2):** bu satır ilk yazıldığında "eski testler aynı" tutmuyordu — `OneTimeValueTests`'in iki KK3 testi bu dilimin D-1454 katmanıyla kırılıyordu (sınıf bu dilimde koşulmamıştı). Testler değişmedi; örnek form sayfası `[ReauthenticationFormPage]` ile işaretlendi (K-1636 (2)) ve iki test değişmeden yeşil ("UE düzeltme tur 1") |
 | KK3 — tarayıcı kalemleri | — | A parçası; UE3'te yok |
 | KK4 — D-1678 | — | A parçası; UE3'te yok |
 | KK5 — kapanan satır `✅ Çözüldü → T604`; sayaç | ✓ | `DEFERRED_BACKLOG.md` 10 satır ✅, 1 satır not; yeni kalem parça dosyasında (D-1773); sayaca dokunulmadı (talimat) |
@@ -523,7 +523,7 @@ Kırmızı: kalemin `src` değişikliği geçici geri alındı ya da devre dış
 | Madde | Durum | Kanıt |
 |---|---|---|
 | KK1 — UE4'ün kalemleri kapalı ya da gerekçeli | ✓ | 5 ✅ (D-357, D-1136, D-1711, D-1539, D-1283); D-1319 (2), D-1599, D-1374 gerekçeyle UE5, hedef T604 — satırlarında, K-1631 (3), (5), (6) |
-| KK2 — para ve güvenlik kalemleri ayrı başlıkta; kırmızı–yeşil; eski testler aynı | ✓ | yukarıdaki tablo; tek değişen eski yardımcı kaldırılan API'den |
+| KK2 — para ve güvenlik kalemleri ayrı başlıkta; kırmızı–yeşil; eski testler aynı | ✓ (tur 1 düzeltmesiyle) | yukarıdaki tablo; tek değişen eski yardımcı kaldırılan API'den. **Düzeltme (tur 1, Bulgu 1):** bu satır ilk yazıldığında "eski testler aynı" tutmuyordu — `PageFormPatternTests.EveryMappedEndpoint_StartsWithAFirstSegmentOfTheClosedList` yeni `/gorsel/{id:guid}` ucuyla kırılıyordu (sınıf bu dilimde koşulmamıştı). Ürün kodu düzeldi (`AddressRules.ImageAddressTemplate`, dar istisna, K-1636 (1)); testin var olan denetimleri değişmedi, yalnız görsel kalıbının eşlendiğini sınayan bir `Assert.Contains` eklendi ("UE düzeltme tur 1") |
 | KK3 — tarayıcı kalemleri | ✓ (pay) | `ScreenInventoryTests` + `EmptyStateTests` chromium iki yolda 49/49; firefox/webkit **TAM: CI E2E** |
 | KK4 — D-1678 | — | A parçası |
 | KK5 — kapanan satır `✅ Çözüldü → T604`; sayaç | ✓ | 5 satır ✅, 3 satır gerekçeli not; yeni kalem yok; sayaca dokunulmadı (talimat) |
@@ -737,7 +737,7 @@ UE dilimleri (para ve güvenlik) bu dilimle kapandı. Tablo bütün UE kalemleri
 | Madde | Durum | Kanıt |
 |---|---|---|
 | KK1 — envanter; her kalem kapalı ya da gerekçeli | ✓ | yukarıdaki tablo: 45 ✅, 2 daraltıldı + 1 yeni, üçü yeni hedefli (UH dalı) ve gerekçeli |
-| KK2 — para ve güvenlik kalemleri ayrı başlıkta; kırmızı–yeşil; eski testler aynı | ✓ | her dilimin "Para ve güvenlik kalemleri (KK2)" tablosu; spec gereği değişen eski testler dilim tablolarında adıyla (UE3 `DeleteOwn_..._KK1`, UE2b bedel indirimi yazıcısı, UE4 `ContentRelationsTests` yardımcısı, UE5 iki `MemberRecordPageTests` testi); kırmızısı kurulamayan iki kalem gerekçeli (D-1375 erişilemez dal, D-1783 kod değişmedi) |
+| KK2 — para ve güvenlik kalemleri ayrı başlıkta; kırmızı–yeşil; eski testler aynı | ✓ (tur 1 düzeltmesiyle) | her dilimin "Para ve güvenlik kalemleri (KK2)" tablosu; spec gereği değişen eski testler dilim tablolarında adıyla (UE3 `DeleteOwn_..._KK1`, UE2b bedel indirimi yazıcısı, UE4 `ContentRelationsTests` yardımcısı, UE5 iki `MemberRecordPageTests` testi); kırmızısı kurulamayan iki kalem gerekçeli (D-1375 erişilemez dal, D-1783 kod değişmedi). **Düzeltme (tur 1):** doğrulama tur 1'de CI'da kırılan üç eski test (`OneTimeValueTests` iki KK3 testi, `PageFormPatternTests` uç kalıbı) spec gereği değişmedi; ürün/örnek kodu düzeldi, üçü değişmeden yeşil ("UE düzeltme tur 1") |
 | KK3 — tarayıcı kalemleri üç motorda | — (pay) | U parçasında tarayıcı kalemi yok; UE4'ün iki tarayıcı ayıklama satırı chromium iki yolda yeşil, firefox/webkit **TAM: CI E2E** |
 | KK4 — D-1678 | — | A parçası (PR #594) |
 | KK5 — backlog satırları ve sayaç | ✓ (pay) | kapanan her satır `✅ Çözüldü → T604`, daraltılan satır yeni hedef + gerekçe; yeni kalemler (D-1758, D-1759, D-1773, D-1783, D-1806) `DEFERRED_BACKLOG.d/T604-U.md`'de; sayaç parça dosyasından birleştirmede (talimat: sayaca dokunulmaz) |
@@ -756,3 +756,65 @@ UE dilimleri (para ve güvenlik) bu dilimle kapandı. Tablo bütün UE kalemleri
 - **Yerel sınama:** build `-warnaserror` 0 uyarı; Unit TAM 8098/8098 (Consistency ve Architecture dahil); betik testleri 4/4; `dotnet format` (dalın 149 `.cs` dosyası) değişiklik yok; Integration: yukarıdaki sınıflar + kırmızı–yeşil süzgeci. TAM: CI (kırmızı).
 - **Kalem envanteri (KK1):** UE1–UE4'ün 36 kalemi ve eklenenler (D-1374, D-1389, D-1283 (2), D-1758, D-1759, D-1617, D-1783, D-1319 (2), D-137, D-894) `✅ Çözüldü → T604`; D-1599 ve D-1773 UH dalına gerekçe ve yeni hedefle daraltıldı; D-1806 yeni, hedefi UH dalı. ✓
 - **Yapım raporu karşılaştırması:** KK2 satırındaki "eski testler aynı ✓" tutmuyor (Integration TAM CI'a bırakıldı, CI kırmızı). Öz denetim tablosu var.
+
+---
+
+## UE düzeltme tur 1 (2026-11-21)
+
+Doğrulama tur 1'in iki bulgusu ve iki notu (K1, K2) bu turda kapandı. Commit'ler: `4f42e03d` (Bulgu 1–2, kod + `07` + K-1636), `657f6710` (K1), bu bölümün kayıt commit'i (K2 + kayıtlar).
+
+### Bulgular ve notlar
+
+| # | Kapanış | Kanıt |
+|---|---|---|
+| Bulgu 1 — `/gorsel/{id:guid}` vitrin iç anahtar kuralına takılıyordu | Görsel ucunun kalıbı tek evde: `AddressRules.ImageAddressTemplate` (`ImageEndpoint.Pattern` onu kullanır); `AddressTemplates.Check` iç anahtar denetimini yalnız bu birebir metinde atlar (dar istisna). `07` 2.1.6 istisna cümlesi, `07` v0.49, `PRODUCT_DISCOVERY_STATUS` 07 satırı, karar K-1636 (1) | Unit `AddressRulesTests.Check_OnTheImageEndpointsTemplate_FindsNothing_D1136` + karşı örnek teorisi `Check_OnAnyOtherTemplateWithAKey_TheImageExceptionDoesNotReach_Reports_D1136` (9 satır: `/gorsel/{id}`, `{id:int}`, `{imageId:guid}`, ek bölüm, `{orderItemId:guid}`, `/indir`, `/sepet`, `/hesap/adresler`, `/hesap/gorsel`); Integration `PageFormPatternTests.EveryMappedEndpoint_StartsWithAFirstSegmentOfTheClosedList` değişmeden yeşil (yalnız görsel kalıbının eşlendiğini sınayan bir `Assert.Contains` eklendi) |
+| Bulgu 2 — D-1454 katmanı test örnek formunun POST'unda izni düşürüyordu | `ReauthenticationSampleModel` (`tests/.../Pages/FormSecuritySamples.cs`) `[ReauthenticationFormPage]` ile işaretlendi; ürün kümesi değişmedi (`ReauthenticationFormPageTests` iki yönlü eşitlik); `ReauthenticationPermissionFilter.cs` öznitelik açıklaması; K-1636 (2) | `OneTimeValueTests` iki KK3 testi değişmeden yeşil; yeni `OneTimeValueTests.TheTestHostPagesLeftToThePermissionsOwnRule_AreTheTokenPageAndTheSampleForm_AndNoOther_D1454` (test derlemesinin kümesi kapalı liste) |
+| K1 — D-1283 (1) payının kanıtı #594'te | `DEFERRED_BACKLOG.md` D-1283 satırında "(1) payının kanıtı PR #594'e bağlıdır; sıra #594 → #595" | satır metni |
+| K2 — D-610 iki aşamalı kırmızı–yeşil yeniden üretilmedi | Bu turda yeniden üretildi (aşağıdaki tablo) | aşağıda |
+
+### K2 — D-610 iki aşamalı kırmızı–yeşil (2026-11-21, `t604u-pg`, PostgreSQL 18 `track_commit_timestamp=on`)
+
+Bozma geçici `false &&` ile yapıldı; deneyden sonra `git checkout -- src`.
+
+| Aşama | `src` bozması | Koşulan testler | Sonuç |
+|---|---|---|---|
+| (a) karar yerinde, modül denetimi yok | `AfterSalesModule.OpenDefectClaimAsync`'in kanal (`AfterSalesPeriodRules.IsDefectClaimChannelOpen`) ve adet (`ItemQuantities.IsSelectable`) denetimleri; `ChangeDefectClaimStatusAsync`'in yeniden açma kanal denetimi | `ItemRecordsTests` (bütün sınıf, partial'lar dahil) + `AfterSalesScreenTests.ReopenDefectClaim_InsideZ18..._KK10` + `AfterSalesScreenTests.TheUnconfirmedPost_WithUnitsAboveTheOpenOnes..._B4` — 74 test | 73 yeşil: açma kanalı (`OpenDefectClaim_OnAnUndatedPhysicalItem_...` 4 durum), adet (`OpenDefectClaim_RefusesZero_AndMoreThanTheOpenUnits`), müşterinin yeniden açması (`Reopening_..._IsRefused(actor: Buyer)`, KK10 sayfa testi) kuralı karar uygular. 1 kırmızı: `Reopening_OnTheLastDay_IsAllowed_AndTheDayAfter_IsRefused(actor: Admin)` "Expected: ConditionNotMet, Actual: null" — beklenen: yöneticinin yeniden açması `OrderTransitions`'ta kararı sormaz, panelin kapısı (1.11.37) sayfa katmanındadır; yazıcı düzeyinde yöneticiye Z-18'i modül denetimi uygular (K-1633 (1) modül savunması) |
+| (b) karar da yok | (a) + `OrderTransitions.OpenDefectClaimAsync`'in karar reddi, `ReopenDefectClaimAsync`'in müşteri kararı, `EnterRefundIbanAsync` ve `ChangeRefundIbanAsync`'in kararı | `ItemRecordsTests.OpenDefectClaim*`, `Reopening_*`, `SecondClaim*`; `AfterSalesScreenTests` iki test (yukarıda); `StatusCorrectionTests.TheIban_*` (2), `TheCustomersCancellation_OnTheTransfer_TakesACheckedIban_KK4` — 13 test | 5 kırmızı: `OpenDefectClaim_OnAnUndatedPhysicalItem_...(Preparing, opens: False)` "Expected: False, Actual: True"; `OpenDefectClaim_RefusesZero_AndMoreThanTheOpenUnits` "Expected: InvalidInput, Actual: null"; `Reopening_..._IsRefused(Buyer)` ve `(Admin)` "Expected: ConditionNotMet, Actual: null"; `AfterSalesScreenTests.ReopenDefectClaim_..._KK10` (Z-18 dışı 303'ün yeri değişti). 8 yeşil: üç açık kanal durumu, `SecondClaim_...` (tek talep kuralı modülün `ClaimExists` satır denetiminde), B4 (cayma yolu — deneyin dokunmadığı yazıcı; karşılaştırma için), üç IBAN testi |
+| geri alma | `git checkout -- src`; `-warnaserror` derleme 0/0 | (b)'nin 13 testi | 13/13 yeşil |
+
+- **IBAN yolları:** `EnterRefundIbanAsync`/`ChangeRefundIbanAsync`'te modülün `AfterSalesPeriodRules`/`ItemQuantities` denetimi yoktur; yazıcının kendi koşulu isteğin/IBAN'ın satır aramasıdır (açık istek yoksa `NotFound`, kayıtlı IBAN yoksa `NotFound`) ve yazma için zorunludur — kaldırılınca yazıcı yazacak satır bulamaz. Bu yüzden IBAN yolunda (a) aşaması kurulamaz; (b)'de yalnız karar kaldırıldığında IBAN testleri yeşil kalır: karar, satır aramasının sipariş düzeyindeki özetidir (1.11.11 açık istek var, 1.11.12 kayıtlı IBAN var), ikinci bir kural evi değildir. ⚠ (kırmızı kurulamaz — gerekçe bu madde; UE5 Notlar'daki ⚠ ile aynı).
+- **Sonuç:** açma ve müşterinin yeniden açması için iki aşamalı kırmızı–yeşil doğrulayıcının istediği biçimde üretildi; karar tek başına kuralı uygular, ikisi birden kaldırılınca kırmızı.
+
+### Koşular (bu tur)
+
+- **Build:** `dotnet build tests/Shopfolio.IntegrationTests -warnaserror` 0 uyarı, 0 hata.
+- **Integration:** koşulan sınıflar/süzgeçler — önceki işçi (aynı `src`/`tests`, `4f42e03d`): `OneTimeValueTests`, `PageFormPatternTests`, `ImageEndpointTests`, `CustomerPasswordResetAndReauthenticationPageTests`, `PanelHomeAndVerificationPagesTests` 100/100 (tek çağrı); bu işçi: `ItemRecordsTests` (bütün sınıf) + `AfterSalesScreenTests` iki test + `StatusCorrectionTests` üç IBAN testi (K2 deneyi; geri alma sonrası 13/13). **TAM: CI.**
+- **Unit:** TAM 8108/8108 (önceki işçi, Architecture dışı 6293 + Architecture 1815). Bu tur `src`/`tests`'e dokunmadı (`git diff 4f42e03d HEAD -- src tests` boş); yeniden koşulmadı ⚠.
+- **`dotnet format`:** dalın değiştirdiği 154 `.cs` dosyası `--verify-no-changes` çıkış 0 (önceki işçi); bu turda `.cs` değişmedi.
+
+### Öz denetim (UE'nin bütün kalemleri + KK1–KK5, düzeltme sonrası)
+
+| Denetim | Sonuç | Kanıt |
+|---|---|---|
+| KK1 — hedefi T604 olan UE kalemleri kapalı ya da gerekçeli | ✓ | "UE kapanışı" tablosu (45 ✅, D-1599 ve D-1773 daraltıldı, D-1806 yeni; üçü UH dalına gerekçeli); `grep -nE "T604" Docs/DEFERRED_BACKLOG.md Docs/DEFERRED_BACKLOG.d/*.md` bu turda yeniden okundu (144 satır) — UE kalemlerinin hepsi `✅ Çözüldü → T604` ya da gerekçeli; bu turda yeni kalem yok |
+| KK2 — para ve güvenlik kalemleri ayrı başlıkta; kırmızı–yeşil; eski testler aynı | ✓ | dilim tabloları + K2 tablosu; tur 1'de kırılan üç eski test değişmeden yeşil (Bulgu 1–2); UE3, UE4 ve UE bütünü KK2 satırları düzeltildi |
+| KK3 — tarayıcı kalemleri üç motorda | — (pay) | U parçasında tarayıcı kalemi yok; UE4'ün iki ayıklama satırı chromium, firefox/webkit TAM: CI E2E |
+| KK4 — D-1678 | — | A parçası (PR #594) |
+| KK5 — backlog satırları ve sayaç | ✓ (pay) | kapanan satırlar `✅ Çözüldü → T604`; daraltılanlar yeni hedef + gerekçe; yeni kalemler parça dosyasında; sayaca dokunulmadı |
+| `12` KK2 kontrol listesi: "eski testler aynı" | ✓ | yukarıda |
+| `09 §25` "kritik akışa dokunan değişiklik — testler silinmemiş, zayıflatılmamış" | ✓ | düzeltmede hiçbir test silinmedi ya da gevşetilmedi; `PageFormPatternTests`'e yalnız bir `Assert.Contains` eklendi |
+| `09 §25` "CI yeşil mi" | TAM: CI | PR #595'in yeni ucunda CI koşar; merge ön koşulu |
+| Sık FAIL (1) bekçi/tarama istisnası geniş | ✓ | görsel istisnası yalnız birebir `AddressRules.ImageAddressTemplate` metni; 9 satırlık karşı örnek teorisi istisnanın komşu biçimlere uzanmadığını sınar; yeniden doğrulama istisnası test derlemesinde kapalı liste testiyle |
+| (2) kaynak taraması çağrı biçimini kaçırıyor | ✓ | istisna metin eşitliğiyle; `/` önekli ve öneksiz biçim ikisi de sınandı (`AddressRulesTests` 208–209) |
+| (3) 06 varsayılan / FK dizini | uygulanmaz | şema değişmedi |
+| (4) aynı kuralı anan öteki yerler | ✓ | `07` 2.1.6 metni, `07` başlık + altbilgi v0.49, `PRODUCT_DISCOVERY_STATUS` 07 satırı, `ReauthenticationPermissionFilter.cs` öznitelik açıklaması; rapordaki üç KK2 satırı |
+| (5) belge kuralını değiştiren metin karar kaydısız | ✓ | `07` 2.1.6 değişikliği K-1636 (1)'i anar; örnek sayfa işareti K-1636 (2) |
+| Kısmen karşılanan kriter | yok | IBAN yolunun (a) aşaması gerekçeyle kurulamaz (yukarıda), kriter kırmızı–yeşili kurulabilen yollarda karşılar |
+| STATUS T604 tablo satırı | dokunulmadı | talimat |
+
+### Notlar
+
+- ⚠ K2'nin (a) aşamasında yöneticinin yeniden açması kırmızı: yönetici yolu `OrderTransitions`'ta kararı sormaz (panelin kapısı 1.11.37 sayfa katmanında); yazıcı düzeyinde Z-18'i modül denetimi uygular — K-1633 (1) modül savunmasının bilinçli işlevi; kod değişmedi.
+- ⚠ IBAN yollarında (a) aşaması kurulamaz (yazıcının satır araması yazma için zorunlu); gerekçe yukarıda.
+- ⚠ Unit TAM ve `dotnet format` bu turda yeniden koşulmadı: `src`/`tests` önceki işçinin koşusundan beri değişmedi; CI Unit ve LINT yeni uçta koşar.
+- A (#594) ve UH (#596) dallarının dosyalarına dokunulmadı; `04`/`07` sürüm satırı çakışması birleştirmede çözülür.

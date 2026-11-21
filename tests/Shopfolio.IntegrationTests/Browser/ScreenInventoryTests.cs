@@ -185,7 +185,7 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
             foreach (Stop stop in group)
             {
                 WatchedPage page = await NewPageAsync(context);
-                // The image address (/gorsel/{id}) has no serving endpoint yet (D-1711): the browser's own 404 line of such a request is the known state, counted and taken out; any other 404 stays a message.
+                // The image address (/gorsel/{id}) is served (D-1711): a 404 of an image is counted and fails the stop like any other browser message.
                 int missingImages = 0;
                 page.Page.Response += (_, r) => missingImages += r.Status == 404 && new Uri(r.Url).AbsolutePath.StartsWith("/gorsel/", StringComparison.Ordinal) ? 1 : 0;
                 IResponse? response = await GoAsync(page, stop.Path);
@@ -196,12 +196,10 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
                 bool statusOk = status == stop.Status;
                 string expectedMessage = $"status of {stop.Status}";
                 List<string> messages = [.. page.Errors.Where(e => stop.Status == 200 || !e.Contains(expectedMessage, StringComparison.Ordinal))];
-                int known = 0;
-                messages = [.. messages.Where(e => !(e.Contains("status of 404", StringComparison.Ordinal) && known++ < missingImages))];
                 // The state of a valid link is told by its own form or button (the invalid-link state answers 200 too and draws only its sentence).
                 int marked = stop.Marker is null ? 1 : await page.Page.Locator(stop.Marker).CountAsync();
-                bool ok = statusOk && messages.Count == 0 && title.Length > 0 && marked > 0;
-                string observed = $"status {status}, address {final}, title \"{title}\", browser messages {messages.Count}, known image 404 {missingImages}" + (stop.Marker is null ? string.Empty : $", the state's own form or button {marked}") + (messages.Count > 0 ? ": " + string.Join(" / ", messages.Take(3)) : string.Empty);
+                bool ok = statusOk && messages.Count == 0 && missingImages == 0 && title.Length > 0 && marked > 0;
+                string observed = $"status {status}, address {final}, title \"{title}\", browser messages {messages.Count}, image 404 {missingImages}" + (stop.Marker is null ? string.Empty : $", the state's own form or button {marked}") + (messages.Count > 0 ? ": " + string.Join(" / ", messages.Take(3)) : string.Empty);
                 await ObserveAsync($"{stop.Screen}", path, engine, page, stop.State, "status " + stop.Status + ", a title, no browser message" + (stop.Marker is null ? string.Empty : ", the form or button of the link's valid state"), observed, ok);
                 await page.Page.CloseAsync();
             }

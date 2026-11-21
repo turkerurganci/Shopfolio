@@ -91,7 +91,7 @@ internal sealed class Carts
             return [];
         }
 
-        Dictionary<Guid, CartVariantFact> facts = (await _catalog.ListCartVariantFactsAsync([.. marked.Select(i => i.VariantId!.Value)], ct)).ToDictionary(f => f.VariantId); // non-null: the Where above keeps only lines with a variant
+        Dictionary<Guid, CartVariantFact> facts = (await _catalog.ListCartVariantFactsAsync([.. marked.Select(i => i.VariantId!.Value)], null, ct)).ToDictionary(f => f.VariantId); // non-null: the Where above keeps only lines with a variant
         List<string> names = [];
         foreach (CartItem item in marked)
         {
@@ -142,7 +142,9 @@ internal sealed class Carts
             return new CartItemUpdateResult(CartItemUpdateOutcome.TakenOffShowcase);
         }
 
-        IReadOnlyList<CartVariantFact> facts = await _catalog.ListCartVariantFactsAsync([variantId], ct);
+        // The cart's own unpaid order does not stop its customer (02 3.17.7; D-1759): its units are sellable to the quantity change as on the cart's read.
+        IReadOnlyDictionary<Guid, int> own = await OwnReservedUnitsAsync(item.CartId, ct);
+        IReadOnlyList<CartVariantFact> facts = await _catalog.ListCartVariantFactsAsync([variantId], own, ct);
         if (facts.Count == 0)
         {
             return new CartItemUpdateResult(CartItemUpdateOutcome.TakenOffShowcase);
@@ -165,7 +167,7 @@ internal sealed class Carts
                 .Where(i => i.CartId == item.CartId && i.Id != item.Id && i.RemovedProductName == null && i.VariantId != null)
                 .Select(i => new { VariantId = i.VariantId!.Value, i.Quantity }) // non-null: the Where above keeps only lines with a variant
                 .ToListAsync(ct)).Select(i => new CartQuantityLine(i.VariantId, i.Quantity))];
-            CartQuantityVerdict verdict = await _catalog.JudgeCartAddAsync(new CartQuantityLine(variantId, quantity), others, ct);
+            CartQuantityVerdict verdict = await _catalog.JudgeCartAddAsync(new CartQuantityLine(variantId, quantity), others, own, ct);
             switch (verdict.Problem)
             {
                 case CartQuantityProblem.NoStock:
@@ -256,10 +258,14 @@ internal sealed class Carts
             .Where(i => i.CartId == cartId && i.RemovedProductName == null && i.VariantId != null)
             .OrderBy(i => i.CreatedAt).ThenBy(i => i.Id)
             .ToListAsync(ct);
-        Dictionary<Guid, CartVariantFact> facts = (await _catalog.ListCartVariantFactsAsync([.. items.Select(i => i.VariantId!.Value)], ct)).ToDictionary(f => f.VariantId); // non-null: the Where above keeps only lines with a variant
+
+        // 02 3.17.7 (D-769): the customer is not stopped by the stock its own earlier unpaid order of this cart reserved - the confirmation cancels that order first, so the cart, the payment
+        // step and its summary count those units as sellable. Read after the hook: on the confirmation the earlier order is already cancelled and nothing is credited twice.
+        IReadOnlyDictionary<Guid, int> own = await OwnReservedUnitsAsync(cartId, ct);
+        Dictionary<Guid, CartVariantFact> facts = (await _catalog.ListCartVariantFactsAsync([.. items.Select(i => i.VariantId!.Value)], own, ct)).ToDictionary(f => f.VariantId); // non-null: the Where above keeps only lines with a variant
 
         // The quantity of every line goes through the one stock and per-order-limit rule, the merged lines too; a quantity is never lowered here (02 3.16.8-3.16.10).
-        Dictionary<Guid, CartQuantityVerdict> verdicts = (await _catalog.JudgeCartQuantitiesAsync([.. items.Select(i => new CartQuantityLine(i.VariantId!.Value, i.Quantity))], ct)) // non-null: items holds only lines with a variant (the Where above)
+        Dictionary<Guid, CartQuantityVerdict> verdicts = (await _catalog.JudgeCartQuantitiesAsync([.. items.Select(i => new CartQuantityLine(i.VariantId!.Value, i.Quantity))], own, ct)) // non-null: items holds only lines with a variant (the Where above)
             .ToDictionary(v => v.VariantId);
 
         List<CartLine> lines = [];
@@ -313,7 +319,10 @@ internal sealed class Carts
             return new CartAddResult(CartAddOutcome.InvalidQuantity, null);
         }
 
-        IReadOnlyList<CartVariantFact> facts = await _catalog.ListCartVariantFactsAsync([variantId], ct);
+        // The cart's own unpaid order does not stop its customer (02 3.17.7; D-1759): its units are sellable to the add as on the cart's read. A cart not opened yet has no order.
+        Guid? existingCartId = await FindCartIdAsync(owner, ct);
+        IReadOnlyDictionary<Guid, int>? own = existingCartId is { } existing ? await OwnReservedUnitsAsync(existing, ct) : null;
+        IReadOnlyList<CartVariantFact> facts = await _catalog.ListCartVariantFactsAsync([variantId], own, ct);
         if (facts.Count == 0)
         {
             return new CartAddResult(CartAddOutcome.VariantNotFound, null);
@@ -337,8 +346,7 @@ internal sealed class Carts
         }
 
         // A cart that does not exist yet holds nothing else: a refusal on the first add must not leave an empty cart behind.
-        Guid? existingCartId = await FindCartIdAsync(owner, ct);
-        if (existingCartId is null && await RefusalAsync(variantId, quantity, [], ct) is { } firstRefusal)
+        if (existingCartId is null && await RefusalAsync(variantId, quantity, [], null, ct) is { } firstRefusal)
         {
             return firstRefusal;
         }
@@ -367,7 +375,9 @@ internal sealed class Carts
             return new CartAddResult(CartAddOutcome.AlreadyInCart, null);
         }
 
-        if (await RefusalAsync(variantId, quantity, held, ct) is { } refusal)
+        // The cart's own reservations are read again under its lock - the order may have been born meanwhile; a new guest cart has none (D-1759).
+        own = await OwnReservedUnitsAsync(cartId, ct);
+        if (await RefusalAsync(variantId, quantity, held, own, ct) is { } refusal)
         {
             return refusal;
         }
@@ -385,7 +395,8 @@ internal sealed class Carts
 
     // The refusal of an add, or null when the quantity the line would hold is allowed. The quantity is the line's own plus the added one; the firm's limit is judged over the product's lines
     // together and wins over the stock (02 3.16.8, 3.16.9). A total no count can hold is the stock's refusal too.
-    private async Task<CartAddResult?> RefusalAsync(Guid variantId, int added, IReadOnlyList<CartQuantityLine> held, CancellationToken ct)
+    private async Task<CartAddResult?> RefusalAsync(
+        Guid variantId, int added, IReadOnlyList<CartQuantityLine> held, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct)
     {
         long own = held.Where(l => l.VariantId == variantId).Sum(l => (long)l.Quantity) + added;
         if (own > int.MaxValue)
@@ -393,7 +404,7 @@ internal sealed class Carts
             return new CartAddResult(CartAddOutcome.NoStock, null);
         }
 
-        CartQuantityVerdict verdict = await _catalog.JudgeCartAddAsync(new CartQuantityLine(variantId, (int)own), held, ct);
+        CartQuantityVerdict verdict = await _catalog.JudgeCartAddAsync(new CartQuantityLine(variantId, (int)own), held, ownReservedUnits, ct);
         return verdict.Problem switch
         {
             CartQuantityProblem.NoStock => new CartAddResult(CartAddOutcome.NoStock, null),
@@ -534,6 +545,15 @@ internal sealed class Carts
 
         return await FindCartIdAsync(owner, ct) ?? throw new InvalidOperationException("The cart that was just made is not found (06 4.15).");
     }
+
+    /// <summary>The units the cart's own unpaid orders (Alındı + Bekliyor, the cart's id; 02 3.17.7) reserve, by variant; a merged guest cart's order carries the deleted cart's id and is not found.</summary>
+    private async Task<IReadOnlyDictionary<Guid, int>> OwnReservedUnitsAsync(Guid cartId, CancellationToken ct) =>
+        await _db.StockReservations.AsNoTracking()
+            .Where(r => r.VariantId != null
+                && _db.Orders.Any(o => o.Id == r.OrderId && o.CartId == cartId && o.OrderStatus == OrderStatus.Placed && o.PaymentStatus == PaymentStatus.Pending))
+            .GroupBy(r => r.VariantId!.Value) // non-null: the Where above keeps only variant rows
+            .Select(g => new { VariantId = g.Key, Units = g.Sum(r => r.Quantity) })
+            .ToDictionaryAsync(g => g.VariantId, g => g.Units, ct);
 
     private static CartView Empty(Guid? cartId, ShippingFeeSection shippingTerms) => new(cartId, [], [], [], CartPaymentBlock.NoOrderableItem, 0m, CartRules.AssessShipping([], shippingTerms));
 }

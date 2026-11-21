@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.AfterSales.Contracts;
@@ -393,6 +394,38 @@ public sealed partial class OrderDetailPageTests
     }
 
     // The confirmation window of the page's 200 (_Confirm: the administrator's dialog).
+    [Fact]
+    public async Task CardRemovalWindow_SaysTheAmountTheRecordPaysBack_WithTheShippingFeeOnlyWhenTheRemovalTakesTheLastPhysicalUnit_AndWritesNothing_D1598()
+    {
+        // K-797: "{n} ürün siparişten çıkarılacak ve {tutar} müşterinin kartına geri ödenecek." - {tutar} the system's 02 7.1.7 and 7.2.9 amount (the item's price, no coupon; the fee
+        // when the removal meets the trigger). Before T604 the window said "tutarı" with no amount.
+        const decimal fee = 30m;
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        (Guid whole, Guid[] wholeItems) = await StepOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid, (ProductType.Physical, false));
+        (Guid part, Guid[] partItems) = await StepOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid, (ProductType.Physical, false), (ProductType.Physical, false));
+        decimal price;
+        await using (AppDbContext db = NewContext())
+        {
+            await db.Database.ExecuteSqlAsync(
+                $"UPDATE orders SET payment_method = 'Card', bank_transfer_iban = NULL, shipping_fee = {fee}, shipping_fee_vat_breakdown = '[]' WHERE id = {whole} OR id = {part}", Ct);
+            price = (await db.OrderItems.SingleAsync(i => i.Id == wholeItems[0], Ct)).UnitPrice;
+        }
+
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        (HttpStatusCode wholeStatus, string wholeHtml) = await PostAsync(
+            client, $"{OrdersPath}/{whole:D}?handler=RemoveOrderItem", [("Input.OrderItemId", wholeItems[0].ToString("D")), ("Input.Quantity", "1"), ("Input.Version", "1")], key);
+        (HttpStatusCode partStatus, string partHtml) = await PostAsync(
+            client, $"{OrdersPath}/{part:D}?handler=RemoveOrderItem", [("Input.OrderItemId", partItems[0].ToString("D")), ("Input.Quantity", "1"), ("Input.Version", "1")], key);
+
+        Assert.Equal(HttpStatusCode.OK, wholeStatus);
+        Assert.Contains(IrreversibleConfirmations.CardRefundingRemoval(1, price + fee).Sentence, WindowOf(wholeHtml), StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.OK, partStatus);
+        Assert.Contains(IrreversibleConfirmations.CardRefundingRemoval(1, price).Sentence, WindowOf(partHtml), StringComparison.Ordinal);
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(0, await reader.ItemRemovals.CountAsync(r => r.OrderItemId == wholeItems[0] || r.OrderItemId == partItems[0], Ct));
+    }
+
     private static string WindowOf(string html)
     {
         int start = html.IndexOf("<dialog", StringComparison.Ordinal);

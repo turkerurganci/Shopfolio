@@ -15,6 +15,9 @@ namespace Shopfolio.Modules.AfterSales;
 /// </summary>
 internal sealed partial class AfterSalesModule
 {
+    // The IBAN rows entered in this scope, by transaction, order and IBAN: one declaration's rows (EnterIban).
+    private readonly Dictionary<(Guid Transaction, Guid OrderId, string Iban), RefundIban> _enteredIbans = [];
+
     public async Task<ItemRecordWriteResult> AddCancellationAsync(CustomerCancellationEntry entry, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(entry);
@@ -37,9 +40,31 @@ internal sealed partial class AfterSalesModule
             return null;
         }
 
+        return EnterIban(orderId, entered, at).Id;
+    }
+
+    /// <summary>
+    /// One declaration, one IBAN row (06 4.31: the IBAN entered with one declaration is used by several items; K-1631 (4); D-1283 (2)): the records one request writes for
+    /// several items in its one transaction - the cancellation of several lines, the late delivery termination, the withdrawal of several items - share the row the first of
+    /// them entered, so the customer corrects it once (02 7.4.5) and it is deleted with the last refund that uses it (K-1110). A later request is a new declaration and
+    /// enters its own row; outside a transaction nothing is shared.
+    /// </summary>
+    private RefundIban EnterIban(Guid orderId, string entered, DateTimeOffset at)
+    {
+        Guid? transaction = _db.Database.CurrentTransaction?.TransactionId;
+        if (transaction is { } id && _enteredIbans.TryGetValue((id, orderId, entered), out RefundIban? shared))
+        {
+            return shared;
+        }
+
         RefundIban iban = RefundIban.Create(orderId, entered, at);
         _db.RefundIbans.Add(iban);
-        return iban.Id;
+        if (transaction is { } current)
+        {
+            _enteredIbans[(current, orderId, entered)] = iban;
+        }
+
+        return iban;
     }
 
     public async Task<ItemRecordWriteResult> AddFirmCancellationAsync(FirmCancellationEntry entry, CancellationToken ct)

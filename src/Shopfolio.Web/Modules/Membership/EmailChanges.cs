@@ -171,12 +171,7 @@ internal sealed class EmailChanges
 
         string normalizedEmail = await _db.Customers.AsNoTracking().Where(c => c.Id == customerId).Select(c => c.NormalizedEmail).SingleAsync(ct);
 
-        // L-9 is counted on every request, on the e-mail and on the IP (02 3.13.14, 8.2); over the limit the earlier link stays valid.
-        if (await EmailChangeRules.CountedOverLimitAsync(_attempts, normalizedEmail, ipAddress, ct))
-        {
-            return EmailChangeResendResult.Limited();
-        }
-
+        // No pending change is the 422 that writes nothing - no attempt line either (07 UC-67; 12 VAL-A441; D-1474): the change is looked for before L-9 counts.
         DateTimeOffset now = _time.GetUtcNow();
         var pending = await _db.PendingEmailChanges.AsNoTracking()
             .Where(p => p.CustomerId == customerId)
@@ -185,6 +180,12 @@ internal sealed class EmailChanges
         if (pending is null || EmailChangeRules.IsEnded(pending.CreatedAt, now))
         {
             return EmailChangeResendResult.Nothing();
+        }
+
+        // L-9 is counted on every request for a pending change, on the e-mail and on the IP (02 3.13.14, 8.2); over the limit the earlier link stays valid.
+        if (await EmailChangeRules.CountedOverLimitAsync(_attempts, normalizedEmail, ipAddress, ct))
+        {
+            return EmailChangeResendResult.Limited();
         }
 
         // The new link ends where the pending change ends: asking again does not lengthen it (02 3.13.5).

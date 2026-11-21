@@ -49,6 +49,15 @@ internal static partial class AddressRules
     /// <summary>The path the static files are served under (07 2.1.2, 3.1.6): <c>/statik/css/base.css</c>.</summary>
     public const string StaticArea = "/statik";
 
+    /// <summary>The path the images are served under (07 2.1.2, 3.1.6; 05 7.7.1): <c>/gorsel/{image id}</c> (D-1136).</summary>
+    public const string ImageArea = "/gorsel";
+
+    /// <summary>
+    /// The one template of the image endpoint (07 2.1.6, 3.1.6; 05 7.7.1; K-1631 (1), K-1636): the image row's id is the file's name in the file serving, not a key of the
+    /// customer's own record, so it is the one storefront-side path whose parameter is a key. <see cref="AddressTemplates"/> lets this exact text through and nothing else.
+    /// </summary>
+    public const string ImageAddressTemplate = ImageArea + "/{id:guid}";
+
     /// <summary>The order root (07 2.1.3); its two roots are in <see cref="OrderRoutes"/>.</summary>
     public const string OrderArea = "siparis";
 

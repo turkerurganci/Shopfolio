@@ -12,8 +12,8 @@ namespace Shopfolio.IntegrationTests.Ordering;
 
 /// <summary>
 /// The IBAN's life beside the defect remedies' refunds on a real PostgreSQL (T370 KK5; 02 7.4.5; Z-44): the IBAN goes once the last pending refund that uses it is
-/// processed, whatever the refund's source - a rescission and a price reduction (T374) pending on the transfer way keep it, through the item's request or the IBAN on the
-/// order's file; the last one's processing deletes it with its disposal record.
+/// processed, whatever the refund's source - two rescissions (T374) pending on the transfer way keep it, through the item's request or the IBAN on the order's file (the price
+/// reduction is UC-133's refund since K-1629 (3)); the last one's processing deletes it with its disposal record.
 /// </summary>
 public sealed partial class ItemRecordsTests
 {
@@ -24,9 +24,9 @@ public sealed partial class ItemRecordsTests
     {
         (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.BankTransfer);
         ItemRecordResult rescinded = await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 2, 1), t));
-        ItemRecordResult reduced = await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 3, 10m), t));
+        ItemRecordResult otherRescinded = await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 3, 1), t));
         Assert.Null(rescinded.Refusal);
-        Assert.Null(reduced.Refusal);
+        Assert.Null(otherRescinded.Refusal);
         Guid ibanId = await EnterItemIbanAsync(order.Id, item.Id);
         int disposals = await RefundIbanDisposalsAsync();
 
@@ -35,7 +35,7 @@ public sealed partial class ItemRecordsTests
         Assert.True(await IbanExistsAsync(ibanId));
         Assert.Equal(disposals, await RefundIbanDisposalsAsync());
 
-        Assert.False((await ProcessTransferAsync(order.Id, reduced.RecordId!.Value)).IsRejected);
+        Assert.False((await ProcessTransferAsync(order.Id, otherRescinded.RecordId!.Value)).IsRejected);
         Assert.False(await IbanExistsAsync(ibanId));
         Assert.Equal(disposals + 1, await RefundIbanDisposalsAsync());
     }
@@ -57,8 +57,8 @@ public sealed partial class ItemRecordsTests
 
         // The second item's remedy comes with the IBAN on the order's file: no request of its own, it is paid to that IBAN.
         int entered = await OrderVersionAsync(order.Id);
-        ItemRecordResult reduced = await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, second.Id, AdminCaller, entered, 10m), t));
-        Assert.Null(reduced.Refusal);
+        ItemRecordResult otherRescinded = await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, second.Id, AdminCaller, entered, 1), t));
+        Assert.Null(otherRescinded.Refusal);
         Assert.Equal(0, await CountAsync(c => c.RefundIbanRequests.Where(r => r.OrderItemId == second.Id)));
         int disposals = await RefundIbanDisposalsAsync();
 
@@ -66,7 +66,7 @@ public sealed partial class ItemRecordsTests
         Assert.True(await IbanExistsAsync(ibanId));
         Assert.Equal(disposals, await RefundIbanDisposalsAsync());
 
-        Assert.False((await ProcessTransferAsync(order.Id, reduced.RecordId!.Value)).IsRejected);
+        Assert.False((await ProcessTransferAsync(order.Id, otherRescinded.RecordId!.Value)).IsRejected);
         Assert.False(await IbanExistsAsync(ibanId));
         Assert.Equal(disposals + 1, await RefundIbanDisposalsAsync());
     }

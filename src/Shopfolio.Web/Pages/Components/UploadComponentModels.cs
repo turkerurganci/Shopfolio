@@ -70,7 +70,7 @@ public static class UploadLimits
     public static string MaxSizeText(UploadSurface surface) => (MaxBytes(surface) / BytesPerMegabyte).ToString(CultureInfo.InvariantCulture) + " MB";
 
     /// <summary>The <c>accept</c> of the file input: the image media types of P-22 for an image surface, none for the digital file. A hint to the browser; the server reads the bytes (05 6.6.1).</summary>
-    public static string? Accept(UploadSurface surface) => IsImage(surface) ? "image/jpeg,image/png,image/webp" : null;
+    public static string? Accept(UploadSurface surface) => IsImage(surface) ? string.Join(',', ProductConstants.ImageMediaTypes) : null;
 }
 
 /// <summary>A file the component refused and the reason to say at the field (04 2.12.8.3; 04 7.3.2.18).</summary>

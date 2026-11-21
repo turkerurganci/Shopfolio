@@ -104,7 +104,7 @@ internal sealed class InviteModel : PageModel
             default:
                 // The link went invalid between the page and the button: no account, the page tells it (07 9.2.2 200).
                 IsValid = false;
-                return Page();
+                return FormResults.LinkNoLongerValid(this);
         }
     }
 

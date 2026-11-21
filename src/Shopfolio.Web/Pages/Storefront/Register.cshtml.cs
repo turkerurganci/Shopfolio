@@ -261,7 +261,12 @@ internal sealed class RegisterModel : PageModel
     private bool TryResolve(string value, out Guid customerId) => PendingRegistrations.TryResolve(_protectedValues, value, out customerId);
 
     // A value that names nothing pending: back to the screen the 303 came from, without the value - the form in its empty state (07 4.20.1, 4.20.3).
-    private static IActionResult GoneAddress() => FormResults.SeeOther(FramePaths.Register);
+    // UC-49's refusal line is written with it (07 6.2.5; 09 8.2 item 3; D-1317).
+    private IActionResult GoneAddress()
+    {
+        HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.PendingRegistrationUnresolved);
+        return FormResults.SeeOther(FramePaths.Register);
+    }
 
     private void RememberSent(RegisterInput? input)
     {

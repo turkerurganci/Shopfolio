@@ -157,7 +157,7 @@ public sealed partial class MemberRecordPageTests : IAsyncLifetime
         Assert.Contains(MembersModel.NotFoundText, none, StringComparison.Ordinal);
         Assert.Contains(MembersModel.UnverifiedText, pending, StringComparison.Ordinal);
         Assert.Contains("bekleyen@example.com", pending, StringComparison.Ordinal);
-        Assert.DoesNotContain("member-delete-button", pending, StringComparison.Ordinal);
+        Assert.Contains("id=\"member-delete-button\"", pending, StringComparison.Ordinal); // 04 6.3.12.2; K-1633 (3)
         Assert.DoesNotContain(MembersModel.NotFoundText, pending, StringComparison.Ordinal);
         Assert.DoesNotContain(MembersModel.UnverifiedText, account, StringComparison.Ordinal);
         Assert.Contains("Ali Veli", account, StringComparison.Ordinal);
@@ -346,7 +346,7 @@ public sealed partial class MemberRecordPageTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ADeletionOfAnAccountThatIsNotThere_Answers404_InBothSteps_AndAnUnverifiedRegistrationIsNotDeleted_KK7()
+    public async Task ADeletionOfAnAccountThatIsNotThere_Answers404_InBothSteps_KK7()
     {
         Guid pending = await SeedCustomerAsync("bekleyen@example.com", "Bekleyen", verified: false);
         await using WebApplicationFactory<Program> factory = Open();
@@ -354,12 +354,37 @@ public sealed partial class MemberRecordPageTests : IAsyncLifetime
 
         using HttpResponseMessage confirmStep = await client.PostAsync(DeletePath, Form(Guid.NewGuid(), "yok@example.com", confirmed: false), Ct);
         using HttpResponseMessage confirmed = await client.PostAsync(DeletePath, Form(Guid.NewGuid(), "yok@example.com", confirmed: true), Ct);
-        using HttpResponseMessage unverified = await client.PostAsync(DeletePath, Form(pending, "bekleyen@example.com", confirmed: true), Ct);
+        using HttpResponseMessage otherId = await client.PostAsync(DeletePath, Form(Guid.NewGuid(), "bekleyen@example.com", confirmed: false), Ct);
 
         Assert.Equal(HttpStatusCode.NotFound, confirmStep.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, confirmed.StatusCode);
-        Assert.Equal(HttpStatusCode.NotFound, unverified.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, otherId.StatusCode);
+        Assert.Equal(1L, await ScalarAsync<long>($"SELECT count(*) FROM customers WHERE id = '{pending}'"));
+    }
+
+    // ---- D-1374 (K-1631 (6), K-1633 (3)): the unverified registration is deleted on the request too (04 6.3.12.2) ----
+
+    [Fact]
+    public async Task AnUnverifiedRegistration_IsDeletedOnTheRequest_WithTheConfirmation_ItsOwnDisposalType_TheTrailRow_AndNoEmail_D1374()
+    {
+        Guid pending = await SeedCustomerAsync("bekleyen@example.com", "Bekleyen", verified: false);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage confirmStep = await client.PostAsync(DeletePath, Form(pending, "bekleyen@example.com", confirmed: false), Ct);
+        string html = WebUtility.HtmlDecode(await confirmStep.Content.ReadAsStringAsync(Ct));
+        Assert.Equal(HttpStatusCode.OK, confirmStep.StatusCode);
+        Assert.Contains("id=\"confirm-heading\"", html, StringComparison.Ordinal);
         Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM customers"));
+
+        using HttpResponseMessage confirmed = await client.PostAsync(DeletePath, Form(pending, "bekleyen@example.com", confirmed: true), Ct);
+
+        Assert.Equal(HttpStatusCode.SeeOther, confirmed.StatusCode);
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM customers"));
+        Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM disposal_records WHERE disposal_record_type = 'PendingRegistration'"));
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM disposal_records WHERE disposal_record_type = 'Customer'"));
+        Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM audit_logs WHERE operation = 'DeleteCustomerAccount'"));
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM dispatch_records WHERE dispatch_type = 'AccountDeletedNotice'"));
     }
 
     // ---- KK8: what goes, what stays, the disposal record, the e-mail, the trail row ----

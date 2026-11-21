@@ -24,8 +24,11 @@ internal sealed class ForgeryProtectionFilter : IAsyncPageFilter, IOrderedFilter
     /// <summary>Before the field validation (order 0), so a forged request is refused as a forgery whatever its fields hold.</summary>
     public const int FilterOrder = -100;
 
-    /// <summary>The action-level message of the refusal (07 6.2.1 <c>AntiforgeryValidationFailed</c>; 04 2.7.3.1): what was typed is kept, the user tries again.</summary>
-    public const string Message = "İşlem tamamlanamadı. Sayfanın süresi dolmuş olabilir; yazdıklarınız korundu, aynı düğmeyle yeniden deneyin.";
+    /// <summary>
+    /// The action-level message of the refusal (07 6.2.1 <c>AntiforgeryValidationFailed</c>; 04 2.7.3.1): what was typed is kept, the user tries again. The sentence is the message
+    /// catalog's, under the code (09 3.4 item 4; D-141).
+    /// </summary>
+    public static string Message => Validation.FieldMessageCatalog.ActionMessage(ErrorCode.AntiforgeryValidationFailed);
 
     private readonly IAntiforgery _antiforgery;
     private readonly RejectionLog _rejections;

@@ -19,8 +19,7 @@ namespace Shopfolio.Modules.Ordering;
 internal sealed class PanelOrderUpkeep : IPanelOrderUpkeep
 {
     private readonly AppDbContext _db;
-    private readonly OrderOperations _operations;
-    private readonly OrderLocks _locks;
+    private readonly PanelOrderGate _gate;
     private readonly IOrderTransitions _transitions;
     private readonly IOrderCorrections _corrections;
     private readonly DownloadCounters _downloads;
@@ -38,8 +37,7 @@ internal sealed class PanelOrderUpkeep : IPanelOrderUpkeep
         IAuditTrail trail)
     {
         _db = db;
-        _operations = operations;
-        _locks = locks;
+        _gate = new PanelOrderGate(db, locks, operations);
         _transitions = transitions;
         _corrections = corrections;
         _downloads = downloads;
@@ -137,26 +135,11 @@ internal sealed class PanelOrderUpkeep : IPanelOrderUpkeep
     }
 
     /// <summary>
-    /// The re-check of 09 8.3 item 3 in its order: the order's row lock, the version the screen showed (a change is the conflict and the rule is not asked), then the operation's rule over the facts read
+    /// The re-check of 09 8.3 item 3 in its order, through the one gate (<see cref="PanelOrderGate"/>; D-1542): the order's row lock, the version the screen showed (a change is the conflict and the rule is not asked), then the operation's rule over the facts read
     /// after the lock - the decision the GET drew the button from (<see cref="OrderOperationCatalog.Check"/>; an item that is not the order's is closed). Null: the operation may go on.
     /// </summary>
-    private async Task<PanelStepResult?> GateAsync(Guid orderId, int expectedVersion, OrderOperation operation, Guid? orderItemId, CancellationToken ct)
-    {
-        await _locks.LockAsync([orderId], ct);
-        Order? order = await _db.Orders.AsNoTracking().SingleOrDefaultAsync(o => o.Id == orderId, ct);
-        if (order is null)
-        {
-            return new PanelStepResult(TransitionRefusal.OrderNotFound);
-        }
-
-        if (!ShownVersion.Matches(order, expectedVersion))
-        {
-            return new PanelStepResult(TransitionRefusal.VersionConflict);
-        }
-
-        OrderOperationFacts? facts = await _operations.ReadFactsAsync(orderId, ct);
-        return facts is not null && OrderOperationCatalog.Check(facts, operation, orderItemId, null).IsAllowed ? null : new PanelStepResult(TransitionRefusal.ConditionNotMet);
-    }
+    private async Task<PanelStepResult?> GateAsync(Guid orderId, int expectedVersion, OrderOperation operation, Guid? orderItemId, CancellationToken ct) =>
+        await _gate.CheckAsync(orderId, expectedVersion, operation, orderItemId, ct) is { } refusal ? new PanelStepResult(refusal) : null;
 
     private Task<Order> ReadOrderAsync(Guid orderId, CancellationToken ct) => _db.Orders.AsNoTracking().SingleAsync(o => o.Id == orderId, ct);
 

@@ -29,7 +29,7 @@ public sealed class PanelAccessPagesTestsDefinition : ICollectionFixture<Collect
 /// what it writes. Administrators, sessions, links and invitations are real rows of the collection database; the e-mail is the queued row of the real notification writer.
 /// </summary>
 [Collection(PanelAccessPagesTestsDefinition.Name)]
-public sealed class PanelAccessPagesTests : IAsyncLifetime
+public sealed partial class PanelAccessPagesTests : IAsyncLifetime
 {
     private const string Strong = "a-long-enough-password";
     private const string Replacement = "another-long-enough-one";

@@ -259,6 +259,11 @@ internal sealed class PanelContentEditing
         }
 
         int version = command.Version ?? 0;
+        if (command.Type == PanelContentType.Branch && !await _gallery.BranchImageAcceptedAsync(BranchImageOf(command.Values).ImageId, ct))
+        {
+            return PanelContentSaveResult.Rejected([new PanelContentRejection(BranchImageField, FieldCodes.InvalidImage)]);
+        }
+
         AuthoringResult authored = await AuthorAsync(command.Type, command.Id, command.Values, version, ct);
         switch (authored.Outcome)
         {
@@ -284,14 +289,8 @@ internal sealed class PanelContentEditing
             await _db.SaveChangesAsync(ct);
         }
 
-        if (command.Type == PanelContentType.Branch)
-        {
-            if (await SaveBranchImageAsync(id, command.Values, ct) is { } branchRefusal)
-            {
-                return branchRefusal;
-            }
-        }
-        else if (ContentGallery.WithGallery.Contains(kind))
+        // The branch's image was written with its fields (D-1539); the galleries are rows of their own.
+        if (command.Type != PanelContentType.Branch && ContentGallery.WithGallery.Contains(kind))
         {
             ContentGalleryResult gallery = await _gallery.SaveAsync(kind, id, command.Images, ct);
             if (gallery.Outcome != ContentGalleryOutcome.Saved)
@@ -378,24 +377,11 @@ internal sealed class PanelContentEditing
         });
     }
 
-    private async Task<PanelContentSaveResult?> SaveBranchImageAsync(Guid branchId, PanelContentValues values, CancellationToken ct)
+    /// <summary>The branch form's image: an empty id is no image.</summary>
+    private static BranchImageInput BranchImageOf(PanelContentValues values)
     {
-        Branch branch = await _db.Branches.SingleAsync(b => b.Id == branchId, ct);
         Guid? image = values.ImageId == Guid.Empty ? null : values.ImageId;
-        string? alt = image is null ? null : GalleryText.CleanAltText(values.ImageAltText);
-        if (branch.ImageId == image && branch.ImageAltText == alt)
-        {
-            return null;
-        }
-
-        ContentGalleryResult result = await _gallery.SetBranchImageAsync(branchId, image, alt, branch.Version, ct);
-        return result.Outcome switch
-        {
-            ContentGalleryOutcome.Saved => null,
-            ContentGalleryOutcome.ImageNotFound => PanelContentSaveResult.Rejected([new PanelContentRejection(BranchImageField, FieldCodes.InvalidImage)]),
-            ContentGalleryOutcome.VersionConflict => PanelContentSaveResult.Refused(PanelContentSaveOutcome.VersionConflict, branchId),
-            _ => PanelContentSaveResult.Refused(PanelContentSaveOutcome.NotFound),
-        };
+        return new BranchImageInput(image, image is null ? null : values.ImageAltText);
     }
 
     private static string GalleryCode(ContentGalleryOutcome outcome) => outcome == ContentGalleryOutcome.LimitExceeded ? FieldCodes.ImageLimitExceeded : FieldCodes.InvalidImage;
@@ -418,7 +404,8 @@ internal sealed class PanelContentEditing
                 return id is { } faqId ? _authoring.SaveFaqItemAsync(faqId, faq, version, ct) : _authoring.CreateFaqItemAsync(faq, ct);
             case PanelContentType.Branch:
                 BranchInput branch = new(v.Name, v.ProvinceId, v.District, v.AddressLine, v.Phone, v.WorkingHours, v.MapUrl);
-                return id is { } branchId ? _authoring.SaveBranchAsync(branchId, branch, version, ct) : _authoring.CreateBranchAsync(branch, ct);
+                BranchImageInput image = BranchImageOf(v);
+                return id is { } branchId ? _authoring.SaveBranchAsync(branchId, branch, image, version, ct) : _authoring.CreateBranchAsync(branch, image, ct);
             case PanelContentType.CustomPage:
                 CustomPageInput page = new(v.Title, v.Text, v.IsShownInMenu);
                 return id is { } pageId ? _authoring.SaveCustomPageAsync(pageId, page, version, ct) : _authoring.CreateCustomPageAsync(page, ct);

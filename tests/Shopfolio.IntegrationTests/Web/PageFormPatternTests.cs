@@ -73,6 +73,8 @@ public sealed partial class PageFormPatternTests
         Assert.Contains(patterns, p => p == PagePath);
         Assert.Contains(patterns, p => p == "/sistem/canlilik");
         Assert.Contains(patterns, p => p.StartsWith(AddressRules.StaticArea + "/", StringComparison.Ordinal));
+        // The image endpoint is mapped under its one exact template, the only storefront-side key the check lets through (07 2.1.6, 3.1.6; D-1136).
+        Assert.Contains(patterns, p => p == AddressRules.ImageAddressTemplate);
         // The static files carry the file's own name, so only their first segment is checked (07 2.1.2, 3.1.6).
         Assert.Empty(patterns.Where(p => !p.StartsWith(AddressRules.StaticArea + "/", StringComparison.Ordinal)).SelectMany(p => AddressTemplates.Check(p).Select(problem => $"{p}: {problem}")));
         Assert.All(patterns, p => Assert.True(AddressRules.IsClosedFirstSegment(FirstSegment(p)), p));

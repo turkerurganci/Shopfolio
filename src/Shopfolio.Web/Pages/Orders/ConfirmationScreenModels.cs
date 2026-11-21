@@ -97,7 +97,7 @@ internal abstract class ConfirmationPageModel : PageModel
 
     public string? IbanText => Facts.TransferIban is string iban ? DisplayFormat.Iban(iban) : null;
 
-    public string LastPaymentDayText => DisplayFormat.Date(Facts.PaymentWindowEndsAt);
+    public string LastPaymentDayText => DisplayFormat.Date(Facts.LastPaymentDay);
 
     /// <summary>The provider's form address of this response; null on every answer but the payment page (07 UC-29). Never stored: it lives for the one response.</summary>
     public Uri? PaymentFrameAddress { get; private set; }

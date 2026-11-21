@@ -144,6 +144,11 @@ internal sealed partial class AfterSalesModule
                 OwedKind.ItemRemoval => new OwedRefundRecord(RefundType.ItemRemoval, s.Id, s.OrderItemId, s.Quantity, s.CreatedAt),
                 OwedKind.LateDeliveryTermination => new OwedRefundRecord(RefundType.LateDeliveryTermination, s.Id, s.OrderItemId, s.Quantity, s.CreatedAt),
                 OwedKind.Withdrawal => new OwedRefundRecord(RefundType.Withdrawal, s.Id, s.OrderItemId, s.Quantity, s.CreatedAt),
+                OwedKind.ClaimReceipt => new OwedRefundRecord(
+                    RefundType.DefectClaimRescission, s.DefectClaimId ?? throw new InvalidOperationException("A claim receipt subject is read with its claim."), s.OrderItemId, s.Quantity, s.CreatedAt)
+                {
+                    ReturnId = s.Id,
+                },
                 _ => new OwedRefundRecord(RefundType.Withdrawal, s.WithdrawalId ?? throw new InvalidOperationException("A receipt subject is read with its withdrawal."), s.OrderItemId, s.Quantity, s.CreatedAt)
                 {
                     ReturnId = s.Id,
@@ -230,10 +235,20 @@ internal sealed partial class AfterSalesModule
             .Select(w => new Subject(w.Id, OwedKind.Withdrawal, w.OrderItemId, null, w.DeclarationDate, w.IsDeliveredBeforeDeclaration)).ToListAsync(ct));
         all.AddRange(await _db.Returns.AsNoTracking().Where(r => r.WithdrawalId != null && (afterId == null || r.Id.CompareTo(after) > 0)).OrderBy(r => r.Id).Take(max)
             .Select(r => new Subject(r.Id, OwedKind.Receipt, r.OrderItemId, null, default, null)).ToListAsync(ct));
+        all.AddRange(await ClaimReceipts().Where(r => afterId == null || r.Id.CompareTo(after) > 0).OrderBy(r => r.Id).Take(max)
+            .Select(r => new Subject(r.Id, OwedKind.ClaimReceipt, r.OrderItemId, null, default, null)).ToListAsync(ct));
         return [.. all.OrderBy(s => s.Id, Comparer<Guid>.Create(CompareAsDatabase)).Take(max)];
     }
 
-    /// <summary>The records of the given items that may owe a refund step, with what the order screen shows of them (T529): the same five kinds as <see cref="NextSubjectsAsync"/>.</summary>
+    /// <summary>
+    /// The receipts of a defect claim's goods that owe the rescission's refund (K-808; K-1629 (3)): the rescission starts with the receipt (03 8.3.2.1) and the refund follows on the refund
+    /// line (UC-131) while the claim is open - the rescission is the answer to an open claim (03 1.9.1: a resolved one is reopened first).
+    /// </summary>
+    private IQueryable<Return> ClaimReceipts() =>
+        _db.Returns.AsNoTracking().Where(r => r.DefectClaimId != null
+            && _db.DefectClaims.Any(c => c.Id == r.DefectClaimId && c.DefectClaimStatus == DefectClaimStatus.Open));
+
+    /// <summary>The records of the given items that may owe a refund step, with what the order screen shows of them (T529): the same six kinds as <see cref="NextSubjectsAsync"/>.</summary>
     private async Task<List<Subject>> SubjectsOfItemsAsync(Guid[] ids, CancellationToken ct)
     {
         List<Subject> all = [];
@@ -248,6 +263,9 @@ internal sealed partial class AfterSalesModule
             .ToListAsync(ct));
         all.AddRange(await _db.Returns.AsNoTracking().Where(r => r.WithdrawalId != null && ids.Contains(r.OrderItemId))
             .Select(r => new Subject(r.Id, OwedKind.Receipt, r.OrderItemId, null, default, null) { Quantity = r.Quantity, CreatedAt = r.CreatedAt, WithdrawalId = r.WithdrawalId })
+            .ToListAsync(ct));
+        all.AddRange(await ClaimReceipts().Where(r => ids.Contains(r.OrderItemId))
+            .Select(r => new Subject(r.Id, OwedKind.ClaimReceipt, r.OrderItemId, null, default, null) { Quantity = r.Quantity, CreatedAt = r.CreatedAt, DefectClaimId = r.DefectClaimId })
             .ToListAsync(ct));
         return [.. all.OrderBy(s => s.CreatedAt).ThenBy(s => s.Id)];
     }
@@ -269,6 +287,7 @@ internal sealed partial class AfterSalesModule
         LateDeliveryTermination,
         Withdrawal,
         Receipt,
+        ClaimReceipt,
     }
 
     private sealed record Subject(Guid Id, OwedKind Kind, Guid OrderItemId, Guid? TransitionRecordId, DateOnly DeclarationDate, bool? IsDeliveredBeforeDeclaration)
@@ -279,5 +298,8 @@ internal sealed partial class AfterSalesModule
 
         /// <summary>The receipt's withdrawal (06 4.27); null on the other kinds.</summary>
         public Guid? WithdrawalId { get; init; }
+
+        /// <summary>The claim's goods receipt's claim (06 4.27; K-1629 (3)); null on the other kinds.</summary>
+        public Guid? DefectClaimId { get; init; }
     }
 }

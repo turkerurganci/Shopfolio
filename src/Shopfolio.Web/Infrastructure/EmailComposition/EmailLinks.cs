@@ -10,7 +10,7 @@ namespace Shopfolio.Infrastructure.EmailComposition;
 /// </summary>
 internal sealed class EmailLinks
 {
-    private const string ImagePrefix = "/gorsel/";
+    private const string ImagePrefix = Routing.AddressRules.ImageArea + "/";
 
     private readonly SiteAddress _site;
 

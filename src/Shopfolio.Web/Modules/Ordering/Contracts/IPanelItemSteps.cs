@@ -88,6 +88,13 @@ public interface IPanelItemSteps
     /// <summary>UC-138: the removal of an item or the reduction of its units; the confirmation only on the card line.</summary>
     Task<PanelItemStepResult> RemoveItemAsync(RemoveItemRequest request, CancellationToken ct);
 
+    /// <summary>
+    /// The money the card line's removal of <paramref name="quantity"/> units sends back now (03 1.6.1.5; K-797 "{tutar}"; D-1598): the record's amount by the removal writer's rule
+    /// (02 7.1.7) with the shipping fee when the removal meets the fee rule's trigger (02 7.2.9) - read without a lock for the confirmation window, writing nothing; the written
+    /// record works it out again under the lock. Null: no such order or item, the order's money did not come, or the units are not open.
+    /// </summary>
+    Task<decimal?> RemovalRefundAsync(Guid orderId, Guid orderItemId, int quantity, CancellationToken ct);
+
     /// <summary>UC-140: the receipt of returned goods - every receipt a record of its own; no refund starts.</summary>
     Task<PanelItemStepResult> ReceiveReturnAsync(PanelReturnArrival request, CancellationToken ct);
 

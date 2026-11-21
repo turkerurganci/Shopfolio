@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Security;
@@ -54,6 +55,7 @@ internal sealed class RevertModel : PageModel
         return Page();
     }
 
+    [OutcomeUncertain("UC-187")]
     public async Task<IActionResult> OnPostRevertPendingEmailChangeAsync(string key, CancellationToken ct)
     {
         Key = key;
@@ -84,11 +86,11 @@ internal sealed class RevertModel : PageModel
         if (outcome.Result.IsTaken)
         {
             Step = LandingStep.Rejected;
-            return FormResults.Redisplay(this);
+            return FormResults.Refused(this, ErrorCode.EmailTakenByOtherAccount);
         }
 
         Step = LandingStep.Invalid;
-        return Page();
+        return FormResults.LinkNoLongerValid(this);
     }
 
     private async Task SetNextStepAsync() => (NextPath, NextText) = await LandingNextStep.ResolveAsync(HttpContext);

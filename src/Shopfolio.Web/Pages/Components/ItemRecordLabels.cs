@@ -32,6 +32,12 @@ public sealed record ItemRecordEntry(ItemRecordName Name, int? Quantity, DateTim
 /// </summary>
 public static class ItemRecordLabels
 {
+    /// <summary>
+    /// The return rejection's line on the customer's item row (04 5.16.5; 02 7.4.9; K-657; D-1195): the rejection's one reason - the protective packaging was opened - and the goods'
+    /// way back to the order's delivery address at the firm's cost, in the words B-16 says them.
+    /// </summary>
+    public const string ReturnRejectionDetail = "Sebep: koruyucu ambalaj açılmış. Ürün, siparişteki teslimat adresinize firmamızın bedeliyle geri gönderilecektir.";
+
     /// <summary>The ten names in the document's order.</summary>
     public static IReadOnlyList<ItemRecordName> All { get; } = Enum.GetValues<ItemRecordName>();
 
@@ -86,7 +92,10 @@ public static class ItemRecordLabels
                 NameOf(r.Kind),
                 showsUnits ? r.Quantity : null,
                 r.At,
-                returnAddressText is not null && r.ReturnAddress is { } address ? returnAddressText(address) : null,
+                returnAddressText is null ? null
+                    : r.ReturnAddress is { } address ? returnAddressText(address)
+                    : r.Kind == Modules.AfterSales.Contracts.ItemRecordFactKind.ReturnRejection ? ReturnRejectionDetail
+                    : null,
                 returnAddressText is not null && r.ClaimStatus is { } status ? StatusBadges.For(status) : null,
                 warningOf?.Invoke(r))),
         ];

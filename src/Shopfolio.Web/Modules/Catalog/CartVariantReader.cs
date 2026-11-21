@@ -21,7 +21,7 @@ internal sealed class CartVariantReader
         _time = time;
     }
 
-    public async Task<IReadOnlyList<CartVariantFact>> ListAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct)
+    public async Task<IReadOnlyList<CartVariantFact>> ListAsync(IReadOnlyCollection<Guid> variantIds, IReadOnlyDictionary<Guid, int>? ownReservedUnits, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(variantIds);
         Guid[] ids = [.. variantIds.Distinct()];
@@ -60,7 +60,7 @@ internal sealed class CartVariantReader
             r.ProductSlug,
             r.ProductType,
             r.ProductStatus == PublishStatus.Published && r.VariantStatus == PublishStatus.Published,
-            StockRules.IsSoldOut(r.StockQuantity, r.ReservedQuantity),
+            StockRules.IsSoldOut(r.StockQuantity, StockRules.ReservedAgainst(r.ReservedQuantity, r.VariantId, ownReservedUnits)),
             DiscountRules.AppliedPrice(r.Price, running.TryGetValue(r.ProductId, out RunningDiscount? discount) ? discount.Terms : null, now)))];
     }
 }

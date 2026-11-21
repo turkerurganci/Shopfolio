@@ -748,6 +748,34 @@ public sealed class ProductFormPageTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task TwoAdministratorsOnTheSameProduct_TheSecondSaveIsWarned_AndTheFirstOnesValueStaysUntilTheOverwrite_VALA371_VALA372_D1167()
+    {
+        (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));
+        int opened = await VersionOfAsync(productId);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        // Both administrators opened the form at the same version; the first one saves through the screen.
+        using HttpResponseMessage first = await PostAsync(client, productId, "SaveProduct", await SaveFieldsAsync(productId, variants[0], name: "Birinci yönetici", version: opened));
+        using HttpResponseMessage second = await PostAsync(client, productId, "SaveProduct", await SaveFieldsAsync(productId, variants[0], name: "İkinci yönetici", version: opened));
+        string html = WebUtility.HtmlDecode(await second.Content.ReadAsStringAsync(Ct));
+
+        Assert.Equal(HttpStatusCode.SeeOther, first.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
+        Assert.Contains(ConflictControls.RecordMessage, html, StringComparison.Ordinal);
+        Assert.Contains(ConflictControls.OverwriteLabel, html, StringComparison.Ordinal);
+        Assert.Contains("value=\"İkinci yönetici\"", html, StringComparison.Ordinal);
+        Assert.Contains($"name=\"Input.Version\" type=\"hidden\" value=\"{(opened + 1).ToString(CultureInfo.InvariantCulture)}\"", html, StringComparison.Ordinal);
+        Assert.Equal("Birinci yönetici", await NameOfAsync(productId));
+        Assert.Equal(opened + 1, await VersionOfAsync(productId));
+
+        using HttpResponseMessage overwrite = await PostAsync(client, productId, "SaveProduct", await SaveFieldsAsync(productId, variants[0], name: "İkinci yönetici", version: opened + 1));
+
+        Assert.Equal(HttpStatusCode.SeeOther, overwrite.StatusCode);
+        Assert.Equal("İkinci yönetici", await NameOfAsync(productId));
+    }
+
+    [Fact]
     public async Task SaveProduct_AChangedShownStock_Is409BeforeTheReservedQuantitys422_AndTheResentFormIsRefusedBelowTheReservedQuantity_KK4_KK6()
     {
         (Guid productId, Guid[] variants) = await AddProductAsync("Kupa", PublishStatus.Draft, PublishStatus.Draft, (10m, 7));

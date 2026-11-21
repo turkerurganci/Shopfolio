@@ -320,7 +320,7 @@
 | T601b | Yük senaryosu ve kargo takip kalıplarının gerçek numarayla denemesi | ⬚ | — | — | — |
 | T602 | Güncelleme komutu: referanstan başlayıp sırayla, geride kalmış kurulumun ara sürümlerden geçişi, geri alma ve yedekten dönüş koşulu | ⬚ | — | — | — |
 | T603 | Gerçek sunucuya ilk iniş: ilk sürüm etiketi, açık imajlar, gerçek alan adı ve bulut deposu | ⛔ BLOCKED (OWNER_INPUT) | — | — | — |
-| T604 | F5 kapısından kalan kod kalemleri: ürün kodu düzeltmeleri, test aracı ve test gücü | ⏳ | U parçası UE (#595) ✓ PASS (tur 2); A (#594) ve UH (#596) açık | — | — |
+| T604 | F5 kapısından kalan kod kalemleri: ürün kodu düzeltmeleri, test aracı ve test gücü | ⏳ | U parçası UE (#595) ✓ PASS (tur 2); A parçası (#594) ✓ PASS (tur 3); UH (#596) açık | — | — |
 
 ---
 

@@ -299,6 +299,82 @@ public sealed partial class FormFieldEnforcementTests
         Assert.True(unknown.Length == 0, "Kinds without tokens: " + string.Join(", ", unknown));
     }
 
+    // D-1656 (code to row): a check that names a field and its error code in the code is held by a line of the tables - the row's check is not only the table's word.
+    [Fact]
+    public void EveryCodeCheck_OfAField_IsHeldByALineOfTheTable()
+    {
+        IReadOnlyList<string> problems = FormFieldCodeCalls.Problems(Sources.Value, FormFieldEnforcementTable.Lines, FormFieldCodeInventory.Unlisted);
+
+        Assert.True(problems.Count == 0, string.Join('\n', problems));
+    }
+
+    private static IReadOnlyList<string> CodeCheckProblems(string file, Func<string, string> change, IReadOnlyDictionary<string, string[]>? lines = null, IReadOnlyList<FormFieldCodeCall>? unlisted = null)
+    {
+        Dictionary<string, string> copy = new(Sources.Value, StringComparer.Ordinal) { [file] = change(Sources.Value[file]) };
+        Assert.NotEqual(Sources.Value[file], copy[file]);
+        return FormFieldCodeCalls.Problems(copy, lines ?? FormFieldEnforcementTable.Lines, unlisted ?? FormFieldCodeInventory.Unlisted);
+    }
+
+    // D-1656: a check added to a module, a handler or a page - a field and its error code in one expression - that no line of the table holds is reported; the two writings of a field (nameof, a literal) are both seen.
+    [Fact]
+    public void CodeCheck_AddedWithoutALineOfTheTable_IsReported()
+    {
+        IReadOnlyList<string> byName = CodeCheckProblems("Modules/Settings/FirmSettings.cs", s => s + "\nrejections.Add(new FieldRejection(nameof(HomepageInput.MenuNameProducts), FieldCodes.InvalidUrl));");
+        IReadOnlyList<string> byLiteral = CodeCheckProblems("Modules/Catalog/ProductSaves.cs", s => s + "\nerrors.Add(new ProductSaveFieldError(\"Options[0].Colour\", ErrorCode.FieldRequired));");
+        IReadOnlyList<string> byConstant = CodeCheckProblems("Modules/CorporateContent/ContactFormSending.cs", s => s + "\nfields.Add(ContactFormFields.Message, ErrorCode.InvalidEmail);");
+        IReadOnlyList<string> codeFirst = CodeCheckProblems("Pages/Panel/Coupons.cshtml.cs", s => s + "\nyield return FieldError.Result(FieldCodes.InvalidPhone, nameof(Percentage));");
+
+        Assert.Contains(byName, p => p.StartsWith("CodeCheckNotInTable: Modules/Settings/FirmSettings.cs: MenuNameProducts is checked with InvalidUrl", StringComparison.Ordinal));
+        Assert.Contains(byLiteral, p => p.StartsWith("CodeCheckNotInTable: Modules/Catalog/ProductSaves.cs: Options[0].Colour is checked with FieldRequired", StringComparison.Ordinal));
+        Assert.Contains(byConstant, p => p.StartsWith("CodeCheckNotInTable: Modules/CorporateContent/ContactFormSending.cs: Message is checked with InvalidEmail", StringComparison.Ordinal));
+        Assert.Contains(codeFirst, p => p.StartsWith("CodeCheckNotInTable: Pages/Panel/Coupons.cshtml.cs: Percentage is checked with InvalidPhone", StringComparison.Ordinal));
+    }
+
+    // D-1656: a check of the code changes its code (the end date of a coupon is now checked as a percentage) - the new pair is no line of the table; and a check of a field that a line holds, moved to the
+    // field of another row, is reported the same way.
+    [Fact]
+    public void CodeCheck_ChangedToAnotherCode_OrAnotherField_IsReported()
+    {
+        IReadOnlyList<string> code = CodeCheckProblems("Modules/Catalog/CouponRules.cs", s => s.Replace("nameof(CouponDefinition.EndDate), ErrorCode.InvalidDateRange", "nameof(CouponDefinition.EndDate), ErrorCode.InvalidPercentage", StringComparison.Ordinal));
+        IReadOnlyList<string> field = CodeCheckProblems("Modules/Catalog/CouponRules.cs", s => s.Replace("nameof(CouponDefinition.Code), ErrorCode.FieldRequired", "nameof(CouponDefinition.Kind), ErrorCode.FieldRequired", StringComparison.Ordinal));
+
+        Assert.Contains(code, p => p.StartsWith("CodeCheckNotInTable: Modules/Catalog/CouponRules.cs: EndDate is checked with InvalidPercentage", StringComparison.Ordinal));
+        Assert.Contains(field, p => p.StartsWith("CodeCheckNotInTable: Modules/Catalog/CouponRules.cs: Kind is checked with FieldRequired", StringComparison.Ordinal));
+    }
+
+    // D-1656: the table's line leaves (the row's check is no longer held by a line) - the check of the code is reported; the tables and the code are compared in both directions, so a line of the table
+    // that is not in the code is EnforcementNotInCode (the line held exactly once by its file).
+    [Fact]
+    public void LineOfTheTable_Removed_ReportsTheCheckOfTheCode()
+    {
+        Dictionary<string, string[]> lines = FormFieldEnforcementTable.Lines.ToDictionary(l => l.Key, l => l.Value.Where(x => !x.Contains("ErrorCode.InvalidDateRange)); }", StringComparison.Ordinal)).ToArray(), StringComparer.Ordinal);
+
+        IReadOnlyList<string> problems = FormFieldCodeCalls.Problems(Sources.Value, lines, FormFieldCodeInventory.Unlisted);
+
+        Assert.Contains(problems, p => p.StartsWith("CodeCheckNotInTable: Modules/Catalog/CouponRules.cs: EndDate is checked with InvalidDateRange", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void CodeCheckExemption_ThatIsNotInTheCode_OrIsHeldByALine_IsReported()
+    {
+        FormFieldCodeCall gone = new("Modules/Catalog/CouponRules.cs", "Kind", "InvalidEmail");
+        FormFieldCodeCall held = new("Modules/Catalog/CouponRules.cs", "EndDate", "InvalidDateRange");
+
+        IReadOnlyList<string> problems = FormFieldCodeCalls.Problems(Sources.Value, FormFieldEnforcementTable.Lines, [.. FormFieldCodeInventory.Unlisted, gone, held]);
+
+        Assert.Contains(problems, p => p.StartsWith("DeadExemption: Modules/Catalog/CouponRules.cs: Kind, InvalidEmail", StringComparison.Ordinal));
+        Assert.Contains(problems, p => p.StartsWith("ExemptAndHeld: Modules/Catalog/CouponRules.cs: EndDate, InvalidDateRange", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void CodeCheckExemptions_HaveAReason_AndTheScanSeesTheCodesOfTheKinds()
+    {
+        Assert.All(FormFieldCodeInventory.Exemptions, e => Assert.False(string.IsNullOrWhiteSpace(e.Reason)));
+        Assert.Equal(FormFieldCodeInventory.Exemptions.Count, FormFieldCodeInventory.Unlisted.Distinct().Count());
+        string[] codes = ["FieldRequired", "InvalidEmail", "InvalidPhone", "InvalidProvince", "InvalidListValue", "InvalidIban", "InvalidAmount", "InvalidPercentage", "InvalidQuantity", "InvalidDate", "InvalidDateRange", "InvalidUrl", "TextTooLong", "InvalidImage", "InvalidColor", "InvalidNetQuantity", "CheckboxNotAccepted", "PasswordTooWeak", "FilledFieldCleared"];
+        Assert.All(codes, c => Assert.Contains(c, FormFieldCodeCalls.Codes));
+    }
+
     private static IEnumerable<string> RuleMarksOf(string where)
     {
         string[] parts = where.Split('.');

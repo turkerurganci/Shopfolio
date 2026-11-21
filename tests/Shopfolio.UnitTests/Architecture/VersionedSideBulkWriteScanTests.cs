@@ -268,6 +268,8 @@ public sealed class VersionedSideBulkWriteScanTests
     [InlineData("await db.Database.SqlQuery<Guid>($\"SELECT id FROM orders FOR UPDATE\").ToListAsync(ct);")]
     [InlineData("await db.Database.ExecuteSqlAsync($\"UPDATE sessions SET x = 1\", ct);")]
     [InlineData("await db.Database.ExecuteSqlAsync($\"UPDATE order_items_view SET x = 1\", ct);")]
+    [InlineData("await db.CompanySettings.ExecuteUpdateAsync(s => s.SetProperty(x => x.MenuNameProducts, names.Products), ct);")]
+    [InlineData("await db.CompanySettings.ExecuteUpdateAsync(s => s.SetProperty(x => x.A, names.Products).SetProperty(x => x.B, names.Variants), ct);")]
     public void Scan_OfAReadOfTheSidesOrAWriteOfAnotherSet_IsQuietOutsideTheSideModules(string text)
     {
         Assert.Empty(VersionedSideBulkWriteScan.Scan(OtherModule, text));
@@ -276,16 +278,27 @@ public sealed class VersionedSideBulkWriteScanTests
     [Theory]
     [InlineData("MenuNames names; int w = await _db.CompanySettings.ExecuteUpdateAsync(set => set.SetProperty(s => s.MenuNameProducts, names.Products), ct);")]
     [InlineData("MenuNames Names; await _db.CompanySettings.ExecuteUpdateAsync(set => set.SetProperty(s => s.MenuNameProducts, request.Names.Products), ct);")]
+    [InlineData("MenuNames names; await CurrentStateWrite.ApplyAsync(db.CompanySettings.Where(s => s.Id == id), s => s.Version == 1, set => set.SetProperty(s => s.MenuNameProducts, names.Products), ct);")]
     public void Scan_OfAContractMemberNamedLikeASet_IsQuiet_D1329(string text)
     {
         Assert.Empty(VersionedSideBulkWriteScan.Scan(OtherModule, text));
     }
 
     [Theory]
-    [InlineData("await _db.CompanySettings.ExecuteUpdateAsync(set => set.SetProperty(s => s.MenuNameProducts, names.Products), ct);")]
     [InlineData("MenuNames names; await _db.Products.Where(p => p.Id == names.Id).ExecuteDeleteAsync(ct);")]
     [InlineData("MenuNames names; await db.Set<Product>().ExecuteDeleteAsync(ct); string n = names.Products;")]
+    [InlineData("await CurrentStateWrite.ApplyAsync(db.CompanySettings.Where(s => s.Id == id), s => s.Version == 1, set => set.SetProperty(s => s.MenuNameProducts, names.Products), ct);")]
     public void Scan_OfARealSetOrAnUndeclaredReceiver_StaysAFinding_D1329(string text)
+    {
+        Assert.Equal([(VersionedSideBulkWriteScan.NamedSetBulkWrite, 1)], VersionedSideBulkWriteScan.Scan(OtherModule, text));
+    }
+
+    [Theory]
+    [InlineData("await db.Products.Where(p => p.Id == id).ExecuteUpdateAsync(s => s.SetProperty(p => p.Name, names.Products), ct);")]
+    [InlineData("await db.Products.ExecuteDeleteAsync(ct);")]
+    [InlineData("await CurrentStateWrite.ApplyAsync(db.Products.Where(p => p.Id == id), p => p.Version == 1, s => s.SetProperty(p => p.Name, names.Products), ct);")]
+    [InlineData("await db.Set<Product>().Where(p => p.Id == id).ExecuteUpdateAsync(s => s.SetProperty(p => p.Name, \"x\"), ct);")]
+    public void Scan_OfASetThatRootsTheWrite_IsAFinding_EvenWhenAValueNamedLikeASetIsInIt_D1329(string text)
     {
         Assert.Equal([(VersionedSideBulkWriteScan.NamedSetBulkWrite, 1)], VersionedSideBulkWriteScan.Scan(OtherModule, text));
     }

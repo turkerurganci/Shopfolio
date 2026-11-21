@@ -96,6 +96,63 @@ public sealed class CardRefundJobTests : IAsyncLifetime
         Assert.False(await db.Jobs.AnyAsync(j => j.JobType == JobType.RefundOutcomeQuery, Ct));
     }
 
+    // ---- D-981, VAL-C090 / VAL-C091 (O4, O5): the payment turns to Refunded only when the whole money is back ----
+
+    [Fact]
+    public async Task TheWholeMoneyRefunded_TurnsPaidToRefunded_AndUntilTheRefundIsSentThePaymentStaysPaid_O4_VALC090()
+    {
+        (Order order, _, Job job) = await SeedAsync(120m);
+        PaymentStatus beforeTheSend;
+        await using (AppDbContext before = NewContext())
+        {
+            beforeTheSend = (await before.Orders.SingleAsync(o => o.Id == order.Id, Ct)).PaymentStatus;
+        }
+
+        Assert.Equal(JobOutcome.Completed, await RefundAsync(job));
+
+        await using AppDbContext db = NewContext();
+        Order after = await db.Orders.SingleAsync(o => o.Id == order.Id, Ct);
+        Assert.Equal(PaymentStatus.Paid, beforeTheSend);
+        Assert.Equal(PaymentStatus.Refunded, after.PaymentStatus);
+        Assert.Equal(order.Total, await db.Refunds.Where(r => r.OrderId == order.Id && r.SentAt != null).SumAsync(r => r.Amount, Ct));
+        Assert.Equal(TransitionCode.O4, (await db.TransitionRecords.Where(t => t.OrderId == order.Id).OrderByDescending(t => t.CreatedAt).Select(t => t.TransitionCode).ToListAsync(Ct)).First());
+    }
+
+    [Fact]
+    public async Task TheRemainingMoneyRefunded_TurnsPartiallyRefundedToRefunded_AndTheSentTotalEqualsThePaidAmount_O5_VALC091()
+    {
+        (Order order, _, Job first) = await SeedAsync(40m);
+        Assert.Equal(JobOutcome.Completed, await RefundAsync(first));
+        await using (AppDbContext middle = NewContext())
+        {
+            Assert.Equal(PaymentStatus.PartiallyRefunded, (await middle.Orders.SingleAsync(o => o.Id == order.Id, Ct)).PaymentStatus);
+        }
+
+        Guid itemId;
+        await using (AppDbContext reader = NewContext())
+        {
+            itemId = await reader.OrderItems.Where(i => i.OrderId == order.Id).Select(i => i.Id).SingleAsync(Ct);
+        }
+
+        Cancellation rest = Cancellation.ByBuyer(itemId, 2, Amounts, null, Now);
+        Refund remaining = Refund.BySystem(order.Id, RefundType.Cancellation, PaymentMethod.Card, 80m, Now);
+        remaining.CancellationId = rest.Id;
+        remaining.OrderItemId = itemId;
+        remaining.Quantity = 2;
+        await SaveAsync(c =>
+        {
+            c.Cancellations.Add(rest);
+            c.Refunds.Add(remaining);
+        });
+        Job second = await EnqueueAsync(JobType.CardRefund, remaining.Id);
+
+        Assert.Equal(JobOutcome.Completed, await RefundAsync(second));
+
+        await using AppDbContext db = NewContext();
+        Assert.Equal(PaymentStatus.Refunded, (await db.Orders.SingleAsync(o => o.Id == order.Id, Ct)).PaymentStatus);
+        Assert.Equal(order.Total, await db.Refunds.Where(r => r.OrderId == order.Id && r.SentAt != null).SumAsync(r => r.Amount, Ct));
+    }
+
     [Fact]
     public async Task RowSeenAgain_AfterItsRequest_SendsNoSecondRequest_KK4()
     {

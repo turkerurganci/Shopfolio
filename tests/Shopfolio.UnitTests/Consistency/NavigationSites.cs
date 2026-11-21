@@ -13,6 +13,9 @@ internal enum NavigationSiteKind
     Link,
     Redirect,
     EmptyExit,
+
+    /// <summary>The target of a form: the <c>action</c> of a <c>&lt;form&gt;</c>, a button's <c>formaction</c>, an <c>asp-page</c> of a form element (D-1626). A form that posts to a handler of its own screen is no site.</summary>
+    FormAction,
 }
 
 /// <summary>One place of the code that leads away: the file (relative to <c>src/Shopfolio.Web</c>), the kind and the expression of the address, whitespace collapsed.</summary>
@@ -25,6 +28,9 @@ internal sealed record NavigationSite(string File, NavigationSiteKind Kind, stri
 internal static partial class NavigationSites
 {
     private static readonly string[] SkippedFolders = ["bin", "obj", "Migrations"];
+
+    /// <summary>The query that names a handler of the screen a form is posted from (a form that carries it stays on its screen).</summary>
+    private const string HandlerMarker = "?handler=";
 
     /// <summary>The definitions of the redirect helpers are not call sites.</summary>
     private const string RedirectDefinitions = "Infrastructure/Forms/FormResults.cs";
@@ -60,6 +66,7 @@ internal static partial class NavigationSites
             if (file.EndsWith(".cshtml", StringComparison.Ordinal))
             {
                 sites.AddRange(Links(file, text));
+                sites.AddRange(FormActions(file, text));
             }
             else if (!string.Equals(file, RedirectDefinitions, StringComparison.Ordinal))
             {
@@ -122,6 +129,76 @@ internal static partial class NavigationSites
         }
     }
 
+    /// <summary>
+    /// The targets of the forms of a view (D-1626): the <c>action</c> of a form, the <c>formaction</c> of a button and the <c>asp-page</c> of a form element, as the expression of the address. A form that posts
+    /// to a handler of its own screen (<c>?handler=</c> after an address that is no literal path, or after a local whose definition in the same file carries it) stays on the screen and is no site; a
+    /// literal path before <c>?handler=</c> is another screen's handler and stays a site.
+    /// </summary>
+    private static IEnumerable<NavigationSite> FormActions(string file, string text)
+    {
+        string visible = RazorComment().Replace(text, string.Empty);
+        foreach (Match start in FormTarget().Matches(visible))
+        {
+            string value = Collapse(Value(visible, start.Index + start.Length, '"'));
+            if (value.Length == 0 || value.StartsWith('#') || PostsToOwnHandler(visible, value))
+            {
+                continue;
+            }
+
+            yield return new NavigationSite(file, NavigationSiteKind.FormAction, value);
+        }
+    }
+
+    private static bool PostsToOwnHandler(string visible, string value)
+    {
+        if (value.Contains(HandlerMarker, StringComparison.Ordinal))
+        {
+            return !value.StartsWith('/');
+        }
+
+        Match local = LeadingLocal().Match(value);
+        if (!local.Success)
+        {
+            return false;
+        }
+
+        string definition = "string " + local.Groups["name"].Value + " =";
+        int at = visible.IndexOf(definition, StringComparison.Ordinal);
+        if (at < 0)
+        {
+            return false;
+        }
+
+        int end = visible.IndexOf(';', at);
+        string defined = end < 0 ? visible[at..] : visible[at..end];
+        return defined.Contains(HandlerMarker, StringComparison.Ordinal) && !defined.Contains("= \"/", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// The screens that name where an uncertain outcome goes: each method <c>string OutcomeScreen() =&gt; ...;</c> of the web project, as the file and the body, whitespace collapsed (D-1636). The interface's
+    /// own declaration has no body and is none of them.
+    /// </summary>
+    public static IReadOnlyList<(string File, string Body)> OutcomeScreens(IReadOnlyDictionary<string, string> sources)
+    {
+        ArgumentNullException.ThrowIfNull(sources);
+        List<(string, string)> screens = [];
+        foreach ((string file, string text) in sources.Where(s => s.Key.EndsWith(".cs", StringComparison.Ordinal)).OrderBy(s => s.Key, StringComparer.Ordinal))
+        {
+            foreach (Match definition in OutcomeScreenDefinition().Matches(text))
+            {
+                int lineStart = text.LastIndexOf('\n', definition.Index) + 1;
+                if (text[lineStart..definition.Index].TrimStart().StartsWith("//", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                screens.Add((file, Collapse(StripLineComments(Value(text, definition.Index + definition.Length, ';')))));
+            }
+        }
+
+        return screens;
+    }
+
     private static IEnumerable<NavigationSite> Redirects(string file, string text)
     {
         foreach (Match call in RedirectCall().Matches(text))
@@ -135,7 +212,14 @@ internal static partial class NavigationSites
 
             // The helpers take the address first; the session handler's own Redirect takes the status and then the address, and its whole list is the key.
             bool wholeList = call.Groups["name"].Value == "Redirect";
-            string arguments = Value(text, call.Index + call.Length, ')', wholeList ? null : ',');
+            int at = call.Index + call.Length;
+            if (call.Groups["name"].Value == "WriteSeeOther")
+            {
+                // The one written straight on a response takes the response first, then the address (FormResults.WriteSeeOther; D-1626).
+                at += Value(text, at, ')', ',').Length + 1;
+            }
+
+            string arguments = Value(text, at, ')', wholeList ? null : ',');
             yield return new NavigationSite(file, NavigationSiteKind.Redirect, Collapse(StripLineComments(arguments)));
         }
     }
@@ -183,10 +267,19 @@ internal static partial class NavigationSites
     [GeneratedRegex(@"<a\b[^>]*?\bhref=""", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex AnchorHref();
 
+    [GeneratedRegex(@"<form\b(?:[^>""]|""[^""]*"")*?(?<![\w-])action=""|(?<![\w-])formaction=""|(?<![\w-])asp-page=""", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex FormTarget();
+
+    [GeneratedRegex(@"^@\(?(?<name>[A-Za-z_]\w*)\)?", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex LeadingLocal();
+
+    [GeneratedRegex(@"\bstring\s+OutcomeScreen\(\)\s*=>", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex OutcomeScreenDefinition();
+
     [GeneratedRegex(@"@\*.*?\*@", RegexOptions.CultureInvariant | RegexOptions.Singleline, matchTimeoutMilliseconds: 5000)]
     private static partial Regex RazorComment();
 
-    [GeneratedRegex(@"(?<![\w.])(?:FormResults\.(?<name>SeeOtherToGoogle|SeeOther)|(?<name>Redirect)|(?<name>RedirectToPage|LocalRedirect|RedirectPermanent|RedirectToRoute|RedirectToAction))\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    [GeneratedRegex(@"(?<![\w.])(?:FormResults\.(?<name>SeeOtherToGoogle|SeeOther|WriteSeeOther)|(?<name>Redirect)|(?<name>RedirectToPage|LocalRedirect|RedirectPermanent|RedirectToRoute|RedirectToAction))\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex RedirectCall();
 
     [GeneratedRegex(@"(?<![\w.])(?:EmptyStates\.(?:WithExit|WithFirstRecordButton)|new EmptyState(?:View)?)\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

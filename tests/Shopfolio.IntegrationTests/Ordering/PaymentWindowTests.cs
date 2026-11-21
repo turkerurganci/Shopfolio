@@ -346,6 +346,54 @@ public sealed partial class PaymentWindowTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task UnansweredFinalQuery_KeepsTheReservations_ShowsTheMarkOnThePanelRows_AndTheMarkGoesWithEitherAnswer_VALC088_D981()
+    {
+        Order toPay = await SeedOrderAsync(PaymentMethod.Card, Start.AddMinutes(-1));
+        Order toCancel = await SeedOrderAsync(PaymentMethod.Card, Start.AddMinutes(-1));
+        (Guid payVariant, _) = await SeedReservationAsync(toPay.Id, units: 1);
+        (Guid cancelVariant, _) = await SeedReservationAsync(toCancel.Id, units: 1);
+        FakePaymentGateway provider = new() { Outage = ExternalCallFailureKind.TimedOut };
+
+        Assert.Equal(JobOutcome.RescheduleAfter(JobTimings.FinalPaymentQueryInterval), await HandleAsync(provider, toPay.Id));
+        Assert.Equal(JobOutcome.RescheduleAfter(JobTimings.FinalPaymentQueryInterval), await HandleAsync(provider, toCancel.Id));
+
+        // The provider does not answer: Placed + Pending, the reservations hold, and both rows of the panel's list carry the mark.
+        await using AppDbContext reader = NewContext();
+        foreach (Guid id in new[] { toPay.Id, toCancel.Id })
+        {
+            Order waiting = await ReadOrderAsync(id);
+            Assert.Equal((OrderStatus.Placed, PaymentStatus.Pending), (waiting.OrderStatus, waiting.PaymentStatus));
+            Assert.True(await reader.StockReservations.AnyAsync(r => r.OrderId == id, Ct));
+        }
+
+        Assert.Equal(1, await reader.Variants.Where(v => v.Id == payVariant).Select(v => v.ReservedQuantity).SingleAsync(Ct));
+        Assert.Equal(1, await reader.Variants.Where(v => v.Id == cancelVariant).Select(v => v.ReservedQuantity).SingleAsync(Ct));
+        Assert.True((await ListMarksAsync(toPay.Id, toCancel.Id)).Values.All(m => m.PaymentResultMissing));
+
+        // The provider starts to answer: one order gets the success (Ö1), the other the "no payment" answer (S3 + Ö2); the mark goes from both and the reservations are settled.
+        provider.Outage = null;
+        provider.EnqueueQuery(new PaymentQueryResult.Paid("TX-C088-1", 120m, 120m, true, true, false));
+        provider.EnqueueQuery(new PaymentQueryResult.NoPayment());
+        Assert.Equal(JobOutcome.Completed, await HandleAsync(provider, toPay.Id));
+        Assert.Equal(JobOutcome.Completed, await HandleAsync(provider, toCancel.Id));
+
+        await using AppDbContext after = NewContext();
+        Order paid = await ReadOrderAsync(toPay.Id);
+        Order cancelled = await ReadOrderAsync(toCancel.Id);
+        Assert.Equal((OrderStatus.Preparing, PaymentStatus.Paid), (paid.OrderStatus, paid.PaymentStatus));
+        Assert.Equal((OrderStatus.Cancelled, PaymentStatus.Failed), (cancelled.OrderStatus, cancelled.PaymentStatus));
+        Assert.False(await after.StockReservations.AnyAsync(r => r.OrderId == toPay.Id || r.OrderId == toCancel.Id, Ct));
+        Assert.Equal(0, await after.Variants.Where(v => v.Id == cancelVariant).Select(v => v.ReservedQuantity).SingleAsync(Ct));
+        Assert.True((await ListMarksAsync(toPay.Id, toCancel.Id)).Values.All(m => !m.PaymentResultMissing));
+    }
+
+    private async Task<IReadOnlyDictionary<Guid, PanelOrderMarkFacts>> ListMarksAsync(params Guid[] ids)
+    {
+        await using AsyncServiceScope scope = _provider.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<IPanelOrderReader>().FindListMarksAsync(ids, Ct);
+    }
+
+    [Fact]
     public async Task FinalQuery_ForAnOrderNoLongerWaiting_AsksNothing_AndANoPaymentBeforeTheWindowsEnd_CancelsNothing()
     {
         Order paid = await SeedOrderAsync(PaymentMethod.Card, Start.AddMinutes(-1), OrderStatus.Preparing, PaymentStatus.Paid);

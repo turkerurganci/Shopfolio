@@ -72,6 +72,48 @@ public sealed class NoticeParameterSourceScanTests
     }
 
     [Fact]
+    public void OnTheUnquotedReadSample_TheHandlerParameter_TheBoundProperty_AndTheNameConstantRead_AreReported_AndTheNearFormsAreNot_D146()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = NoticeParameterSourceScan.Scan(AnyFile, Sample("NoticeUnquotedReads.cs"));
+
+        Assert.Equal(
+            [
+                (NoticeParameterSourceScan.BoundPropertyRule, 5),
+                (NoticeParameterSourceScan.HandlerParameterRule, 11),
+                (NoticeParameterSourceScan.HandlerParameterRule, 13),
+                (NoticeParameterSourceScan.NameConstantRule, 18),
+            ],
+            findings);
+    }
+
+    [Theory]
+    [InlineData("public void OnGet(string? notice);", NoticeParameterSourceScan.HandlerParameterRule)]
+    [InlineData("public void OnGet(string? Notice = null);", NoticeParameterSourceScan.HandlerParameterRule)]
+    [InlineData("public Task OnPostAsync(int id, string? notice);", NoticeParameterSourceScan.HandlerParameterRule)]
+    [InlineData("public Task OnGetPageAsync([FromQuery(Name = \"x\")] string? NOTICE, CancellationToken cancel);", NoticeParameterSourceScan.HandlerParameterRule)]
+    [InlineData("[BindProperty(SupportsGet = true)] public string? Notice { get; set; }", NoticeParameterSourceScan.BoundPropertyRule)]
+    [InlineData("[FromQuery] public string? Notice { get; set; }", NoticeParameterSourceScan.BoundPropertyRule)]
+    [InlineData("var raw = Request.Query[NoticeParameter.ParameterName];", NoticeParameterSourceScan.NameConstantRule)]
+    [InlineData("Request.Query.TryGetValue(NoticeParameter.ParameterName, out var v);", NoticeParameterSourceScan.NameConstantRule)]
+    public void EachUnquotedReadForm_IsOneFinding_D146(string text, string rule)
+    {
+        Assert.Equal([rule], Scan(text));
+    }
+
+    [Theory]
+    [InlineData("public void OnGet(string? noticeText);")]
+    [InlineData("public void OnGet(int id); var notice = Read();")]
+    [InlineData("public void Helper(string? notice);")]
+    [InlineData("public MessageView? Notice { get; private set; }")]
+    [InlineData("[BindProperty(SupportsGet = true)] public string? Sort { get; set; }")]
+    [InlineData("[BindProperty] public string? Notice { get; set; }")]
+    [InlineData("var closed = Request.Query.ContainsKey(NoticeParameter.ParameterName);")]
+    public void TheNearForms_AreNoFinding_D146(string text)
+    {
+        Assert.Empty(Scan(text));
+    }
+
+    [Fact]
     public void OnTheViewSample_TheTagHelperAndTheHrefFormsAreReported()
     {
         IReadOnlyList<(string Rule, int Line)> findings = NoticeParameterSourceScan.Scan("src/Shopfolio.Web/Pages/Misuse.cshtml", Sample("NoticeInAView.cshtml"));

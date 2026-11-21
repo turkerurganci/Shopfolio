@@ -468,6 +468,185 @@ public sealed partial class PanelAccessPagesTests : IAsyncLifetime
         Assert.Null(await db.AdminInvitations.Where(i => i.Email == invited).Select(i => i.AcceptedAt).SingleAsync(Ct));
     }
 
+    // ---- D-1289 (T604): the four behaviours of the access pages and VAL-A306, VAL-A308 on the page ----
+
+    private const string CommonPassword = "1234567890";
+
+    [Fact]
+    public async Task ACommonPassword_Is422_OnTheSettingAndOnTheAcceptance_AndNeitherLinkIsConsumed_D1289_KK6_KK8()
+    {
+        (_, Guid adminId) = await SeedAdminAsync();
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        LinkKeys keys = factory.Services.GetRequiredService<LinkKeys>();
+        string resetKey = await SeedLinkAsync(keys, adminId, Now.AddMinutes(30), null, null);
+        (string inviteKey, string invited) = await SeedInvitationAsync(keys, Now.AddHours(1), null);
+
+        (HttpStatusCode reset, string resetBody) = await PostBodyAsync(client, $"{ResetPath}/{resetKey}?handler=ResetPassword", [("Input.NewPassword", CommonPassword)]);
+        (HttpStatusCode accept, string acceptBody) = await PostBodyAsync(client, $"{InvitePath}/{inviteKey}?handler=AcceptAdminInvitation", [("Input.Name", "Yeni"), ("Input.Password", CommonPassword)]);
+
+        Assert.True(ProductConstants.PasswordMinLength <= CommonPassword.Length, "The refusal is the common list's, not the length's.");
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, reset);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, accept);
+        Assert.DoesNotContain($"value=\"{CommonPassword}\"", resetBody, StringComparison.Ordinal);
+        Assert.DoesNotContain($"value=\"{CommonPassword}\"", acceptBody, StringComparison.Ordinal);
+        await using AppDbContext db = NewContext();
+        Assert.Null(await db.LinkRecords.Where(l => l.AdminId == adminId).Select(l => l.UsedAt).SingleAsync(Ct));
+        Assert.Equal(StrongDigest.Value, await db.Admins.Where(a => a.Id == adminId).Select(a => a.PasswordHash).SingleAsync(Ct));
+        Assert.False(await db.Admins.AnyAsync(a => a.Email == invited, Ct));
+        Assert.Null(await db.AdminInvitations.Where(i => i.Email == invited).Select(i => i.AcceptedAt).SingleAsync(Ct));
+    }
+
+    [Fact]
+    public async Task TheSetting_WritesTheKnownBrowserMarkCookie_ForTheAccount_AndOpensNoSession_D1289_KK7()
+    {
+        (_, Guid adminId) = await SeedAdminAsync();
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string key = await SeedLinkAsync(factory.Services.GetRequiredService<LinkKeys>(), adminId, Now.AddMinutes(30), null, null);
+
+        (HttpStatusCode status, _, List<string> cookies) = await PostAsync(client, $"{ResetPath}/{key}?handler=ResetPassword", [("Input.NewPassword", Replacement)]);
+
+        Assert.Equal(HttpStatusCode.SeeOther, status);
+        string mark = Assert.Single(cookies, c => c.StartsWith(CookieNames.KnownDevice + "=", StringComparison.Ordinal));
+        Assert.Contains("httponly", mark, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("secure", mark, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(cookies, c => c.StartsWith(CookieNames.AdminSession + "=", StringComparison.Ordinal));
+        await using AppDbContext db = NewContext();
+        Assert.Equal(1, await db.RecognizedBrowserMarks.CountAsync(m => m.AdminId == adminId && m.MarkHash == SecretKey.Hash(CookieValue(cookies, CookieNames.KnownDevice)), Ct));
+        Assert.Equal(0, await db.Sessions.CountAsync(s => s.AdminId == adminId, Ct));
+    }
+
+    [Fact]
+    public async Task TheBlockedAttempt_IsInTheSignInRecordToo_TheAccountIsNotLocked_AndTheRightPasswordSignsInWhenTheWindowPassed_D1289_KK5()
+    {
+        (string email, Guid adminId) = await SeedAdminAsync();
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        for (int i = 0; i < ProductConstants.SignInAttemptsPerEmail; i++)
+        {
+            (HttpStatusCode refused, _) = await PostBodyAsync(client, $"{SignInPath}?handler=SignIn", Credentials(email, "not-the-password"));
+            Assert.Equal(HttpStatusCode.UnprocessableEntity, refused);
+        }
+
+        (HttpStatusCode limited, _) = await PostBodyAsync(client, $"{SignInPath}?handler=SignIn", Credentials(email, Strong));
+        await using (AppDbContext db = NewContext())
+        {
+            Assert.Equal(ProductConstants.SignInAttemptsPerEmail + 1, await db.LoginRecords.CountAsync(r => r.AccountType == AccountType.Admin && r.NormalizedEmail == email && r.Outcome == LoginOutcome.Failed, Ct));
+            Assert.Equal(0, await db.LoginRecords.CountAsync(r => r.AccountType == AccountType.Admin && r.NormalizedEmail == email && r.Outcome == LoginOutcome.Succeeded, Ct));
+            await db.Database.ExecuteSqlRawAsync("UPDATE attempt_records SET created_at = created_at - interval '2 hours'", Ct);
+        }
+
+        (HttpStatusCode after, _, List<string> cookies) = await PostAsync(client, $"{SignInPath}?handler=SignIn", Credentials(email, Strong));
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, limited);
+        Assert.Equal(HttpStatusCode.SeeOther, after);
+        Assert.Contains(cookies, c => c.StartsWith(CookieNames.AdminSession + "=", StringComparison.Ordinal));
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(1, await reader.Sessions.CountAsync(s => s.AdminId == adminId, Ct));
+    }
+
+    [Fact]
+    public async Task TheAdministratorsSignOut_EndsOnlyThePanelSession_AndLeavesTheStorefrontSessionAndItsCookieAlone_D1289_K899()
+    {
+        (string adminKey, Guid adminId) = await SeedSessionOfAdminAsync();
+        (string customerKey, Guid customerId) = await TestSessions.CustomerAsync(_database.Dsn);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (HttpStatusCode status, string? location, List<string> cookies) = await PostAsync(client, $"{PanelFramePaths.SignOut}?handler=SignOut", [], $"{CookieNames.AdminSession}={adminKey}", $"{CookieNames.Session}={customerKey}");
+
+        Assert.Equal(HttpStatusCode.SeeOther, status);
+        Assert.Equal(SignInPath, location);
+        string deleted = Assert.Single(cookies, c => c.StartsWith(CookieNames.AdminSession + "=", StringComparison.Ordinal));
+        Assert.Contains("expires=Thu, 01 Jan 1970", deleted, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(cookies, c => c.StartsWith(CookieNames.Session + "=", StringComparison.Ordinal));
+        await using AppDbContext db = NewContext();
+        Assert.Equal(0, await db.Sessions.CountAsync(s => s.AdminId == adminId, Ct));
+        Assert.Equal(1, await db.Sessions.CountAsync(s => s.CustomerId == customerId && s.TokenHash == SecretKey.Hash(customerKey), Ct));
+    }
+
+    [Fact]
+    public async Task ACustomersPassword_DoesNotOpenThePanel_AndAStorefrontSessionAloneIsSentToThePanelSignIn_VALA306_D1289()
+    {
+        (string adminEmail, Guid adminId) = await SeedAdminAsync();
+        (string customerKey, Guid customerId) = await TestSessions.CustomerAsync(_database.Dsn);
+        string customerEmail = await ScalarEmailOfCustomerAsync(customerId);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (HttpStatusCode asCustomer, string html) = await PostBodyAsync(client, $"{SignInPath}?handler=SignIn", Credentials(customerEmail, Strong));
+        (HttpStatusCode asAdmin, _, List<string> cookies) = await PostAsync(client, $"{SignInPath}?handler=SignIn", Credentials(adminEmail, Strong));
+        using HttpRequestMessage panel = new(HttpMethod.Get, "/panel");
+        panel.Headers.Add("Cookie", $"{CookieNames.Session}={customerKey}");
+        using HttpResponseMessage panelAnswer = await client.SendAsync(panel, Ct);
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, asCustomer);
+        Assert.Contains(PanelAccessTexts.InvalidCredentials, html, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.SeeOther, asAdmin);
+        Assert.Contains(cookies, c => c.StartsWith(CookieNames.AdminSession + "=", StringComparison.Ordinal));
+        Assert.True(panelAnswer.StatusCode is HttpStatusCode.Redirect or HttpStatusCode.SeeOther, $"{panelAnswer.StatusCode}");
+        Assert.StartsWith(SignInPath, panelAnswer.Headers.Location?.OriginalString, StringComparison.Ordinal);
+        await using AppDbContext db = NewContext();
+        Assert.Equal(0, await db.Sessions.CountAsync(s => s.CustomerId == customerId && s.AdminId != null, Ct));
+        Assert.Equal(1, await db.Sessions.CountAsync(s => s.AdminId == adminId, Ct));
+        Assert.Equal(1, await db.Customers.CountAsync(c => c.Email == customerEmail, Ct));
+        Assert.False(await db.Admins.AnyAsync(a => a.Email == customerEmail, Ct));
+    }
+
+    [Fact]
+    public async Task AnInvitationToACustomersAddress_OpensASeparateAdministratorAccount_AndTheCustomerRowIsUnchanged_VALA308_D1289()
+    {
+        (_, Guid customerId) = await TestSessions.CustomerAsync(_database.Dsn);
+        string customerEmail = await ScalarEmailOfCustomerAsync(customerId);
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        LinkKeys keys = factory.Services.GetRequiredService<LinkKeys>();
+        AdminInvitation invitation = AdminInvitation.Create(customerEmail, null, "Gonderen", Now.AddMinutes(-5));
+        LinkRecord link = LinkRecord.ForInvitation(keys, invitation.Id, Now.AddHours(1), Now.AddMinutes(-5));
+        await using (AppDbContext seed = NewContext())
+        {
+            seed.AdminInvitations.Add(invitation);
+            seed.LinkRecords.Add(link);
+            await seed.SaveChangesAsync(Ct);
+        }
+
+        string before = await DigestOfCustomerAsync(customerId);
+        (HttpStatusCode status, string? location, _) = await PostAsync(client, $"{InvitePath}/{keys.Derive(link.Id)}?handler=AcceptAdminInvitation", [("Input.Name", "Yeni Yönetici"), ("Input.Password", Strong)]);
+
+        Assert.Equal(HttpStatusCode.SeeOther, status);
+        Assert.StartsWith($"{SignInPath}?acceptedInvitation=", location, StringComparison.Ordinal);
+        await using AppDbContext db = NewContext();
+        Admin created = await db.Admins.AsNoTracking().SingleAsync(a => a.Email == customerEmail, Ct);
+        Assert.NotEqual(customerId, created.Id);
+        Assert.Equal(1, await db.Customers.CountAsync(c => c.Id == customerId && c.Email == customerEmail, Ct));
+        Assert.Equal(before, await DigestOfCustomerAsync(customerId));
+        Assert.Equal(0, await db.Orders.CountAsync(o => o.CustomerId == customerId, Ct));
+    }
+
+    private async Task<string> ScalarEmailOfCustomerAsync(Guid customerId)
+    {
+        await using AppDbContext db = NewContext();
+        string email = await db.Customers.Where(c => c.Id == customerId).Select(c => c.Email).SingleAsync(Ct);
+
+        // The seeded customer carries a placeholder digest: its password is the administrator's strong one for the check "the customer's password is not the panel's".
+        await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE customers SET password_hash = {StrongDigest.Value} WHERE id = {customerId}", Ct);
+        return email;
+    }
+
+    private async Task<string> DigestOfCustomerAsync(Guid customerId)
+    {
+        await using AppDbContext db = NewContext();
+        return await db.Customers.AsNoTracking().Where(c => c.Id == customerId).Select(c => c.PasswordHash ?? string.Empty).SingleAsync(Ct);
+    }
+
+    private async Task<(string Key, Guid AdminId)> SeedSessionOfAdminAsync()
+    {
+        (_, Guid adminId) = await SeedAdminAsync();
+        (string key, _) = await SeedSessionAsync(adminId);
+        return (key, adminId);
+    }
+
     // ---- helpers ----
 
     private static string RememberBoxOf(string html)

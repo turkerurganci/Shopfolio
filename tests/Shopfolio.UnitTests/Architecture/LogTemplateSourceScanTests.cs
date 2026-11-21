@@ -295,6 +295,95 @@ public sealed class LogTemplateSourceScanTests
         Assert.Empty(LogTemplateSourceScan.ScanTemplates(source));
     }
 
+    // --- T604 A3 (D-1005, D-1020): the forms a string scan cannot type ---
+
+    [Fact]
+    public void ScanTemplates_OnTheUntypedExceptionSample_ReportsTheExceptionFromAnotherFileAFreeVariableAConstantTemplateAndTheTemplatePlace()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = LogTemplateSourceScan.ScanTemplates(Sample("ExceptionArgumentsUntyped.cs"));
+
+        Assert.Equal(
+            [
+                (LogTemplateSourceScan.ExceptionAsArgument, 14),
+                (LogTemplateSourceScan.ExceptionAsArgument, 15),
+                (LogTemplateSourceScan.ExceptionAsArgument, 16),
+                (LogTemplateSourceScan.ExceptionAsArgument, 17),
+                (LogTemplateSourceScan.ExceptionAsArgument, 18),
+                (LogTemplateSourceScan.ExceptionAsArgument, 19),
+            ],
+            findings);
+    }
+
+    [Theory]
+    [InlineData("private const string T = \"{Event} {Detail}\"; Exception ex = Find(); _logger.LogWarning(T, e, ex);")]
+    [InlineData("var t = \"{Event} {Detail}\"; _logger.LogWarning(t, e, ex);")]
+    [InlineData("_logger.LogWarning(ex.Message);")]
+    [InlineData("_logger.LogWarning(ex.ToString(), e);")]
+    [InlineData("_logger.LogWarning(\"{Event} {Detail}\", e, _state.LastException);")]
+    [InlineData("var failure = task.Exception; _logger.LogWarning(\"{Event} {Detail}\", e, failure);")]
+    [InlineData("var failure = new IOException(\"x\"); _logger.LogWarning(\"{Event} {Detail}\", e, failure);")]
+    [InlineData("_logger.LogWarning(\"{Event} {Detail}\", e, _other.StartupEx);")]
+    public void ScanTemplates_AnExceptionNotTypedInTheFile_IsReported(string source)
+    {
+        Assert.Equal([(LogTemplateSourceScan.ExceptionAsArgument, 1)], LogTemplateSourceScan.ScanTemplates(source));
+    }
+
+    [Theory]
+    [InlineData("_logger.LogWarning(ex, T, e, id);")]
+    [InlineData("_logger.LogWarning(task.Exception, T, e);")]
+    [InlineData("_logger.LogWarning(_state.LastException, T);")]
+    [InlineData("_logger.LogWarning(exception: ex, message: T, args: [e]);")]
+    [InlineData("_logger.LogWarning(T, e, id);")]
+    [InlineData("_logger.LogWarning(\"{Event} {Type}\", e, nameof(SqlException));")]
+    [InlineData("_logger.LogWarning(\"{Event} {Type}\", e, typeof(SqlException).Name);")]
+    [InlineData("_logger.LogWarning(\"{Event} {Count}\", e, _state.ExceptionCount);")]
+    [InlineData("var count = items.Count; _logger.LogWarning(\"{Event} {Count}\", e, count);")]
+    public void ScanTemplates_TheSlotATypeNameOrANeutralValue_IsNotReported(string source)
+    {
+        Assert.Empty(LogTemplateSourceScan.ScanTemplates(source));
+    }
+
+    [Fact]
+    public void ScanTemplates_OnTheAnonymousScopeSample_ReportsTheMemberNamesAndTheVariableTemplateAndNotTheCleanOnes()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = LogTemplateSourceScan.ScanTemplates(Sample("AnonymousScopes.cs"));
+
+        Assert.Equal(
+            [
+                (LogTemplateSourceScan.ForbiddenTemplateName, 8),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 9),
+                (LogTemplateSourceScan.RequestFieldInATemplate, 10),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 12),
+                (LogTemplateSourceScan.ForbiddenTemplateName, 16),
+            ],
+            findings);
+    }
+
+    [Theory]
+    [InlineData("var s = _logger.BeginScope(new { Email = x });", "PersonalDataNameInALogTemplate")]
+    [InlineData("var s = _logger.BeginScope(new { Id = 1, order.PhoneNumber });", "PersonalDataNameInALogTemplate")]
+    [InlineData("var s = _logger.BeginScope(new { Inner = new { Address = x } });", "PersonalDataNameInALogTemplate")]
+    [InlineData("_logger.LogInformation(\"{Event} {@Data}\", e, new { Token = t });", "PersonalDataNameInALogTemplate")]
+    [InlineData("_logger.LogInformation(\"{Event} {@Data}\", e, new { Path = p });", "RequestFieldNameInALogTemplate")]
+    [InlineData("var t = \"{Event} {Email}\";", "PersonalDataNameInALogTemplate")]
+    [InlineData("static readonly string T = \"{Event} {Password}\";", "PersonalDataNameInALogTemplate")]
+    [InlineData("string T => \"{Event} {Iban}\";", "PersonalDataNameInALogTemplate")]
+    public void ScanTemplates_AnAnonymousMemberOrAVariableTemplate_NamingAForbiddenProperty_IsReported(string source, string rule)
+    {
+        Assert.Equal([(rule, 1)], LogTemplateSourceScan.ScanTemplates(source));
+    }
+
+    [Theory]
+    [InlineData("var s = _logger.BeginScope(new { OrderId = id, Total = 2 });")]
+    [InlineData("var holder = new { Email = x };")]
+    [InlineData("var route = \"/x/{key}\";")]
+    [InlineData("string label = \"{Count} {Email}\";")]
+    [InlineData("var items = new List<string> { \"a\" }; _logger.LogInformation(\"{Event}\", e);")]
+    public void ScanTemplates_ACleanAnonymousObjectOrAStringThatIsNoTemplate_IsNotReported(string source)
+    {
+        Assert.Empty(LogTemplateSourceScan.ScanTemplates(source));
+    }
+
     [Fact]
     public void ExampleCall_WritesTheInternalIdAndNotTheAddress()
     {

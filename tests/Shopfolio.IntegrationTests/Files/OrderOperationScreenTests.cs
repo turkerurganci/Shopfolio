@@ -8,6 +8,7 @@ using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Routing;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Web;
 using Shopfolio.Modules.AfterSales;
@@ -291,6 +292,54 @@ public sealed class OrderOperationScreenTests
         Assert.EndsWith(" " + ErrorCode.RefundIbanNotRequested, Assert.Single(RejectionLines(host).Skip(before)), StringComparison.Ordinal);
     }
 
+    // ---- D-1368, VAL-A693, UC-35: the member's root (/siparis/{number}) ----
+
+    [Fact]
+    public async Task UnderTheMembersRoot_AnotherAccountsOrderIs404_AndAnAnonymousRequestGoesToTheSignIn_OnTheScreens_AndOnTheIbanPost_D1368_VALA693()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (string number, Guid itemId, string ownerKey, Guid orderId) = await SeedMemberOrderAsync(host, PaymentStatus.Paid, 2);
+        (string strangerKey, _) = await TestSessions.CustomerAsync(host.Dsn);
+        string root = OrderRoutes.MemberPath(number);
+        string cancellation = OrderRoutes.ScreenPath(root, "iptal");
+        string termination = OrderRoutes.ScreenPath(root, "gecikme-feshi");
+        KeyValuePair<string, string>[] iban = [new(nameof(SaveRefundIbanInput.OrderItemId), itemId.ToString()), new(nameof(SaveRefundIbanInput.Iban), CorrectedIban)];
+
+        // The owner reaches the screens (the control: the same addresses are not closed to everyone).
+        using HttpResponseMessage ownerScreen = await SendAsync(host, HttpMethod.Get, cancellation, ownerKey, null);
+
+        foreach ((string path, string? handler) in new (string, string?)[] { (cancellation, null), (termination, null), (root, "SaveRefundIban") })
+        {
+            using HttpResponseMessage anonymous = await SendAsync(host, handler is null ? HttpMethod.Get : HttpMethod.Post, path, null, handler is null ? null : (handler, iban));
+            using HttpResponseMessage stranger = await SendAsync(host, handler is null ? HttpMethod.Get : HttpMethod.Post, path, strangerKey, handler is null ? null : (handler, iban));
+
+            // Both go to the sign-in: the screens' GET with 302, the IBAN post with 303; another account's order is the one 404 on all three.
+            Assert.Equal(handler is null ? HttpStatusCode.Found : HttpStatusCode.SeeOther, anonymous.StatusCode);
+            Assert.StartsWith("/giris", anonymous.Headers.Location!.OriginalString, StringComparison.Ordinal);
+            Assert.Equal(HttpStatusCode.NotFound, stranger.StatusCode);
+        }
+
+        Assert.Equal(HttpStatusCode.OK, ownerScreen.StatusCode);
+        await AssertNoCancellationAsync(host, orderId);
+    }
+
+    [Fact]
+    public async Task UnderTheMembersRoot_AClosedOperationOnTheMembersOwnOrder_Is303ToTheRootWithItsReason_OnTheScreenAndOnThePost_D1368_VALA693()
+    {
+        await using FileEndpointsHost host = new(_database.Dsn);
+        (string number, _, string ownerKey, _) = await SeedMemberOrderAsync(host, null, 2);
+        string root = OrderRoutes.MemberPath(number);
+        string termination = OrderRoutes.ScreenPath(root, "gecikme-feshi");
+
+        using HttpResponseMessage screen = await SendAsync(host, HttpMethod.Get, termination, ownerKey, null);
+        using HttpResponseMessage post = await SendAsync(
+            host, HttpMethod.Post, termination, ownerKey, ("SubmitLateDeliveryTermination", new KeyValuePair<string, string>[] { new("Confirmed", "true") }));
+
+        string closed = NoticeParameter.Address(root, NoticeCode.OperationClosed);
+        Assert.Equal((HttpStatusCode.SeeOther, closed), (screen.StatusCode, screen.Headers.Location!.OriginalString));
+        Assert.Equal((HttpStatusCode.SeeOther, closed), (post.StatusCode, post.Headers.Location!.OriginalString));
+    }
+
     // ---- D-1196: the order page's buttons open their screens ----
 
     [Fact]
@@ -331,6 +380,48 @@ public sealed class OrderOperationScreenTests
         }
 
         return (orderId, key, item.Id);
+    }
+
+    /// <summary>A signed-in member's order with one physical item of the given units; returns its number, the item and the member's session key.</summary>
+    private static async Task<(string Number, Guid ItemId, string SessionKey, Guid OrderId)> SeedMemberOrderAsync(FileEndpointsHost host, PaymentStatus? payment, int quantity)
+    {
+        DateTimeOffset now = host.Time.GetUtcNow();
+        string n = Guid.NewGuid().ToString("N")[..8];
+        (string sessionKey, Guid memberId) = await TestSessions.CustomerAsync(host.Dsn);
+        await using AppDbContext db = host.NewContext();
+        Product product = Product.Create("Kupa " + n, "kupa-" + n, ProductType.Physical, 20m, now).WithSeededOrigin();
+        Variant variant = Variant.Create(product.Id, "SKU-" + n, 10m, now, 5);
+        db.Products.Add(product);
+        db.Variants.Add(variant);
+        await db.SaveChangesAsync(Ct);
+        (Guid orderId, string number, _) = await TestSessions.OrderAsync(host.Dsn, memberId);
+        OrderItem item = OrderItem.Create(orderId, product.Id, variant.Id, ProductType.Physical, "Kupa " + n, quantity, 100m, 20m, 16.67m, now);
+        db.OrderItems.Add(item);
+        await db.SaveChangesAsync(Ct);
+        if (payment is { } paid)
+        {
+            await host.SetPaymentAsync(orderId, paid);
+        }
+
+        return (number, item.Id, sessionKey, orderId);
+    }
+
+    /// <summary>One request with the member session cookie when a key is given (the host's client holds none); a post carries the handler and its fields.</summary>
+    private static async Task<HttpResponseMessage> SendAsync(
+        FileEndpointsHost host, HttpMethod method, string path, string? sessionKey, (string Handler, KeyValuePair<string, string>[] Fields)? post)
+    {
+        using HttpRequestMessage request = new(method, At(post is { } p ? path + "?handler=" + p.Handler : path));
+        if (sessionKey is not null)
+        {
+            request.Headers.TryAddWithoutValidation("Cookie", $"{CookieNames.Session}={sessionKey}");
+        }
+
+        if (post is { } form)
+        {
+            request.Content = new FormUrlEncodedContent(form.Fields);
+        }
+
+        return await host.Client.SendAsync(request, Ct);
     }
 
     /// <summary>A second physical item of the given units on the order.</summary>

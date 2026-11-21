@@ -12,17 +12,36 @@ namespace Shopfolio.IntegrationTests.Browser;
 /// </summary>
 public sealed class AccessibilityScanTests(BrowserHost host) : BrowserTestBase(host)
 {
+    /// <summary>How many pages of one context are read at the same time.</summary>
+    internal const int PagesAtOnce = 6;
+
     /// <summary>The axe-core tags of the WCAG 2.x level A criteria; the list is the tool's own tag vocabulary (axe-core 4.x has no level A tag for 2.2).</summary>
     internal static readonly string[] LevelATags = ["wcag2a", "wcag21a"];
 
     /// <summary>The rules that run beside the tags: contrast (WCAG 1.4.3, level AA; the target of the product is AA, 02 3.34.5, VAL-A343).</summary>
     internal static readonly string[] ExtraRules = ["color-contrast"];
 
-    /// <summary>The option sets of the scan: the level A tags, then the contrast rule, nothing else (a best-practice rule is not a criterion). Two runs, because a tag run is exclusive.</summary>
-    internal static IEnumerable<AxeRunOptions> OptionSets()
+    /// <summary>The rule ids the tool itself runs for the level A tags (read once from a tag run of the tool, so a new tool version brings its own list); the scan runs these and <see cref="ExtraRules"/>, nothing else (a best-practice rule is not a criterion).</summary>
+    private static string[]? _levelARules;
+
+    /// <summary>
+    /// The option set of the scan: every rule of the level A tags and the contrast rule, in one run. A tag run is exclusive, so the contrast rule cannot join it by tag; the tag run's rules are named by id instead
+    /// (the list of that tag run), which gives one run, one injection of the tool's script and one reading of the page's style per screen instead of two (D-1736: the Firefox group's time).
+    /// </summary>
+    internal static async Task<AxeRunOptions> OptionSetAsync(IPage page)
     {
-        yield return new AxeRunOptions { RunOnly = new RunOnlyOptions { Type = "tag", Values = [.. LevelATags] } };
-        yield return new AxeRunOptions { RunOnly = new RunOnlyOptions { Type = "rule", Values = [.. ExtraRules] } };
+        string[]? ids = _levelARules;
+        if (ids is null)
+        {
+            // The first scan of the run is a tag run: the rules it ran (every rule the tool runs for the tags, whatever the page's answer: a violation, a pass, incomplete or not applicable) are the list. A tag run leaves out the
+            // rules the tool switches off by default and its experimental ones, which the tool's own rule list for the tags (getRules) would carry, so the list is read from a run, not from the rule catalogue.
+            AxeResult tagRun = await page.RunAxe(new AxeRunOptions { RunOnly = new RunOnlyOptions { Type = "tag", Values = [.. LevelATags] } });
+            ids = [.. tagRun.Violations.Concat(tagRun.Passes).Concat(tagRun.Incomplete).Concat(tagRun.Inapplicable).Select(r => r.Id).Distinct()];
+            Assert.NotEmpty(ids);
+            _levelARules = ids;
+        }
+
+        return new AxeRunOptions { RunOnly = new RunOnlyOptions { Type = "rule", Values = [.. ids, .. ExtraRules] } };
     }
 
     /// <summary>
@@ -89,27 +108,17 @@ public sealed class AccessibilityScanTests(BrowserHost host) : BrowserTestBase(h
     /// <summary>Runs the scan on the page as it is; in the scriptless way the tool's own script runs in the page's isolated evaluation and the page's script stays off.</summary>
     internal static async Task<(List<Finding> Violations, int Passed, List<string> Incomplete, string Version)> ScanAsync(IPage page)
     {
+        AxeResult result = await page.RunAxe(await OptionSetAsync(page));
         List<Finding> violations = [];
-        int passed = 0;
-        List<string> incomplete = [];
-        string version = "?";
-        foreach (AxeRunOptions options in OptionSets())
+        foreach (AxeResultItem item in result.Violations)
         {
-            AxeResult result = await page.RunAxe(options);
-            foreach (AxeResultItem item in result.Violations)
+            foreach (AxeResultNode node in item.Nodes)
             {
-                foreach (AxeResultNode node in item.Nodes)
-                {
-                    violations.Add(new Finding(item.Id, item.Impact ?? string.Empty, string.Join(' ', item.Tags.Where(t => t.StartsWith("wcag", StringComparison.Ordinal))), node.Target.ToString() ?? string.Empty, node.Html ?? string.Empty));
-                }
+                violations.Add(new Finding(item.Id, item.Impact ?? string.Empty, string.Join(' ', item.Tags.Where(t => t.StartsWith("wcag", StringComparison.Ordinal))), node.Target.ToString() ?? string.Empty, node.Html ?? string.Empty));
             }
-
-            passed += result.Passes.Length;
-            incomplete.AddRange(result.Incomplete.Select(i => i.Id));
-            version = result.TestEngine?.Version ?? version;
         }
 
-        return (violations, passed, incomplete, version);
+        return (violations, result.Passes.Length, [.. result.Incomplete.Select(i => i.Id)], result.TestEngine?.Version ?? "?");
     }
 
     [Theory]
@@ -120,29 +129,66 @@ public sealed class AccessibilityScanTests(BrowserHost host) : BrowserTestBase(h
         {
             await using IBrowserContext context = await AuditContextAsync(Host, engine, path, group.Key.Actor);
             await PrepareAsync(context, group);
-            foreach (ScreenInventoryTests.Stop stop in group)
+            // The stops of a context are read on pages of their own, a few at a time (D-1736: the time of the Firefox group); the first scan reads the rule list alone.
+            using SemaphoreSlim gate = new(PagesAtOnce);
+            await Task.WhenAll(group.Select(async stop =>
             {
-                WatchedPage page = await NewPageAsync(context);
-                await GoAsync(page, stop.Path);
-                List<Finding> violations;
-                int passed;
-                List<string> incomplete;
-                string version;
+                await gate.WaitAsync();
                 try
                 {
-                    (violations, passed, incomplete, version) = await ScanAsync(page.Page);
-                }
-                catch (PlaywrightException e)
-                {
-                    throw new InvalidOperationException($"{stop.Screen} {stop.State} ({stop.Path}) at {page.Page.Url}: {e.Message}", e);
-                }
+                    // A page that crashes under load is read once more (CrashRetry); the second crash, or any other tool error, ends the run with the stop named.
+                    await RetryOnCrashAsync($"{stop.Screen} {stop.Path}", async () =>
+                    {
+                        WatchedPage page = await NewPageAsync(context);
+                        await GoAsync(page, stop.Path);
+                        List<Finding> violations;
+                        int passed;
+                        List<string> incomplete;
+                        string version;
+                        try
+                        {
+                            (violations, passed, incomplete, version) = await ScanAsync(page.Page);
+                        }
+                        catch (PlaywrightException e) when (!CrashRetry.IsCrash(e))
+                        {
+                            throw new InvalidOperationException($"{stop.Screen} {stop.State} ({stop.Path}) at {page.Page.Url}: {e.Message}", e);
+                        }
 
-                string observed = $"axe-core {version}: {violations.Count} violations, {passed} rules passed, {incomplete.Count} incomplete" + (violations.Count > 0 ? ": " + string.Join(" / ", violations.Take(5).Select(v => $"{v.Rule} ({v.Criteria}) {v.Target}")) : string.Empty);
-                await ObserveAsync(stop.Screen, path, engine, page, "otomatik tarama: " + stop.State, "axe-core WCAG A kural kümesi: ihlal yok", observed, violations.Count == 0);
-                await page.Page.CloseAsync();
-            }
+                        string observed = $"axe-core {version}: {violations.Count} violations, {passed} rules passed, {incomplete.Count} incomplete" + (violations.Count > 0 ? ": " + string.Join(" / ", violations.Take(5).Select(v => $"{v.Rule} ({v.Criteria}) {v.Target}")) : string.Empty);
+                        await ObserveAsync(stop.Screen, path, engine, page, "otomatik tarama: " + stop.State, "axe-core WCAG A kural kümesi: ihlal yok", observed, violations.Count == 0);
+                        await page.Page.CloseAsync();
+                    });
+                }
+                finally
+                {
+                    gate.Release();
+                }
+            }));
         }
 
+        // The cells of the criteria record this cluster measures are checked when the run ends (BrowserHost.DisposeAsync): the scan of every screen, and the cross-screen criteria when this is the cluster that runs them.
+        RegisterCompleteness(Host, engine, path);
         Assert.Empty(Failures);
+    }
+
+    /// <summary>The screens of the pass in the order of the inventory, each once: the rows and the columns of the criteria record.</summary>
+    internal IReadOnlyList<string> ScreenList() => [.. AuditStops().Select(s => s.Screen).Distinct()];
+
+    /// <summary>
+    /// Registers the completeness check of the criteria record of this engine and way for the cluster of the run (D-1736 b; <see cref="AccessibilityCluster"/>): when the run ends the record is written once more from the whole run and every
+    /// part the cluster measures must have been measured. The audit class and the scan class both register it (a cluster has one of them), under the same name, so the check is one however the classes are combined.
+    /// </summary>
+    internal static void RegisterCompleteness(BrowserHost host, string engine, ScriptPath path)
+    {
+        string wayName = path == ScriptPath.Scripted ? "betikli" : "betiksiz";
+        string directory = host.Record.Directory;
+        IReadOnlyList<string> screens = new AccessibilityScanTests(host).ScreenList();
+        host.Record.AddCompletenessCheck(
+            $"{engine}/{wayName}",
+            all =>
+            {
+                (_, List<string> notMeasured) = AccessibilityAuditTests.WriteRecordOfCriteria(directory, engine, wayName, screens, all, host.Record.CrashRetries);
+                return notMeasured.Count == 0 ? null : $"{notMeasured.Count} not measured, e.g. " + string.Join(" / ", notMeasured.Take(6));
+            });
     }
 }

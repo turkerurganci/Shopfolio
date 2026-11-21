@@ -393,6 +393,8 @@ public sealed class ValidationStateTests(BrowserHost host) : BrowserTestBase(hos
         string after = await FingerprintAsync(form.Watch ?? form.Table);
         if (inspect is not null)
         {
+            // The answer was taken over at its commit (above); what the audit reads (the scan's contrast, the names, the visibility) depends on the page's style sheets, so they are waited for first (D-1746 a).
+            await WaitForStylesAsync(page);
             (bool inspectionOk, string inspection) = await inspect(page);
             return new Probe(form.Key, posts, summary, invalid, messages, after, before == after, inspection, inspectionOk, page);
         }

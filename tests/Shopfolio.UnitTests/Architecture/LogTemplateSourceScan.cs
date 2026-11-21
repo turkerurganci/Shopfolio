@@ -77,6 +77,22 @@ internal static partial class LogTemplateSourceScan
                 }
             }
 
+            if (site.Kind is LogCallKind.Log or LogCallKind.Scope)
+            {
+                // An anonymous object handed to a scope or destructured into a line writes its member names as property names (new { Email = x }; D-1005 form 3).
+                foreach ((string name, int line) in source.AnonymousMembers(site))
+                {
+                    if (IsPersonalDataName(name))
+                    {
+                        findings.Add((ForbiddenTemplateName, line));
+                    }
+                    else if (IsRequestFieldName(name))
+                    {
+                        findings.Add((RequestFieldInATemplate, line));
+                    }
+                }
+            }
+
             if (site.Kind == LogCallKind.Log)
             {
                 findings.AddRange(ExceptionArguments(source, site));
@@ -104,8 +120,11 @@ internal static partial class LogTemplateSourceScan
     // An exception handed to the template as an argument writes its whole text (ToString() and Message carry the message): the arguments after the
     // template that name an exception (a variable declared with an exception type, the usual names, .InnerException) are a finding. The exception
     // slot before the template is the right place and is not read.
+    // The template is the first literal argument. When no argument is a literal (the template is kept in a constant or a variable, D-1020) it is the
+    // first argument that is not the exception slot; the template place holding an exception or its text (`LogWarning(ex.Message)`) is a finding too.
     private static IEnumerable<(string Rule, int Line)> ExceptionArguments(LogSourceText source, LogCallSite site)
     {
+        HashSet<string> names = ExceptionNames(source.Code);
         int template = -1;
         for (int i = 0; i < site.Arguments.Count; i++)
         {
@@ -118,19 +137,44 @@ internal static partial class LogTemplateSourceScan
 
         if (template < 0)
         {
-            yield break;
+            template = site.Arguments.Count > 1 && IsExceptionSlot(source.ArgumentCode(site.Arguments[0]), names) ? 1 : 0;
+            if (template >= site.Arguments.Count)
+            {
+                yield break;
+            }
+
+            string templateArgument = source.ArgumentCode(site.Arguments[template]);
+            if (!IsExceptionSlot(templateArgument, names) && NamesAnException(templateArgument, names))
+            {
+                yield return (ExceptionAsArgument, source.LineOf(site.Arguments[template].Start + (templateArgument.Length - templateArgument.TrimStart().Length)));
+            }
         }
 
-        HashSet<string> names = ExceptionNames(source.Code);
         for (int i = template + 1; i < site.Arguments.Count; i++)
         {
             string argument = source.ArgumentCode(site.Arguments[i]);
-            if (names.Any(name => Regex.IsMatch(argument, @"(?<![\w.])" + Regex.Escape(name) + @"\b", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)))
-                || ExceptionMember().IsMatch(argument))
+            if (NamesAnException(argument, names))
             {
                 yield return (ExceptionAsArgument, source.LineOf(site.Arguments[i].Start + (argument.Length - argument.TrimStart().Length)));
             }
         }
+    }
+
+    private static bool NamesAnException(string argument, HashSet<string> names)
+    {
+        // nameof(SqlException) and typeof(SqlException) name a type, not an exception value.
+        string value = TypeName().Replace(argument, string.Empty);
+        return names.Any(name => Regex.IsMatch(value, @"(?<![\w.])" + Regex.Escape(name) + @"\b", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)))
+            || ExceptionMember().IsMatch(value)
+            || ExceptionShapedName().IsMatch(value);
+    }
+
+    // The exception slot of a call: the whole argument is an exception (a name, a member that is one, a call that returns one), or it is named "exception".
+    private static bool IsExceptionSlot(string argument, HashSet<string> names)
+    {
+        string trimmed = argument.Trim();
+        return NamedExceptionArgument().IsMatch(trimmed)
+            || Regex.IsMatch(trimmed, @"^(?:[\w?]+\s*\??\.\s*)*(?:" + string.Join('|', names.Select(Regex.Escape)) + @"|\w*Exception|\w*[a-z]Ex|InnerException)\s*(?:\(\s*\))?$", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5));
     }
 
     // [LoggerMessage] methods: an Exception parameter is the exception of the line unless the template names it, then it is an argument.
@@ -167,6 +211,15 @@ internal static partial class LogTemplateSourceScan
             names.Add(match.Groups["n"].Value);
         }
 
+        // A variable taken from an exception-returning expression (`var failure = task.Exception;`, `var e = new IOException();`): the type is not written (D-1005 form 1).
+        foreach (Match match in VarFromException().Matches(code))
+        {
+            if (ExceptionWord().IsMatch(match.Groups["init"].Value))
+            {
+                names.Add(match.Groups["n"].Value);
+            }
+        }
+
         return names;
     }
 
@@ -186,6 +239,25 @@ internal static partial class LogTemplateSourceScan
     // result.Exception, e.InnerException, args.Exception
     [GeneratedRegex(@"\.\s*(?:Inner)?Exception\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex ExceptionMember();
+
+    // var failure = <expression up to the semicolon>
+    [GeneratedRegex(@"\bvar\s+(?<n>[A-Za-z_]\w*)\s*=(?!=)(?<init>[^;]*)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex VarFromException();
+
+    // An expression that is or yields an exception: a type or member named ...Exception (not nameof/typeof), GetBaseException().
+    [GeneratedRegex(@"(?<!nameof\()(?<!typeof\()\b\w*Exception\b|\bGetBaseException\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex ExceptionWord();
+
+    // A field or property of another file is told by its name: ...Exception or ...Ex (_lastException, FirstEx), not a type (new/typeof/nameof) and not a method call.
+    [GeneratedRegex(@"(?<!\w)(?<!new\s)(?<!<)_?[A-Za-z]\w*(?:Exception|[a-z]Ex)\b(?!\s*[(<])", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex ExceptionShapedName();
+
+    [GeneratedRegex(@"\b(?:nameof|typeof)\s*\([^()]*\)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex TypeName();
+
+    // exception: ex
+    [GeneratedRegex(@"^exception\s*:", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex NamedExceptionArgument();
 
     // The connection string keyword has two spellings; the switch is a method name.
     [GeneratedRegex(@"EnableSensitiveDataLogging|Include\s*Error\s*Detail", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 5000)]

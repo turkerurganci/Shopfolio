@@ -245,6 +245,49 @@ public sealed partial class DataExportTests
         Assert.Equal(0, await TrailCountAsync());
     }
 
+    // ---- D-1424 (a), VAL-A271: no file without a panel session ----
+
+    [Theory]
+    [InlineData("anonymous")]
+    [InlineData("customer")]
+    public async Task TheScreenAndTheThreeDownloads_GiveNoFileAndWriteNoRow_ToAnAnonymousRequest_OrToACustomerSession_D1424_VALA271(string caller)
+    {
+        await SeedAsync(CreatedOn(-3), PaymentMethod.Card, "Paid", (_shirt, 1, 0m));
+        await using WebApplicationFactory<Program> factory = OpenPages();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        if (caller == "customer")
+        {
+            (string key, _) = await TestSessions.CustomerAsync(_collection.Dsn);
+            client.DefaultRequestHeaders.Add(HeaderNames.Cookie, $"{CookieNames.Session}={key}");
+        }
+
+        string start = Day(Today.AddDays(-5));
+        string end = Day(Today);
+        List<HttpResponseMessage> answers =
+        [
+            await client.GetAsync(new Uri(ExportPath, UriKind.Relative), Ct),
+            await client.PostAsync(OrdersAddress, Range(start, end), Ct),
+            await client.PostAsync(new Uri(ExportPath + "?handler=ExportCustomers", UriKind.Relative), new FormUrlEncodedContent([]), Ct),
+            await client.PostAsync(new Uri(ExportPath + "?handler=ExportContactRequests", UriKind.Relative), new FormUrlEncodedContent([]), Ct),
+        ];
+
+        try
+        {
+            Assert.All(answers, a => Assert.NotEqual(HttpStatusCode.OK, a.StatusCode));
+            Assert.All(answers, a => Assert.NotEqual("text/csv", a.Content.Headers.ContentType?.MediaType));
+            Assert.All(answers, a => Assert.Null(a.Content.Headers.ContentDisposition));
+            Assert.Empty(Directory.EnumerateFiles(_directory));
+            Assert.Equal(0, await TrailCountAsync());
+        }
+        finally
+        {
+            foreach (HttpResponseMessage answer in answers)
+            {
+                answer.Dispose();
+            }
+        }
+    }
+
     private static Uri OrdersAddress => new(ExportPath + "?handler=ExportOrders", UriKind.Relative);
 
     private static string DayOf(string name) => name switch

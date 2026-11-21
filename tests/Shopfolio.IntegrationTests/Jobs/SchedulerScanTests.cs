@@ -158,6 +158,43 @@ public sealed class SchedulerScanTests : SchedulerTestBase
         Assert.Equal([cancel], waiting.Processed);
     }
 
+    // ---- D-697, VAL-C109 (the one-minute gap is no outage) and VAL-A827 (the last moment of the first two minutes is not deferred) ----
+
+    [Fact]
+    public async Task Scan_AHeartbeatOneMinuteOld_IsNoOutage_TheCancellationWhoseMomentFellInTheGapIsProcessedAtOnce_NotDeferred_VALC109()
+    {
+        ScriptedSource waiting = new("Cancellation", waitsForFreshHeartbeat: true);
+        Guid fellInTheGap = Guid.NewGuid();
+        waiting.Add(fellInTheGap, Now - TimeSpan.FromSeconds(30));
+        await using SchedulerHarness harness = NewHarness([waiting]);
+        await harness.SetHeartbeatAsync(Now - TimeSpan.FromMinutes(1), Now);
+
+        await harness.Scan.RunAsync(Ct);
+
+        // One minute is under the outage threshold: the source ran in this very wake-up, the order's cancellation is not put off to a later one.
+        Assert.True(TimeSpan.FromMinutes(1) < SchedulerTimings.OutageThreshold, "the gap of the row is shorter than the threshold");
+        Assert.Equal(1, waiting.FindCalls);
+        Assert.Equal([fellInTheGap], waiting.Processed);
+    }
+
+    [Theory]
+    [InlineData(119, 119)]
+    [InlineData(120, 90)]
+    [InlineData(61, 1)]
+    public async Task Scan_AMomentInTheFirstTwoMinutesOfAnOutage_IsNotDeferred_TheHeartbeatWithinTheThresholdStillOpensTheSource_VALA827(int heartbeatAgeSeconds, int momentAgeSeconds)
+    {
+        ScriptedSource waiting = new("Cancellation", waitsForFreshHeartbeat: true);
+        Guid moment = Guid.NewGuid();
+        waiting.Add(moment, Now - TimeSpan.FromSeconds(momentAgeSeconds));
+        await using SchedulerHarness harness = NewHarness([waiting]);
+        await harness.SetHeartbeatAsync(Now - TimeSpan.FromSeconds(heartbeatAgeSeconds), Now);
+
+        await harness.Scan.RunAsync(Ct);
+
+        // The remaining risk 05 5.2.9 names: while the last beat is no older than two minutes the source runs, so a moment that fell in those first two minutes is processed, not held back.
+        Assert.Equal([moment], waiting.Processed);
+    }
+
     [Fact]
     public async Task Scan_WithNoHeartbeatAtAll_HoldsBackTheSourceThatWaitsForOne()
     {

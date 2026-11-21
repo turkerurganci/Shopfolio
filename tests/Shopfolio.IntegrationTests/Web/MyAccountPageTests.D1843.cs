@@ -11,8 +11,8 @@ namespace Shopfolio.IntegrationTests.Web;
 
 /// <summary>
 /// T604 D-1843 (07 2.5.4; 04 2.7.3.1; 05 6.1.5): the forgery check's 400 on the account page and on the reauthentication page shows what the GET shows through the one hook
-/// (<see cref="IReadsOnForgeryRefusal"/>). The single-use value is checked, never used; the permission follows the page's own rule (05 6.1.5): the account page shown with the operation's form
-/// keeps it, shown without it drops it (as its GET and its 422), and the reauthentication screen's refused POST leaves the earlier one (its GET's drop is not made).
+/// (<see cref="IReadsOnForgeryRefusal"/>). The single-use value is checked, never used, and the permission stays as it was: the account page shown with or without the operation's form keeps it
+/// (its GET's and its 422's drop is a write the refusal does not make), and the reauthentication screen's refused POST leaves the earlier one (its GET's drop is not made either).
 /// </summary>
 public sealed partial class MyAccountPageTests
 {
@@ -47,7 +47,7 @@ public sealed partial class MyAccountPageTests
         Assert.Equal(before, await PasswordHashOfAsync(adminId));
         await using AppDbContext after = NewContext();
         Assert.Equal("Test yonetici", await after.Admins.Where(a => a.Id == adminId).Select(a => a.Name).SingleAsync(Ct));
-        Assert.Null((await after.Sessions.AsNoTracking().SingleAsync(s => s.Id == sessionId, Ct)).ReauthenticationTokenHash);
+        Assert.NotNull((await after.Sessions.AsNoTracking().SingleAsync(s => s.Id == sessionId, Ct)).ReauthenticationTokenHash);
     }
 
     [Fact]

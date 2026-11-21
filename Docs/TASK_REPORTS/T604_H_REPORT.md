@@ -157,6 +157,57 @@ Envanter: `ForgeryRefusalReadInventoryTests.WaitingPages` bu 10 satırı çıkar
 - PasswordReset ayar adımı ret yolunda var olan 422 yolunun `LoadStepAsync`'ini kullanır; bu yöntem "tamamlandı" sonuç kodunu sorgudan okur — yalnız kullanılmış bağlantının ifadesini seçer, yazmaz; 422 ile aynı davranış korundu.
 - `OwnReadPages` istisnası sayfanın sarmalayıcıyı bildirmesine bakar; 400 davranışının kanıtı her sayfanın Integration testidir (D-1864, DÜŞÜK).
 
+### Düzeltme 1 — D-1843 (P): panel sayfaları (2026-11-21)
+
+Bölüşüm: yönetici; bu dilim `WaitingPages`'in Panel satırındaki 13 sayfayı aldı. Kural S diliminin kuralıdır: 400 yalnız okur — tek kullanımlık değer tüketilmez, izin düşürülmez ya da harcanmaz, sorgu değeri okunmaz. Bütün 13 sayfa ortak kancayı (`IReadsOnForgeryRefusal`) uygular: sayfanın kendi filtresi işleyicinin bağlamını saklar, kanca sayfanın 422 yolunun okumasını (yoldaki anahtar + gönderilen değerler) çağırır. Yoldaki anahtar kayıt değilse 400 yerine GET ve 422'nin 404'ü döner (önceden görünüm boş kayıtla çizilir ya da 500 verirdi). Eylem mesajı ortak `_ForgeryRefusalMessage` parçasıyla sayfanın başında, kimliğiyle (D-1844 payı).
+
+| Sayfa | Ne okunur / ne okunmaz | Kırmızı | Yeşil (Integration) |
+|---|---|---|---|
+| Panel/OrderDetail | yoldaki siparişin tamamı (422'nin `LoadAsync`'i); yabancı anahtar 404 | ✓ (M1, M2, M3) | `OrderDetailPageTests.TheForgeryRefusal_…_D1843` |
+| Panel/ProductForm | yoldaki kayıt + gönderilen form, sayfa listeleri; yabancı anahtar 404 | ✓ (M1, M2, M3) | `ProductFormPageTests.TheForgeryRefusal_…_D1843` |
+| Panel/ContentForm | yoldaki tür ve kayıt + gönderilen form + bağlı ürünler; yabancı anahtar 404 | ✓ (M1, M2, M3) | `ContentPanelPageTests.TheForgeryRefusal_…_D1843` |
+| Panel/RequestDetail | yoldaki talep; sorgudaki kısa ömürlü bildirim okunmaz; yabancı anahtar 404 (önceden 500) | ✓ (M1, M2, M3) | `RequestsPageTests.TheForgeryRefusal_…_D1843` |
+| Panel/Coupons | liste ilk sayfa + adresin kuponu, gönderilen değerler formda; yok olan kupon önceden 404 | ✓ (M1, M2) | `CouponsPageTests.TheForgeryRefusal_…_D1843` |
+| Panel/Members | formun taşıdığı e-postanın kaydı (422'nin okuması); silme yok | ✓ (M1, M2) | `MemberRecordPageTests.TheForgeryRefusal_…_D1843` |
+| Panel/MyAccount | hesap + gönderilen değerler; yeniden doğrulama değeri yalnız denetlenir; izin düşürülmez (`ReadOwnAccountKeepingPermissionAsync`, modülün yeni salt okur yolu) | ✓ (M1, M2, M4) | `MyAccountPageTests.TheForgeryRefusal_OfTheAccountPage_…_D1843` |
+| Panel/Reauth | gönderilen işlemin formu; GET'in izin düşürmesi (yazma) yapılmaz | ✓ (M1, M2) | `MyAccountPageTests.TheForgeryRefusal_OfTheReauthentication_…_D1843` |
+| Panel/SignIn | gönderilen adres, yalnız yerel dönüş yolu; davetin sorgu değeri okunmaz; oturum açılmaz | ✓ (M1, M2) | `PanelAccessPagesTests.TheForgeryRefusal_OfTheSignIn_…_D1843` |
+| Panel/Reset | istek adımında gönderilen adres, ayar adımında bağlantı yalnız okunur (tüketim yok) | ✓ (M1, M2) | `PanelAccessPagesTests.TheForgeryRefusal_OfTheResetAndTheInvitation_…_D1843` |
+| Panel/Invite | davet bağlantısı yalnız okunur, gönderilen ad; hesap açılmaz | ✓ (M1, M2) | aynı test |
+| Panel/Verify | yoldaki bağlantı yalnız okunur; sonuç kodu sorgudan okunmaz (kullanılmış bağlantı geçersiz hâli) | ✓ (M1, M2) | `PanelHomeAndVerificationPagesTests.TheForgeryRefusal_…_D1843` |
+| Panel/Revert | yoldaki geri alma bağlantısı yalnız okunur; sonuç kodu okunmaz | ✓ (M1, M2) | aynı test |
+
+Kırmızı–yeşil değişinimleri: **M1** filtrenin kanca çağrısı kapatıldı → 11/11 kırmızı (yeniden doğrulama testi ilk koşuda varsayılan işlem değeriyle yeşil kaldı; test öteki işlemle yeniden kuruldu, sonra kırmızı); **M2** mesaj parçası çizmez → 11/11 kırmızı; **M3** 400→404 değişimi kapatıldı → 4/4 kırmızı (RequestDetail 500); **M4** hesap sayfası izni düşüren okumaya döndü → 1/1 kırmızı (izin silindi). Geri alınınca 11/11 yeşil.
+
+Envanter: birleştirmeden sonra `WaitingPages` boş (S ve P birlikte 23 sayfa); kanca listesi 18 sayfa. Ortak test yardımcısı `ForgedPosts` (Integration); `CouponsPageTests`, `ContentPanelPageTests`, `ProductFormPageTests` `partial` oldu.
+
+| Koşu | Sonuç |
+|---|---|
+| Derleme `-warnaserror` (Web, Unit, Integration) | ✓ 0 uyarı |
+| Unit TAM | ✓ 8325/8325 (birleştirmeden sonra) |
+| Integration (ilgili sınıflar, TAM: CI) | ✓ 150/150 (MyAccountPageTests, PanelAccessPagesTests, PanelHomeAndVerificationPagesTests, CouponsPageTests, MemberRecordPageTests, RequestsPageTests, ForgeryProtectionTests) · ✓ 203/203 (OrderDetailPageTests, ProductFormPageTests, ContentPanelPageTests, CategoriesPageTests, AdminAccountsPageTests) · son değişiklikten sonra MyAccountPageTests ✓ 20/20 |
+| `dotnet format` (dalın değiştirdiği `.cs`) | ✓ değişiklik yok |
+
+**Öz denetim (bu dilimin satırları; UH'nin tam tablosu PR'ı bitiren son işçide):**
+
+| Madde | Durum | Kanıt |
+|---|---|---|
+| D-1843 — 13 panel sayfası (P payı) | ✓ | yukarıdaki tablo; `WaitingPages` boş |
+| D-1844 payı — eylem mesajı bu 13 sayfada | ✓ | her testte mesaj; bağlantı sayfalarında kimliğiyle |
+| Tek kullanımlık değer tüketilmez (sıfırlama, davet, doğrulama, geri alma bağlantısı; yeniden doğrulama değeri) | ✓ | testlerde `UsedAt` boş, `ReauthenticationTokenHash` duruyor |
+| Ret yolu yazmaz (oturum, hesap, gönderim satırı, sipariş, ürün, kupon, içerik, talep, üye) | ✓ | testlerin DB denetimleri |
+| İzin düşürülmez (hesap sayfası, yeniden doğrulama ekranı) | ✓ | M4; yeniden doğrulama testinde izin ve işlemi duruyor |
+| Sorgu değeri ret yolunda okunmaz | ✓ | kanca yalnız yol değeri ve işleyici argümanını okur (Reset ⚠) |
+| Yabancı anahtar 404 (GET ve 422 ile aynı) | ✓ | M3 |
+| Envanter kapalı liste yalnız kısalır | ✓ | `ForgeryRefusalReadInventoryTests` (3 test ✓) |
+| Kural sayısını anan öteki yerler | ✓ | kanca listesi testi 18 sayfaya; `IReadsOnForgeryRefusal` belge yorumu güvenli ayrımı anlatır |
+| Var olan testler değişmeden geçer | ✓ | yukarıdaki sınıflar; `PageFormPatternTests`/`FormSecurity*`/`OneTimeValueTests` Unit TAM içinde |
+
+⚠ (kolay kararlar, sahip yerine):
+- Kanca bağlamı: sayfanın kendi filtresi işleyici bağlamını saklar, kanca onu okur (S dilimi aynı işi kendi sarmalayıcısıyla yaptı; iki yol envanterde ayrı sayılır).
+- Reset ayar adımı ret yolunda 422'nin `LoadStepAsync`'ini kullanır; "tamamlandı" sonuç kodunu sorgudan okur ama yalnız kullanılmış bağlantının ifadesini seçer, yazmaz (S'nin PasswordReset ⚠'ıyla aynı).
+- Kupon formu sahtecilik ve bayat sürüm birlikteyken çakışma görünümüyle çizilir (sürüm denetimi filtreden önce; yazma yok). Hesap sayfasının "hesap yok" 404 yolu testsiz (oturumlu hesabın silinmesi gerekir).
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Yok

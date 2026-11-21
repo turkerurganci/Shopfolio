@@ -97,6 +97,12 @@ public interface IAdministrationModule
     /// </summary>
     Task<AdminOwnAccount?> ReadOwnAccountAsync(Guid adminId, Guid sessionId, ReauthenticationOperation? operation, string? reauthenticationValue, CancellationToken ct);
 
+    /// <summary>
+    /// What <see cref="ReadOwnAccountAsync"/> shows, read only: the session's permission is not dropped (D-1843). The page the forgery check's 400 shows again reads with it - a refused request writes
+    /// nothing (07 2.5.4), so a forged request cannot take the permission away either. Joins the caller's transaction; null when the account is gone.
+    /// </summary>
+    Task<AdminOwnAccount?> ReadOwnAccountKeepingPermissionAsync(Guid adminId, Guid sessionId, ReauthenticationOperation? operation, string? reauthenticationValue, CancellationToken ct);
+
     /// <summary>The administrator's own name (07 UC-178; 02 10.2.4): no reauthentication.</summary>
     Task<AdminNameChangeResult> ChangeNameAsync(Guid adminId, string name, CancellationToken ct);
 

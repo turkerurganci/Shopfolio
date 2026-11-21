@@ -226,6 +226,6 @@ internal static partial class LinkKeySourceScan
     [GeneratedRegex(@"\.\s*(?:VerifyEmailAsync|ResetPasswordAsync|ConfirmGoogleLinkAsync|VerifyNewEmailAsync|RestorePreviousEmailAsync)\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex VerifyCall();
 
-    [GeneratedRegex(@"(?<!\b(?:class|record|struct|interface|new)\s+)\b(?<name>\w+)\s*\([^()]*\)\s*(?:where\s+[^{=;]*)?(?:(?<arrow>=>)|\{)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    [GeneratedRegex(@"(?<!\b(?:class|record|struct|interface|new)\s+)\b(?<name>(?>\w+))\s*\((?>[^()]*)\)\s*(?:where\s+(?>[^{=;]*))?(?:(?<arrow>=>)|\{)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex MethodHeader();
 }

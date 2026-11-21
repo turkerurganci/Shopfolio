@@ -246,6 +246,37 @@ public sealed partial class RegistrationPageTests : IAsyncLifetime
         limited.Dispose();
     }
 
+    [Fact]
+    public async Task TheBlockOfTheRegistration_LiftsWhenTheAttemptsLeaveTheWindow_AndTheSendIsAcceptedAgain_D572_D1405_T514_KK4()
+    {
+        await using WebApplicationFactory<Program> factory = Open(gateOpen: true);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        HttpStatusCode blocked = default;
+        for (int i = 0; i <= ProductConstants.RegistrationAttemptsPerEmail && blocked != HttpStatusCode.TooManyRequests; i++)
+        {
+            using HttpResponseMessage attempt = await PostAsync(client, FramePaths.Register, "Register", Form("ayse@example.com"));
+            blocked = attempt.StatusCode;
+        }
+
+        using HttpResponseMessage stillBlocked = await PostAsync(client, FramePaths.Register, "Register", Form("ayse@example.com"));
+        await using (AppDbContext db = NewContext())
+        {
+            await db.Database.ExecuteSqlRawAsync("UPDATE attempt_records SET created_at = created_at - interval '2 hours'", Ct);
+
+            // The first send of the loop opened a pending registration of the address; the lifted block is seen on the address with no account.
+            await db.Database.ExecuteSqlRawAsync("TRUNCATE customers, link_records, dispatch_records CASCADE", Ct);
+        }
+
+        using HttpResponseMessage after = await PostAsync(client, FramePaths.Register, "Register", Form("ayse@example.com"));
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, blocked);
+        Assert.Equal(HttpStatusCode.TooManyRequests, stillBlocked.StatusCode);
+        Assert.Equal(HttpStatusCode.SeeOther, after.StatusCode);
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(1, await reader.Customers.CountAsync(c => c.Email == "ayse@example.com", Ct));
+    }
+
     // ---- criterion 6, KK6: the resend ----
 
     [Fact]

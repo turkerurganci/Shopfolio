@@ -143,6 +143,24 @@ public sealed class StateRoleConsistencyTests
     }
 
     [Fact]
+    public void PanelScreenThatStopsReadingTheSalesGate_IsReported_D1657()
+    {
+        Dictionary<string, string> sources = new(Sources.Value, StringComparer.Ordinal);
+        sources["Pages/Panel/FirmIdentity.cshtml.cs"] = sources["Pages/Panel/FirmIdentity.cshtml.cs"].Replace("GetSalesGateAsync", "GetOtherGateAsync", StringComparison.Ordinal);
+
+        Assert.Contains(Problems(sources: sources), p => p.StartsWith("GateReadMissing:", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void AKnownPanelGateGap_ThatThePageHasClosed_IsReportedAsStale_D1657()
+    {
+        Dictionary<string, string> sources = new(Sources.Value, StringComparer.Ordinal);
+        sources["Pages/Panel/PaymentMethods.cshtml.cs"] += "\n// GetSalesGateAsync\n";
+
+        Assert.Contains(Problems(sources: sources), p => p.StartsWith("GateReadGapStale: E-45", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void DataGate_ChangingAnotherScreen_IsReported()
     {
         string changed = Changed("| 6.2.9.3 | Ziyaretçi · Müşteri | Yayında soru yok — adres doğrudan açıldı |", "| 6.2.9.3 | Ziyaretçi · Müşteri | Hâl: veri toplayan girişlerin kapısı kapalı |");

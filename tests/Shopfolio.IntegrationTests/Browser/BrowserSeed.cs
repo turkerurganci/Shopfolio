@@ -27,6 +27,9 @@ public sealed record SeededProduct(string Label, Guid ProductId, string Slug, IR
 /// <summary>What the tool seeds (T551 criterion 2): the customer, the administrator, the catalog and the orders; <see cref="ForRecord"/> is the part the record keeps (no secret).</summary>
 public sealed class BrowserSeedData
 {
+    /// <summary>The brand name the seed sets (D-1710): a storefront title ends with it, so the walk's title measure tells a screen's own title from the host name.</summary>
+    public string BrandName { get; init; } = string.Empty;
+
     public string CustomerKey { get; init; } = string.Empty;
 
     public Guid CustomerId { get; init; }
@@ -49,6 +52,18 @@ public sealed class BrowserSeedData
     /// <summary>The session key of the bare customer: a second member with no address and no order, so the empty states of the address book (E-26) and the order history (E-27) do not depend on what another test saved (D-1717). Never written to the record.</summary>
     public string BareCustomerKey { get; init; } = string.Empty;
 
+    /// <summary>The session key of the listed customer: a third member with three address book entries and three orders in different states, so the address book (E-26) and the order history (E-27) have a list to lay out at each width (VAL-B040, VAL-B041; D-1471). Nothing else signs in as it, so no test changes its lists. Never written to the record.</summary>
+    public string ListedCustomerKey { get; init; } = string.Empty;
+
+    /// <summary>The session key of a second administrator, so two administrators can edit one record at the same time (VAL-A371; D-1753). Never written to the record.</summary>
+    public string SecondAdminKey { get; init; } = string.Empty;
+
+    /// <summary>The names of the listed customer's address book entries, in the order the screen draws them (oldest first).</summary>
+    public IReadOnlyList<string> ListedAddressNames { get; init; } = [];
+
+    /// <summary>The first item names of the listed customer's orders, newest first (the order history's own order).</summary>
+    public IReadOnlyList<string> ListedOrderFirstItems { get; init; } = [];
+
     public string OfferingSlug { get; init; } = string.Empty;
 
     public Guid OfferingId { get; init; }
@@ -68,8 +83,8 @@ public sealed class BrowserSeedData
     /// <summary>The seed as the record keeps it: the labels, the states and the counts; never a session key or an access key.</summary>
     public object ForRecord() => new
     {
-        customers = 2,
-        admins = 1,
+        customers = 3,
+        admins = 2,
         coupon = CouponCode,
         products = Products.Select(p => new { p.Label, p.Slug, variants = p.VariantIds.Count }),
         orders = Orders.Select(o => new { o.Label, o.Number, shipping = o.Shipping.ToString(), payment = o.Payment.ToString() }),
@@ -83,6 +98,22 @@ public sealed class BrowserSeedData
 /// </summary>
 internal static class BrowserSeed
 {
+    /// <summary>The brand name of the seed (D-1710).</summary>
+    internal const string BrandName = "Örnek Mağaza";
+
+    /// <summary>The name of the seed's one branch (D-1228).</summary>
+    internal const string BranchName = "Kızılay şubesi";
+
+    /// <summary>The map link of the seed's branch: the contact page's "Haritada aç" opens this address (VAL-A121).</summary>
+    internal const string BranchMapUrl = "https://maps.example.com/?q=Tunali+Hilmi+10";
+
+    /// <summary>The published questions of the seed: question, answer (a closed-format text), order.</summary>
+    internal static readonly (string Question, string Answer, int Order)[] FaqSeed =
+    [
+        ("Kargo kaç günde gelir?", "<p>Siparişiniz üç iş gününde teslim edilir.</p>", 1),
+        ("İade nasıl yapılır?", "<p>Hesabınızdaki siparişten iade talebi açarsınız.</p>", 2),
+    ];
+
     private static readonly DateTimeOffset Now = DateTimeOffset.UtcNow;
 
     /// <summary>The state pairs of the orders: (label, shipping, payment, card). One order of each is enough for the screens' hâls; the full matrix is T547's.</summary>
@@ -117,6 +148,7 @@ internal static class BrowserSeed
         _imagesDirectory = imagesDirectory;
         (string customerKey, Guid customerId) = await TestSessions.CustomerAsync(dsn, longLived: true);
         (string adminKey, Guid adminId) = await TestSessions.AdminAsync(dsn, longLived: true);
+        (string secondAdminKey, _) = await TestSessions.AdminAsync(dsn, longLived: true);
         // The bare customer: no address, no order; only the empty-state observations sign in as it (D-1717).
         (string bareCustomerKey, _) = await TestSessions.CustomerAsync(dsn, longLived: true);
         List<SeededOrder> orders = [];
@@ -163,6 +195,24 @@ internal static class BrowserSeed
         CustomPage page = CustomPage.Create("Kargo bilgisi", "t551-sayfa", 1, Now);
         page.PublishStatus = PublishStatus.Published;
         page.SetText("<p>Kargo üç gündür.</p>");
+        // The FAQ and the branch (04 5.9, 5.10; D-1228): the two published questions and the one published branch with its "Haritada aç" link, so the walk of the FAQ page and the contact page has content to observe.
+        foreach ((string question, string answer, int order) in FaqSeed)
+        {
+            FaqItem faq = FaqItem.Create(question, order, Now);
+            faq.SetAnswer(answer);
+            faq.PublishStatus = PublishStatus.Published;
+            db.FaqItems.Add(faq);
+        }
+
+        Branch branch = Branch.Create(BranchName, 1, Now);
+        branch.ProvinceId = province;
+        branch.District = "Çankaya";
+        branch.AddressLine = "Tunalı Hilmi Cad. 10";
+        branch.Phone = "3127654321";
+        branch.WorkingHours = "Hafta içi 09:00-18:00";
+        branch.MapUrl = BranchMapUrl;
+        branch.PublishStatus = PublishStatus.Published;
+        db.Branches.Add(branch);
         db.AboutPages.Add(about);
         db.Offerings.Add(offering);
         db.PortfolioItems.Add(portfolio);
@@ -221,11 +271,61 @@ internal static class BrowserSeed
             db.Companies.Add(company);
         }
 
+        // The brand (06 4.54): the one row carries the brand name, so a storefront title is "<screen> - <brand>" and not the bare host name (D-1710); the walk looks for this name in the title.
+        Branding? branding = await db.Brandings.FirstOrDefaultAsync(CancellationToken.None);
+        bool newBranding = branding is null;
+        branding ??= Branding.Create(Now);
+        branding.BrandName = BrandName;
+        if (newBranding)
+        {
+            db.Brandings.Add(branding);
+        }
+        else
+        {
+            branding.BumpVersion();
+        }
+
         await db.Database.ExecuteSqlAsync($"INSERT INTO legal_text_versions (id, created_at, legal_text_type, version_number, published_at, text, hosting_location, version) VALUES ({EntityIds.New()}, now(), 'CookiePolicy', 1, now(), '<p>Çerez politikası yayında.</p>', NULL, 1)", CancellationToken.None);
         await db.SaveChangesAsync(CancellationToken.None);
 
+        // The listed customer (VAL-B040, VAL-B041): three address book entries, three orders (the last has three items, so its row says "and two more") in three different pairs of states.
+        (string listedKey, Guid listedId) = await TestSessions.CustomerAsync(dsn, longLived: true);
+        string[] addressNames = ["Ev adresi", "İş adresi", "Yazlık adres"];
+        for (int i = 0; i < addressNames.Length; i++)
+        {
+            db.AddressBooks.Add(AddressBook.Create(listedId, addressNames[i], "Ayşe Yılmaz", province, "Çankaya", $"Kızılay Mah. {i + 1}. Sokak No: {i + 10}", "5321234567", Now.AddMinutes(i)));
+        }
+
+        await db.SaveChangesAsync(CancellationToken.None);
+        (string FirstItem, string[] More, OrderStatus Shipping, PaymentStatus Payment)[] listed =
+        [
+            ("Birinci lamba", [], OrderStatus.Placed, PaymentStatus.Pending),
+            ("İkinci ahşap masa", ["Yanındaki sandalye"], OrderStatus.Delivered, PaymentStatus.PartiallyRefunded),
+            ("Üçüncü ürün", ["İkinci kalem", "Üçüncü kalem"], OrderStatus.Preparing, PaymentStatus.Paid),
+        ];
+        foreach ((string firstItem, string[] more, OrderStatus shipping, PaymentStatus payment) in listed)
+        {
+            (Guid listedOrderId, _, _) = await TestSessions.OrderAsync(dsn, listedId);
+            await using AppDbContext itemDb = NewContext(dsn);
+            itemDb.OrderItems.Add(OrderItem.Create(listedOrderId, null, null, ProductType.Physical, firstItem, 1, 50m, 20m, 8.33m, Now));
+            for (int i = 0; i < more.Length; i++)
+            {
+                itemDb.OrderItems.Add(OrderItem.Create(listedOrderId, null, null, ProductType.Physical, more[i], 1, 50m, 20m, 8.33m, Now.AddSeconds(i + 1)));
+            }
+
+            await itemDb.SaveChangesAsync(CancellationToken.None);
+            string shippingName = shipping.ToString();
+            string paymentName = payment.ToString();
+            await itemDb.Database.ExecuteSqlAsync($"UPDATE orders SET order_status = {shippingName}, payment_status = {paymentName} WHERE id = {listedOrderId}", CancellationToken.None);
+        }
+
         return new BrowserSeedData
         {
+            ListedCustomerKey = listedKey,
+            SecondAdminKey = secondAdminKey,
+            ListedAddressNames = addressNames,
+            ListedOrderFirstItems = [.. listed.Select(l => l.FirstItem).Reverse()],
+            BrandName = BrandName,
             CustomerKey = customerKey,
             CustomerId = customerId,
             AdminKey = adminKey,
@@ -246,10 +346,10 @@ internal static class BrowserSeed
     }
 
     /// <summary>One more guest order in the given pair of states, for a row that changes the order (the confirmed step writes it).</summary>
-    public static async Task<SeededOrder> NewOrderAsync(string dsn, string label, OrderStatus shipping, PaymentStatus payment)
+    public static async Task<SeededOrder> NewOrderAsync(string dsn, string label, OrderStatus shipping, PaymentStatus payment, bool card = false)
     {
         (Guid id, string number, string accessKey) = await TestSessions.OrderAsync(dsn, null);
-        await AddItemsAndStateAsync(dsn, id, shipping, payment, false);
+        await AddItemsAndStateAsync(dsn, id, shipping, payment, card);
         return new SeededOrder(label, id, number, accessKey, shipping, payment);
     }
 
@@ -331,6 +431,14 @@ internal static class BrowserSeed
         db.LinkRecords.AddRange(registration, newAddress, confirmation, revert, reset, adminReset, adminNewAddress, adminRevert);
         await db.SaveChangesAsync(CancellationToken.None);
         return new SeededLinks(keys.Derive(registration.Id), keys.Derive(newAddress.Id), keys.Derive(confirmation.Id), keys.Derive(reset.Id), keys.Derive(revert.Id), keys.Derive(adminReset.Id), keys.Derive(adminNewAddress.Id), keys.Derive(adminRevert.Id));
+    }
+
+    /// <summary>The identifier of the unused link record whose address key is <paramref name="key"/> (the key is derived from the identifier, so the record is found by deriving each unused one).</summary>
+    public static async Task<Guid> LinkIdOfAsync(string dsn, LinkKeys keys, string key)
+    {
+        await using AppDbContext db = NewContext(dsn);
+        List<Guid> unused = await db.LinkRecords.AsNoTracking().Where(l => l.UsedAt == null).Select(l => l.Id).ToListAsync(CancellationToken.None);
+        return unused.Single(id => keys.Derive(id) == key);
     }
 
     private static async Task AddItemsAndStateAsync(string dsn, Guid orderId, OrderStatus shipping, PaymentStatus payment, bool card)

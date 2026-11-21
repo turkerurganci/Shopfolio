@@ -47,6 +47,13 @@ public sealed class SchedulerBackupDisposalAndKeyTablesTests : IAsyncLifetime
 
     private const string FailedStatement = "UPDATE public.backup_status_records SET last_failed_at = now()";
 
+    /// <summary>
+    /// The command timeout of the test's migrations, in seconds (D-1366). A migration step on a test server that is busy with the other collections' databases can run longer than the
+    /// driver's default of 30 seconds; the one red run on record lasted 47 seconds, which fits a first migration that hit that limit. The limit is no test of speed, so it is lifted here
+    /// and the claims of the test (the rollback and the privileges) stay what it asserts.
+    /// </summary>
+    private const int MigrationCommandTimeoutSeconds = 300;
+
     private static readonly string[] SixTables = ["backup_status_records", "data_protection_keys", "disposal_records", "heartbeat_records", "jobs", "outage_records"];
 
     private static readonly DateTimeOffset Now = new(2026, 11, 4, 12, 0, 0, TimeSpan.Zero);
@@ -576,7 +583,7 @@ public sealed class SchedulerBackupDisposalAndKeyTablesTests : IAsyncLifetime
     private static async Task MigrateAsync(string dsn, string? target)
     {
         DbContextOptionsBuilder<AppDbContext> builder = new();
-        AppDbContext.Configure(builder, dsn);
+        AppDbContext.Configure(builder, new NpgsqlConnectionStringBuilder(dsn) { CommandTimeout = MigrationCommandTimeoutSeconds }.ConnectionString);
         await using AppDbContext context = new(builder.Options);
         IMigrator migrator = ((IInfrastructure<IServiceProvider>)context).Instance.GetService(typeof(IMigrator)) as IMigrator
             ?? throw new InvalidOperationException("The migrator service is not available.");

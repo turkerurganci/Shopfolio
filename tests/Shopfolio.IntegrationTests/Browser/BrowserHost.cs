@@ -235,12 +235,19 @@ public sealed class BrowserHost : IAsyncLifetime
         }
 
 
+        // The records that depend on the whole run are written from it now and checked for completeness (D-1736 b).
+        IReadOnlyList<string> incomplete = Record?.IncompleteRecords() ?? [];
         Record?.Flush();
         if (_databaseName.Length > 0)
         {
             using Npgsql.NpgsqlConnection pooled = new(Dsn);
             Npgsql.NpgsqlConnection.ClearPool(pooled);
             await _template.DropDatabaseAsync(_databaseName, CancellationToken.None);
+        }
+
+        if (incomplete.Count > 0)
+        {
+            throw new InvalidOperationException($"The criteria record of the run is incomplete for its cluster ('{AccessibilityCluster.Current.Name}'; the classes of a cluster run in one call, see AccessibilityCluster): " + string.Join(" | ", incomplete));
         }
     }
 
@@ -277,7 +284,9 @@ public sealed class BrowserHost : IAsyncLifetime
             "webkit" => _playwright!.Webkit,
             _ => throw new ArgumentOutOfRangeException(nameof(engine), engine, "Unknown engine."),
         };
-        IBrowser browser = await type.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
+        // The second version of an engine (D-1709; 12 4.17 "son iki büyük sürüm"): the run uses the engine Playwright brings unless SHOPFOLIO_BROWSER_EXECUTABLES names another build of it.
+        string? executable = ExecutableOverrides.PathOf(Environment.GetEnvironmentVariable(ExecutableOverrides.VariableName), engine);
+        IBrowser browser = await type.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true, ExecutablePath = executable });
         _browsers[engine] = browser;
         Record?.SetEngineVersion(engine, browser.Version);
         return browser;
@@ -307,6 +316,16 @@ public sealed class BrowserHost : IAsyncLifetime
         if (actor == Actor.BareCustomer)
         {
             cookies.Add(Secure(CookieNames.Session, Seed.BareCustomerKey));
+        }
+
+        if (actor == Actor.ListedCustomer)
+        {
+            cookies.Add(Secure(CookieNames.Session, Seed.ListedCustomerKey));
+        }
+
+        if (actor == Actor.SecondAdmin)
+        {
+            cookies.Add(Secure(CookieNames.AdminSession, Seed.SecondAdminKey));
         }
 
         if (actor == Actor.Admin)
@@ -367,6 +386,8 @@ public sealed class BrowserHost : IAsyncLifetime
     {
         string? configured = Environment.GetEnvironmentVariable("SHOPFOLIO_BROWSER_OUT");
         string directory = string.IsNullOrWhiteSpace(configured) ? Path.Combine(Path.GetTempPath(), "shopfolio-browser-observations") : configured;
+        // The clusters of the accessibility pass are separate runs (AccessibilityCluster): each flushes its own observation files, so each has a folder of its own under the output folder.
+        directory = AccessibilityCluster.Current.FolderIn(directory);
         Directory.CreateDirectory(directory);
         return directory;
     }
@@ -380,6 +401,12 @@ public enum Actor
 
     /// <summary>A member with no address and no order (<see cref="BrowserSeedData.BareCustomerKey"/>): the actor of the empty states of the member's screens.</summary>
     BareCustomer,
+
+    /// <summary>A member with three address book entries and three orders (<see cref="BrowserSeedData.ListedCustomerKey"/>): the actor of the screens' lists at each width (VAL-B040, VAL-B041).</summary>
+    ListedCustomer,
+
+    /// <summary>A second administrator (<see cref="BrowserSeedData.SecondAdminKey"/>): the other session of two administrators editing one record (VAL-A371).</summary>
+    SecondAdmin,
     Admin,
 }
 
@@ -417,6 +444,66 @@ public sealed class ObservationRecord
         }
     }
 
+    private readonly Dictionary<string, Func<IReadOnlyList<Observation>, string?>> _completeness = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Registers a check that runs once when the run ends, over the whole run's observations (D-1736 b): it returns <see langword="null"/> when the record it belongs to is complete, otherwise what is missing. A record that
+    /// depends on observations of other test classes (the criteria record of the accessibility pass) cannot know at its own test whether those ran, since the order of the classes is not assumed. A check of the same name replaces the earlier one.
+    /// </summary>
+    public void AddCompletenessCheck(string name, Func<IReadOnlyList<Observation>, string?> check)
+    {
+        lock (_lock)
+        {
+            _completeness[name] = check;
+        }
+    }
+
+    /// <summary>Runs the registered checks over the observations of the whole run; the messages of the records that are incomplete (none when all are complete).</summary>
+    public IReadOnlyList<string> IncompleteRecords()
+    {
+        KeyValuePair<string, Func<IReadOnlyList<Observation>, string?>>[] checks;
+        IReadOnlyList<Observation> all;
+        lock (_lock)
+        {
+            checks = [.. _completeness];
+            all = [.. _observations];
+        }
+
+        List<string> incomplete = [];
+        foreach ((string name, Func<IReadOnlyList<Observation>, string?> check) in checks)
+        {
+            if (check(all) is { } message)
+            {
+                incomplete.Add($"{name}: {message}");
+            }
+        }
+
+        return incomplete;
+    }
+
+    private readonly List<string> _crashRetries = [];
+
+    /// <summary>The piece of work that was run again after a page crash (<see cref="CrashRetry"/>), counted in the files the record writes.</summary>
+    public void NoteCrashRetry(string what)
+    {
+        lock (_lock)
+        {
+            _crashRetries.Add(what);
+        }
+    }
+
+    /// <summary>What was run again after a "Page crashed" so far.</summary>
+    public IReadOnlyList<string> CrashRetries
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return [.. _crashRetries];
+            }
+        }
+    }
+
     public void Add(Observation observation)
     {
         lock (_lock)
@@ -441,7 +528,7 @@ public sealed class ObservationRecord
         {
             JsonSerializerOptions options = new() { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
             using StreamWriter lines = new(System.IO.Path.Combine(_directory, "observations.jsonl"), append: false);
-            lines.WriteLine(JsonSerializer.Serialize(new { versions = _versions, seed = JsonDocument.Parse(_seed).RootElement }, options));
+            lines.WriteLine(JsonSerializer.Serialize(new { versions = _versions, seed = JsonDocument.Parse(_seed).RootElement, crashRetries = _crashRetries }, options));
             foreach (Observation observation in _observations)
             {
                 lines.WriteLine(JsonSerializer.Serialize(observation, options));
@@ -453,6 +540,8 @@ public sealed class ObservationRecord
             table.WriteLine("Sürümler: " + string.Join(", ", _versions.Select(v => $"{v.Key} {v.Value}")));
             table.WriteLine();
             table.WriteLine("Tohum: " + _seed);
+            table.WriteLine();
+            table.WriteLine($"Sayfa çökmesi yeniden denemesi (Firefox yük altında; yalnız 'Page crashed', iş başına bir): {_crashRetries.Count}" + (_crashRetries.Count > 0 ? " - " + string.Join("; ", _crashRetries) : string.Empty));
             table.WriteLine();
             table.WriteLine("| Satır | Yol | Tarayıcı | Genişlik | Adım | Beklenen | Gözlenen | Veri kaydı (maskeli) | Sonuç | Ekran görüntüsü |");
             table.WriteLine("|---|---|---|---|---|---|---|---|---|---|");

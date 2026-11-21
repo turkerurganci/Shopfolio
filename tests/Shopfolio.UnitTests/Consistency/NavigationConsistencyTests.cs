@@ -296,6 +296,121 @@ public sealed class NavigationConsistencyTests
         Assert.Contains(Problems(sources: sources), p => p.StartsWith("DeadExemption", StringComparison.Ordinal));
     }
 
+    // D-1626: the target of a form (the action of a form, a button's formaction), a handler of another screen and the 303 written on a response are sites like a link; the forms that post to the
+    // handler of their own screen are none, and the ones the inventory lists stay on their screen.
+    [Fact]
+    public void FormActionChanged_ToAnotherScreen_IsReported()
+    {
+        IReadOnlyDictionary<string, string> sources = Changed("Pages/Panel/Orders.cshtml", "action=\"@Model.ListRoot\"", "action=\"/baska-yer\"");
+
+        Assert.Contains(Problems(sources: sources), p => p.StartsWith("UndocumentedTransition: FormAction '/baska-yer'", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ButtonFormAction_ChangedToAnotherScreen_IsReported()
+    {
+        IReadOnlyDictionary<string, string> sources = Changed("Pages/Panel/Brand.cshtml", "formaction=\"@logoUpload\"", "formaction=\"/baska-yer\"");
+
+        Assert.Contains(Problems(sources: sources), p => p.StartsWith("UndocumentedTransition: FormAction '/baska-yer'", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void FormPageTagHelper_ToAnotherScreen_IsReported()
+    {
+        IReadOnlyDictionary<string, string> sources = Changed("Pages/Storefront/Contact.cshtml", "asp-page-handler=\"SendContactRequest\"", "asp-page=\"/Baska\" asp-page-handler=\"SendContactRequest\"");
+
+        Assert.Contains(Problems(sources: sources), p => p.StartsWith("UndocumentedTransition: FormAction '/Baska'", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void HandlerOfAnotherScreen_ByALiteralPath_IsReported()
+    {
+        IReadOnlyDictionary<string, string> sources = Changed("Pages/Account/Profile.cshtml", "action=\"@(FramePaths.Account)?handler=ChangeName\"", "action=\"/baska-yer?handler=ChangeName\"");
+
+        Assert.Contains(Problems(sources: sources), p => p.StartsWith("UndocumentedTransition: FormAction '/baska-yer?handler=ChangeName'", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void HandlerOfAnotherScreen_ThroughALocal_IsReported()
+    {
+        IReadOnlyDictionary<string, string> sources = Changed("Pages/Panel/Brand.cshtml", "string logoUpload = PanelFramePaths.Brand + \"?handler=UploadImage\";", "string logoUpload = \"/baska-yer?handler=UploadImage\";");
+
+        Assert.Contains(Problems(sources: sources), p => p.StartsWith("UndocumentedTransition: FormAction '@logoUpload'", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void FormsPostingToTheirOwnHandler_AreNoSite_ThoseOfTheListsAreExemptSites()
+    {
+        IReadOnlyList<NavigationSite> forms = [.. NavigationSites.Scan(Sources.Value).Where(s => s.Kind == NavigationSiteKind.FormAction)];
+
+        Assert.DoesNotContain(forms, s => s.Key.Contains("?handler=", StringComparison.Ordinal) || s.File.EndsWith("Account/Profile.cshtml", StringComparison.Ordinal) || s.File.EndsWith("Storefront/Checkout.cshtml", StringComparison.Ordinal));
+        Assert.Contains(forms, s => s.File.EndsWith("Panel/Orders.cshtml", StringComparison.Ordinal) && s.Key == "@Model.ListRoot");
+        Assert.Contains(forms, s => s.File.EndsWith("Shared/_StorefrontHeader.cshtml", StringComparison.Ordinal) && s.Key == "@search.Path");
+    }
+
+    [Fact]
+    public void ResponseRedirect_WrittenStraightOnTheResponse_IsASite_AndItsAddressIsTheSecondArgument()
+    {
+        IReadOnlyDictionary<string, string> sources = Changed("Infrastructure/Errors/UnexpectedErrorLayer.cs", "FormResults.WriteSeeOther(response, resolution.Target ?? \"/\");", "FormResults.WriteSeeOther(response, \"/baska-yer\");");
+
+        Assert.Contains(NavigationSites.Scan(Sources.Value), s => s.Kind == NavigationSiteKind.Redirect && s.File == "Infrastructure/Errors/UnexpectedErrorLayer.cs" && s.Key == "resolution.Target ?? \"/\"");
+        IReadOnlyList<string> problems = Problems(sources: sources);
+        Assert.Contains(problems, p => p.StartsWith("UndocumentedTransition: Redirect '\"/baska-yer\"'", StringComparison.Ordinal));
+        Assert.Contains(problems, p => p.StartsWith("DeadExemption", StringComparison.Ordinal));
+    }
+
+    // D-1636: the screens an uncertain outcome goes to are pinned one by one; the recovery redirects that follow them are exempt because they are the error-recovery way (04 2.7.3.3), not because they
+    // "return to the screen they came from".
+    [Fact]
+    public void OutcomeScreens_OfTheCode_AreTheOnesTheInventoryPins()
+    {
+        Assert.Equal(
+            [.. NavigationInventory.OutcomeScreens.Select(o => (o.File, o.Body)).Order()],
+            [.. NavigationSites.OutcomeScreens(Sources.Value).Select(o => (o.File, o.Body)).Order()]);
+        Assert.All(NavigationInventory.OutcomeScreens, o => Assert.False(string.IsNullOrWhiteSpace(o.Reason)));
+    }
+
+    [Theory]
+    [InlineData("Pages/Account/Profile.cshtml.cs", "FramePaths.Account", "FramePaths.Cart")]
+    [InlineData("Pages/Panel/Members.cshtml.cs", "_outcomeAddress", "PanelFramePaths.Orders")]
+    [InlineData("Pages/Panel/ContentForm.cshtml.cs", "_outcomeScreen", "FramePaths.Cart")]
+    public void OutcomeScreen_ChangedToAnotherScreen_IsReported(string file, string body, string other)
+    {
+        IReadOnlyList<string> problems = Problems(sources: Changed(file, "public string OutcomeScreen() => " + body + ";", "public string OutcomeScreen() => " + other + ";"));
+
+        Assert.Contains(problems, p => p.StartsWith("OutcomeScreenMissing", StringComparison.Ordinal));
+        Assert.Contains(problems, p => p.StartsWith("OutcomeScreenUndocumented", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void OutcomeScreen_OfTheConfirmation_ChangedToAnotherScreen_IsReported()
+    {
+        IReadOnlyList<string> problems = Problems(sources: Changed("Pages/Storefront/Checkout.cshtml.cs", "FramePaths.OrderTracking : FramePaths.AccountOrders;", "FramePaths.Cart : FramePaths.Cart;"));
+
+        Assert.Contains(problems, p => p.StartsWith("OutcomeScreenMissing", StringComparison.Ordinal));
+        Assert.Contains(problems, p => p.StartsWith("OutcomeScreenUndocumented", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void OutcomeScreen_OfANewOperation_WithoutAPin_IsReported()
+    {
+        IReadOnlyDictionary<string, string> sources = Changed("Pages/Panel/Members.cshtml.cs", "public string OutcomeScreen() => _outcomeAddress;", "public string OutcomeScreen() => _outcomeAddress;\n    public string OutcomeScreen() => FramePaths.Cart;");
+
+        IReadOnlyList<string> problems = Problems(sources: sources);
+
+        Assert.Contains(problems, p => p.StartsWith("OutcomeScreenUndocumented", StringComparison.Ordinal) && p.Contains("FramePaths.Cart", StringComparison.Ordinal));
+        Assert.Contains(problems, p => p.StartsWith("OutcomeScreenCountDiffers", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("Pages/Panel/ContentForm.cshtml.cs", "_outcomeScreen = PanelFramePaths.CorporateContent;", "_outcomeScreen = PanelFramePaths.Members;")]
+    [InlineData("Pages/Panel/Members.cshtml.cs", "private string _outcomeAddress = PanelFramePaths.Members;", "private string _outcomeAddress = PanelFramePaths.Orders;")]
+    [InlineData("Infrastructure/Errors/UnexpectedErrorLayer.cs", "string own = context.Request.Path.ToUriComponent();", "string own = \"/baska-yer\";")]
+    public void TheLineThatGivesAnOutcomeScreenItsValue_Changed_IsReported(string file, string from, string to)
+    {
+        Assert.Contains(Problems(sources: Changed(file, from, to)), p => p.StartsWith("EvidenceMissing:Exemption(", StringComparison.Ordinal) || p.StartsWith("EvidenceMissing:OutcomeScreen(", StringComparison.Ordinal));
+    }
+
     // T546 correction 1 (K-1617): a row added to the table that the code does not carry, and a link added to the code that the table does not name, each break the check on their own.
     [Fact]
     public void RowAddedToTheTable_WithoutCode_IsReported()
@@ -449,7 +564,7 @@ public sealed class NavigationConsistencyTests
         // Equality has no list of known differences: every kind of evidence is a place of the code, and an exemption is a place that stays on its screen.
         Assert.All(NavigationInventory.Entries, e => Assert.NotEmpty(e.Evidence));
         Assert.All(NavigationInventory.Exemptions, x => Assert.False(string.IsNullOrWhiteSpace(x.Reason)));
-        Assert.Equal(["Link", "Redirect", "EmptyExit", "Text", "Page"], Enum.GetNames<NavigationEvidenceKind>());
+        Assert.Equal(["Link", "Redirect", "EmptyExit", "FormAction", "Text", "Page"], Enum.GetNames<NavigationEvidenceKind>());
     }
 
     // T546 correction 4 (B1; K-1617): a link whose address comes from a model, a list or a helper is the same expression whatever it leads to; the row must also carry the line that gives the address its

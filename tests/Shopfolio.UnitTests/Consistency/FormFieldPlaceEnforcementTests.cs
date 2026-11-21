@@ -124,6 +124,52 @@ public sealed class FormFieldPlaceEnforcementTests
         Assert.Equal([expectedPlace], reported);
     }
 
+    // D-1671: the line of a date check holds the condition that reads the field's own input, not only the refusal it gives; the read changed to a constant (a date that is always valid) reports the place - the
+    // refusal text alone, which stays in the code, would have kept it silent.
+    [Theory]
+    [InlineData("Pages/Panel/OrderDetail.cshtml.cs", "DateOnly.TryParseExact(input.DeliveryDate, \"yyyy-MM-dd\", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date))", "DateOnly.TryParseExact(\"2026-01-01\", \"yyyy-MM-dd\", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date))", "7.2.8.1|Panel.MarkDeliveredInput.DeliveryDate")]
+    [InlineData("Pages/Panel/OrderDetail.Corrections.cs", "DateOnly.TryParseExact(input.DeliveryDate, \"yyyy-MM-dd\", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date))", "DateOnly.TryParseExact(\"2026-01-01\", \"yyyy-MM-dd\", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date))", "7.2.8.1|Panel.CorrectDeliveryDateInput.DeliveryDate")]
+    [InlineData("Pages/Panel/OrderDetail.Corrections.cs", "DateOnly.TryParseExact(input.ArrivalDate, \"yyyy-MM-dd\", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date))", "DateOnly.TryParseExact(\"2026-01-01\", \"yyyy-MM-dd\", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date))", "7.2.8.3|Panel.CorrectArrivalDateInput.ArrivalDate")]
+    public void DateRead_ChangedToAConstant_ReportsThePlaceThatReadsIt(string file, string old, string replacement, string expectedPlace)
+    {
+        string[] reported = PlacesReported(ProblemsWith(file, old, replacement));
+
+        Assert.Equal([expectedPlace], reported);
+    }
+
+    // D-1671: the arrival date of the received return (7.2.8.3's place and 7.2.12.1) reads the date in one condition of one handler; the condition changed to a constant reports both.
+    [Fact]
+    public void ArrivalDateRead_OfTheReceivedReturn_ChangedToAConstant_ReportsThePlaceAndTheRow()
+    {
+        IReadOnlyList<string> problems = ProblemsWith("Pages/Panel/OrderDetail.ItemSteps.cs", "TryReadDate(input.ArrivalDate, out DateOnly arrival)", "TryReadDate(\"2026-01-01\", out DateOnly arrival)");
+
+        Assert.Contains("7.2.8.3|Panel.ReceiveReturnInput.ArrivalDate", PlacesReported(problems));
+        Assert.Contains(problems, p => p.StartsWith("EnforcementNotInCode:7.2.12.1:", StringComparison.Ordinal));
+    }
+
+    // D-1671: every line of the date rows (the four rows 7.2.8.1, 7.2.8.3, 7.2.10.1/7.2.10.3, 7.2.12.1) holds the condition that reads the field - the read of the input is in the line, not only the refusal.
+    [Fact]
+    public void LinesOfTheDateRows_HoldTheConditionThatReadsTheField()
+    {
+        string[] places = ["7.2.8.1|Panel.MarkDeliveredInput.DeliveryDate", "7.2.8.1|Panel.CorrectDeliveryDateInput.DeliveryDate", "7.2.8.3|Panel.ReceiveReturnInput.ArrivalDate", "7.2.8.3|Panel.CorrectArrivalDateInput.ArrivalDate", "7.2.10.1|Panel.RecordWithdrawalInput.DeclarationDate", "7.2.10.1|Panel.RecordLateDeliveryTerminationInput.DeclarationDate"];
+        List<string> without = [];
+        foreach (string place in places)
+        {
+            foreach (string line in FormFieldPlaceEnforcement.Lines[place].Where(l => l.StartsWith("Required|", StringComparison.Ordinal) || l.StartsWith("Date|", StringComparison.Ordinal)))
+            {
+                string fragment = FormFieldCheck.Collapse(line[(line.IndexOf('#', StringComparison.Ordinal) + 1)..]);
+                if (!fragment.Contains("TryParseExact(input.", StringComparison.Ordinal) && !fragment.Contains("TryReadDate(input.", StringComparison.Ordinal))
+                {
+                    without.Add($"{place}: {fragment}");
+                }
+            }
+        }
+
+        string[] rowLines = [.. FormFieldEnforcementTable.Lines["7.2.12.1"]];
+        Assert.True(without.Count == 0, "Lines of a date place that do not read the field:\n" + string.Join('\n', without));
+        Assert.All(rowLines, l => Assert.Contains("TryReadDate(input.ArrivalDate", l, StringComparison.Ordinal));
+    }
+
     // The two places of a row whose two handlers (or two record kinds) check the same field of two inputs do not share a line: each reads the check in its own code (a statement that checks both fields at once -
     // the audit trail's range, the shipment's carrier and name - is the line of both, and those rows are not in this list).
     [Fact]

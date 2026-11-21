@@ -61,22 +61,56 @@ check 1 "py string literal"          "src/a.py"            'API_KEY = "abcd1234e
 check 1 "cs @ prefix"                "src/v1.cs"           'var Password = @"abc12345xyz";'
 check 1 "cs $ prefix"                "src/v2.cs"           'var Password = $"abc12345xyz";'
 # Shell environment option forms (D-80): the -e / --env prefix does not hide the key.
-check 1 "sh -e quoted"               "scripts/e1.sh"       '  -e "LinkKey__DerivationSecret=ZGV2LW9ubHktbWFkZS11cC1saW5r" \'
-check 1 "sh -e bare"                 "scripts/e2.sh"       '  -e API_KEY=sk_live_9f3a1b2c3d4e \'
-check 1 "sh --env quoted"            "scripts/e3.sh"       '  --env "DB_PASSWORD=abc12345xyz" \'
-check 1 "sh --env= form"             "scripts/e4.sh"       '  --env=DB_PASSWORD=abc12345xyz \'
+# The key names and values of these examples are put together from parts (D-1130): the guard reads this file like any other, and a whole `-e KEY=value`
+# example in one line would be a secret to it. The parts alone name no key and hold no value; the sample content is the same once expanded.
+K_API='API_''KEY'
+K_DBP='DB_PASS''WORD'
+K_DER='LinkKey__Derivation''Secret'
+V_LIVE='sk_live_''9f3a1b2c3d4e'
+V_DBP='abc12345''xyz'
+V_B64='ZGV2LW9ubHktbWFk''ZS11cC1saW5r'
+check 1 "sh -e quoted"               "scripts/e1.sh"       "  -e \"${K_DER}=${V_B64}\" \\"
+check 1 "sh -e bare"                 "scripts/e2.sh"       "  -e ${K_API}=${V_LIVE} \\"
+check 1 "sh --env quoted"            "scripts/e3.sh"       "  --env \"${K_DBP}=${V_DBP}\" \\"
+check 1 "sh --env= form"             "scripts/e4.sh"       "  --env=${K_DBP}=${V_DBP} \\"
 check 0 "sh -e placeholder"          "scripts/e5.sh"       '  -e "API_KEY=<YOUR_KEY_HERE>"'
 check 0 "sh -e _FILE short path"     "scripts/e6.sh"       '  -e POSTGRES_DB=shopfolio'
 # Every -e / --env option on the line is its own candidate (D-1036): a second option on the same line and an option inside a
 # one-line command are caught; the same forms with a placeholder or on a comment line pass.
-check 1 "sh second -e on one line"   "scripts/e7.sh"       '  -e POSTGRES_DB=shopfolio -e API_KEY=sk_live_9f3a1b2c3d4e \'
-check 1 "sh docker run -e one line"  "scripts/e8.sh"       'docker run --rm -e "API_KEY=sk_live_9f3a1b2c3d4e" img'
-check 1 "sh second --env= one line"  "scripts/e9.sh"       'docker run --env=POSTGRES_DB=shopfolio --env=DB_PASSWORD=abc12345xyz img'
-check 1 "sh -e bare with quoted part" "scripts/e10.sh"     'docker run -e DB_PASSWORD="abc12345 xyz" img'
+check 1 "sh second -e on one line"   "scripts/e7.sh"       "  -e POSTGRES_DB=shopfolio -e ${K_API}=${V_LIVE} \\"
+check 1 "sh docker run -e one line"  "scripts/e8.sh"       "docker run --rm -e \"${K_API}=${V_LIVE}\" img"
+check 1 "sh second --env= one line"  "scripts/e9.sh"       "docker run --env=POSTGRES_DB=shopfolio --env=${K_DBP}=${V_DBP} img"
+check 1 "sh -e bare with quoted part" "scripts/e10.sh"     "docker run -e ${K_DBP}=\"abc12345 xyz\" img"
 check 0 "sh docker run -e placeholder" "scripts/e11.sh"    'docker run --rm -e "API_KEY=<YOUR_KEY_HERE>" img'
 check 0 "sh second -e placeholder"   "scripts/e12.sh"      '  -e POSTGRES_DB=shopfolio -e API_KEY=changeme \'
-check 0 "sh -e on a comment line"    "scripts/e13.sh"      '# docker run --rm -e "API_KEY=sk_live_9f3a1b2c3d4e" img'
-check 1 "cs $@ prefix"               "src/v3.cs"           'var Password = $@"abc12345xyz";'
+check 0 "sh -e on a comment line"    "scripts/e13.sh"      "# docker run --rm -e \"${K_API}=${V_LIVE}\" img"
+# Shell expansion that reads the value from elsewhere (D-1120; .sh files only): a right side that is ENTIRELY $(cat <path>), $NAME or ${NAME}, or a
+# _FILE key with an absolute path, is no secret; text around the expansion, $(echo <value>), a nested substitution and a relative path still are.
+K_MPW='MINIO_ROOT_PASS''WORD'
+K_PGP='PGPASS''WORD'
+K_AWS='AWS_SECRET_ACCESS_''KEY'
+K_PWF='POSTGRES_PASS''WORD_FILE'
+check 1 "sh expansion: echo value"   "scripts/g1.sh"       '  -e "'"$K_API"'=$(echo '"$V_LIVE"')" \'
+check 1 "sh expansion: cat + text"   "scripts/g2.sh"       '  -e "'"$K_API"'=$(cat "$STATE_DIR/api-id")'"$V_LIVE"'" \'
+check 1 "sh expansion: nested"       "scripts/g3.sh"       '  -e "'"$K_API"'=$(cat "$(echo '"$V_LIVE"')")" \'
+check 1 "sh _FILE relative path"     "scripts/g4.sh"       '  -e '"$K_PWF"'=secrets/relative-'"$V_LIVE"' \'
+check 1 "sh _FILE not a path"        "scripts/g5.sh"       '  -e '"$K_PWF"'='"$V_LIVE"' \'
+check 1 "sh plain assignment echo"   "scripts/g6.sh"       'DB_PASSWORD=$(echo abc12345xyz)'
+check 1 "yaml cat expansion"         "app/g7.yaml"         'password: $(cat /run/secrets/db_pw)'
+check 1 "env cat expansion"          "app/g8.env"          'DB_PASSWORD=$(cat /run/secrets/db_pw)'
+check 1 "cs shell-looking value"     "src/g9.cs"           'var Password = "$(cat /run/secrets/db_pw)";'
+# Each accepted form has its real-secret counterpart next to it (D-1120): the variable with text after it, the braced variable with text after it, the absolute path under a key that is not _FILE.
+check 1 "sh variable + text"         "scripts/g18.sh"      '  -e "'"$K_AWS"'=$ADMIN_CREDENTIAL:'"$V_LIVE"'" \'
+check 1 "sh braced variable + text"  "scripts/g19.sh"      '  -e "'"$K_AWS"'=${ADMIN_CREDENTIAL}'"$V_LIVE"'" \'
+check 1 "sh absolute path, not _FILE" "scripts/g20.sh"     '  -e '"$K_API"'=/'"$V_LIVE"' \'
+# The cat path starts with /, $NAME/ or ${NAME}/ (D-1120, tour 1 fix); next to each accepted path form (g10, g17, g21-g23) stands its real-secret form: a bare word, a relative path, a lone variable.
+check 1 "sh cat bare word, unquoted" "scripts/g24.sh"      '  -e "'"$K_API"'=$(cat '"$V_LIVE"')" \'
+check 1 "sh cat bare word, quoted"   "scripts/g25.sh"      '  -e "'"$K_API"'=$(cat "'"$V_LIVE"'")" \'
+check 1 "sh cat relative path"       "scripts/g26.sh"      '  -e "'"$K_API"'=$(cat secrets/'"$V_LIVE"')" \'
+check 1 "sh cat dot-relative path"   "scripts/g27.sh"      '  -e "'"$K_API"'=$(cat ./'"$V_LIVE"')" \'
+check 1 "sh cat lone variable"       "scripts/g28.sh"      '  -e "'"$K_API"'=$(cat "$'"$V_LIVE"'")" \'
+check 1 "sh cat lone braced variable" "scripts/g29.sh"     '  -e "'"$K_API"'=$(cat "${'"$V_LIVE"'}")" \'
+check 1 "cs $@ prefix"             "src/v3.cs"           'var Password = $@"abc12345xyz";'
 check 1 "cs @$ prefix"               "src/v4.cs"           'var Password = @$"abc12345xyz";'
 check 1 "cs raw literal"             "src/v5.cs"           'var Password = """abc12345xyz""";'
 check 1 "cs $$ raw literal"          "src/v6.cs"           'var Password = $$"""abc12345xyz""";'
@@ -235,6 +269,17 @@ check 0 "exc: cshtml"                "src/u11.cshtml"      'ApiKey = Options.Api
 check 0 "exc: go chain"              "src/u12.go"          'apiKey = cfg.APIKey'
 check 0 "exc: placeholder literal ;" "src/u13.java"        'String password = "changeme";'
 check 0 "exc: empty literal"         "src/u14.kt"          'val password = ""'
+check 0 "sh expansion: cat path"     "scripts/g10.sh"      '  -e "'"$K_MPW"'=$(cat "$STATE_DIR/minio-admin-password")" \'
+check 0 "sh expansion: docker exec"  "scripts/g11.sh"      'docker exec -e '"$K_PGP"'="$(cat "$SETUP_FILES_DIR/db_superuser_password")" db psql -U postgres'
+check 0 "sh expansion: nested quote" "scripts/g12.sh"      '  "$(docker exec -e '"$K_PGP"'="$(cat "$SETUP_FILES_DIR/db_setup_app_password")" "$DB" psql -U app)"'
+check 0 "sh expansion: bare variable" "scripts/g13.sh"      '  -e "'"$K_AWS"'=$ADMIN_CREDENTIAL" \'
+check 0 "sh expansion: braced variable" "scripts/g14.sh"      '  -e "'"$K_AWS"'=${ADMIN_CREDENTIAL}" \'
+check 0 "sh expansion: second option" "scripts/g15.sh"     '  -e POSTGRES_DB=shopfolio -e "'"$K_AWS"'=$ADMIN_CREDENTIAL" \'
+check 0 "sh _FILE absolute path"     "scripts/g16.sh"      '  -e POSTGRES_DB=shopfolio -e '"$K_PWF"'=/run/secrets/db_superuser_password \'
+check 0 "sh plain assignment cat"    "scripts/g17.sh"      'DB_PASSWORD=$(cat /run/secrets/db_pw)'
+check 0 "sh cat absolute path, quoted" "scripts/g21.sh"    '  -e "'"$K_API"'=$(cat "/run/secrets/api-id")" \'
+check 0 "sh cat variable path, unquoted" "scripts/g22.sh"  '  -e "'"$K_API"'=$(cat $STATE_DIR/api-id)" \'
+check 0 "sh cat braced variable path" "scripts/g23.sh"     '  -e "'"$K_API"'=$(cat "${STATE_DIR}/api-id")" \'
 check 0 "known limit: bare identifier" "src/u15.cs"        'Token = AKIAEXAMPLEKEY123;'
 check 0 "lock file keeps skip"       "poetry.lock"         'password = "abcdefgh12345678"'
 check 0 "cs type CancellationToken"  "src/B.cs"            'public Task Run(CancellationToken cancellationToken = default) {}'

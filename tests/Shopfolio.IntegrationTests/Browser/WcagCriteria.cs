@@ -7,8 +7,8 @@ namespace Shopfolio.IntegrationTests.Browser;
 /// </summary>
 internal static class WcagCriteria
 {
-    /// <summary>The evidence of the criteria that every screen answers for itself: the headings of the manual audit and its page facts, read from the record of the screen.</summary>
-    internal static readonly string[] ScreenEvidence = [.. AccessibilityAuditTests.Headings, FactsStep];
+    /// <summary>The evidence of the criteria that every screen answers for itself: the headings of the manual audit, its page facts and the automatic scan of the screen, read from the record of the screen (D-1736 a: a red scan makes the cell red).</summary>
+    internal static readonly string[] ScreenEvidence = [.. AccessibilityAuditTests.Headings, FactsStep, ScanStep];
 
     /// <summary>
     /// The result of the Checklist A items (T552 criterion 4): the text of the Ministry's list is an outside source and its item numbers are not copied into the documents (12 12.2 Ayrım); the search of 2026-11-17 reached the

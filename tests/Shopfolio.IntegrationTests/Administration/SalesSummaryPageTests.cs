@@ -12,6 +12,7 @@ using Shopfolio.IntegrationTests.Pages;
 using Shopfolio.IntegrationTests.Web;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
@@ -154,6 +155,42 @@ public sealed partial class SalesSummaryTests
         Assert.Contains($"{SalesSummaryModel.NotAssessable} — bu dönemde ödemesi tamamlanmış sipariş yok.", after, StringComparison.Ordinal);
         Assert.Contains(SalesSummaryModel.NoTopSellerText, after, StringComparison.Ordinal);
         Assert.Contains(SalesSummaryModel.NoPaymentText, after, StringComparison.Ordinal);
+    }
+
+    // ---- D-1424 (b), VAL-A273, VAL-A274, VAL-A283: what the page counts ----
+
+    [Fact]
+    public async Task OnThePage_APartiallyRefundedOrderKeepsItsRevenue_AndAFailedOrderWhoseLatePaymentWasRefunded_IsInNeitherTheCountTheRevenueNorTheDistribution_D1424()
+    {
+        Guid paid = await SaveOrderAsync(DayStart.AddHours(2), PaymentMethod.Card, null, null, (_shirt, 2));
+        Guid partly = await SaveOrderAsync(DayStart.AddHours(3), PaymentMethod.Card, null, null, (_lamp, 1));
+        Guid failedLate = await SaveOrderAsync(DayStart.AddHours(4), PaymentMethod.BankTransfer, null, null, (_shirt, 5));
+        Guid failedPlain = await SaveOrderAsync(DayStart.AddHours(5), PaymentMethod.Card, null, null, (_lamp, 4));
+        await SetAxesAsync(paid, OrderStatus.Placed, PaymentStatus.Paid);
+        await SetAxesAsync(partly, OrderStatus.Placed, PaymentStatus.PartiallyRefunded);
+        await SetAxesAsync(failedLate, OrderStatus.Cancelled, PaymentStatus.Failed);
+        await SetAxesAsync(failedPlain, OrderStatus.Cancelled, PaymentStatus.Failed);
+        PaymentRecord late = PaymentRecord.ForCardPayment(failedLate, "t604a-" + Guid.NewGuid().ToString("N")[..12], null, DayStart.AddHours(9));
+        Refund refund = Refund.ForLatePayment(failedLate, late.Id, 1500m, DayStart.AddHours(9));
+        await SaveAsync(c =>
+        {
+            c.PaymentRecords.Add(late);
+            c.Refunds.Add(refund);
+        });
+        await using WebApplicationFactory<Program> factory = OpenPages();
+        using HttpClient client = await PanelClientAsync(factory);
+
+        (HttpStatusCode status, string html) = await GetAsync(client, $"{SummaryPath}?period=Custom&startDate={Day:yyyy-MM-dd}&endDate={Day:yyyy-MM-dd}");
+
+        // Two approved orders (the paid one and the partly refunded one) at their full totals; the failed orders' totals, and the sum with them, are on no line of the page.
+        decimal approved = (await TotalsAsync(paid, partly)).Sum();
+        decimal withFailed = approved + (await TotalsAsync(failedLate, failedPlain)).Sum();
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.Contains("id=\"summary-order-count\"><h3 class=\"summary-card__name\">Sipariş sayısı</h3><p class=\"summary-card__value\">2<", Squeeze(html), StringComparison.Ordinal);
+        Assert.Contains(DisplayFormat.Amount(approved), html, StringComparison.Ordinal);
+        Assert.DoesNotContain(DisplayFormat.Amount(withFailed), html, StringComparison.Ordinal);
+        Assert.DoesNotContain(DisplayFormat.Amount((await TotalsAsync(failedLate)).Single()), html, StringComparison.Ordinal);
+        Assert.DoesNotContain("Havale", html, StringComparison.Ordinal);
     }
 
     private static string Squeeze(string html) => System.Text.RegularExpressions.Regex.Replace(html, @">\s+<", "><", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(5));

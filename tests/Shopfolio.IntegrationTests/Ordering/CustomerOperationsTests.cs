@@ -471,7 +471,81 @@ public sealed class CustomerOperationsTests : IAsyncLifetime
         Assert.Equal(oneCommands, threeCommands);
     }
 
+    // ---- D-1283 (1): the event opens the field, end to end ----
+
+    [Fact]
+    public async Task TheFailedCardRefund_SetsTheCardRefundNotRealizedFact_AndTheOpenedTransferPathsFieldIsOptional_OnlyThen_D1283()
+    {
+        (Order order, List<OrderItem> items) = await SeedAsync(
+            OrderStatus.Preparing, PaymentStatus.Paid, PaymentMethod.Card, new Line(ProductType.Physical, 2), new Line(ProductType.Physical, 1));
+        Assert.False((await RunAsync((u, t) => u.CancelItemByFirmAsync(
+            new CancelItemByFirmRequest(order.Id, items[0].Id, 1, AdminCaller, 1, true, CancellationReason.OutOfStock, null, false), t))).IsRejected);
+        bool beforeFailure = await CardRefundNotRealizedAsync(order.Id);
+        IReadOnlyList<RefundIbanFieldView> fieldsBeforeFailure = await FieldsAsync(order.Id);
+
+        Guid refundId = await FailLatestCardRequestAsync(order.Id);
+        bool afterFailure = await CardRefundNotRealizedAsync(order.Id);
+        IReadOnlyList<RefundIbanFieldView> fieldsAfterFailure = await FieldsAsync(order.Id);
+        Assert.False((await RunAsync((u, t) => u.OpenRefundTransferPathAsync(new OpenRefundTransferPathRequest(order.Id, refundId, AdminCaller, 2), t))).IsRejected);
+        RefundIbanFieldView opened = Assert.Single(await FieldsAsync(order.Id));
+
+        // The fact is the failure's; the field is the transfer path's own request (04 2.12.3.1: on the card line the IBAN exists only through the exception, and is optional there).
+        Assert.False(beforeFailure);
+        Assert.Empty(fieldsBeforeFailure);
+        Assert.True(afterFailure);
+        Assert.Empty(fieldsAfterFailure);
+        Assert.Equal((items[0].Id, (RefundIbanRequestReason?)RefundIbanRequestReason.CardRefundFailed, true), (opened.OrderItemId, opened.Reason, opened.IsOptional));
+    }
+
+    // ---- D-1284: the itemless fields are kept only when their refund is the order's (K-1075) ----
+
+    [Fact]
+    public async Task TheItemlessIbanFields_KeepOnlyTheOrdersOwnRefunds_AnotherOrdersRefundsFieldIsDropped_InAFixedNumberOfCommands_D1284()
+    {
+        (Order withTwo, _) = await SeedAsync(OrderStatus.Cancelled, PaymentStatus.Paid, PaymentMethod.Card, new Line(ProductType.Physical, 1));
+        (Order withOne, _) = await SeedAsync(OrderStatus.Cancelled, PaymentStatus.Paid, PaymentMethod.Card, new Line(ProductType.Physical, 1));
+        (Order foreignOwner, _) = await SeedAsync(OrderStatus.Cancelled, PaymentStatus.Paid, PaymentMethod.Card, new Line(ProductType.Physical, 1));
+        await SeedItemlessFieldAsync(withTwo.Id, RefundIbanRequestReason.CardRefundFailed);
+        await SeedItemlessFieldAsync(withTwo.Id, RefundIbanRequestReason.TransferFailed);
+        await SeedItemlessFieldAsync(withOne.Id, RefundIbanRequestReason.CardRefundFailed);
+        await SeedItemlessFieldAsync(foreignOwner.Id, RefundIbanRequestReason.TransferFailed);
+
+        (IReadOnlyList<RefundIbanFieldView> twoFields, int twoCommands) = await CountedFieldsAsync(withTwo.Id);
+        (IReadOnlyList<RefundIbanFieldView> oneField, int oneCommands) = await CountedFieldsAsync(withOne.Id);
+
+        // The request query reads the itemless requests of every order; the order's refund set is what drops the foreign owner's (and the others' of the order).
+        Assert.Equal(
+            [RefundIbanRequestReason.TransferFailed, RefundIbanRequestReason.CardRefundFailed],
+            twoFields.Select(f => f.Reason!.Value).Order());
+        Assert.All(twoFields, f => Assert.Null(f.OrderItemId));
+        Assert.Equal(RefundIbanRequestReason.CardRefundFailed, Assert.Single(oneField).Reason);
+        Assert.Equal(oneCommands, twoCommands);
+    }
+
     // ---- helpers ----
+
+    private async Task<bool> CardRefundNotRealizedAsync(Guid orderId)
+    {
+        await using AsyncServiceScope scope = _provider.CreateAsyncScope();
+        OrderOperationFacts facts = await scope.ServiceProvider.GetRequiredService<OrderOperations>().ReadFactsAsync(orderId, Ct) ?? throw new InvalidOperationException("The order exists.");
+        return facts.CardRefundNotRealized;
+    }
+
+    /// <summary>An itemless IBAN field: a late payment's refund on the order and the open itemless request on it (K-1075, K-1131); returns the refund.</summary>
+    private async Task<Guid> SeedItemlessFieldAsync(Guid orderId, RefundIbanRequestReason reason)
+    {
+        DateTimeOffset now = _clock.GetUtcNow();
+        PaymentRecord payment = PaymentRecord.ForCardPayment(orderId, "t604a-" + Guid.NewGuid().ToString("N")[..12], null, now);
+        Refund refund = Refund.ForLatePayment(orderId, payment.Id, 120m, now);
+        RefundIbanRequest request = RefundIbanRequest.ForRefund(refund.Id, reason, _admin!.Id, _admin.Name, now);
+        await SaveAsync(c =>
+        {
+            c.PaymentRecords.Add(payment);
+            c.Refunds.Add(refund);
+            c.RefundIbanRequests.Add(request);
+        });
+        return refund.Id;
+    }
 
     /// <summary>The order page's IBAN fields with the number of commands the read sent (09 20 item 4).</summary>
     private async Task<(IReadOnlyList<RefundIbanFieldView> Fields, int Commands)> CountedFieldsAsync(Guid orderId)

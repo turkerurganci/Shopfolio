@@ -31,7 +31,7 @@ internal enum LogCallKind
     /// <summary><c>BeginScope(...)</c>, <c>ForContext(...)</c>, <c>PushProperty(...)</c>, <c>WithProperty(...)</c>: the strings are property names.</summary>
     Scope,
 
-    /// <summary>The initializer of a <c>const string</c>: a template kept in a constant and passed by name.</summary>
+    /// <summary>The initializer of a <c>const string</c>, a <c>string</c> field or a <c>var</c> local: a template kept in a constant or a variable and passed by name.</summary>
     Constant,
 }
 
@@ -147,6 +147,69 @@ internal sealed partial class LogSourceText
     /// <summary>True when the argument is nothing but literals (joined with <c>+</c>, perhaps named): the template argument of a log call.</summary>
     public bool IsLiteralArgument((int Start, int End) argument) =>
         Literals.Any(l => l.Start >= argument.Start && l.End <= argument.End) && JoinedLiterals().IsMatch(ArgumentCode(argument));
+
+    /// <summary>
+    /// The member names of the anonymous objects (<c>new { Email = x, order.Phone }</c>) inside a call: the names a scoped or destructured value writes
+    /// under (D-1005 form 3). A member is <c>Name = value</c> or a projected member (<c>order.Phone</c> gives <c>Phone</c>).
+    /// </summary>
+    public IReadOnlyList<(string Name, int Line)> AnonymousMembers(LogCallSite site)
+    {
+        List<(string Name, int Line)> members = [];
+        foreach (Match match in AnonymousObject().Matches(Code, site.Open))
+        {
+            if (match.Index > site.Close)
+            {
+                break;
+            }
+
+            int open = match.Index + match.Length - 1;
+            int close = MatchingBrace(open);
+            int start = open + 1;
+            int depth = 0;
+            for (int i = open + 1; i <= close; i++)
+            {
+                char c = Code[i];
+                if (i == close || (c == ',' && depth == 0))
+                {
+                    Match member = AnonymousMember().Match(Code[start..i]);
+                    if (member.Success)
+                    {
+                        members.Add((member.Groups["n"].Value.TrimStart('@'), LineOf(start + member.Groups["n"].Index)));
+                    }
+
+                    start = i + 1;
+                }
+                else if (c is '(' or '[' or '{')
+                {
+                    depth++;
+                }
+                else if (c is ')' or ']' or '}')
+                {
+                    depth--;
+                }
+            }
+        }
+
+        return members;
+    }
+
+    private int MatchingBrace(int open)
+    {
+        int depth = 0;
+        for (int i = open; i < Code.Length; i++)
+        {
+            if (Code[i] == '{')
+            {
+                depth++;
+            }
+            else if (Code[i] == '}' && --depth == 0)
+            {
+                return i;
+            }
+        }
+
+        return Code.Length - 1;
+    }
 
     private void Collect(List<LogCallSite> sites, LogCallKind kind, Regex pattern, bool openAtEnd)
     {
@@ -484,8 +547,17 @@ internal sealed partial class LogSourceText
     [GeneratedRegex(@"\b(?:BeginScope|ForContext|PushProperty|WithProperty)\s*(?:<[^()]*>)?\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex ScopeCall();
 
-    [GeneratedRegex(@"\bconst\s+string\s+\w+\s*=", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    // A template kept in a constant or in a variable (D-1005 form 4): const string T = "..."; static readonly string T = "..."; var t = "..."; string T => "...".
+    [GeneratedRegex(@"\b(?:string|var)\s+\w+\s*(?:=>|=(?!=))", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex ConstantString();
+
+    // new { ... }: an anonymous object (a target-typed new() with an initializer is not one).
+    [GeneratedRegex(@"\bnew\s*\{", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex AnonymousObject();
+
+    // One member of an anonymous object: "Name = value" or a projected member ("order.Phone", "Phone").
+    [GeneratedRegex(@"^\s*(?:(?<n>@?\w+)\s*=(?!=)|(?:[\w?]+\s*\??\.\s*)*(?<n>@?\w+)\s*$)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex AnonymousMember();
 
     // The argument is literals and plus signs only, with an optional name: "a" + "b", message: "a"
     [GeneratedRegex(@"^\s*(?:\w+\s*:\s*)?[\s+]*$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

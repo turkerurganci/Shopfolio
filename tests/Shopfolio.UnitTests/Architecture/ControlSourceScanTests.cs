@@ -237,8 +237,10 @@ public sealed class ControlSourceScanTests
 
     // ---- KK10, KK1: no limit is a number typed in a component ----
 
+    // D-1226: a number typed into min or max is a limit too. Two structural numbers are spared, exactly: min="1" (an order field starts at one: not a product limit)
+    // and max="100" on a progress element (the percentage of an upload). Any other typed min or max, and a max="100" on any other element, is found.
     private static List<string> TypedLimits(string source) =>
-        [.. Regex.Matches(source, @"(maxlength=""\d|\d+\s*MB\b|\d+\s*görsel|[1-9]\d*L\s*\*\s*1024|[1-9]\d*\s*\*\s*1024\s*\*\s*1024)", RegexOptions.CultureInvariant, PatternTimeout).Select(m => m.Value)];
+        [.. Regex.Matches(source, @"(maxlength=""\d|\d+\s*MB\b|\d+\s*görsel|[1-9]\d*L\s*\*\s*1024|[1-9]\d*\s*\*\s*1024\s*\*\s*1024|\bmin\s*=\s*""(?!1"")\d|<progress\b[^>]*\bmax\s*=\s*""(?!100"")\d|<(?!progress\b)[A-Za-z][\w-]*\b[^>]*\bmax\s*=\s*""\d)", RegexOptions.CultureInvariant, PatternTimeout).Select(m => m.Value)];
 
     [Fact]
     public void TheControlComponents_TypeNoLimit_KK10()
@@ -256,6 +258,12 @@ public sealed class ControlSourceScanTests
     [InlineData("private const long Limit = 10L * 1024 * 1024;")]
     [InlineData("private const long Limit = 10 * 1024 * 1024;")]
     [InlineData("<textarea maxlength=\"500\"></textarea>")]
+    [InlineData("<input type=\"number\" min=\"0\">")]
+    [InlineData("<input type=\"number\" min=\"10\">")]
+    [InlineData("<input type=\"number\" min = \"5\" max=\"@Model.Max\">")]
+    [InlineData("<input type=\"number\" max=\"50\">")]
+    [InlineData("<input type=\"number\" max=\"100\">")]
+    [InlineData("<progress value=\"@upload.Percent\" max=\"50\"></progress>")]
     public void ATypedLimit_IsFound_KK10(string source)
     {
         Assert.NotEmpty(TypedLimits(source));
@@ -264,6 +272,9 @@ public sealed class ControlSourceScanTests
     [Theory]
     [InlineData("private const long BytesPerMegabyte = 1 << 20;")]
     [InlineData("<input maxlength=\"@Model.MaxLength\" min=\"@Model.Min\">")]
+    [InlineData("<input type=\"number\" min=\"1\" id=\"@row.OrderId\">")]
+    [InlineData("<progress value=\"@upload.Percent\" max=\"100\" aria-label=\"@upload.FileName\">@upload.Percent %</progress>")]
+    [InlineData("<input type=\"number\" min=\"@Model.Min\" max=\"@Model.Max\">")]
     [InlineData("return $\"En çok {UploadLimits.MaxCount(surface)} görsel yüklenebilir.\";")]
     public void ALimitFromTheConstants_IsQuiet_KK10(string source)
     {

@@ -123,7 +123,8 @@ internal static class AuditScripts
     internal const string Names = """
         () => {
           const text = (n) => (n.textContent || '').replace(/\s+/g, ' ').trim();
-          const visible = (e) => { const r = e.getBoundingClientRect(); const s = getComputedStyle(e); return (r.width > 0 && r.height > 0 || e.matches('.skip-link,.u-visually-hidden')) && s.visibility !== 'hidden' && s.display !== 'none' && !e.closest('[hidden],[inert]'); };
+          // A control with no size is still a control (a zero-size nameless button is read by a screen reader, WCAG 4.1.2; D-1746 b): only what the page takes out of every person's reach is left out - display none, hidden, inert, aria-hidden (the contact form's trap field, 02 3.32.7) and the content of a closed disclosure.
+          const visible = (e) => { const s = getComputedStyle(e); const closed = e.closest('details:not([open])'); const inClosed = closed && !(e.tagName === 'SUMMARY' && e.parentElement === closed); return s.visibility !== 'hidden' && s.display !== 'none' && !e.closest('[hidden],[inert],[aria-hidden=true]') && !inClosed; };
           const own = (e) => {
             const lb = e.getAttribute('aria-labelledby');
             if (lb) { const t = lb.split(/\s+/).map((id) => document.getElementById(id)).filter(Boolean).map(text).join(' ').trim(); if (t) { return t; } }
@@ -185,7 +186,7 @@ internal static class AuditScripts
           const help = [...document.querySelectorAll('footer a[href="/iletisim"]')].map((a) => [...a.closest('footer').querySelectorAll('a')].indexOf(a));
           const headings = [...document.querySelectorAll('h1,h2,h3,h4,h5,h6')].map((h) => parseInt(h.tagName[1], 10));
           let skipped = false; for (let i = 1; i < headings.length; i++) { if (headings[i] > headings[i - 1] + 1) { skipped = true; } }
-          return JSON.stringify({ lang: document.documentElement.lang, title: document.title, media, refresh, infinite, sensory, help, headings: headings.length, skipped, main: document.querySelectorAll('main').length, skip: document.querySelectorAll('a.skip-link[href^="#"]').length });
+          return JSON.stringify({ lang: document.documentElement.lang, title: document.title, media, refresh, infinite, sensory, help, headings: headings.length, skipped, main: document.querySelectorAll('main').length, nav: document.querySelectorAll('nav,[role=navigation]').length, skip: document.querySelectorAll('a.skip-link[href^="#"]').length });
         }
         """;
 }

@@ -25,7 +25,7 @@ public sealed partial class PayTrPaymentGatewayTests
         string paymentAmount = "120", string paymentTotal = "124,5", string paymentType = "KART", string currency = "TL", string testMode = "0") =>
         "{\"status\":\"success\",\"payment_amount\":\"" + paymentAmount + "\",\"payment_total\":\"" + paymentTotal + "\",\"payment_date\":\"2026-11-10 10:00:00\","
         + "\"currency\":\"" + currency + "\",\"taksit\":\"3\",\"kart_marka\":\"WORLD-MARKA\",\"masked_pan\":\"4355-08XX-XXXX-1234\",\"odeme_tipi\":\"" + paymentType + "\","
-        + "\"test_mode\":\"" + testMode + "\",\"net_tutar\":\"9.76\",\"kesinti_tutari\":\"KESINTI-55\",\"auth_code\":\"AUTH-777\",\"auth_date\":\"2026-11-10\",\"returns\":[]}";
+        + "\"test_mode\":\"" + testMode + "\",\"net_tutar\":\"9,7631\",\"kesinti_tutari\":\"KESINTI-55\",\"auth_code\":\"AUTH-777\",\"auth_date\":\"2026-11-10\",\"returns\":[]}";
 
     private static string ErrorAnswer(string code) => "{\"status\":\"error\",\"err_no\":\"" + code + "\",\"err_msg\":\"MESSAGE-WITH-" + MerchantOidSample + "\"}";
 
@@ -191,7 +191,7 @@ public sealed partial class PayTrPaymentGatewayTests
     {
         using RunnerHarness harness = new();
         (PayTrPaymentGateway gateway, _) = Gateway(harness, KeysContent(), answer: SuccessAnswer(paymentTotal: "1.234,56"));
-        string[] unread = ["4355-08XX-XXXX-1234", "WORLD-MARKA", "AUTH-777", "2026-11-10 10:00:00", "9.76", "KESINTI-55"];
+        string[] unread = ["4355-08XX-XXXX-1234", "WORLD-MARKA", "AUTH-777", "2026-11-10 10:00:00", "9,7631", "KESINTI-55"];
 
         PaymentQueryResult unrecognized = await gateway.QueryPaymentAsync(OrderNumberSample, Ct);
         (PayTrPaymentGateway readable, _) = Gateway(harness, KeysContent(), answer: SuccessAnswer());

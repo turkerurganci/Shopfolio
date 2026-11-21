@@ -195,6 +195,49 @@ public sealed partial class PaymentNotificationTests : IAsyncLifetime
         Assert.All(records, r => Assert.Equal((ActorKind.System, (TransitionReason?)TransitionReason.CardPaymentFailed), (r.ActorKind, r.TransitionReason)));
     }
 
+    // ---- D-981, VAL-C080: a digital-only order's payment confirmation closes it as delivered (S2) ----
+
+    [Fact]
+    public async Task Success_OnADigitalOnlyOrder_MovesItStraightToDelivered_AndMarksEveryDigitalItemAtTheConfirmation_S2_VALC080()
+    {
+        Order order = await SeedOrderAsync(OrderStatus.Placed, PaymentStatus.Pending, itemType: ProductType.Digital);
+        _gateway.EnqueueVerification(new NotificationVerification.SignatureValid(Notice(order, FakePaymentGateway.SucceededOutcome)));
+        using HttpResponseMessage response = await PostAsync();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        await AssertOrderAsync(order.Id, OrderStatus.Placed, PaymentStatus.Pending, 1);
+
+        Assert.True(await RunNextJobAsync());
+
+        await using AppDbContext reader = NewContext();
+        Order after = await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct);
+        Assert.Equal((OrderStatus.Delivered, PaymentStatus.Paid), (after.OrderStatus, after.PaymentStatus));
+        Assert.Contains(TransitionCode.S2, await reader.TransitionRecords.Where(t => t.OrderId == order.Id).Select(t => t.TransitionCode).ToListAsync(Ct));
+        List<OrderItem> items = await reader.OrderItems.Where(i => i.OrderId == order.Id).ToListAsync(Ct);
+        Assert.All(items, i => Assert.NotNull(i.DeliveryMarkedAt));
+    }
+
+    // ---- D-981, VAL-C002: a late card payment on a cancelled order is refunded by the system, once ----
+
+    [Fact]
+    public async Task LateSuccess_OnACancelledOrder_IsRefundedByTheSystem_TheOrderStaysCancelled_AndTheSameNotificationAgainMakesNoSecondRefund_VALC002()
+    {
+        Order order = await SeedOrderAsync(OrderStatus.Cancelled, PaymentStatus.Failed);
+        _gateway.EnqueueVerification(new NotificationVerification.SignatureValid(Notice(order, FakePaymentGateway.SucceededOutcome)));
+        using HttpResponseMessage response = await PostAsync();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        Assert.True(await RunNextJobAsync());
+        InboundNotificationRecord record = await SingleRecordAsync();
+        await HandleAgainAsync(record.Id);
+
+        await using AppDbContext reader = NewContext();
+        Order after = await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct);
+        Assert.Equal((OrderStatus.Cancelled, PaymentStatus.Failed), (after.OrderStatus, after.PaymentStatus));
+        Refund refund = await reader.Refunds.SingleAsync(r => r.OrderId == order.Id, Ct);
+        Assert.Equal((RefundType.LatePayment, Total), (refund.RefundType, refund.Amount));
+        Assert.Equal(1, await reader.PaymentRecords.CountAsync(p => p.OrderId == order.Id, Ct));
+    }
+
     [Fact]
     public async Task FailureOnAnOrderThatIsPaidAlready_ChangesNothing_AndTheRecordIsProcessed()
     {
@@ -404,7 +447,7 @@ public sealed partial class PaymentNotificationTests : IAsyncLifetime
             Ct);
     }
 
-    private async Task<Order> SeedOrderAsync(OrderStatus orderStatus, PaymentStatus paymentStatus, string? orderNumber = null)
+    private async Task<Order> SeedOrderAsync(OrderStatus orderStatus, PaymentStatus paymentStatus, string? orderNumber = null, ProductType itemType = ProductType.Physical)
     {
         int n = Interlocked.Increment(ref _counter);
         Province province = Province.Create($"{n:D2}", $"İl {n}", Now);
@@ -432,7 +475,11 @@ public sealed partial class PaymentNotificationTests : IAsyncLifetime
         order.DistanceSalesContractVersionId = contract.Id;
         order.PrivacyNoticeVersionId = notice.Id;
         order.FreezeDocuments("ön bilgilendirme", "mesafeli satış");
-        OrderItem item = OrderItem.Create(order.Id, null, null, ProductType.Physical, "Ürün", 3, 100m, 20m, 16.67m, Now);
+        OrderItem item = OrderItem.Create(order.Id, null, null, itemType, "Ürün", itemType == ProductType.Digital ? 1 : 3, 100m, 20m, 16.67m, Now);
+        if (itemType == ProductType.Digital)
+        {
+            item.DownloadAllowance = 3;
+        }
 
         await using (AppDbContext context = NewContext())
         {

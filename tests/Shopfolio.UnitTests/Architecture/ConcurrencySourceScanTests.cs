@@ -160,6 +160,15 @@ public sealed class ConcurrencySourceScanTests
         Assert.Contains((ConcurrencySourceScan.CounterWrite, 10), findings);
     }
 
+    [Fact]
+    public void ShareLockText_NamesTheProductLocksExceptionAndTheOneFormItMayTake_D1546()
+    {
+        // The finding text is what a developer reads when the scan fails: it must say that ProductLocks.cs may take FOR KEY SHARE (09 10.2 item 6), not only "outside OrderLocks.cs".
+        Assert.Contains("ProductLocks.cs", ConcurrencySourceScan.ShareLockText, StringComparison.Ordinal);
+        Assert.Contains("FOR KEY SHARE", ConcurrencySourceScan.ShareLockText, StringComparison.Ordinal);
+        Assert.Contains("OrderLocks.cs", ConcurrencySourceScan.ShareLockText, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("src/Shopfolio.Web/Modules/Catalog/Products.cs")]
     [InlineData("src/Shopfolio.Web/Modules/Ordering/ProductLocks.cs")]

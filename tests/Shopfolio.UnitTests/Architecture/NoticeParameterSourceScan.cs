@@ -19,6 +19,12 @@ internal static partial class NoticeParameterSourceScan
 
     public const string RouteValue = "NoticeRouteValueInAView";
 
+    public const string HandlerParameterRule = "NoticeHandlerParameterOutsideTheWriter";
+
+    public const string BoundPropertyRule = "NoticeBoundPropertyOutsideTheWriter";
+
+    public const string NameConstantRule = "NoticeNameConstantReadOutsideTheWriter";
+
     public const string WriterFile = "src/Shopfolio.Web/Infrastructure/Notices/NoticeParameter.cs";
 
     public static bool AppliesTo(string relativePath) => Normalize(relativePath).StartsWith("src/", StringComparison.Ordinal);
@@ -52,7 +58,51 @@ internal static partial class NoticeParameterSourceScan
             }
         }
 
-        return findings;
+        if (!view)
+        {
+            AddUnquotedReads(text, findings);
+        }
+
+        return [.. findings.OrderBy(static f => f.Line)];
+    }
+
+    // The reads that carry no quoted name (D-146): a page handler parameter named notice (the framework binds it by name), a bound property named Notice
+    // (query binding by name) and the writer's name constant used to read the value outside the writer (a presence check is no read of the value).
+    private static void AddUnquotedReads(string text, List<(string Rule, int Line)> findings)
+    {
+        string normalized = text.ReplaceLineEndings("\n");
+        foreach (Match match in HandlerParameter().Matches(normalized))
+        {
+            findings.Add((HandlerParameterRule, LineOf(normalized, match.Index)));
+        }
+
+        foreach (Match match in BoundProperty().Matches(normalized))
+        {
+            findings.Add((BoundPropertyRule, LineOf(normalized, match.Index)));
+        }
+
+        string[] lines = normalized.Split('\n');
+        for (int i = 0; i < lines.Length; i++)
+        {
+            if (NameConstant().IsMatch(lines[i]) && !PresenceCheck().IsMatch(lines[i]))
+            {
+                findings.Add((NameConstantRule, i + 1));
+            }
+        }
+    }
+
+    private static int LineOf(string text, int index)
+    {
+        int line = 1;
+        for (int i = 0; i < index; i++)
+        {
+            if (text[i] == '\n')
+            {
+                line++;
+            }
+        }
+
+        return line;
     }
 
     private static string Normalize(string path) => path.Replace('\\', '/');
@@ -64,6 +114,23 @@ internal static partial class NoticeParameterSourceScan
     // ?notice= &notice= &amp;notice= %3Fnotice= %26notice=: the parameter in the text of an address, wherever the line breaks the literal.
     [GeneratedRegex(@"(?:[?&]|&amp;|%3F|%26)notice=", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex InAddress();
+
+    // OnGet(string? notice), OnPostSaveAsync(int id, [FromQuery] string? Notice, CancellationToken ct): a handler parameter named notice, the parameter list read to its closing bracket
+    // (nested brackets of an attribute included); the name matches without case, as the binder does.
+    [GeneratedRegex(@"\bOn(?:Get|Post|Put|Delete|Patch|Head)\w*\s*\((?:[^()]|\([^()]*\))*?\bnotice\s*[,)=]", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex HandlerParameter();
+
+    // [BindProperty(SupportsGet = true)] public string? Notice { get; set; } and [FromQuery] public string? Notice { get; set; }: a query-bound property named Notice.
+    [GeneratedRegex(@"\[\s*(?:BindProperty\s*\([^\]]*SupportsGet\s*=\s*true[^\]]*|FromQuery[^\]]*)\]\s*(?:\[[^\]]*\]\s*)*(?:(?:public|internal|protected|private|required)\s+)*[\w<>?.,\[\]]+\s+Notice\s*[{;=]", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex BoundProperty();
+
+    // NoticeParameter.ParameterName outside the writer: reading the value through the name constant (Request.Query[NoticeParameter.ParameterName], TryGetValue) skips the closed list.
+    [GeneratedRegex(@"\bNoticeParameter\s*\.\s*ParameterName\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex NameConstant();
+
+    // The one use that is no read of the value: asking whether the query carries the parameter (a page that closes to search engines when it does).
+    [GeneratedRegex(@"\.\s*ContainsKey\s*\(\s*NoticeParameter\s*\.\s*ParameterName\s*\)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex PresenceCheck();
 
     // asp-route-notice="..." and data of a route value named notice in a view.
     [GeneratedRegex(@"asp-route-notice\b|\bnotice\s*=\s*[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

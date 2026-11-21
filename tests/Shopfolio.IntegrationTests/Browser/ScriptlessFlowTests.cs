@@ -128,12 +128,22 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
                 await same.CheckAsync();
             }
 
-            if (decoy && path == ScriptPath.Scriptless)
+            if (decoy)
             {
-                // Without the script the billing fields stay on the page; what they hold is not read while the box is ticked (07 4.13.6).
-                await p.Locator("[name=BillingRecipientName]").FillAsync("Baska Kisi");
-                await p.Locator("[name=BillingDistrict]").FillAsync("Baska Ilce");
-                await p.Locator("[name=BillingAddressLine]").FillAsync("Baska Cadde 9");
+                // What the billing fields hold is not read while the box is ticked (07 4.13.6). Without the script they stay on the page and are typed into;
+                // with it the form is hidden, so the values are set on the hidden fields directly and are submitted with the form (D-1725: both ways measure the same).
+                foreach ((string field, string value) in new[] { ("BillingRecipientName", "Baska Kisi"), ("BillingDistrict", "Baska Ilce"), ("BillingAddressLine", "Baska Cadde 9") })
+                {
+                    ILocator target = p.Locator($"[name={field}]");
+                    if (path == ScriptPath.Scriptless)
+                    {
+                        await target.FillAsync(value);
+                    }
+                    else
+                    {
+                        await target.EvaluateAsync("(element, text) => { element.value = text; }", value);
+                    }
+                }
             }
         }
         else
@@ -200,7 +210,7 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
                 path,
                 engine,
                 page,
-                sameAsShipping ? "kutu işaretli, fatura alanları" + (path == ScriptPath.Scriptless ? " (başka bir kişinin değerleriyle dolu) " : " ") + "sipariş onaylanır" : "kutu kaldırılır, fatura alanları doldurulur, sipariş onaylanır",
+                sameAsShipping ? "kutu işaretli, fatura alanları (başka bir kişinin değerleriyle dolu) sipariş onaylanır" : "kutu kaldırılır, fatura alanları doldurulur, sipariş onaylanır",
                 sameAsShipping ? "fatura adresi teslimat adresinin dört alanıdır; gönderilen fatura alanları siparişe girmez; betikli yolda form kutuyla gizlenir" : "fatura formu açılır; girilen değerler (Fatura Sahibi, Keçiören) siparişe yazılır",
                 $"fatura formu görünür: {billingShown}; sipariş {number}",
                 ok,
@@ -229,6 +239,82 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         string number = await SubmitCheckoutAsync(page);
         string row = await DataRecord.RowAsync(Host.Dsn, "SELECT order_number, contact_email, order_status, payment_status FROM orders WHERE order_number = @n", ("n", number));
         await ObserveAsync("VAL-B109", path, engine, page, "kategori, ürün, sepete ekle, sepet, ödeme adımı, onay", "sipariş açılır ve teyit ekranı gösterilir (sipariş numarası, havale bilgileri)", $"sepet satırı \"{line}\"; teyit ekranı {PathOf(page)}; sipariş {number}", row.StartsWith("order_number=", StringComparison.Ordinal) && !row.Contains("satır yok", StringComparison.Ordinal), row);
+        Assert.Empty(Failures);
+    }
+
+    /// <summary>
+    /// VAL-B009 (KRITIK), VAL-B010, VAL-B011 (D-1494): the transfer order's confirmation and order page show the firm's whole IBAN; both payment ways' confirmation says the order was received with
+    /// its number; the card's return lands on the order page and the page says the payment is awaited (the provider has sent no notice).
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Ways))]
+    public async Task ThePaymentScreens_ShowTheIban_TheReceivedSentenceAndTheAwaitedCard_InBothWays_VALB009_VALB010_VALB011(string engine, ScriptPath path)
+    {
+        await using IBrowserContext context = await Host.ContextAsync(engine, path);
+        WatchedPage page = await NewPageAsync(context);
+        string email = $"b009-{Unique(engine, path)}@example.com";
+        await AddToCartAsync(page, Host.Seed.Product("plain").Slug);
+        await GoAsync(page, "/odeme");
+        await FillCheckoutAsync(page, path, email, true);
+        string number = await SubmitCheckoutAsync(page);
+        string received = await TextAsync(page.Page.Locator(".order-confirmation__heading p"));
+        string confirmationIban = (await TextAsync(page.Page.Locator(".order-confirmation__iban"))).Replace("IBAN'ı kopyala", string.Empty, StringComparison.Ordinal).Replace(" ", string.Empty, StringComparison.Ordinal);
+        bool confirmationIbanWhole = Regex.IsMatch(confirmationIban, @"^TR\d{24}", RegexOptions.None, TimeSpan.FromSeconds(2));
+        await ObserveAsync(
+            "VAL-B009",
+            path,
+            engine,
+            page,
+            "havale siparişi onaylanır; teyit ekranındaki IBAN okunur",
+            "teyit ekranı kayıtlı IBAN'ı eksiksiz (TR + 24 hane) gösterir",
+            $"IBAN metni \"{confirmationIban}\"",
+            confirmationIbanWhole);
+
+        SeededOrder awaitingTransfer = Host.Seed.Order("awaiting-transfer");
+        await GoAsync(page, $"/siparis/erisim/{awaitingTransfer.AccessKey}");
+        string orderIban = (await TextAsync(page.Page.Locator("dd:has-text('TR')").First)).Replace("IBAN'ı kopyala", string.Empty, StringComparison.Ordinal).Replace(" ", string.Empty, StringComparison.Ordinal);
+        await ObserveAsync(
+            "VAL-B009",
+            path,
+            engine,
+            page,
+            "havale siparişinin sayfası açılır; IBAN okunur",
+            "sipariş sayfası kayıtlı IBAN'ı eksiksiz gösterir",
+            $"IBAN metni \"{orderIban}\"",
+            Regex.IsMatch(orderIban, @"^TR\d{24}", RegexOptions.None, TimeSpan.FromSeconds(2)));
+
+        SeededOrder cardOrder = await BrowserSeed.NewOrderAsync(Host.Dsn, $"b010-{engine}-{path}-{Unique(engine, path)}", OrderStatus.Placed, PaymentStatus.Pending, card: true);
+        await GoAsync(page, $"/siparis/erisim/{cardOrder.AccessKey}/teyit");
+        string cardTitle = await TextAsync(page.Page.Locator("#order-confirmation-title"));
+        string cardReceived = await TextAsync(page.Page.Locator(".order-confirmation__heading p"));
+        await ObserveAsync(
+            "VAL-B010",
+            path,
+            engine,
+            page,
+            "iki yolda da teyit ekranı: havale siparişinin teyidi ve kart siparişinin teyidi",
+            "iki ekranda da siparişin alındığı cümlesi ve sipariş numarası yazar",
+            $"havale: \"{received}\" / {number}; kart: \"{cardReceived}\" / {cardTitle}",
+            received == "Siparişiniz alındı." && cardReceived == "Siparişiniz alındı." && cardTitle.Contains(cardOrder.Number, StringComparison.Ordinal));
+
+        await GoAsync(page, $"/odeme/donus/{Uri.EscapeDataString(cardOrder.AccessKey)}");
+        if (path == ScriptPath.Scriptless)
+        {
+            // The hand-over page's own link does what the script does (UC-30): without a script the buyer follows it.
+            await NavigateAsync(page, () => page.Page.Locator("a[data-js=payment-return]").ClickAsync());
+        }
+
+        string landed = PathOf(page);
+        string awaited = await TextAsync(page.Page.Locator("#order-card-awaited"));
+        await ObserveAsync(
+            "VAL-B011",
+            path,
+            engine,
+            page,
+            "kart ödemesinin 3D Secure dönüşü açılır (sağlayıcı bildirimi göndermemiştir)",
+            "dönüş sipariş sayfasına iner ve sayfa kart ödemesinin beklendiğini yazar",
+            $"inilen adres {landed}; cümle \"{awaited}\"",
+            landed.StartsWith("/siparis/erisim/", StringComparison.Ordinal) && awaited.Contains("Kart ödemenizin sonucu bekleniyor", StringComparison.Ordinal));
         Assert.Empty(Failures);
     }
 
@@ -727,6 +813,55 @@ public sealed class ScriptlessFlowTests(BrowserHost host) : BrowserTestBase(host
         string tracked = await TextMatchingAsync(page.Page.Locator("main"), Regex.Escape(order.Number), 15000);
         await ObserveAsync("VAL-B110", path, engine, page, "sipariş takibi: numara ve e-posta gönderilir", "sipariş sayfası açılır ve sipariş numarasını gösterir", $"adres {PathOf(page)}; sayfa \"{tracked[..Math.Min(tracked.Length, 120)]}\"", PathOf(page).StartsWith("/siparis/", StringComparison.Ordinal) && tracked.Contains(order.Number, StringComparison.Ordinal));
         Assert.DoesNotContain(Host.Record.Snapshot().Where(o => o.Row == "VAL-B110" && o.Engine == engine), o => o.Observed.Contains($"b110-{id}@", StringComparison.Ordinal) || o.Observed.Contains(order.AccessKey, StringComparison.Ordinal) || o.Observed.Contains(verifyKey, StringComparison.Ordinal) || o.Observed.Contains(resetKey, StringComparison.Ordinal) || o.Observed.Contains(adminKey, StringComparison.Ordinal));
+        Assert.Empty(Failures);
+    }
+
+    /// <summary>
+    /// D-1723 (VAL-B110, KK2; 04 5.21.12, 5.28.9, 9.25.11): the link screens' other buttons are sent in the browser - the new address's verification and the Google sign-in's confirmation (E-21), the customer's revert (E-28), the administrator's new-address
+    /// verification and revert (E-54) - each opened by a valid link, its button sent, the change written and the link spent, and the link opened a second time tells its state without the button.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Ways))]
+    public async Task TheLinkScreens_SendTheirButtons_WriteTheChange_AndTheSecondOpeningHasNoButton_InBothWays_VALB110_D1723(string engine, ScriptPath path)
+    {
+        BrowserSeed.SeededLinks links = await BrowserSeed.NewLinksAsync(Host.Dsn, Host.LinkKeys);
+        await using IBrowserContext context = await Host.ContextAsync(engine, path);
+        WatchedPage page = await NewPageAsync(context);
+        const string accountRow = "SELECT (c.email LIKE 'yeni-%') AS new_address, (c.email LIKE 'onceki-%') AS previous_address, (c.google_linked_at IS NOT NULL) AS google_linked FROM customers c JOIN link_records l ON l.customer_id = c.id WHERE l.id = @i";
+        const string adminRow = "SELECT (a.email LIKE 'yonetici-yeni-%') AS new_address, (a.email LIKE 'yonetici-onceki-%') AS previous_address FROM admins a JOIN link_records l ON l.admin_id = a.id WHERE l.id = @i";
+        (string Screen, string Address, string Key, string Form, string Sql, string Effect)[] steps =
+        [
+            ("E-21 yeni e-posta adresinin doğrulaması", "/dogrulama", links.NewAddress, "form[action*='handler=VerifyEmail']", accountRow, "new_address=True"),
+            ("E-21 Google girişi teyidi", "/dogrulama", links.GoogleConfirmation, "form[action*='handler=VerifyEmail']", accountRow, "google_linked=True"),
+            ("E-28 e-posta değişikliğinin geri alınması", "/geri-al", links.EmailRevert, "form[action*='handler=RevertPendingEmailChange']", accountRow, "previous_address=True"),
+            ("E-54 yöneticinin yeni adres doğrulaması", "/panel/dogrulama", links.AdminNewAddress, "form[action*='handler=VerifyEmail']", adminRow, "new_address=True"),
+            ("E-54 yöneticinin e-posta değişikliğini geri alması", "/panel/geri-al", links.AdminEmailRevert, "form[action*='handler=RevertPendingEmailChange']", adminRow, "previous_address=True"),
+        ];
+
+        foreach ((string screen, string address, string key, string form, string sql, string effect) in steps)
+        {
+            Guid linkId = await BrowserSeed.LinkIdOfAsync(Host.Dsn, Host.LinkKeys, key);
+            await GoAsync(page, $"{address}/{key}");
+            bool step = await page.Page.Locator(form).CountAsync() == 1;
+            await NavigateAsync(page, () => page.Page.Locator($"{form} button[type=submit]").ClickAsync());
+            string sent = await TextAsync(page.Page.Locator("main"));
+            string linkRow = await DataRecord.RowAsync(Host.Dsn, "SELECT link_type, (used_at IS NOT NULL) AS used FROM link_records WHERE id = @i", ("i", linkId));
+            string changed = await DataRecord.RowAsync(Host.Dsn, sql, ("i", linkId));
+            await GoAsync(page, $"{address}/{key}");
+            bool buttonOnSecondOpening = await page.Page.Locator(form).CountAsync() > 0;
+            string second = await TextAsync(page.Page.Locator("main"));
+            await ObserveAsync(
+                "VAL-B110",
+                path,
+                engine,
+                page,
+                $"{screen}: geçerli bağlantı açılır, düğme gönderilir, bağlantı yeniden açılır",
+                "adım (düğme) açılır; gönderimden sonra değişiklik yazılır, bağlantı kullanılmış olur ve sayfa sonucu söyler; yeniden açılışta düğme yoktur ve sayfa bağlantının durumunu söyler",
+                $"adım {step}; gönderimden sonra sonuç \"{sent[..Math.Min(sent.Length, 100)]}\"; yeniden açılışta düğme {(buttonOnSecondOpening ? "VAR" : "yok")}, metin \"{second[..Math.Min(second.Length, 100)]}\"",
+                step && sent.Length > 0 && linkRow.Contains("used=True", StringComparison.Ordinal) && changed.Contains(effect, StringComparison.Ordinal) && !buttonOnSecondOpening && second.Length > 0,
+                $"{linkRow}; {changed}");
+        }
+
         Assert.Empty(Failures);
     }
 

@@ -75,7 +75,18 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Beklemede (yönetici başlatır) |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-21, bağımsız doğrulayıcı; head `c83c9702`) |
+| Bulgu sayısı | 2 bulgu (ORTA, S1) + 1 K-notu (D-1859) |
+| Düzeltme gerekli mi | Evet |
+
+**Tur 1 bulguları:**
+
+1. **D-1412 / D-1833 (KK1 ~, kabul kriteri 5 ~):** kalemin kendi kabul cümlesi "test çok satırlı hâli sınar"dır. Karar ve betik (`member-defect-claim.js`) yazıldı, ama çok alanlı kalemli siparişte alanın yerini sınayan sayfa testi ve betiğin tarayıcı gözlemi yok; satır "faz kapısı"na neden T604'te yapılamadığı yazılmadan atıldı (D-1412 ve D-1833 satırlarında gerekçe yok). Bu PR'ın eklediği betik tam o durum için yazıldı ve testsiz kaldı. Düzeltme: çok kalemli sayfa testi (seçim yokken liste altında, gönderilen kalemin satırında; betikli yolda seçilen satırda) yazılır ve D-1412 kapanır; ya da gerekçe ve geçerli bir hedef satıra yazılır.
+2. **D-1550 / D-1812, D-1843, D-1844 (KK1 ~):** (a) D-1550 `✅` yazıldı, ama kendi kabul cümlesi "sipariş ayrıntısının bütün tek alanlı formları tek kalıba alınır" der; kargoya verme ve teslim işareti formları (D-1812) kalıba geçmedi. D-1812'nin ilk gerekçesi ("UE birleşince") #595 ile ortadan kalktı. (b) UH5'in gerekçesi "kalem UH dilimlerinin kalem listesine girmedi" D-1812 (D-1550'nin payı, UH1) ve D-1843 (D-1773'ün kalanı, UH ek listesi) için olguya uymaz. (c) Yeni hedef T601 (F6) `DEPLOY_RUNBOOK` provası ve canlı kanıt task'ıdır; kabul kriterlerinde ürün kodu yok, "F6 ürün işi" diye bir task da yok. Düzeltme: D-1812 bu PR'da yapılır (D-1550 gerçekten kapanır); D-1843 ve D-1844 ürün kodu alan bir hedefe bağlanır ve gerekçesi düzeltilir.
+
+**K-notu:** D-1859 (`CategoriesPageTests …AndTheMessage…_D1773` adı mesajı anar ama mesajı sınamaz) → `DEFERRED_BACKLOG.d/T604-H.md`.
+
+**Doğrulayıcının kanıtları:** KK2 kırmızı–yeşil yeniden üretildi (D-1599, D-1806, D-1845, D-1773: `src` geçici bozuldu → dört test kırmızı → geri alındı → 6/6 yeşil). Unit 8325/8325; Integration ilgili 28 sınıf 750/750 (TAM: CI 4. iş yeşil); `NarrowClassTests` 36/36, `ScreenInventoryTests` 7/7; betik testleri 4/4; `test-pre-commit.sh` 263/0; build `-warnaserror` 0 uyarı; `dotnet format` değişen 118 `.cs` temiz. Birleştirme: `git diff cea4b177 origin/main` boş; D-1770 bekçiyi değiştirmedi.
 
 ## Altyapı Değişiklikleri
 

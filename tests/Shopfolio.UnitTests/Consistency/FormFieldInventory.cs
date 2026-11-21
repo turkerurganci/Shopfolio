@@ -149,7 +149,7 @@ internal static class FormFieldInventory
         new("7.2.10.1", "Panel.RecordWithdrawalInput.DeclarationDate + Panel.RecordLateDeliveryTerminationInput.DeclarationDate", "Zorunlu"),
         new("7.2.10.2", "Panel.RecordWithdrawalInput.Items + Panel.RecordWithdrawalInputLine.Quantity + Pages/Panel/OrderDetail.ItemSteps.cs#TryReadUnits(input.Items", "Zorunlu", "7.3.2.10"),
         new("7.2.10.3", "Panel.RecordWithdrawalInput.DeclarationDate + Panel.RecordLateDeliveryTerminationInput.DeclarationDate", "Zorunlu", "7.3.2.11"),
-        new("7.2.10.4", "Panel.RecordWithdrawalInput.IsFromContactEmail + Panel.RecordWithdrawalInput.Iban + Panel.RecordLateDeliveryTerminationInput.IsFromContactEmail + Panel.RecordLateDeliveryTerminationInput.Iban + Pages/Panel/OrderDetail.ItemSteps.cs#NoticeIbanRule.Allows(iban)", "İsteğe bağlı", "7.3.2.7"),
+        new("7.2.10.4", "Panel.RecordWithdrawalInput.IsFromContactEmail + Panel.RecordWithdrawalInput.Iban + Panel.RecordLateDeliveryTerminationInput.IsFromContactEmail + Panel.RecordLateDeliveryTerminationInput.Iban + Modules/Ordering/PanelItemSteps.cs#NoticeIbanRule.Allows(request.Iban)", "İsteğe bağlı", "7.3.2.7"),
         new("7.2.10.5", "Panel.RecordWithdrawalInput.IsExceptionAcknowledged", "Zorunlu"),
         new("7.2.10.6", "Panel.RecordWithdrawalInput.IsDeliveredBeforeDeclaration", "Zorunlu", "7.2.8.2"),
         new("7.2.11.1", "Panel.RemoveOrderItemInput.Quantity + Pages/Panel/OrderDetail.ItemSteps.cs#TryReadQuantity(input.Quantity", "Zorunlu", "7.3.2.10"),

@@ -24,8 +24,6 @@ namespace Shopfolio.Pages.Panel;
 /// </summary>
 public sealed partial class OrderDetailModel
 {
-    private static readonly InvalidIbanAttribute NoticeIbanRule = new();
-
     public const string CancelByCompanyLabel = "Siparişi iptal et";
 
     public const string RecordWithdrawalLabel = "Cayma bildirimini kaydet";
@@ -82,8 +80,6 @@ public sealed partial class OrderDetailModel
 
     /// <summary>07 UC-130 <c>DeclarationOutsideWindow</c>: a date in the future, or a late delivery termination outside its range.</summary>
     public const string NoticeDateInvalidText = "Bildirimin tarihi ileri olamaz; gecikme feshinde süre dolmuş ve teslim edilmemiş açık kalem bulunmalı.";
-
-    public const string NoticeIbanInvalidText = "IBAN'ın biçimi ya da sağlama basamağı tutmuyor.";
 
     public const string ExceptionUnacknowledgedText = "Bildirim cayma süresinin dışında ya da kalem mutlak istisnalı; kaydetmek için ayrı onay kutusunu işaretleyin.";
 
@@ -241,13 +237,9 @@ public sealed partial class OrderDetailModel
             return await RefuseAsync(id, NoticeDateMissingText, string.IsNullOrWhiteSpace(input.DeclarationDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate, ct);
         }
 
-        // OB-14: a given IBAN passes the check; it is carried only when the notice came from the order's contact e-mail (04 7.2.10.4), otherwise the item asks with B-14.
+        // The IBAN is carried only when the notice came from the order's contact e-mail (04 7.2.10.4); one that fails OB-14 is dropped by the step, not refused (02 10.4.10; K-1631 (5)), and the
+        // items ask with B-14.
         string? iban = input.IsFromContactEmail && !string.IsNullOrWhiteSpace(input.Iban) ? input.Iban.Trim() : null;
-        if (iban is not null && !NoticeIbanRule.Allows(iban))
-        {
-            return await RefuseAsync(id, NoticeIbanInvalidText, ErrorCode.InvalidIban, ct);
-        }
-
         TransitionAdmin admin = await AdminAsync(ct);
         PanelItemStepResult result = await RunItemStepAsync(
             (steps, token) => steps.RecordLateDeliveryTerminationAsync(TerminateForLateDeliveryRequest.FromOtherChannel(id, admin, input.Version, input.Confirmed, date) with { Iban = iban }, token),
@@ -422,8 +414,6 @@ public sealed partial class OrderDetailModel
                 return await RefuseAsync(id, QuantityExceedsOpenText, ErrorCode.QuantityExceedsOpen, ct);
             case PanelItemObstacle.DateInvalid:
                 return await RefuseAsync(id, dateCode == ErrorCode.InvalidDate ? ArrivalDateInvalidText : NoticeDateInvalidText, dateCode, ct);
-            case PanelItemObstacle.IbanInvalid:
-                return await RefuseAsync(id, NoticeIbanInvalidText, ErrorCode.InvalidIban, ct);
             case PanelItemObstacle.WarningsUnconfirmed:
                 return await RefuseAsync(id, ExceptionUnacknowledgedText, ErrorCode.ExceptionAcknowledgementRequired, ct);
             case PanelItemObstacle.DeliveryOrderMissing:

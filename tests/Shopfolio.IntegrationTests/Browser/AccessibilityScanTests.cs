@@ -139,24 +139,24 @@ public sealed class AccessibilityScanTests(BrowserHost host) : BrowserTestBase(h
                     // A page that crashes under load is read once more (CrashRetry); the second crash, or any other tool error, ends the run with the stop named.
                     await RetryOnCrashAsync($"{stop.Screen} {stop.Path}", async () =>
                     {
-                    WatchedPage page = await NewPageAsync(context);
-                    await GoAsync(page, stop.Path);
-                    List<Finding> violations;
-                    int passed;
-                    List<string> incomplete;
-                    string version;
-                    try
-                    {
-                        (violations, passed, incomplete, version) = await ScanAsync(page.Page);
-                    }
-                    catch (PlaywrightException e) when (!CrashRetry.IsCrash(e))
-                    {
-                        throw new InvalidOperationException($"{stop.Screen} {stop.State} ({stop.Path}) at {page.Page.Url}: {e.Message}", e);
-                    }
+                        WatchedPage page = await NewPageAsync(context);
+                        await GoAsync(page, stop.Path);
+                        List<Finding> violations;
+                        int passed;
+                        List<string> incomplete;
+                        string version;
+                        try
+                        {
+                            (violations, passed, incomplete, version) = await ScanAsync(page.Page);
+                        }
+                        catch (PlaywrightException e) when (!CrashRetry.IsCrash(e))
+                        {
+                            throw new InvalidOperationException($"{stop.Screen} {stop.State} ({stop.Path}) at {page.Page.Url}: {e.Message}", e);
+                        }
 
-                    string observed = $"axe-core {version}: {violations.Count} violations, {passed} rules passed, {incomplete.Count} incomplete" + (violations.Count > 0 ? ": " + string.Join(" / ", violations.Take(5).Select(v => $"{v.Rule} ({v.Criteria}) {v.Target}")) : string.Empty);
-                    await ObserveAsync(stop.Screen, path, engine, page, "otomatik tarama: " + stop.State, "axe-core WCAG A kural kümesi: ihlal yok", observed, violations.Count == 0);
-                    await page.Page.CloseAsync();
+                        string observed = $"axe-core {version}: {violations.Count} violations, {passed} rules passed, {incomplete.Count} incomplete" + (violations.Count > 0 ? ": " + string.Join(" / ", violations.Take(5).Select(v => $"{v.Rule} ({v.Criteria}) {v.Target}")) : string.Empty);
+                        await ObserveAsync(stop.Screen, path, engine, page, "otomatik tarama: " + stop.State, "axe-core WCAG A kural kümesi: ihlal yok", observed, violations.Count == 0);
+                        await page.Page.CloseAsync();
                     });
                 }
                 finally

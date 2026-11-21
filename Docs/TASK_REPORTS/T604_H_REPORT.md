@@ -185,15 +185,15 @@
 | D-1701 | ✓ | `07` §8.2.2, `09` §16.2 m.2, `12` VAL-B097 metni; K-1637 (d) |
 | D-1412 | ~ daraldı | betik ve işaretleme kancaları `AfterSalesScreenTests …_KK6`; çok kalemli sayfa testi D-1833 |
 | Karar kaydı | ✓ | K-1637 `PRODUCT_DISCOVERY_STATUS.md` (a)–(d) |
-| Ayırt edicilik (UH3, src boz → kırmızı → geri al) | ⏳ | **Yapılmadı (süre)**: D-442, D-880, D-1332, D-1334, D-1365, D-1386, D-1604, D-1330 — UH3b'nin ilk işi |
+| Ayırt edicilik (UH3, src boz → kırmızı → geri al) | ✓ | Sekiz bozma birlikte uygulandı, her biri kendi testinde kırmızı verdi, `git checkout -- src` ile geri alındı: D-442 (`DispatchSender` logo satırı `null`) `DispatchRetryAndMarkTests…D442`; D-880 (`OrderOperations` `HasExpiredDefectChannel` hep `false`) `AfterSalesScreenTests…KK7` (iletişim bağlantısı bulunamadı); D-1330 (`data-type-fields` boş) `HomeAndFirmPageTests…D1330`; D-1332 (`WhatsAppNumberRule` reddetmiyor) `WhatsAppNumberRuleTests…D1332` (`"12345"` ve `"whatsapp numaram"` satırları); D-1334 (`AfterSignIn` geri eklendi) `ControlComponentModelTests…KK6`; D-1365 (sipariş başına okuma) `PanelHomeDetailsTests…T521_KK3`; D-1386 (kart sınıfı yazılmıyor) `OrderListPageTests…KK2`; D-1604 (`ShowsNotShippedItemNote` hep `false`) `OrderDetailPageTests…D1604` |
 | Sık FAIL (1)–(5) | ✓ | (1) yeni tarama istisnası yok; (2) JS kaynak taraması `member-defect-claim.js`/`firm-identity.js` için `NoScriptPathSourceScanTests` geçti; (3) 06 şeması değişmedi; (4) eşitlik tablosu, `07`/`09`/`12` üçlüsü ve `04` aynı turda; (5) belge kuralı değişen yerler K-1637'de |
 
 ## UH3 — Test sonuçları
 
 | Tür | Sonuç | Not |
 |---|---|---|
-| Unit (TAM) | ✓ 8115 → ilk koşuda 5 kırmızı (3 tutarlılık tablosu: WhatsApp satırı; 2 mimari: betik yolu adı, `max-width`) düzeltildi; ilgili sınıflar yeşil | Yeniden TAM koşusu UH3b'ye kaldı |
-| Integration | ✓ 183/183 + DispatchRetryAndMarkTests | Koşulan: DispatchRetryAndMarkTests, HomeAndFirmPageTests, OrderDetailPageTests, OrderListPageTests, AfterSalesScreenTests, PanelHomeTests, ListComponentPageTests, PageFormPatternTests, FormSecurity*. TAM: CI |
+| Unit (TAM) | ✓ 8115 → ilk koşuda 5 kırmızı (3 tutarlılık tablosu: WhatsApp satırı; 2 mimari: betik yolu adı, `max-width`) düzeltildi; düzeltmelerden sonra Unit TAM yeniden koşuldu: 8115/8115 ✓ (UH3b) | Bozmalardan sonra src geri alındı, yeniden derlendi |
+| Integration | ✓ 243/243 (UH3b son koşu; UH3'te 183/183 + DispatchRetryAndMarkTests) | Koşulan: DispatchRetryAndMarkTests, HomeAndFirmPageTests, OrderDetailPageTests, OrderListPageTests, AfterSalesScreenTests, PanelHomeTests, ListComponentPageTests, PageFormPatternTests, FormSecurity*. TAM: CI |
 | `dotnet format` | ✓ | UH3'ün 26 `.cs` dosyasında (bir test dosyasında değişiklik uygulandı) |
 
 ## UH3 — ⚠ (kolay kararlar, sahip yerine)

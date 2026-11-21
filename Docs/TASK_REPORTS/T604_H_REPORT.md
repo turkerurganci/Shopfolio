@@ -30,7 +30,7 @@
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | Hedefi T604 olan kalem kodla kapanır ya da gerekçeyle daralır | ~ (UH1 payı ✓) | Bu PR'ın 12 kalemi aşağıda; öteki kalemler ayrı dilimlerde. |
+| 1 | Hedefi T604 olan kalem kodla kapanır ya da gerekçeyle daralır | ✓ (UH1–UH5) | UH1–UH5'in bütün kalemleri "UH1–UH5 — bütün kalemler" tablosunda: kapandı ya da yeni hedef + gerekçeyle daraldı. |
 | 2 | Para-güvenlik kalemleri ayrı başlıkta | ✓ (bu dilimde yok) | 12 kalemin hiçbiri ödeme, sipariş durumu, iade, kimlik, oturum, dosya ya da sır kodu değil. D-1550 yalnız form işaretleme ve mesaj bağlantısı; kural sınırları aynı. |
 | 3 | Tarayıcı aracı kalemleri | — | Bu PR'ın payı değil (test aracı PR'ı). |
 | 4 | D-1678 | — | Bu PR'ın payı değil (test aracı PR'ı). |
@@ -87,7 +87,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T604-urun-kodu-h`
-- **PR:** taslak (no dönüşte)
+- **PR:** #596 (UH1–UH5; UH5 sonunda taslaktan çıktı)
 
 ## Dış Varsayımlar
 
@@ -217,7 +217,7 @@
 
 | Madde | Sonuç | Kanıt |
 |---|---|---|
-| Hedefi T604 olan UH4 kalemleri kapalı ya da gerekçeli (KK1) | ~ | D-1329, D-1806 `✅ Çözüldü → T604` (`DEFERRED_BACKLOG.md`, `DEFERRED_BACKLOG.d/T604-U.md`); D-1778/D-1790 kapandı (satırı #594 ile main'e girer; birleştirmede yerinde ✅; `DEFERRED_BACKLOG.d/T604-H.md` notu); D-1773 daraldı (satır + D-1843) |
+| Hedefi T604 olan UH4 kalemleri kapalı ya da gerekçeli (KK1) | ✓ (UH5: D-1778/D-1790 satırları birleştirmeden sonra yerinde ✅) | D-1329, D-1806 `✅ Çözüldü → T604` (`DEFERRED_BACKLOG.md`, `DEFERRED_BACKLOG.d/T604-U.md`); D-1778/D-1790 kapandı (satırı #594 ile main'e girer; birleştirmede yerinde ✅; `DEFERRED_BACKLOG.d/T604-H.md` notu); D-1773 daraldı (satır + D-1843) |
 | D-1329 kabul cümlesi: tarama ürün kümesini tür adından tanır, geçici çözüm sadeleşir | ✓ | `VersionedSideBulkWriteScanTests.Scan_OfAContractMemberNamedLikeASet_IsQuiet_D1329`, `…StaysAFinding_D1329`, `ContractTypesWithSetNamedMembers_…_D1329`; `ApplicationSource_WritesNoRecord…` gerçek kaynakta (`names.Products` doğrudan) yeşil |
 | D-1778 sayfalar kapıyı okur, hâl gösterilir | ✓ | `PaymentAndShippingPagesTests.TheSalesState_IsOnTheScreen_AsTheSalesGatesAnswer_AndFollowsTheGate_D1778` (iki sayfa; kapalı hâl ve koşul düşünce satırın değişmesi) |
 | D-1790 sarmalayıcı | ✓ | `AccountProfilePageTests.TheScreen_PutsTheNavigationAndTheFiveSectionsInTheAccountLayout_…_D1790` (gezinme sarmalayıcının çocuğu, bölümler içerik sütununda). `NarrowClassTests` `KnownNavigationNotAtTheLeft` sabiti A dalındadır (dokunulmadı; aşağıda birleştirme notu) |
@@ -247,3 +247,121 @@
 - **Birleştirme notu (PR #594, E-25 ve sahtecilik 400'ü):** D-1790 E-25'te içeriği iki sütunlu düzene koyar; iç gezinme artık solda, sayfa bölümleri sağda. Odak sırası ve kaydırma: gezinme belgede içerikten önce kaldığı için tab sırası değişmedi; kaydırma konumu değişmez (sarmalayıcı yalnız ızgara ekler). A dalında `NarrowClassTests` E-25 testi (A r2 Bulgu 1) webkit'te solda gezinmeyi bekleyen `KnownNavigationNotAtTheLeft` sabitine bağlıdır: #594 birleşince sabit kaldırılır, iki yönlü test bunu ister. `StateRoleCheck.PanelGateReadGaps` ("E-45", "E-46") de aynı şekilde kaldırılır (`GateReadGapStale` kırmızı verir; ikisi artık `GetSalesGateAsync` okur). Tarayıcı gözlemi bu dilimde yapılmadı (A parçasının aracı).
 - D-1773 daraldı (kalan 23 sayfa): D-1843; kategori 400 sayfasında eylem mesajı yok: D-1844; `ListRefundIbanFieldsAsync` kalemsiz istekleri siparişe bağlamıyor (sınanmadı): D-1845.
 - Süre bütçesi aşıldı (45 dk): birleştirme, beş kalem, ayırt edicilik ve Unit TAM tek diliminde tamamlandı.
+
+## UH5 — Yapılan İşler (UH kapanışı)
+
+- **Birleştirme (ilk iş):** `origin/task/T604-test-araci` (`cea4b177`; #594 main'e henüz girmedi, `origin/main` = `8c6b3ef8`) birleştirildi. Çakışmalar: `DEFERRED_BACKLOG.md` (satır başına değişen taraf alındı; D-1329 iki tarafın kanıtıyla tek satır), `12` VAL-A024 (A'nın "seçilemez" metni + UH2'nin PASS'i — `StorefrontSearchAndProductTests …_T604_VALA024` A metnini ölçer), `VersionedSideBulkWriteScan(Tests)` (D-1329 iki yol birlikte: A'nın "kök çağrıdan önce" kuralı + UH4'ün sözleşme alıcısı süzgeci; iki tarafın testleri, üç yeni örnek). Ürün kodunda çakışma yok. Birleştirmeden sonra A'nın iki tablosu UH kodunu yakaladı: `ProductSaves` (D-1705) alan ile kodu ayrı deyime almıştı — tarama çifti okusun diye tek ifadeye döndü, davranış aynı; `HomeAndMenu` P-27 parametresi için dar muafiyet (`FormFieldCodeInventory`, tek dosya + alan + kod).
+- **#594 sonrası hiza:** `StateRoleCheck.PanelGateReadGaps` ve `GateReadGapStale` kalktı (E-45/E-46 kapıyı okur; ters yön istisnasız, yeni test iki sayfa için `GateReadMissing` ister); `NarrowClassTests.KnownNavigationNotAtTheLeft` kalktı (gözlem doğrudan "gezinme solda"yı ister); `TitleMeasure.KnownWithoutBrand` ve `ScreenInventoryTests`'teki bilinen giriş kalktı (D-1788 UH1'de kapanmıştı; liste iki yönlü olduğundan birleşmeden sonra E2E kırmızı verecekti). D-1778, D-1790, D-1788 (A satırları) ve D-1815 yerinde ✅.
+- **D-1599 (para; K-1631 (5)):** denetimden geçmeyen bildirim IBAN'ı ret değildir. `PanelItemSteps` cayma ve gecikme feshinde OB-14'ten geçmeyen IBAN'ı düşürür; kayıt IBAN'sız açılır, kalemde IBAN isteği (`NoticeWithoutIban`) ve B-14 (çekirdeğin var olan yolu). Sayfanın 422'si, `PanelItemObstacle.IbanInvalid`, `NoticeIbanInvalidText` kalktı. Belge: `04` 7.2.10.4 (yeni yan tümce, ret hücresi "—") ve 9.9.36, `07` 9.9.9 (422 listesinden IBAN satırı çıktı, yan etkiler yolu yazar) ve 9.9.36 eşleme satırı; `04` v0.61, `07` v0.51 (`PRODUCT_DISCOVERY_STATUS.md` satırları). Form alanı tabloları: `FormFieldPlaceEnforcement`, `FormFieldRuleEvidence`, `FormFieldRuleClauseTable` (`C:denetimden-gecmeyen-iban-ret`), `FormFieldInventory` yer işareti. `12` VAL-A238 → PASS.
+- **D-1845 (para-güvenlik):** sınandı, sızıntı yok, gerekçeyle kapandı (aşağıda).
+- **UH kapanışı:** UH'ye düşüp ⚪ kalan satırlar tarandı: D-1773 kapandı (kalanı D-1843'te); D-1812, D-1843, D-1844 ve D-1770 `T601 (F6)`'ya daraltıldı (gerekçe satırlarda). Tarama sonunda hedefi T604 olan ⚪ satır yok.
+
+## UH1–UH5 — bütün kalemler
+
+| Dilim | Kalem | Durum | Hedef (satırdaki) | Satırın yeri |
+|---|---|---|---|---|
+| UH1 | D-138 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH1 | D-1022 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH1 | D-1134 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH1 | D-1135 | ↘ daraltıldı | T601 (F6) | `DEFERRED_BACKLOG.md` |
+| UH1 | D-1143 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH1 | D-1146 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH1 | D-1173 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH1 | D-1174 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH1 | D-1216 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH1 | D-1387 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH1 | D-1550 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH1 | D-1788 | ✅ kapandı | T604 U | `DEFERRED_BACKLOG.d/T604-A.md` |
+| UH2 | D-283 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH2 | D-1189 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH2 | D-1243 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH2 | D-1245 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH2 | D-1275 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH2 | D-1276 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH2 | D-1398 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH2 | D-1400 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH2 | D-1631 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH2 | D-1673 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH2 | D-1703 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH2 | D-1705 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH3 | D-442 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH3 | D-880 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH3 | D-1330 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH3 | D-1332 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH3 | D-1334 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH3 | D-1365 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH3 | D-1386 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH3 | D-1412 | ↘ daraltıldı | faz kapısı | `DEFERRED_BACKLOG.md` |
+| UH3 | D-1464 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH3 | D-1604 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH3 | D-1701 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH4 | D-1329 | ✅ kapandı | T604 | `DEFERRED_BACKLOG.md` |
+| UH4 | D-1778 | ✅ kapandı | T604 U | `DEFERRED_BACKLOG.d/T604-A.md` |
+| UH4 | D-1790 | ✅ kapandı | T604 U | `DEFERRED_BACKLOG.d/T604-A.md` |
+| UH4 | D-1806 | ✅ kapandı | T604 (U, UH dalı; para — kendi kırmızı–yeşil başlığıyla) | `DEFERRED_BACKLOG.d/T604-U.md` |
+| UH4 | D-1773 | ✅ kapandı | T604 (U, UH dalı) | `DEFERRED_BACKLOG.d/T604-U.md` |
+| UH5 | D-1599 | ✅ kapandı | T604 (U, #594 sonrası UH dalı) | `DEFERRED_BACKLOG.md` |
+| UH5 | D-1845 | ✅ kapandı | T604 (U, UH dalı) | `DEFERRED_BACKLOG.d/T604-H.md` |
+| UH5 | D-1815 | ✅ kapandı | T604 (A sonrası) | `DEFERRED_BACKLOG.d/T604-H.md` |
+| UH5 | D-1812 | ↘ daraltıldı | T601 (F6) | `DEFERRED_BACKLOG.d/T604-H.md` |
+| UH5 | D-1843 | ↘ daraltıldı | T601 (F6) | `DEFERRED_BACKLOG.d/T604-H.md` |
+| UH5 | D-1844 | ↘ daraltıldı | T601 (F6) | `DEFERRED_BACKLOG.d/T604-H.md` |
+| UH5 | D-1770 | ↘ daraltıldı | T601 (F6) | `DEFERRED_BACKLOG.d/T604-A.md` |
+
+Daraltılanların gerekçesi: D-1135 (UH1) ve D-1412 (UH3) kendi dilim notlarında; D-1812, D-1843, D-1844 UH dilim listelerine (KK1) girmedi, U parçası bu PR ile kapanır, kalan ürün kodu F6 ürün işinde; D-1770 yaması hazır, commit makinenin main bekçisi D-1120 istisnasını taşımadıkça engellenir (bekçi atlanmadı).
+
+## UH5 — KK1–KK5 payları
+
+| KK | Pay | Kanıt |
+|---|---|---|
+| KK1 parça ve dilim | UH5 kalemleri (D-1599, #594 sonrası hiza, D-1845) + UH kapanış taraması | yukarıdaki tablo; `grep -nE "T604" Docs/DEFERRED_BACKLOG.md Docs/DEFERRED_BACKLOG.d/*.md` ⚪ T604 satırı yok |
+| KK2 para ve güvenlik | D-1599, D-1845 kırmızı–yeşil | "Para ve güvenlik kalemleri (UH5)" |
+| KK3 tarayıcı | `NarrowClassTests`, `ScreenInventoryTests` chromium iki yolda yeşil; firefox/webkit CI E2E | Test sonuçları |
+| KK4 belge | `04` v0.61, `07` v0.51; `12` VAL-A238 ve VAL-A024 Durum; yeni kural yok (K-1631 (5) zaten verilmişti, karar kaydı gerekmedi) | `PRODUCT_DISCOVERY_STATUS.md` 04/07 satırları |
+| KK5 backlog | kapanan satır yerinde `✅ Çözüldü → T604`; daraltılan yeni hedef + gerekçe; yeni kalem yok (D-1854–1858 kullanılmadı); sayaç dokunulmadı | `DEFERRED_BACKLOG.md`, `DEFERRED_BACKLOG.d/T604-A.md`, `T604-H.md`, `T604-U.md` |
+
+### Para ve güvenlik kalemleri (UH5)
+
+| Kalem | Kırmızı (değişiklikten önce / değişinim) | Yeşil | Çıkış yolu | Geri alma |
+|---|---|---|---|---|
+| D-1599 | `PanelItemSteps`'te IBAN'ı düşüren satır yerine ret (eski davranış: `return PanelItemStepResult.NotOpen`) konunca `OrderCorrectionTests.PanelNotice_…_D1599_VALA238(true, "TR33…327")` kırmızı (kayıt açılmaz) ve `PanelLateTermination_…_D1590_D1599` kırmızı; öteki iki VAL-A238 denemesi (başka adres, IBAN'sız) önceden de yeşildi — ayırt edici olan sağlama basamağı denemesi | aynı testler + `OrderDetailPageTests` (iki sayfa testi: IBAN ret değil, değer formda kalır), `WithdrawalDeclarationTests` değişmeden yeşil | denetimden geçmeyen IBAN yalnız düşer: kayıt IBAN'sız, istek + B-14 (`NoticeWithoutIban`); geçerli IBAN eskisi gibi aktarılır | iki `if` gövdesi eski reddine döner, sayfa ve belge satırları geri alınır (tek commit `ee81fa54`) |
+| D-1845 | `CustomerOperations.ReadFieldsAsync` süzgeci kaldırılınca (`return [.. all]`) `CustomerOperationsTests.AnotherOrdersItemlessRequest_…_D1845` kırmızı (`Assert.Empty` — başka siparişin isteği görünür) ve var olan `…_D1284` kırmızı | aynı testler yeşil | kod değişmedi: sözleşme süzmeyi çağırana bırakır, iki çağıran da süzer (panel yalnız kalemli alanı kullanır) | — (yalnız test eklendi) |
+
+Değişinimlerin hepsi geri alındı (`git checkout`), aynı sınıflar sonra yeşil. `NarrowClassTests` ayırt ediciliği: `Profile.cshtml` `account-layout` sınıfı bozulunca iki yol kırmızı.
+
+### Öz denetim (UH5; 11 T604 kabul kriterleri + 12 kontrol listesi, kendi diff'inde)
+
+| Madde | Durum | Kanıt |
+|---|---|---|
+| D-1599 kabul: üst belge kazanır, kayıt IBAN'sız, istek + B-14 | ✓ | `PanelItemSteps.cs` iki `if`; `OrderCorrectionTests …_D1599_VALA238` (üç deneme, `Withdrawals.RefundIbanId == null`, `RefundIbans` yok, `NoticeWithoutIban` isteği, `DispatchType.B14`) |
+| D-1599 belge hizası (`04` 7.2.10.4, 9.9.36; `07` 9.9.9) ve aynı kuralı anan öteki yerler | ✓ | `grep -n "sağlama basamağı tutmuyor" Docs/07_API_DESIGN.md src` boş; 07 eşleme satırı 9.9.36; `04`/`07` sürüm satırı ve dipnotu, `PRODUCT_DISCOVERY_STATUS.md` |
+| Form alanı eşitlik tabloları (A dalı) iki yönlü | ✓ | `FormFieldEnforcementTests`, `FormFieldPlaceEnforcementTests` (mutasyon satırı `!NoticeIbanRule.Allows(request.NoticeIban)` geçerli), `FormFieldRuleClausesTests`, `FormInventoryConsistencyTests` — Consistency 701/701 |
+| Tarama istisnası dar (sık FAIL 1) | ✓ | `FormFieldCodeInventory` yeni satırı tek dosya + `Input.` + `TextTooLong`; `PanelGateReadGaps`/`KnownWithoutBrand`/`KnownNavigationNotAtTheLeft` istisnaları kalktı, yerlerine istisnasız kural |
+| Tarama çağrı biçimi (sık FAIL 2) | ✓ | `VersionedSideBulkWriteScan`: iki yol birlikte; `CurrentStateWrite.ApplyAsync` + sözleşme alıcısı örneği sessiz, bildirilmemiş alıcı bulgu (`Scan_OfARealSetOrAnUndeclaredReceiver_StaysAFinding_D1329` üçüncü örnek) |
+| DB varsayılanı / FK (sık FAIL 3) | — | göç ve varlık değişmedi |
+| Aynı sayıyı anan yerler (sık FAIL 4) | ✓ | VAL-A238 Durum; `04`/`07` başlık sürümü + dipnot + STATUS satırı; D-1657 kapalı satırına "Sonra (UH5)" notu (kalkan test adı) |
+| Belge kuralını değiştiren 09 metni (sık FAIL 5) | — | 09 değişmedi; ürün kuralı değişikliği K-1631 (5)'in uygulanması |
+| D-1845 kabul: önce sına; sızıntı yoksa gerekçeyle kapat | ✓ | `…_D1845` (görünmez, yanıtlanmaz, IBAN yazılmaz); satır gerekçesi |
+| #594 sonrası hiza: girişler kalktı, chromium iki yol | ✓ | `NarrowClassTests` 12/12, `ScreenInventoryTests` + `TitleMeasure*` 21/21 (chromium, iki yol) |
+| D-1778/D-1790 satırları yerinde ✅ | ✓ | `DEFERRED_BACKLOG.d/T604-A.md` |
+| Var olan testler değişmeden geçer | ✓ | değişmeyen davranışın testleri değişmeden yeşil; K-1631 (5) ile değişen davranışın (IBAN reddi kalktı) dört testi bu davranışa göre güncellendi: `PanelWithdrawalNotice_…_T528_KK5` (IBAN satırı çıktı, ad güncellendi), `PanelLateTermination_…_D1590_D1599` (yanlış IBAN artık IBAN'sız kayıt), `LateTerminationRecord_…_KK1_KK5` (ret ileri tarih, IBAN formda kalır), `WithdrawalRecord_…_OnTheUnitsRefusals_…_D1599` (IBAN'lı gönderim uyarı kuralına ulaşır). `StateRoleConsistencyTests.AKnownPanelGateGap_…` kalktı (yerine iki satırlı teori). Öteki bütün sınıflar değişmeden yeşil |
+| Dokunulan sayfaların test sınıfları + `PageFormPatternTests`/`FormSecurity*` | ✓ | Integration ikinci çağrı 244/244 |
+| Branch izolasyonu | ✓ | commit konuları yalnız T604 |
+
+## UH5 — Test sonuçları
+
+| Koşu | Sonuç | Not |
+|---|---|---|
+| Derleme | ✓ | uyarısız |
+| Unit TAM | ✓ 8325/8325 (1943 + 6382) | + betik testleri 4/4 dosya |
+| Integration (ilgili sınıflar) | ✓ 122/122 · 244/244 · 134/134 · 12/12 · 21/21 | Koşulan: OrderCorrectionTests, CustomerOperationsTests, WithdrawalDeclarationTests, OrderDetailPageTests, ProductSavesTests, ProductFormPageTests, PageFormPatternTests, FormSecurity*, PaymentAndShippingPagesTests, NarrowClassTests (chromium), ScreenInventoryTests + TitleMeasure* (chromium). **TAM: CI** |
+| `dotnet format` | ✓ | değişiklik yok |
+
+## UH5 — ⚠ (kolay kararlar, sahip yerine)
+
+- ⚠ D-1329 birleştirmesi iki yolu birlikte tuttu (A'nın kök kuralı + UH4'ün sözleşme alıcısı süzgeci): A'nın kuralı `CurrentStateWrite.ApplyAsync(...)` içinde değer olarak geçen `names.Products`'ı bulgu sayardı; süzgeç onu sessiz bırakır, bildirilmemiş alıcı bulgu kalır.
+- ⚠ VAL-A024: A'nın metni + PASS (UH2 testi A'nın "seçilemez" okumasını ölçer).
+- ⚠ `HomeAndMenu` P-27 parametresi için `FormFieldCodeInventory` muafiyeti (sayfa modülün reddini gösterir; denetim 7.2.17.2 `FirmSettings.cs` satırında).
+- ⚠ D-1599'da sayfa IBAN'ın düşürüldüğünü yöneticiye ayrıca söylemez (belge istemiyor; kayıt sonrası kalemde "IBAN bekleniyor" görünür).
+- ⚠ D-1812, D-1843, D-1844, D-1770 `T601 (F6)`'ya daraltıldı (UH kapanışı; satırlarda gerekçe).
+- ⚠ `TitleMeasure.KnownWithoutBrand` (D-1815) bu dilimin kalem listesinde yoktu; birleşmeden sonra E2E'yi kıracağı için kaldırıldı.

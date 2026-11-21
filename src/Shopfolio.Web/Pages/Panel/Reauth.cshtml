@@ -14,6 +14,7 @@
     FieldView concealedField = Fields.Bind(Fields.Concealed("Input.Password", "Şifre", FieldRequirement.Required, "current-password", null), summary);
 }
 <h1>@PanelAccessTexts.ReauthTitle</h1>
+<partial name="_ForgeryRefusalMessage" model='"reauth-forgery-message"' />
 <p id="reauth-operation">@Model.OperationLine</p>
 <partial name="_FormErrorSummary" model="summary" />
 <form method="post" asp-antiforgery="true" action="@(PanelFramePaths.Reauthentication)?handler=Reauthenticate" class="form" data-js="submit-once">

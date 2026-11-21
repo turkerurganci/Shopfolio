@@ -19,6 +19,7 @@
     string reauthForPass = PanelFramePaths.Reauthentication + "?" + ReauthModel.OperationParameter + "=PasswordChange";
 }
 <h1>@MyAccountTexts.Title</h1>
+<partial name="_ForgeryRefusalMessage" model='"my-account-forgery-message"' />
 @if (Model.Notice is not null)
 {
     <partial name="_Message" model="Model.Notice" />

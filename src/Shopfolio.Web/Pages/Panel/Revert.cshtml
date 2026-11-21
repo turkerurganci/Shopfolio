@@ -14,6 +14,7 @@
     ViewData["Title"] = PanelAccessTexts.RevertEmailTitle;
 }
 <h2>@PanelAccessTexts.RevertEmailTitle</h2>
+<partial name="_ForgeryRefusalMessage" model='"revert-forgery-message"' />
 @switch (Model.Step)
 {
     case LandingStep.Valid:

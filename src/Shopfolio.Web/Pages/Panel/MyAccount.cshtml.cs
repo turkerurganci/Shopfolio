@@ -100,19 +100,21 @@ internal sealed class MyAccountModel : PageModel, IReadsOnForgeryRefusal
             return;
         }
 
-        await ShowSentAsync(context, keepsPermission: false);
+        await ShowSentAsync(context);
     }
 
     /// <summary>
-    /// D-1843 (07 2.5.4; 04 2.7.3.1): the forgery check's 400 shows the account and the sent entries - the read the 422 makes, with the sent operation and single-use value checked but neither
-    /// used nor dropped: the read leaves the session's permission as it was (<see cref="IAdministrationModule.ReadOwnAccountKeepingPermissionAsync"/>). No query value, nothing written.
+    /// D-1843 (07 2.5.4; 04 2.7.3.1): the forgery check's 400 shows the account and the sent entries - the read the 422 makes. The sent single-use value is only checked, never used: the
+    /// operation's form stays open for the value the session holds. The page's permission rule is the GET's (05 6.1.5; <see cref="ReauthenticationFormPageAttribute"/>): a page shown without
+    /// the permission's form drops the permission, as every other page request of the panel does (<see cref="ReauthenticationPermissionFilter"/>, D-1454) - the one write, and the safe one.
+    /// No query value, nothing else written.
     /// </summary>
     async Task IReadsOnForgeryRefusal.ReadAfterForgeryRefusalAsync(CancellationToken ct)
     {
-        _refusalFound = _loaded || _executing is not { } context || await ShowSentAsync(context, keepsPermission: true);
+        _refusalFound = _loaded || _executing is not { } context || await ShowSentAsync(context);
     }
 
-    private async Task<bool> ShowSentAsync(PageHandlerExecutingContext context, bool keepsPermission)
+    private async Task<bool> ShowSentAsync(PageHandlerExecutingContext context)
     {
         _loaded = true;
         ReauthenticationOperation? operation = null;
@@ -136,7 +138,7 @@ internal sealed class MyAccountModel : PageModel, IReadsOnForgeryRefusal
             }
         }
 
-        return await LoadAsync(operation, held, HttpContext.RequestAborted, keepsPermission);
+        return await LoadAsync(operation, held, HttpContext.RequestAborted);
     }
 
     public async Task<IActionResult> OnGetAsync(AdminAccountQuery query, CancellationToken ct)
@@ -318,7 +320,7 @@ internal sealed class MyAccountModel : PageModel, IReadsOnForgeryRefusal
         return Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out adminId) && Guid.TryParse(User.FindFirstValue(SessionSchemes.SessionIdClaim), out sessionId);
     }
 
-    private async Task<bool> LoadAsync(ReauthenticationOperation? operation, string? held, CancellationToken ct, bool keepsPermission = false)
+    private async Task<bool> LoadAsync(ReauthenticationOperation? operation, string? held, CancellationToken ct)
     {
         if (!TryIds(out Guid adminId, out Guid sessionId))
         {
@@ -326,9 +328,7 @@ internal sealed class MyAccountModel : PageModel, IReadsOnForgeryRefusal
         }
 
         OwnAccountRead read = await _transactions.RunAsync(
-            async cancel => new OwnAccountRead(keepsPermission
-                ? await _administration.ReadOwnAccountKeepingPermissionAsync(adminId, sessionId, operation, held, cancel)
-                : await _administration.ReadOwnAccountAsync(adminId, sessionId, operation, held, cancel)),
+            async cancel => new OwnAccountRead(await _administration.ReadOwnAccountAsync(adminId, sessionId, operation, held, cancel)),
             ct);
         if (read.Account is null)
         {

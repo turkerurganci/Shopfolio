@@ -10,6 +10,7 @@
     Layout = "_PanelLayout";
     ViewData["Title"] = Model.Title;
 }
+<partial name="_ForgeryRefusalMessage" model='"product-form-forgery-message"' />
 <partial name="_ProductFormBody" model="Model" />
 
 @section Scripts {

@@ -229,9 +229,6 @@ internal sealed class AdministrationModule : IAdministrationModule
     public Task<AdminOwnAccount?> ReadOwnAccountAsync(Guid adminId, Guid sessionId, ReauthenticationOperation? operation, string? reauthenticationValue, CancellationToken ct) =>
         _emailChanges.ReadOwnAccountAsync(adminId, sessionId, operation, reauthenticationValue, ct);
 
-    public Task<AdminOwnAccount?> ReadOwnAccountKeepingPermissionAsync(Guid adminId, Guid sessionId, ReauthenticationOperation? operation, string? reauthenticationValue, CancellationToken ct) =>
-        _emailChanges.ReadOwnAccountKeepingPermissionAsync(adminId, sessionId, operation, reauthenticationValue, ct);
-
     public Task<AdminNameChangeResult> ChangeNameAsync(Guid adminId, string name, CancellationToken ct) => _admins.ChangeNameAsync(adminId, name, ct);
 
     public Task<AdminEmailChangeRequestResult> RequestEmailChangeAsync(Guid adminId, Guid sessionId, string newEmail, string? reauthenticationValue, IPAddress? ipAddress, CancellationToken ct) =>

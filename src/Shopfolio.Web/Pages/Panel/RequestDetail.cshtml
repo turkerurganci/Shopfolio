@@ -11,6 +11,7 @@
     Layout = "_PanelLayout";
     ViewData["Title"] = Model.TopicText;
 }
+<partial name="_ForgeryRefusalMessage" model='"request-detail-forgery-message"' />
 @if (Model.Notice is not null)
 {
     <partial name="_Message" model="Model.Notice" />

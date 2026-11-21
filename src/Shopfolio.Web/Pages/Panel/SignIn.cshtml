@@ -16,6 +16,7 @@
     FieldView concealedField = Fields.Bind(Fields.Concealed("Input.Password", "Şifre", FieldRequirement.Required, "current-password"), summary);
 }
 <h2>@PanelAccessTexts.SignInTitle</h2>
+<partial name="_ForgeryRefusalMessage" model='"sign-in-forgery-message"' />
 @if (Model.ResultMessage is not null)
 {
     <partial name="_Message" model="Model.ResultMessage" />

@@ -14,6 +14,7 @@
     MemberRecordView? record = Model.Record;
 }
 <h1>Üyeler</h1>
+<partial name="_ForgeryRefusalMessage" model='"members-forgery-message"' />
 @if (Model.DeletedMessage is not null)
 {
     <partial name="_Message" model="Model.DeletedMessage" />

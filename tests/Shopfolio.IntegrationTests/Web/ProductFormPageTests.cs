@@ -31,7 +31,7 @@ namespace Shopfolio.IntegrationTests.Web;
 /// units, the gate's unmet conditions, the absolute publish moves, the last Published variant's refusal, the deletion's confirmation state and the deletion itself.
 /// </summary>
 [Collection(ProductListPageTestsDefinition.Name)]
-public sealed class ProductFormPageTests : IAsyncLifetime
+public sealed partial class ProductFormPageTests : IAsyncLifetime
 {
     private static readonly DateTimeOffset Base = new(2026, 10, 1, 9, 0, 0, TimeSpan.Zero);
 

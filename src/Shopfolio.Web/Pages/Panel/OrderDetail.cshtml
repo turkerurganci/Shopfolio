@@ -19,6 +19,7 @@
     ViewData["Title"] = Model.Summary.OrderNumber;
     string versionText = Model.Operations.Version.ToString(System.Globalization.CultureInfo.InvariantCulture);
 }
+<partial name="_ForgeryRefusalMessage" model='"order-detail-forgery-message"' />
 @if (Model.IsConflict)
 {
     @ConflictControls.OrderNotice(ConflictControls.OrderMessage)

@@ -108,6 +108,21 @@ public sealed class OrderListPageTests
         Assert.Equal(numbers.Count - onFirst.Length, onSecond.Length);
         Assert.Empty(onFirst.Intersect(onSecond));
         Assert.Equal(onSecond.Order(), numbers.Where(n => past.Contains(n, StringComparison.Ordinal)).Order());
+
+        // D-1386 (04 9.8.14): the narrow class's card carries the order's information by priority - number and date, the two badges, the marks, the total and the time - and the recipient, the items
+        // and the payment method stay secondary (under the row from the medium class on); the places are the cells' classes, the style sheet orders by them. Nothing is hidden.
+        foreach ((string label, string place) in new[]
+        {
+            ("Sipariş", "card-1"), ("Tarih", "card-1"), ("Sipariş durumu", "card-2"), ("Ödeme durumu", "card-2"), ("İşaretler", "card-3"), ("Toplam", "card-4"), ("Süre", "card-4"),
+        })
+        {
+            Assert.Contains($"panel-table__cell--primary panel-table__cell--{place}\" data-label=\"{label}\"", first, StringComparison.Ordinal);
+        }
+
+        foreach (string label in new[] { "Alıcı", "Kalemler", "Ödeme yöntemi" })
+        {
+            Assert.Contains($"panel-table__cell--secondary\" data-label=\"{label}\"", first, StringComparison.Ordinal);
+        }
     }
 
     [Fact]

@@ -9,7 +9,7 @@
         <tr>
             @foreach (var column in Model.Columns)
             {
-                <th scope="col" class="@(column.IsPrimary ? "panel-table__cell panel-table__cell--primary" : "panel-table__cell panel-table__cell--secondary")">@column.Title</th>
+                <th scope="col" class="@column.CellClasses">@column.Title</th>
             }
         </tr>
     </thead>
@@ -20,7 +20,7 @@
                 @for (var i = 0; i < Model.Columns.Count; i++)
                 {
                     var column = Model.Columns[i];
-                    <td class="@(column.IsPrimary ? "panel-table__cell panel-table__cell--primary" : "panel-table__cell panel-table__cell--secondary")" data-label="@column.Title">
+                    <td class="@column.CellClasses" data-label="@column.Title">
                         @if (i == Model.LinkColumn && row.RecordPath is not null)
                         {
                             <a href="@row.RecordPath">@row.Cells[i]</a>

@@ -295,6 +295,24 @@ public sealed partial class OrderDetailPageTests
     }
 
     [Fact]
+    public async Task AnOrderNotHandedToTheCarrier_SaysAtTheWithdrawalRecordsPlaceThatTheWayIsTheAgreedCancellation_AndAShippedOrderDoesNotSayIt_D1604()
+    {
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        (Guid unshipped, _) = await StepOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid, (ProductType.Physical, false));
+        (Guid shipped, _) = await StepOrderAsync(OrderStatus.Shipped, PaymentStatus.Paid, (ProductType.Physical, false));
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (HttpStatusCode unshippedStatus, string unshippedHtml) = await GetAsync(client, $"{OrdersPath}/{unshipped:D}", key);
+        (HttpStatusCode shippedStatus, string shippedHtml) = await GetAsync(client, $"{OrdersPath}/{shipped:D}", key);
+
+        Assert.Equal(HttpStatusCode.OK, unshippedStatus);
+        Assert.Contains($"id=\"withdrawal-not-shipped-note\">{OrderDetailModel.NotShippedItemText}</p>", System.Net.WebUtility.HtmlDecode(unshippedHtml), StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.OK, shippedStatus);
+        Assert.DoesNotContain("withdrawal-not-shipped-note", shippedHtml, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task FirmCancellation_TheReasonsWarning_StandsInTheFormBeforeAndWithTheWindow_U1ForOutOfStock_U6aForAgreed_AndTheWindowRepeatsNone_T528_KK1()
     {
         (string key, _) = await TestSessions.AdminAsync(_database.Dsn);

@@ -107,10 +107,8 @@ internal sealed class SocialLinks
     public static (string? Stored, FieldRejection? Rejection) CheckWhatsAppNumber(string field, string? typed)
     {
         ArgumentNullException.ThrowIfNull(field);
-        string? stored = ContentInputRules.Phone(typed);
-        List<FieldRejection> rejections = [];
-        ContentInputRules.Apply(rejections, field, stored, new InvalidPhoneAttribute(), FieldCodes.InvalidPhone);
-        return (stored, rejections.Count == 0 ? null : rejections[0]);
+        (string? stored, string? code) = WhatsAppNumberRule.Check(typed);
+        return (stored, code is null ? null : new FieldRejection(field, code));
     }
 
     /// <summary>The platform of a name on the closed list: the exact name only - no number, no other spelling.</summary>

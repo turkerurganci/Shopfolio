@@ -105,7 +105,13 @@ public sealed class PanelHomeDetailsTests
             new OrderItemLabel(item, itemOrder, "SP-1", "Masa lambası", "Siyah", "Büyük"),
             new OrderItemLabel(refundItem, refundItemOrder, "SP-3", "Kupa", null, null),
         ]);
-        ordering.On(nameof(IOrderingModule.GetOrderNumberAsync), args => (Guid)args[0]! == refundOrder ? "SP-2" : null);
+        int numberReads = 0;
+        ordering.On(nameof(IOrderingModule.GetOrderNumbersAsync), args =>
+        {
+            numberReads++;
+            IReadOnlyCollection<Guid> asked = (IReadOnlyCollection<Guid>)args[0]!;
+            return (IReadOnlyDictionary<Guid, string>)asked.Where(id => id == refundOrder).ToDictionary(id => id, _ => "SP-2");
+        });
 
         PanelHomeDetails details = await new PanelHomeDetailsService(NoMarkedOrders().Object, payment.Object, afterSales.Object, ordering.Object).GetAsync(Ct);
 
@@ -116,6 +122,9 @@ public sealed class PanelHomeDetailsTests
                 new AwaitingIbanRow(refundItemOrder, "SP-3", "Kupa", RefundIbanRequestReason.CardRefundFailed, askedAt.AddDays(2), null),
             ],
             details.AwaitingIban);
+
+        // D-1365: the numbers of the late payments' orders (two of them here, one of them gone) are asked in one read, not one per line.
+        Assert.Equal(1, numberReads);
     }
 
     [Fact]

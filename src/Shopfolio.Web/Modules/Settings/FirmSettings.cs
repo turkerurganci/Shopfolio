@@ -113,10 +113,10 @@ internal sealed class FirmSettings
         string? about = RequiredName(rejections, nameof(HomepageInput.MenuNameAboutPage), input.MenuNameAboutPage);
         string? faq = RequiredName(rejections, nameof(HomepageInput.MenuNameFaqItems), input.MenuNameFaqItems);
         string? contact = RequiredName(rejections, nameof(HomepageInput.MenuNameContact), input.MenuNameContact);
-        string? whatsApp = CompanyIdentityRules.Phone(input.WhatsAppNumber);
-        if (whatsApp is not null && new InvalidPhoneAttribute().GetValidationResult(whatsApp, new System.ComponentModel.DataAnnotations.ValidationContext(whatsApp)) is not null)
+        (string? whatsApp, string? whatsAppRejection) = WhatsAppNumberRule.Check(input.WhatsAppNumber);
+        if (whatsAppRejection is not null)
         {
-            rejections.Add(new FieldRejection(nameof(HomepageInput.WhatsAppNumber), FieldCodes.InvalidPhone));
+            rejections.Add(new FieldRejection(nameof(HomepageInput.WhatsAppNumber), whatsAppRejection));
         }
 
         if (rejections.Count > 0)

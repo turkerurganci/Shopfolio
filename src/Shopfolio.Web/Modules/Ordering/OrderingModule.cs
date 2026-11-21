@@ -410,6 +410,18 @@ internal sealed class OrderingModule : IOrderingModule
         return await _db.Orders.AsNoTracking().Where(o => o.Id == orderId).Select(o => o.OrderNumber).SingleOrDefaultAsync(ct);
     }
 
+    public async Task<IReadOnlyDictionary<Guid, string>> GetOrderNumbersAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderIds);
+        Guid[] ids = [.. orderIds.Distinct()];
+        if (ids.Length == 0)
+        {
+            return new Dictionary<Guid, string>();
+        }
+
+        return await _db.Orders.AsNoTracking().Where(o => ids.Contains(o.Id)).ToDictionaryAsync(o => o.Id, o => o.OrderNumber, ct);
+    }
+
     public async Task<InstallerPaymentTarget?> FindInstallerPaymentTargetAsync(string orderNumber, DateTimeOffset now, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(orderNumber);

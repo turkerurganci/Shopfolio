@@ -350,12 +350,14 @@ public sealed class ControlComponentModelTests
     {
         CouponApplication accepted = CouponApplication.Accepted(Guid.NewGuid(), "YAZ20", 200m, [new ItemAmounts(200m, 50m, 150m, 25m, 125m)]);
 
-        Assert.Equal(CouponFieldMode.Applied, CouponFields.AfterSignIn("Input.Coupon", "yaz20", accepted).Mode);
-        CouponFieldView refused = CouponFields.AfterSignIn("Input.Coupon", "yaz20", CouponApplication.Rejected(200m));
+        // D-1334: the way back is the payment step's own read of the saved code (Checkout CouponOf: From for an application, Closed for none) - one home for the words, no second helper.
+        Assert.Equal(CouponFieldMode.Applied, CouponFields.From(accepted, "Input.Coupon", "yaz20").Mode);
+        CouponFieldView refused = CouponFields.From(CouponApplication.Rejected(200m), "Input.Coupon", "yaz20");
         Assert.Equal(CouponFieldMode.Open, refused.Mode);
         Assert.Equal(CouponFields.RejectedMessage, refused.CodeField!.Error!.Text);
-        Assert.Equal(CouponFieldMode.Closed, CouponFields.AfterSignIn("Input.Coupon", null, null).Mode);
-        Assert.Equal(CouponFieldMode.LimitClosed, CouponFields.AfterSignIn("Input.Coupon", "yaz20", CouponApplication.LimitExceeded()).Mode);
+        Assert.Equal(CouponFieldMode.Closed, CouponFields.Closed("Input.Coupon").Mode);
+        Assert.Equal(CouponFieldMode.LimitClosed, CouponFields.From(CouponApplication.LimitExceeded(), "Input.Coupon", "yaz20").Mode);
+        Assert.DoesNotContain(typeof(CouponFields).GetMethods(), m => m.Name == "AfterSignIn");
     }
 
     // ---- KK7: how many boxes, none ticked, where they stand ----

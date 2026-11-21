@@ -128,16 +128,16 @@ public sealed class OrdersModel : PageModel
 
     private static readonly PanelTableColumn[] Columns =
     [
-        new("Sipariş", true),
-        new("Tarih", true),
+        new("Sipariş", true, 1),
+        new("Tarih", true, 1),
         new("Alıcı", false),
         new("Kalemler", false),
-        new("Toplam", true),
+        new("Toplam", true, 4),
         new("Ödeme yöntemi", false),
-        new("Sipariş durumu", true),
-        new("Ödeme durumu", true),
-        new("İşaretler", false),
-        new("Süre", true),
+        new("Sipariş durumu", true, 2),
+        new("Ödeme durumu", true, 2),
+        new("İşaretler", true, 3),
+        new("Süre", true, 4),
     ];
 
     private static OrderQuery With(string? search, IEnumerable<OrderStatus> orderStatuses, IEnumerable<PaymentStatus> paymentStatuses, PanelOrderWork? work) => new()

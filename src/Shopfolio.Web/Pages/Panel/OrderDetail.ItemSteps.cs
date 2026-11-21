@@ -119,6 +119,14 @@ public sealed partial class OrderDetailModel
     public IReadOnlyList<(OrderPageItem Item, int OpenUnits)> TerminatedItems =>
         [.. Detail.Items.Where(i => i.ProductType == ProductType.Physical && i.DeliveryMarkedAt is null).Select(i => (i, ItemFactsOf(i)?.OpenQuantity ?? 0)).Where(t => t.Item2 > 0)];
 
+    /// <summary>
+    /// True while the order has not passed to "Kargoya verildi" and carries a physical item with open units (04 9.9.20; K-604; D-1604): such an item is not one the withdrawal record lists - the
+    /// customer's giving it up is the "müşteriyle anlaşıldı" cancellation - and the withdrawal record's place says so, as the server's refusal of a forced send does (<see cref="NotShippedItemText"/>).
+    /// </summary>
+    public bool ShowsNotShippedItemNote =>
+        Summary.OrderStatus is not (OrderStatus.Shipped or OrderStatus.Delivered or OrderStatus.DeliveryFailed)
+        && Detail.Items.Any(i => i.ProductType == ProductType.Physical && (ItemFactsOf(i)?.OpenQuantity ?? 0) > 0);
+
     /// <summary>Today in Turkey as the date fields' upper bound (OB-16: no date in the future).</summary>
     public string TodayText => TurkeyTime.DateOf(Now).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 

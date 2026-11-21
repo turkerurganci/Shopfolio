@@ -6,7 +6,7 @@ namespace Shopfolio.Modules.Ordering.Contracts;
 public sealed record OrderOperationEntry(OrderOperation Operation, Guid? OrderItemId, OperationAvailability Availability);
 
 /// <summary>The operations open to one side of an order at one moment (03 1.11): only the open ones are in the list - an operation outside its interval is not offered at all (03 1.11; T323 criterion 3).</summary>
-public sealed record OrderOperationsView(Guid OrderId, ActorKind Actor, int Version, IReadOnlyList<OrderOperationEntry> Open)
+public sealed record OrderOperationsView(Guid OrderId, ActorKind Actor, int Version, IReadOnlyList<OrderOperationEntry> Open, bool HasExpiredDefectChannel = false)
 {
     /// <summary>True when the operation is open for the item (or for the order when <paramref name="orderItemId"/> is null).</summary>
     public bool IsOpen(OrderOperation operation, Guid? orderItemId = null) => Open.Any(e => e.Operation == operation && e.OrderItemId == orderItemId);

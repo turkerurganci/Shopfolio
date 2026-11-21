@@ -275,6 +275,28 @@ public sealed partial class HomeAndFirmPageTests : IAsyncLifetime
         Assert.DoesNotContain("varsayılan", rejection.GetRawText(), StringComparison.Ordinal);
     }
 
+    // ---- D-1330: the type's fields change at once with the script; the sets are the server's own, and without the script the form still works by the save ----
+
+    [Fact]
+    public async Task TheIdentityForm_CarriesTheTypeFieldSetsForTheScript_FromTheOneSetOfTheRules_AndItsModule_D1330()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ClientOf(factory);
+
+        (_, string html) = await GetAsync(client, FirmPath);
+
+        Assert.Contains("data-js=\"company-type-fields\"", html, StringComparison.Ordinal);
+        Assert.Contains("js/pages/panel/firm-identity", html, StringComparison.Ordinal);
+        Match hook = Regex.Match(html, "data-type-fields=\"([^\"]*)\"", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5));
+        Assert.True(hook.Success);
+        Dictionary<string, string[]> sets = hook.Groups[1].Value.Split(';').Select(p => p.Split('=')).ToDictionary(p => p[0], p => p[1].Length == 0 ? [] : p[1].Split(','));
+        Assert.Equal(Enum.GetValues<CompanyType>().Select(t => t.ToString()), sets.Keys);
+        foreach (CompanyType type in Enum.GetValues<CompanyType>())
+        {
+            Assert.Equal(CompanyIdentityFieldSets.TypeFields(type).Select(f => "Input." + f), sets[type.ToString()]);
+        }
+    }
+
     // ---- KK4, KK5: the conditions, their links, the e-mail line, the two labels (criteria 4, 5) ----
 
     [Fact]

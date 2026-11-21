@@ -149,7 +149,7 @@ internal sealed class DispatchSender
             if (content is not null)
             {
                 LegalIdentity identity = await _settings.GetLegalIdentityAsync(ct);
-                EmailBranding branding = new(brand.HasBrandName ? brand.DisplayName : null, null, brand.IsDefaultColor ? null : brand.Color);
+                EmailBranding branding = new(brand.HasBrandName ? brand.DisplayName : null, brand.LogoId is Guid logoId ? EmailLinks.LogoPathOf(logoId) : null, brand.IsDefaultColor ? null : brand.Color);
                 EmailFirm firm = new(identity.LegalName ?? string.Empty, identity.Email?.Trim() ?? string.Empty);
                 EmailMessage message = await _composer.ComposeAsync(row.RecipientEmail.Trim(), branding, firm, content, ct);
                 await _attempts.SendAsync(dispatchId, message, ct);

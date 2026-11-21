@@ -2,7 +2,7 @@
 
 **Faz:** F5 | **Durum:** ⏳ Devam ediyor (UH1 dilimi taslak PR; tam Integration CI'da) | **Tarih:** 2026-11-21
 
-> Bu rapor UH1 ve UH2 dilimlerini kapsar. Hedefi T604 olan öteki kalemler (UH3 ve sonrası, UE, A dilimleri) ayrı işçilerin payıdır.
+> Bu rapor UH1, UH2 ve UH3 dilimlerini kapsar. Hedefi T604 olan öteki kalemler (UH3 ve sonrası, UE, A dilimleri) ayrı işçilerin payıdır.
 
 ---
 
@@ -155,3 +155,50 @@
 - D-1631: bağlantı ürün VE varyant Yayında iken.
 - Birleştirme notu: `Cart.cshtml` ve `CartModel` UE dalında da değişir (D-1190, D-1246); ad bağlantısı satırlarına dokunmuyorlarsa çakışma yok.
 - Süre bütçesi UH2a'da aşıldı; UH2b ayırt edicilik, ikinci Integration çağrısı ve D-1276 kalanını tamamladı.
+
+
+## UH3 — Yapılan İşler
+
+- **D-442 (VAL-A159):** `DispatchSender` marka logosunu `EmailBranding.LogoPath`'e `EmailLinks.LogoPathOf(LogoId)` (`/gorsel/{dosya kimliği}`) ile verir; `EmailComposer` mutlak adrese çevirir. Logosuz markada başlıkta ad metin kalır. D-966 aynı değişiklikle kapandı.
+- **D-880:** `OrderOperationsView.HasExpiredDefectChannel` (`ItemPeriodState.DefectChannelExpired`'dan) ve `OrderScreenLink.From` — Z-18'i dolmuş kalemli siparişte sipariş sayfası "iletişim formuna yaz" bağlantısını doğrudan verir.
+- **D-1330:** `wwwroot/js/pages/panel/firm-identity.js`: firma tipi değişince tipin alanları anında zorunlu/isteğe bağlı ve açık/salt okunur olur; kümeler `CompanyIdentityFieldSets`'ten `data-type-fields` ile gelir (betik kural yazmaz); betiksiz yol aynen.
+- **D-1332:** WhatsApp kuralı `Infrastructure.Validation.WhatsAppNumberRule`'da tek yerde; `SocialLinks.CheckWhatsAppNumber` ve `FirmSettings.SaveHomepageAsync` onu çağırır. Eşitlik tablosu (`FormFieldEnforcementTable` 7.2.17.4) yeni satıra bağlandı.
+- **D-1334:** `CouponFields.AfterSignIn` kaldırıldı (üretimde çağrılmıyordu); yol ödeme adımının `CouponOf` okumasıdır.
+- **D-1365:** `IOrderingModule.GetOrderNumbersAsync` — kalemsiz geç ödeme satırlarının sipariş numaraları tek okuma; sayfasız IBAN okuması D-1832.
+- **D-1386, D-1464, D-1412, D-1701:** karar K-1637 (a)–(d). Dar sınıf sipariş kartı `PanelTableColumn.CardOrder` ve `admin.css` ile `04` 9.8.14 sırasında; `04` 7.2.8.1 iki ayrık teslim tarihi cümlesi; E-19 adet alanı için `member-defect-claim.js`; `07` §8.2.2, `09` §16.2 madde 2, `12` VAL-B097 "bu ekranda betik yok"a hizalı.
+- **D-1604:** `OrderDetailModel.ShowsNotShippedItemNote` — kargoya verilmemiş fiziksel kalem varken cayma kaydı yerinde `NotShippedItemText` açıklaması.
+
+## UH3 — Kabul ve öz denetim
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Hedefi T604 olan UH3 kalemleri kapalı ya da gerekçeli (KK1) | ✓ | `DEFERRED_BACKLOG.md`: D-442, D-966, D-880, D-1330, D-1332, D-1334, D-1365, D-1386, D-1464, D-1604, D-1701 `✅ Çözüldü → T604`; D-1412 daraldı → faz kapısı (D-1833); yeni D-1832, D-1833 (`DEFERRED_BACKLOG.d/T604-H.md`) |
+| D-442 logo mutlak adresi | ✓ | `DispatchRetryAndMarkTests.TheLogoOfTheBrand_..._D442` (logolu: `src="https://magaza.example.com/gorsel/{id}"`, `alt`; logosuz: `/gorsel/` yok) |
+| D-880 bağlantı | ✓ | `OrderPageLinksTests.AnItemWhoseDefectPeriodRanOut_..._D880`; `AfterSalesScreenTests.TheDefectClaimScreen_Is303WhenNotOpen..._KK7` (Z-18 dolmuş siparişte bağlantı var, açıkta yok) |
+| D-1330 | ✓ | `HomeAndFirmPageTests.TheIdentityForm_CarriesTheTypeFieldSets..._D1330`; `NoScriptPathSourceScanTests` (betik yolu sayfa yoluna uyar) |
+| D-1332 tek kural | ✓ | `WhatsAppNumberRuleTests`; `FormFieldEnforcementTable` 7.2.17.4 |
+| D-1334 | ✓ | `ControlComponentModelTests.ACustomerWhoComesBackFromTheSignIn_..._KK6` (`AfterSignIn` yöntemi yok, `From` aynı sonuçlar) |
+| D-1365 toplu okuma | ✓ | `PanelHomeDetailsTests.AnIbanLine_..._KK3` (`numberReads == 1`) |
+| D-1386 kart sırası | ✓ | `OrderListPageTests.TheList_IsNewestFirst_..._KK2` (hücre sınıfları `card-1`…`card-4`, ikincil üç sütun); `FrameSourceScanTests` (yalnız `min-width`) |
+| D-1464 | ✓ | `04` 7.2.8.1; `OrderDetailPageTests` (`DeliveryDateFutureText`, `DeliveryDateBeforeShipmentText` — işaret ve düzeltme ekranı) değişmeden geçer |
+| D-1604 | ✓ | `OrderDetailPageTests.AnOrderNotHandedToTheCarrier_..._D1604` |
+| D-1701 | ✓ | `07` §8.2.2, `09` §16.2 m.2, `12` VAL-B097 metni; K-1637 (d) |
+| D-1412 | ~ daraldı | betik ve işaretleme kancaları `AfterSalesScreenTests …_KK6`; çok kalemli sayfa testi D-1833 |
+| Karar kaydı | ✓ | K-1637 `PRODUCT_DISCOVERY_STATUS.md` (a)–(d) |
+| Ayırt edicilik (UH3, src boz → kırmızı → geri al) | ⏳ | **Yapılmadı (süre)**: D-442, D-880, D-1332, D-1334, D-1365, D-1386, D-1604, D-1330 — UH3b'nin ilk işi |
+| Sık FAIL (1)–(5) | ✓ | (1) yeni tarama istisnası yok; (2) JS kaynak taraması `member-defect-claim.js`/`firm-identity.js` için `NoScriptPathSourceScanTests` geçti; (3) 06 şeması değişmedi; (4) eşitlik tablosu, `07`/`09`/`12` üçlüsü ve `04` aynı turda; (5) belge kuralı değişen yerler K-1637'de |
+
+## UH3 — Test sonuçları
+
+| Tür | Sonuç | Not |
+|---|---|---|
+| Unit (TAM) | ✓ 8115 → ilk koşuda 5 kırmızı (3 tutarlılık tablosu: WhatsApp satırı; 2 mimari: betik yolu adı, `max-width`) düzeltildi; ilgili sınıflar yeşil | Yeniden TAM koşusu UH3b'ye kaldı |
+| Integration | ✓ 183/183 + DispatchRetryAndMarkTests | Koşulan: DispatchRetryAndMarkTests, HomeAndFirmPageTests, OrderDetailPageTests, OrderListPageTests, AfterSalesScreenTests, PanelHomeTests, ListComponentPageTests, PageFormPatternTests, FormSecurity*. TAM: CI |
+| `dotnet format` | ✓ | UH3'ün 26 `.cs` dosyasında (bir test dosyasında değişiklik uygulandı) |
+
+## UH3 — ⚠ (kolay kararlar, sahip yerine)
+
+- D-1386 Z-42, D-1464 ayrık cümleler, D-1412 betikli açılma, D-1701 "betik yok": K-1637.
+- D-1412 ve D-1365 (sayfasız okuma) daraltıldı: D-1833, D-1832.
+- Birleştirme notu: `EmailLinks.cs` (UE: `ImagePrefix` sabiti), `OrderPageModels.cs`, `OrderingModule.cs`, `FirmIdentity.cshtml.cs`, `OrderDetail.ItemSteps.cs`, `PRODUCT_DISCOVERY_STATUS.md` (K-1636/K-1637 aynı yer) UE dalında da değişir; hunk'lar ayrı, K-numarası satırları çakışırsa ikisi de tutulur.
+- Süre bütçesi aşıldı (45 dk): ayırt edicilik ve Unit TAM yeniden koşusu UH3b'de.

@@ -98,7 +98,11 @@ public sealed partial class OrderDetailPageTests
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
 
         (HttpStatusCode status, string html) = await GetAsync(client, $"{OrdersPath}/{orderId:D}", key);
+        // A date in the future is the refusal; the IBAN that fails OB-14 is none (K-1631 (5); D-1599): it is kept in the form and, with a good date, the confirmation window opens.
+        string tomorrow = DateText(TurkeyTime.DateOf(DateTimeOffset.UtcNow).AddDays(1));
         (HttpStatusCode wrong, string wrongHtml) = await PostAsync(
+            client, path, [("Input.DeclarationDate", tomorrow), ("Input.IsFromContactEmail", "true"), ("Input.Iban", WrongChecksumIban), ("Input.Version", "1")], key);
+        (HttpStatusCode ibanAsk, string ibanWindow) = await PostAsync(
             client, path, [("Input.DeclarationDate", yesterday), ("Input.IsFromContactEmail", "true"), ("Input.Iban", WrongChecksumIban), ("Input.Version", "1")], key);
         (HttpStatusCode ask, string window) = await PostAsync(client, path, [("Input.DeclarationDate", yesterday), ("Input.Version", "1")], key);
 
@@ -112,11 +116,15 @@ public sealed partial class OrderDetailPageTests
             "The IBAN field follows the contact e-mail option (04 7.2.10.4).");
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, wrong);
-        Assert.Contains(OrderDetailModel.NoticeIbanInvalidText, wrongHtml, StringComparison.Ordinal);
+        Assert.Contains(OrderDetailModel.NoticeDateInvalidText, wrongHtml, StringComparison.Ordinal);
+        Assert.DoesNotContain("sağlama basamağı tutmuyor", wrongHtml, StringComparison.Ordinal);
         string kept = FormOf(wrongHtml, "record-late-termination-form");
-        Assert.Contains($"value=\"{yesterday}\"", kept, StringComparison.Ordinal);
+        Assert.Contains($"value=\"{tomorrow}\"", kept, StringComparison.Ordinal);
         Assert.Contains($"value=\"{WrongChecksumIban}\"", kept, StringComparison.Ordinal);
         Assert.Contains("name=\"Input.IsFromContactEmail\" value=\"true\" checked=\"checked\"", kept, StringComparison.Ordinal);
+
+        Assert.Equal(HttpStatusCode.OK, ibanAsk);
+        Assert.Contains(OrderDetailModel.LegalInterestWarningText, FormOf(ibanWindow, "record-late-termination-form"), StringComparison.Ordinal);
 
         Assert.Equal(HttpStatusCode.OK, ask);
         Assert.Contains(OrderDetailModel.LegalInterestWarningText, FormOf(window, "record-late-termination-form"), StringComparison.Ordinal);
@@ -252,7 +260,7 @@ public sealed partial class OrderDetailPageTests
     }
 
     [Fact]
-    public async Task WithdrawalRecord_KeepsTheOutsideWindowAndExemptionWarnings_AndTheSentValues_OnTheUnitsAndTheIbanRefusals_T528_KK5_VAL_B159()
+    public async Task WithdrawalRecord_KeepsTheOutsideWindowAndExemptionWarnings_AndTheSentValues_OnTheUnitsRefusals_T528_KK5_VAL_B159_D1599()
     {
         (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
         (Guid orderId, Guid[] items) = await StepOrderAsync(OrderStatus.Delivered, PaymentStatus.Paid, (ProductType.Physical, true));
@@ -265,7 +273,8 @@ public sealed partial class OrderDetailPageTests
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
 
-        // The page's own units refusal, the record's units refusal (over the open units) and its IBAN refusal: none of them reaches the warnings' rule in the record.
+        // The page's own units refusal and the record's units refusal (over the open units): neither reaches the warnings' rule in the record. An IBAN that fails OB-14 is no refusal
+        // (K-1631 (5); D-1599): the send reaches the warnings' rule and is refused there, with the IBAN kept.
         (HttpStatusCode unreadable, string unreadableHtml) = await PostAsync(client, path, [.. Fields("bir"), ("Input.IsExceptionAcknowledged", "true")], key);
         (HttpStatusCode exceeding, string exceedingHtml) = await PostAsync(client, path, Fields("5"), key);
         (HttpStatusCode iban, string ibanHtml) = await PostAsync(client, path, [.. Fields("1"), ("Input.IsFromContactEmail", "true"), ("Input.Iban", "TR00 0000")], key);
@@ -274,7 +283,7 @@ public sealed partial class OrderDetailPageTests
         {
             (unreadable, unreadableHtml, OrderDetailModel.QuantityInvalidText),
             (exceeding, exceedingHtml, OrderDetailModel.QuantityExceedsOpenText),
-            (iban, ibanHtml, OrderDetailModel.NoticeIbanInvalidText),
+            (iban, ibanHtml, OrderDetailModel.ExceptionUnacknowledgedText),
         })
         {
             Assert.Equal(HttpStatusCode.UnprocessableEntity, status);
@@ -293,6 +302,24 @@ public sealed partial class OrderDetailPageTests
         Assert.Contains("value=\"TR00 0000\"", FormOf(ibanHtml, "record-withdrawal-form"), StringComparison.Ordinal);
         await using AppDbContext reader = NewContext();
         Assert.Equal(0, await reader.Withdrawals.CountAsync(w => w.OrderItemId == items[0], Ct));
+    }
+
+    [Fact]
+    public async Task AnOrderNotHandedToTheCarrier_SaysAtTheWithdrawalRecordsPlaceThatTheWayIsTheAgreedCancellation_AndAShippedOrderDoesNotSayIt_D1604()
+    {
+        (string key, _) = await TestSessions.AdminAsync(_database.Dsn);
+        (Guid unshipped, _) = await StepOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid, (ProductType.Physical, false));
+        (Guid shipped, _) = await StepOrderAsync(OrderStatus.Shipped, PaymentStatus.Paid, (ProductType.Physical, false));
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+
+        (HttpStatusCode unshippedStatus, string unshippedHtml) = await GetAsync(client, $"{OrdersPath}/{unshipped:D}", key);
+        (HttpStatusCode shippedStatus, string shippedHtml) = await GetAsync(client, $"{OrdersPath}/{shipped:D}", key);
+
+        Assert.Equal(HttpStatusCode.OK, unshippedStatus);
+        Assert.Contains($"id=\"withdrawal-not-shipped-note\">{OrderDetailModel.NotShippedItemText}</p>", System.Net.WebUtility.HtmlDecode(unshippedHtml), StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.OK, shippedStatus);
+        Assert.DoesNotContain("withdrawal-not-shipped-note", shippedHtml, StringComparison.Ordinal);
     }
 
     [Fact]

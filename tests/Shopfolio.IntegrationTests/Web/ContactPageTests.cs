@@ -39,7 +39,7 @@ public sealed class ContactPageDefinition : ICollectionFixture<CollectionDatabas
 /// with the attempts recorded; the trap field that leaves no trace and answers as a success; the second send that opens a second request with the firm's notice F-2.
 /// </summary>
 [Collection(ContactPageDefinition.Name)]
-public sealed class ContactPageTests : IAsyncLifetime
+public sealed partial class ContactPageTests : IAsyncLifetime
 {
     private const string FirmEmail = "firma@example.com";
 

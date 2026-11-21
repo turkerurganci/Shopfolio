@@ -14,6 +14,7 @@
     ViewData["Title"] = Model.Step is ResetStep.Request ? PanelAccessTexts.ResetRequestTitle : PanelAccessTexts.ResetSetTitle;
     FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, ["Input.Email", "Input.NewPassword"]);
 }
+<partial name="_ForgeryRefusalMessage" model='"reset-forgery-message"' />
 @switch (Model.Step)
 {
     case ResetStep.Request:

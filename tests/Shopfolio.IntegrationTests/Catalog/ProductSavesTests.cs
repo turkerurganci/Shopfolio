@@ -451,6 +451,52 @@ public sealed class ProductSavesTests : IAsyncLifetime
         Assert.Equal(100m, await db.Variants.Where(v => v.Id == variant.Id).Select(v => v.Price).SingleAsync(Ct));
     }
 
+    // ---- D-1705: the first option of a product that has variants; the refused field is the missing one ----
+
+    [Fact]
+    public async Task TheFirstOptionAddedToAProductWithItsVariant_IsSaved_AndTheVariantTakesTheFirstValue_D1705()
+    {
+        (Product product, Variant variant) = await SeedAsync(ProductType.Physical, stock: 5);
+        ProductSaveCommand command = Existing(product, variant, price: 100m, stock: 5, shown: 5) with
+        {
+            Options = [new ProductSaveOption(null, "Renk", [new ProductSaveOptionValue(null, "Kırmızı"), new ProductSaveOptionValue(null, "Mavi")])],
+        };
+
+        ProductSaveResult result = await RunAsync(command);
+
+        Assert.False(result.IsRejected, string.Join(", ", result.FieldErrors.Select(e => $"{e.Field}:{e.Code}")));
+        await using AppDbContext db = NewContext();
+        Variant saved = await db.Variants.SingleAsync(v => v.Id == variant.Id, Ct);
+        string bound = await db.OptionValues.Where(o => o.Id == saved.FirstOptionValueId).Select(o => o.Value).SingleAsync(Ct);
+        Assert.Equal("Kırmızı", bound);
+        Assert.Null(saved.SecondOptionValueId);
+    }
+
+    [Fact]
+    public async Task AVariantRowWithoutTheValueOfAnExistingOption_IsRefusedAtTheFirstValueField_NotTheSecond_D1705()
+    {
+        (Product product, Variant variant) = await SeedAsync(ProductType.Physical, stock: 5);
+        Guid optionId = Guid.NewGuid();
+        await using (AppDbContext db = NewContext())
+        {
+            Option option = Option.Create(product.Id, "Renk", 1, Now);
+            db.Options.Add(option);
+            db.OptionValues.Add(OptionValue.Create(option.Id, "Kırmızı", 1, Now));
+            await db.SaveChangesAsync(Ct);
+            optionId = option.Id;
+        }
+
+        ProductSaveCommand command = Existing(product, variant, price: 100m, stock: 5, shown: 5) with
+        {
+            Options = [new ProductSaveOption(optionId, "Renk", [])],
+        };
+
+        ProductSaveResult result = await RunAsync(command);
+
+        AssertField(result, "Variants[0].FirstOptionValueId", ErrorCode.FieldRequired);
+        Assert.DoesNotContain(result.FieldErrors, e => e.Field.EndsWith("SecondOptionValueId", StringComparison.Ordinal));
+    }
+
     private static ProductSaveFieldError AssertField(ProductSaveResult result, string field, ErrorCode code)
     {
         Assert.True(result.IsRejected);

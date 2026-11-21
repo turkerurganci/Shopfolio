@@ -20,7 +20,7 @@ namespace Shopfolio.Pages.Panel;
 /// K-1218); a link spent in between answers 200. The password is not asked: it is set again through the reset link (E-29).
 /// </summary>
 [NoStore]
-internal sealed class RevertModel : PageModel
+internal sealed class RevertModel : PageModel, IReadsOnForgeryRefusal
 {
     private readonly IAdministrationModule _administration;
     private readonly ITransactionRunner _transactions;
@@ -53,6 +53,18 @@ internal sealed class RevertModel : PageModel
             _ => LandingStep.Invalid,
         };
         return Page();
+    }
+
+    /// <summary>
+    /// D-1843 (07 2.5.4; 04 2.7.3.1): the forgery check's 400 shows the route's link as it stands - a read of its record that does not consume it (the button is the only use). The result
+    /// code is a query value and is not read: a used link is the invalid state. Nothing written.
+    /// </summary>
+    async Task IReadsOnForgeryRefusal.ReadAfterForgeryRefusalAsync(CancellationToken ct)
+    {
+        Key = RouteData.Values["key"] as string ?? string.Empty;
+        await SetNextStepAsync();
+        AdminLinkReading reading = await _administration.ReadEmailRestoreLinkAsync(Key, ct);
+        Step = reading.Status == Shopfolio.Infrastructure.Security.AccountLinkStatus.Valid ? LandingStep.Valid : LandingStep.Invalid;
     }
 
     [OutcomeUncertain("UC-187")]

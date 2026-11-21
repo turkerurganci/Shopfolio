@@ -82,7 +82,9 @@ internal sealed class PanelHomeDetailsService : IPanelHomeDetails
             ? []
             : (await _ordering.FindItemLabelsAsync(itemIds, ct)).ToDictionary(l => l.OrderItemId);
 
-        Dictionary<Guid, string?> numberOfOrder = [];
+        // The numbers of the late payments' orders come in one read, not one per line (D-1365; 09 20 item 4).
+        Guid[] refundOrderIds = [.. resolved.Where(r => r.ItemId is null).Select(r => r.RefundOrderId).OfType<Guid>().Distinct()];
+        IReadOnlyDictionary<Guid, string> numberOfOrder = refundOrderIds.Length == 0 ? new Dictionary<Guid, string>() : await _ordering.GetOrderNumbersAsync(refundOrderIds, ct);
         List<AwaitingIbanRow> rows = [];
         foreach ((AwaitingIbanLine line, Guid? itemId, Guid? refundOrderId) in resolved)
         {
@@ -101,13 +103,7 @@ internal sealed class PanelHomeDetailsService : IPanelHomeDetails
                 continue;
             }
 
-            if (!numberOfOrder.TryGetValue(orderId, out string? number))
-            {
-                number = await _ordering.GetOrderNumberAsync(orderId, ct);
-                numberOfOrder[orderId] = number;
-            }
-
-            if (number is not null)
+            if (numberOfOrder.TryGetValue(orderId, out string? number))
             {
                 rows.Add(new AwaitingIbanRow(orderId, number, null, line.Reason, line.CreatedAt, line.RefundLastDay));
             }

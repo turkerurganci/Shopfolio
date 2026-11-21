@@ -18,7 +18,11 @@
     <h1 class="error-page__title">@Model.Title</h1>
     <partial name="_Message" model="Messages.InPlace(MessageMeaning.Error, Model.Message)" />
     <p class="error-page__actions">
-        <a class="button button--primary" href="@Model.RetryPath">Yeniden dene</a>
-        <a class="button button--secondary" href="@Model.HomePath">@Model.HomeLabel</a>
+        @if (Model.OffersRetry)
+        {
+            <a class="button button--primary" href="@Model.RetryPath">Yeniden dene</a>
+        }
+        @* A refusal (429, 413; D-1146) offers no "Yeniden dene": the way home is the one action, so it is the primary one. *@
+        <a class="button @(Model.OffersRetry ? "button--secondary" : "button--primary")" href="@Model.HomePath">@Model.HomeLabel</a>
     </p>
 </section>

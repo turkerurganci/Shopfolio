@@ -40,6 +40,29 @@ public static partial class FrameStyle
         return $":root{{--brand-color:{color};--brand-text-color:{text};}}";
     }
 
+    /// <summary>The address of the fallback site icon, served while no site icon is uploaded (02 3.29.4; D-1135): inside the image area, so no new first segment.</summary>
+    public const string SiteIconPath = ImagePrefix + "simge";
+
+    /// <summary>The media type of the fallback site icon.</summary>
+    public const string SiteIconContentType = "image/svg+xml";
+
+    /// <summary>
+    /// The fallback site icon: the brand name's first letter on the brand colour (02 3.29.4). Both colours are checked like <see cref="BrandVariables"/> does and the letter is escaped, so the
+    /// image can carry nothing but a letter and two colours.
+    /// </summary>
+    public static string FallbackIconSvg(string initial, string brandColor, string brandTextColor)
+    {
+        ArgumentNullException.ThrowIfNull(initial);
+        ArgumentNullException.ThrowIfNull(brandColor);
+        ArgumentNullException.ThrowIfNull(brandTextColor);
+        bool valid = ColorPattern().IsMatch(brandColor) && ColorPattern().IsMatch(brandTextColor);
+        string color = valid ? brandColor : DefaultBrandColor;
+        string text = valid ? brandTextColor : DefaultBrandTextColor;
+        string letter = System.Net.WebUtility.HtmlEncode(initial);
+        return $"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"{color}\"/>"
+            + $"<text x=\"32\" y=\"43\" text-anchor=\"middle\" font-family=\"sans-serif\" font-size=\"32\" font-weight=\"700\" fill=\"{text}\">{letter}</text></svg>";
+    }
+
     /// <summary>The address of a brand image - the logo or the site icon - by its file id (07 2.1.2).</summary>
     public static string ImagePath(Guid fileId) => ImagePrefix + fileId.ToString("D");
 

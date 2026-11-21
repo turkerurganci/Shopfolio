@@ -45,30 +45,35 @@
         Guid? fieldRow = Model.QuantityFieldRow(sentItem);
         FieldView quantity = Fields.Bind(Fields.Number("Quantity", OrderScreenTexts.DefectClaimQuantityLabel, FieldRequirement.Optional, Model.SentValue("Quantity") ?? DisplayFormat.Number(1)), summary);
         <form method="post" asp-antiforgery="true" action="@(Model.ScreenPath)?handler=@DefectClaimPageModel.SubmitHandler" class="operation-screen__form" data-js="submit-once">
-            <fieldset class="operation-screen__items" id="OrderItemId">
-                <legend>@OrderScreenTexts.DefectClaimItemLabel</legend>
-                @foreach (DefectClaimRowView row in Model.Rows)
-                {
-                    <div class="operation-screen__item" data-item="@row.OrderItemId">
-                        <label class="operation-screen__choice">
-                            <input type="radio" name="OrderItemId" value="@row.OrderItemId" checked="@(sentItem == row.OrderItemId.ToString() || Model.Rows.Count == 1)" />
-                            <span>@row.Name</span>
-                        </label>
-                        @if (row.HasQuantityField)
-                        {
-                            if (fieldRow == row.OrderItemId)
+            @* D-1412: the one field stands in the chosen item's row; with several fielded rows and no choice it stands under the list, and with a script a click on a choice moves it (defect-claim.js). *@
+            <div data-js="defect-claim-items">
+                <fieldset class="operation-screen__items" id="OrderItemId">
+                    <legend>@OrderScreenTexts.DefectClaimItemLabel</legend>
+                    @foreach (DefectClaimRowView row in Model.Rows)
+                    {
+                        <div class="operation-screen__item" data-item="@row.OrderItemId" data-quantity-field="@(row.HasQuantityField ? "true" : "false")">
+                            <label class="operation-screen__choice">
+                                <input type="radio" name="OrderItemId" value="@row.OrderItemId" checked="@(sentItem == row.OrderItemId.ToString() || Model.Rows.Count == 1)" />
+                                <span>@row.Name</span>
+                            </label>
+                            @if (row.HasQuantityField)
                             {
-                                <partial name="_Field" model="quantity" />
+                                if (fieldRow == row.OrderItemId)
+                                {
+                                    <div data-js="defect-claim-quantity"><partial name="_Field" model="quantity" /></div>
+                                }
+                                <span class="operation-screen__limit">@OrderScreenTexts.ClaimLimit(row.Quantity, row.MaxQuantity)</span>
                             }
-                            <span class="operation-screen__limit">@OrderScreenTexts.ClaimLimit(row.Quantity, row.MaxQuantity)</span>
-                        }
-                    </div>
-                }
-            </fieldset>
-            @if (fieldRow is null && Model.Rows.Any(r => r.HasQuantityField))
-            {
-                <partial name="_Field" model="quantity" />
-            }
+                        </div>
+                    }
+                </fieldset>
+                <div data-js="defect-claim-slot">
+                    @if (fieldRow is null && Model.Rows.Any(r => r.HasQuantityField))
+                    {
+                        <div data-js="defect-claim-quantity"><partial name="_Field" model="quantity" /></div>
+                    }
+                </div>
+            </div>
             @{
                 FieldView description = Fields.Bind(Fields.TextArea("Description", OrderScreenTexts.DefectClaimDescriptionLabel, FieldRequirement.Required, Model.SentValue("Description")), summary);
             }

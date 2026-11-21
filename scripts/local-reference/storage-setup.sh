@@ -25,6 +25,8 @@ DIND_IMAGE="docker:29.9.2-dind@sha256:9e79b879b177fbd72c34376a3dd3d91747da5db49e
 MC=/opt/bitnami/minio-client/bin/mc
 
 ADMIN_CREDENTIAL="$(cat "$STATE_DIR/minio-admin-password")"
+# The administrator user of the local MinIO (host-up.sh creates it): a variable, so the line that hands it to a container reads an expansion, not a literal (D-1770).
+ADMIN_USER=t09admin
 printf '%s\n%s\n' "$(cat "$STATE_DIR/db-key-id")" "$(cat "$STATE_DIR/db-key-secret")" >"$STATE_DIR/db_backup_storage_key"
 printf '%s\n%s\n' "$(cat "$STATE_DIR/files-key-id")" "$(cat "$STATE_DIR/files-key-secret")" >"$STATE_DIR/file_backup_storage_key"
 
@@ -63,7 +65,7 @@ docker run --rm --network "$NET" --entrypoint sh -v t09-work:/work -e HOME=/tmp 
 echo "== bucket-checks.sh setup, lifecycle, keys (DEPLOY_RUNBOOK J.3)"
 run_checks() {
   docker run --rm --network "$NET" --entrypoint sh -v t09-work:/work \
-    -e AWS_CA_BUNDLE=/work/minio-ca.crt -e AWS_ACCESS_KEY_ID=t09admin -e "AWS_SECRET_ACCESS_KEY=$ADMIN_CREDENTIAL" \
+    -e AWS_CA_BUNDLE=/work/minio-ca.crt -e "AWS_ACCESS_KEY_ID=$ADMIN_USER" -e "AWS_SECRET_ACCESS_KEY=$ADMIN_CREDENTIAL" \
     -e "BACKUP_S3_ENDPOINT=$ENDPOINT" -e "BACKUP_S3_BUCKET=$BUCKET" -e "BACKUP_S3_REGION=$REGION" \
     -e DB_KEY_FILE=/work/db_backup_storage_key -e FILES_KEY_FILE=/work/file_backup_storage_key \
     "$AWS_IMAGE" /work/deploy/backup/bucket-checks.sh "$1"

@@ -161,8 +161,12 @@ public sealed record ListSearch(ListKind Kind, string ListRoot, string Label, st
     public bool IsShown => ListCatalog.HasSearch(Kind);
 }
 
-/// <summary>A column of a panel table (04 2.13.4): the title and whether it is primary - the primary columns stay in the row on the medium class; the secondary ones go under it.</summary>
-public sealed record PanelTableColumn(string Title, bool IsPrimary);
+/// <summary>A column of a panel table (04 2.13.4): the title, whether it is primary - the primary columns stay in the row on the medium class; the secondary ones go under it - and, when the narrow class's card orders its information by priority (04 9.8.14), the column's place in the card.</summary>
+public sealed record PanelTableColumn(string Title, bool IsPrimary, int CardOrder = 0)
+{
+    /// <summary>The cell's classes: its primary or secondary kind and, when the column has a place of its own in the narrow class's card, that place (1-4; D-1386; 04 9.8.14).</summary>
+    public string CellClasses => "panel-table__cell " + (IsPrimary ? "panel-table__cell--primary" : "panel-table__cell--secondary") + (CardOrder > 0 ? " panel-table__cell--card-" + CardOrder : string.Empty);
+}
 
 /// <summary>
 /// A row of a panel table: the text of every cell in the column order, and the address of the record the first primary cell links to (null for a row that opens nothing). A cell that stands for a status

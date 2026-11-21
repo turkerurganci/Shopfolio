@@ -37,7 +37,6 @@ internal static class FormFieldPlaceEnforcement
     private const string CorrectionShipment = "Required|" + PanelCorrections + "#if (request.Shipment is null || !OrderTransitions.TryNormalizeShipment(request.Shipment, out _)) { return new PanelCorrectionResult(TransitionRefusal.InvalidInput) { Problem = CorrectionValueProblem.Missing };";
     private const string NoticeDate = "Required|" + Item + "#Notice = input; if (!TryReadDate(input.DeclarationDate, out DateOnly date)) { return await RefuseAsync(id, NoticeDateMissingText, string.IsNullOrWhiteSpace(input.DeclarationDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate";
     private const string TerminationDate = "Required|" + Item + "#Termination = input; if (!TryReadDate(input.DeclarationDate, out DateOnly date)) { return await RefuseAsync(id, NoticeDateMissingText, string.IsNullOrWhiteSpace(input.DeclarationDate) ? ErrorCode.FieldRequired : ErrorCode.InvalidDate";
-    private const string IbanObstacle = "Iban|" + Item + "#case PanelItemObstacle.IbanInvalid: return await RefuseAsync(id, NoticeIbanInvalidText, ErrorCode.InvalidIban, ct);";
     private const string ReasonPage = "Required|" + Corrections + "#RefuseCorrectionAsync(id, TransitionFormId, ReasonMissingText, ErrorCode.FieldRequired, ct)";
     private const string FaqGate = "Required|" + Gate + "#ContentRecordKind.FaqItem => [ContentGateField.Question, ContentGateField.Answer]";
 
@@ -87,9 +86,9 @@ internal static class FormFieldPlaceEnforcement
         ["7.2.10.3|Panel.RecordWithdrawalInput.DeclarationDate"] = [NoticeDate, "Date" + NoticeDate["Required".Length..]],
         ["7.2.10.3|Panel.RecordLateDeliveryTerminationInput.DeclarationDate"] = [TerminationDate, "Date" + TerminationDate["Required".Length..]],
         ["7.2.10.4|Panel.RecordWithdrawalInput.IsFromContactEmail"] = [],
-        ["7.2.10.4|Panel.RecordWithdrawalInput.Iban"] = [$"Iban|{Steps}#if (request.CameFromOrderEmail && !string.IsNullOrWhiteSpace(request.NoticeIban) && !NoticeIbanRule.Allows(request.NoticeIban)) {{ return PanelItemStepResult.Refused(PanelItemObstacle.IbanInvalid);", IbanObstacle],
+        ["7.2.10.4|Panel.RecordWithdrawalInput.Iban"] = [$"Iban|{Steps}#if (request.CameFromOrderEmail && !string.IsNullOrWhiteSpace(request.NoticeIban) && !NoticeIbanRule.Allows(request.NoticeIban)) {{ request = request with {{ NoticeIban = null }};"],
         ["7.2.10.4|Panel.RecordLateDeliveryTerminationInput.IsFromContactEmail"] = [],
-        ["7.2.10.4|Panel.RecordLateDeliveryTerminationInput.Iban"] = [$"Iban|{Item}#if (iban is not null && !NoticeIbanRule.Allows(iban)) {{ return await RefuseAsync(id, NoticeIbanInvalidText, ErrorCode.InvalidIban, ct);", $"Iban|{Steps}#if (!string.IsNullOrWhiteSpace(request.Iban) && !NoticeIbanRule.Allows(request.Iban)) {{ return PanelItemStepResult.Refused(PanelItemObstacle.IbanInvalid);", IbanObstacle],
+        ["7.2.10.4|Panel.RecordLateDeliveryTerminationInput.Iban"] = [$"Iban|{Steps}#if (!string.IsNullOrWhiteSpace(request.Iban) && !NoticeIbanRule.Allows(request.Iban)) {{ request = request with {{ Iban = null }};"],
         ["7.2.13.2|Panel.ProcessAmountBasedRefundInput.OrderItemId"] = [],
         ["7.2.13.2|Panel.ProcessAmountBasedRefundInput.NotReturnedClosureId"] = [],
         ["7.2.14.1|Panel.CorrectAddressInput.ShippingRecipientName"] = ["Required|Modules/Ordering/OrderCorrections.cs#ResolveOrderAddressesAsync( shipping ? new OrderAddressRequest( null, [ProductType.Physical], null, request.RecipientName,"],

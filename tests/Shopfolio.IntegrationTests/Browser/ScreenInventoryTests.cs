@@ -199,8 +199,8 @@ public sealed class ScreenInventoryTests(BrowserHost host) : BrowserTestBase(hos
                 // The state of a valid link is told by its own form or button (the invalid-link state answers 200 too and draws only its sentence).
                 int marked = stop.Marker is null ? 1 : await page.Page.Locator(stop.Marker).CountAsync();
                 string expectedName = TitleMeasure.ExpectedName(stop.Path, Host.Seed.BrandName);
-                // The two known gaps (D-1788) carry their exact title; a title that now carries the brand name is no longer the known state and fails until the entry goes (two-way).
-                bool titled = TitleMeasure.KnownWithoutBrand.TryGetValue(stop.Path, out string? knownTitle) ? title == knownTitle : TitleMeasure.Names(title, expectedName);
+                // Every screen's title carries the product name: the FAQ and contact pages too since D-1788 (T604), so no screen is a known gap.
+                bool titled = TitleMeasure.Names(title, expectedName);
                 bool ok = statusOk && messages.Count == 0 && missingImages == 0 && titled && marked > 0;
                 string observed = $"status {status}, address {final}, title \"{title}\", browser messages {messages.Count}, image 404 {missingImages}" + (stop.Marker is null ? string.Empty : $", the state's own form or button {marked}") + (messages.Count > 0 ? ": " + string.Join(" / ", messages.Take(3)) : string.Empty);
                 await ObserveAsync($"{stop.Screen}", path, engine, page, stop.State, "status " + stop.Status + $", a title ending with the product name \"{expectedName}\" (D-1710), no browser message" + (stop.Marker is null ? string.Empty : ", the form or button of the link's valid state"), observed, ok);

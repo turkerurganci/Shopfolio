@@ -424,6 +424,47 @@ public sealed class DispatchRetryAndMarkTests : IAsyncLifetime
         Assert.Equal(2, await CountAsync("dispatch_records"));
     }
 
+    // ---- D-442 (VAL-A159): the brand's logo reaches the e-mail header as an absolute address; without a logo the name stands as text ----
+
+    [Fact]
+    public async Task TheLogoOfTheBrand_IsTheAbsoluteAddressOfItsSourceCopyInTheHeader_AndWithoutALogoTheNameStandsAsText_D442()
+    {
+        Image logo = Image.Create($"images/{Guid.NewGuid():N}", ImageFormat.Jpeg, 800, 600, Start);
+        await using (AppDbContext db = NewContext())
+        {
+            db.Images.Add(logo);
+            if (!await db.Brandings.AnyAsync(Ct))
+            {
+                db.Brandings.Add(Branding.Create(Start));
+            }
+
+            await db.SaveChangesAsync(Ct);
+        }
+
+        // The brand row is the installation's one row (the others of this class read it as it is: no name, no logo); it is put back as it was.
+        await ExecuteAsync($"UPDATE brandings SET brand_name = 'Logolu Magaza', logo_id = '{logo.Id}'");
+        try
+        {
+            Guid withLogo = await QueueAsync(new PaymentConfirmedNotice(await SeedOrderAsync()), CurrentAddress);
+            Assert.Equal(DispatchSendOutcome.Attempted, await SendAsync(withLogo));
+            string html = Assert.Single(_gateway.Messages).HtmlBody;
+            Assert.Contains($"src=\"https://magaza.example.com/gorsel/{logo.Id:D}\"", html, StringComparison.Ordinal);
+            Assert.Contains("alt=\"Logolu Magaza\"", html, StringComparison.Ordinal);
+
+            await ExecuteAsync("UPDATE brandings SET logo_id = NULL");
+            Guid withoutLogo = await QueueAsync(new PaymentConfirmedNotice(await SeedOrderAsync()), CurrentAddress);
+            Assert.Equal(DispatchSendOutcome.Attempted, await SendAsync(withoutLogo));
+            string plain = _gateway.Messages[^1].HtmlBody;
+            Assert.DoesNotContain("/gorsel/", plain, StringComparison.Ordinal);
+            Assert.Contains("Logolu Magaza", plain, StringComparison.Ordinal);
+        }
+        finally
+        {
+            await ExecuteAsync("UPDATE brandings SET brand_name = NULL, logo_id = NULL");
+            await ExecuteAsync($"DELETE FROM images WHERE id = '{logo.Id}'");
+        }
+    }
+
     // ---- the sender: the family it picks and what it does with a row it cannot make a body for ----
 
     [Fact]

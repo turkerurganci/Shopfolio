@@ -13,6 +13,7 @@
     ViewData["Title"] = PanelAccessTexts.VerifyEmailTitle;
 }
 <h2>@PanelAccessTexts.VerifyEmailTitle</h2>
+<partial name="_ForgeryRefusalMessage" model='"verify-email-forgery-message"' />
 @switch (Model.Step)
 {
     case LandingStep.Valid:

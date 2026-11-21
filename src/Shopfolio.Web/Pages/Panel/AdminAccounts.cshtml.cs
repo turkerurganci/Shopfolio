@@ -53,7 +53,7 @@ public sealed record AdminInvitationRowView(Guid Id, string Email, string Sender
 /// writes nothing; each operation is a named POST handler (07 2.2) of the module's write methods, one transaction each (09 9.1). An invitation and a withdrawal ask no confirmation; the removal does (OB-04).
 /// The acting administrator's right is checked inside the module under its lock (07 UC-177): a request of an account that is no administrator any more writes nothing and goes to the sign-in.
 /// </summary>
-internal sealed class AdminAccountsModel : PageModel
+internal sealed class AdminAccountsModel : PageModel, IReadsOnForgeryRefusal
 {
     /// <summary>K-820's field message of an address that belongs to an administrator account (04 9.20.7).</summary>
     public const string AdminEmailTakenText = "Bu adres zaten bir yönetici hesabına ait.";
@@ -208,6 +208,9 @@ internal sealed class AdminAccountsModel : PageModel
                 return Page();
         }
     }
+
+    /// <inheritdoc />
+    public Task ReadAfterForgeryRefusalAsync(CancellationToken ct) => LoadAsync(ct);
 
     private async Task LoadAsync(CancellationToken ct)
     {

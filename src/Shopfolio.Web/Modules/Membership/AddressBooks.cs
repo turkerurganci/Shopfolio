@@ -231,6 +231,11 @@ internal sealed class AddressBooks
         {
             errors.Add(new MembershipFieldError(nameof(AddressBookInput.Name), ErrorCode.FieldRequired));
         }
+        else if (name.Length > ProductConstants.ProductNameMaxLength)
+        {
+            // 04 7.1.16.1, 7.3.2.14 (P-27; K-1635; D-1673): the entry's name is a short text; the ceiling is the message's parameter.
+            errors.Add(new MembershipFieldError(nameof(AddressBookInput.Name), ErrorCode.TextTooLong, ProductConstants.ProductNameMaxLength.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        }
 
         AddressValues? address = AddressFieldRules.CheckAddress(
             AddressFieldRules.BookPrefix, input.RecipientName, input.ProvinceId, input.District, input.AddressLine, provinceIds, errors);

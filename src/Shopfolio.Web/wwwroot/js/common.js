@@ -121,6 +121,92 @@ for (const group of document.querySelectorAll('[data-js="menu-tree-group"]')) {
     bindMenuTreeGroup(group);
 }
 
+// "Diğer" (04 2.2.3; D-1134): on the medium and wide classes the menu is one row; the entries that do not fit it are moved, in their order, into the "Diğer" drop-down at its end. The item is hidden
+// in the markup and shown here only when something moved, so without the script the entries wrap and nothing is lost (04 2.1.2). The narrow class has the fold-out panel and moves nothing. The
+// drop-down opens by click, Enter or Space and closes on Escape, which gives the focus back to its button.
+function bindMenuOverflow(item) {
+    const list = item.parentElement;
+    const button = item.querySelector('[data-js="menu-overflow-toggle"]');
+    const moved = item.querySelector('[data-js="menu-overflow-list"]');
+    if (!list || !button || !moved) {
+        return;
+    }
+
+    const medium = window.matchMedia("(min-width: 768px)");
+    const wraps = () => {
+        const entries = [...list.children].filter((entry) => !entry.hidden);
+        return entries.length > 1 && entries.some((entry) => entry.offsetTop > entries[0].offsetTop);
+    };
+    const setOpen = (open) => {
+        button.setAttribute("aria-expanded", open ? "true" : "false");
+        item.dataset.collapsed = open ? "false" : "true";
+    };
+
+    const reflow = () => {
+        while (moved.firstElementChild) {
+            list.insertBefore(moved.firstElementChild, item);
+        }
+
+        item.hidden = true;
+        setOpen(false);
+        if (!medium.matches || !wraps()) {
+            return;
+        }
+
+        item.hidden = false;
+        while (wraps()) {
+            const last = item.previousElementSibling;
+            if (!last) {
+                break;
+            }
+
+            moved.insertBefore(last, moved.firstElementChild);
+        }
+
+        if (!moved.firstElementChild) {
+            item.hidden = true;
+        }
+    };
+
+    // A click does not give a button the focus in Safari; the focus is put on it when the drop-down opens, so Escape (heard on the item) closes it for a mouse user too (D-1811).
+    button.addEventListener("click", () => {
+        const open = button.getAttribute("aria-expanded") !== "true";
+        setOpen(open);
+        if (open) {
+            button.focus();
+        }
+    });
+    item.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && button.getAttribute("aria-expanded") === "true") {
+            setOpen(false);
+            button.focus();
+        }
+    });
+
+    let pending = false;
+    const schedule = () => {
+        if (!pending) {
+            pending = true;
+            window.requestAnimationFrame(() => {
+                pending = false;
+                reflow();
+            });
+        }
+    };
+
+    setOpen(false);
+    reflow();
+    window.addEventListener("resize", schedule);
+    window.addEventListener("load", schedule);
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(schedule);
+    }
+}
+
+for (const item of document.querySelectorAll('[data-js="menu-overflow"]')) {
+    bindMenuOverflow(item);
+}
+
 // The panel menu's groups fold on the narrow class and the active group arrives open (04 2.2.8). Each group's title is also a button that is shown only when this script has run; the
 // wide and medium classes keep every group open in the style sheet.
 function bindMenuGroup(group) {

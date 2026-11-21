@@ -141,6 +141,7 @@ internal static partial class FormFieldRuleClauses
         ["işaretlenmeden onay penceresi açılmaz (K-709)"] = ["C:isaretlenmeden-onay-penceresi-acilmaz"],
         ["işaretler sıradan bağımsız"] = ["C:isaretler-siradan-bagimsiz"],
         ["işaretsizse kayıt IBAN'sız (02 §10.4.10)"] = ["C:isaretsizse-kayit-iban-siz"],
+        ["denetimden geçmeyen IBAN ret değildir, kayıt IBAN'sız açılır ve kalem IBAN'ı sipariş sayfasından ister (02 §10.4.10)"] = ["C:denetimden-gecmeyen-iban-ret"],
         ["kalemde açık \"mal dönmedi\" kapanışı varsa kapanış da seçilir ve geri ödeme ona bağlanır (9.9.22; 02 §10.4.9; K-1105)"] = ["C:kalemde-acik-mal-donmedi"],
         ["kargodan dönen malda alt sınır yok (03 §2.10.3)"] = ["C:kargodan-donen-malda-alt"],
         ["kendi alt dalına taşınmaz (02 §3.4.6)"] = ["C:kendi-alt-dalina-tasinmaz"],

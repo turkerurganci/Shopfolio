@@ -24,9 +24,6 @@ public enum PanelItemObstacle
     /// <summary>A date in the future, or out of the operation's range (before the delivery, before the order).</summary>
     DateInvalid,
 
-    /// <summary>UC-130: the notice's IBAN fails the format or the check digits (OB-14).</summary>
-    IbanInvalid,
-
     /// <summary>UC-130: the notice is outside the window or on an absolute exemption and the separate confirmation box is not ticked (K-709).</summary>
     WarningsUnconfirmed,
 

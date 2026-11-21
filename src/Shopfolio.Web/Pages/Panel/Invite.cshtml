@@ -14,6 +14,7 @@
     FormErrorSummary summary = FormErrorSummary.From(ViewData.ModelState, ["Input.Name", "Input.Password"]);
 }
 <h2>@PanelAccessTexts.InvitationTitle</h2>
+<partial name="_ForgeryRefusalMessage" model='"invite-forgery-message"' />
 @if (Model.IsValid)
 {
     FieldView email = Fields.AsReadOnly(Fields.Email("Email", "E-posta", FieldRequirement.Required, Model.InvitedEmail, null));

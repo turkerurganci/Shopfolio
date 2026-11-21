@@ -35,6 +35,28 @@ public sealed partial class AccountProfilePageTests
         Assert.True(await AttemptLinesAsync() > afterChange);
     }
 
+    [Fact]
+    public async Task TheScreen_PutsTheNavigationAndTheFiveSectionsInTheAccountLayout_LikeTheAddressAndOrderScreens_D1790()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        await SeedAsync("ali@example.com", hasPassword: true, googleLinked: true);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string session = await SignInAsync(client, "ali@example.com");
+
+        (HttpStatusCode status, string html, _) = await GetAsync(client, FramePaths.Account, session);
+
+        Assert.Equal(HttpStatusCode.OK, status);
+        int layout = html.IndexOf("class=\"account-layout\"", StringComparison.Ordinal);
+        int navigation = html.IndexOf("account-nav", layout, StringComparison.Ordinal);
+        int content = html.IndexOf("class=\"account-layout__content\"", StringComparison.Ordinal);
+        Assert.True(layout >= 0, "the wrapper of the two-column layout (04 5.25.18)");
+        Assert.True(navigation > layout && navigation < content, "the inner navigation is a child of the layout, before the content column");
+        foreach (string section in new[] { "account-name", "account-email", "account-password", "account-methods", "account-delete" })
+        {
+            Assert.True(html.IndexOf($"id=\"{section}\"", StringComparison.Ordinal) > content, $"{section} is inside the content column");
+        }
+    }
+
     private async Task<int> AttemptLinesAsync()
     {
         await using AppDbContext db = NewContext();

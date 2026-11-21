@@ -154,12 +154,16 @@ internal sealed class ProfileModel : PageModel, IOutcomeTarget
     /// <summary>The last step of the deletion (OB-04, the customer's step; 04 5.25.13); null when the deletion's section shows no step.</summary>
     public ConfirmView? Confirmation { get; private set; }
 
+    /// <summary>True on the forgery check's 400 (07 2.5.4; D-1843): the page draws the check's action-level message in place (04 2.7.3.1).</summary>
+    public bool ForgeryRefused { get; private set; }
+
     /// <summary>The screen that shows the result when the outcome of the deletion is uncertain (07 6.4.2: UC-68 to this screen).</summary>
     public string OutcomeScreen() => FramePaths.Account;
 
     /// <summary>
     /// A form the validation filter refused (422, without the handler) is still drawn: it needs the account's state, the sent values and - for the operations that carry one - the same value in the hidden field,
-    /// which the refusal did not spend (09 3.4 item 3; 07 2.5.2).
+    /// which the refusal did not spend (09 3.4 item 3; 07 2.5.2). The forgery check's 400 is answered before the handler too and draws the same page (D-1773, D-1843): the account is only read, the
+    /// permission's value was only checked - a plain read, it stays - and the permission is not dropped, since the refusal writes nothing.
     /// </summary>
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
@@ -177,9 +181,10 @@ internal sealed class ProfileModel : PageModel, IOutcomeTarget
         }
 
         PageHandlerExecutedContext executed = await next();
-        if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
+        if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity or FormResults.ForgeryRefusedStatus })
         {
             _loaded = true;
+            ForgeryRefused = executed.Result is PageResult { StatusCode: FormResults.ForgeryRefusedStatus };
             await LoadAsync(HttpContext.RequestAborted);
             foreach (object? argument in context.HandlerArguments.Values)
             {

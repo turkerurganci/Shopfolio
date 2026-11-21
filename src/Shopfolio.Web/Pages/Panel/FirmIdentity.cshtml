@@ -77,7 +77,7 @@
     <partial name="_FormErrorSummary" model="Model.Summary" />
     <form method="post" asp-antiforgery="true" asp-page-handler="SaveCompany" class="form" data-js="submit-once">
         @VersionFields.Version(Model.FormVersion, "Input")
-        <div class="form-fields">
+        <div class="form-fields" data-js="company-type-fields" data-type-fields="@FirmIdentityModel.TypeFieldsText" data-required-text="@FieldRequirements.TextOf(FieldRequirement.Required)" data-optional-text="@FieldRequirements.TextOf(FieldRequirement.Optional)">
             @foreach (FieldView field in Model.IdentityFields)
             {
                 <partial name="_Field" model="field" />
@@ -95,3 +95,6 @@
         @ConflictControls.RecordSaveControl(Model.IsConflicted, PanelFramePaths.FirmIdentityAndSales)
     </form>
 </section>
+@section Scripts {
+    <script type="module" src="@ViewContext.HttpContext.StaticAsset("js/pages/panel/firm-identity.js")"></script>
+}

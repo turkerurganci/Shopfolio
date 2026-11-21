@@ -34,6 +34,9 @@ internal sealed class EmailLinks
         return Absolute("/siparis/erisim/" + Uri.EscapeDataString(accessKey));
     }
 
+    /// <summary>The path of the logo's source copy by its file id (07 2.1.2: <c>/gorsel/{file id}</c>); <see cref="Logo"/> makes it absolute (D-442).</summary>
+    public static string LogoPathOf(Guid logoId) => ImagePrefix + logoId.ToString("D");
+
     /// <summary>The source copy of the logo (08 2.2.5 item 2): a path under <c>/gorsel/</c> (07 2.1.2), made absolute with the domain setting.</summary>
     public Uri Logo(string path)
     {

@@ -7,6 +7,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
@@ -141,7 +142,7 @@ public sealed partial class OrderCorrectionTests
     }
 
     [Fact]
-    public async Task PanelWithdrawalNotice_RefusesTheItemTheUnitsTheDateTheIbanAndTheOrderAnswer_BeforeTheWindow_T528_KK5()
+    public async Task PanelWithdrawalNotice_RefusesTheItemTheUnitsTheDateAndTheOrderAnswer_BeforeTheWindow_T528_KK5()
     {
         DateOnly delivered = TurkeyTime.DateOf(Start).AddDays(-5);
         (Order order, Guid item) = await SeedDeliveredPhysicalAsync(delivered);
@@ -151,9 +152,7 @@ public sealed partial class OrderCorrectionTests
         Assert.Equal(PanelItemObstacle.QuantityInvalid, (await StepAsync(s => s.RecordWithdrawalAsync(Notice(order, item, 0, yesterday, false), Ct))).Obstacle);
         Assert.Equal(PanelItemObstacle.QuantityExceedsOpen, (await StepAsync(s => s.RecordWithdrawalAsync(Notice(order, item, 3, yesterday, false), Ct))).Obstacle);
         Assert.Equal(PanelItemObstacle.DateInvalid, (await StepAsync(s => s.RecordWithdrawalAsync(Notice(order, item, 1, yesterday.AddDays(2), false), Ct))).Obstacle);
-        Assert.Equal(
-            PanelItemObstacle.IbanInvalid,
-            (await StepAsync(s => s.RecordWithdrawalAsync(Notice(order, item, 1, yesterday, false) with { CameFromOrderEmail = true, NoticeIban = "TR000006100519786457841326" }, Ct))).Obstacle);
+        // A notice IBAN that fails OB-14 is no refusal (K-1631 (5); D-1599): PanelNotice_AnIbanThatFailsTheCheck_IsNoRefusal_… below.
         PanelItemStepResult sameDay = await StepAsync(s => s.RecordWithdrawalAsync(Notice(order, item, 1, delivered, false), Ct));
         Assert.Equal((TransitionRefusal.InvalidInput, PanelItemObstacle.DeliveryOrderMissing), (sameDay.Refusal, sameDay.Obstacle));
 
@@ -208,26 +207,54 @@ public sealed partial class OrderCorrectionTests
     }
 
     [Fact]
-    public async Task PanelLateTermination_OnTheTransferLine_RefusesAWrongIban_CarriesTheNoticeIban_AndWithoutOne_AsksForIt_T528_KK5_D1590()
+    public async Task PanelLateTermination_OnTheTransferLine_RecordsAWrongIbanWithoutIt_CarriesTheNoticeIban_AndWithoutOne_AsksForIt_T528_KK5_D1590_D1599()
     {
         Order carried = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical);
         Order asked = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical);
-        await ExecuteAsync($"UPDATE orders SET payment_method = 'BankTransfer', bank_transfer_iban = '{TransferIban}' WHERE id IN ('{carried.Id}', '{asked.Id}')");
-        (carried, asked) = (await ReloadAsync(carried.Id), await ReloadAsync(asked.Id));
+        Order wrong = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical);
+        await ExecuteAsync($"UPDATE orders SET payment_method = 'BankTransfer', bank_transfer_iban = '{TransferIban}' WHERE id IN ('{carried.Id}', '{asked.Id}', '{wrong.Id}')");
+        (carried, asked, wrong) = (await ReloadAsync(carried.Id), await ReloadAsync(asked.Id), await ReloadAsync(wrong.Id));
         _clock.SetUtcNow(DeliveryPeriodRules.LegalDeliveryLimitEnd(Start).AddHours(1));
         DateOnly today = TurkeyTime.DateOf(_clock.GetUtcNow());
 
-        PanelItemStepResult wrong = await StepAsync(s => s.RecordLateDeliveryTerminationAsync(Termination(carried, true, today) with { Iban = "TR000000000000000000000000" }, Ct));
-        Assert.Equal(PanelItemObstacle.IbanInvalid, wrong.Obstacle);
-        Assert.Equal(0, await CountAsync(c => c.LateDeliveryTerminations));
+        // K-1631 (5); 02 10.4.10: a notice IBAN that fails OB-14 is no refusal - the record is made without it and the item asks for one, as without an IBAN.
+        PanelItemStepResult wrongIban = await StepAsync(s => s.RecordLateDeliveryTerminationAsync(Termination(wrong, true, today) with { Iban = "TR000000000000000000000000" }, Ct));
+        Assert.Equal(((TransitionRefusal?)null, PanelItemObstacle.None), (wrongIban.Refusal, wrongIban.Obstacle));
 
         Assert.Null((await StepAsync(s => s.RecordLateDeliveryTerminationAsync(Termination(carried, true, today) with { Iban = TransferIban }, Ct))).Refusal);
         Assert.Null((await StepAsync(s => s.RecordLateDeliveryTerminationAsync(Termination(asked, true, today), Ct))).Refusal);
 
         Guid carriedItem = await ItemIdAsync(carried.Id, ProductType.Physical);
         Guid askedItem = await ItemIdAsync(asked.Id, ProductType.Physical);
+        Guid wrongItem = await ItemIdAsync(wrong.Id, ProductType.Physical);
         Assert.Equal(0, await CountAsync(c => c.RefundIbanRequests.Where(r => r.OrderItemId == carriedItem)));
         Assert.NotEqual(0, await CountAsync(c => c.RefundIbanRequests.Where(r => r.OrderItemId == askedItem)));
+        Assert.Equal(1, await CountAsync(c => c.LateDeliveryTerminations.Where(t => t.OrderItemId == wrongItem && t.RefundIbanId == null)));
+        Assert.Equal(0, await CountAsync(c => c.RefundIbans.Where(i => i.OrderId == wrong.Id)));
+        Assert.NotEqual(0, await CountAsync(c => c.RefundIbanRequests.Where(r => r.OrderItemId == wrongItem)));
+        Assert.Contains(await DispatchesAsync(wrong.Id), d => d.Type == DispatchType.B14);
+    }
+
+    // ---- D-1599, 12 VAL-A238 (K-1631 (5)): on the transfer line a notice from another address, without an IBAN or with an IBAN that fails OB-14 is recorded without an IBAN ----
+
+    [Theory]
+    [InlineData(false, TransferIban)]
+    [InlineData(true, null)]
+    [InlineData(true, "TR330006100519786457841327")]
+    public async Task PanelNotice_FromAnotherAddress_WithoutAnIban_OrWithAnIbanThatFailsTheCheck_IsRecordedWithoutTheIban_AndTheItemAsksForItWithB14_D1599_VALA238(bool fromContactEmail, string? noticeIban)
+    {
+        (Order order, Guid item) = await SeedDeliveredPhysicalAsync(TurkeyTime.DateOf(Start).AddDays(-5));
+        await ExecuteAsync($"UPDATE orders SET payment_method = 'BankTransfer', bank_transfer_iban = '{TransferIban}' WHERE id = '{order.Id}'");
+        order = await ReloadAsync(order.Id);
+        DateOnly yesterday = TurkeyTime.DateOf(Start).AddDays(-1);
+
+        PanelItemStepResult result = await StepAsync(s => s.RecordWithdrawalAsync(Notice(order, item, 1, yesterday, true) with { CameFromOrderEmail = fromContactEmail, NoticeIban = noticeIban }, Ct));
+
+        Assert.Equal(((TransitionRefusal?)null, PanelItemObstacle.None), (result.Refusal, result.Obstacle));
+        Assert.Equal(1, await CountAsync(c => c.Withdrawals.Where(w => w.OrderItemId == item && w.RefundIbanId == null)));
+        Assert.Equal(0, await CountAsync(c => c.RefundIbans.Where(i => i.OrderId == order.Id)));
+        Assert.Equal(1, await CountAsync(c => c.RefundIbanRequests.Where(r => r.OrderItemId == item && r.Reason == RefundIbanRequestReason.NoticeWithoutIban && r.FulfilledAt == null)));
+        Assert.Contains(await DispatchesAsync(order.Id), d => d.Type == DispatchType.B14);
     }
 
     // ---- KK6: the removal's two lines and its refusals ----

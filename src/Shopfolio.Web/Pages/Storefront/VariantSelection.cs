@@ -185,9 +185,11 @@ public static class CartQuantity
 /// <summary>The in-place texts of the add-to-cart answers (04 5.4.10; 03 3.2.1.6-3.2.1.9): the stock is never told as a number, the limit is.</summary>
 public static class CartAddMessages
 {
+    /// <summary>
+    /// The stock message of the add: a quantity above the stock and a sold-out variant alike (07 4.4.2 "tükenmiş varyant — stok mesajı"; 04 5.4.10; D-1243) - a variant with nothing left cannot give
+    /// any quantity, so the text has no sold-out sentence of its own.
+    /// </summary>
     public const string NoStockText = "Bu adette stok yok";
-
-    public const string SoldOutText = "Bu ürün tükendi";
 
     public const string AlreadyInCartText = "Bu ürün zaten sepetinde";
 

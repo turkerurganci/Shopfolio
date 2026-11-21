@@ -161,5 +161,54 @@ public sealed class NotFoundAnswerTests
         Assert.Equal(SecurityHeaders.NoStore, context.Response.Headers.CacheControl.ToString());
     }
 
+    [Fact]
+    public async Task WhenThePageCannotBeDrawn_TheFailureIsOneCountedUnexpectedError_AndTheAnswerStaysThePlain404_D1216()
+    {
+        UnexpectedErrorCounter counter = new(TimeProvider.System);
+        LineLogger lines = new();
+        UnexpectedErrorLayer layer = new(lines, counter);
+        CountingRenderer renderer = new() { Fails = true };
+        DefaultHttpContext context = ContextOf(StatusCodes.Status404NotFound, "/bir-adres", renderer);
+        context.Request.Method = "GET";
+
+        await NotFoundAnswer.WriteIfNotFoundAsync(context, layer);
+
+        Assert.Equal(1, counter.CountWithin(TimeSpan.FromMinutes(15)));
+        Assert.Equal([Microsoft.Extensions.Logging.LogLevel.Error], lines.Levels);
+        Assert.Contains(Shopfolio.Infrastructure.Logging.LogEvents.UnexpectedError, Assert.Single(lines.Messages), StringComparison.Ordinal);
+        Assert.Equal(StatusCodes.Status404NotFound, context.Response.StatusCode);
+        Assert.Null(context.Response.ContentType);
+    }
+
+    [Fact]
+    public async Task ADrawnNotFoundPage_IsNoUnexpectedError_AndTheCounterDoesNotMove_D1216()
+    {
+        UnexpectedErrorCounter counter = new(TimeProvider.System);
+        UnexpectedErrorLayer layer = new(Microsoft.Extensions.Logging.Abstractions.NullLogger<UnexpectedErrorLayer>.Instance, counter);
+        DefaultHttpContext context = ContextOf(StatusCodes.Status404NotFound, "/bir-adres", new CountingRenderer());
+
+        await NotFoundAnswer.WriteIfNotFoundAsync(context, layer);
+
+        Assert.Equal(0, counter.CountWithin(TimeSpan.FromMinutes(15)));
+    }
+
+    private sealed class LineLogger : Microsoft.Extensions.Logging.ILogger<UnexpectedErrorLayer>
+    {
+        public List<Microsoft.Extensions.Logging.LogLevel> Levels { get; } = [];
+
+        public List<string> Messages { get; } = [];
+
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull => null;
+
+        public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel) => true;
+
+        public void Log<TState>(Microsoft.Extensions.Logging.LogLevel logLevel, Microsoft.Extensions.Logging.EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        {
+            Levels.Add(logLevel);
+            Messages.Add(formatter(state, exception));
+        }
+    }
+
     private static bool SearchEngineClosureMark(HttpContext context) => Shopfolio.Infrastructure.SearchEngine.SearchEngineClosure.IsClosed(context);
 }

@@ -192,7 +192,107 @@ public sealed class PageAddressTests : IAsyncLifetime
         Assert.Equal(next.Id, page.ProductId);
     }
 
+    // ---- D-1275: the option values are one read, whatever the number of options ----
+
+    [Fact]
+    public async Task TheProductPagesOptionValues_AreOneReadForAllTheOptions_TheCommandCountDoesNotGrowWithThem_AndTheOrderIsKept_D1275()
+    {
+        Product single = await SeedProductAsync("Tek seçenek", "tek-secenek", PublishStatus.Published);
+        Product twin = await SeedProductAsync("İki seçenek", "iki-secenek", PublishStatus.Published);
+        await using (AppDbContext seed = NewContext())
+        {
+            Option only = Option.Create(single.Id, "Renk", 1, Now);
+            seed.Options.Add(only);
+            seed.OptionValues.Add(OptionValue.Create(only.Id, "Kırmızı", 1, Now));
+            Option color = Option.Create(twin.Id, "Renk", 1, Now);
+            Option size = Option.Create(twin.Id, "Beden", 2, Now);
+            seed.Options.AddRange(color, size);
+
+            // Added out of order: the page still reads each option's values by their own order.
+            seed.OptionValues.AddRange(
+                OptionValue.Create(color.Id, "Mavi", 2, Now),
+                OptionValue.Create(color.Id, "Kırmızı", 1, Now),
+                OptionValue.Create(size.Id, "L", 2, Now),
+                OptionValue.Create(size.Id, "M", 1, Now),
+                OptionValue.Create(size.Id, "XL", 3, Now));
+            await seed.SaveChangesAsync(Ct);
+        }
+
+        (ProductPage onePage, int oneCount) = await ReadPageCountingAsync("tek-secenek");
+        (ProductPage twoPage, int twoCount) = await ReadPageCountingAsync("iki-secenek");
+
+        Assert.True(oneCount > 0);
+        Assert.Equal(oneCount, twoCount);
+        Assert.Single(onePage.Options);
+        Assert.Equal(["Renk", "Beden"], twoPage.Options.Select(o => o.Name));
+        Assert.Equal(["Kırmızı", "Mavi"], twoPage.Options[0].Values.Select(v => v.Text));
+        Assert.Equal(["M", "L", "XL"], twoPage.Options[1].Values.Select(v => v.Text));
+    }
+
+    // ---- D-353: the showcase's list reads the card's columns only ----
+
+    [Fact]
+    public async Task TheShowcaseList_ReadsOnlyTheColumnsOfTheCard_AndKeepsTheNewestFirstOrder_D353()
+    {
+        await using (AppDbContext seed = NewContext())
+        {
+            Product older = Product.Create("Eski ürün", "eski-urun", ProductType.Digital, 20m, Now);
+            Product newer = Product.Create("Yeni ürün", "yeni-urun", ProductType.Digital, 20m, Now.AddMinutes(5));
+            older.PublishStatus = PublishStatus.Published;
+            newer.PublishStatus = PublishStatus.Published;
+            older.SetDescription("Uzun bir açıklama");
+            seed.Products.AddRange(older, newer);
+            await seed.SaveChangesAsync(Ct);
+        }
+
+        CommandCounter counter = new();
+        DbContextOptionsBuilder<AppDbContext> builder = new();
+        AppDbContext.Configure(builder, _collection.Dsn).AddInterceptors(counter);
+        await using AppDbContext context = new(builder.Options);
+        ShowcasePage page = await new ShowcaseReader(context, new ProductLocks(context)).ListAsync(null, 1, Ct);
+
+        Assert.Equal(["Yeni ürün", "Eski ürün"], page.Items.Select(i => i.Name));
+        string listSql = counter.Texts.First(t => t.Contains("FROM products", StringComparison.Ordinal) && t.Contains("LIMIT", StringComparison.Ordinal));
+        Assert.DoesNotContain("description", listSql, StringComparison.Ordinal);
+        Assert.DoesNotContain("vat_rate", listSql, StringComparison.Ordinal);
+    }
+
     // ---- helpers ----
+
+    private async Task<(ProductPage Page, int Commands)> ReadPageCountingAsync(string slug)
+    {
+        CommandCounter counter = new();
+        DbContextOptionsBuilder<AppDbContext> builder = new();
+        AppDbContext.Configure(builder, _collection.Dsn).AddInterceptors(counter);
+        await using AppDbContext context = new(builder.Options);
+        ProductPage page = await new ProductPageReader(context).ReadAsync(slug, false, Ct);
+        return (page, counter.Count);
+    }
+
+    /// <summary>Counts the reader commands one context sends.</summary>
+    private sealed class CommandCounter : Microsoft.EntityFrameworkCore.Diagnostics.DbCommandInterceptor
+    {
+        private int _count;
+
+        public List<string> Texts { get; } = [];
+
+        public int Count => Volatile.Read(ref _count);
+
+        public override ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<System.Data.Common.DbDataReader>> ReaderExecutingAsync(
+            System.Data.Common.DbCommand command,
+            Microsoft.EntityFrameworkCore.Diagnostics.CommandEventData eventData,
+            Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<System.Data.Common.DbDataReader> result,
+            CancellationToken cancellationToken = default)
+        {
+            Interlocked.Increment(ref _count);
+            lock (Texts)
+            {
+                Texts.Add(command.CommandText);
+            }
+
+            return ValueTask.FromResult(result);
+        }
+    }
 
     private async Task<ProductPage> ReadPageAsync(string? slug, bool isAdministrator)
     {

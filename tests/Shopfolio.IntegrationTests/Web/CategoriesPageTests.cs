@@ -30,7 +30,7 @@ public sealed class CategoriesPageTestsDefinition : ICollectionFixture<Collectio
 /// from the name and numbered on a collision; each refusal in place with its 422, and 404 for a missing node.
 /// </summary>
 [Collection(CategoriesPageTestsDefinition.Name)]
-public sealed class CategoriesPageTests : IAsyncLifetime
+public sealed partial class CategoriesPageTests : IAsyncLifetime
 {
     private const string Path = "/panel/kategoriler";
 

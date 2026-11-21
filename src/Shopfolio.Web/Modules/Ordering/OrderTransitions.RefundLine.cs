@@ -81,10 +81,9 @@ internal sealed partial class OrderTransitions
             return Refused(TransitionRefusal.ConditionNotMet);
         }
 
-        // 1.11.11's decision on the locked order (D-610; 09 8.3 item 3) for a request on an item - the decision's fact counts the items' open requests. An itemless
-        // request of a late payment's refund (K-1075) is not in that fact yet (D-1806); its own row above is its condition.
-        if (open.OrderItemId is not null
-            && !(await _operations.CheckAsync(order.Id, OrderOperation.EnterRefundIban, null, null, ct)).IsAllowed)
+        // 1.11.11's decision on the locked order (D-610; 09 8.3 item 3), for a request on an item and for an itemless one of a late payment's refund (K-1075) alike:
+        // the decision's fact counts both (D-1806), so the button and this check are one rule.
+        if (!(await _operations.CheckAsync(order.Id, OrderOperation.EnterRefundIban, null, null, ct)).IsAllowed)
         {
             return Refused(TransitionRefusal.ConditionNotMet);
         }

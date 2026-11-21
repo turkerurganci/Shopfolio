@@ -151,13 +151,15 @@ public sealed class StateRoleConsistencyTests
         Assert.Contains(Problems(sources: sources), p => p.StartsWith("GateReadMissing:", StringComparison.Ordinal));
     }
 
-    [Fact]
-    public void AKnownPanelGateGap_ThatThePageHasClosed_IsReportedAsStale_D1657()
+    [Theory]
+    [InlineData("Pages/Panel/PaymentMethods.cshtml.cs", "E-45")]
+    [InlineData("Pages/Panel/ShippingAndDefaults.cshtml.cs", "E-46")]
+    public void PaymentMethodsOrShippingThatStopsReadingTheSalesGate_IsReported_D1778(string page, string screen)
     {
         Dictionary<string, string> sources = new(Sources.Value, StringComparer.Ordinal);
-        sources["Pages/Panel/PaymentMethods.cshtml.cs"] += "\n// GetSalesGateAsync\n";
+        sources[page] = sources[page].Replace("GetSalesGateAsync", "GetOtherGateAsync", StringComparison.Ordinal);
 
-        Assert.Contains(Problems(sources: sources), p => p.StartsWith("GateReadGapStale: E-45", StringComparison.Ordinal));
+        Assert.Contains(Problems(sources: sources), p => p == $"GateReadMissing: 04 6.1.5.2 says the panel shows the sales gate in {screen}, its page does not read it.");
     }
 
     [Fact]

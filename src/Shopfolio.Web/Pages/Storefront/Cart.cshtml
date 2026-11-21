@@ -45,7 +45,25 @@ else
                 bool refused = Model.RefusedItemId == line.ItemId;
                 string? quantityMessage = refused && Model.RefusalText is not null ? Model.RefusalText : CartTexts.QuantityProblem(line.QuantityProblem, line.OrderLimit);
                 <li class="cart-line" id="line-@line.ItemId.ToString("N")">
-                    <p class="cart-line__name"><a href="/@AddressRules.ProductPrefix/@line.ProductSlug">@line.ProductName</a></p>
+                    @* The image and the name take to the product page (04 3.3.13, 5.12.4; K-775) only while the product stands on the showcase (D-1631); a line off it is plain text. *@
+                    @if (line.IsOnShowcase)
+                    {
+                        <p class="cart-line__name"><a href="/@AddressRules.ProductPrefix/@line.ProductSlug">@if (line.ImageId is Guid imageId) {<img class="cart-line__image" src="@FrameStyle.ImagePath(imageId)" alt="@(line.ImageAltText ?? line.ProductName)" width="64" height="64" />}@line.ProductName</a></p>
+                    }
+                    else
+                    {
+                        <p class="cart-line__name">
+                            @if (line.ImageId is Guid imageId)
+                            {
+                                <img class="cart-line__image" src="@FrameStyle.ImagePath(imageId)" alt="@(line.ImageAltText ?? line.ProductName)" width="64" height="64" />
+                            }
+                            @line.ProductName
+                        </p>
+                    }
+                    @if (line.OptionValues is { Count: > 0 } optionValues)
+                    {
+                        <p class="cart-line__options">@string.Join(", ", optionValues)</p>
+                    }
                     <p class="cart-line__price">@DisplayFormat.Amount(line.UnitPrice)</p>
                     @if (line.ProductType != ProductType.Digital)
                     {
@@ -96,6 +114,12 @@ else
                 </li>
             }
         </ul>
+        @if (Model.DeliveryRestriction is { } restriction)
+        {
+            <div class="delivery cart__delivery">
+                <partial name="_DeliveryRestriction" model="restriction" />
+            </div>
+        }
         <section class="cart__summary" aria-label="Tutarın dökümü">
             <dl class="cart__breakdown">
                 <dt>Ürünler</dt>

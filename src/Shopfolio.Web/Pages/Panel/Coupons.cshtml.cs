@@ -11,6 +11,7 @@ using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Lists;
 using Shopfolio.Infrastructure.Notices;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Coupons;
@@ -104,7 +105,7 @@ public sealed class SaveCouponInput : IFormInput, IValidatableObject
 /// never deleted: the campaign is stopped by moving the end earlier (04 9.7.5). When both a version conflict and a field problem arise, the conflict answers first and the
 /// field rules are not looked at (07 2.4.8): the version is compared before the page filter runs.
 /// </summary>
-internal sealed class CouponsModel : PageModel
+internal sealed class CouponsModel : PageModel, IReadsOnForgeryRefusal
 {
     public const string NewKey = "yeni";
 
@@ -271,6 +272,18 @@ internal sealed class CouponsModel : PageModel
             {
                 await LoadAsync(ct);
             }
+        }
+    }
+
+    /// <summary>
+    /// D-1843 (07 2.5.4; 04 2.7.3.1): the forgery check's 400 shows the list's first page and the form of the address's coupon - the read the 422 makes; the coupon that is gone was
+    /// answered 404 before the check (<see cref="OnPageHandlerExecutionAsync"/>). No query value, nothing written.
+    /// </summary>
+    async Task IReadsOnForgeryRefusal.ReadAfterForgeryRefusalAsync(CancellationToken ct)
+    {
+        if (!_loaded)
+        {
+            await LoadAsync(ct);
         }
     }
 

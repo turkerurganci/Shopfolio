@@ -62,8 +62,10 @@ internal sealed class ShowcaseReader
             products = products.Where(p => EF.Functions.Like(p.NameSearchForm, pattern, SearchTerm.EscapeCharacter));
         }
 
-        PagedList<Product> result = await products
-            .OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
+        // Only the columns the card shows are read (09 20 item 3; D-353): the projection comes before the order, so the page keeps the ordered query type `ToPageAsync` asks for.
+        PagedList<ShowcaseRow> result = await products
+            .Select(p => new ShowcaseRow { Id = p.Id, Name = p.Name, Slug = p.Slug, CreatedAt = p.CreatedAt })
+            .OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id)
             .ToPageAsync(page, PageSizes.StorefrontProducts, ct);
 
         return new ShowcasePage(await CardsOfAsync(result.Items, ct), result.PageNumber, result.PageSize, result.TotalCount, result.PageCount);
@@ -81,9 +83,10 @@ internal sealed class ShowcaseReader
             return [];
         }
 
-        List<Product> products = await _db.Products.AsNoTracking().Listed()
+        List<ShowcaseRow> products = await _db.Products.AsNoTracking().Listed()
             .Where(p => productIds.Contains(p.Id))
-            .OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
+            .Select(p => new ShowcaseRow { Id = p.Id, Name = p.Name, Slug = p.Slug, CreatedAt = p.CreatedAt })
+            .OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id)
             .ToListAsync(ct);
         return await CardsOfAsync(products, ct);
     }
@@ -108,7 +111,19 @@ internal sealed class ShowcaseReader
         return await _db.Products.AsNoTracking().Where(p => productIds.Contains(p.Id)).Select(p => p.Id).ToListAsync(ct);
     }
 
-    private async Task<IReadOnlyList<ShowcaseProduct>> CardsOfAsync(IReadOnlyList<Product> products, CancellationToken ct)
+    // The columns of a product the showcase's card reads, and the one the order is made on.
+    private sealed record ShowcaseRow
+    {
+        public Guid Id { get; init; }
+
+        public string Name { get; init; } = string.Empty;
+
+        public string Slug { get; init; } = string.Empty;
+
+        public DateTimeOffset CreatedAt { get; init; }
+    }
+
+    private async Task<IReadOnlyList<ShowcaseProduct>> CardsOfAsync(IReadOnlyList<ShowcaseRow> products, CancellationToken ct)
     {
         // A product is sold out when none of its Published variants can still be bought (02 3.6.3, 3.6.4): the stock left is the stock less the reserved.
         Guid[] ids = [.. products.Select(p => p.Id)];

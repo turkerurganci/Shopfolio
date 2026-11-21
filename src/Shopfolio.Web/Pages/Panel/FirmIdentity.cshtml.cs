@@ -148,6 +148,14 @@ public sealed class FirmIdentityModel : PageModel
     /// <summary>The element id of the identity form's section; the identity condition links to it.</summary>
     public const string IdentitySectionId = "firma-kimligi";
 
+    /// <summary>
+    /// The fields each company type must give, by the form's field names, written once from <see cref="CompanyIdentityFieldSets"/> for the page's script as <c>Type=Input.A,Input.B;Type=...</c> (D-1330): with a script a change of the
+    /// type marks these fields at once; without one the server marks them when it draws the form again, from the same sets.
+    /// </summary>
+    public static string TypeFieldsText { get; } = string.Join(
+        ';',
+        Enum.GetValues<CompanyType>().Select(t => t + "=" + string.Join(',', CompanyIdentityFieldSets.TypeFields(t).Select(f => "Input." + f))));
+
     private static readonly string[] FormOrder =
     [
         "Input.CompanyType", "Input.LegalName", "Input.TaxIdNumber", "Input.MersisNumber", "Input.TradeRegistryNumber", "Input.ProvinceId", "Input.District", "Input.AddressLine", "Input.Phone",

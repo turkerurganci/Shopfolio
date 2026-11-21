@@ -56,6 +56,19 @@ public sealed class OrderPageLinksTests
     public void ScreenPath_RefusesAScreenThatIsNotAnOrderScreen() =>
         Assert.Throws<ArgumentException>(() => OrderRoutes.ScreenPath(MemberRootPath, "duzenle"));
 
+    // ---- D-880: a defect channel that ran out sends the customer to the contact form directly ----
+
+    [Fact]
+    public void AnItemWhoseDefectPeriodRanOut_DrawsTheContactFormLink_AndNoSorunBildir_D880()
+    {
+        OrderOperationsView expired = new(Guid.NewGuid(), ActorKind.Buyer, 1, [], HasExpiredDefectChannel: true);
+
+        OrderScreenLink link = Assert.Single(OrderScreenLink.From(expired, MemberRootPath));
+        Assert.Equal("/iletisim", link.Href);
+        Assert.Equal(OrderScreenLink.ExpiredDefectChannelText, link.Text);
+        Assert.Empty(OrderScreenLink.From(ViewWith(), MemberRootPath));
+    }
+
     // ---- Operations area (KK7) ----
 
     [Fact]

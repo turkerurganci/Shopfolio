@@ -422,7 +422,7 @@ public sealed class MessageComponentTests
         Assert.Equal(4, CountOf(conditions, "class=\"sales-status__row\""));
         Assert.Contains("Firma kimliği: Eksik", conditions, StringComparison.Ordinal);
         Assert.Contains("Ödeme yöntemi: Tamam", conditions, StringComparison.Ordinal);
-        Assert.Contains("Yasal metinler: Aydınlatma metni: Eksik", conditions, StringComparison.Ordinal);
+        Assert.Contains("Yasal metinler: Eksik (Aydınlatma metni)", conditions, StringComparison.Ordinal); // D-1174: one colon, the waiting part in the state
         Assert.Equal(2, CountOf(conditions, ">Düzelt</a>"));
     }
 
@@ -451,6 +451,6 @@ public sealed class MessageComponentTests
 
         Assert.Contains("Satış kapalı: satışı geçici kapattınız.", Region(html, "warning"), StringComparison.Ordinal);
         Assert.DoesNotContain("Kurulum kontrol listesi", html, StringComparison.Ordinal);
-        Assert.Contains("Satışı geçici kapatma anahtarı kapalı: Eksik", Region(html, "conditions"), StringComparison.Ordinal);
+        Assert.Contains("Geçici kapatma: Var", Region(html, "conditions"), StringComparison.Ordinal); // D-1174: no double negative
     }
 }

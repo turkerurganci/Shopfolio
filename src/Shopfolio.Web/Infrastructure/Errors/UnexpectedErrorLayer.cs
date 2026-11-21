@@ -137,9 +137,10 @@ internal static class UnexpectedErrorAnswer
     /// <summary>The page-level message of the request's surface: the customer is pointed to the contact page, the administrator to the installer (04 2.7.3.4).</summary>
     public static string PageMessageFor(HttpRequest request) => IsPanel(request) ? PanelPageMessage : PageMessage;
 
-    // The framed page is the first try; any failure of drawing it - the frame's own reads included - leaves the plain page below (05 10.3.6).
+    // The framed page is the first try; any failure of drawing it - the frame's own reads included - leaves the plain page below (05 10.3.6). The general limit's 429 and the body ceiling's
+    // 413 draw their framed page through this too (D-1146): on a failure the response is cleared and the caller writes its own status, headers and plain page again.
 #pragma warning disable CA1031 // 09 8.1 item 6: this is inside the single catching layer, the first of the six places of the wide catch.
-    private static async Task<bool> TryRenderFramedAsync(HttpContext context, IErrorPageRenderer renderer, ErrorPageText page)
+    internal static async Task<bool> TryRenderFramedAsync(HttpContext context, IErrorPageRenderer renderer, ErrorPageText page)
     {
         try
         {
@@ -217,7 +218,7 @@ internal static class UnexpectedErrorAnswer
         bool panel = IsPanel(context.Request);
         string message = state == ErrorState.PageLevel ? PageMessageFor(context.Request) : OperationMessageFor(context.Request);
         string framedTitle = panel ? PanelTitle : PageTitle;
-        if (context.RequestServices.GetService(typeof(IErrorPageRenderer)) is IErrorPageRenderer renderer && await TryRenderFramedAsync(context, renderer, new ErrorPageText(framedTitle, message)))
+        if (context.RequestServices.GetService(typeof(IErrorPageRenderer)) is IErrorPageRenderer renderer && await TryRenderFramedAsync(context, renderer, new ErrorPageText(framedTitle, message, OffersRetry: state == ErrorState.PageLevel)))
         {
             return;
         }
@@ -240,11 +241,11 @@ internal static class UnexpectedErrorAnswer
 /// record that is not there or is closed to the visitor, a denied access (<see cref="Security.AccessDenial"/>), an invalid or past signed value - reaches it the same way and says nothing of why
 /// (07 2.3.3). It is no unexpected error: nothing is logged as an error and the status endpoint's counter does not move (07 2.7.5). The page is closed to the search engines (02 3.30.6). A machine
 /// endpoint's 404 stays empty unless the endpoint is a page a browser opens (<see cref="NotFoundPageMetadata"/>); a missing static file stays empty too (07 2.1.2). If the page cannot be drawn
-/// the answer is the plain empty 404 (05 10.3.6).
+/// the answer is the plain empty 404 (05 10.3.6) and the failure of the drawing is an unexpected error: one line and one count through the layer (D-1216).
 /// </summary>
 internal static class NotFoundAnswer
 {
-    public static async Task WriteIfNotFoundAsync(HttpContext context)
+    public static async Task WriteIfNotFoundAsync(HttpContext context, UnexpectedErrorLayer? layer = null)
     {
         ArgumentNullException.ThrowIfNull(context);
         HttpResponse response = context.Response;
@@ -269,8 +270,11 @@ internal static class NotFoundAnswer
         {
             await renderer.RenderAsync(context);
         }
-        catch (Exception) when (!response.HasStarted && !context.RequestAborted.IsCancellationRequested)
+        catch (Exception exception) when (!response.HasStarted && !context.RequestAborted.IsCancellationRequested)
         {
+            // The 404 itself is no error, but the page's failure to be drawn is one (09 8.1 item 7; D-1216): the layer writes its error line and the status endpoint's counter takes it (05 9.4.8).
+            // The answer stays the plain 404 - the layer's own state answer (a 500) is not written.
+            layer?.Resolve(context, exception);
             response.Clear();
             response.StatusCode = StatusCodes.Status404NotFound;
             response.Headers.CacheControl = Security.SecurityHeaders.NoStore;

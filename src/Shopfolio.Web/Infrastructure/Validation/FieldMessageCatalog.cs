@@ -49,6 +49,16 @@ internal static class FieldMessageCatalog
     /// </summary>
     private const string RequiredWithDefaultNamePattern = "Menü adı boş olamaz; varsayılan ad: {0}.";
 
+    /// <summary>The mark that tells the catalog a <see cref="FieldCodes.FieldRequired"/> parameter is a menu item's default name (K-813; D-1387); <see cref="MenuDefaultNameParameter"/> writes it.</summary>
+    private const string MenuDefaultNameMarker = "menu-default-name=";
+
+    /// <summary>The parameter of the empty menu name's <see cref="FieldCodes.FieldRequired"/>: the item's default name behind the mark - the code stays the one of 07 6.2.2.</summary>
+    public static string MenuDefaultNameParameter(string defaultName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(defaultName);
+        return MenuDefaultNameMarker + defaultName;
+    }
+
     /// <summary>
     /// The text of a net quantity's refusal (04 7.2.4.13, 9.5.21; K-1013, K-1018): its code is the amount's (07 6.2.2 names none of its own), but the amount's text says two decimals and
     /// the net quantity carries three - so the rule gives this pattern of the same form (<see cref="FieldRuleAttribute.MessagePattern"/>; T525 ⚠, D-1397).
@@ -102,9 +112,11 @@ internal static class FieldMessageCatalog
             throw new ArgumentException($"The message of '{code}' names a limit and the rule gave none.", nameof(parameter));
         }
 
-        if (code == FieldCodes.FieldRequired && parameter is not null)
+        // Only the screen that marks its parameter as a menu name's default gets the menu name's text (D-1387): a parameter that came with FieldRequired from anywhere else does not turn the
+        // message into K-813's text - the common "{0} boş olamaz." stays, and the stray parameter is not shown.
+        if (code == FieldCodes.FieldRequired && parameter is not null && parameter.StartsWith(MenuDefaultNameMarker, StringComparison.Ordinal))
         {
-            return RequiredWithDefaultNamePattern.Replace("{0}", parameter, StringComparison.Ordinal);
+            return RequiredWithDefaultNamePattern.Replace("{0}", parameter[MenuDefaultNameMarker.Length..], StringComparison.Ordinal);
         }
 
         return string.Format(CultureInfo.InvariantCulture, pattern, label, parameter);

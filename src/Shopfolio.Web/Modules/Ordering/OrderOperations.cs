@@ -41,7 +41,7 @@ internal sealed class OrderOperations : IOrderOperations
         }
 
         OrderOperationFacts? facts = await LoadAsync(orderId, ct);
-        return facts is null ? null : new OrderOperationsView(orderId, actor, facts.Version, OrderOperationCatalog.Decide(facts, actor));
+        return facts is null ? null : new OrderOperationsView(orderId, actor, facts.Version, OrderOperationCatalog.Decide(facts, actor), facts.Items.Any(i => i.Period.DefectChannelExpired));
     }
 
     public async Task<OperationVerdict> CheckAsync(Guid orderId, OrderOperation operation, Guid? orderItemId, int? quantity, CancellationToken ct)
@@ -203,7 +203,9 @@ internal sealed class OrderOperations : IOrderOperations
                 i.Id, i.ProductType, order.OrderStatus, i.DeliveryDate, i.DeliveryMarkedAt, order.CreatedAt, hasPhysical, orderDeliveryDate, i.WithdrawalExemptionReason))],
             now,
             ct);
-        RefundIbanState iban = await _afterSales.RefundIbanStateAsync(orderId, itemIds, ct);
+        // The order's refunds name the itemless IBAN request of a late payment's refund (K-1075): the request is the order's through its refund (D-1806).
+        Guid[] refundIds = [.. (await _payment.ListPendingRefundsAsync(orderId, ct)).Select(r => r.RefundId)];
+        RefundIbanState iban = await _afterSales.RefundIbanStateAsync(orderId, itemIds, refundIds, ct);
         RefundMarks marks = await _payment.ReadRefundMarksAsync(orderId, ct);
         decimal refunded = await _payment.SentRefundTotalAsync(orderId, ct);
 

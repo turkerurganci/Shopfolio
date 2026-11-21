@@ -70,7 +70,7 @@ internal static class StorefrontHeads
 
         bool closed = page.HasDraft;
         JsonLdBlock? faq = closed ? null : SearchEngineData.Faq([.. page.Questions.Select(q => new FaqEntry(q.Question, q.AnswerHtml ?? string.Empty))]);
-        return new PageSearchData(page.Title, null, FramePaths.Faq, null, LogoPathOf(frame.Brand), frame.Brand.BrandName, closed, faq is null ? [] : [faq]);
+        return new PageSearchData(SearchText.Title(page.Title, frame.Brand.BrandName), null, FramePaths.Faq, null, LogoPathOf(frame.Brand), frame.Brand.BrandName, closed, faq is null ? [] : [faq]);
     }
 
     /// <summary>
@@ -81,7 +81,7 @@ internal static class StorefrontHeads
     {
         ArgumentNullException.ThrowIfNull(frame);
         ArgumentException.ThrowIfNullOrWhiteSpace(title);
-        return new PageSearchData(title, null, FramePaths.Contact, null, LogoPathOf(frame.Brand), frame.Brand.BrandName, hasDraftBranch, []);
+        return new PageSearchData(SearchText.Title(title, frame.Brand.BrandName), null, FramePaths.Contact, null, LogoPathOf(frame.Brand), frame.Brand.BrandName, hasDraftBranch, []);
     }
 
     private static string? LogoPathOf(FrameBrand brand) => brand.LogoId is Guid logoId ? FrameStyle.ImagePath(logoId) : null;

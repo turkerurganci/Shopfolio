@@ -235,6 +235,29 @@ public sealed class MessageStateModelTests
     }
 
     [Fact]
+    public void TheConfirmation_WritesItsOwnConfirmationMark_WhenTheScreenHandedOverNone_AndKeepsTheOneItWasGiven_D1173()
+    {
+        // The panel's sample screen hands over only the id: before D-1173 its button could never complete the operation.
+        ConfirmView withoutMark = Confirmations.ForIrreversible(
+            IrreversibleConfirmations.Shipment(false, false), "Kargoya ver", "Kargoya ver", "/panel/siparisler/7", "Ship", "/panel/siparisler/7", [new("Id", "7")]);
+        KeyValuePair<string, string>[] expected = [new("Id", "7"), new(Confirmations.ConfirmedFieldName, "true")];
+        Assert.Equal(expected, withoutMark.Fields.ToArray());
+        Assert.Equal("Input.Confirmed", Confirmations.ConfirmedFieldName);
+
+        // The mark a screen hands over - bare or after any prefix - is the mark: it is not written twice.
+        Assert.Single(Confirmations.ForCustomer("Hesabı sil", "Cümle.", "Hesabı sil", "/hesabim/sil", "Delete", "/hesabim", [new("Confirmed", "true")]).Fields);
+        ConfirmView prefixed = Confirmations.ForSettingChange("Satışı kapat", "Cümle.", "Satışı kapat", "/panel/ayarlar", "Close", "/panel/ayarlar", [new("Input.Confirmed", "true")]);
+        Assert.Single(prefixed.Fields);
+
+        // A mark that confirms nothing is refused, and the list the caller gave is not changed.
+        Assert.Throws<ArgumentException>(() =>
+            Confirmations.ForSettingChange("Satışı kapat", "Cümle.", "Satışı kapat", "/panel/ayarlar", "Close", "/panel/ayarlar", [new("Input.Confirmed", "false")]));
+        KeyValuePair<string, string>[] given = [new("Id", "7")];
+        _ = Confirmations.ForSettingChange("Satışı kapat", "Cümle.", "Satışı kapat", "/panel/ayarlar", "Close", "/panel/ayarlar", given);
+        Assert.Single(given);
+    }
+
+    [Fact]
     public void TheSettingChange_CarriesNoIrreversibleSentence_AndTheCustomerStepDoes_KK6()
     {
         ConfirmView setting = Confirmations.ForSettingChange("Satışı kapat", "Satış kapanır; sepetler korunur.", "Satışı kapat", "/panel/ayarlar", "Close", "/panel/ayarlar", NoFields);
@@ -400,7 +423,8 @@ public sealed class MessageStateModelTests
     {
         PanelSalesStatus status = PanelSalesStatus.From(GateWith(SalesGateCondition.PaymentMethod, SalesGateCondition.TemporaryClosure));
 
-        Assert.Equal("Satış kapalı: Ödeme yöntemi, Geçici kapatma tamamlanmadı.", status.WarningText);
+        // D-1174: the two reasons are told apart - the closure is the owner's switch, not a part that was not completed.
+        Assert.Equal("Satış kapalı: satışı geçici kapattınız; Ödeme yöntemi tamamlanmadı.", status.WarningText);
         Assert.Equal(["Ödeme yöntemi"], status.Checklist.Select(c => c.Name).ToArray());
     }
 

@@ -99,14 +99,20 @@ internal sealed partial class AfterSalesModule
         return states;
     }
 
-    public async Task<RefundIbanState> RefundIbanStateAsync(Guid orderId, IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct)
+    public async Task<RefundIbanState> RefundIbanStateAsync(Guid orderId, IReadOnlyCollection<Guid> orderItemIds, IReadOnlyCollection<Guid> orderRefundIds, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(orderItemIds);
+        ArgumentNullException.ThrowIfNull(orderRefundIds);
         Guid[] ids = [.. orderItemIds];
+        Guid[] refundIds = [.. orderRefundIds];
         bool hasIban = await _db.RefundIbans.AsNoTracking().AnyAsync(i => i.OrderId == orderId, ct);
-        bool hasOpenRequest = ids.Length > 0
-            && await _db.RefundIbanRequests.AsNoTracking()
-                .AnyAsync(r => r.OrderItemId != null && ids.Contains(r.OrderItemId.Value) && r.FulfilledAt == null && r.ClosedAt == null, ct);
+        // An open request of an item, or an itemless one of this order's refund (the late payment's refund; K-1075): both are the order's open IBAN request, so the decision of 1.11.11 sees both (D-1806).
+        bool hasOpenRequest = await _db.RefundIbanRequests.AsNoTracking()
+            .AnyAsync(
+                r => r.FulfilledAt == null && r.ClosedAt == null
+                    && ((r.OrderItemId != null && ids.Contains(r.OrderItemId.Value))
+                        || (r.OrderItemId == null && r.RefundId != null && refundIds.Contains(r.RefundId.Value))),
+                ct);
         return new RefundIbanState(hasIban, hasOpenRequest);
     }
 

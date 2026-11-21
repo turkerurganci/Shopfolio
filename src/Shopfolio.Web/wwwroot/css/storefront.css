@@ -281,6 +281,21 @@
     display: none;
 }
 
+/* "Diğer" (04 2.2.3): common.js shows it only on the medium and wide classes, when entries do not fit the menu's one row; the class's display rule above must not undo the hidden attribute. */
+.site-menu__item--overflow[hidden] {
+    display: none;
+}
+
+.site-menu__item--overflow[data-collapsed="true"] > .site-menu__panel {
+    display: none;
+}
+
+.site-menu__overflow-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
 .site-menu__tree {
     padding-inline-start: var(--space-4);
 }
@@ -351,6 +366,32 @@
         border-radius: var(--radius-1);
         background: var(--color-surface);
         box-shadow: var(--shadow-1);
+    }
+
+    /* "Diğer" opens as a drop-down like "Ürünler"; the entries moved into it stand one under the other, and a moved "Ürünler" keeps its tree in the flow of that drop-down. */
+    .site-menu__item--overflow {
+        position: relative;
+    }
+
+    .site-menu__item--overflow > .site-menu__panel {
+        position: absolute;
+        inset-inline-end: 0;
+        top: 100%;
+        z-index: 10;
+        min-width: 14rem;
+        padding: var(--space-2);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-1);
+        background: var(--color-surface);
+        box-shadow: var(--shadow-1);
+    }
+
+    .site-menu__overflow-list .site-menu__item--group[data-js-ready="true"] > .site-menu__panel {
+        position: static;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        box-shadow: none;
     }
 }
 
@@ -481,6 +522,23 @@
 
     .identity-block__row {
         grid-template-columns: minmax(8rem, 1fr) minmax(0, 2fr);
+    }
+
+    /* The ETBİS band stands beside the identity block, not under it (04 2.2.5; D-1143); the narrow class keeps it right under the block. */
+    .site-footer__identity-body {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-4);
+    }
+
+    .site-footer__identity-body .identity-block {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .site-footer__identity-body .etbis-band {
+        flex: none;
+        margin-block-start: 0;
     }
 }
 
@@ -1368,4 +1426,17 @@
     .payment-page__frame {
         height: 45rem;
     }
+}
+
+/* The cart line shows the product image beside its name and the variant's option values under it (04 5.12.4; D-1189). */
+.cart-line__image {
+    display: inline-block;
+    vertical-align: middle;
+    margin-inline-end: var(--space-2);
+    object-fit: cover;
+}
+
+.cart-line__options {
+    margin: 0;
+    color: var(--color-text-muted);
 }

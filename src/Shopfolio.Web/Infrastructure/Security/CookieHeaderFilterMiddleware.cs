@@ -8,8 +8,9 @@ namespace Shopfolio.Infrastructure.Security;
 /// removes the <c>Set-Cookie</c> headers from the storefront's responses at the moment they start, whoever wrote them. It is the one guarantee —
 /// the closed doors of the sales and the data collecting entries (02 3.1.5) already close the functions that need a cookie, and this is the second
 /// layer against a function that was forgotten. It is registered at the start of the pipeline, after the forwarded headers and the security
-/// headers and outside every middleware that can write a cookie (09 15.1 item 6): the callbacks of <c>OnStarting</c> run last-registered first, so
-/// this one sees the headers as the other middlewares left them.
+/// headers and outside every middleware that can write a cookie, the catch layer included (09 15.1 item 6): the callbacks of <c>OnStarting</c> run
+/// last-registered first, so this one sees the headers as the other middlewares left them. Being outside the catch layer, it is the one place whose
+/// failure the layer does not record (see <see cref="InvokeAsync"/>).
 /// </summary>
 /// <remarks>
 /// The gate opens at the first request after the publication and does not close again (<see cref="CookiePolicyGate"/>). The panel's responses are out
@@ -46,8 +47,10 @@ internal sealed class CookieHeaderFilterMiddleware
         }
 
         // The removal is registered before the question is asked and is lifted only by a yes. A failing question is not caught here (09 8.1 item 6: the
-        // catch layer is the one place): it reaches the catch layer registered outside this middleware (T212, 09 8.1 item 2), and the error page that layer
-        // writes passes through the removal like every other storefront response.
+        // catch layer is the one place) and the catch layer does not see it either: the layer is registered after this middleware (Program.cs), so it
+        // sits inside it, and the exception leaves the pipeline for the framework's plain 500, which carries no cookie (the removal above is still
+        // registered). No unexpected-error line and no count of 05 9.4.8 is written for it - the documented exception (05 10.3.6; 09 15.1 item 6; D-113;
+        // K-1621).
         var removal = new Removal(context.Response);
         context.Response.OnStarting(RemoveCookieHeaders, removal);
         removal.Active = !await _gate.IsOpenAsync(publication, context.RequestAborted);

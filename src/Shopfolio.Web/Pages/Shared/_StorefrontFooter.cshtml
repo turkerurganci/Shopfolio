@@ -17,11 +17,14 @@
                 <h2 class="site-footer__heading" id="footer-contact-heading"><a href="@footer.ContactPath">İletişim</a></h2>
                 @* The whole brand name: the header cuts a long one on the narrow class and says so here (04 2.2.4, 8.3.2 row 1). *@
                 <p class="site-footer__brand">@Model.Brand.BrandName</p>
-                <partial name="_IdentityBlock" model="footer.Identity" />
-                @if (footer.EtbisVerificationUrl is { } etbis)
-                {
-                    <a class="etbis-band" href="@etbis" rel="noopener noreferrer">ETBİS doğrulama</a>
-                }
+                @* The band stands beside the identity block on the medium and wide classes and under it on the narrow class (04 2.2.5; D-1143): one wrapper, the style sheet places the two. *@
+                <div class="site-footer__identity-body">
+                    <partial name="_IdentityBlock" model="footer.Identity" />
+                    @if (footer.EtbisVerificationUrl is { } etbis)
+                    {
+                        <a class="etbis-band" href="@etbis" rel="noopener noreferrer">ETBİS doğrulama</a>
+                    }
+                </div>
                 @if (Model.Contact.SocialLinks.Count > 0 || Model.Contact.WhatsAppNumber is not null)
                 {
                     <ul class="social-list" aria-label="Sosyal medya">

@@ -195,6 +195,9 @@ app.MapDomesticProductionLogoEndpoint();
 app.MapLivenessEndpoint();
 app.MapStatusEndpoint();
 
+// The fallback site icon while the firm has uploaded none (02 3.29.4; D-1135): inside the closed image area.
+app.MapSiteIconEndpoint();
+
 // The site map and robots.txt (UC-79; 05 3.7.3, 3.7.4): open machine endpoints, made on request; the map comes from the cache.
 app.MapSitemapEndpoints();
 

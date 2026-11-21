@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 
 using Shopfolio.Infrastructure.Errors;
@@ -125,6 +126,37 @@ public sealed class UnexpectedErrorLayerTests
 
         Assert.Equal(500, context.Response.StatusCode);
         Assert.Empty(context.Response.Headers);
+    }
+
+    [Theory]
+    [InlineData("PageLevel", true)]
+    [InlineData("OperationLevel", false)]
+    public async Task Write_OfTheFramedPage_OffersRetryOnlyAtPageLevel_D1174(string stateName, bool offersRetry)
+    {
+        // 04 2.7.3.1: at operation level the visitor retries with the same button of the form, so the framed fallback page carries no "Yeniden dene".
+        ErrorState state = Enum.Parse<ErrorState>(stateName);
+        RecordingRenderer renderer = new();
+        DefaultHttpContext context = new();
+        context.Request.Method = state == ErrorState.PageLevel ? "GET" : "POST";
+        context.RequestServices = new ServiceCollection().AddSingleton<IErrorPageRenderer>(renderer).BuildServiceProvider();
+        context.Response.Body = new MemoryStream();
+
+        await UnexpectedErrorAnswer.WriteAsync(context, new ErrorResolution(state, null));
+
+        ErrorPageText page = Assert.IsType<ErrorPageText>(renderer.Page);
+        Assert.Equal(offersRetry, page.OffersRetry);
+        Assert.Equal(500, page.Status);
+    }
+
+    private sealed class RecordingRenderer : IErrorPageRenderer
+    {
+        public ErrorPageText? Page { get; private set; }
+
+        public Task RenderAsync(HttpContext context, ErrorPageText page)
+        {
+            Page = page;
+            return Task.CompletedTask;
+        }
     }
 
     [Fact]

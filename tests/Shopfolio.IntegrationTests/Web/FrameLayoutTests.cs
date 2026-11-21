@@ -144,6 +144,44 @@ public sealed partial class StorefrontFrameTests
         Assert.Matches(new Regex("id=\"site-menu-tree\">\\s*<ul class=\"site-menu__tree\">\\s*<li>\\s*<a href=\"[^\"]*mobilya\">Mobilya</a>", RegexOptions.CultureInvariant, PatternTimeout), html);
     }
 
+    [Fact]
+    public async Task WithoutASiteIcon_TheHeadLinksTheFallbackIcon_ThatIsTheBrandsFirstLetterOnTheBrandColour_T604_D1135()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = factory.CreateClient();
+
+        string html = (await GetHtmlAsync(client, "/sss/cerceve-ornegi")).Html;
+        Assert.Contains("<link rel=\"icon\" type=\"image/svg+xml\" href=\"/gorsel/simge\">", html, StringComparison.Ordinal);
+
+        HttpResponseMessage icon = await client.GetAsync("/gorsel/simge", Ct);
+        string svg = await icon.Content.ReadAsStringAsync(Ct);
+        Assert.Equal(HttpStatusCode.OK, icon.StatusCode);
+        Assert.Equal("image/svg+xml", icon.Content.Headers.ContentType?.MediaType);
+        Assert.Contains("<svg", svg, StringComparison.Ordinal);
+        Assert.DoesNotContain("immutable", icon.Headers.CacheControl?.ToString() ?? string.Empty, StringComparison.Ordinal);
+        Assert.False(icon.Headers.Contains("Set-Cookie"));
+    }
+
+    [Fact]
+    public async Task TheMenu_CarriesTheHiddenOtherItemAtItsEnd_ForTheEntriesThatDoNotFit_T604_D1134()
+    {
+        await using WebApplicationFactory<Program> factory = Open();
+        using HttpClient client = factory.CreateClient();
+
+        string html = (await GetHtmlAsync(client, "/sss/cerceve-ornegi")).Html;
+
+        // "Diğer" (04 2.2.3) is the last item of the menu list, hidden until common.js moves entries into it: without the script the entries wrap and nothing is lost.
+        Match item = Regex.Match(html, "<li[^>]*data-js=\"menu-overflow\"[^>]*>", RegexOptions.CultureInvariant, PatternTimeout);
+        Assert.True(item.Success, "The menu has no Diğer item.");
+        Assert.Matches(new Regex("\\shidden[\\s>]", RegexOptions.CultureInvariant, PatternTimeout), item.Value);
+        Match button = Regex.Match(html, "<button[^>]*data-js=\"menu-overflow-toggle\"[^>]*>Diğer</button>", RegexOptions.CultureInvariant, PatternTimeout);
+        Assert.True(button.Success, "The Diğer item has no toggle button.");
+        Assert.Contains("type=\"button\"", button.Value, StringComparison.Ordinal);
+        Assert.Contains("aria-expanded=\"false\"", button.Value, StringComparison.Ordinal);
+        Assert.Contains("aria-controls=\"site-menu-overflow\"", button.Value, StringComparison.Ordinal);
+        Assert.Matches(new Regex("id=\"site-menu-overflow\">\\s*<ul[^>]*data-js=\"menu-overflow-list\"></ul>\\s*</div>\\s*</li>\\s*</ul>", RegexOptions.CultureInvariant, PatternTimeout), html);
+    }
+
     // ---- KK6: the footer ----
 
     [Fact]

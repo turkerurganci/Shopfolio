@@ -57,6 +57,11 @@ public sealed class OptionStructureRulesTests
         { [1, 2], true, 1, true, 1, VariantStructureCheck.ValueNotOfTheProduct },
         { [1, 2], true, 1, true, null, VariantStructureCheck.ValueNotOfTheProduct },
         { [1, 2], true, null, true, 2, VariantStructureCheck.ValueNotOfTheProduct },
+
+        // D-283: only the second option stands (the first one is gone): no variant is valid, whatever is bound.
+        { [2], false, null, true, 2, VariantStructureCheck.ValueMissing },
+        { [2], false, null, false, null, VariantStructureCheck.ValueMissing },
+        { [2], true, 1, true, 2, VariantStructureCheck.ValueMissing },
     };
 
     [Theory]

@@ -522,6 +522,29 @@ public sealed class CustomerOperationsTests : IAsyncLifetime
         Assert.Equal(oneCommands, twoCommands);
     }
 
+    // ---- D-1845: another order's itemless request is neither shown nor answered through this order ----
+
+    [Fact]
+    public async Task AnotherOrdersItemlessRequest_IsNotInThisOrdersFields_AndAnItemlessSaveOnThisOrder_LeavesItOpenAndWritesNoIban_D1845()
+    {
+        (Order own, _) = await SeedAsync(OrderStatus.Cancelled, PaymentStatus.Paid, PaymentMethod.Card, new Line(ProductType.Physical, 1));
+        (Order foreignOwner, _) = await SeedAsync(OrderStatus.Cancelled, PaymentStatus.Paid, PaymentMethod.Card, new Line(ProductType.Physical, 1));
+        Guid foreignRefund = await SeedItemlessFieldAsync(foreignOwner.Id, RefundIbanRequestReason.TransferFailed);
+
+        (IReadOnlyList<RefundIbanFieldView> ownFields, _) = await CountedFieldsAsync(own.Id);
+        CustomerOperationResult saved = await OperateAsync((o, t) => o.SaveRefundIbanAsync(own.Id, null, ValidIban, t));
+        (IReadOnlyList<RefundIbanFieldView> foreignFields, _) = await CountedFieldsAsync(foreignOwner.Id);
+
+        Assert.Empty(ownFields);
+        Assert.Equal(CustomerOperationOutcome.Closed, saved.Outcome);
+        await using AppDbContext reader = NewContext();
+        RefundIbanRequest foreignRequest = await reader.RefundIbanRequests.SingleAsync(r => r.RefundId == foreignRefund, Ct);
+        Assert.Null(foreignRequest.FulfilledAt);
+        Assert.Null(foreignRequest.RefundIbanId);
+        Assert.Empty(await reader.RefundIbans.ToListAsync(Ct));
+        Assert.Equal(RefundIbanRequestReason.TransferFailed, Assert.Single(foreignFields).Reason);
+    }
+
     // ---- helpers ----
 
     private async Task<bool> CardRefundNotRealizedAsync(Guid orderId)

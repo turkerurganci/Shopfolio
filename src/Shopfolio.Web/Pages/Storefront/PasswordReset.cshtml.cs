@@ -75,21 +75,26 @@ internal sealed class PasswordResetModel : PageModel
     /// <summary>True after a 429: the neutral limit sentence stands beside the button (04 5.23.5).</summary>
     public bool LimitReached { get; private set; }
 
+    /// <summary>True on the forgery check's 400 (07 2.5.4; D-1843): the page draws the check's action-level message in place (04 2.7.3.1).</summary>
+    public bool ForgeryRefused { get; private set; }
+
     /// <summary>The e-mail the request form shows: the sent value after a 422 or a 429, else the signed-in member's own address, else nothing (07 UC-56).</summary>
     public string? SentEmail { get; private set; }
 
     /// <summary>
     /// A form whose fields break their rules is answered 422 by the validation filter without the handler (09 3.4 item 3): the setting step it shows again needs the link as it stands, and the request step
-    /// needs the sent address.
+    /// needs the sent address. The forgery check's 400 is answered before the handler too and shows the same page again (D-1773, D-1843): the link is only read - the refusal consumes nothing - and the
+    /// sent address stays.
     /// </summary>
     public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(next);
         PageHandlerExecutedContext executed = await next();
-        if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity })
+        if (!_loaded && executed.Exception is null && executed.Result is PageResult { StatusCode: StatusCodes.Status422UnprocessableEntity or FormResults.ForgeryRefusedStatus })
         {
             _loaded = true;
+            ForgeryRefused = executed.Result is PageResult { StatusCode: FormResults.ForgeryRefusedStatus };
             if (context.HandlerArguments.Values.OfType<RequestPasswordResetInput>().FirstOrDefault() is { } request)
             {
                 SentEmail = request.Email;
@@ -98,7 +103,7 @@ internal sealed class PasswordResetModel : PageModel
 
             if (RouteData.Values["key"] is string key)
             {
-                await LoadStepAsync(key, HttpContext.RequestAborted);
+                await LoadStepAsync(key, HttpContext.RequestAborted, readsQuery: !ForgeryRefused);
             }
         }
     }
@@ -190,7 +195,7 @@ internal sealed class PasswordResetModel : PageModel
 
     // The step the link allows: a valid link opens the setting (the heading depends on whether the account has a password); a used one with the result code is the completed state; every other state -
     // used without the code, run out, replaced, unknown - is the invalid state (07 UC-58).
-    private async Task LoadStepAsync(string key, CancellationToken ct)
+    private async Task LoadStepAsync(string key, CancellationToken ct, bool readsQuery = true)
     {
         Key = key;
         AccountLinkReading reading = await _membership.ReadPasswordResetLinkAsync(key, ct);
@@ -201,7 +206,7 @@ internal sealed class PasswordResetModel : PageModel
             return;
         }
 
-        Step = reading.Status == AccountLinkStatus.Used && NoticeParameter.Read(Request, NoticeKind.Result) == NoticeCode.PasswordResetCompleted
+        Step = readsQuery && reading.Status == AccountLinkStatus.Used && NoticeParameter.Read(Request, NoticeKind.Result) == NoticeCode.PasswordResetCompleted
             ? PasswordResetStep.Completed
             : PasswordResetStep.Invalid;
     }

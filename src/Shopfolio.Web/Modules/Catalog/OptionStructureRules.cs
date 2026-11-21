@@ -48,6 +48,15 @@ internal static class OptionStructureRules
     public static VariantStructureCheck CheckBinding(IReadOnlySet<int> optionOrders, BoundValue first, BoundValue second)
     {
         ArgumentNullException.ThrowIfNull(optionOrders);
+
+        // A product whose only option is the second one has no first value a variant could be bound to (06 4.6: the first value is the value of the option of order 1; D-283): the structure is
+        // broken and no variant is valid, so the answer is the first slot's missing value, not a silent "valid" that the variant's own rule (second_value_needs_first) refuses later. The form never
+        // deletes an option and the next order is the lowest free one, so the state does not arise today; the rule keeps it from being written if a deleting path comes.
+        if (optionOrders.Contains(2) && !optionOrders.Contains(1))
+        {
+            return VariantStructureCheck.ValueMissing;
+        }
+
         VariantStructureCheck firstVerdict = CheckSlot(optionOrders.Contains(1), 1, first);
         return firstVerdict != VariantStructureCheck.Valid ? firstVerdict : CheckSlot(optionOrders.Contains(2), 2, second);
     }

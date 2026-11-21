@@ -425,12 +425,25 @@ internal sealed class ProductSaves
             }
 
             int before = errors.Count;
-            VariantStructureCheck binding = OptionStructureRules.CheckBinding(optionOrders, Bound(row.FirstOptionValueId, options, values), Bound(row.SecondOptionValueId, options, values));
+            Guid? firstValueId = row.FirstOptionValueId;
+            Guid? secondValueId = row.SecondOptionValueId;
+            if (variant is not null && firstValueId is null && secondValueId is null && options.Count > 0 && options.All(o => _db.Entry(o).State == EntityState.Added))
+            {
+                // D-1705: the product had no option, so its one variant (06 4.6: one combination, one variant) had no value to choose; the form that adds the first option cannot name a value the save is
+                // creating, so the variant takes the first value of each new option - the user does not have to delete the variant first.
+                firstValueId = FirstValueIdOf(1, options, values);
+                secondValueId = FirstValueIdOf(2, options, values);
+            }
+
+            VariantStructureCheck binding = OptionStructureRules.CheckBinding(optionOrders, Bound(firstValueId, options, values), Bound(secondValueId, options, values));
             if (binding != VariantStructureCheck.Valid)
             {
-                errors.Add(new ProductSaveFieldError(
-                    Field(i, binding == VariantStructureCheck.ValueMissing || row.FirstOptionValueId is not null ? nameof(ProductSaveVariant.SecondOptionValueId) : nameof(ProductSaveVariant.FirstOptionValueId)),
-                    binding == VariantStructureCheck.ValueMissing ? ErrorCode.FieldRequired : ErrorCode.InvalidListValue));
+                // The refused field is the one the rule names: a missing value is the slot that has none (the first one when its option exists), never the other one (D-1705).
+                // The field and the code stand in one expression so the form field scan (FormFieldCodeCalls) reads the pair.
+                bool firstMissing = optionOrders.Contains(1) && firstValueId is null;
+                errors.Add(binding == VariantStructureCheck.ValueMissing
+                    ? new ProductSaveFieldError(Field(i, !firstMissing ? nameof(ProductSaveVariant.SecondOptionValueId) : nameof(ProductSaveVariant.FirstOptionValueId)), ErrorCode.FieldRequired)
+                    : new ProductSaveFieldError(Field(i, row.FirstOptionValueId is not null ? nameof(ProductSaveVariant.SecondOptionValueId) : nameof(ProductSaveVariant.FirstOptionValueId)), ErrorCode.InvalidListValue));
             }
 
             string? sku = row.SKU?.Trim();
@@ -503,8 +516,8 @@ internal sealed class ProductSaves
                 variant.SetSku(sku);
             }
 
-            variant.FirstOptionValueId = row.FirstOptionValueId;
-            variant.SecondOptionValueId = row.SecondOptionValueId;
+            variant.FirstOptionValueId = firstValueId;
+            variant.SecondOptionValueId = secondValueId;
             variant.NetQuantity = row.NetQuantity;
             applied.Add((i, variant, row));
         }
@@ -754,6 +767,13 @@ internal sealed class ProductSaves
         }
 
         return ProductSaveResult.Saved(productId);
+    }
+
+    // The first value (lowest order) of the option of the given order, or null when the product has no such option or it has no value yet.
+    private static Guid? FirstValueIdOf(int optionOrder, List<Option> options, List<OptionValue> values)
+    {
+        Option? option = options.FirstOrDefault(o => o.SortOrder == optionOrder);
+        return option is null ? null : values.Where(v => v.OptionId == option.Id).OrderBy(v => v.SortOrder).FirstOrDefault()?.Id;
     }
 
     private static BoundValue Bound(Guid? valueId, List<Option> options, List<OptionValue> values)

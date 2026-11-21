@@ -122,6 +122,22 @@ public sealed class PanelFrameModelTests
         Assert.Equal(":root{--brand-color:#1A56DB;--brand-text-color:#FFFFFF;}", FrameStyle.BrandVariables(Brand("#1234567", "#FFFFFF")));
     }
 
+    [Fact]
+    public void TheFallbackSiteIcon_IsTheBrandsFirstLetterOnTheBrandColour_AndCarriesNothingElse_D1135()
+    {
+        string svg = FrameStyle.FallbackIconSvg("M", "#112233", "#FFFFFF");
+
+        Assert.Contains("fill=\"#112233\"", svg, StringComparison.Ordinal);
+        Assert.Contains("fill=\"#FFFFFF\"", svg, StringComparison.Ordinal);
+        Assert.Contains(">M</text>", svg, StringComparison.Ordinal);
+
+        // A colour that is none falls back to the default, and the letter is escaped: the image never carries markup that came in as a value.
+        string hostile = FrameStyle.FallbackIconSvg("<", "red\" onload=\"x", "#FFFFFF");
+        Assert.Contains("fill=\"#1A56DB\"", hostile, StringComparison.Ordinal);
+        Assert.Contains(">&lt;</text>", hostile, StringComparison.Ordinal);
+        Assert.DoesNotContain("onload", hostile, StringComparison.Ordinal);
+    }
+
     private static FrameBrand Brand(string color, string textColor) => new("Marka", null, null, "M", color, textColor);
 
     [Fact]

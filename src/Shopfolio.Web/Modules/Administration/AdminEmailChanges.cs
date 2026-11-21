@@ -271,7 +271,14 @@ internal sealed class AdminEmailChanges
     /// What the account page shows (07 UC-104; 04 9.21): the account, the pending change (while its link lives) and the open revert link; the address change's form never opens while a revert link is
     /// open (K-819). The operation's form opens only when the session holds that operation's permission bound to the presented value; any other request drops the permission (05 6.1.5; 07 2.2.5).
     /// </summary>
-    public async Task<AdminOwnAccount?> ReadOwnAccountAsync(Guid adminId, Guid sessionId, ReauthenticationOperation? operation, string? reauthenticationValue, CancellationToken ct)
+    public Task<AdminOwnAccount?> ReadOwnAccountAsync(Guid adminId, Guid sessionId, ReauthenticationOperation? operation, string? reauthenticationValue, CancellationToken ct) =>
+        ReadOwnAccountAsync(adminId, sessionId, operation, reauthenticationValue, dropsUnheld: true, ct);
+
+    /// <summary>The same read with the permission left as it was: the forgery refusal's page (D-1843; 07 2.5.4) - a refused request writes nothing.</summary>
+    public Task<AdminOwnAccount?> ReadOwnAccountKeepingReauthenticationAsync(Guid adminId, Guid sessionId, ReauthenticationOperation? operation, string? reauthenticationValue, CancellationToken ct) =>
+        ReadOwnAccountAsync(adminId, sessionId, operation, reauthenticationValue, dropsUnheld: false, ct);
+
+    private async Task<AdminOwnAccount?> ReadOwnAccountAsync(Guid adminId, Guid sessionId, ReauthenticationOperation? operation, string? reauthenticationValue, bool dropsUnheld, CancellationToken ct)
     {
         RequireTransaction("The account page drops the permission only inside a transaction (09 6 item 3).");
         var account = await _db.Admins.AsNoTracking().Where(a => a.Id == adminId).Select(a => new { a.Name, a.Email }).SingleOrDefaultAsync(ct);
@@ -282,7 +289,7 @@ internal sealed class AdminEmailChanges
 
         bool listed = operation is ReauthenticationOperation.PasswordChange or ReauthenticationOperation.EmailChange;
         bool held = listed && await _sessions.HoldsReauthenticationAsync(AccountType.Admin, adminId, sessionId, operation.GetValueOrDefault(), reauthenticationValue, ct);
-        if (!held)
+        if (!held && dropsUnheld)
         {
             await _sessions.DropReauthenticationAsync(AccountType.Admin, adminId, sessionId, ct);
         }

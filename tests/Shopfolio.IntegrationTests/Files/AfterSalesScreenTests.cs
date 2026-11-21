@@ -275,6 +275,12 @@ public sealed partial class AfterSalesScreenTests : IAsyncLifetime
         Assert.Contains("value=\"1\"", html, StringComparison.Ordinal);
         Assert.Contains("en çok 3", html, StringComparison.Ordinal);
         Assert.Contains("name=\"Description\"", html, StringComparison.Ordinal);
+
+        // D-1412 (04 2.12.1.8): the one units field stands in its item's row - the row says it carries one - and the script's two hooks, its slot under the list and its module, are there.
+        Assert.Contains("data-quantity-field=\"true\"", html, StringComparison.Ordinal);
+        Assert.Contains("data-js=\"defect-claim-items\"", html, StringComparison.Ordinal);
+        Assert.Contains("data-js=\"defect-claim-slot\"", html, StringComparison.Ordinal);
+        Assert.Contains("js/pages/orders/member-defect-claim", html, StringComparison.Ordinal);
         Assert.Contains("Depo Sokak 3", html, StringComparison.Ordinal);
         Assert.Contains("<a href=\"" + FramePaths.PrivacyNotice + "\">" + FramePaths.PrivacyNoticeTitle + "</a>", html, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.OK, reopening.StatusCode);
@@ -312,6 +318,14 @@ public sealed partial class AfterSalesScreenTests : IAsyncLifetime
         Assert.Equal(Closed(openKey), (notResolved.StatusCode, notResolved.Headers.Location!.OriginalString));
         Assert.Equal(Closed(lateKey), (late.StatusCode, late.Headers.Location!.OriginalString));
         Assert.Equal([HttpStatusCode.NotFound, HttpStatusCode.NotFound, HttpStatusCode.NotFound], new[] { foreign.StatusCode, noClaim.StatusCode, notAKey.StatusCode });
+
+        // D-880: the order page of an item whose Z-18 ran out carries the contact form link directly (04 5.19.10, 6.2.16.23); an order whose channel is open does not.
+        using HttpResponseMessage lateRoot = await host.Client.GetAsync(At(OrderRoutes.AccessPath(lateKey)), Ct);
+        using HttpResponseMessage openRoot = await host.Client.GetAsync(At(OrderRoutes.AccessPath(openKey)), Ct);
+        string lateRootHtml = WebUtility.HtmlDecode(await lateRoot.Content.ReadAsStringAsync(Ct));
+        string openRootHtml = WebUtility.HtmlDecode(await openRoot.Content.ReadAsStringAsync(Ct));
+        Assert.Contains("<a class=\"button button--secondary\" href=\"" + FramePaths.Contact + "\">" + OrderScreenLink.ExpiredDefectChannelText + "</a>", lateRootHtml, StringComparison.Ordinal);
+        Assert.DoesNotContain(OrderScreenLink.ExpiredDefectChannelText, openRootHtml, StringComparison.Ordinal);
     }
 
     // ---- KK8: one claim, Açık, with the return address ----

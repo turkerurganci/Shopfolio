@@ -72,15 +72,19 @@ internal sealed class ProductPageReader
             .OrderBy(o => o.SortOrder)
             .Select(o => new { o.Id, o.Name })
             .ToListAsync(ct);
+
+        // The values of all the options are one read, not one per option (09 20 item 4; D-1275): the query count does not grow with the number of options.
+        Guid[] optionIds = [.. options.Select(o => o.Id)];
+        var allValues = await _db.OptionValues.AsNoTracking()
+            .Where(v => optionIds.Contains(v.OptionId))
+            .OrderBy(v => v.SortOrder).ThenBy(v => v.Id)
+            .Select(v => new { v.Id, v.OptionId, v.Value, v.SortOrder })
+            .ToListAsync(ct);
         List<ProductPageOption> result = [];
         Dictionary<Guid, (int Order, int Slot)> slots = [];
         foreach (var option in options)
         {
-            var values = await _db.OptionValues.AsNoTracking()
-                .Where(v => v.OptionId == option.Id)
-                .OrderBy(v => v.SortOrder).ThenBy(v => v.Id)
-                .Select(v => new { v.Id, v.Value, v.SortOrder })
-                .ToListAsync(ct);
+            var values = allValues.Where(v => v.OptionId == option.Id).ToList();
             int slot = result.Count;
             foreach (var value in values)
             {

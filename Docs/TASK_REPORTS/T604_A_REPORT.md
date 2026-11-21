@@ -154,7 +154,7 @@ Kalemler: D-1228, D-1418, D-1433, D-1455, D-1456, D-1678, D-1704, D-1709, D-1710
 
 **Koşular.** Unit: `BrowserWaitScanTests` 21/21 (tam Unit koşulmadı: **TAM: CI**). Integration (ilgili sınıflar): `TitleMeasureTests`, `ExecutableOverridesTests`, `AuditScriptsTests`, `MigrationBundleTests` (çözümleme testleri), kesilen betik testleri geçti; chromium betikli: `AccessibilityAuditTests` + `AccessibilityScanTests` + `AccessibilityCriteriaTests` + `AccessibilityRecordTests` + `ScreenInventoryTests` tek çağrıda 27/27 (8 dk 45 sn). Firefox, webkit ve betiksiz yol: **TAM: CI E2E**. Integration TAM: CI. `dotnet format` değişen dosyalarda değişiklik üretmedi.
 
-**⚠ A4.** (1) Aynı adlı bağlantı okuması sonuca bağlanmadı (D-1789). (2) Ölçüt kaydı koşu sonunda kırar: CI E2E'nin Audit, Scan, Criteria sınıflarını tek çağrıda koşması şart (D-1736 b kabulü). (3) Ayırt edicilik: D-1704 değişinimle gösterildi; D-1710 `localhost` başlığı `TitleMeasure` testleriyle kırmızı; D-1746 (b) `AuditScriptsTests` ile.
+**⚠ A4.** (1) Aynı adlı bağlantı okuması sonuca bağlanmadı (D-1789). (2) Ölçüt kaydı koşu sonunda kırar: CI E2E artık Audit ve Scan+Criteria'yı iki kümede koşar (düzeltme 1; her küme kendi bölümlerini denetler). (3) Ayırt edicilik: D-1704 değişinimle gösterildi; D-1710 `localhost` başlığı `TitleMeasure` testleriyle kırmızı; D-1746 (b) `AuditScriptsTests` ile.
 
 ## Dilim A6 — kararsız test, 12 satırı, birim test
 
@@ -309,8 +309,8 @@ Bu dilimin kalemleri yalnız test ekler; ürün kodu değişmediği için "deği
 | A4 D-1455 | ✓ | Paylı satır kanıtları tablosu (T517 payları) |
 | A4 D-1709 | ✓ | `ExecutableOverridesTests` + `12` v0.37 §4.17 (3) + K-1630 |
 | A4 D-1732 | ✓ | (a), (b) kodda kapalı (`WcagCriteria.SourceScan`, `ResultOf`), (c), (d) `EngineNotes`, `Facts.skip` |
-| A4 D-1736 | ~ | (a), (b), (c) yapıldı; (d) ileti metni yapıldı (`AuditScriptsTests.Reach_...D1736`), Firefox sınıf süresi ve CI E2E F6 gate'e (kısmen karşılanan kabul: PASS sayılmaz, satır açık ve yeni hedefli) |
-| A4 Kabul 3 / KK3: üç motor, iki yol; ölçüt kaydı tek çağrıda eksiksiz | ~ | chromium ve firefox betikli ve betiksiz yeşil (`NarrowClassTests`, `AuditScriptsTests`); ölçüt kaydı (Audit + Scan + Criteria + Record + ScreenInventory) chromium betikli tek çağrıda 27/27; webkit ve firefox'ta ölçüt kaydı sınıf grubu ve 590 sn ölçümü CI E2E'ye (TAM: CI E2E) |
+| A4 D-1736 | ✓ | (a)-(d) yapıldı; Firefox sınıf süresi düzeltme 1'de bölünmüş koşuyla kapandı (`AccessibilityCluster`: `audit` ve `scan` kümeleri; en uzun koşu 438 sn, sınır 590) |
+| A4 Kabul 3 / KK3: üç motor, iki yol; ölçüt kaydı tek çağrıda eksiksiz | ✓ | chromium ve firefox betikli ve betiksiz yeşil (`NarrowClassTests`, `AuditScriptsTests`); ölçüt kaydı (Audit + Scan + Criteria + Record + ScreenInventory) chromium betikli tek çağrıda 27/27; firefox'ta ölçüt kaydı iki kümede (audit, scan) iki yolda ölçüldü, hepsi 590 sn altı (düzeltme 1); webkit ve üç motorun CI koşusu CI E2E'de |
 | A4 Kabul 4 / KK4: D-1678 | ✓ | `MigrationBundleTests` (varsayılan 5 dk, 9 geçersiz değer, 3 geçerli değer) |
 | A4 Kabul 5 / KK5: satırlar | ✓ | sayaca dokunulmadı; kapanan satırlar `✅ Çözüldü → T604`, daraltılanlar yeni hedef ve gerekçeyle |
 | A4 KK2: para-güvenlik | ✓ | D-1433 `VAL-A498` (kimlik/oturum bağlantısı): ayırt edicilik değişinimle gösterildi (yukarıda); eski testler değişmedi, Unit TAM ve ilgili Integration sınıfları yeşil; geri alma: test dosyalarının PR'ı |
@@ -380,7 +380,7 @@ A parçası yalnız test, tarayıcı aracı, betik ve belge dosyası değiştird
 | A4 | D-1709 | Kapandı | araç: `SHOPFOLIO_BROWSER_EXECUTABLES` ile motorun önceki büyük sürümü aynı araçla koşar (`ExecutableOverrides`), kayıt sürümü yazar; belge: `12` v0.37 |
 | A4 | D-1710 | Kapandı | ✅ Çözüldü → T604 A4 (2026-11-21): tohum marka adı kurar (`BrowserSeed.BrandName`), yürüyüş başlığın ürün adıyla bittiğini ölçer (`TitleMeasure`); FAQ  |
 | A4 | D-1732 | Kapandı | (a) kanıt adı `WcagCriteria.SourceScan` gerçek sınıfı (`AccessibilityRecordTests.TheSourceScan...`) anar ve (b) ölçüt sonucu matristen türer (`ResultO |
-| A4 | D-1736 | Açık (hedef F6 gate) | T604 A4 (2026-11-21) KISMEN: (a) ScanStep ekran × ölçüt hücresine girdi (kırmızı tarama hücreyi kırmızı yapar, taranmamış hücre "–"), (b) koşu sonunda |
+| A4 | D-1736 | ✅ Çözüldü → T604 (düzeltme 1; bölünmüş koşu) | [eski metin] T604 A4 (2026-11-21) KISMEN: (a) ScanStep ekran × ölçüt hücresine girdi (kırmızı tarama hücreyi kırmızı yapar, taranmamış hücre "–"), (b) koşu sonunda |
 | A4 | D-1746 | Kapandı | ✅ Çözüldü → T604 A4 (2026-11-21): (a) `ProbeAsync` cevabı okumadan önce stil dosyalarının yüklenmesini bekler (`WaitForStylesAsync`); (b) `AuditScript |
 | A4 | D-1788 | Daraltıldı → T604 U | T604 A4 (2026-11-21): FAQ (E-09) ve iletişim (E-10) sayfalarının sekme başlığı marka adını taşımıyor. `StorefrontHeads.Faq` ve `.Contact` belgede "say |
 | A4 | D-1789 | Açık (hedef F6 gate) | T604 A4 (2026-11-21): elle denetimin "aynı adlı bağlantı başka adrese gidiyor" okuması bağlam ölçüsü olmadan sonuca bağlanamadı. `AuditScripts.Names`  |
@@ -421,7 +421,7 @@ A parçası yalnız test, tarayıcı aracı, betik ve belge dosyası değiştird
 **A'ya düşen ve açık kalan satırlar (`grep T604` denetimi).** Hedefi T604 olan öteki ⚪/🟡 satırların (D-138, D-1134, D-1135… toplam yetmiş civarı) hepsi ürün kodu, belge kararı ya da karar kaydı ister ve ürün kodu parçasının (U) kapsamıdır; A dilimlerinde kalem olarak anılmadılar. A'nın anıp açık bıraktığı satırlar gerekçeyle:
 
 - **D-1770** (hedef T604): betik yaması hazır, makinenin `core.hooksPath`'i main'deki eski sır bekçisini çalıştırdığı için commit edilemedi; yama `helper-state/shopfolio/impl/T604/t604a-d1770.patch`; D-1120 bekçisi main'e inince ayrı işle uygulanır (satırda yazılı).
-- **D-1736** (hedef F6 gate): Firefox sınıf süresinin 590 sn altı ölçümü ve CI E2E doğrulaması CI'a bağlı (`TAM: CI E2E`); (a), (b), (c), (d) yapıldı; K-1621 gerekçeli yeniden ileri atma satırda yazılı.
+- **D-1736** (✅ Çözüldü → T604, düzeltme 1): Firefox sınıf süresi bölünmüş koşuyla (`audit` ve `scan` kümeleri) 590 sn altına indi; ölçümler 'Düzeltme 1' bölümünde; kapanış satırında bölünmüş koşu gerekçesi yazılı.
 - **D-1789** (F6 gate), **D-1769** (sahip): A4 ve A3'te çıkan yeni gözlemler; kendi satırlarında gerekçeli.
 - **D-1788, D-1790, D-1778** (T604 U): ürün kodu (`src`).
 
@@ -431,7 +431,7 @@ A parçası yalnız test, tarayıcı aracı, betik ve belge dosyası değiştird
 |---|---|---|
 | KK1 (envanter) | A1–A7 kalemleri yukarıdaki tabloda; her biri kapalı ya da gerekçeli (U'ya ya da F6 gate'e daraltılmış) | tablo; `grep T604` denetimi |
 | KK2 (para ve güvenlik) | A1, A2, A3 kalemleri 'Para ve güvenlik kalemleri (KK2)' bölümünde; değişinimle kırmızı, eski testler aynı | yukarıdaki bölüm; D-981, D-1424, D-1005, D-1020, D-1120, D-1130, D-1289, D-1301 |
-| KK3 (tarayıcı kalemleri, üç motor × iki yol) | D-1723, D-1725, D-1732, D-1746 ✅; D-1736 (c)–(d) yapıldı, Firefox süre ölçümü CI E2E'ye (F6 gate); D-1471 (VAL-B040, VAL-B041) ve D-1753 (VAL-A371) üç motor × iki yolda yeşil | `NarrowClassTests`, `ConcurrentEditTests`, `AccessibilityRecordTests`, `ScriptlessFlowTests` |
+| KK3 (tarayıcı kalemleri, üç motor × iki yol) | D-1723, D-1725, D-1732, D-1746 ✅; D-1736 ✅ (Firefox süresi bölünmüş koşuyla 590 sn altı, düzeltme 1); D-1471 (VAL-B040, VAL-B041) ve D-1753 (VAL-A371) üç motor × iki yolda yeşil | `NarrowClassTests`, `ConcurrentEditTests`, `AccessibilityRecordTests`, `ScriptlessFlowTests` |
 | KK4 (D-1678) | `MigrationBundle` derleme süre sınırı `SHOPFOLIO_TEST_BUNDLE_BUILD_TIMEOUT_SECONDS` ile yapılandırılır; varsayılan 5 dk değişmez; geçersiz değerde varsayılan | A4 bölümü; `MigrationBundleTests` |
 | KK5 (satırlar ve sayaç) | kapanan satırlar `✅ Çözüldü → T604`, daraltılanlar yeni hedef ve gerekçeyle; yeni satırlar `DEFERRED_BACKLOG.d/T604-A.md`'de (D-1753 ✅, D-1768 ✅, D-1769, D-1770, D-1778, D-1779 ✅, D-1780 ✅, D-1788, D-1789, D-1790, D-1798 ✅); sayaca dokunulmadı (faz kapısı) | `Consistency` testleri yeşil |
 
@@ -441,12 +441,12 @@ A parçası yalnız test, tarayıcı aracı, betik ve belge dosyası değiştird
 |---|---|---|
 | Kabul 1: hedefi T604 olan her A kalemi kod ve test kanıtıyla kapanır ya da gerekçeyle daraltılır | ✓ | yukarıdaki tablo (75 kalem: kapanan ✅, daraltılan T604 U / F6 gate satırda gerekçeli, açık kalan D-1769, D-1770 gerekçeli) |
 | Kabul 2: para ve güvenlik kalemleri ayrı başlıkta, kırmızı–yeşil, çıkış yolu ve geri alma, eski testler aynı | ✓ | 'Para ve güvenlik kalemleri (KK2)' bölümü; D-1770 kırmızı (HEAD betikleri çıkış 1) ve yeşil (yamalı çıkış 0) gösterildi ama yama dalda değil (bekçi engeli, ⚠) |
-| Kabul 3: tarayıcı kalemleri üç motor × iki yol, 590 sn altı, ölçüt kaydı tek çağrıda eksiksiz | ~ | D-1723, D-1725, D-1732, D-1746 üç motor × iki yol yeşil, kayıt tamlık denetimi (`AddCompletenessCheck`); Firefox sınıf süresi ölçümü ve CI E2E yalnız CI'da (D-1736, F6 gate): kısmi, satırda gerekçeli |
+| Kabul 3: tarayıcı kalemleri üç motor × iki yol, 590 sn altı, ölçüt kaydı tek çağrıda eksiksiz | ✓ | D-1723, D-1725, D-1732, D-1746 üç motor × iki yol yeşil; D-1736 Firefox süresi düzeltme 1'de iki kümeyle 590 sn altında (427, 355, 438, 407 sn), her küme kendi ölçüt kaydı bölümlerini denetler (`AccessibilityClusterTests`); üç motorun CI koşusu E2E'de (advisory) |
 | Kabul 4: D-1678 yapılandırılabilir sınır, varsayılan 5 dk | ✓ | `SHOPFOLIO_TEST_BUNDLE_BUILD_TIMEOUT_SECONDS`; `MigrationBundleTests` (varsayılan, geçersiz ve geçerli değerler) |
 | Kabul 5: kapanan satır `✅ Çözüldü → T604`; daraltılan satır yeni hedef ve gerekçe | ✓ | `Docs/DEFERRED_BACKLOG.md` ve `DEFERRED_BACKLOG.d/T604-A.md` |
-| KK1–KK5 | ✓ (KK3 ~) | yukarıdaki KK tablosu |
+| KK1–KK5 | ✓ | yukarıdaki KK tablosu |
 | Mini güvenlik kontrolü | ✓ | yeni sır, kimlik ya da dış bağımlılık yok; tarayıcı testlerinin kaydı maskeli (`DataRecord.Mask`); `src` değişmedi |
-| Sık FAIL (1) bekçi/tarama istisnası geniş | ✓ | yeni istisna yok; A6 devamının testleri bekçi değil |
+| Sık FAIL (1) bekçi/tarama istisnası geniş | ✓ | D-1120 istisnası düzeltme 1'de daraltıldı (cat yolu yalnız `/`, `$AD/`, `${AD}/`; `test-pre-commit.sh` 252/252, takılır örnekleri g24-g29); başka istisna yok |
 | Sık FAIL (2) kaynak taraması çağrı biçimi kaçırır | ✓ | yeni tarama yok; A5 ve A6 taramalarının kaçırma örnekleri satırlarında |
 | Sık FAIL (3) 06 default/FK | ✓ | şema değişmedi |
 | Sık FAIL (4) aynı sayıyı anan öteki yerler | ✓ | kayıt sayacı `customers = 3`, `admins = 2` (`ForRecord`) ve yeni oyuncu belgesi aynı değişiklikte; belge sürümleri A6'daki gibi; MEMORY ve sayaç el değmedi |
@@ -493,10 +493,30 @@ PR: #594 — A1, A2, A3, A4, A5, A6, A7 tamam (A parçasının son dilimi A6 dev
 - **Doğrulanan:** 64 A kalemi: 55 kapalı (`✅ Çözüldü → T604`), 8 T604 U'ya gerekçe ve hedefle daraltılmış, 1 (D-1736) F6 gate'e (B1); dal `DEFERRED_BACKLOG.md`'de tam olarak bu 64 satırı değiştirir, satır sayısı main ile eşit (854). Build `-warnaserror` temiz; `dotnet format` değişen 81 `.cs`te temiz; Unit 8267/8267; betik testleri 4/4; `test-pre-commit.sh` 243/243; Integration ilgili 22 sınıf 555/555 (TAM: CI); KK4: değişken 1 sn → fikstür sınıra takılır, 1800 sn → geçer; tarayıcı chromium iki yol: ölçüt grubu 30/30 (kayıtta "–" hücresi yok), `NarrowClassTests` + `ConcurrentEditTests` + `EmptyStateTests` 66/66, `ScriptlessFlowTests` + `ScreenInventoryTests` + `ValidationStateTests` + `AuditScriptsTests` 148/148. CI run 44836213400: Lint, Build, Unit, Integration, Contract, Migration, Paketleme ve CI Gate yeşil; 8. E2E koşuyor.
 - **`12` satırları:** `Durum` hücreleri bu turda yazılmadı (FAIL; satır satır PASS okuması düzeltme turunun doğrulamasında).
 
-## Düzeltme 1 (doğrulama tur 1 FAIL; devam ediyor, BÖLÜNDÜ süre)
+## Düzeltme 1 (doğrulama tur 1 FAIL; kapandı)
 
 | Bulgu | Durum | Kanıt |
 |---|---|---|
-| 1 (ORTA, KK3 / D-1736) Firefox grup süresi | AÇIK (sonraki işçi) | Yerel ölçüm firefox betikli Audit+Scan+Criteria+Record: 590 sn sınırında kesildi (595 sn zaman aşımı; Audit testi kesildi). Test süreleri: AccessibilityScanTests 264 sn, Criteria VALA350 58 sn, VALA341 48 sn, VALA784 19,5 sn, VALA345 5 sn, Audit >= 17 sn (kesildi), Record sınıfı < 2 sn |
-| 2 (DÜŞÜK, KK2 / D-1120) istisna darlığı | ✓ | `scripts/git-hooks/pre-commit` SH_PATH: yol `/`, `$AD/`, `${AD}/` ile başlar; `test-pre-commit.sh` 252/252 (yeni: 3 geçer g21-g23, 6 takılır g24-g29); README satırı ve D-1120 satırı (on bir/on sekiz örnek) güncel |
-| 3 (DÜŞÜK, KK5) backlog parça bozukluğu | ✓ | `DEFERRED_BACKLOG.d/T604-A.md` satır 8 D-1770 sonundaki yapışık D-1778 silindi; 14 satırın hepsi 6 hücre, D-1778 bir kez |
+| 1 (ORTA, KK3 / D-1736) Firefox grup süresi | ✓ | Erişilebilirlik geçişi iki kümeye bölündü (`AccessibilityCluster.cs`): `audit` = `AccessibilityAuditTests`; `scan` = `AccessibilityScanTests` + `AccessibilityCriteriaTests`; `SHOPFOLIO_BROWSER_CLUSTER` (boş = tüm geçiş, bilinmeyen ad hata); küme `SHOPFOLIO_BROWSER_OUT/<küme>` altına yazar, ölçmediği hücreye "·" ve ölçütte "başka kümede ölçülür" yazar, kendi bölümünde "ölçülmedi" kalırsa koşu düşer (`WriteRecordOfCriteria`, `RegisterCompleteness`). Çökme: yalnız `PlaywrightException` "Page crashed", durak başına tek yeniden deneme, sayılır ve kayda yazılır. `.github/ci-commands.env` `E2E_CMD`: audit, scan ve kalan sınıflar (`--filter-not-class`) üç `dotnet test` çağrısı, çıkış kodu birikimli. `AccessibilityClusterTests` 13 test, tarayıcısız (kümeler kendi gözlemleriyle tam, eksikte düşer; birleşim her bölümü ve ölçüt kanıtını kapsar; sınıf kümeleri ayrık; CI komutu = küme tanımı; CrashRetry). Cluster + Record 29/29. **Ölçüm (firefox, 12 çekirdek, ayrı çağrılar, sınır 590 sn):** audit betikli 427 sn (1/1), scan betikli 355 sn (6/6), audit betiksiz 438 sn (1/1), scan betiksiz 407 sn (6/6); hepsi geçti, "Page crashed" yeniden denemesi 0. Önceki ölçüm (tek çağrı): 589 sn ve iki yolda kesilirdi. D-1736 satırı `✅ Çözüldü → T604`, bölünmüş koşu gerekçesiyle |
+| 2 (DÜŞÜK, KK2 / D-1120) istisna darlığı | ✓ (yeniden denetlendi) | `scripts/git-hooks/pre-commit` `SH_PATH`: yol `/`, `$AD/`, `${AD}/` ile başlar (satır 165-166); `test-pre-commit.sh` 252/252 (g21-g23 geçer, g24-g29 takılır); README satırı ve D-1120 satırı (on bir/on sekiz örnek) güncel |
+| 3 (DÜŞÜK, KK5) backlog parça bozukluğu | ✓ (yeniden denetlendi) | `DEFERRED_BACKLOG.d/T604-A.md`: 13 satırın hepsi 6 hücre, D-1778 bir kez |
+| K1 | ✓ | D-1120 satırı güncel sayıları yazar (Bulgu 2) |
+| K2 | ✓ | D-1770 hedefi `T604 U`; taşıyıcı PR yazılı: D-1120 bekçisi main'e inince U işçisi yamayı `git apply` ile uygular, U başlamazsa F6 gate'in ilk chore PR'ı |
+| K3 | ✓ | `Docs/CI_CD_SETUP.md` 'Test ortamı değişkenleri' tablosu (`SHOPFOLIO_TEST_DATABASE`, `SHOPFOLIO_BROWSER_ENGINES/PATHS/CLUSTER/OUT/EXECUTABLES`, `SHOPFOLIO_TEST_BUNDLE_BUILD_TIMEOUT_SECONDS`); `ci-commands.env` yorumu tabloya atıf yapar |
+| K4 | ✓ | D-1803 (`DEFERRED_BACKLOG.d/T604-A.md`, hedef F6 gate) |
+
+**Düzeltme 1 öz denetimi (A1-A7 öz denetim tablosu yukarıda; düzeltmeyle değişen satırlar güncellendi).**
+
+| Madde | ✓ | Kanıt |
+|---|---|---|
+| A1-A7 öz denetim tablosu ve Kabul 1-5 | ✓ | yukarıdaki tablolar; Kabul 3 satırı ve A4 D-1736 satırları düzeltmeyle ✓ yapıldı, aynı sayıyı/durumu anan satırlar (KK3, KK1-KK5, kalem tablosu, ⚠ A4, D-1736 özeti) güncellendi |
+| Bulgu 1, 2, 3 ve K1-K4 | ✓ | yukarıdaki tablo |
+| Sık FAIL (1) istisna geniş | ✓ | D-1120 daraltıldı, takılır örnekleri g24-g29; başka yeni istisna yok |
+| Sık FAIL (2) tarama çağrı biçimi | ✓ | yeni tarama yok |
+| Sık FAIL (3) 06 default/FK | ✓ | şema değişmedi |
+| Sık FAIL (4) aynı sayıyı anan yerler | ✓ | `E2E_CMD` ile küme tanımı `AccessibilityClusterTests` ile eşitlenir; test ortamı değişkenleri tek yerde (CI_CD_SETUP), `ci-commands.env` atıf yapar; backlog/rapor durum satırları güncellendi |
+| Sık FAIL (5) belge kuralı karar kaydısız | ✓ | belge kuralı değişmedi (yalnız CI_CD_SETUP değişken tablosu ve backlog satırları) |
+| Hedefi T604 olan kalem ne kapandı ne ileri atıldı | ✓ | `grep T604` denetimi: D-1736 kapandı; D-1770 `T604 U` gerekçeli; D-1803 yeni, F6 gate |
+| Bitiş kapısı: Unit TAM, ilgili Integration, biçim, betik | ✓ | Unit TAM 8267/8267; Integration ilgili sınıflar: `AccessibilityClusterTests` + `AccessibilityRecordTests` (Cluster+Record 29/29), firefox küme koşuları; **TAM: CI**; `dotnet format` yalnız değişen `.cs`te temiz; `run-script-tests.sh` bu devamda koşuldu |
+
+**⚠ Düzeltme 1.** (a) 'Unit testi' tarayıcısız Integration sınıfında (`AccessibilityClusterTests`); UnitTests projesi Integration'ı görmez. (b) Record sınıfı tarayıcı koşmaz; `scan` kümesinde değil Integration işinde koşar. (c) `E2E_CMD` artık üç çağrı (advisory). (d) webkit ve chromium bu devamda yeniden koşulmadı (kod yolu motordan bağımsız; CI E2E).

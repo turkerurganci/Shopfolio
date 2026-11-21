@@ -27,6 +27,18 @@ tüm zorunlu job'lar ─┘
 
 **E2E advisory'dir:** `continue-on-error` + `ci-gate.needs` dışında. Buna karşılık E2E **harness kodu** lint/build adımlarında bloke-edicidir — harness çürümez, yalnız çalıştırma advisory'dir.
 
+**Test ortamı değişkenleri (T604, tek yer):** entegrasyon ve tarayıcı testlerinin okuduğu ortam değişkenleri aşağıdadır; başka yerde (ör. `.github/ci-commands.env` yorumu) bu tabloya atıf yapılır, ikinci liste tutulmaz.
+
+| Değişken | Anlam | Boşsa |
+|---|---|---|
+| `SHOPFOLIO_TEST_DATABASE` | PostgreSQL 18 yönetici bağlantı dizesi (testler şablon veritabanı kurar) | Integration ve tarayıcı testleri çalışmaz |
+| `SHOPFOLIO_BROWSER_ENGINES` | Virgülle ayrılmış motor adları (`chromium`, `firefox`, `webkit`) | Üç motor |
+| `SHOPFOLIO_BROWSER_PATHS` | Virgülle ayrılmış yollar (`Scripted`, `Scriptless`); uzun bir motor geçişi iki çağrıda koşulur | İki yol |
+| `SHOPFOLIO_BROWSER_CLUSTER` | Erişilebilirlik geçişinin kümesi: `audit` ya da `scan` (D-1736); küme yalnız kendi sınıflarını ve kendi ölçüt kaydı bölümlerini denetler, `SHOPFOLIO_BROWSER_OUT` altında kendi klasörüne yazar; bilinmeyen ad hatadır | Tüm geçiş (küme yok) |
+| `SHOPFOLIO_BROWSER_OUT` | Gözlem ve ölçüt kaydı çıktı klasörü | Geçici klasörde `shopfolio-browser-observations` |
+| `SHOPFOLIO_BROWSER_EXECUTABLES` | Bir motorun ikinci sürümü için çalıştırılabilir dosya: `chromium=<yol>\|firefox=<yol>` (D-1709) | Playwright'ın getirdiği sürüm |
+| `SHOPFOLIO_TEST_BUNDLE_BUILD_TIMEOUT_SECONDS` | Göç demetinin derleme süre sınırı, saniye (D-1678) | 300 (5 dk); geçersiz değer de varsayılana düşer |
+
 ---
 
 ## 2. Eksik komut kapısı (önemli)

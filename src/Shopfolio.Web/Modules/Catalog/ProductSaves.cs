@@ -439,11 +439,11 @@ internal sealed class ProductSaves
             if (binding != VariantStructureCheck.Valid)
             {
                 // The refused field is the one the rule names: a missing value is the slot that has none (the first one when its option exists), never the other one (D-1705).
+                // The field and the code stand in one expression so the form field scan (FormFieldCodeCalls) reads the pair.
                 bool firstMissing = optionOrders.Contains(1) && firstValueId is null;
-                string refused = binding == VariantStructureCheck.ValueMissing
-                    ? (firstMissing ? nameof(ProductSaveVariant.FirstOptionValueId) : nameof(ProductSaveVariant.SecondOptionValueId))
-                    : (row.FirstOptionValueId is not null ? nameof(ProductSaveVariant.SecondOptionValueId) : nameof(ProductSaveVariant.FirstOptionValueId));
-                errors.Add(new ProductSaveFieldError(Field(i, refused), binding == VariantStructureCheck.ValueMissing ? ErrorCode.FieldRequired : ErrorCode.InvalidListValue));
+                errors.Add(binding == VariantStructureCheck.ValueMissing
+                    ? new ProductSaveFieldError(Field(i, !firstMissing ? nameof(ProductSaveVariant.SecondOptionValueId) : nameof(ProductSaveVariant.FirstOptionValueId)), ErrorCode.FieldRequired)
+                    : new ProductSaveFieldError(Field(i, row.FirstOptionValueId is not null ? nameof(ProductSaveVariant.SecondOptionValueId) : nameof(ProductSaveVariant.FirstOptionValueId)), ErrorCode.InvalidListValue));
             }
 
             string? sku = row.SKU?.Trim();

@@ -19,9 +19,6 @@ public sealed class NarrowClassTests(BrowserHost host) : BrowserTestBase(host)
     /// <summary>The order history row's five cells in the order of the boxes read: number, day, items, total, status.</summary>
     private static readonly int[] Cells = [4, 5, 6, 7, 8];
 
-    /// <summary>The account screen's navigation does not stand at the left of the sections in the wide class (04 5.25.18; D-1790, src: T604 U); false once the page is fixed, and the observation then asks for the constant's removal.</summary>
-    private const bool KnownNavigationNotAtTheLeft = true;
-
     /// <summary>The boxes of every element each selector matches, in document order: place, size, whether it is shown, whether it clips its content, its text and address, whether a closed or hidden ancestor holds it.</summary>
     private const string BoxesScript = """
         (sels) => JSON.stringify(sels.map((s) => [...document.querySelectorAll(s)].map((e) => {
@@ -290,15 +287,14 @@ public sealed class NarrowClassTests(BrowserHost host) : BrowserTestBase(host)
 
             if (wide)
             {
-                // 04 5.25.18: in the wide class the navigation stands at the left and the sections at the right. The account screen's page does not put its content in the layout the address and order screens use
-                // (account-layout), so the list is vertical but stands above the sections at the full width: the known departure D-1790 (src, T604 U). Two ways: when the page is fixed this observation fails
-                // and the constant is removed, as the title measure's known list is (D-1788).
+                // 04 5.25.18: in the wide class the navigation stands at the left and the sections at the right; the page puts its content in the layout the address and order screens use
+                // (account-layout) since D-1790 (T604), so no departure is known.
                 bool atTheLeft = nav.Right <= sections[0].X + 1;
                 await ObserveAsync(
-                    "E-25", path, engine, page, $"{Class(width)} sınıf ({width}): iç gezinme solda, bölümler sağda (bilinen sapma D-1790)",
-                    $"belge (04 5.25.18): gezinme solda, bölümler sağda; bu sürümde sayfa yerleşim sarmalayıcısını (account-layout) kullanmaz, gezinme bölümlerin üstünde tam genişliktedir ve sapma {KnownNavigationNotAtTheLeft}",
+                    "E-25", path, engine, page, $"{Class(width)} sınıf ({width}): iç gezinme solda, bölümler sağda",
+                    "belge (04 5.25.18): gezinme solda, bölümler sağda",
                     $"gezinme x {nav.X:0}-{nav.Right:0} y {nav.Y:0}-{nav.Bottom:0}; ilk bölüm x {sections[0].X:0} y {sections[0].Y:0}; solda {atTheLeft}",
-                    atTheLeft != KnownNavigationNotAtTheLeft);
+                    atTheLeft);
             }
 
             Box delete = boxes[3][0];
